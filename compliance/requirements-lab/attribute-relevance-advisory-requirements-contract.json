@@ -12,8 +12,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueAttributeRelevanceAdvisories",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
+        "cpp/tests/attribute_relevance_advisory_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
+        "cpp/tests/regional_attribute_relevance_rate_designator_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_preserves_update_rate_advisories"
       ]
     },
@@ -24,8 +24,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueAttributeRelevanceAdvisories",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
+        "cpp/tests/attribute_relevance_advisory_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
+        "cpp/tests/regional_attribute_relevance_rate_designator_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_preserves_update_rate_advisories"
       ]
     },
@@ -36,7 +36,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "attributeRelevanceAdvisoriesForScopeChanges",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
+        "cpp/tests/attribute_relevance_advisory_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
       ]
     },
     {
@@ -46,7 +46,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueAttributeRelevanceAdvisories",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
+        "cpp/tests/attribute_relevance_advisory_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
       ]
     },
     {
@@ -56,7 +56,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueAttributeRelevanceAdvisories",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
+        "cpp/tests/attribute_relevance_advisory_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
       ]
     },
     {
@@ -66,7 +66,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAttributeRelevanceAdvisorySwitch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
+        "cpp/tests/attribute_relevance_advisory_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
       ]
     },
     {
@@ -76,7 +76,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::setAttributeRelevanceAdvisorySwitch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
+        "cpp/tests/attribute_relevance_advisory_catch2.cpp::Embedded attribute relevance advisories follow scope transitions"
       ]
     },
     {
@@ -86,8 +86,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "subscribedUpdateRateDesignatorForAttribute",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
+        "cpp/tests/attribute_relevance_advisory_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
+        "cpp/tests/regional_attribute_relevance_rate_designator_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_preserves_update_rate_advisories"
       ]
     },
@@ -98,8 +98,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueAttributeRelevanceAdvisories",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
+        "cpp/tests/attribute_relevance_advisory_catch2.cpp::Embedded attribute relevance advisories follow scope transitions",
+        "cpp/tests/regional_attribute_relevance_rate_designator_catch2.cpp::Embedded regional attribute relevance advisories retain explicit update-rate designators",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_preserves_update_rate_advisories"
       ]
     }

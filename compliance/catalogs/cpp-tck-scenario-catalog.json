@@ -25755,6 +25755,234 @@
     {"id":"cpp-tck.federation-mom-save-status-contract","category":"federation-mom","title":"Exercise the standard adapter-backed federation MOM save-status contract","api_methods":["RTIambassador.queryFederationSaveStatus","FederateAmbassador.federationSaveStatusResponse"],"requirement_ids":["cpp-1516.1-federation-save-status"],"contract_refs":["standard-federation-mom-save-status-contract.json"],"cpp_test":"src/main.cpp#scenarioFederationMomSaveStatusContract","runner_id":"cpp-tck.federation-mom-save-status-contract","parity":"cpp-tck.federation-mom-save-status","default_status":"adapter-required","promotion":"promoted"},
     {"id":"java-tck.mom","category":"mom","title":"Exercise standard federation save-status callbacks","api_methods":["RTIambassador.queryFederationSaveStatus","FederateAmbassador.federationSaveStatusResponse"],"requirement_ids":["cpp-1516.1-federation-save-status"],"contract_refs":["standard-federation-mom-save-status-contract.json"],"cpp_test":"src/main.cpp#scenarioFederationMomSaveStatus","runner_id":"java-tck.mom","native_equivalent_runner_ids":["cpp-tck.federation-mom-save-status"],"default_status":"adapter-required","promotion":"promoted"},
     {"id":"cpp-tck.fom-standard-invalid-input-corpus","category":"fom-lifecycle","title":"Reject standard-invalid FOM inputs without reserving federation names","api_methods":["RTIambassador.connect","RTIambassador.createFederationExecution","RTIambassador.joinFederationExecution","RTIambassador.resignFederationExecution","RTIambassador.destroyFederationExecution","RTIambassador.disconnect"],"requirement_ids":["cpp-1516.1-federation-create-join-resign-destroy","cpp-1516.1-fom-module-composition"],"contract_refs":["standard-fom-semantic-invalid-input-corpus-contract.json"],"cpp_test":"src/main.cpp#scenarioFomStandardInvalidInputCorpus","runner_id":"cpp-tck.fom-standard-invalid-input-corpus","parity":"cpp-extension-no-java-counterpart","default_status":"adapter-required","promotion":"promoted"},
-    {"id":"cpp-tck.fom-standard-invalid-input-corpus-contract","category":"fom-lifecycle","title":"Exercise the adapter-backed standard-invalid FOM corpus contract","api_methods":["RTIambassador.createFederationExecution"],"requirement_ids":["cpp-1516.1-federation-create-join-resign-destroy"],"contract_refs":["standard-fom-semantic-invalid-input-corpus-contract.json"],"cpp_test":"src/main.cpp#scenarioFomStandardInvalidInputCorpusContract","runner_id":"cpp-tck.fom-standard-invalid-input-corpus-contract","parity":"cpp-tck.fom-standard-invalid-input-corpus","default_status":"adapter-required","promotion":"promoted"}
+    {"id":"cpp-tck.fom-standard-invalid-input-corpus-contract","category":"fom-lifecycle","title":"Exercise the adapter-backed standard-invalid FOM corpus contract","api_methods":["RTIambassador.createFederationExecution"],"requirement_ids":["cpp-1516.1-federation-create-join-resign-destroy"],"contract_refs":["standard-fom-semantic-invalid-input-corpus-contract.json"],"cpp_test":"src/main.cpp#scenarioFomStandardInvalidInputCorpusContract","runner_id":"cpp-tck.fom-standard-invalid-input-corpus-contract","parity":"cpp-tck.fom-standard-invalid-input-corpus","default_status":"adapter-required","promotion":"promoted"},
+    {
+      "id": "cpp-tck.post-resignation-service-boundaries",
+      "category": "lifecycle",
+      "title": "Verify standard service boundaries after federation resignation",
+      "api_methods": [
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassName",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
+        "RTIambassador.getAvailableDimensionsForObjectClass",
+        "RTIambassador.getAvailableDimensionsForInteractionClass",
+        "RTIambassador.getDimensionHandle",
+        "RTIambassador.getOrderType",
+        "RTIambassador.getOrderName",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClass",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClass",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.reserveObjectInstanceName",
+        "RTIambassador.releaseObjectInstanceName",
+        "RTIambassador.reserveMultipleObjectInstanceNames",
+        "RTIambassador.releaseMultipleObjectInstanceNames",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.requestAttributeValueUpdate",
+        "RTIambassador.deleteObjectInstance",
+        "RTIambassador.localDeleteObjectInstance",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.sendDirectedInteraction",
+        "RTIambassador.queryAttributeOwnership",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.enableAsynchronousDelivery",
+        "RTIambassador.disableAsynchronousDelivery",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.modifyLookahead",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.queryLogicalTime",
+        "RTIambassador.queryGALT",
+        "RTIambassador.queryLITS",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.timeAdvanceRequestAvailable",
+        "RTIambassador.nextMessageRequest",
+        "RTIambassador.nextMessageRequestAvailable",
+        "RTIambassador.flushQueueRequest",
+        "RTIambassador.registerFederationSynchronizationPoint",
+        "RTIambassador.synchronizationPointAchieved",
+        "RTIambassador.requestFederationSave"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-standard-exception-boundary"
+      ],
+      "contract_refs": [
+        "post-resignation-service-boundaries-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioPostResignationServiceBoundaries",
+      "runner_id": "cpp-tck.post-resignation-service-boundaries",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+      {
+        "id": "cpp-tck.post-resignation-service-boundaries-contract",
+        "category": "lifecycle",
+        "title": "Exercise the standard post-resignation service-boundary contract",
+      "api_methods": [
+        "RTIambassador service exception specifications for FederateNotExecutionMember"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-standard-exception-boundary"
+      ],
+      "contract_refs": [
+        "post-resignation-service-boundaries-contract.json"
+      ],
+      "cpp_test": "src/main.cpp#scenarioPostResignationServiceBoundariesContract",
+      "runner_id": "cpp-tck.post-resignation-service-boundaries-contract",
+      "parity": "cpp-tck.post-resignation-service-boundaries",
+        "default_status": "adapter-required",
+        "promotion": "promoted"
+      },
+      {
+        "id": "cpp-tck.automatic-resign-directive-delete-objects",
+        "category": "federation-management",
+        "title": "Apply DELETE_OBJECTS automatic resignation after a joined federate is lost",
+        "api_methods": [
+          "RTIambassador.createFederationExecution",
+          "RTIambassador.joinFederationExecution",
+          "RTIambassador.getObjectClassHandle",
+          "RTIambassador.getAttributeHandle",
+          "RTIambassador.publishObjectClassAttributes",
+          "RTIambassador.subscribeObjectClassAttributes",
+          "RTIambassador.setAutomaticResignDirective",
+          "RTIambassador.getAutomaticResignDirective",
+          "RTIambassador.registerObjectInstance",
+          "RTIambassador.getObjectInstanceName",
+          "RTIambassador.getObjectInstanceHandle",
+          "RTIambassador.resignFederationExecution(NO_ACTION)",
+          "RTIambassador.disconnect",
+          "FederateAmbassador.discoverObjectInstance",
+          "FederateAmbassador.connectionLost",
+          "FederateAmbassador.removeObjectInstance"
+        ],
+        "requirement_ids": [
+          "cpp-1516.1-federation-create-join-resign-destroy",
+          "cpp-1516.1-object-registration-discovery",
+          "cpp-1516.1-object-instance-deletion"
+        ],
+        "contract_refs": [
+          "federation-execution-api-contract.json",
+          "resign-action-api-contract.json",
+          "object-instance-registration-api-contract.json",
+          "object-instance-deletion-api-contract.json",
+          "standard-automatic-resign-directive-delete-objects-contract.json"
+        ],
+        "cpp_test": "src/portable_tck.cpp#scenarioAutomaticResignDirectiveDeleteObjects",
+        "runner_id": "cpp-tck.automatic-resign-directive-delete-objects",
+        "parity": "cpp-extension-no-java-counterpart",
+        "default_status": "adapter-required",
+        "promotion": "promoted"
+      },
+      {
+        "id": "cpp-tck.automatic-resign-directive-delete-objects-contract",
+        "category": "federation-management",
+        "title": "Exercise the standard adapter-backed automatic-resignation-on-connection-loss contract",
+        "api_methods": [
+          "RTIambassador.setAutomaticResignDirective",
+          "RTIambassador.getAutomaticResignDirective",
+          "RTIambassador.disconnect",
+          "FederateAmbassador.connectionLost",
+          "FederateAmbassador.removeObjectInstance"
+        ],
+        "requirement_ids": [
+          "cpp-1516.1-federation-create-join-resign-destroy",
+          "cpp-1516.1-object-instance-deletion"
+        ],
+        "contract_refs": [
+          "standard-automatic-resign-directive-delete-objects-contract.json"
+        ],
+        "cpp_test": "src/portable_tck.cpp#scenarioAutomaticResignDirectiveDeleteObjectsContract",
+        "runner_id": "cpp-tck.automatic-resign-directive-delete-objects-contract",
+        "parity": "cpp-tck.automatic-resign-directive-delete-objects",
+        "default_status": "adapter-required",
+        "promotion": "promoted"
+      },
+      {
+        "id": "cpp-tck.public-handle-decoding",
+        "category": "handle-encoding-decoding",
+        "title": "Exercise every official federation-scoped C++ handle decoder through lifecycle, round-trip, and malformed-input paths",
+        "api_methods": [
+          "RTIambassador.decodeFederateHandle",
+          "RTIambassador.decodeObjectClassHandle",
+          "RTIambassador.decodeInteractionClassHandle",
+          "RTIambassador.decodeObjectInstanceHandle",
+          "RTIambassador.decodeAttributeHandle",
+          "RTIambassador.decodeParameterHandle",
+          "RTIambassador.decodeDimensionHandle",
+          "RTIambassador.decodeRegionHandle",
+          "RTIambassador.decodeMessageRetractionHandle",
+          "Handle.encode",
+          "Handle.encodedLength",
+          "RTIambassador.createRegion",
+          "RTIambassador.updateAttributeValues(timestamp)",
+          "RTIambassador.retract",
+          "FederateAmbassador.discoverObjectInstance"
+        ],
+        "requirement_ids": [
+          "cpp-1516.1-handle-encoding",
+          "cpp-1516.1-handle-decoding",
+          "cpp-1516.1-ddm-region-lifecycle",
+          "cpp-1516.1-timestamped-attribute-update"
+        ],
+        "contract_refs": [
+          "standard-public-handle-decoding-contract.json",
+          "handle-decoding-api-contract.json",
+          "handle-encoding-requirements-contract.json"
+        ],
+        "cpp_test": "src/portable_tck.cpp#scenarioPublicHandleDecoding",
+        "runner_id": "cpp-tck.public-handle-decoding",
+        "parity": "cpp-extension-no-java-counterpart",
+        "default_status": "adapter-required",
+        "promotion": "promoted"
+      },
+      {
+        "id": "cpp-tck.public-handle-decoding-contract",
+        "category": "handle-encoding-decoding",
+        "title": "Exercise the standard adapter-backed public handle-decoding contract",
+        "api_methods": [
+          "RTIambassador.decodeFederateHandle",
+          "RTIambassador.decodeObjectClassHandle",
+          "RTIambassador.decodeInteractionClassHandle",
+          "RTIambassador.decodeObjectInstanceHandle",
+          "RTIambassador.decodeAttributeHandle",
+          "RTIambassador.decodeParameterHandle",
+          "RTIambassador.decodeDimensionHandle",
+          "RTIambassador.decodeRegionHandle",
+          "RTIambassador.decodeMessageRetractionHandle"
+        ],
+        "requirement_ids": [
+          "cpp-1516.1-handle-decoding"
+        ],
+        "contract_refs": [
+          "standard-public-handle-decoding-contract.json"
+        ],
+        "cpp_test": "src/portable_tck.cpp#scenarioPublicHandleDecodingContract",
+        "runner_id": "cpp-tck.public-handle-decoding-contract",
+        "parity": "cpp-tck.public-handle-decoding",
+        "default_status": "adapter-required",
+        "promotion": "promoted"
+      }
   ]
 }

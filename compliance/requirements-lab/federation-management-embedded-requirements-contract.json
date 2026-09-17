@@ -102,7 +102,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation MOM save conditionals follow pending admission and completion"
+        "cpp/tests/federation_mom_save_conditionals_catch2.cpp::Embedded federation MOM save conditionals follow pending admission and completion"
       ],
       "notes": "The federation-scoped HLAnextSaveName/HLAnextSaveTime and HLAlastSaveName/HLAlastSaveTime attributes are sourced from the authoritative save ledger. The native case checks empty initial values, a pending timestamped request with official HLAunicodeString/HLAinteger64Time encodings, a two-attribute reliable conditional reflection clearing the next values when Initiate Federate Save is admitted at the time-advance boundary, and a completion reflection updating the last values only after the snapshot succeeds. RTI-originated metadata uses the default-invalid producer, no regions, and an empty tag. The official 2025 federation MOM defines no separate restore-name/time conditional family; this remains development-profile traceability only, with restore-operation semantics, remote transport, JUnit/protected review, and conformance open."
     },

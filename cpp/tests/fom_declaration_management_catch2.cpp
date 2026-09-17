@@ -3,6 +3,8 @@
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
 
+#include "hla_test_names.hpp"
+
 #include <atomic>
 #include <filesystem>
 #include <memory>
@@ -132,6 +134,115 @@ TEST_CASE(
   REQUIRE_NOTHROW(creator->disconnect());
   REQUIRE_NOTHROW(owner->disconnect());
   REQUIRE_NOTHROW(extensionJoiner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
+    "[integration][development-profile][federation-management][declaration-management]"
+    "[publish-object-class-attributes]"
+    "[unpublish-object-class-attributes]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.unpublish-object-class]"
+    "[rti.service.unpublish-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.unsubscribe-object-class]"
+    "[rti.service.unsubscribe-object-class-attributes]") {
+  rti1516_2025::NullFederateAmbassador unjoinedFederate;
+  rti1516_2025::NullFederateAmbassador publisherFederate;
+  rti1516_2025::NullFederateAmbassador subscriberFederate;
+  auto unjoined = makeRti();
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  rti1516_2025::ObjectClassHandle invalidObjectClass;
+  rti1516_2025::AttributeHandle invalidAttribute;
+  rti1516_2025::AttributeHandleSet const noAttributes;
+
+  REQUIRE_THROWS_AS(
+      publisher->publishObjectClassAttributes(invalidObjectClass, noAttributes),
+      rti1516_2025::NotConnected);
+  REQUIRE_THROWS_AS(
+      publisher->unpublishObjectClass(invalidObjectClass),
+      rti1516_2025::NotConnected);
+
+  REQUIRE_NOTHROW(unjoined->connect(unjoinedFederate, rti1516_2025::HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->connect(publisherFederate, rti1516_2025::HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberFederate, rti1516_2025::HLA_EVOKED));
+  REQUIRE_THROWS_AS(
+      unjoined->subscribeObjectClassAttributes(invalidObjectClass, noAttributes),
+      rti1516_2025::FederateNotExecutionMember);
+  REQUIRE_THROWS_AS(
+      unjoined->unsubscribeObjectClass(invalidObjectClass),
+      rti1516_2025::FederateNotExecutionMember);
+
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(
+          federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(L"publisher", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(L"subscriber", federationName));
+
+  auto const employee = publisher->getObjectClassHandle(
+      umbra::test::hla::wide::fom::employee);
+  auto const server = publisher->getObjectClassHandle(
+      umbra::test::hla::wide::fom::employee_server);
+  auto const name = publisher->getAttributeHandle(
+      employee, umbra::test::hla::wide::fixture::name);
+  auto const inheritedName = publisher->getAttributeHandle(
+      server, umbra::test::hla::wide::fixture::name);
+  auto const efficiency = publisher->getAttributeHandle(
+      server, umbra::test::hla::wide::fixture::efficiency);
+  REQUIRE(name == inheritedName);
+
+  rti1516_2025::AttributeHandleSet const nameOnly{name};
+  rti1516_2025::AttributeHandleSet const efficiencyOnly{efficiency};
+  rti1516_2025::AttributeHandleSet const invalidOnly{invalidAttribute};
+  REQUIRE_THROWS_AS(
+      publisher->publishObjectClassAttributes(invalidObjectClass, nameOnly),
+      rti1516_2025::ObjectClassNotDefined);
+  REQUIRE_THROWS_AS(
+      publisher->unpublishObjectClass(invalidObjectClass),
+      rti1516_2025::ObjectClassNotDefined);
+  REQUIRE_THROWS_AS(
+      publisher->publishObjectClassAttributes(employee, invalidOnly),
+      rti1516_2025::AttributeNotDefined);
+  REQUIRE_THROWS_AS(
+      publisher->publishObjectClassAttributes(employee, efficiencyOnly),
+      rti1516_2025::AttributeNotDefined);
+
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(employee, nameOnly));
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(
+      subscriber->subscribeObjectClassAttributes(server, nameOnly, false));
+  REQUIRE_NOTHROW(
+      subscriber->subscribeObjectClassAttributes(server, efficiencyOnly, true));
+  // The whole-class form removes ordinary subscriptions at that exact class;
+  // regional declarations remain an independent DDM state family.
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClass(server));
+  REQUIRE_NOTHROW(
+      subscriber->subscribeObjectClassAttributes(server, nameOnly, false));
+  REQUIRE_NOTHROW(
+      subscriber->subscribeObjectClassAttributes(server, efficiencyOnly, true));
+  // Whole-class unpublication removes every currently published attribute at
+  // that class, while the inherited Name publication on Employee remains
+  // until its own class is unpublished.
+  REQUIRE_NOTHROW(publisher->unpublishObjectClass(server));
+  REQUIRE_NOTHROW(publisher->unpublishObjectClass(employee));
+  REQUIRE_NOTHROW(publisher->unpublishObjectClass(server));
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClass(server));
+  REQUIRE_NOTHROW(
+      subscriber->unsubscribeObjectClassAttributes(server, nameOnly));
+  REQUIRE_NOTHROW(
+      publisher->unpublishObjectClassAttributes(employee, nameOnly));
+
+  REQUIRE_NOTHROW(
+      publisher->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(
+      subscriber->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(unjoined->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+  REQUIRE_NOTHROW(subscriber->disconnect());
 }
 
 }  // namespace

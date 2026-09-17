@@ -129,7 +129,7 @@ TEST_CASE(
   REQUIRE(otherSnapshot.queued.size() == 1);
 
   REQUIRE(
-      coordinator.completeTsoDelivery(delivery.messages.front()) ==
+      coordinator.completeTsoDeliveryFor(1, messageId) ==
       umbra::detail::FederationTsoDeliveryStatus::applied);
   REQUIRE(
       coordinator.completeTsoDelivery(delivery.messages.front()) ==

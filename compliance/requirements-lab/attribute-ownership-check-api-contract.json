@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 Is Attribute Owned By Federate development slice to the exact C++ declaration exported by the Requirements Lab. It verifies only the official signature, declared exception set, adapter symbol, and a real Catch2 selector. The service validates the invoking joined federate's known instance and available attribute at that known class, then returns whether the current private ownership snapshot names that same federate. It has no callback, ownership-transfer, or state-mutation effect. Ownership acquisition/divestiture, RTI-owned state, resign-action ownership disposition, timestamped/retraction behavior, DDM, FOM sharing-policy enforcement, save/restore, remote transport, packaging, catalog evidence, and conformance remain outside this slice.",
+  "notes": "This contract pins Umbra's opt-in, non-installable IEEE 1516.1-2025 Is Attribute Owned By Federate development slice to the exact C++ declaration exported by the Requirements Lab. It verifies only the official signature, declared exception set, adapter symbol, and real Catch2 selectors. The service validates the invoking joined federate's known instance and available attribute at that known class, then returns whether the current private ownership snapshot names that same federate. It has no callback, ownership-transfer, or state-mutation effect. The configured-process selector additionally proves the same boolean/status contract across Umbra's private process seam; it is not interoperability evidence. Ownership acquisition/divestiture, RTI-owned state, resign-action ownership disposition, timestamped/retraction behavior, DDM, FOM sharing-policy enforcement, save/restore, packaging, catalog evidence, and conformance remain outside this slice.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-is-attribute-owned-by-federate",
@@ -24,7 +24,8 @@
       "source_symbol": "UmbraRtiAmbassador::isAttributeOwnedByFederate",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Is Attribute Owned By Federate reads 2025 ownership state",
-        "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup"
+        "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup",
+        "cpp/tests/attribute_ownership_query_catch2.cpp::RTIambassador carries Is Attribute Owned By Federate through a configured process endpoint"
       ]
     }
   ]

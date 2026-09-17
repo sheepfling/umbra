@@ -16,8 +16,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
+        "cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
+        "cpp/tests/negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
       ]
     },
     {
@@ -31,8 +31,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
+        "cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
+        "cpp/tests/negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
       ]
     },
     {
@@ -80,13 +80,23 @@
       ]
     },
     {
+      "id": "umbra-release-denied-propagates-tag-to-unavailable",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l57-18",
+      "clause_id": "clause-7.2",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipReleaseDenied",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers"
+      ]
+    },
+    {
       "id": "umbra-cancellation-race-delivers-unavailable-after-owner-denial",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l34-8",
       "clause_id": "clause-7.15",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipReleaseDenied",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial"
+        "cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial"
       ]
     },
     {
@@ -96,7 +106,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipDivestitureIfWanted",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer"
+        "cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer"
       ]
     },
     {
@@ -106,11 +116,11 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionCancellation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
+        "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
+        "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM",
+        "cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
+        "cpp/tests/negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
       ]
     },
     {
@@ -120,11 +130,11 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionCancellation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
+        "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
+        "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM",
+        "cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
+        "cpp/tests/negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
       ]
     },
     {
@@ -134,11 +144,11 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionCancellation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
+        "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
+        "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM",
+        "cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
+        "cpp/tests/negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
       ]
     },
     {
@@ -148,7 +158,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionCancellation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary"
+        "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary"
       ]
     }
   ]

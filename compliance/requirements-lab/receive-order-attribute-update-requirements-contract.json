@@ -137,7 +137,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
       ]
     }

@@ -12,7 +12,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
+        "cpp/tests/regional_multi_attribute_ddm_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
       ]
     },
     {
@@ -22,7 +22,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
+        "cpp/tests/regional_multi_attribute_ddm_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
       ]
     },
     {
@@ -32,7 +32,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscription",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
+        "cpp/tests/regional_multi_attribute_ddm_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
       ]
     },
     {
@@ -42,7 +42,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::removeObjectClassAttributeRegionalSubscription",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
+        "cpp/tests/regional_multi_attribute_ddm_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
       ]
     }
   ]

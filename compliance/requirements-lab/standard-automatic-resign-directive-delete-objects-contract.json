@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the standard automatic-resign directive when a joined federate is lost. The test sets DELETE_OBJECTS through RTIambassador, registers an adapter-FOM object, lets the adapter-managed process fixture simulate connection loss without an explicit resign call, and verifies the surviving federate receives the standard connectionLost callback followed by one ordinary Remove Object Instance callback with standard identity, tag, and producer metadata and no longer resolves the object name. The source uses only official IEEE C++ headers and the standard library; provider, FOM, endpoint, and callback configuration remain adapter inputs. It does not assert provider diagnostics, private headers, registries, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "automatic-resign-directive-delete-objects-on-disconnect",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::setAutomaticResignDirective(DELETE_OBJECTS), getAutomaticResignDirective(), and FederateAmbassador::connectionLost() cleanup",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador automatic-resign directive and disconnect service declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAutomaticResignDirectiveDeleteObjectsContract"
+      ]
+    }
+  ]
+}

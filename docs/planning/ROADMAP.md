@@ -1,6 +1,8 @@
 # Roadmap
 
-For the short first-read query workflow, see [QUERY-CARD.md](QUERY-CARD.md).
+For the one-command first-read query workflow, run
+`python tools/query_rti_work.py resume`; the surrounding reference is
+[QUERY-CARD.md](QUERY-CARD.md).
 The detailed command reference is [QUERY-GUIDE.md](QUERY-GUIDE.md). For a
 machine-readable view of open work and the C++ test/standard mapping commands, see [ROADMAP-INDEX.json](ROADMAP-INDEX.json) and
 `python tools/query_rti_work.py queue --summary --compact` (the bounded family
@@ -16,6 +18,352 @@ C++ test file is the starting point, use
 `python tools/query_rti_work.py unplanned --path <source-file> --summary` to
 list source declarations that lack an exact plan row; it is a bounded
 source-to-plan queue and does not infer requirements or status.
+When a family is complete but a deliberately new C++ case is needed, use
+`python tools/query_rti_work.py gaps --summary --compact` to list uncovered
+pinned 2025 requirements by canonical document:clause subsection, then query a
+sample id with `requirement <id> --summary --compact`.
+When the exact plan id or TEST_CASE title is already known, use
+`python tools/query_rti_work.py case <exact-plan-id-or-test-title>
+--summary --compact` for one bounded card containing source, owner, direct
+requirement-to-subsection pairs, API surfaces, and focused execution handles.
+For reverse lookups by standard subsection or Lab requirement, use
+`section <document:clause-or-number> --summary --compact` or
+`requirement <lab-id> --summary --compact`; mapped rows use the compact matrix
+renderer and narrow their displayed direct pairs to the requested handle.
+
+The process TSO in-transit GALT/LITS slice now has an explicit transport
+acknowledgement barrier. The focused process interaction case queries public
+GALT/LITS after the event crosses transport but before the callback ACK, then
+verifies callback-before-grant ordering. Keep future cases deterministic; do
+not grow a sleep-based timing test.
+
+When a selected family has no implementation/source queue but still has an
+unclassified, source-located plan row, use
+`python tools/query_rti_work.py ready --family <roadmap-item-id> --summary
+--compact`. It returns that exact mapping handoff (plan id, source line, and
+trace/focus/check commands) in one response; explicit no-standalone-surface
+dispositions remain informational rather than implementation work.
+
+When the next slice is a deliberate new C++ case rather than an existing plan
+row, the index's `active_handoff` is authoritative. `ready`/`resume` expose
+its target source file, acceptance criteria, and a mapping seed; the seed's
+direct requirement-to-2025-subsection pairs are resolved from the checked-in
+Catch2 plan. The proposed lane remains non-runnable until its plan row and
+`TEST_CASE` declaration exist, after which the emitted post-mapping focus and
+check handles become valid.
+
+Current completed slice (configured-process multi-recipient timestamped-interaction FIFO):
+
+The newest focused process case is independently queryable with the exact
+`process-tso-interaction-fanout` handles. It carries 133 assertions, maps 20
+Lab requirements to 13 canonical 2025 sections and 15 official C++ API
+surfaces, sends two same-timestamp MainCourseServed interactions and one later
+timestamped interaction once, admits them to two subscribed receivers, and
+proves FIFO callbacks at both receivers across timestamp-five and timestamp-
+seven grants. The process Retract path
+continues to enforce the strict clause 8.22.3 time-plus-lookahead boundary.
+The preceding same-timestamp multiple-message FIFO case remains independently
+queryable with 51 assertions:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-tso-interaction-fanout-integration --summary --compact
+python tools/query_rti_work.py focus process-tso-interaction-fanout --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors fan out multiple timestamped process interactions FIFO to every subscribed receiver before one grant" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-tso-interaction-fanout-integration --summary --compact
+python tools/query_rti_work.py check --lane process-tso-interaction-fanout --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors fan out multiple timestamped process interactions FIFO to every subscribed receiver before one grant$" --output-on-failure
+```
+
+The directed TSO callback-gating companion is now complete and independently
+queryable at `cpp/tests/ieee1516_2025_connection_catch2.cpp:15757`. It carries
+62 assertions, maps 21 Lab requirements to 16 canonical 2025 sections and 18
+official C++ API surfaces, and proves that a timestamped directed interaction
+and its matching grant remain queued while the receiver callback gate is
+disabled, then arrive exactly once in directed-interaction-before-grant order
+after re-enable. The callback preserves TIMESTAMP/TIMESTAMP order metadata,
+target identity, timestamp, tag, and a valid retraction designator. It remains
+private foundation evidence, not a conformance claim.
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-tso-directed-interaction-callback-gating --summary --compact
+python tools/query_rti_work.py focus process-tso-directed-interaction-callback-gating --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors retain a timestamped directed interaction while callbacks are disabled" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-tso-directed-interaction-callback-gating --summary --compact
+python tools/query_rti_work.py check --lane process-tso-directed-interaction-callback-gating --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors retain a timestamped directed interaction while callbacks are disabled$" --output-on-failure
+```
+
+The regional TSO callback-gating companion is now complete and independently
+queryable at `cpp/tests/ieee1516_2025_connection_catch2.cpp:25321`. It carries
+69 assertions, maps 28 Lab requirements to 16 canonical 2025 sections and 20
+official C++ API surfaces, and proves that a timestamped regional interaction
+and its matching grant remain queued while callbacks are disabled, then arrive
+exactly once in interaction-before-grant order after re-enable. It remains
+private foundation evidence, not a conformance claim. The indexed queues are
+exhausted again; use `ready --family transport-and-conformance
+--summary --compact` for the next bounded family choice. Keep regional/DDM,
+directed interactions, subscription mutation, resignation, immediate
+callbacks, package/JUnit, protected-review, interoperability, validation, and
+conformance as separately mapped lanes.
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-tso-regional-interaction-callback-gating --summary --compact
+python tools/query_rti_work.py focus process-tso-regional-interaction-callback-gating --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors retain a timestamped regional interaction while callbacks are disabled" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-tso-regional-interaction-callback-gating --summary --compact
+python tools/query_rti_work.py check --lane process-tso-regional-interaction-callback-gating --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors retain a timestamped regional interaction while callbacks are disabled$" --output-on-failure
+```
+
+Preceding bounded handoff (configured-process zero-lookahead GALT/LITS):
+
+The newest focused process case is independently queryable with the exact
+zero-lookahead handles. It carries 28 assertions, maps six Lab requirements to
+four canonical 2025 sections and six official C++ API surfaces, advances a
+zero-lookahead regulator through an evoked Time Advance Grant, and proves that
+a second federate observes the required exclusive integer GALT/LITS boundary:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-query-time-bounds-zero-lookahead-integration --summary --compact
+python tools/query_rti_work.py focus process-query-time-bounds-zero-lookahead --summary --compact
+python tools/query_rti_work.py trace "RTIambassador exposes a zero-lookahead exclusive GALT and LITS boundary through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-query-time-bounds-zero-lookahead-integration --summary --compact
+python tools/query_rti_work.py check --lane process-query-time-bounds-zero-lookahead --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador exposes a zero-lookahead exclusive GALT and LITS boundary through a configured process endpoint$" --output-on-failure
+```
+
+The preceding bounded handoff (configured-process queued-TSO GALT/LITS)
+remains independently selectable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-query-time-bounds-queued-tso-integration --summary --compact
+python tools/query_rti_work.py focus process-query-time-bounds-queued-tso --summary --compact
+python tools/query_rti_work.py trace "RTIambassador queries LITS from queued timestamped process input after regulator disable" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-query-time-bounds-queued-tso-integration --summary --compact
+python tools/query_rti_work.py check --lane process-query-time-bounds-queued-tso --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador queries LITS from queued timestamped process input after regulator disable$" --output-on-failure
+```
+
+The preceding bounded handoff (configured-process multi-federate available
+GALT/LITS) remains independently selectable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-query-time-bounds-multi-federate-integration --summary --compact
+python tools/query_rti_work.py focus process-query-time-bounds-multi-federate --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors expose defined GALT and LITS across configured process federates" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-query-time-bounds-multi-federate-integration --summary --compact
+python tools/query_rti_work.py check --lane process-query-time-bounds-multi-federate --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors expose defined GALT and LITS across configured process federates$" --output-on-failure
+```
+
+The preceding bounded handoff (configured-process immediate undefined
+GALT/LITS) remains independently selectable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-query-time-bounds-immediate-integration --summary --compact
+python tools/query_rti_work.py focus process-query-time-bounds-immediate --summary --compact
+python tools/query_rti_work.py trace "RTIambassador queries GALT and LITS through a configured process endpoint with immediate callbacks" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-query-time-bounds-immediate-integration --summary --compact
+python tools/query_rti_work.py check --lane process-query-time-bounds-immediate --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador queries GALT and LITS through a configured process endpoint with immediate callbacks$" --output-on-failure
+```
+
+The preceding bounded handoff (configured-process queued NMR/NMRA):
+
+The latest focused process case is independently queryable with the exact
+queued-TSO NMR/NMRA handles. It carries 101 aggregate assertions across
+`HLA_EVOKED` and `HLA_IMMEDIATE`, maps 19 Lab requirements to 12 canonical
+2025 sections, and keeps interaction-before-grant ordering explicit:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-next-message-queued-tso-focused-integration --summary --compact
+python tools/query_rti_work.py focus process-time-advance-next-message-queued-focused --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors select queued timestamped process messages for next-message advances" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-next-message-queued-tso-focused-integration --summary --compact
+python tools/query_rti_work.py check --lane process-time-advance-next-message-queued-focused --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors select queued timestamped process messages for next-message advances$" --output-on-failure
+```
+
+The preceding bounded handoff (configured-process multiple-record Flush Queue):
+
+The plan row's `primary_lane` keeps the exact case card on the dedicated
+multiple-record FQR lane; broad tags remain useful for cross-cutting searches
+without changing the focused execution handles.
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-flush-queue-multiple-records-integration --summary --compact
+python tools/query_rti_work.py focus process-flush-queue-multiple-records --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors deliver multiple queued timestamped process messages in order through Flush Queue" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-flush-queue-multiple-records-integration --summary --compact
+python tools/query_rti_work.py check --lane process-flush-queue-multiple-records --summary --compact
+python tools/query_rti_work.py focus process-flush-queue-retraction --summary --compact
+python tools/query_rti_work.py check --lane process-flush-queue-retraction --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors deliver multiple queued timestamped process messages in order through Flush Queue$" --output-on-failure
+```
+
+The focused C++ row is at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:18501` with 110 assertions,
+22 direct 2025 Requirements-Lab requirements, 12 canonical sections, and 22
+official C++ API surfaces. It queues timestamp-5, timestamp-8, and
+requested-frontier timestamp-10 interactions plus future timestamps 12 and 14,
+proves FIFO delivery of the three admitted records before one HLA_EVOKED or
+HLA_IMMEDIATE Flush Queue Grant, suppresses timestamp 14 after an explicit pre-frontier retraction,
+then delivers retained timestamp 12 on the later frontier, and checks the
+separate actual/optimistic grant values and Query Logical Time. This is private
+multi-federate development-profile evidence; post-submission arrivals,
+in-transit arrivals, regional/directed TSO, save/restore, package/JUnit/
+protected-review evidence, interoperability, validation, and conformance remain
+separate gates. The preceding 57-assertion GALT-frontier
+case at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:18614` and 16-assertion
+single-endpoint FQR baseline at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:18207` remain independently
+queryable by their exact plan ids and lanes.
+
+The current indexed baseline is 1,226 Catch2 cases (1,162 mapped), with 109
+process-boundary cases and 5,239 indexed assertions. One mapped row is
+explicitly planned and is not executable evidence. The newest completed
+directed TSO callback-gating case at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:15757` adds 62 assertions,
+maps 21 Lab requirements to 16 canonical 2025 sections and 18 official C++
+API surfaces, and is independently queryable as
+`process-tso-directed-interaction-callback-gating`. The preceding
+multi-recipient fanout, filesystem restore-baseline, and changed-lookahead
+interaction cases remain independently queryable, along with the
+timestamped-attribute, retraction-lifetime, regional, fan-out, and
+single-receiver ordering cases.
+`resume`/`queue` are the source of truth for the next bounded family action; no
+Requirements-Lab rescan is needed when those queues are exhausted.
+
+The preceding time-axis-independence regional attribute lane remains
+independently queryable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-timestamped-regional-attribute-update-tar-nmr-integration --summary --compact
+python tools/query_rti_work.py focus time-axis-independence --summary --compact
+python tools/query_rti_work.py matrix time-axis-independence --summary --compact
+```
+
+The object-name reservation lane is the compact requirement-to-test mapping
+example: `requirement-candidate-content-clauses-06-object-management-page-117-l36-6`
+maps to the existing 68-assertion case in §6.7.5. Use the exact requirement,
+case, focus, or CTest handle without reopening the full plan:
+
+```powershell
+python tools/query_rti_work.py requirement requirement-candidate-content-clauses-06-object-management-page-117-l36-6 --summary --compact
+python tools/query_rti_work.py case umbra-cpp-object-instance-name-reservation-integration --summary --compact
+python tools/query_rti_work.py focus object-instance-name-reservation --summary --compact
+python tools/query_rti_work.py matrix requirement-candidate-content-clauses-06-object-management-page-117-l36-6 --summary --compact
+```
+
+The preceding no-common-dimension object-attribute lane remains independently
+queryable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-regional-object-attribute-no-common-dimension-integration --summary --compact
+python tools/query_rti_work.py focus no-common-dimension --summary --compact
+python tools/query_rti_work.py trace "Embedded regional object attributes with no common dimensions never overlap" --summary --compact
+python tools/query_rti_work.py matrix no-common-dimension --summary --compact
+python tools/query_rti_work.py check --lane no-common-dimension --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\\.regional_object_attribute_routing\\.catch2\\.Embedded regional object attributes with no common dimensions never overlap$" --output-on-failure
+```
+
+The preceding subscription-dimension-validation sibling remains independently
+queryable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-regional-interaction-subscription-dimension-validation-integration --summary --compact
+python tools/query_rti_work.py focus subscription-dimension-validation --summary --compact
+python tools/query_rti_work.py matrix subscription-dimension-validation --summary --compact
+```
+
+The related empty-set sibling remains independently queryable with the
+`subscription-empty-set` focus handle.
+
+The preceding mixed-dimensional validation sibling remains independently
+queryable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-mixed-region-interaction-validation-integration --summary --compact
+python tools/query_rti_work.py focus mixed-region-interaction-validation --summary --compact
+python tools/query_rti_work.py trace "Embedded mixed-dimensional regional interactions reject an invalid region set atomically" --summary --compact
+python tools/query_rti_work.py matrix mixed-region-interaction-validation --summary --compact
+python tools/query_rti_work.py check --lane mixed-region-interaction-validation --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\\.mixed_region_interaction_validation\\.catch2\\.Embedded mixed-dimensional regional interactions reject an invalid region set atomically$" --output-on-failure
+```
+
+The multi-region union sibling remains a separate 107-assertion lane:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-multi-region-interaction-routing-integration --summary --compact
+python tools/query_rti_work.py focus multi-region-regional-interaction --summary --compact
+python tools/query_rti_work.py matrix multi-region-regional-interaction --summary --compact
+```
+
+The `case` command is the shortest exact handoff: it accepts a plan id or full
+TEST_CASE title and prints source, owner, direct requirement-to-subsection
+pairs, API surfaces, and focused execution handles without a broad search. The
+positive-dimensional/default-region interaction sibling is a separate
+50-assertion lane:
+
+```powershell
+python tools/query_rti_work.py focus focused-positive-dimensional-regional-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded focused default-region interaction routing derives 2025 ordinary and regional effectiveness" --summary --compact
+python tools/query_rti_work.py matrix focused-positive-dimensional-regional-interaction --summary --compact
+python tools/query_rti_work.py check --lane focused-positive-dimensional-regional-interaction --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\\.default_region_interaction_routing\\.catch2\\.Embedded focused default-region interaction routing derives 2025 ordinary and regional effectiveness$" --output-on-failure
+```
+
+The zero-dimensional interaction sibling remains a separate 28-assertion lane:
+
+```powershell
+python tools/query_rti_work.py focus zero-dimensional-regional-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded zero-dimensional regional interactions do not overlap the default region" --summary --compact
+python tools/query_rti_work.py matrix zero-dimensional-regional-interaction --summary --compact
+python tools/query_rti_work.py check --lane zero-dimensional-regional-interaction --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\\.zero_dimensional_regional_interaction\\.catch2\\.Embedded zero-dimensional regional interactions do not overlap the default region$" --output-on-failure
+```
+
+That sibling maps one direct 2025 requirement to the canonical `9.1.3.2`
+section and seven official C++ API surfaces. It proves an ordinary
+default-region interaction is delivered while the same interaction sent with
+an explicit zero-dimensional region is suppressed. The object-side
+zero-dimensional case is a separate 26-assertion lane:
+
+```powershell
+python tools/query_rti_work.py focus zero-dimensional-region --summary --compact
+python tools/query_rti_work.py trace "Embedded zero-dimensional region realizations do not overlap the default region" --summary --compact
+python tools/query_rti_work.py matrix zero-dimensional-region --summary --compact
+python tools/query_rti_work.py check --lane zero-dimensional-region --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\\.regional_object_attribute_routing\\.catch2\\.Embedded zero-dimensional region realizations do not overlap the default region$" --output-on-failure
+```
+
+The exact remaining §9.1.3.2 gap is queryable with:
+
+```powershell
+python tools/query_rti_work.py gaps --family object-ddm-ownership --document hla-1516.1-2025 --clause clause-9.1.3.2 --summary --compact --limit 12
+```
+
+Preceding bounded handoff (embedded passive/active regional-interaction state and delivery):
+
+```powershell
+python tools/query_rti_work.py focus passive-regional-interaction-transition --summary --compact
+python tools/query_rti_work.py trace "Embedded passive regional interaction subscriptions preserve delivery and transition state" --summary --compact
+python tools/query_rti_work.py matrix passive-regional-interaction-transition --summary --compact
+python tools/query_rti_work.py check --lane passive-regional-interaction-transition --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded passive regional interaction subscriptions preserve delivery and transition state$" --output-on-failure
+```
+
+This embedded row is at `cpp/tests/passive_regional_interaction_transition_catch2.cpp:93`
+with 94 HLA_EVOKED assertions, four direct 2025 Requirements-Lab requirements,
+three canonical sections, and 10 official C++ API surfaces. It proves that a
+passive regional pair receives already-relevant overlap traffic, that active to
+passive replacement removes the only relevance-establishing declaration, that
+an empty region-set update is a no-op, and that a non-empty active update
+restores delivery. Timestamped/retraction, advisory, process, and conformance
+follow-ups remain separate bounded lanes. The next implementation choice is
+bounded by `work object-ddm-ownership`, `ready --family object-ddm-ownership`,
+and `lanes --family object-ddm-ownership --unmapped`.
 
 The public application-value process-restart companion and all three
 federate-owner, unowned, and RTI-owned pending Query Attribute Ownership
@@ -27,6 +375,29 @@ python tools/query_rti_work.py lane public-process-restart-pending-attribute-own
 python tools/query_rti_work.py lane public-process-restart-pending-attribute-ownership-query-unowned --compact
 python tools/query_rti_work.py lane public-process-restart-pending-rti-owned-attribute-ownership-query --compact
 ```
+
+The focused public process-restart application-value lane is now a separate
+source-located C++ case, so the durable value and report-file identity checks
+can be queried and rerun without reopening the aggregate federation-management
+translation unit. It records 82 assertions, nine Requirements-Lab anchors,
+five canonical 2025 sections, and 18 official C++ API surfaces at
+`cpp/tests/public_process_restart_application_value_catch2.cpp:189`:
+
+```powershell
+python tools/query_rti_work.py focus public-process-restart-application-value-focused --summary --compact
+python tools/query_rti_work.py trace "Embedded public fresh-registry restore rehydrates application value and retains report files" --summary --compact
+python tools/query_rti_work.py matrix public-process-restart-application-value-focused --summary --compact
+python tools/query_rti_work.py check --lane public-process-restart-application-value-focused --summary --compact
+cmake --build .build --config Debug --target umbra_public_process_restart_application_value_catch2
+ctest --test-dir .build -C Debug -R "^umbra\.public_process_restart_application_value\.catch2\.Embedded public fresh-registry restore rehydrates application value and retains report files$" --output-on-failure
+```
+
+This is HLA_EVOKED development-profile evidence for fresh-registry filesystem
+state-image rehydration, post-restore save continuity, and immutable joined-
+federate service-report paths. Pending application-request ledgers,
+timestamped payloads, ownership transfer, remote/package/JUnit/protected-review
+evidence, interoperability, and conformance remain separate lanes.
+
 The HLA_IMMEDIATE Query Attribute Ownership report-kind matrix is now green:
 one synchronous callback is proven for federate-owned, unowned, and RTI-owned
 attributes, with no queued replay. Query it directly with:
@@ -80,6 +451,185 @@ The full regional Auto Provide matrix is now
 source-backed for both switch-mutation variants, both switch-admission variants,
 multi-provider, relaxed DDM, and independent source-region behavior.
 
+The explicit object-instance Request Attribute Value Update baseline is now a
+separate source-backed C++ lane at
+`cpp/tests/attribute_value_update_request_baseline_catch2.cpp:93`. It passes
+36 HLA_EVOKED assertions, maps eight Requirements-Lab anchors to three
+canonical 2025 sections (`6.21`, `6.21.5`, and `6.22`), and exercises 15
+official C++ API surfaces. The case verifies known-instance targeting,
+grouped current-owner solicitation, unowned/requester-owned suppression,
+request-tag propagation, and evoked callback delivery. Query it with the
+stable lane handles; do not reopen the aggregate federation-management file:
+
+```powershell
+python tools/query_rti_work.py focus attribute-value-update-request-baseline-state --summary --compact
+python tools/query_rti_work.py trace "Embedded object-instance Request Attribute Value Update solicits 2025 owners" --summary --compact
+python tools/query_rti_work.py matrix "Embedded object-instance Request Attribute Value Update solicits 2025 owners" --summary --compact
+python tools/query_rti_work.py check --lane attribute-value-update-request-baseline-state --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded object-instance Request Attribute Value Update solicits 2025 owners$" --output-on-failure
+```
+
+The sibling class overload, regional requests, automatic provision,
+timestamped/retraction behavior, response delivery, and broader DDM,
+ownership, save/restore, package/review, validation, and conformance work
+remain separate roadmap lanes.
+
+The nonregional object-class Request Attribute Value Update baseline is also a
+separate source-backed C++ lane at
+`cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp:94`.
+It passes 43 HLA_EVOKED assertions, maps seven Requirements-Lab anchors to
+three canonical 2025 sections (`6.21`, `6.21.5`, and `6.22`), and exercises 15
+official C++ API surfaces. The case verifies class-designator expansion over
+two concrete subclass instances, per-instance grouped owner callbacks,
+unowned/requester-owned suppression, request-tag propagation, and evoked
+delivery. Query it with the exact lane handles above; regional class requests,
+automatic provision, timestamped/retraction behavior, response delivery, and
+broader DDM/ownership/save/restore/package/review evidence remain separate.
+
+The class-designator service-report companion is a separate source-backed C++
+lane at
+`cpp/tests/object_class_attribute_value_update_service_report_catch2.cpp:196`.
+It passes 403 HLA_EVOKED assertions, maps six Requirements-Lab anchors to five
+canonical 2025 sections (`6.21`, `6.21.5`, `6.22`, `11.5`, and `11.5.2`), and
+exercises 19 official C++ API surfaces. Its production filesystem store keeps
+one immutable joined-federate file, makes type-37/type-1/type-63 records
+durable before each provider callback, preserves serial order and the base64
+request tag, and leaves the requester file unchanged. Query it through the
+stable `object-class-provide-attribute-value-update-service-report` lane and
+exact CTest filter; object-instance reporting, request-argument preservation,
+regional/automatic-provision variants, timestamped/retraction behavior, public
+MOM, package/review, validation, and conformance remain separate.
+
+The Request Attribute Value Update argument-preservation companion is now a
+standalone source-backed C++ lane at
+`cpp/tests/request_attribute_value_update_service_report_catch2.cpp:204`.
+It passes 242 HLA_EVOKED assertions, maps four Requirements-Lab anchors to four
+canonical 2025 sections (`6.21`, `6.21.5`, `11.5`, and `11.5.2.1`), and covers
+the three official request/callback API surfaces. The production filesystem
+report is unchanged for an unknown-object rejection, then records type-37 or
+type-36 designators, the complete type-1 attribute set, and type-63 base64 tags
+before each queued provider callback. Query it through the stable
+`request-attribute-value-update-service-report-file` lane and exact CTest
+filter; regional requests, automatic provision, response delivery, generic
+failure/return records, public MOM, package/review, validation, and conformance
+remain separate.
+
+The provider-side service-report companion is now a standalone source-backed
+C++ lane at
+`cpp/tests/provide_attribute_value_update_service_report_catch2.cpp:201`.
+It passes 145 HLA_EVOKED assertions, maps six Requirements-Lab anchors to five
+canonical 2025 sections (`6.21`, `6.21.5`, `6.22`, `11.5`, and `11.5.2`), and
+exercises five official request/provider API surfaces. Its production owner
+file stays unchanged while the callback is pending, then appends one serial-0
+successful-void Table 5 type-37/type-1/type-63 record at callback entry; the
+requester file remains unchanged. Query it through the stable
+`provide-attribute-value-update-service-report-file` lane and exact CTest filter;
+class, regional, automatic-provision, response, public MOM interaction,
+timestamped/retraction, package/review, validation, and conformance remain
+separate.
+
+The receive-order `Update Attribute Values` service-report companion is now a
+standalone source-backed C++ lane at
+`cpp/tests/update_attribute_values_service_report_catch2.cpp:224`. It passes
+157 HLA_EVOKED assertions, maps four Requirements-Lab anchors to three
+canonical 2025 sections (`6.10`, `11.5`, and `11.5.2.1`), and covers the two
+official Update/Reflect Attribute Values API surfaces. It proves rejected
+unknown-object updates are file-silent, then records the accepted non-
+timestamped type-37 object designator, type-2 AttributeHandleValueMap, type-63
+base64 tag, and type-34 Null optional timestamp before the reflection callback;
+the receiver file remains unchanged. Query it through the stable
+`update-attribute-values-service-report-file` lane and exact CTest filter;
+timestamped/regional/DDM forms, return/failure records, interaction-selected
+delivery, public MOM, package/review, validation, and conformance remain
+separate.
+
+The receive-order `Delete Object Instance` service-report companion is now a
+standalone source-backed C++ lane at
+`cpp/tests/delete_object_instance_service_report_catch2.cpp:194`. It passes
+106 HLA_EVOKED assertions, maps five Requirements-Lab anchors to four
+canonical 2025 sections (`6.16`, `6.16.4`, `11.5`, and `11.5.2.1`), and covers
+the two official Delete/Remove Object Instance API surfaces. It proves
+rejected unknown-object deletion is file-silent, then records the accepted
+non-timestamped type-37 object designator, type-63 base64 tag, and type-34
+Null optional timestamp before the removal callback; the receiver file remains
+unchanged. Query it through the stable
+`delete-object-instance-service-report-file` lane and exact CTest filter;
+timestamped/regional/DDM forms, return/failure records, interaction-selected
+delivery, public MOM, package/review, validation, and conformance remain
+separate.
+
+The receive-order `Delete Object Instance` failure-file matrix is now a
+standalone source-backed C++ lane at
+`cpp/tests/delete_object_instance_failure_service_report_catch2.cpp:135`. It
+passes 137 HLA_EVOKED assertions, maps four Requirements-Lab anchors to three
+canonical 2025 sections (`6.16`, `6.16.4`, and `11.5`), and covers the Delete
+Object Instance service plus both service-report switch accessors. It verifies
+failed serial-0 and serial-2 records around accepted serial-1 deletion, with
+type-37/type-63/type-34 supplied forms, Null return, false indicators, and
+exact exception text. Query it through the stable
+`delete-object-instance-failure-file-matrix` lane and exact CTest filter;
+timestamped failure, regional/DDM, MOM-interaction, package/review, validation,
+and conformance remain separate.
+
+The receive-order `Delete Object Instance` MOM failure matrix is now a
+standalone source-backed C++ lane at
+`cpp/tests/delete_object_instance_failure_service_report_interaction_catch2.cpp:84`.
+It passes 124 HLA_IMMEDIATE assertions, maps four Requirements-Lab anchors to
+three canonical 2025 sections (`6.16`, `6.16.4`, and `11.5`), and decodes
+object-management service type 2 through `HLAreportServiceInvocation`. It
+verifies failed serial-0 and serial-2 reports around accepted serial-1 deletion,
+with type-37/type-63/type-34 supplied forms, Null return, false indicators, and
+exact exception text. Query it through the stable
+`delete-object-instance-failure-mom-interaction` lane and exact CTest filter;
+filesystem, timestamped, regional/DDM, package/review, validation, and
+conformance remain separate.
+
+The ordinary provider-response spine is now a standalone source-backed C++
+lane at `cpp/tests/attribute_value_update_response_catch2.cpp:129`. It passes
+37 HLA_EVOKED assertions, maps six Requirements-Lab anchors to three canonical
+2025 sections (`6.10`, `6.21`, and `6.21.5`), and covers four official C++ API
+surfaces. It proves the known-object Request Attribute Value Update,
+Provide Attribute Value Update callback, no-time Update Attribute Values, and
+Reflect Attribute Values chain with request/response tags, reliable transport,
+producer identity, and no sent-region designator. Query it through the stable
+`attribute-value-update-response` lane and exact CTest filter; regional/DDM,
+automatic provision, timestamped/retraction, update-rate, save/restore,
+package/review, validation, and conformance remain separate.
+
+The regional provider-response DDM recheck is now a standalone source-backed
+C++ lane at
+`cpp/tests/regional_attribute_value_update_provider_response_recheck_catch2.cpp:136`.
+It passes 39 HLA_EVOKED assertions, maps four Requirements-Lab anchors to two
+canonical 2025 sections (`6.10` and `9.13.1`), and covers eight official C++
+API surfaces. It queues a no-time response from an overlap-qualified regional
+request, commits a valid disjoint requester range before reflection delivery,
+and proves callback-time suppression of the stale reflection. Query it through
+the stable `regional-provider-response-ddm-recheck` lane and exact CTest
+filter; automatic provision, successful post-mutation reflection,
+timestamped/retraction, relaxed-DDM, save/restore, package/review, validation,
+and conformance remain separate.
+
+The ownership/update-region boundary is now a standalone source-backed C++
+lane at `cpp/tests/ownership_transfer_update_region_catch2.cpp:142`. It passes
+88 HLA_EVOKED assertions, maps five Requirements-Lab anchors to four canonical
+2025 sections (`7.1.2.1`, `9.1.3.3`, `9.5.4`, and `9.6`), and covers eight
+official C++ API surfaces. The case proves that If Available followed by
+Divestiture If Wanted clears the former owner's explicit update-region
+association, restores a default-region reflection, and requires the new owner
+to establish an explicit replacement region before conveyed regional delivery
+resumes. Query it through the stable `ownership-transfer-update-region` lane
+and exact CTest filter; Confirm Divestiture, unconditional/negotiated transfer,
+timestamped/default-region, advisory, save/restore, package/review,
+validation, and conformance evidence remain separate.
+
+```powershell
+python tools/query_rti_work.py focus ownership-transfer-update-region --summary --compact
+python tools/query_rti_work.py trace "Embedded ownership transfer clears the former owner's 2025 update-region association" --summary --compact
+python tools/query_rti_work.py matrix "Embedded ownership transfer clears the former owner's 2025 update-region association" --summary --compact
+python tools/query_rti_work.py check --lane ownership-transfer-update-region --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\\.ieee1516_2025\\.catch2\\.Embedded ownership transfer clears the former owner's 2025 update-region association$" --output-on-failure
+```
+
 The Send Interaction service-report matrix is source-backed and green for
 receive-order filesystem/MOM (145/85 assertions), timestamped filesystem/MOM
 (153/91), and time-regulated timestamped MOM (115). The time-regulated
@@ -103,8 +653,360 @@ source-backed and green at 75 assertions. The public durable-save regional
 provider-response/retraction companion is source-backed and green at 100
 assertions under both callback models. All indexed plan entries now have explicit
 status; retained historical rows may still lack derived source locations. The
-indexed `[transport]` query currently reports 57 plan entries (53 mapped,
-52 source-located, and five historical source-drift rows), including the
+dedicated embedded explicit-source regional TSO restore companion is now
+source-backed and green at 78 HLA_EVOKED assertions, with the exact restored
+source-region, reflection-before-grant, and post-restore retraction evidence
+indexed separately from the broader aggregate federation-management file. The
+three-federate source-resignation companion is now source-backed and green at
+91 HLA_EVOKED assertions, with 20 Requirements-Lab anchors, 18 canonical 2025
+sections, and 23 official C++ API surfaces. It preserves the queued
+explicit-source passel through source-region mutation, restore, unconditional
+divestiture resignation, and survivor Flush Queue reflection-before-grant; its
+exact source and plan mapping are queryable without reopening the Lab. The
+timed default-region interaction save/restore slice is now source-backed and
+green at `cpp/tests/timed_restore_live_tso_default_region_interaction_catch2.cpp:173`
+with 72 HLA_EVOKED assertions, 13 Requirements-Lab anchors, 10 canonical 2025
+sections, and 24 official C++ API surfaces. It crosses the timestamp-6 save
+boundary with a queued timestamp-8 default-source interaction, restores the
+live retraction ledger, and proves supplied-empty region metadata and
+reflection-before-grant delivery through Flush Queue. Query it by the exact
+test title or the stable `timestamped-default-region-interaction-timed-restore`
+lane; durable persistence, alternate advances, and conformance remain open. The
+timed directed-interaction companion is now source-backed and green at
+`cpp/tests/timed_restore_live_tso_directed_interaction_catch2.cpp:165` with 72
+HLA_EVOKED assertions, 10 Requirements-Lab anchors, 8 canonical 2025 sections,
+and 21 official C++ API surfaces. It crosses the timestamp-6 save boundary
+with a target-qualified timestamp-8 directed interaction, restores the live
+target/retraction ledger, and proves Flush Queue delivery before the grant plus
+post-delivery Request Retraction. Query it by the exact title or the stable
+`timestamped-directed-interaction-timed-restore` lane; durable persistence,
+general timed restore, and conformance remain open. The
+parallel explicit-source regional timestamped-interaction restore companion is
+now source-backed and green at
+`cpp/tests/restore_live_tso_regional_interaction_catch2.cpp:175` with 74
+HLA_EVOKED assertions, 11 Requirements-Lab anchors, 11 canonical 2025 sections,
+and 17 official C++ API surfaces. It saves one queued overlap-qualified
+interaction, restores its live retraction ledger, and proves the original
+source RegionHandle set is delivered before Flush Queue Grant followed by one
+legal post-restore Request Retraction. Query it with:
+
+```powershell
+python tools/query_rti_work.py focus timestamped-regional-interaction-live-restore --summary --compact
+python tools/query_rti_work.py trace "Embedded federation restore restores a saved live timestamped regional interaction" --summary --compact
+python tools/query_rti_work.py matrix "Embedded federation restore restores a saved live timestamped regional interaction" --summary --compact
+ctest --test-dir <build-dir> -C Debug -L timestamped-regional-interaction-live-restore --output-on-failure
+```
+
+The non-regional multi-recipient timestamped interaction restore case is now
+source-backed at
+`cpp/tests/restore_live_tso_interaction_multi_recipient_catch2.cpp:173`.
+It is green with 116 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 10
+canonical 2025 sections, and 20 official C++ API surfaces. It saves one queued
+interaction for two constrained recipients, restores both independent
+recipient/retraction entries, delivers each copy through its own Flush Queue
+Grant, and verifies one legal Request Retraction per recipient. Query it by the
+stable lane instead of reopening the full Lab:
+
+```powershell
+python tools/query_rti_work.py focus timestamped-interaction-restore-multi-recipient --summary --compact
+python tools/query_rti_work.py trace "Embedded federation restore restores one queued timestamped interaction to multiple recipients" --summary --compact
+ctest --test-dir <build-dir> -C Debug -L timestamped-interaction-restore-multi-recipient --output-on-failure
+```
+
+The matching three-member explicit-source regional interaction restore case is
+also source-backed and green at
+`cpp/tests/restore_live_tso_regional_interaction_multi_recipient_catch2.cpp:169`
+with 128 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 11 canonical 2025
+sections, and 25 selected official C++ API surfaces. It saves one
+overlap-qualified timestamped `Send Interaction With Regions` passel for two
+constrained recipients, restores both recipient-local queues and the live
+retraction ledger, preserves the original source RegionHandle set, and proves
+each callback arrives before its own Flush Queue Grant and before one legal
+Request Retraction per recipient. Query this exact slice without opening the
+full Lab:
+
+```powershell
+python tools/query_rti_work.py focus timestamped-regional-interaction-restore-multi-recipient --summary --compact
+python tools/query_rti_work.py trace "Embedded federation restore restores one queued timestamped regional interaction to multiple recipients" --summary --compact
+python tools/query_rti_work.py matrix "Embedded federation restore restores one queued timestamped regional interaction to multiple recipients" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-regional-interaction-restore-multi-recipient --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\\.ieee1516_2025\\.catch2\\.Embedded federation restore restores one queued timestamped regional interaction to multiple recipients$" --output-on-failure
+```
+
+The accepted timestamped regional Send Interaction With Regions service-report
+file slice is now source-backed and green at
+`cpp/tests/timestamped_regional_interaction_service_report_file_catch2.cpp:220`
+with 242 HLA_EVOKED assertions, one Requirements-Lab anchor, one canonical
+2025 section, and eight selected official C++ API surfaces. It proves the
+production filesystem record preserves the type-27/type-40/type-43/type-63/
+type-31 supplied forms plus the type-33 MessageRetractionHandle at serial zero
+before the constrained regional Receive Interaction callback. Query it by the
+stable lane:
+
+```powershell
+python tools/query_rti_work.py focus timestamped-regional-interaction-service-report --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records timestamped Send Interaction With Regions before interaction callback" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting records timestamped Send Interaction With Regions before interaction callback" --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\\.ieee1516_2025\\.catch2\\.(Embedded service reporting records timestamped Send Interaction With Regions before interaction callback|Embedded service reporting delivers accepted timestamped regional Send Interaction With Regions through MOM interaction)$" --output-on-failure
+```
+
+The same indexed service-report lane now includes the public MOM companion at
+`cpp/tests/timestamped_regional_interaction_service_report_interaction_catch2.cpp:179`
+with 248 assertions across HLA_EVOKED publisher/receiver and an HLA_IMMEDIATE
+observer. With Send Service Reports to File disabled, it decodes one public
+`HLAreportServiceInvocation` for the accepted timestamped regional send,
+including the type-27/type-40/type-43/type-63/type-31 supplied forms and the
+type-33 retraction return, then verifies the constrained callback's source
+region, timestamp, order, and retraction metadata. The exact `-R` selector is
+the lane gate; the broader label also selects historical traceability checks
+whose generated selectors remain a documented baseline drift.
+
+The timestamped regional service-report failure lane is also source-backed in
+two paths: the production filesystem matrix at
+`cpp/tests/timestamped_regional_interaction_failure_service_report_file_catch2.cpp:157`
+has 307 HLA_EVOKED assertions, and the HLA_IMMEDIATE MOM matrix at
+`cpp/tests/timestamped_regional_interaction_failure_service_report_interaction_catch2.cpp:90`
+has 189 assertions. Together they exercise invalid interaction-class,
+parameter, region, and logical-time calls, preserving serials zero through
+three, the type-27/type-40/type-43/type-63/type-31 supplied forms, the type-34
+Null return, false indicators, exact exception text, and no application
+callback. Query and run both with the separate failure lane:
+
+~~~powershell
+python tools/query_rti_work.py focus timestamped-regional-interaction-failure --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records failed timestamped regional Send Interaction With Regions invocations" --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting delivers failed timestamped regional Send Interaction With Regions invocations through MOM interaction" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-regional-interaction-failure --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\\.ieee1516_2025\\.catch2\\.(Embedded service reporting records failed timestamped regional Send Interaction With Regions invocations|Embedded service reporting delivers failed timestamped regional Send Interaction With Regions invocations through MOM interaction)$" --output-on-failure
+~~~
+
+The ordinary regional Send Interaction With Regions failure-file companion is
+now source-backed and green at
+`cpp/tests/regional_interaction_failure_service_report_file_catch2.cpp:151`
+with 302 HLA_EVOKED assertions, one Requirements-Lab anchor, one canonical
+2025 section (`11.5`), and three official C++ API surfaces. It configures the
+real joined-federate filesystem route and records invalid interaction-class,
+parameter, and region calls with serials zero through two, type-27/type-40/
+type-43/type-63/type-34 supplied forms, Null returns, false indicators, exact
+exception text, and no application callback. Query and run this slice without
+opening the aggregate test:
+
+```powershell
+python tools/query_rti_work.py focus ordinary-regional-interaction-failure-service-report-file --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records failed regional Send Interaction With Regions invocations" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting records failed regional Send Interaction With Regions invocations" --summary --compact
+python tools/query_rti_work.py check --lane ordinary-regional-interaction-failure-service-report-file --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting records failed regional Send Interaction With Regions invocations$" --output-on-failure
+```
+
+The paired HLA_IMMEDIATE MOM-interaction failure row, accepted regional
+delivery, timestamped/re-enable/save/restore behavior, transport, package/
+JUnit/protected-review evidence, Requirements-Lab validation, and conformance
+remain separate; RL-105/RL-152 are the bounded Lab caveats.
+
+The paired ordinary regional MOM-interaction failure case is now independently
+source-backed at
+`cpp/tests/regional_interaction_failure_service_report_interaction_catch2.cpp:88`
+with 179 HLA_IMMEDIATE assertions, three Requirements-Lab anchors, canonical
+2025 sections `9.1.3.3` and `11.5`, and five official C++ API surfaces. With
+the file switch disabled, the observer decodes serials zero through three from
+`HLAreportServiceInvocation` for invalid interaction-class, parameter, region,
+and region-context calls, including the type-27/type-40/type-43/type-63/
+type-34 supplied forms, type-34 Null return, false indicators, and exact
+exception text. The fourth case uses a committed `SodaFlavor` region against
+the `MainCourseServed` interaction and proves the §9.1.3.3
+`InvalidRegionContext` boundary; no application callback is expected. Query it with the separate
+`ordinary-regional-interaction-failure-mom-interaction` lane; the filesystem
+row, accepted regional delivery, timestamped/re-enable/save/restore, transport,
+package/JUnit/protected-review, validation, and conformance remain independent.
+
+The accepted ordinary regional filesystem companion is now source-backed at
+`cpp/tests/regional_interaction_service_report_file_catch2.cpp:185` with 173
+HLA_EVOKED assertions, one Requirements-Lab anchor, canonical 2025 section
+`11.5`, and six official C++ API surfaces. It writes serial-zero service type 2
+with type-27/type-40/type-43/type-63/type-34 supplied forms and a type-34 Null
+return to the configured joined-federate file before the overlap-qualified
+Receive Interaction callback, which retains source-region, payload, producer,
+and tag metadata. Query it through the separate
+`ordinary-regional-interaction-service-report-file` lane; the MOM/failure rows,
+timestamped/re-enable/save/restore, transport, package/JUnit/protected-review,
+validation, and conformance remain independent.
+
+The accepted ordinary regional MOM companion is now source-backed at
+`cpp/tests/regional_interaction_service_report_interaction_catch2.cpp:128`
+with 107 assertions across HLA_EVOKED publisher/receiver and an HLA_IMMEDIATE
+observer, two Requirements-Lab anchors, canonical `11.5`, and five official
+C++ API surfaces. With file reporting disabled, it decodes the accepted
+serial-zero `SendInteractionWithRegions` service type 2 report through
+`HLAreportServiceInvocation`, preserving type-27/type-40/type-43/type-63/
+type-34 forms, the type-34 Null return, success, empty exception, and source
+RegionHandleSet/payload/producer/tag metadata before the application callback.
+Use the stable `ordinary-regional-interaction-service-report-mom-interaction`
+lane; filesystem, failure, timestamped/re-enable/save/restore, transport,
+package/JUnit/protected-review, validation, and conformance remain separate.
+
+The timed default-region attribute-update companion is now source-backed and green
+at `cpp/tests/timed_restore_live_tso_default_region_attribute_update_catch2.cpp:165`
+with 76 HLA_EVOKED assertions, 16 Requirements-Lab anchors, 10 canonical 2025
+sections, and 23 official C++ API surfaces. It crosses the timestamp-6 save
+boundary with a queued timestamp-8 default-source Update Attribute Values
+passel, restores the live retraction ledger, and proves supplied-empty sent
+region metadata plus reflection-before-grant delivery through Flush Queue.
+Query it by the exact title or the stable
+`timestamped-default-region-attribute-timed-restore` lane; durable persistence,
+general timed restore, and conformance remain open. The
+untimed default-region attribute-update companion is now source-backed and green
+at `cpp/tests/restore_live_tso_default_region_attribute_update_catch2.cpp:165`
+with 74 HLA_EVOKED assertions, 18 Requirements-Lab anchors, 14 canonical 2025
+sections, and 23 official C++ API surfaces. It saves a queued timestamp-7
+default-source Update Attribute Values passel, restores it after a post-save
+Retract, and proves supplied-empty sent-region metadata plus reflection-before-
+grant delivery through Flush Queue and the later Request Retraction callback.
+Query it by the exact title or the stable
+`timestamped-default-region-attribute-restore` lane; timed/durable restore,
+explicit-source replacement, and conformance remain open. The focused lane
+check is the handoff gate for this slice.
+
+The non-regional companion is also source-backed and green at
+`cpp/tests/restore_live_tso_attribute_update_catch2.cpp:165` with 69 HLA_EVOKED
+assertions, 15 Requirements-Lab anchors, 11 canonical 2025 sections, and 20
+official C++ API surfaces. It uses ordinary subscription and the official
+`Change Default Attribute Order Type` service to queue a timestamp-7 update
+through an untimed save, restore the recipient ledger, and verify
+reflection-before-grant plus the later Request Retraction. Query it with the
+exact title or `timestamped-attribute-update-restore`; regional/default-source,
+timed/durable restore, and conformance remain open.
+
+The timestamped-attribute-order-cohort slice is now a standalone, indexed
+source lane at `cpp/tests/timestamped_attribute_order_cohort_catch2.cpp:152`.
+Its exact case passes 87 HLA_EVOKED assertions and maps five Requirements-Lab
+anchors to five canonical 2025 sections (`6.10`, `6.11.1`, `8`, `8.1.5`, and
+`8.1.6`). It submits timestamp 7 before the timestamp-5 cohort, advances two
+constrained recipients first to 5 and then to 7, and verifies complete
+equal-timestamp cohorts before each grant while different timestamps remain in
+order. Query `timestamped-attribute-order-cohort`; alternate advances,
+simultaneous transport-arrival ordering, save/restore composition,
+ownership/resignation, remote transport, package/review, interoperability,
+and conformance remain separate.
+
+The timestamped-directed-interaction-regulation-reenable-changed-lookahead
+slice is now a standalone, indexed source lane at
+`cpp/tests/timestamped_directed_interaction_regulation_reenable_changed_lookahead_catch2.cpp:151`.
+Its exact case passes 57 `HLA_EVOKED` assertions and maps 11 Requirements-Lab
+anchors to eight canonical 2025 sections (`5.1.5`, `6.16`, `8`, `8.1.5`,
+`8.2`, `8.20.4`, `8.3.1`, and `8.8.3`). It queues one target-qualified
+reliable timestamped directed interaction at time five under lookahead one,
+disables and callback-gated re-enables Time Regulation at lookahead three,
+verifies Query Lookahead, and advances the producer to time two so the
+directed callback arrives at time five before the constrained recipient's
+grant, preserving target, tag, producer, timestamp/order, transportation,
+callback, and terminal retraction metadata. Query
+`timestamped-directed-interaction-regulation-reenable-changed-lookahead`;
+directed DDM breadth, alternate advances, ownership/resignation, save/restore,
+remote transport, package/review, interoperability, and conformance remain
+separate.
+
+The Auto Provide service-report callback boundary is now a separate indexed
+slice, source-backed and green at
+`cpp/tests/auto_provide_service_report_file_catch2.cpp:166` with 142
+HLA_EVOKED assertions, five Requirements-Lab anchors, four canonical 2025
+sections (`1`, `6.1.10`, `11.5`, and `11.5.2`), six official C++ API surfaces,
+and the production filesystem store. It proves the serial-0 type-37/type-1/type-63 successful-void record
+with an empty tag immediately before the `Provide Attribute Value Update`
+callback. Query the exact title or stable `auto-provide-service-report` lane;
+switch-setter reports, broader automatic-provision variants, public MOM
+delivery, failure records, package/JUnit/protected-review evidence,
+interoperability, and conformance remain open.
+
+The alternate-advance timestamped directed-interaction slice is now a
+standalone, indexed source lane at
+`cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp:164`.
+Its exact case passes with 108 HLA_EVOKED assertions and maps 15
+Requirements-Lab anchors, 10 canonical 2025 sections, and 11 official C++ API
+surfaces. It sends one target-qualified TSO interaction, releases it through
+Flush Queue Request, Time Advance Request Available, and Next Message Request
+Available, checks each directed callback before its grant, and verifies the
+post-delivery Retract terminal condition. Query
+`timestamped-directed-interaction-alternate-advance` for the bounded lane;
+lower-bound, DDM, save/restore, ownership, transport, package, review,
+interoperability, and conformance evidence remain separate.
+
+The joined-federate MOM `HLAfederateState` save/restore case is now a
+standalone, indexed source lane at
+`cpp/tests/joined_federate_mom_federate_state_save_restore_catch2.cpp:138`.
+It passes 152 assertions under HLA_EVOKED and HLA_IMMEDIATE, maps one
+Requirements-Lab anchor to §11.4.1, and covers the observer-visible state
+sequence 1→3→1→5→1 plus self-state suppression during save. Query
+`joined-federate-mom-federate-state` for the bounded handles; the remaining
+MOM attributes, public MOM interactions, remote transport, and conformance
+evidence remain separate.
+
+The timestamped Delete Object Instance failure-file matrix is now a standalone,
+indexed source lane at
+`cpp/tests/timestamped_delete_object_instance_failure_service_report_catch2.cpp:127`.
+Its exact case passes 134 HLA_EVOKED assertions and maps five Requirements-Lab
+anchors to four canonical 2025 sections (`6.16`, `6.16.4`, `8.22.3`, and
+`11.5`). It records unknown-object and earlier-than-lookahead failures in the
+production filesystem report with the supplied object/tag/time forms, Null
+returned argument, exact exception text, and serials zero and one. Query
+`timestamped-delete-object-instance-failure-service-report` for the bounded
+handles; accepted deletion,
+recipient callback/MOM interaction, regional/retraction variants, transport,
+review, interoperability, and conformance evidence remain separate.
+
+The accepted timestamped Delete Object Instance sender-file companion is now a
+standalone, indexed source lane at
+`cpp/tests/timestamped_delete_object_instance_service_report_catch2.cpp:193`.
+Its exact case passes 91 HLA_EVOKED assertions and maps four Requirements-Lab
+anchors to four canonical 2025 sections (`6.16`, `6.17.1`, `8.1.5`, and
+`11.5`). It proves the production filesystem record—with the type-34 Null
+returned argument—exists before the recipient's timestamped Remove Object
+Instance callback and retains callback metadata. Query
+`timestamped-delete-object-instance-sender-file`; regulated, regional,
+retraction, transport, review, interoperability, and conformance evidence
+remain separate.
+
+The time-regulated timestamped Delete Object Instance sender-file companion is
+now a separate indexed source lane at
+`cpp/tests/time_regulated_timestamped_delete_object_instance_service_report_catch2.cpp:206`.
+Its exact case passes 172 HLA_EVOKED assertions and maps five Requirements-Lab
+anchors to five canonical 2025 sections (`6.16`, `6.17.1`, `8.1.5`, `8.1.6`,
+and `11.5`). It proves the type-33 MessageRetractionHandle sender record, one
+immutable production filesystem path through a switch cycle, and the
+timestamped Remove Object Instance callback before the matching grant. Query
+`timestamped-delete-object-instance-time-regulated-sender-file`; regional,
+alternate-advance, save/restore, transport, review, interoperability, and
+conformance evidence remain separate.
+
+The accepted timestamped Delete Object Instance MOM-interaction companion is
+now a separate indexed source lane at
+`cpp/tests/timestamped_delete_object_instance_service_report_interaction_catch2.cpp:145`.
+Its exact case passes 104 assertions across HLA_EVOKED publisher/receiver and
+an HLA_IMMEDIATE observer, mapping five Requirements-Lab anchors to four
+canonical 2025 sections (`6.16`, `6.17.1`, `8.1.5`, and `11.5`). It
+decodes the type-33 MessageRetractionHandle through HLAreportServiceInvocation
+with file reporting disabled, then verifies the timestamped Remove Object
+Instance callback before its matching grant. Query
+`timestamped-delete-object-instance-service-report-interaction`; regional,
+alternate-advance, save/restore, transport, review, interoperability, and
+conformance evidence remain separate.
+
+The timestamped Delete Object Instance MOM-failure matrix is now a separate
+indexed source lane at
+`cpp/tests/timestamped_delete_object_instance_failure_service_report_interaction_catch2.cpp:85`.
+Its exact case passes 92 HLA_IMMEDIATE assertions and maps five
+Requirements-Lab anchors to four canonical 2025 sections (`6.16`, `6.16.4`,
+`8.22.3`, and `11.5`). It records unknown-object and earlier-than-lookahead
+failures through HLAreportServiceInvocation with the supplied type-37/type-63/
+type-31 forms, type-34 Null return, exact exception text, and serials zero and
+one. Query `timestamped-delete-object-instance-failure-mom-interaction`;
+accepted/retraction delivery, recipient callbacks, regional, transport,
+review, interoperability, validation, and conformance evidence remain
+separate.
+
+indexed `[transport]` query currently reports 82 plan entries (76 mapped,
+82 source-located, and no source-drift rows; 6 have no Lab
+requirement mapping), including the
 late-TAR directed, suppressed-directed, multi-recipient cutoff-attribute,
 private framing, process-endpoint handshake/data, private service-dispatch and
 registry-bound Create/Join/Send/Receive Interaction, ordinary Subscribe Object
@@ -140,13 +1042,286 @@ directed, timestamped-directed, target-departure, subscription-kind,
 save/restore, and other regional lanes:
 
 For the active implementation loop, use the narrower `[process-boundary]`
-lane: 38 executable cases / 1617 focused-JUnit assertions with no unlocated
-rows; the local-delete codec contributes 9 direct assertions, the private
+lane: 109 mapped plan rows / 5,239 indexed Catch2 assertions, with the last
+captured evidence baseline registering 108 CTest executions. The latest bounded
+slice is the 62-assertion directed TSO callback-gating case at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:15757`; the preceding
+51-assertion multiple-message FIFO case at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:24182` remains independently
+queryable, followed by the preceding
+67-assertion timestamped-interaction changed-lookahead case, 70-assertion
+timestamped-attribute case, and
+45-assertion retraction-lifetime re-enable case remains independently
+queryable. The preceding
+23-assertion handle-normalization, order-name, and federate-identity cases
+remain independently queryable. The current merged-JUnit report has 4,132
+testcases (zero failures/errors); the older m108 snapshot contained 2,733.
+There is
+one historical source-unlocated row remains non-actionable and is surfaced by
+the bounded `check` command. The local-delete codec contributes 9 direct assertions, the private
 registry integration 44, and the public endpoint integration 18; receive-order
 Delete Object Instance adds a 25-assertion codec contract and a 25-assertion
 public endpoint/removal-callback integration; its timestamped process companion
-adds 64 assertions under both callback models; each
-completed slice also records its exact per-case count in `ROADMAP-INDEX.json`.
+adds 64 assertions under both callback models, and the timestamped regional
+Update Attribute Values endpoint adds 86 assertions under both models, and the
+regional subscription-removal endpoint adds 112 assertions under both models; the
+disjoint regional-update endpoint adds 50, the remote regional subscription/update
+endpoint adds 66, the regional-registration endpoint adds 34, and the
+object-registration endpoint adds 20 under both models, and the public
+object-class subscription endpoint adds 24 under both callback models, and the
+public object-discovery endpoint adds 44 under both callback models through the
+official `discoverObjectInstance` callback; the private registry-binding case
+also carries a four-assertion Query Logical Time protocol round-trip plus a
+ten-assertion official encoded `Enable Time Regulation`/retained-state check,
+and the public Create/Join/Resign case carries a two-assertion official-factory
+reconstruction check plus a four-assertion callback-gating check. These are
+ bounded process role/state baselines. The process TAR pending-role slices add
+28 callback-gated assertions, the malformed logical-time decode fence adds 9
+assertions mapped to clause `8.8.3`, and the two-federate process federation
+scheduler adds 30 assertions for deferred constrained TAR, regulator-driven
+release, unsolicited grant transport, and Evoke callback delivery. Timestamped
+TSO scheduling, save/restore, package/JUnit, and conformance remain separate
+work. The focused timestamped process interaction-before-grant slice adds 62
+`HLA_EVOKED` assertions mapped to 20 Requirements-Lab anchors and 13
+canonical 2025 sections, including public Query GALT/LITS at the in-transit
+boundary before callback acknowledgement; query `process-tso-in-transit` for
+its exact focus/trace/matrix handles. Pre-grant retraction, multi-message ordering,
+directed/regional TSO, save/restore, and conformance remain separate slices.
+The paired timestamped process-attribute-update slice adds 114 `HLA_EVOKED`
+assertions across one private transport/registry case and one public endpoint
+case, sharing 17 Requirements-Lab anchors across 12 canonical 2025 sections;
+the public endpoint case observes Query GALT/LITS at the in-transit timestamp
+before its reflection callback acknowledges delivery. Query
+`process-tso-attribute-before-grant` for the combined focus handle and query
+each exact test title for its private/public trace. Retraction stress,
+multiple-message ordering, fanout, regional/DDM, save/restore, package/JUnit,
+validation, interoperability, and conformance remain separate slices.
+The connection support-types baseline
+is separately indexed as an 11-assertion SDK-consumability case with an explicit
+no-standalone-Requirements-Lab-surface disposition. Each completed slice also
+records its exact per-case count in `ROADMAP-INDEX.json`. The accepted filesystem
+service-report directory configuration and deterministic-failure cases are
+separately mapped to the official Connect surface and clauses `4.1.1`/`4.2`;
+the callback-route receive-order, immediate-callback reentrancy, callback-disable,
+evoked one-at-a-time, concurrent-serialization, disabled-backlog, Evoke Multiple
+FIFO, evoked-disabled-pending, callback-session-close, callback-session
+concurrent-invocation, and callback-session active-close seams are indexed as
+private foundation/API traceability. The external IEEE 1516-2010 ordered-catalog
+compatibility case is now indexed with 13 passing assertions and clauses
+`4.5.5`/`4.11.4`, explicitly separate from 2025 service conformance. The
+strict 2025-mode rejection and mixed-edition composer guard are also indexed as
+two- and seven-assertion compatibility-only slices against clause 4. The
+ambiguous 202x edition-setting guard is indexed as a one-assertion explicit
+no-standalone-Lab-surface policy row. The RPR full-family object-registration and
+custom-payload compatibility slices and the official FederateHandle
+SDK-consumability/encoding baselines are now indexed with explicit dispositions.
+The private federate lifecycle state-machine slices are now mapped with explicit
+dispositions. The regional-unpublish update-region lifetime slice is indexed
+with 17 assertions and 18 requirement anchors. The receive-order deletion
+update-region lifetime slice is indexed with 17 assertions and 20 requirement
+anchors. The final object-removal callback update-region lifetime slice is
+indexed with 27 assertions and 21 requirement anchors. The Join advisory-switch
+seed slice is indexed with 16 assertions and 13 requirement anchors. The
+Join-time explicit NoAction automatic-resign slice is indexed with 7 assertions
+and 9 requirement anchors. The completed order and transportation MOM
+service-classification slice is indexed with 66 assertions and 19 requirement
+anchors. The joined-federate MOM/FOM-module snapshot slice is indexed with 12
+assertions and 6 requirement anchors. The report-file identity save/restore
+slice is indexed with 46 assertions and 18 requirement anchors. The
+joined-federate MOM regional discovery slice is indexed with 124 assertions and
+17 requirement anchors. The restored-baseline regional provider-response slice
+is indexed with 44 assertions and 20 requirement anchors. The timestamped
+Delete Object Instance retraction case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4305` is now green
+with 49 HLA_EVOKED assertions. Its callback-drain boundary consumes the
+joined-federate MOM work item after Enable Time Regulation before asserting the
+timestamped deletion, retraction, reconstitution, removal, and grant-order
+path. The known-class-disabled
+attribute-relevance case at
+`cpp/tests/attribute_relevance_known_class_disabled_subscription_catch2.cpp:97` is now green
+with 35 HLA_EVOKED assertions, 18 Requirements-Lab anchors, 13 canonical 2025
+sections, and 18 official C++ API surfaces. The paired static known-class-
+enabled case at
+`cpp/tests/attribute_relevance_known_class_enabled_subscription_catch2.cpp:97` is also green
+with 30 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 13 canonical 2025
+sections, and 17 official C++ API surfaces. The update-rate passive-regional-
+subscription case at
+`cpp/tests/update_rate_passive_regional_subscription_catch2.cpp:73` is also green
+with 43 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 12 canonical 2025
+sections, and 21 official C++ API surfaces. The custom-transportation
+handle-stability case at
+`cpp/tests/custom_transportation_handle_stability_catch2.cpp:44` and the
+restored-baseline timestamped MOM interaction case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4538` are mapped and
+green. The restored-baseline regional Provide Attribute Value Update case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4697` is green with
+251 assertions and 11 Requirements-Lab anchors. The three-dimensional
+regional object-attribute overlap case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47660` is green with
+57 assertions and 10 Requirements-Lab anchors. The restored-baseline regional
+Request Attribute Value Update solicitation case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4999` is green with
+58 assertions, 9 Requirements-Lab anchors, 7 canonical 2025 sections, and 20
+official C++ API surfaces. The restored-baseline timestamped regional Update
+Attribute Values MOM failure case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5461` is green with
+138 assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 30
+official C++ API surfaces. The restored-baseline timestamped Update Attribute
+Values file-failure case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5863` is now green
+with 218 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025
+sections, and 15 official C++ API surfaces. The m46 regional reflection-order,
+m47 Unpublish Object Class Attributes, m48 partial ownership cancellation, and
+m49 pre-delivery ownership cancellation slices are now mapped and green with
+206, 102, 48, and 33 HLA_EVOKED assertions respectively. The m50 disabled Auto
+Provide discovery baseline is also mapped and green with 21 assertions. The
+m51 Federation Synchronized-after-resignation service-report case is mapped
+and green with 23 HLA_EVOKED assertions. The m52 terminal TSO-designator case
+is mapped and green with 40 HLA_EVOKED assertions. The m53 timestamped Update
+Attribute Values queue/retraction case is mapped and green with 68 HLA_EVOKED
+assertions at
+`cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp:154`.
+The m54 mixed update-rate subscription case is mapped and green with 37
+HLA_EVOKED assertions, eight Requirements-Lab anchors, two canonical 2025
+sections, and 15 official C++ API surfaces at
+`cpp/tests/mixed_update_rate_subscriptions_catch2.cpp:199`. The next
+source pointer is the federation-teardown update-rate-history case at
+`cpp/tests/federation_teardown_update_rate_history_catch2.cpp:158`, emitted by
+`next --pointer`. The m55 slice is green with 46 HLA_EVOKED assertions, nine
+Requirements-Lab anchors, five canonical 2025 sections, and 15 official C++
+API surfaces. The next source pointer is the unplanned regional best-effort
+attribute-rate case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59566`. The m56
+slice is green with 47 HLA_EVOKED assertions, 19 Requirements-Lab anchors, 11
+canonical 2025 sections, and 22 official C++ API surfaces. The m57 slice is
+green with 57 HLA_EVOKED assertions, 30 Requirements-Lab anchors, 19 canonical
+2025 sections, and 28 official C++ API surfaces. The m58 slice is green with
+120 assertions, three Requirements-Lab anchors, one canonical Section 8.1.10
+mapping, and 22 official C++ API surfaces under HLA_EVOKED and HLA_IMMEDIATE.
+The m59 timestamped directed-interaction slice is green with 166 assertions
+under HLA_EVOKED and HLA_IMMEDIATE in the focused target at
+`cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp:129`;
+its callback drain now consumes the queued Time Regulation Enabled notification
+before the TSO assertions. Query it with
+`python tools/query_rti_work.py trace m59.embedded-delay-subscription-evaluation-timestamped-directed-interaction --summary --compact`.
+The m60 timestamped directed-interaction TSO/retraction slice is green with 56
+HLA_EVOKED assertions in the focused target at
+`cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp:150`; it
+applies the same callback-drain boundary before verifying retraction and
+delivery. Query it with
+`python tools/query_rti_work.py trace m60.embedded-timestamped-directed-interaction-tso-retraction --summary --compact`.
+The next
+source pointer is the immediate timestamped directed-interaction source-
+resignation case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:62516`; m61 is green
+with 45 HLA_EVOKED assertions. The m62 declaration at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:63554` is a disabled
+ `#if 0` malformed source artifact with no executable evidence. The m63
+ regional source-region snapshot case is green with 42 HLA_EVOKED assertions
+ at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:69776`. The m64
+ timestamped regional interaction TSO/retraction case is green with 68
+ HLA_EVOKED assertions at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:75428`. The m65
+ public HLAfloat64Time representation case is green with 31 assertions at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:76784`. The m66,
+ m67, m68, and m69 no-TSO GALT/NRG cases are green with 21, 15, 27, and 24
+assertions at lines 77307, 77349, 77382, and 77428 respectively. The source
+queue for this translation unit is now exhausted; choose the next bounded
+service family through the indexed `queue`, `work`, and `focus` commands.
+The focused Connection Lost/TSO directed-interaction case is now source-backed
+at `cpp/tests/connection_loss_directed_tso_catch2.cpp:158` with 55
+HLA_EVOKED assertions. Its two page-50 Clause 4 Requirements-Lab requirements,
+canonical `hla-1516.1-2025:clause-4` mapping, and exact CTest filter are
+queryable through `trace`/`matrix`; it remains bounded embedded development-
+profile evidence until remote transport, package/JUnit/protected-review, and
+conformance evidence are added.
+The paired timestamped attribute-update cutoff case is now source-backed at
+`cpp/tests/connection_loss_attribute_update_tso_catch2.cpp:157` with 53
+HLA_EVOKED assertions. It maps the same loss boundary to the six Clause 4/6/8
+requirements plus the official `changeAttributeOrderType` surface, and is
+covered by the indexed `connection-lost-tso-cutoff` CTest label. Both cases
+remain development-profile evidence; multi-recipient, alternate message-family,
+remote, package/JUnit, protected-review, and conformance promotion remain
+separate work.
+The staggered per-recipient companion is source-backed at
+`cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp:185`
+with 66 HLA_EVOKED assertions. It faults the source with only one survivor TAR
+pending, drains that survivor, then submits the second TAR after loss and
+proves the independent queued copy, retraction, and grant. This is still
+bounded evidence for two recipients, not a general fan-out or interoperability
+claim.
+The late-TAR automatic-delete companion is source-backed at
+`cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp:164` with
+62 HLA_EVOKED assertions. It faults before the survivor's TAR, verifies the
+accepted reflection precedes the late grant, and then verifies the deferred
+receive-order removal on the next TAR. The indexed lane now exposes 281
+recorded assertions across these focused cases.
+The directed-interaction late-TAR companion is source-backed at
+`cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp:168` with 64
+HLA_EVOKED assertions. It faults after the source has queued a cutoff
+timestamped directed interaction, verifies the late TAR delivers that
+interaction before its grant, and then verifies DELETE_OBJECTS cleanup remains
+deferred until the following receive-order TAR. The indexed lane now exposes
+345 recorded assertions across five standalone focused sources.
+The per-recipient automatic-cleanup companion is source-backed at
+`cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp:212`
+with 81 HLA_EVOKED assertions. It queues one cutoff reflection before loss and
+opens the second survivor's boundary afterward, then advances each survivor
+independently to prove one DELETE_OBJECTS removal cannot drain the other's
+pending cleanup. The indexed lane now exposes 426 recorded assertions across
+six standalone focused sources.
+The HLA_IMMEDIATE asynchronous-delivery counterpart is source-backed at
+`cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp:149` with
+60 HLA_IMMEDIATE assertions. It runs the same time-6 cutoff collision on the
+direct callback surface and verifies reflection, grant, and receive-order
+DELETE_OBJECTS removal are dispatched in order during that TAR. The indexed
+lane now exposes 486 recorded assertions across seven standalone focused
+sources.
+The equal-to-cutoff object-deletion companion is source-backed at
+`cpp/tests/connection_loss_object_deletion_tso_catch2.cpp:125` with 47
+HLA_EVOKED assertions. It queues a timestamp-6 Delete Object Instance, faults
+the regulating publisher at its granted cutoff, and verifies the survivor
+receives the timestamped removal (including its valid retraction metadata)
+before the matching grant. The indexed lane now exposes 533 recorded
+assertions across eight standalone focused sources.
+The strict-less-than object-deletion companion shares that source at
+`cpp/tests/connection_loss_object_deletion_tso_catch2.cpp:371` with 47
+HLA_EVOKED assertions. It queues a timestamp-5 removal, advances the lost
+regulator to time 6, and verifies that the earlier timestamped removal still
+arrives before the survivor's time-6 grant after transport loss. The indexed
+lane now exposes 580 recorded assertions across the eight standalone focused
+sources.
+The automatic-delete collision companion shares that source at
+`cpp/tests/connection_loss_object_deletion_tso_catch2.cpp:244` with 47
+HLA_EVOKED assertions. It queues a timestamp-6 removal, faults the publisher at
+the matching cutoff under `DELETE_OBJECTS`, and verifies that automatic cleanup
+does not replace or duplicate the accepted timestamped removal on a later TAR.
+The indexed lane now exposes 627 recorded assertions across the eight
+standalone focused sources.
+The multi-recipient object-deletion companion is source-backed at
+`cpp/tests/connection_loss_object_deletion_tso_multi_recipient_catch2.cpp:148`
+with 76 HLA_EVOKED assertions. It queues one timestamp-6 deletion, faults the
+publisher at the cutoff, drains the first constrained survivor, and then opens
+the second survivor's boundary; both receive one independent timestamped
+removal with the original producer, tag, retraction, and cutoff preserved. The
+Before this companion, the indexed lane exposed 703 recorded assertions across
+nine standalone focused sources. The directed-selector mutation companion is
+source-backed at
+`cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp:197` with 58
+HLA_EVOKED assertions. It queues a timestamp-6 directed interaction under a
+universal subscription, faults the source with `DELETE_OBJECTS`, changes the
+survivor to by-ownership before the callback boundary, and verifies the
+directed callback is suppressed while the independent receive-order removal
+still arrives at the next gate. The regional-selector mutation companion is
+source-backed at
+`cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159` with 61
+HLA_EVOKED assertions. It queues a timestamp-6 regional attribute update while
+source and receiver ranges overlap, faults the source with `DELETE_OBJECTS`,
+commits a disjoint receiver range before the callback boundary, and verifies
+the stale regional reflection is suppressed while the independent receive-order
+removal still arrives at the next gate. The indexed lane now exposes 822
+recorded assertions across eleven standalone focused sources and has no source
+drift rows.
 Keep the
 broader `[transport]` lane as the regression baseline and query it through
 `python tools/query_rti_work.py coverage --lane transport --summary --compact`.
@@ -159,7 +1334,10 @@ validates the profile/resource manifests, and runs a clean downstream consumer;
 in the embedded profile that consumer launches two independent public
 ambassadors against the private test-only server fixture. The process-boundary
 JUnit artifact and indexed requirement/section mappings are also
-reproducible. The parameterized-envelope projection is a separate
+reproducible: `umbra_process_boundary_junit` merges the independently
+buildable private process target with the public connection target, so the
+artifact does not rely on the damaged aggregate federation-management
+translation unit. The parameterized-envelope projection is a separate
 `package-process-parameterized` CTest lane and is green; it resolves the
 server-owned object class and `TimelinessOk` parameter before checking the
 exact parameterized interaction envelope. The connection-loss projection is a
@@ -200,6 +1378,148 @@ directed/retraction consumer is green as its own
 bridge evidence. It proves the positive post-delivery Request Retraction
 callback and the negative pre-delivery suppression path through the installed
 public API.
+The process time lane now also has a focused Query Lookahead readback at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:11962`: 13 `HLA_EVOKED`
+assertions cover the not-enabled exception, callback-gated Enable Time
+Regulation, and official HLAinteger64Interval encoding over the private seam.
+Query it with `python tools/query_rti_work.py focus
+process-query-lookahead-focused --summary --compact`; Modify Lookahead and
+multi-federate temporal coordination remain separate slices.
+The next bounded process-time slice is the focused Modify Lookahead mutation at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:12058`: 17 `HLA_EVOKED`
+assertions map three exact Lab anchors to clause 8.20.4. It covers the
+not-enabled fence, callback-gated enablement, official interval encoding,
+immediate increase, and lower-request retention before a time advance. Use
+`python tools/query_rti_work.py focus process-modify-lookahead-focused
+--summary --compact` (or its `trace`, `matrix`, `check`, and exact CTest
+handles); grant-time decrease application and multi-federate scheduling remain
+separate slices.
+The completed grant-boundary companion is independently queryable at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:12164`: 34 `HLA_EVOKED`
+assertions map six exact Lab anchors across clauses 8.5.5, 8.6.3, 8.8.3, and
+8.20.4. It retains a lower lookahead before a pending grant, releases a
+constrained TAR through the shared two-federate scheduler, and verifies the
+lower interval is applied at the regulating grant boundary. Use
+`python tools/query_rti_work.py focus process-modify-lookahead-grant-focused
+--summary --compact` (or its `trace`, `matrix`, `check`, and exact CTest
+handles); GALT/LITS/TSO, role-disable, resignation, save/restore, package/JUnit,
+validation, and conformance remain separate.
+The next completed process temporal slice is the Available-form request at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:12396`: 15 `HLA_EVOKED`
+assertions map four exact Lab anchors across clauses 8.9, 8.14.3, and 8.18.1.
+It proves the dedicated process TARA operation, official logical-time
+encoding, callback-gated grant, and Query Logical Time readback. Query it with
+`python tools/query_rti_work.py focus
+process-time-advance-available-focused --summary --compact` (or its `trace`,
+`matrix`, `check`, and exact CTest handles); inclusive GALT, queued TSO,
+FQR, multi-federate coordination, save/restore, package/JUnit,
+validation, and conformance remain separate lanes.
+The queued-TSO NMR/NMRA companion is now independently indexed at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:12600`: 101 aggregate assertions
+across `HLA_EVOKED` and `HLA_IMMEDIATE`, 19 Lab anchors, and 12 canonical 2025 sections. It sends messages
+at 5 and 8, proves NMR(10) selects 5 and NMRA(10) selects 8, and checks each
+interaction callback before its grant. Query
+`process-time-advance-next-message-queued-focused`; GALT/LITS, Flush Queue,
+retraction, multi-recipient ordering, save/restore, package/JUnit, review,
+validation, interoperability, and conformance remain separate lanes.
+The latest process object-instance lookup slice is independently indexed at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:13040`: 18 assertions under
+`HLA_EVOKED` and `HLA_IMMEDIATE`, five Lab anchors, two canonical 2025
+subsections (`6.8.4` and `6.9.3`), and six official C++ API surfaces. It
+round-trips generated object names and handles through the service ledger and
+maps unknown values to `ObjectInstanceNotKnown`. Query it with
+`focus object-instance-lookup`, `trace`, `matrix`, `check --lane`, or its exact
+CTest title; discovery fan-out, reservation/collision, deletion/reuse, DDM,
+save/restore, MOM, package/JUnit, review, validation, interoperability, and
+conformance remain separate slices.
+The latest process declaration slice is independently indexed at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:13224`: 20 assertions under
+`HLA_EVOKED` and `HLA_IMMEDIATE`, four Lab anchors, four canonical 2025
+subsections (`10.4.6`, `10.6.2`, `10.13.2`, and `10.14.5`), and four official
+C++ API surfaces. It round-trips object/interaction class names through the
+federation-owned FOM catalog and maps unknown values to the official
+invalid-handle exceptions. Query it with `focus reverse-fom-lookup`, `trace`,
+`matrix`, `check --lane`, or its exact CTest title; attribute, parameter,
+dimension, transportation, multi-federate declaration management,
+save/restore, MOM, package/JUnit, review, validation, interoperability, and
+conformance remain separate slices.
+The newest process declaration slice is independently indexed at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:13411`: 24 assertions under
+`HLA_EVOKED` and `HLA_IMMEDIATE`, four Lab anchors, three canonical 2025
+subsections (`10.9.1`, `10.10.3`, and `10.16.1`), and four official C++ API
+surfaces. It round-trips attribute/parameter handles and names through the
+federation-owned FOM catalog and maps unknown values to
+`AttributeNotDefined`/`InteractionParameterNotDefined`. Query it with
+`trace`, `matrix`, `check --lane`, or the exact CTest title shown by
+`focus reverse-fom-lookup`; the dimension/transportation cases below remain
+separate from multi-federate declaration management, save/restore, MOM,
+package/JUnit, review, validation, interoperability, and conformance.
+The newest process declaration slice is independently indexed at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:13628`: 16 assertions under
+`HLA_EVOKED` and `HLA_IMMEDIATE`, six Lab anchors, three canonical 2025
+subsections (`9.1.2`, `10.19`, and `10.20.4`), and four official C++ API
+surfaces. It round-trips dimension and transportation handles and names
+through the federation-owned FOM catalog. Query it with `trace`, `matrix`,
+`check --lane`, or the exact CTest title shown by
+`focus reverse-fom-lookup`; this successful m104 case remains distinct from
+the m105 unknown-handle/error matrix. Multi-federate declaration management,
+package/JUnit, review, validation, interoperability, and conformance remain
+separate slices.
+The latest process declaration slice is independently indexed at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:13785`: 16 assertions under
+`HLA_EVOKED` and `HLA_IMMEDIATE`, six Lab anchors, three canonical 2025
+subsections (`9.1.2`, `10.19`, and `10.20.4`), and four official C++ API
+surfaces. It keeps unknown dimension/transportation names and invalid handles
+on a separate process error fence, preserving the public NameNotFound,
+InvalidDimensionHandle, InvalidTransportationName, and
+InvalidTransportationTypeHandle semantics. Query it with `trace`, `matrix`,
+`check --lane`, or the exact CTest title shown by `focus reverse-fom-lookup`;
+multi-federate declaration management, package/JUnit, review, validation,
+interoperability, and conformance remain separate slices.
+The latest process callback-ordering slice is independently indexed at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:14106`: 79 assertions under
+`HLA_EVOKED` and `HLA_IMMEDIATE`, ten Lab anchors, six canonical 2025 subsections (`4`, `5.1.4`,
+`6.12`, `6.12.4`, `6.13`, and `10.60.6`), and five official C++ API surfaces.
+It joins one sender and two subscribed receivers, preserves per-recipient FIFO
+tags/parameters/producer identity, delivers one callback per Evoke Callback,
+and excludes the sender from receive callbacks. Query it with
+`focus process-multi-recipient-callback-ordering`, `trace`, `matrix`,
+`check --lane`, or the exact CTest title; immediate delivery, callback-disable,
+timestamped/region/directed fanout, package/JUnit, review, validation,
+interoperability, and conformance remain separate slices.
+The newest process TSO/DDM slice is independently indexed at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:15195`: 71 assertions under
+`HLA_EVOKED`, 28 Lab anchors, 16 canonical 2025 subsections, and 20 official
+C++ API surfaces. It carries an overlap-qualified timestamped regional send
+through the process endpoint, gates delivery on the constrained receiver's
+time advance, and preserves source-region/timestamp/order/tag/producer/
+retraction metadata. Query it with `focus
+timestamped-process-regional-interaction`, `trace
+m109.embedded-process-tso-regional-interaction`, `matrix`, `test`, `check
+--lane`, or its exact CTest title. Callback-disable, directed, relaxed-DDM,
+package/JUnit, review, validation, interoperability, and conformance remain
+separate slices.
+The preceding process DDM slice is independently indexed at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:14552`: 126 assertions under
+`HLA_EVOKED` and `HLA_IMMEDIATE`, thirteen Lab anchors, seven canonical 2025
+subsections (`9.1.8`, `9.10`, `9.11.2`, `9.12`, `9.12.5`, `10.44`, and `11.5`),
+and thirteen official C++ API surfaces. It joins one sender and two disjoint
+regional recipients, filters each send by overlap, conveys the send-time
+source-region set through the receiver switch, and excludes the sender. Query
+it with `focus process-multi-recipient-regional-interaction`, `trace m108.embedded-process-multi-recipient-regional-interaction`, `matrix`, `test`, `check --lane`, or the exact CTest title; timestamped/retraction, directed,
+relaxed-DDM, callback-disable, package/JUnit, review, validation,
+interoperability, and conformance remain separate slices.
+The preceding process DDM metadata slice is independently indexed at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:13933`: 28 assertions under
+`HLA_EVOKED` and `HLA_IMMEDIATE`, four Lab anchors, one canonical 2025
+subsection (`9.1.2`), and two official C++ API surfaces. It resolves inherited
+available dimensions for object and interaction classes through the
+federation-owned process catalog, preserves an empty set, and maps unknown
+class handles to the official invalid-handle exceptions. Query it with
+`focus process-available-dimensions-hierarchy`, `trace`, `matrix`,
+`check --lane`, or the exact CTest title; process region lifecycle/routing,
+multi-federate declaration management, package/JUnit, review, validation,
+interoperability, and conformance remain separate slices.
 The installable-package smoke now verifies all eight downstream process test and
 label pairs against `ROADMAP-INDEX.json` with
 `tools/verify_process_package_lanes.py` before running them, so a renamed or
@@ -220,6 +1540,9 @@ python tools/query_rti_work.py test "RTIambassador reserves a name and registers
 python tools/query_rti_work.py test "RTIambassador projects the 2025 region lifecycle and regional registration through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes a remote regional subscription and scoped update through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador preserves a timestamped regional update through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py focus process-query-lookahead-focused --summary --compact
+python tools/query_rti_work.py trace "RTIambassador queries lookahead through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix "RTIambassador queries lookahead through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador removes a regional subscription through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador suppresses a disjoint regional update through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador delivers regional Attribute Relevance Advisory subscription transitions through a configured process endpoint" --summary --compact
@@ -1131,6 +2454,14 @@ Umbra-owned replacement public API.
       is traced through the existing restore-control contract and remains
       development-profile state-integrity evidence, not durable persistence or
       update-rate conformance.
+- [x] Preserve federation save-history conditionals across a filesystem state
+      image and fresh-registry restore. The 42-assertion native C++ regression
+      serializes `HLAlastSaveName/Time` and `HLAnextSaveName/Time` with the
+      route-free image, restores the second completed save, and proves a later
+      durable commit retains the prior completed-save identity. Query the
+      bounded slice with `federation-save-history-process-restart`; timed
+      save-history, public MOM delivery, remote transport, package/JUnit,
+      protected review, interoperability, and conformance remain separate.
 - [x] Apply a shared federation-operation gate to representative services
       during active save/restore coordination. The exact 2025 C++ API and
       service-clause selections live in the paired save/restore interlock
@@ -1160,9 +2491,10 @@ Umbra-owned replacement public API.
       its equal-timestamp cohort is delivered before `Time Advance Grant`;
       otherwise the requested time remains the target. The caller boundary is
       retained separately for GALT and timestamp validation. This has exact
-      Requirements-Lab source/API traceability and Catch2 coverage, but does
-      not claim future transport input, `Flush Queue Request`, or full
-      coordination.
+      Requirements-Lab source/API traceability and Catch2 coverage, including
+      a two-federate process companion that proves queued timestamps 5 then 8
+      are selected by NMR/NMRA. It does not claim future transport input,
+      `Flush Queue Request`, or full coordination.
 - [x] Bind the 2025 `Time Advance Request Available` and `Next Message Request
       Available` services in the embedded profile. The Available forms reuse
       the callback-gated grant path, select only currently queued TSO input in
@@ -1243,6 +2575,57 @@ Umbra-owned replacement public API.
       §11.5 report emission/file behavior, broader relaxed-DDM behavior,
       package evidence, and conformance remain open. RL-024 records the
       unresolved Lab/XSD automatic-resign default discrepancy.
+- [x] Isolate the MOM Service Reporting subscription interlock as its own
+      queryable C++ lane. The dedicated
+      `cpp/tests/mom_service_reporting_interlock_catch2.cpp:50` case passes 41
+      `HLA_EVOKED` assertions and maps three Lab requirements to §§5.10.2,
+      9.10.3, and 11.5. It rejects active and passive ordinary/regional
+      `HLAreportServiceInvocation` subscriptions while reporting is enabled,
+      preserves the switch after failed enable attempts, and verifies
+      removal-before-enable recovery using a committed `HLAserviceGroup`
+      region. Use the exact `service-reporting-interlock` focus/trace/matrix/
+      check/CTest handles; filesystem report files, generic MOM routing,
+      package/JUnit/protected review, validation, and conformance remain
+      separate.
+- [x] Isolate the joined-federate MOM deletable-object projection as its own
+      queryable C++ lane. The dedicated
+      `cpp/tests/joined_federate_mom_deletable_object_count_catch2.cpp:108` case
+      passes 55 `HLA_EVOKED` assertions and maps the live
+      `HLAprivilegeToDeleteObject`/`HLAobjectInstancesThatCanBeDeleted` ledger
+      to the §11.4.1 Lab requirement. It verifies direct MOM counts 0 → 1 after
+      implicit-privilege registration, the same count through `HLAsetTiming`
+      periodic reflection, and 0 after owner deletion; RTI-owned MOM objects
+      are excluded. Use the exact
+      `joined-federate-mom-deletable-object-count` focus/trace/matrix/check/
+      CTest handles. Remaining MOM statistics, regional/transport variants,
+      public producer mapping, filesystem reporting, package/JUnit/protected
+      review, validation, and conformance remain separate.
+- [x] Isolate the joined-federate MOM receive-order queue projection as its own
+      queryable C++ lane. The dedicated
+      `cpp/tests/joined_federate_mom_ro_length_periodic_catch2.cpp:134` case
+      passes 63 `HLA_EVOKED` assertions and maps `HLAROlength` to the §11.4.1
+      Lab requirement. It samples the recipient-scoped receive-order ledger at
+      the accepted direct MOM request boundary (0 → 1), preserves 1 through
+      `HLAsetTiming` periodic reflection, and returns to 0 after the application
+      callback; RTI-owned MOM traffic is excluded. Use the exact
+      `joined-federate-mom-ro-length-periodic` focus/trace/matrix/check/CTest
+      handles. Deferred asynchronous/TSO variants, remaining MOM statistics,
+      regional/transport variants, public producer mapping, filesystem
+      reporting, package/JUnit/protected review, validation, and conformance
+      remain separate.
+- [x] Isolate the joined-federate MOM `HLAupdatesSent` projection as its own
+      queryable C++ lane. The dedicated
+      `cpp/tests/joined_federate_mom_updates_sent_periodic_catch2.cpp:108` case
+      passes 56 `HLA_EVOKED` assertions and maps the accepted
+      `Update Attribute Values` invocation ledger to the §11.4.1 Lab
+      requirement. Direct MOM requests expose the official `HLAinteger32BE`
+      count 0 → 1 → 2, and `HLAsetTiming` periodic reflection preserves 2;
+      counting is per accepted service invocation, not per value or callback.
+      Use the exact `joined-federate-mom-updates-sent-periodic`
+      focus/trace/matrix/check/CTest handles. Remaining MOM statistics,
+      timestamped/update-rate and regional/transport variants, public producer
+      mapping, filesystem reporting, package/JUnit/protected review, validation,
+      and conformance remain separate.
 - [x] Implement an explicit, bounded Allow Relaxed DDM policy at the shared
       committed-region overlap predicate. With the static federation switch
       enabled, only ranges that exactly touch at a boundary are added to the
@@ -1250,12 +2633,16 @@ Umbra-owned replacement public API.
       preserved. Focused Restaurant-FOM interaction and object-attribute
       regressions exercise disabled, enabled, gapped, and strict cases, with
       the latter also proving discovery/reflection gating. `../design/RELAXED-DDM-POLICY.md`
-      records the implementation-defined decision; RL-030 records that the
-      Lab has an immutable getter candidate but no corresponding
-      delivery-policy candidate. The regional Auto Provide companion now
+      records the implementation-defined decision. The current pinned 2025
+      export carries the immutable §9.1.4 line-71 candidate; RL-030's omission
+      finding is historical to revision
+      `4f012fb1c21367cfde67aab8498ae00e2a64c615`. The regional Auto Provide companion now
       proves the same exact-touch/positive-gap policy at the discovery and
       RTI-invoked provider boundary under both callback models, including one
-      scoped response and strict-overlap preservation. Multi-dimension,
+      scoped response and strict-overlap preservation. Query it with the
+      dedicated `strict-relaxed-ddm-boundary` focus/trace/matrix/check/CTest
+      handles (or the broader `regional-automatic-provision-relaxed-ddm` lane).
+      Multi-dimension,
       timestamped, advisory, update-rate, transport, package, and conformance
       matrices remain open.
 - [x] Implement a bounded IEEE 1516.1-2025 §8.1.8 Delay Subscription
@@ -1791,6 +3178,24 @@ Umbra-owned replacement public API.
        `timestamped-regional-attribute-timed-restore` lane; durable persistence,
        alternate advances, post-save region mutation, broader recovery,
        transport, package/JUnit, and conformance remain open.
+       The source-backed Catch2 case is
+       `cpp/tests/timed_restore_live_tso_regional_attribute_update_catch2.cpp:190`
+       with 84 assertions, 23 Requirements-Lab anchors, 15 canonical 2025
+       sections, and 23 selected official C++ API surfaces. Resolve the lane
+       with the indexed focus/trace/matrix/check commands; the exact CTest
+       selector is printed by `focus` so this slice can run independently of
+       the large federation-management executable.
+       The timed source-resignation companion is now source-backed at
+       `cpp/tests/timed_live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp:180`
+       with 106 assertions, 27 Requirements-Lab anchors, 18 canonical 2025
+       sections, and 23 official C++ API surfaces. It preserves the same
+       timestamp-8 passel through source-region mutation before and after
+       restore, producer `UNCONDITIONALLY_DIVEST_ATTRIBUTES` resignation, and
+       independent survivor Flush Queue delivery. This closes only the
+       `tso-regional-attribute-update-timed-live-resignation-state` lane;
+       durable persistence, alternate advances, passive/relaxed DDM, changed
+       membership/ownership, transport, package/JUnit, and conformance remain
+       open.
        The same explicit-source regional object-update lane now includes a
        three-member fan-out companion: one timestamp-8 passel survives the
        logical-time-6 save for two constrained recipients, restores each
@@ -1799,10 +3204,33 @@ Umbra-owned replacement public API.
        with optimistic time 8 before Request Retraction reaches both. This is
        the bounded
        `timestamped-regional-attribute-timed-restore-multi-recipient` case;
-       its four-member source-mutation/resignation companion now proves both
+       its source-backed Catch2 case is
+       `cpp/tests/timed_restore_live_tso_regional_attribute_update_multi_recipient_catch2.cpp:190`
+       with 157 assertions, 23 Requirements-Lab anchors, 15 canonical 2025
+       sections, and 23 selected official C++ API surfaces. Use the indexed
+       focus/trace/matrix/check handles to run this fan-out slice independently
+       of the large federation-management executable. Its four-member
+       source-mutation/resignation companion now proves both
        constrained recipient routes retain the invocation snapshot through
-       restore and `UNCONDITIONALLY_DIVEST_ATTRIBUTES`. Durable persistence,
+       restore and `UNCONDITIONALLY_DIVEST_ATTRIBUTES`. The source-backed
+       Catch2 case is
+       `cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_source_resignation_after_restore_catch2.cpp:190`
+       with 167 assertions, 27 Requirements-Lab anchors, 18 canonical 2025
+       sections, and 22 selected official C++ API surfaces. Durable persistence,
        alternate advances and resignation actions, broader recovery,
+       transport, package/JUnit, and conformance remain open.
+       The adjacent `tso-regional-attribute-update-timed-delete-state` lane is
+       now source-backed at
+       `cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_delete_then_divest_after_restore_catch2.cpp:218`.
+       Its 124 HLA_EVOKED assertions map to 36 Requirements-Lab anchors, 19
+       canonical 2025 sections, and 25 selected official C++ API surfaces.
+       After restore and a disjoint source-region mutation,
+       `DELETE_OBJECTS_THEN_DIVEST` delivers one Remove Object Instance at each
+       constrained recipient's own Flush Queue boundary while suppressing the
+       stale timestamp-8 reflection and making post-delivery object lookup
+       report `ObjectInstanceNotKnown`. Use the indexed
+       `focus`, `trace`, `matrix`, and `check --lane` handles for this bounded
+       case; alternate resignation, pending ownership, passive/relaxed DDM,
        transport, package/JUnit, and conformance remain open.
  - [ ] Extend timestamped public delivery to the remaining 2025 object,
       interaction, ownership, and federation service families only after their
@@ -2297,7 +3725,11 @@ Umbra-owned replacement public API.
       separate native HLA_IMMEDIATE companion now routes the five successful
       service reports with file reporting disabled; RTI-owned point-region
       realization, distributed execution, package evidence, and conformance
-      remain separate work, and the lane is still source/API traceability.
+      remain separate work, and the lane is still source/API traceability. The
+      independently runnable C++ handoff is
+      `handle_normalization_catch2.cpp:60` (52 HLA_EVOKED assertions); query it
+      with the exact `handle-normalization` focus, trace, matrix, check, and
+      CTest handles recorded in the roadmap index.
 - [x] Complete public API traceability for the eight official handle-decoding
       services in the embedded development profile: federate,
       object-class, interaction-class, object-instance, attribute, parameter,
@@ -2566,8 +3998,11 @@ Umbra-owned replacement public API.
       realization resumes unless the new owner explicitly associates a region.
       The same cleanup helper is
       used by Confirm Divestiture, unconditional divestiture, unpublish, and
-      resignation paths. The paired Requirements-Lab contracts and Catch2 case
-      are traceability only; complete transfer arbitration, timestamped default-region
+      resignation paths. The standalone case at
+      `cpp/tests/ownership_transfer_update_region_catch2.cpp:142` is green with
+      88 HLA_EVOKED assertions, five Lab anchors, four canonical 2025 sections,
+      and eight official C++ API surfaces; the paired Requirements-Lab
+      contracts point to it. These are traceability only; complete transfer arbitration, timestamped default-region
       synthesis, advisory scope callbacks, package evidence, and conformance
       remain open.
 - [x] Exercise the 2025 Attribute Scope Advisory path in the embedded
@@ -2576,10 +4011,13 @@ Umbra-owned replacement public API.
       whose committed regional overlap, update-region association, or ordinary/
       regional subscription changes. The integration case proves immediate and
       evoked delivery, callback-time stale-transition suppression, and the
-      official switch accessors. Timestamped default-region coverage,
-      timestamped/retraction behavior, broader DDM routing, package/catalog
-      evidence, and conformance remain separate. This has source/API
-      traceability only.
+      official switch accessors. The source-backed case at
+      `cpp/tests/attribute_scope_advisory_catch2.cpp:97` records 187
+      assertions across nine Requirements-Lab anchors, five canonical 2025
+      sections, and eleven official C++ API surfaces; query it with the
+      `object-attribute-scope-advisory-state` lane. Timestamped default-region
+      coverage, timestamped/retraction behavior, broader DDM routing,
+      package/catalog evidence, and conformance remain separate.
 - [x] Parse and expose the 2025 Advisories Use Known Class switch in the
       embedded development profile. The FDD composer applies the
       Disabled omission default, federation creation captures one static
@@ -2655,6 +4093,12 @@ Umbra-owned replacement public API.
       groups the discovered object's in-scope owned attributes by provider and
       invokes `Provide Attribute Value Update` with the mandatory empty tag;
       the existing callback-time recheck suppresses stale provider work. The
+      enabled FDD baseline is independently indexed at
+      `cpp/tests/auto_provide_baseline_catch2.cpp:84` with 28 HLA_EVOKED
+      assertions, three Requirements-Lab anchors, two canonical 2025 sections,
+      15 official C++ API surfaces, and a grouped two-attribute provider
+      callback. The Disabled discovery
+      and MOM-mutation companions remain separate lanes.
       standard federation-wide `HLAsetSwitches` MOM interaction now accepts
       the official `HLAswitch` encoding and changes the value for all current
       members. The separately bounded joined-federate `HLAsetSwitches` path
@@ -2720,9 +4164,19 @@ Umbra-owned replacement public API.
       case retains accepted object handles, proving repeated updates to one
       object remain at `HLAobjectInstancesUpdated=1` while a second updated
       object raises the value to 2, with periodic reflection alongside
-      `HLAupdatesSent=3`. The same common registration path now projects
+      `HLAupdatesSent=3`. This is source-backed by the exact
+      `joined-federate-mom-updated-object-count-periodic` lane at
+      `cpp/tests/joined_federate_mom_updated_object_count_periodic_catch2.cpp:109`
+      (77 HLA_EVOKED assertions, one §11.4.1 requirement, and 12 official C++
+      API surfaces); use its focus/trace/matrix/check and exact CTest handles.
+      The same common registration path now projects
       `HLAobjectInstancesRegistered`, proving direct 0/1/2 values and periodic
-      2 after two successful object registrations. The deletion statistic now
+      2 after two successful object registrations. This is source-backed by
+      the exact `joined-federate-mom-registered-object-count-periodic` lane at
+      `cpp/tests/joined_federate_mom_registered_object_count_periodic_catch2.cpp:115`
+      (112 HLA_EVOKED assertions, one §11.4.1 requirement, and 12 official C++
+      API surfaces); use its focus/trace/matrix/check and exact CTest handles.
+      The deletion statistic now
       projects `HLAobjectInstancesDeleted` from accepted receive-order deletion
       and timestamped queue-admission boundaries, proving direct 0/1/2 and
       periodic 0 before deletion and 2 after two deletions. The receiving
@@ -2768,7 +4222,11 @@ Umbra-owned replacement public API.
        joined-lifetime update responsibility by registered object class, and
        rechecks the target/report subscription at the callback boundary. RL-109
        records the generic Lab relation gap; the other MOM request/report
-       families remain open.
+       families remain open. The exact native handoff is source-backed at
+       `cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp:137`
+       with 42 HLA_EVOKED assertions and is independently queryable through
+       the `joined-federate-mom-object-instances-updated-report` focus, trace,
+       matrix, check, and CTest handles.
        A second focused native MOM request/report case now consumes the
        Subscribe-only `HLArequestObjectInstancesThatCanBeDeleted` interaction
        and emits one reliable RTI-originated
@@ -2777,7 +4235,11 @@ Umbra-owned replacement public API.
        `HLAprivilegeToDeleteObject` ownership, so deleting one of two registered
        objects removes only that class from the next response. RL-110 records
        the generic Lab relation gap; remaining public MOM request/report
-       families remain open.
+       families remain open. The exact native handoff is source-backed at
+       `cpp/tests/joined_federate_mom_object_instances_that_can_be_deleted_report_catch2.cpp:137`
+       with 53 HLA_EVOKED assertions and is independently queryable through
+       the `joined-federate-mom-object-instances-that-can-be-deleted-report`
+       focus, trace, matrix, check, and CTest handles.
        A third focused native MOM request/report case now consumes the
        Subscribe-only `HLArequestObjectInstancesReflected` interaction and
        emits one reliable RTI-originated
@@ -2786,7 +4248,11 @@ Umbra-owned replacement public API.
        reflection ledger, grouped by registered class, so a repeated
        reflection of one object remains one count. RL-111 records the generic
        Lab relation gap; remaining public MOM request/report families remain
-       open.
+       open. The standalone native handoff is source-backed at
+       `cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp:160`
+       with 51 HLA_EVOKED assertions, one §11.4.1 anchor, and 14 official C++
+       API surfaces; use its exact focus, trace, matrix, check, and CTest
+       handles.
        A fourth focused native MOM request/report case now consumes the
        Subscribe-only `HLArequestUpdatesSent` interaction and emits one
        reliable RTI-originated `HLAreportUpdatesSent` interaction for each
@@ -2859,7 +4325,11 @@ Umbra-owned replacement public API.
          `Efficiency` plus implicit `HLAprivilegeToDeleteObject` ownership.
          RL-119 records the generic Lab relation gap; custom or remote
          transportation and the remaining public MOM request/report families
-         remain open.
+         remain open. The standalone native handoff is source-backed at
+         `cpp/tests/joined_federate_mom_object_instance_information_report_catch2.cpp:146`
+         with 71 HLA_EVOKED assertions, one §11.4.1 anchor, and 13 official
+         C++ API surfaces; use its exact focus, trace, matrix, check, and CTest
+         handles.
          An eleventh focused native MOM request/report case now consumes the
          Subscribe-only `HLArequestPublications` interaction and emits the
          required reliable RTI-originated interaction-publication,
@@ -3167,6 +4637,11 @@ Umbra-owned replacement public API.
       rotation. Its
       public MOM companion proves that two simultaneous joined-federate
       lifetimes publish distinct static paths and remove independently.
+      The lane is three source-located C++ cases, all mapped, with 232
+      assertions, 25 Lab requirement references, and 19 canonical 2025
+      sections; use `query_rti_work.py focus service-report-file-lifecycle`
+      or its exact `matrix`/`trace` handles to select work without scanning
+      the federation-management plan.
       Dedicated Requirements-Lab and official C++ API contracts pin the join,
       routing, switch-setter, and report-producing lookup surfaces. This is
       development-profile traceability only; broader public MOM/reporting,
@@ -3258,6 +4733,12 @@ Umbra-owned replacement public API.
       user-tag ownership services remain filesystem-only while RL-077's
       Table 5 type-63 versus MIM type-60 conflict is unresolved; full
       negotiated arbitration, protected review, and conformance remain open.
+      The dedicated source-backed case is
+      `cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp:547`
+      with 87 assertions, five Lab anchors, five canonical 2025 sections, and
+      six official C++ API surfaces. Use the exact
+      `cancel-negotiated-attribute-ownership-divestiture-service-report-interaction`
+      lane handles in the query card rather than reopening the aggregate.
  - [x] Exercise the object-class `Request Attribute Value Update` overload and
       matching `Provide Attribute Value Update` callback in the embedded
       development profile. The private registry validates selected-class
@@ -3328,6 +4809,18 @@ Umbra-owned replacement public API.
       complete RTI-owned ownership semantics, resign disposition, transport,
       package/JUnit/protected review, and conformance remain separate work;
       RL-142 records the Requirements Lab row-level candidate gap.
+- [x] Carry `Query Attribute Ownership` through the configured public process
+      endpoint. The typed process request/result preserves grouped federate-
+      owned and unowned reports, queues them behind the receive-order callback
+      fence, and revalidates the object/ownership projection at dequeue. The
+      focused C++ case records 26 assertions, six direct 2025 requirements,
+      two canonical subsections (`7.17.5` and `7.18.4`), and three official API
+      surfaces. Query it with the exact plan id
+      `umbra-cpp-attribute-ownership-query-process-integration`, the
+      `process-ownership-query` lane, or the exact `trace` command in
+      `docs/planning/ROADMAP-QUICKSTART.md`; this is public process
+      foundation evidence, not interoperability, package/JUnit/protected-
+      review, validation, or conformance evidence.
 - [x] Exercise the read-only 2025 `Is Attribute Owned By Federate` service in
       the embedded development profile. The test distinguishes the
       invoking current owner from a remote owner and a defined-but-unowned
@@ -3946,18 +5439,59 @@ Umbra-owned replacement public API.
        timestamped reflection and delivers one Remove Object Instance per
        constrained recipient at the delivery boundary. The matching
        `CANCEL_THEN_DELETE_THEN_DIVEST` companion now covers the combined
-       action with the same delivery result. A `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS`
+       action with the same delivery result. Its source-backed Catch2 case is
+       `cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_cancel_then_delete_then_divest_after_restore_catch2.cpp:218`
+       with 124 HLA_EVOKED assertions, 36 Requirements-Lab anchors, 19
+       canonical 2025 sections, and 25 selected official C++ API surfaces. It
+       is independently queryable with the
+       `tso-regional-attribute-update-timed-cancel-state` focus/trace/matrix/
+       check handles. A `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS`
        companion now creates a real regular ownership-acquisition request on
        one constrained recipient after restore, proves that resignation
        consumes the queued owner-release callback as stale work, and leaves
-       the surviving recipient's saved reflection intact. The `NO_ACTION`
+       the surviving recipient's saved reflection intact. Its source-backed
+       Catch2 case is
+       `cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_cancel_pending_ownership_after_restore_catch2.cpp:251`
+       with 130 HLA_EVOKED assertions, 39 Requirements-Lab anchors, 21
+       canonical 2025 sections, and 28 selected official C++ API surfaces;
+       query it with the
+       `tso-regional-attribute-update-timed-cancel-pending-ownership-state`
+       focus/trace/matrix/check handles. The `NO_ACTION`
        companion explicitly divests the producer's value and delete-privilege
        attributes first, then proves the object remains known and both
        constrained recipients receive the saved reflection. The matching
-       If Available companion creates only private Willing-to-Acquire state,
-       proves that no owner-release request is emitted, and verifies that
-       directive three suppresses the queued requester callback while the
-       surviving recipient still receives the saved reflection. The negotiated
+       If Available companion is now source-backed at
+       `cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_if_available_cancel_pending_ownership_after_restore_catch2.cpp:251`
+       with 130 HLA_EVOKED assertions, 41 Requirements-Lab anchors, 22
+       canonical 2025 sections, and 29 selected official C++ API surfaces. It
+       creates only private Willing-to-Acquire state, proves that no owner-
+       release request is emitted, and verifies that directive three suppresses
+       the queued requester callback and departing-recipient reflection while
+       the surviving recipient still receives the saved reflection. Query it
+       with
+       `tso-regional-attribute-update-timed-if-available-cancel-pending-ownership-state`
+       focus/trace/matrix/check handles. The negotiated
+       regular-candidate continuation companion is now source-backed at
+       `cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_regular_candidate_continuation_after_restore_lane_catch2.cpp:11`
+       with 164 HLA_EVOKED assertions, 46 Requirements-Lab anchors, 24
+       canonical 2025 sections, and 30 selected official C++ API surfaces. It
+       queues a regular request on the first constrained recipient and a
+       second regular candidate on the independent clock, then reissues
+       negotiated divestiture after the first requester resigns with
+       `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS` and completes the retained
+       candidate after the surviving saved reflection. Query it with
+       `tso-regional-attribute-update-timed-negotiated-regular-candidate-continuation-after-restore`
+       focus/trace/matrix/check handles. The negotiated If Available
+       continuation companion is now source-backed at
+       `cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_if_available_regular_candidate_continuation_after_restore_catch2.cpp:307`
+       with 163 HLA_EVOKED assertions, 48 Requirements-Lab anchors, 25
+       canonical 2025 sections, and 31 selected official C++ API surfaces. It
+       keeps the first constrained recipient on If Available, the independent
+       clock on a regular candidate, and confirms that requester cancellation
+       leaves the retained regular candidate for reissued negotiation after the
+       surviving saved reflection. Query it with
+       `tso-regional-attribute-update-timed-negotiated-if-available-regular-candidate-continuation-state`
+       focus/trace/matrix/check handles. The negotiated If Available
        companion queues one owner confirmation for the WTA candidate, then
        consumes that confirmation as stale when the candidate resigns before
        delivery, leaving ownership with the producer and the surviving
@@ -3975,26 +5509,75 @@ Umbra-owned replacement public API.
        tso-regional-attribute-update-timed-delete-state --compact` and
        `python tools/query_rti_work.py lane
         tso-regional-attribute-update-timed-cancel-state --compact`. Query the
+        regular pending-ownership cancellation slice with
+        `python tools/query_rti_work.py lane
+        tso-regional-attribute-update-timed-cancel-pending-ownership-state
+        --compact`. Query the
         continuation alone with `python tools/query_rti_work.py lane
        tso-regional-attribute-update-timed-negotiated-continuation-state
        --compact` and the retained-confirmation cancellation companion with
        `python tools/query_rti_work.py lane
        tso-regional-attribute-update-timed-negotiated-confirmation-cancel-state
-       --compact`. The next bounded slice is a mixed regular/If Available
-       two-candidate continuation at the same save/restore point, now covered
-       by the focused mixed-candidate lane and its regular-to-If Available
-       ordering assertions. The corresponding mixed retained owner-confirmation
-       cancellation case is now green as well; query its pre-delivery companion
+       --compact`. The timed negotiated-confirmation-cancel-after-restore
+       companion is now source-backed at
+       `cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_confirmation_cancel_after_restore_catch2.cpp:283`
+       with 161 HLA_EVOKED assertions, 48 Requirements-Lab anchors, 26
+       canonical 2025 sections, and 30 selected official C++ API surfaces. It
+       restores the logical-time-8 explicit-source regional update, reselects
+       the retained If Available candidate after requester resignation, then
+       cancels the negotiated divestiture after Request Divestiture Confirmation;
+       ownership remains with the producer, stale Confirm Divestiture is
+       rejected, and the queued clock callback reports unavailable. Query it
        with `python tools/query_rti_work.py lane
-       tso-regional-attribute-update-timed-negotiated-mixed-pre-delivery-cancel-state
+       tso-regional-attribute-update-timed-negotiated-confirmation-cancel-after-restore
+       --compact`. The timed mixed regular/If Available continuation is now
+       source-backed at
+       `cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_mixed_candidate_continuation_after_restore_catch2.cpp:15`
+       with 161 HLA_EVOKED assertions, 46 Requirements-Lab anchors, 24
+       canonical 2025 sections, and 31 selected official C++ API surfaces. It
+       restores the logical-time-8 explicit-source regional update, queues a
+       regular candidate for the first constrained recipient and an If
+       Available candidate on the independent clock, then reissues negotiated
+       divestiture after the first requester resigns. The registry now retains
+       the If Available reservation until Confirm Divestiture, suppresses the
+       stale ordinary callback, and delivers the surviving regional reflections
+       before the common Flush Queue grant. Query it with `python
+       tools/query_rti_work.py lane
+       tso-regional-attribute-update-timed-negotiated-mixed-candidate-continuation-after-restore
+       --compact`. The corresponding mixed retained owner-confirmation
+       cancellation case is now source-backed at
+       `cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_retained_regular_pre_delivery_cancel_after_restore_catch2.cpp:15`
+       with 161 HLA_EVOKED assertions, 50 Requirements-Lab anchors, 26
+       canonical 2025 sections, and 32 selected official C++ API surfaces. It
+       reverses the candidate order (If Available first, regular on the
+       independent clock), reissues negotiated divestiture after requester
+       resignation, then cancels before Request Divestiture Confirmation enters
+       user code. Stale confirmation work is consumed without an acquisition
+       notification, ownership stays with the publisher, and both surviving
+       regional recipients still reflect before the common Flush Queue grant.
+       Query it with `python tools/query_rti_work.py lane
+       tso-regional-attribute-update-timed-negotiated-retained-regular-pre-delivery-cancel-after-restore
+       --compact`. The matching post-confirmation companion is source-backed at
+       `cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_retained_regular_confirmation_cancel_after_restore_catch2.cpp:15`
+       with 163 HLA_EVOKED assertions, 50 Requirements-Lab anchors, 26
+       canonical 2025 sections, and 32 selected official C++ API surfaces. It
+       reuses the same If Available-first/regular-retained matrix, but cancels
+       after Request Divestiture Confirmation and after the surviving
+       reflection/Flush Queue boundary; publisher ownership remains, stale
+       Confirm Divestiture is rejected, and the regular reservation produces
+       no acquisition callback. Query it with `python tools/query_rti_work.py
+       lane tso-regional-attribute-update-timed-negotiated-retained-regular-confirmation-cancel-after-restore
        --compact`. The retained regular-candidate cancellation pair is now
        green and independently queryable with the pre-delivery and
-       confirmation-cancel lanes. The regular-to-regular and
+       confirmation-cancel lanes. The indexed `ready` pointer now advances to
+       the timestamped Update Attribute Values queue/retraction row; use
+       `python tools/query_rti_work.py ready --summary --compact` for that
+       single next handoff. The regular-to-regular and
        If Available-to-regular continuation orderings are now green as well;
         query them with the regular-candidate lanes. The regular-to-regular
-        retained owner-confirmation cancellation pair is now green at both
-        callback timing boundaries and queryable with the regular-retained
-        confirmation-cancel lanes. Keep the 17-case matrix as a regression
+       retained owner-confirmation cancellation pair is now green at both
+       callback timing boundaries and queryable with the regular-retained
+       confirmation-cancel lanes. Keep the 17-case matrix as a regression
        gate. Fresh-registry process-restart evidence now covers one pending
        regular owner-release reservation, one pending If Available requester
        callback, negotiated regular and negotiated If Available owner-confirmation
@@ -4265,8 +5848,9 @@ Umbra-owned replacement public API.
           exact-touch discovery, the enabled policy admits one scoped provider
           response, a positive gap suppresses delivery, and restoring strict
           overlap permits one ordinary update without duplicate discovery or
-          solicitation. Query it with `python tools/query_rti_work.py lane
-          regional-automatic-provision-relaxed-ddm --compact` or the exact test
+          solicitation. Query it with `python tools/query_rti_work.py focus
+          strict-relaxed-ddm-boundary --summary --compact` (or the broader
+          `regional-automatic-provision-relaxed-ddm` lane) or the exact test
           query. Keep this policy evidence separate from switch mutation,
           timestamped/retraction, save/restore, and transport.
        The
@@ -4291,7 +5875,30 @@ Umbra-owned replacement public API.
 - [ ] Complete object lifecycle/updates/ownership, interaction, and data
       distribution management.
 - [ ] Time management, ownership management, and save/restore.
+      Focused lane anchor: joined-owner timestamped deletion retraction.
+      Focused lane anchor: optimistic-time Flush Queue Request.
+      Focused lane anchor: joined-federate MOM time-state durations.
+      Focused lane anchor: joined-federate MOM reflection counts.
+      Focused lane anchor: joined-federate MOM updates sent.
+      Focused lane anchor: joined-federate MOM interactions sent.
+      Focused lane anchor: MOM sender-count NULL buckets.
+      Focused lane anchor: joined-federate MOM reflections received.
+      Focused lane anchor: joined-federate MOM interactions received.
+      Focused lane anchor: joined-federate MOM directed interactions received.
+      Focused lane anchor: joined-federate MOM deleted-object-count periodic
+      projection (`joined-federate-mom-deleted-object-count-periodic`).
+      Focused lane anchor: receiving-federate MOM removed-object-count periodic
+      callback projection (`joined-federate-mom-removed-object-count-periodic`).
+      Focused lane anchor: receiving-federate MOM discovered-object-count
+      periodic callback projection
+      (`joined-federate-mom-discovered-object-count-periodic`).
+      Focused lane anchor: timestamped regional attribute update resignation.
+      Focused lane anchor: timed negotiated cancellation after restore.
+      Focused lane anchor: timed negotiated continuation after restore.
+      Focused lane anchor: timed negotiated confirmation cancellation after restore.
 - [ ] MOM services after the corresponding base service behavior is stable.
+      Focused lane anchor: federation-scoped FOM-module/MIM MOM reports
+      (`federation-mom-content-reports`).
 - [ ] Embedded and remote transports, multi-process interoperability, and
       independently reviewed conformance evidence.
 

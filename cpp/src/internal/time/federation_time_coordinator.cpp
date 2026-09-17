@@ -269,6 +269,39 @@ FederationTsoDeliveryStatus FederationTimeCoordinator::completeTsoDelivery(
   return FederationTsoDeliveryStatus::applied;
 }
 
+FederationTsoDeliveryStatus FederationTimeCoordinator::completeTsoDeliveryFor(
+    std::uint64_t recipientFederateId,
+    std::uint64_t messageId) {
+  if (recipientFederateId == 0 || messageId == 0) {
+    return FederationTsoDeliveryStatus::invalid_recipient;
+  }
+  auto const inTransit = inTransitTsoMessages_.find(recipientFederateId);
+  if (inTransit != inTransitTsoMessages_.end()) {
+    auto const position = std::find_if(
+        inTransit->second.begin(),
+        inTransit->second.end(),
+        [messageId](TsoQueuedMessage const& candidate) {
+          return candidate.messageId == messageId;
+        });
+    if (position != inTransit->second.end()) {
+      return completeTsoDelivery(*position);
+    }
+  }
+
+  auto const delivered = deliveredTsoMessagesSinceLastAdvance_.find(
+      recipientFederateId);
+  if (delivered != deliveredTsoMessagesSinceLastAdvance_.end() &&
+      std::any_of(
+          delivered->second.begin(),
+          delivered->second.end(),
+          [messageId](TsoQueuedMessage const& candidate) {
+            return candidate.messageId == messageId;
+          })) {
+    return FederationTsoDeliveryStatus::message_already_completed;
+  }
+  return FederationTsoDeliveryStatus::message_not_in_transit;
+}
+
 std::size_t FederationTimeCoordinator::clearDeliveredTsoMessages(
     std::uint64_t recipientFederateId) noexcept {
   auto const delivered = deliveredTsoMessagesSinceLastAdvance_.find(recipientFederateId);

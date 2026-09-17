@@ -565,6 +565,21 @@ if(BUILD_TESTING)
       PROPERTIES LABELS "foundation;planning;traceability"
     )
     add_test(
+      NAME umbra.planning.query_matrix_regression
+      COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/query_rti_work_regression.py
+    )
+    set_tests_properties(umbra.planning.query_matrix_regression
+      PROPERTIES LABELS "foundation;planning;traceability"
+    )
+    add_test(
+      NAME umbra.cpp_tck.catalog_traceability
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/cpp_tck.py
+    )
+    set_tests_properties(umbra.cpp_tck.catalog_traceability
+      PROPERTIES LABELS "foundation;cpp-tck;traceability"
+    )
+    add_test(
       NAME umbra.ieee1516_2025.requirements_lab_observations
       COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py
         check-observations
@@ -1095,6 +1110,11 @@ if(BUILD_TESTING)
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/dimension-lookup-requirements-contract.json
       )
       add_test(
+        NAME umbra.ieee1516_2025.transportation_type_requirements_traceability
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
+          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/transportation-type-requirements-contract.json
+      )
+      add_test(
         NAME umbra.ieee1516_2025.dimension_lookup_api_traceability
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/dimension-lookup-api-contract.json
@@ -1218,15 +1238,6 @@ if(BUILD_TESTING)
         NAME umbra.ieee1516_2025.update_rate_subscription_api_traceability
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
           --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/update-rate-subscription-api-contract.json
-      )
-      add_test(
-        NAME umbra.ieee1516_2025.update_rate_reduction_requirements_traceability
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/requirements_lab.py check
-          --contract ${CMAKE_CURRENT_SOURCE_DIR}/compliance/requirements-lab/update-rate-reduction-requirements-contract.json
-      )
-      set_tests_properties(
-        umbra.ieee1516_2025.update_rate_reduction_requirements_traceability
-        PROPERTIES LABELS "requirements-lab;traceability;update-rate-reduction"
       )
       add_test(
         NAME umbra.ieee1516_2_2025.fom_advisory_switches_requirements_traceability
@@ -2012,6 +2023,10 @@ if(BUILD_TESTING)
     LABELS fom-source-diagnostics
   )
   umbra_label_registered_ctest_tests(
+    MATCH "federation_listing_(requirements|api)_traceability$"
+    LABELS federation-listing
+  )
+  umbra_label_registered_ctest_tests(
     MATCH "(federation_management|federation_execution|federation_listing|federate_(lookup|lost_report|resigned|advisory)|connection(_lost|_callback)?|resign_action|automatic_resign|mom_service_reporting)"
     LABELS federation-management
   )
@@ -2240,7 +2255,7 @@ if(BUILD_TESTING)
     LABELS query-interaction-transportation-type
   )
   umbra_label_registered_ctest_tests(
-    MATCH "transportation_type_api_traceability$"
+    MATCH "umbra\\.ieee1516_2025\\.transportation_type_(requirements|api)_traceability$"
     LABELS transportation-type-lookup
   )
   umbra_label_registered_ctest_tests(
@@ -2512,8 +2527,16 @@ if(BUILD_TESTING)
     LABELS ordinary-regional-interaction-service-report
   )
   umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback$"
+    LABELS ordinary-regional-interaction-service-report-file
+  )
+  umbra_label_registered_ctest_tests(
     MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction$"
     LABELS ordinary-regional-interaction-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction$"
+    LABELS ordinary-regional-interaction-service-report-mom-interaction
   )
   umbra_label_registered_ctest_tests(
     MATCH "mom_service_reporting_requirements_traceability$"
@@ -2528,8 +2551,16 @@ if(BUILD_TESTING)
     LABELS ordinary-regional-interaction-failure
   )
   umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed regional Send Interaction With Regions invocations$"
+    LABELS ordinary-regional-interaction-failure-service-report-file
+  )
+  umbra_label_registered_ctest_tests(
     MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction$"
     LABELS ordinary-regional-interaction-failure
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction$"
+    LABELS ordinary-regional-interaction-failure-mom-interaction
   )
   umbra_label_registered_ctest_tests(
     MATCH "mom_service_reporting_requirements_traceability$"
@@ -2622,6 +2653,42 @@ if(BUILD_TESTING)
   umbra_label_registered_ctest_tests(
     MATCH "umbra\\.ieee1516_2025\\.object_class_attribute_value_update_request_(requirements|api)_traceability$"
     LABELS provide-attribute-value-update-class-service-report
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records Provide Attribute Value Update before its callback$"
+    LABELS provide-attribute-value-update-service-report-file
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves receive-order Update Attribute Values arguments$"
+    LABELS update-attribute-values-service-report-file
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves receive-order Delete Object Instance arguments$"
+    LABELS delete-object-instance-service-report-file
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed receive-order Delete Object Instance invocations$"
+    LABELS delete-object-instance-failure-file-matrix
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed receive-order Delete Object Instance invocations through MOM interaction$"
+    LABELS receive-order-delete-object-instance-failure-mom-interaction
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded regional provider response rechecks DDM eligibility at reflection delivery$"
+    LABELS regional-provider-response-ddm-recheck
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded Request Attribute Value Update supports a 2025 provider response$"
+    LABELS ordinary-attribute-value-update-response
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded ownership transfer clears the former owner's 2025 update-region association$"
+    LABELS ownership-transfer-update-region
+  )
+  umbra_label_registered_ctest_tests(
+    MATCH "umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed regional Send Interaction With Regions invocations$"
+    LABELS ordinary-regional-interaction-failure
   )
   umbra_label_registered_ctest_tests(
     MATCH "timestamped_attribute_update_(requirements|api)_traceability$"
@@ -3243,10 +3310,6 @@ if(BUILD_TESTING)
       cpp/tests/utf8_string_catch2.cpp
       cpp/tests/variable_length_data_catch2.cpp
       cpp/tests/ieee1516_2025_connection_catch2.cpp
-        cpp/tests/process_transport_catch2.cpp
-        cpp/tests/process_transport_service_catch2.cpp
-        cpp/tests/process_federation_callback_bridge_catch2.cpp
-        cpp/tests/transport_protocol_catch2.cpp
       cpp/tests/ieee1516_2025_time_catch2.cpp
     )
     if(UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR)
@@ -3266,14 +3329,41 @@ if(BUILD_TESTING)
         umbra::rti
         umbra::fedtime
       )
-        target_sources(umbra_ieee1516_2025_catch2 PRIVATE
+      target_sources(umbra_ieee1516_2025_catch2 PRIVATE
           cpp/tests/libxml2_fom_composer_catch2.cpp
           cpp/tests/libxml2_fom_validator_catch2.cpp
           cpp/tests/fom_declaration_management_catch2.cpp
           cpp/tests/federation_registry_catch2.cpp
-        cpp/tests/process_federation_service_catch2.cpp
-        cpp/tests/process_federation_service_process_catch2.cpp
       )
+      # Keep the federation-registry/state-image slice independently buildable.
+      # The aggregate 2025 executable also contains the large federation-
+      # management translation unit; this target gives the registry's durable
+      # state and membership tests a bounded compile/run path while unrelated
+      # aggregate cases are under repair.
+      if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+        add_executable(umbra_federation_registry_catch2
+          cpp/tests/federation_registry_catch2.cpp
+        )
+        target_compile_features(umbra_federation_registry_catch2 PRIVATE cxx_std_20)
+        if(MSVC)
+          target_compile_options(umbra_federation_registry_catch2 PRIVATE /bigobj)
+        endif()
+        target_include_directories(umbra_federation_registry_catch2 PRIVATE
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(umbra_federation_registry_catch2 PRIVATE
+          UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+          UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(umbra_federation_registry_catch2 PRIVATE
+          umbra_fom_validation_backend
+          umbra::rti
+          umbra::fedtime
+          umbra::authorizer
+          Catch2::Catch2WithMain
+        )
+      endif()
       if(UMBRA_EXTERNAL_SISO_FOM_CORPUS_DIRECTORY)
         target_sources(umbra_ieee1516_2025_catch2 PRIVATE
           cpp/tests/external_siso_fom_catch2.cpp
@@ -3343,6 +3433,71 @@ if(BUILD_TESTING)
         target_sources(umbra_ieee1516_2025_catch2 PRIVATE
           cpp/tests/ieee1516_2025_federation_management_catch2.cpp
           cpp/tests/attribute_relevance_advisory_catch2.cpp
+          cpp/tests/attribute_scope_advisory_catch2.cpp
+          cpp/tests/auto_provide_baseline_catch2.cpp
+          cpp/tests/attribute_value_update_request_baseline_catch2.cpp
+          cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp
+          cpp/tests/object_class_attribute_value_update_service_report_catch2.cpp
+          cpp/tests/request_attribute_value_update_service_report_catch2.cpp
+          cpp/tests/provide_attribute_value_update_service_report_catch2.cpp
+          cpp/tests/update_attribute_values_service_report_catch2.cpp
+          cpp/tests/delete_object_instance_service_report_catch2.cpp
+          cpp/tests/delete_object_instance_failure_service_report_catch2.cpp
+          cpp/tests/delete_object_instance_failure_service_report_interaction_catch2.cpp
+          cpp/tests/regional_attribute_value_update_provider_response_recheck_catch2.cpp
+          cpp/tests/passive_regional_interaction_transition_catch2.cpp
+          cpp/tests/attribute_value_update_response_catch2.cpp
+          cpp/tests/ownership_transfer_update_region_catch2.cpp
+          cpp/tests/regional_interaction_failure_service_report_file_catch2.cpp
+          cpp/tests/regional_interaction_failure_service_report_interaction_catch2.cpp
+          cpp/tests/regional_interaction_service_report_file_catch2.cpp
+          cpp/tests/regional_interaction_service_report_interaction_catch2.cpp
+          cpp/tests/connection_loss_directed_tso_catch2.cpp
+          cpp/tests/connection_loss_attribute_update_tso_catch2.cpp
+          cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp
+          cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp
+          cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp
+          cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp
+          cpp/tests/connection_loss_object_deletion_tso_catch2.cpp
+          cpp/tests/connection_loss_object_deletion_tso_multi_recipient_catch2.cpp
+          cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp
+          cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp
+          cpp/tests/restore_live_tso_regional_attribute_update_catch2.cpp
+          cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp
+          cpp/tests/restore_live_tso_regional_interaction_catch2.cpp
+          cpp/tests/restore_live_tso_interaction_multi_recipient_catch2.cpp
+          cpp/tests/restore_live_tso_regional_interaction_multi_recipient_catch2.cpp
+          cpp/tests/timed_restore_live_tso_regional_attribute_update_catch2.cpp
+          cpp/tests/timed_restore_live_tso_regional_attribute_update_multi_recipient_catch2.cpp
+          cpp/tests/timed_live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_source_resignation_after_restore_catch2.cpp
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_delete_then_divest_after_restore_catch2.cpp
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_cancel_then_delete_then_divest_after_restore_catch2.cpp
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_cancel_pending_ownership_after_restore_catch2.cpp
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_if_available_cancel_pending_ownership_after_restore_catch2.cpp
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_cancel_pending_after_restore_catch2.cpp
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_continuation_after_restore_catch2.cpp
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_confirmation_cancel_after_restore_catch2.cpp
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_regular_candidate_continuation_after_restore_catch2.cpp
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_if_available_regular_candidate_continuation_after_restore_catch2.cpp
+          cpp/tests/timed_restore_live_tso_default_region_interaction_catch2.cpp
+          cpp/tests/timed_restore_live_tso_directed_interaction_catch2.cpp
+          cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp
+          cpp/tests/timed_restore_live_tso_default_region_attribute_update_catch2.cpp
+          cpp/tests/restore_live_tso_default_region_attribute_update_catch2.cpp
+          cpp/tests/restore_live_tso_attribute_update_catch2.cpp
+          cpp/tests/auto_provide_service_report_file_catch2.cpp
+          cpp/tests/joined_federate_mom_federate_state_save_restore_catch2.cpp
+          cpp/tests/timestamped_delete_object_instance_failure_service_report_catch2.cpp
+          cpp/tests/timestamped_delete_object_instance_service_report_catch2.cpp
+          cpp/tests/time_regulated_timestamped_delete_object_instance_service_report_catch2.cpp
+          cpp/tests/timestamped_delete_object_instance_service_report_interaction_catch2.cpp
+          cpp/tests/timestamped_delete_object_instance_failure_service_report_interaction_catch2.cpp
+          cpp/tests/timestamped_regional_interaction_service_report_file_catch2.cpp
+          cpp/tests/timestamped_regional_interaction_service_report_interaction_catch2.cpp
+          cpp/tests/timestamped_regional_interaction_failure_service_report_file_catch2.cpp
+          cpp/tests/timestamped_regional_interaction_failure_service_report_interaction_catch2.cpp
+          cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp
         )
       endif()
       target_link_libraries(umbra_ieee1516_2025_catch2 PRIVATE umbra_fom_validation_backend)
@@ -3386,6 +3541,5489 @@ if(BUILD_TESTING)
         )
         add_dependencies(umbra_ieee1516_2025_connection_catch2
           umbra_process_federation_service_probe
+        )
+
+        # Keep the private process-boundary tests independently buildable as
+        # well.  The aggregate 2025 executable also contains the damaged
+        # federation-management translation unit, so its historical private
+        # tests cannot be the reproducible source for the process JUnit lane.
+        add_executable(umbra_process_boundary_private_catch2
+          cpp/tests/process_transport_catch2.cpp
+          cpp/tests/process_transport_service_catch2.cpp
+          cpp/tests/process_federation_callback_bridge_catch2.cpp
+          cpp/tests/transport_protocol_catch2.cpp
+          cpp/tests/process_federation_service_catch2.cpp
+          cpp/tests/process_federation_additional_fom_catch2.cpp
+          cpp/tests/process_federation_service_process_catch2.cpp
+        )
+        target_compile_features(
+          umbra_process_boundary_private_catch2
+          PRIVATE cxx_std_20
+        )
+        if(MSVC)
+          target_compile_options(umbra_process_boundary_private_catch2 PRIVATE /bigobj)
+        endif()
+        target_include_directories(
+          umbra_process_boundary_private_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_process_boundary_private_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_PROCESS_SERVICE_PROBE_PATH="$<TARGET_FILE:umbra_process_federation_service_probe>"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_process_boundary_private_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+        add_dependencies(
+          umbra_process_boundary_private_catch2
+          umbra_process_federation_service_probe
+        )
+
+        # Keep the federation-wide MOM HLAsetSwitches Auto Provide case
+        # independently buildable.  This narrow management slice remains
+        # queryable while the large aggregate federation-management source is
+        # under repair.
+        add_executable(umbra_auto_provide_mom_catch2
+          cpp/tests/auto_provide_mom_catch2.cpp
+        )
+        target_compile_features(
+          umbra_auto_provide_mom_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_auto_provide_mom_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_auto_provide_mom_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_auto_provide_mom_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM HLAsetSwitches subset independently
+        # buildable. This focused case covers predefined and extension
+        # parameters, sender-only mutation, malformed wire values, and the
+        # service-reporting interlock without reopening the aggregate test.
+        add_executable(umbra_mom_federate_set_switches_catch2
+          cpp/tests/mom_federate_set_switches_catch2.cpp
+        )
+        target_compile_features(
+          umbra_mom_federate_set_switches_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_mom_federate_set_switches_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_mom_federate_set_switches_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_mom_federate_set_switches_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the injected writer-creation failure contract independently
+        # buildable. This is an internal/test-only seam that proves a failed
+        # joined-federate report setup rolls membership back without exposing
+        # a memory-backed fallback through the production profile.
+        add_executable(umbra_service_report_writer_failure_catch2
+          cpp/tests/service_report_writer_failure_catch2.cpp
+        )
+        target_compile_features(
+          umbra_service_report_writer_failure_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_service_report_writer_failure_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_service_report_writer_failure_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_service_report_writer_failure_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the disabled Auto Provide discovery-only baseline independently
+        # buildable. It is the negative control for the richer provider
+        # admission and switch-mutation slices.
+        add_executable(umbra_auto_provide_disabled_discovery_only_catch2
+          cpp/tests/auto_provide_disabled_discovery_only_catch2.cpp
+        )
+        target_compile_features(
+          umbra_auto_provide_disabled_discovery_only_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_auto_provide_disabled_discovery_only_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_auto_provide_disabled_discovery_only_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_auto_provide_disabled_discovery_only_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep object-instance-name reservation state and callback outcomes
+        # independently buildable. The aggregate case remains historical
+        # evidence while its focused replacement owns the executable source.
+        add_executable(umbra_object_instance_name_reservation_catch2
+          cpp/tests/object_instance_name_reservation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_object_instance_name_reservation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_object_instance_name_reservation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_object_instance_name_reservation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_object_instance_name_reservation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep named object-instance registration independently buildable. It
+        # consumes the reservation state above and exercises the regional
+        # registration surface without the damaged aggregate translation unit.
+        add_executable(umbra_object_instance_named_registration_catch2
+          cpp/tests/object_instance_named_registration_catch2.cpp
+        )
+        target_compile_features(
+          umbra_object_instance_named_registration_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_object_instance_named_registration_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_object_instance_named_registration_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_object_instance_named_registration_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep unnamed object-instance registration/discovery independently
+        # buildable. This focused lifecycle case covers publication,
+        # superclass promotion, known-instance lookup, and callback gating
+        # without depending on the damaged aggregate translation unit.
+        add_executable(umbra_object_instance_registration_discovery_catch2
+          cpp/tests/object_instance_registration_discovery_catch2.cpp
+        )
+        target_compile_features(
+          umbra_object_instance_registration_discovery_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_object_instance_registration_discovery_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_object_instance_registration_discovery_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_object_instance_registration_discovery_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the no-time regional object-attribute routing slice independently
+        # buildable. It is the focused replacement for the matching aggregate
+        # declaration and owns the 2025 §§9.5-9.9 overlap evidence.
+        add_executable(umbra_regional_object_attribute_routing_catch2
+          cpp/tests/regional_object_attribute_routing_catch2.cpp
+        )
+        target_compile_features(
+          umbra_regional_object_attribute_routing_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_regional_object_attribute_routing_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_regional_object_attribute_routing_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_regional_object_attribute_routing_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the zero-dimensional regional-interaction DDM slice separately
+        # buildable.  Its explicit lane proves the §9.1.3.2 no-overlap rule
+        # without coupling the interaction case to the larger object-routing
+        # translation unit.
+        add_executable(umbra_zero_dimensional_regional_interaction_catch2
+          cpp/tests/zero_dimensional_regional_interaction_catch2.cpp
+        )
+        target_compile_features(
+          umbra_zero_dimensional_regional_interaction_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_zero_dimensional_regional_interaction_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_zero_dimensional_regional_interaction_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_zero_dimensional_regional_interaction_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the positive dimensional/default-region interaction matrix
+        # separately runnable from the aggregate federation-management target.
+        add_executable(umbra_default_region_interaction_routing_catch2
+          cpp/tests/default_region_interaction_routing_catch2.cpp
+        )
+        target_compile_features(
+          umbra_default_region_interaction_routing_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_default_region_interaction_routing_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_default_region_interaction_routing_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_default_region_interaction_routing_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the multi-region interaction routing matrix independently
+        # runnable. It exercises the official RegionHandleSet union semantics
+        # without coupling the next DDM slice to the aggregate translation
+        # unit.
+        add_executable(umbra_multi_region_interaction_routing_catch2
+          cpp/tests/multi_region_interaction_routing_catch2.cpp
+        )
+        target_compile_features(
+          umbra_multi_region_interaction_routing_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_multi_region_interaction_routing_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_multi_region_interaction_routing_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_multi_region_interaction_routing_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep mixed-dimensional Send Interaction With Regions validation
+        # independently runnable. It proves the all-or-nothing region-set
+        # check without coupling this boundary to the aggregate DDM target.
+        add_executable(umbra_mixed_region_interaction_validation_catch2
+          cpp/tests/mixed_region_interaction_validation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_mixed_region_interaction_validation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_mixed_region_interaction_validation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_mixed_region_interaction_validation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_mixed_region_interaction_validation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the receive-order object-deletion lifecycle independently
+        # buildable. It owns the no-time §6.16/§6.16.4/§6.17.1 evidence rather
+        # than depending on the damaged aggregate translation unit.
+        add_executable(umbra_object_instance_deletion_catch2
+          cpp/tests/object_instance_deletion_catch2.cpp
+        )
+        target_compile_features(
+          umbra_object_instance_deletion_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_object_instance_deletion_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_object_instance_deletion_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_object_instance_deletion_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the receive-order attribute-update/passel lifecycle independently
+        # buildable. It owns the non-region §§6.1.12, 6.10, and 6.11.1 evidence
+        # rather than depending on the damaged aggregate translation unit.
+        add_executable(umbra_receive_order_attribute_update_catch2
+          cpp/tests/receive_order_attribute_update_catch2.cpp
+        )
+        target_compile_features(
+          umbra_receive_order_attribute_update_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_receive_order_attribute_update_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_receive_order_attribute_update_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_receive_order_attribute_update_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the Delay Subscription Evaluation timestamped directed-
+        # interaction case independently buildable. It covers creation-time
+        # switch enablement/defaulting under both callback models.
+        add_executable(umbra_delay_subscription_evaluation_timestamped_directed_interaction_catch2
+          cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp
+        )
+        target_compile_features(
+          umbra_delay_subscription_evaluation_timestamped_directed_interaction_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_delay_subscription_evaluation_timestamped_directed_interaction_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_delay_subscription_evaluation_timestamped_directed_interaction_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_delay_subscription_evaluation_timestamped_directed_interaction_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the receive-order Delay Subscription Evaluation directed-
+        # interaction case independently buildable. It covers switch
+        # enablement/defaulting and callback-time selector rechecking.
+        add_executable(umbra_delay_subscription_evaluation_directed_interaction_catch2
+          cpp/tests/delay_subscription_evaluation_directed_interaction_catch2.cpp
+        )
+        target_compile_features(
+          umbra_delay_subscription_evaluation_directed_interaction_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_delay_subscription_evaluation_directed_interaction_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_delay_subscription_evaluation_directed_interaction_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_delay_subscription_evaluation_directed_interaction_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the filesystem-backed Confirm Synchronization Point
+        # Registration result lane independently buildable. It verifies that
+        # both callback-result forms are durable before HLA_EVOKED delivery.
+        add_executable(umbra_service_report_file_confirm_synchronization_point_registration_catch2
+          cpp/tests/service_report_file_confirm_synchronization_point_registration_catch2.cpp
+        )
+        target_compile_features(
+          umbra_service_report_file_confirm_synchronization_point_registration_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_service_report_file_confirm_synchronization_point_registration_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_service_report_file_confirm_synchronization_point_registration_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_service_report_file_confirm_synchronization_point_registration_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the filesystem-backed Announce Synchronization Point recipient
+        # lane independently buildable. It checks late-join routing and both
+        # service-report switch gates without rotating the selected file.
+        add_executable(umbra_service_report_file_announce_synchronization_point_catch2
+          cpp/tests/service_report_file_announce_synchronization_point_catch2.cpp
+        )
+        target_compile_features(
+          umbra_service_report_file_announce_synchronization_point_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_service_report_file_announce_synchronization_point_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_service_report_file_announce_synchronization_point_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_service_report_file_announce_synchronization_point_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the filesystem-backed Federation Synchronized recipient lane
+        # independently buildable. It verifies per-recipient serial ordering,
+        # failed-set encoding, and append-before-callback behavior.
+        add_executable(umbra_service_report_file_federation_synchronized_catch2
+          cpp/tests/service_report_file_federation_synchronized_catch2.cpp
+        )
+        target_compile_features(
+          umbra_service_report_file_federation_synchronized_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_service_report_file_federation_synchronized_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_service_report_file_federation_synchronized_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_service_report_file_federation_synchronized_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the filesystem-backed Synchronization Point Achieved argument
+        # lane independently buildable. It isolates §4.17.1 successful-void
+        # record forms from the §4.18 completion record.
+        add_executable(umbra_service_report_file_synchronization_point_achieved_catch2
+          cpp/tests/service_report_file_synchronization_point_achieved_catch2.cpp
+        )
+        target_compile_features(
+          umbra_service_report_file_synchronization_point_achieved_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_service_report_file_synchronization_point_achieved_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_service_report_file_synchronization_point_achieved_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_service_report_file_synchronization_point_achieved_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the resignation-completion service-report lane independently
+        # buildable. It isolates removal of an unachieved sync-set member.
+        add_executable(umbra_service_report_file_federation_synchronized_resignation_catch2
+          cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_service_report_file_federation_synchronized_resignation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_service_report_file_federation_synchronized_resignation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_service_report_file_federation_synchronized_resignation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_service_report_file_federation_synchronized_resignation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the local-delete/timestamped-attribute recipient-isolation case
+        # independently buildable.  This focused time-management lane proves
+        # one recipient can forget queued work without affecting its survivor.
+        add_executable(umbra_local_delete_timestamped_attribute_catch2
+          cpp/tests/local_delete_timestamped_attribute_catch2.cpp
+        )
+        target_compile_features(
+          umbra_local_delete_timestamped_attribute_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_local_delete_timestamped_attribute_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_local_delete_timestamped_attribute_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_local_delete_timestamped_attribute_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the paired local-delete/timestamped-object-removal case
+        # independently buildable.  It isolates a queued TSO removal per
+        # recipient and retains the official removal metadata assertions.
+        add_executable(umbra_local_delete_timestamped_object_removal_catch2
+          cpp/tests/local_delete_timestamped_object_removal_catch2.cpp
+        )
+        target_compile_features(
+          umbra_local_delete_timestamped_object_removal_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_local_delete_timestamped_object_removal_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_local_delete_timestamped_object_removal_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_local_delete_timestamped_object_removal_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timestamped source-resignation/ownership-recovery case
+        # independently buildable.  It proves an accepted TSO passel remains
+        # deliverable after its source resigns and another federate acquires.
+        add_executable(umbra_timestamped_attribute_source_resignation_catch2
+          cpp/tests/timestamped_attribute_source_resignation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_attribute_source_resignation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_attribute_source_resignation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_attribute_source_resignation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_attribute_source_resignation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the four-member timestamped source-resignation fanout case
+        # independently buildable.  It releases each recipient queue in turn
+        # and verifies the copied TSO metadata remains recipient-local.
+        add_executable(umbra_timestamped_attribute_source_resignation_fanout_catch2
+          cpp/tests/timestamped_attribute_source_resignation_fanout_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_attribute_source_resignation_fanout_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_attribute_source_resignation_fanout_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_attribute_source_resignation_fanout_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_attribute_source_resignation_fanout_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the accepted-TSO ownership-transfer case independently
+        # buildable. It verifies that an in-flight timestamped update retains
+        # its original producer, payload, time, and retraction after
+        # unconditional divestiture and If Available acquisition.
+        add_executable(umbra_timestamped_attribute_update_ownership_transfer_catch2
+          cpp/tests/timestamped_attribute_update_ownership_transfer_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_attribute_update_ownership_transfer_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_attribute_update_ownership_transfer_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_attribute_update_ownership_transfer_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_attribute_update_ownership_transfer_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the focused attribute-transportation control contract
+        # independently buildable. It isolates FOM defaults, per-instance
+        # changes, and public query/confirmation callbacks from the aggregate
+        # federation-management executable.
+        add_executable(umbra_custom_transportation_type_control_catch2
+          cpp/tests/custom_transportation_type_control_catch2.cpp
+        )
+        target_compile_features(
+          umbra_custom_transportation_type_control_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_custom_transportation_type_control_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_custom_transportation_type_control_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_custom_transportation_type_control_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the declared custom-transportation ordinary-delivery case
+        # independently buildable. It carries the composed FOM transport
+        # through receive-order interaction and attribute callbacks.
+        add_executable(umbra_custom_transportation_delivery_catch2
+          cpp/tests/custom_transportation_delivery_catch2.cpp
+        )
+        target_compile_features(
+          umbra_custom_transportation_delivery_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_custom_transportation_delivery_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_custom_transportation_delivery_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_custom_transportation_delivery_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the declared custom-transportation ordinary-regional case
+        # independently buildable. It isolates regional interaction overlap
+        # and callback designator propagation from the aggregate executable.
+        add_executable(umbra_custom_transportation_ordinary_regional_interaction_catch2
+          cpp/tests/custom_transportation_ordinary_regional_interaction_catch2.cpp
+        )
+        target_compile_features(
+          umbra_custom_transportation_ordinary_regional_interaction_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_custom_transportation_ordinary_regional_interaction_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_custom_transportation_ordinary_regional_interaction_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_custom_transportation_ordinary_regional_interaction_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the declared custom-transportation ordinary-regional-attribute
+        # case independently buildable. It isolates regional object routing
+        # and conveyed designators from the aggregate executable.
+        add_executable(umbra_custom_transportation_ordinary_regional_attribute_catch2
+          cpp/tests/custom_transportation_ordinary_regional_attribute_catch2.cpp
+        )
+        target_compile_features(
+          umbra_custom_transportation_ordinary_regional_attribute_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_custom_transportation_ordinary_regional_attribute_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_custom_transportation_ordinary_regional_attribute_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_custom_transportation_ordinary_regional_attribute_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the declared custom-transportation timestamped-delivery case
+        # independently buildable. It composes the official interaction and
+        # attribute callback surfaces with a user-declared FOM transportation.
+        add_executable(umbra_custom_transportation_timestamped_delivery_catch2
+          cpp/tests/custom_transportation_timestamped_delivery_catch2.cpp
+        )
+        target_compile_features(
+          umbra_custom_transportation_timestamped_delivery_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_custom_transportation_timestamped_delivery_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_custom_transportation_timestamped_delivery_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_custom_transportation_timestamped_delivery_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the declared custom-transportation timestamped-directed case
+        # independently buildable. It isolates target routing and retraction
+        # metadata from the aggregate federation-management executable.
+        add_executable(umbra_custom_transportation_timestamped_directed_delivery_catch2
+          cpp/tests/custom_transportation_timestamped_directed_delivery_catch2.cpp
+        )
+        target_compile_features(
+          umbra_custom_transportation_timestamped_directed_delivery_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_custom_transportation_timestamped_directed_delivery_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_custom_transportation_timestamped_directed_delivery_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_custom_transportation_timestamped_directed_delivery_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the declared custom-transportation timestamped regional
+        # attribute case independently buildable. It isolates DDM region
+        # designator propagation from the aggregate federation-management
+        # executable while retaining the official C++ callback surface.
+        add_executable(umbra_custom_transportation_timestamped_regional_attribute_delivery_catch2
+          cpp/tests/custom_transportation_timestamped_regional_attribute_delivery_catch2.cpp
+        )
+        target_compile_features(
+          umbra_custom_transportation_timestamped_regional_attribute_delivery_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_custom_transportation_timestamped_regional_attribute_delivery_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_custom_transportation_timestamped_regional_attribute_delivery_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_custom_transportation_timestamped_regional_attribute_delivery_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the MOM transportation-type request interaction case
+        # independently buildable. It exercises the official MIM payload
+        # encoding, callback-gated public changes, and both callback models.
+        add_executable(umbra_mom_transportation_type_change_request_catch2
+          cpp/tests/mom_transportation_type_change_request_catch2.cpp
+        )
+        target_compile_features(
+          umbra_mom_transportation_type_change_request_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_mom_transportation_type_change_request_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_mom_transportation_type_change_request_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_mom_transportation_type_change_request_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the multi-recipient timestamped directed-interaction resignation
+        # case independently buildable. It isolates queued TSO delivery and
+        # per-recipient grant ordering from the damaged aggregate target.
+        add_executable(umbra_timestamped_directed_interaction_multi_recipient_source_resignation_catch2
+          cpp/tests/timestamped_directed_interaction_multi_recipient_source_resignation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_directed_interaction_multi_recipient_source_resignation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_directed_interaction_multi_recipient_source_resignation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_directed_interaction_multi_recipient_source_resignation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_directed_interaction_multi_recipient_source_resignation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the direct TAR/NMR timestamped directed-interaction frontier
+        # independently buildable. It is the narrow two-recipient companion
+        # to the broader alternate-advance and source-resignation cases.
+        add_executable(umbra_timestamped_directed_interaction_tar_nmr_catch2
+          cpp/tests/timestamped_directed_interaction_tar_nmr_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_directed_interaction_tar_nmr_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_directed_interaction_tar_nmr_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_directed_interaction_tar_nmr_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_directed_interaction_tar_nmr_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep federation-scoped MOM save-conditionals independently
+        # buildable. This isolates the pending/admitted/completed conditional
+        # attribute contract from the damaged aggregate federation-management
+        # translation unit.
+        add_executable(umbra_federation_mom_save_conditionals_catch2
+          cpp/tests/federation_mom_save_conditionals_catch2.cpp
+        )
+        target_compile_features(
+          umbra_federation_mom_save_conditionals_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_federation_mom_save_conditionals_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_federation_mom_save_conditionals_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_federation_mom_save_conditionals_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the federation-scoped HLAcurrentFDD projection independently
+        # buildable. This isolates the composed-FDD request and conditional
+        # refresh contract from the damaged aggregate federation-management
+        # translation unit.
+        add_executable(umbra_federation_mom_current_fdd_catch2
+          cpp/tests/federation_mom_current_fdd_catch2.cpp
+        )
+        target_compile_features(
+          umbra_federation_mom_current_fdd_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_federation_mom_current_fdd_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_federation_mom_current_fdd_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_federation_mom_current_fdd_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM GALT/LITS projection independently
+        # buildable. This isolates Query GALT/Query LITS and periodic
+        # HLAsetTiming reflections from the aggregate federation-management
+        # translation unit.
+        add_executable(umbra_joined_federate_mom_galt_lits_periodic_catch2
+          cpp/tests/joined_federate_mom_galt_lits_periodic_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_galt_lits_periodic_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_galt_lits_periodic_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_galt_lits_periodic_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_galt_lits_periodic_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM TSO-length projection independently
+        # buildable. This isolates the recipient-scoped queued TSO ledger and
+        # its HLAsetTiming projection from the aggregate test translation unit.
+        add_executable(umbra_joined_federate_mom_tso_length_periodic_catch2
+          cpp/tests/joined_federate_mom_tso_length_periodic_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_tso_length_periodic_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_tso_length_periodic_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_tso_length_periodic_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_tso_length_periodic_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM time-state duration projection
+        # independently buildable. This isolates the direct and periodic
+        # HLAtimeGrantedTime/HLAtimeAdvancingTime contract from the aggregate
+        # federation-management translation unit.
+        add_executable(umbra_joined_federate_mom_time_state_duration_catch2
+          cpp/tests/joined_federate_mom_time_state_duration_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_time_state_duration_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_time_state_duration_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_time_state_duration_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_time_state_duration_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM reflection-count projection
+        # independently buildable. This isolates the distinct-object versus
+        # callback-invocation ledger from the aggregate federation-management
+        # translation unit.
+        add_executable(umbra_joined_federate_mom_reflection_count_catch2
+          cpp/tests/joined_federate_mom_reflection_count_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_reflection_count_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_reflection_count_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_reflection_count_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_reflection_count_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM updates-sent projection independently
+        # buildable. This isolates accepted Update Attribute Values ledger
+        # accounting, transportation buckets, and nested class-count reports.
+        add_executable(umbra_joined_federate_mom_updates_sent_catch2
+          cpp/tests/joined_federate_mom_updates_sent_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_updates_sent_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_updates_sent_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_updates_sent_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_updates_sent_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM reflections-received projection
+        # independently buildable. This isolates accepted application
+        # reflection accounting, transportation buckets, and nested
+        # class-count reports.
+        add_executable(umbra_joined_federate_mom_reflections_received_catch2
+          cpp/tests/joined_federate_mom_reflections_received_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_reflections_received_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_reflections_received_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_reflections_received_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_reflections_received_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM interactions-received projection
+        # independently buildable. This isolates accepted application receive
+        # callbacks, transportation buckets, and nested class-count reports.
+        add_executable(umbra_joined_federate_mom_interactions_received_catch2
+          cpp/tests/joined_federate_mom_interactions_received_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_interactions_received_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_interactions_received_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_interactions_received_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_interactions_received_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM directed-interactions-received
+        # projection independently buildable. This isolates the directed
+        # receive subset, ordinary-receive exclusion, and nested count report.
+        add_executable(umbra_joined_federate_mom_directed_interactions_received_catch2
+          cpp/tests/joined_federate_mom_directed_interactions_received_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_directed_interactions_received_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_directed_interactions_received_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_directed_interactions_received_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_directed_interactions_received_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM interactions-sent projection
+        # independently buildable. This isolates accepted Send Interaction
+        # accounting, regional inclusion, transportation buckets, and nested
+        # interaction-count reports.
+        add_executable(umbra_joined_federate_mom_interactions_sent_catch2
+          cpp/tests/joined_federate_mom_interactions_sent_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_interactions_sent_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_interactions_sent_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_interactions_sent_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_interactions_sent_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the cross-family MOM NULL-bucket projection independently
+        # buildable. This isolates empty sender ledgers for updates, ordinary
+        # interactions, and directed interactions.
+        add_executable(umbra_mom_sender_count_reports_null_buckets_catch2
+          cpp/tests/mom_sender_count_reports_null_buckets_catch2.cpp
+        )
+        target_compile_features(
+          umbra_mom_sender_count_reports_null_buckets_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_mom_sender_count_reports_null_buckets_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_mom_sender_count_reports_null_buckets_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_mom_sender_count_reports_null_buckets_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM removed-object history projection
+        # independently buildable. This combines the public deletion/retraction
+        # boundary with the receiving federate's historical MOM counter.
+        add_executable(umbra_joined_federate_mom_removed_object_count_tso_retraction_catch2
+          cpp/tests/joined_federate_mom_removed_object_count_tso_retraction_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_removed_object_count_tso_retraction_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_removed_object_count_tso_retraction_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_removed_object_count_tso_retraction_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_removed_object_count_tso_retraction_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the Allow Relaxed DDM object-attribute boundary case
+        # independently buildable.  It runs the enabled and strict profiles
+        # without depending on the damaged aggregate translation unit.
+        add_executable(umbra_allow_relaxed_ddm_object_attribute_catch2
+          cpp/tests/allow_relaxed_ddm_object_attribute_catch2.cpp
+        )
+        target_compile_features(
+          umbra_allow_relaxed_ddm_object_attribute_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_allow_relaxed_ddm_object_attribute_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_allow_relaxed_ddm_object_attribute_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_allow_relaxed_ddm_object_attribute_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timestamped directed-interaction re-enable case
+        # independently buildable.  It isolates one queued directed TSO passel
+        # across a disable/enable cycle and checks callback/grant ordering.
+        add_executable(umbra_timestamped_directed_interaction_reenable_catch2
+          cpp/tests/timestamped_directed_interaction_reenable_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_directed_interaction_reenable_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_directed_interaction_reenable_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_directed_interaction_reenable_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_directed_interaction_reenable_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the queued directed-TSO source-resignation case independently
+        # buildable.  A surviving target owner and regulator release a passel
+        # after the separate interaction producer leaves the federation.
+        add_executable(umbra_timestamped_directed_interaction_source_resignation_catch2
+          cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_directed_interaction_source_resignation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_directed_interaction_source_resignation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_directed_interaction_source_resignation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_directed_interaction_source_resignation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the directed timestamped queue/retraction case independently
+        # buildable. It isolates pre-grant retract, then a later eligible TSO
+        # delivery with the official directed-interaction metadata.
+        add_executable(umbra_timestamped_directed_interaction_retraction_catch2
+          cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_directed_interaction_retraction_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_directed_interaction_retraction_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_directed_interaction_retraction_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_directed_interaction_retraction_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the immediate-recipient directed TSO resignation case
+        # independently buildable. It verifies that source resignation does
+        # not discard a callback already queued on an unconstrained receiver.
+        add_executable(umbra_timestamped_directed_interaction_immediate_source_resignation_catch2
+          cpp/tests/timestamped_directed_interaction_immediate_source_resignation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_directed_interaction_immediate_source_resignation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_directed_interaction_immediate_source_resignation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_directed_interaction_immediate_source_resignation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_directed_interaction_immediate_source_resignation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the terminal timestamped Send Interaction/retraction case
+        # independently buildable.  It exercises pre-grant retraction,
+        # terminal post-delivery classification, and Request Retraction.
+        add_executable(umbra_timestamped_send_interaction_retraction_catch2
+          cpp/tests/timestamped_send_interaction_retraction_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_send_interaction_retraction_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_send_interaction_retraction_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_send_interaction_retraction_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_send_interaction_retraction_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the no-recipient timestamped Send Interaction designator case
+        # independently buildable.  It exercises the retraction ledger without
+        # conflating designator validity with recipient fanout.
+        add_executable(umbra_timestamped_send_interaction_no_fanout_catch2
+          cpp/tests/timestamped_send_interaction_no_fanout_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_send_interaction_no_fanout_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_send_interaction_no_fanout_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_send_interaction_no_fanout_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_send_interaction_no_fanout_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the no-recipient timestamped Update Attribute Values designator
+        # case independently buildable. It verifies that the public retraction
+        # contract is not contingent on retaining recipient fanout state.
+        add_executable(umbra_timestamped_attribute_update_no_fanout_catch2
+          cpp/tests/timestamped_attribute_update_no_fanout_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_attribute_update_no_fanout_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_attribute_update_no_fanout_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_attribute_update_no_fanout_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_attribute_update_no_fanout_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the m53 timestamped attribute-update queue/retraction case
+        # independently buildable. It isolates the pre-grant retract boundary
+        # and the later mixed-transportation delivery cohort.
+        add_executable(umbra_timestamped_attribute_update_queued_passel_retraction_catch2
+          cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_attribute_update_queued_passel_retraction_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_attribute_update_queued_passel_retraction_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_attribute_update_queued_passel_retraction_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_attribute_update_queued_passel_retraction_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the five-form timestamped designator-terminalization case
+        # independently buildable. It isolates the producer-side advance
+        # boundary that makes each designator no longer retractable.
+        add_executable(umbra_timestamped_tso_designator_terminalization_catch2
+          cpp/tests/timestamped_tso_designator_terminalization_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_tso_designator_terminalization_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_tso_designator_terminalization_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_tso_designator_terminalization_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_tso_designator_terminalization_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the Time Regulation disable/re-enable TSO case independently
+        # buildable.  It proves the original recipient queue survives role
+        # mutation and retains its timestamped metadata.
+        add_executable(umbra_timestamped_interaction_regulation_reenable_catch2
+          cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_interaction_regulation_reenable_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_interaction_regulation_reenable_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_interaction_regulation_reenable_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_interaction_regulation_reenable_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the mixed regional timestamped attribute-update advance case
+        # independently buildable. It exercises one shared TSO frontier while
+        # FQR, TARA, and NMRA use their distinct official request surfaces.
+        add_executable(umbra_timestamped_regional_attribute_update_mixed_advance_catch2
+          cpp/tests/timestamped_regional_attribute_update_mixed_advance_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_regional_attribute_update_mixed_advance_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_regional_attribute_update_mixed_advance_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_regional_attribute_update_mixed_advance_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_regional_attribute_update_mixed_advance_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the default-source/default-region mixed advance case
+        # independently buildable. It complements the explicit regional
+        # source lane while retaining the same FQR/TARA/NMRA frontier.
+        add_executable(umbra_timestamped_default_region_attribute_update_mixed_advance_catch2
+          cpp/tests/timestamped_default_region_attribute_update_mixed_advance_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_default_region_attribute_update_mixed_advance_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_default_region_attribute_update_mixed_advance_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_default_region_attribute_update_mixed_advance_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_default_region_attribute_update_mixed_advance_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the default-source/default-region timestamped-retraction case
+        # independently buildable. It pairs TARA and NMRA alternate advances
+        # and proves the queued default-region passel is removed before either
+        # recipient crosses its callback boundary.
+        add_executable(umbra_timestamped_default_region_attribute_update_retract_alternate_advance_catch2
+          cpp/tests/timestamped_default_region_attribute_update_retract_alternate_advance_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_default_region_attribute_update_retract_alternate_advance_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_default_region_attribute_update_retract_alternate_advance_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_default_region_attribute_update_retract_alternate_advance_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_default_region_attribute_update_retract_alternate_advance_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the regional timestamped-retraction/mixed-advance case
+        # independently buildable. It proves all three alternate requests
+        # complete after one explicit-source passel is retracted.
+        add_executable(umbra_timestamped_regional_attribute_update_retract_mixed_advance_catch2
+          cpp/tests/timestamped_regional_attribute_update_retract_mixed_advance_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_regional_attribute_update_retract_mixed_advance_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_regional_attribute_update_retract_mixed_advance_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_regional_attribute_update_retract_mixed_advance_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_regional_attribute_update_retract_mixed_advance_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the ordinary regional TAR/NMR timestamped-update case
+        # independently buildable. It is the focused two-recipient counterpart
+        # to the broader FQR/TARA/NMRA frontier tests.
+        add_executable(umbra_timestamped_regional_attribute_update_tar_nmr_catch2
+          cpp/tests/timestamped_regional_attribute_update_tar_nmr_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_regional_attribute_update_tar_nmr_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_regional_attribute_update_tar_nmr_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_regional_attribute_update_tar_nmr_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_regional_attribute_update_tar_nmr_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the default-source regional timestamped-update resignation
+        # case independently buildable. It isolates the queued passel's
+        # lifetime across source resignation and its surviving regulator.
+        add_executable(umbra_timestamped_regional_attribute_update_resignation_catch2
+          cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_regional_attribute_update_resignation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_regional_attribute_update_resignation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_regional_attribute_update_resignation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_regional_attribute_update_resignation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the mixed-fanout regional TSO/retraction case independently
+        # buildable. It pairs an immediate recipient with an evoked,
+        # time-constrained recipient and checks region metadata in both modes.
+        add_executable(umbra_timestamped_regional_attribute_update_mixed_fanout_catch2
+          cpp/tests/timestamped_regional_attribute_update_mixed_fanout_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_regional_attribute_update_mixed_fanout_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_regional_attribute_update_mixed_fanout_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_regional_attribute_update_mixed_fanout_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_regional_attribute_update_mixed_fanout_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the regional best-effort timestamped-rate case independently
+        # buildable. It exercises an FDD Low update-rate gate on a regional
+        # subscription while the recipient still crosses each TSO boundary.
+        add_executable(umbra_regional_best_effort_timestamped_attribute_rate_catch2
+          cpp/tests/regional_best_effort_timestamped_attribute_rate_catch2.cpp
+        )
+        target_compile_features(
+          umbra_regional_best_effort_timestamped_attribute_rate_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_regional_best_effort_timestamped_attribute_rate_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_regional_best_effort_timestamped_attribute_rate_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_regional_best_effort_timestamped_attribute_rate_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the receive-order regional best-effort-rate case independently
+        # buildable. It exercises the FDD Low update-rate gate and subscription
+        # generation reset without depending on the aggregate test binary.
+        add_executable(umbra_regional_best_effort_attribute_rate_catch2
+          cpp/tests/regional_best_effort_attribute_rate_catch2.cpp
+        )
+        target_compile_features(
+          umbra_regional_best_effort_attribute_rate_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_regional_best_effort_attribute_rate_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_regional_best_effort_attribute_rate_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_regional_best_effort_attribute_rate_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the nonregional TARA/NMRA timestamped update case independently
+        # buildable. It is the compact available-advance frontier for the
+        # attribute-update service.
+        add_executable(umbra_timestamped_attribute_update_available_advance_catch2
+          cpp/tests/timestamped_attribute_update_available_advance_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_attribute_update_available_advance_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_attribute_update_available_advance_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_attribute_update_available_advance_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_attribute_update_available_advance_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timestamped update-rate reduction case independently
+        # buildable. It isolates the FDD-defined Low-rate boundary while
+        # retaining reliable attributes and closing suppressed TSO retractions.
+        add_executable(umbra_timestamped_attribute_update_rate_reduction_catch2
+          cpp/tests/timestamped_attribute_update_rate_reduction_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_attribute_update_rate_reduction_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_attribute_update_rate_reduction_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_attribute_update_rate_reduction_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_attribute_update_rate_reduction_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the ordinary timestamped attribute re-enable lifecycle case
+        # independently buildable. It verifies that a queued passel survives
+        # disable/re-enable of Time Constrained without duplication.
+        add_executable(umbra_timestamped_attribute_update_reenable_catch2
+          cpp/tests/timestamped_attribute_update_reenable_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_attribute_update_reenable_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_attribute_update_reenable_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_attribute_update_reenable_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_attribute_update_reenable_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the alternate-advance timestamped attribute-ordering case
+        # independently buildable. It exercises equal-timestamp cohorts for
+        # both TARA and NMRA before admitting the later queued update.
+        add_executable(umbra_timestamped_attribute_update_alternate_advance_catch2
+          cpp/tests/timestamped_attribute_update_alternate_advance_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_attribute_update_alternate_advance_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_attribute_update_alternate_advance_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_attribute_update_alternate_advance_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_attribute_update_alternate_advance_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the different-timestamp attribute-order cohort independently
+        # buildable. It submits timestamp 7 before the timestamp-5 cohort and
+        # checks recipient-local ordering through the ordinary TSO advance.
+        add_executable(umbra_timestamped_attribute_order_cohort_catch2
+          cpp/tests/timestamped_attribute_order_cohort_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_attribute_order_cohort_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_attribute_order_cohort_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_attribute_order_cohort_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_attribute_order_cohort_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the default-region interaction retraction/alternate-advance
+        # case independently buildable. It isolates private default-source
+        # overlap with regional subscribers and grant completion after retract.
+        add_executable(umbra_timestamped_default_region_interaction_retract_alternate_advance_catch2
+          cpp/tests/timestamped_default_region_interaction_retract_alternate_advance_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_default_region_interaction_retract_alternate_advance_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_default_region_interaction_retract_alternate_advance_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_default_region_interaction_retract_alternate_advance_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_default_region_interaction_retract_alternate_advance_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timestamped interaction changed-lookahead lifecycle case
+        # independently buildable. It verifies that disabling and re-enabling
+        # regulation retains the queued message and retract identity.
+        add_executable(umbra_timestamped_interaction_regulation_reenable_changed_lookahead_catch2
+          cpp/tests/timestamped_interaction_regulation_reenable_changed_lookahead_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_interaction_regulation_reenable_changed_lookahead_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_interaction_regulation_reenable_changed_lookahead_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_interaction_regulation_reenable_changed_lookahead_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_interaction_regulation_reenable_changed_lookahead_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timestamped directed-interaction changed-lookahead
+        # lifecycle case independently buildable. It verifies that a target-
+        # qualified queued interaction retains its retraction identity when
+        # regulation is disabled and re-enabled with a new lookahead.
+        add_executable(umbra_tso_directed_reenable_changed_lookahead_catch2
+          cpp/tests/timestamped_directed_interaction_regulation_reenable_changed_lookahead_catch2.cpp
+        )
+        target_compile_features(
+          umbra_tso_directed_reenable_changed_lookahead_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_tso_directed_reenable_changed_lookahead_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_tso_directed_reenable_changed_lookahead_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_tso_directed_reenable_changed_lookahead_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timestamped attribute changed-lookahead lifecycle case
+        # independently buildable. It verifies that disabling and re-enabling
+        # regulation retains the queued update and retraction identity.
+        add_executable(umbra_timestamped_attribute_update_regulation_reenable_changed_lookahead_catch2
+          cpp/tests/timestamped_attribute_update_regulation_reenable_changed_lookahead_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_attribute_update_regulation_reenable_changed_lookahead_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_attribute_update_regulation_reenable_changed_lookahead_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_attribute_update_regulation_reenable_changed_lookahead_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_attribute_update_regulation_reenable_changed_lookahead_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timed multi-recipient regional save/restore ownership case
+        # independently buildable. This focused matrix preserves the saved TSO
+        # source while cancelling a retained negotiated confirmation.
+        add_executable(umbra_timed_multi_recipient_regional_attribute_restore_negotiated_cancel_catch2
+          cpp/tests/timed_multi_recipient_regional_attribute_restore_negotiated_cancel_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timed_multi_recipient_regional_attribute_restore_negotiated_cancel_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timed_multi_recipient_regional_attribute_restore_negotiated_cancel_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timed_multi_recipient_regional_attribute_restore_negotiated_cancel_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timed_multi_recipient_regional_attribute_restore_negotiated_cancel_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timed multi-recipient regional negotiated-cancellation
+        # matrix independently buildable. It restores a queued timestamped
+        # update, enters negotiated divestiture, and cancels the requester's
+        # pending ownership acquisition before confirmation delivery.
+        add_executable(umbra_tso_regional_negotiated_cancel_restore_catch2
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_cancel_pending_after_restore_catch2.cpp
+        )
+        target_compile_features(
+          umbra_tso_regional_negotiated_cancel_restore_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_tso_regional_negotiated_cancel_restore_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_tso_regional_negotiated_cancel_restore_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_tso_regional_negotiated_cancel_restore_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timed multi-recipient regional negotiated-continuation
+        # matrix independently buildable. It restores a queued timestamped
+        # update, retains an If Available candidate after requester
+        # cancellation, and completes the surviving negotiated transfer.
+        add_executable(umbra_tso_regional_negotiated_continuation_restore_catch2
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_continuation_after_restore_catch2.cpp
+        )
+        target_compile_features(
+          umbra_tso_regional_negotiated_continuation_restore_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_tso_regional_negotiated_continuation_restore_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_tso_regional_negotiated_continuation_restore_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_tso_regional_negotiated_continuation_restore_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timed regular-candidate continuation case independently
+        # buildable. The wrapper exposes the macro-based fixture as a direct
+        # TEST_CASE for source indexing and a focused CTest handle.
+        add_executable(umbra_tso_regional_regular_continuation_restore_catch2
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_regular_candidate_continuation_after_restore_lane_catch2.cpp
+        )
+        target_compile_features(
+          umbra_tso_regional_regular_continuation_restore_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_tso_regional_regular_continuation_restore_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_tso_regional_regular_continuation_restore_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_tso_regional_regular_continuation_restore_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timed multi-recipient mixed-candidate continuation case
+        # independently buildable. It reuses the regular-candidate fixture
+        # while selecting an If Available candidate for the surviving clock.
+        add_executable(umbra_tso_regional_mixed_continuation_restore_catch2
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_mixed_candidate_continuation_after_restore_catch2.cpp
+        )
+        target_compile_features(
+          umbra_tso_regional_mixed_continuation_restore_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_tso_regional_mixed_continuation_restore_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_tso_regional_mixed_continuation_restore_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_tso_regional_mixed_continuation_restore_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timed mixed retained-regular pre-delivery cancellation case
+        # independently buildable. It reuses the regional save/restore
+        # fixture while cancelling before Request Divestiture Confirmation.
+        add_executable(umbra_tso_mixed_pre_delivery_cancel_catch2
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_retained_regular_pre_delivery_cancel_after_restore_catch2.cpp
+        )
+        target_compile_features(
+          umbra_tso_mixed_pre_delivery_cancel_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_tso_mixed_pre_delivery_cancel_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_tso_mixed_pre_delivery_cancel_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_tso_mixed_pre_delivery_cancel_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timed mixed retained-regular confirmation cancellation case
+        # independently buildable. It reuses the regional save/restore
+        # fixture while cancelling after Request Divestiture Confirmation.
+        add_executable(umbra_tso_mixed_confirmation_cancel_catch2
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_retained_regular_confirmation_cancel_after_restore_catch2.cpp
+        )
+        target_compile_features(
+          umbra_tso_mixed_confirmation_cancel_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_tso_mixed_confirmation_cancel_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_tso_mixed_confirmation_cancel_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_tso_mixed_confirmation_cancel_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timed multi-recipient regional negotiated-confirmation
+        # cancellation case independently buildable. It restores a queued
+        # timestamped update, delivers the retained owner's confirmation, and
+        # verifies cancellation rejects stale confirmation without transferring
+        # ownership.
+        add_executable(umbra_tso_regional_negotiated_confirmation_cancel_restore_catch2
+          cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_confirmation_cancel_after_restore_catch2.cpp
+        )
+        target_compile_features(
+          umbra_tso_regional_negotiated_confirmation_cancel_restore_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_tso_regional_negotiated_confirmation_cancel_restore_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_tso_regional_negotiated_confirmation_cancel_restore_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_tso_regional_negotiated_confirmation_cancel_restore_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the nonregional Flush Queue timestamped-update case
+        # independently buildable. It checks actual-versus-optimistic grant
+        # times and passel ordering without depending on the aggregate source.
+        add_executable(umbra_timestamped_attribute_update_flush_queue_catch2
+          cpp/tests/timestamped_attribute_update_flush_queue_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_attribute_update_flush_queue_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_attribute_update_flush_queue_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_attribute_update_flush_queue_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_attribute_update_flush_queue_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the future-input Flush Queue interaction case independently
+        # buildable. It checks that TSO messages submitted after FQR admission
+        # still precede its grant in the evoked callback queue.
+        add_executable(umbra_flush_queue_future_input_catch2
+          cpp/tests/flush_queue_future_input_catch2.cpp
+        )
+        target_compile_features(
+          umbra_flush_queue_future_input_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_flush_queue_future_input_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_flush_queue_future_input_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_flush_queue_future_input_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the no-recipient timestamped deletion/retraction case
+        # independently buildable. It isolates the execution-owned
+        # reconstitution boundary before joined-recipient fanout is added.
+        add_executable(umbra_request_retraction_timestamped_deletion_no_fanout_catch2
+          cpp/tests/request_retraction_timestamped_deletion_no_fanout_catch2.cpp
+        )
+        target_compile_features(
+          umbra_request_retraction_timestamped_deletion_no_fanout_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_request_retraction_timestamped_deletion_no_fanout_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_request_retraction_timestamped_deletion_no_fanout_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_request_retraction_timestamped_deletion_no_fanout_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the delivered-recipient timestamped object-deletion retraction
+        # case independently buildable. It isolates object reconstitution,
+        # Request Retraction fanout, and suppression of the pending recipient.
+        add_executable(umbra_timestamped_object_deletion_retraction_catch2
+          cpp/tests/timestamped_object_deletion_retraction_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_object_deletion_retraction_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_object_deletion_retraction_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_object_deletion_retraction_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_object_deletion_retraction_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-owner timestamped-deletion retraction case
+        # independently buildable. It isolates resignation filtering during
+        # object reconstitution and the resulting ownership query boundary.
+        add_executable(umbra_timestamped_object_deletion_joined_owner_retraction_catch2
+          cpp/tests/timestamped_object_deletion_joined_owner_retraction_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_object_deletion_joined_owner_retraction_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_object_deletion_joined_owner_retraction_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_object_deletion_joined_owner_retraction_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_object_deletion_joined_owner_retraction_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the optimistic-time Flush Queue Request slice independently
+        # buildable. It isolates queued TSO FIFO delivery and grant timing.
+        add_executable(umbra_flush_queue_request_optimistic_time_catch2
+          cpp/tests/flush_queue_request_optimistic_time_catch2.cpp
+        )
+        target_compile_features(
+          umbra_flush_queue_request_optimistic_time_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_flush_queue_request_optimistic_time_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_flush_queue_request_optimistic_time_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_flush_queue_request_optimistic_time_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the terminal timestamped-deletion tombstone case independently
+        # buildable. It verifies strict Retract finalization and object-name
+        # reuse after the retained deletion state is released.
+        add_executable(umbra_terminal_timestamped_deletion_tombstone_catch2
+          cpp/tests/terminal_timestamped_deletion_tombstone_catch2.cpp
+        )
+        target_compile_features(
+          umbra_terminal_timestamped_deletion_tombstone_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_terminal_timestamped_deletion_tombstone_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_terminal_timestamped_deletion_tombstone_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_terminal_timestamped_deletion_tombstone_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the source-resignation timestamped-deletion fanout case
+        # independently buildable. It verifies that each recipient-local
+        # removal queue survives the producing owner's departure.
+        add_executable(umbra_timestamped_object_deletion_source_resignation_fanout_catch2
+          cpp/tests/timestamped_object_deletion_source_resignation_fanout_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_object_deletion_source_resignation_fanout_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_object_deletion_source_resignation_fanout_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_object_deletion_source_resignation_fanout_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_object_deletion_source_resignation_fanout_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the compact queued-TSO Next Message Request case independently
+        # buildable. It selects the next message timestamp after GALT opens
+        # without pulling in the larger alternate-advance matrix.
+        add_executable(umbra_next_message_request_queued_tso_catch2
+          cpp/tests/next_message_request_queued_tso_catch2.cpp
+        )
+        target_compile_features(
+          umbra_next_message_request_queued_tso_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_next_message_request_queued_tso_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_next_message_request_queued_tso_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_next_message_request_queued_tso_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the paired Available-time TARA/NMRA interaction case
+        # independently buildable. It exercises inclusive GALT at two queued
+        # timestamp frontiers without introducing a new transport seam.
+        add_executable(umbra_available_time_advance_inclusive_galt_catch2
+          cpp/tests/available_time_advance_inclusive_galt_catch2.cpp
+        )
+        target_compile_features(
+          umbra_available_time_advance_inclusive_galt_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_available_time_advance_inclusive_galt_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_available_time_advance_inclusive_galt_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_available_time_advance_inclusive_galt_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the bounded connection-loss/TSO declaration-recheck case
+        # independently buildable.  The aggregate federation-management
+        # translation unit currently carries unrelated source drift; this
+        # target lets the exact planned case compile and run without reopening
+        # that aggregate file.
+        add_executable(umbra_connection_loss_attribute_update_tso_suppressed_cleanup_catch2
+          cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp
+        )
+        target_compile_features(
+          umbra_connection_loss_attribute_update_tso_suppressed_cleanup_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_connection_loss_attribute_update_tso_suppressed_cleanup_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_connection_loss_attribute_update_tso_suppressed_cleanup_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_connection_loss_attribute_update_tso_suppressed_cleanup_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the multi-recipient automatic-cleanup connection-loss case
+        # independently buildable. It is already a mapped C++ plan row, but
+        # the aggregate federation-management translation unit is not a safe
+        # execution boundary while its unrelated source artifact is being
+        # reconciled.
+        add_executable(umbra_connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2
+          cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp
+        )
+        target_compile_features(
+          umbra_connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the single-survivor automatic-cleanup connection-loss case
+        # independently buildable.  This is the exact planned cutoff slice;
+        # the multi-recipient variant above remains a separate evidence row.
+        add_executable(umbra_connection_loss_attribute_update_tso_automatic_cleanup_catch2
+          cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp
+        )
+        target_compile_features(
+          umbra_connection_loss_attribute_update_tso_automatic_cleanup_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_connection_loss_attribute_update_tso_automatic_cleanup_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_connection_loss_attribute_update_tso_automatic_cleanup_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_connection_loss_attribute_update_tso_automatic_cleanup_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the directed-selector connection-loss variants independently
+        # buildable.  This target contains both the ownership-selector and
+        # unsubscribe-at-callback-boundary cases without the aggregate test
+        # translation unit.
+        add_executable(umbra_connection_loss_directed_selector_mutation_catch2
+          cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_connection_loss_directed_selector_mutation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_connection_loss_directed_selector_mutation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_connection_loss_directed_selector_mutation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_connection_loss_directed_selector_mutation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the HLA_EVOKED asynchronous-delivery cutoff case independently
+        # buildable alongside the existing HLA_IMMEDIATE counterpart.
+        add_executable(umbra_connection_loss_attribute_update_tso_asynchronous_delivery_catch2
+          cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp
+        )
+        target_compile_features(
+          umbra_connection_loss_attribute_update_tso_asynchronous_delivery_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_connection_loss_attribute_update_tso_asynchronous_delivery_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_connection_loss_attribute_update_tso_asynchronous_delivery_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_connection_loss_attribute_update_tso_asynchronous_delivery_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the single-recipient timestamped-interaction resignation case
+        # independently buildable beside the existing fan-out variant.
+        add_executable(umbra_timestamped_interaction_source_resignation_catch2
+          cpp/tests/timestamped_interaction_source_resignation_fanout_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_interaction_source_resignation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_interaction_source_resignation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_interaction_source_resignation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_interaction_source_resignation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the default-region timestamped attribute callback contract
+        # independently buildable.  This is the narrow DDM/time slice behind
+        # the next roadmap pointer and does not depend on the damaged
+        # federation-management aggregate translation unit.
+        add_executable(umbra_timestamped_default_region_attribute_update_catch2
+          cpp/tests/timestamped_default_region_attribute_update_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_default_region_attribute_update_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_default_region_attribute_update_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_default_region_attribute_update_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_default_region_attribute_update_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the default-region timestamped re-enable case independently
+        # buildable.  It exercises the callback-gated Time Constrained role
+        # transition without relying on the aggregate federation-management
+        # translation unit.
+        add_executable(umbra_timestamped_default_region_attribute_reenable_catch2
+          cpp/tests/timestamped_default_region_attribute_reenable_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_default_region_attribute_reenable_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_default_region_attribute_reenable_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_default_region_attribute_reenable_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_default_region_attribute_reenable_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the default-region mixed-fanout/retraction case independently
+        # buildable.  It covers one immediate recipient and one constrained
+        # recipient while the aggregate source remains under recovery.
+        add_executable(umbra_timestamped_default_region_attribute_mixed_fanout_catch2
+          cpp/tests/timestamped_default_region_attribute_mixed_fanout_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_default_region_attribute_mixed_fanout_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_default_region_attribute_mixed_fanout_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_default_region_attribute_mixed_fanout_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_default_region_attribute_mixed_fanout_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the mixed regular/If Available Divestiture If Wanted case
+        # independently buildable. It isolates serial multi-federate callback
+        # ordering and the selected owner's follow-up release request.
+        add_executable(umbra_attribute_ownership_divestiture_if_wanted_mixed_acquirer_catch2
+          cpp/tests/attribute_ownership_divestiture_if_wanted_mixed_acquirer_catch2.cpp
+        )
+        target_compile_features(
+          umbra_attribute_ownership_divestiture_if_wanted_mixed_acquirer_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_attribute_ownership_divestiture_if_wanted_mixed_acquirer_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_attribute_ownership_divestiture_if_wanted_mixed_acquirer_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_attribute_ownership_divestiture_if_wanted_mixed_acquirer_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the supplied-set Divestiture If Wanted case independently
+        # buildable. It isolates the empty-result path, mixed pending-acquirer
+        # transfer, and acquisition-notification tag/ownership boundaries.
+        add_executable(umbra_attribute_ownership_divestiture_if_wanted_pending_catch2
+          cpp/tests/attribute_ownership_divestiture_if_wanted_pending_catch2.cpp
+        )
+        target_compile_features(
+          umbra_attribute_ownership_divestiture_if_wanted_pending_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_attribute_ownership_divestiture_if_wanted_pending_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_attribute_ownership_divestiture_if_wanted_pending_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_attribute_ownership_divestiture_if_wanted_pending_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the negotiated-divestiture transition independently buildable.
+        # It isolates owner Waiting/confirmation state, cancellation rollback,
+        # and the final acquisition-notification tag boundary.
+        add_executable(umbra_negotiated_attribute_ownership_divestiture_pending_catch2
+          cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp
+        )
+        target_compile_features(
+          umbra_negotiated_attribute_ownership_divestiture_pending_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_negotiated_attribute_ownership_divestiture_pending_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_negotiated_attribute_ownership_divestiture_pending_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_negotiated_attribute_ownership_divestiture_pending_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the MOM Service Reporting subscription interlock independently
+        # buildable. It isolates ordinary/regional active and passive
+        # subscription admission from the broader MOM service matrix.
+        add_executable(umbra_mom_service_reporting_interlock_catch2
+          cpp/tests/mom_service_reporting_interlock_catch2.cpp
+        )
+        target_compile_features(
+          umbra_mom_service_reporting_interlock_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_mom_service_reporting_interlock_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_mom_service_reporting_interlock_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_mom_service_reporting_interlock_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM deletable-object projection independently
+        # buildable. It isolates the live implicit-privilege ownership ledger,
+        # direct AVU request, and HLAsetTiming periodic reflection paths.
+        add_executable(umbra_joined_federate_mom_deletable_object_count_catch2
+          cpp/tests/joined_federate_mom_deletable_object_count_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_deletable_object_count_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_deletable_object_count_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_deletable_object_count_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_deletable_object_count_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM receive-order length projection
+        # independently buildable. It isolates the callback-route queue
+        # ledger, direct MOM request, and HLAsetTiming periodic reflection.
+        add_executable(umbra_joined_federate_mom_ro_length_periodic_catch2
+          cpp/tests/joined_federate_mom_ro_length_periodic_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_ro_length_periodic_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_ro_length_periodic_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_ro_length_periodic_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_ro_length_periodic_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM object-instances-updated report
+        # independently buildable. It isolates the Subscribe-only request,
+        # accepted update ledger, nested class-count encoding, and
+        # RTI-originated callback route.
+        add_executable(umbra_joined_federate_mom_object_instances_updated_report_catch2
+          cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_object_instances_updated_report_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_object_instances_updated_report_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_object_instances_updated_report_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_object_instances_updated_report_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM deletable-object report independently
+        # buildable. It isolates the Subscribe-only request, live
+        # HLAprivilegeToDeleteObject ownership ledger, nested class-count
+        # encoding, and RTI-originated callback route.
+        add_executable(umbra_joined_federate_mom_object_instances_that_can_be_deleted_report_catch2
+          cpp/tests/joined_federate_mom_object_instances_that_can_be_deleted_report_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_object_instances_that_can_be_deleted_report_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_object_instances_that_can_be_deleted_report_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_object_instances_that_can_be_deleted_report_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_object_instances_that_can_be_deleted_report_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM reflected-object report independently
+        # buildable. It isolates the accepted application reflection ledger,
+        # nested class-count encoding, and RTI-originated callback route.
+        add_executable(umbra_joined_federate_mom_object_instances_reflected_report_catch2
+          cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_object_instances_reflected_report_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_object_instances_reflected_report_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_object_instances_reflected_report_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_object_instances_reflected_report_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM object-information report independently
+        # buildable. It isolates known/NULL object snapshots, nested owned
+        # attribute lists, and the requesting federate's callback route.
+        add_executable(umbra_joined_federate_mom_object_instance_information_report_catch2
+          cpp/tests/joined_federate_mom_object_instance_information_report_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_object_instance_information_report_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_object_instance_information_report_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_object_instance_information_report_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_object_instance_information_report_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM successful-update projection independently
+        # buildable. It isolates the accepted Update Attribute Values ledger,
+        # direct MOM request, and HLAsetTiming periodic reflection paths.
+        add_executable(umbra_joined_federate_mom_updates_sent_periodic_catch2
+          cpp/tests/joined_federate_mom_updates_sent_periodic_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_updates_sent_periodic_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_updates_sent_periodic_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_updates_sent_periodic_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_updates_sent_periodic_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM updated-object projection independently
+        # buildable. It isolates the distinct-object Update Attribute Values
+        # ledger, direct MOM request, and HLAsetTiming periodic reflection.
+        add_executable(umbra_joined_federate_mom_updated_object_count_periodic_catch2
+          cpp/tests/joined_federate_mom_updated_object_count_periodic_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_updated_object_count_periodic_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_updated_object_count_periodic_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_updated_object_count_periodic_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_updated_object_count_periodic_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM registered-object projection
+        # independently buildable. It isolates the registration counter and
+        # its relationship to the accepted update/object ledgers.
+        add_executable(umbra_joined_federate_mom_registered_object_count_periodic_catch2
+          cpp/tests/joined_federate_mom_registered_object_count_periodic_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_registered_object_count_periodic_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_registered_object_count_periodic_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_registered_object_count_periodic_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_registered_object_count_periodic_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the joined-federate MOM deleted-object projection independently
+        # buildable. It isolates accepted deletion history from live object
+        # membership and periodic MOM reflection.
+        add_executable(umbra_joined_federate_mom_deleted_object_count_periodic_catch2
+          cpp/tests/joined_federate_mom_deleted_object_count_periodic_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_deleted_object_count_periodic_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_deleted_object_count_periodic_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_deleted_object_count_periodic_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_deleted_object_count_periodic_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the receiving-federate MOM removed-object projection
+        # independently buildable. It isolates committed Remove Object
+        # Instance callbacks from the sender's deletion history and periodic
+        # MOM reflection.
+        add_executable(umbra_joined_federate_mom_removed_object_count_periodic_catch2
+          cpp/tests/joined_federate_mom_removed_object_count_periodic_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_removed_object_count_periodic_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_removed_object_count_periodic_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_removed_object_count_periodic_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_removed_object_count_periodic_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the receiving-federate MOM discovered-object projection
+        # independently buildable. It isolates committed Discover Object
+        # Instance callbacks, local-delete rediscovery, and periodic MOM
+        # reflection.
+        add_executable(umbra_joined_federate_mom_discovered_object_count_periodic_catch2
+          cpp/tests/joined_federate_mom_discovered_object_count_periodic_catch2.cpp
+        )
+        target_compile_features(
+          umbra_joined_federate_mom_discovered_object_count_periodic_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_joined_federate_mom_discovered_object_count_periodic_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_joined_federate_mom_discovered_object_count_periodic_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_joined_federate_mom_discovered_object_count_periodic_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the official handle-normalization support-services surface
+        # independently buildable. It isolates connection/member fences,
+        # typed invalid-designator errors, and execution-scoped DDM
+        # point-coordinate stability from the broader DDM suites.
+        add_executable(umbra_handle_normalization_catch2
+          cpp/tests/handle_normalization_catch2.cpp
+        )
+        target_compile_features(
+          umbra_handle_normalization_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_handle_normalization_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_handle_normalization_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_handle_normalization_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the Willing-to-Acquire candidate selection case independently
+        # buildable. It isolates the private If Available reservation and its
+        # confirmation/notification handoff.
+        add_executable(umbra_negotiated_willing_to_acquire_candidate_catch2
+          cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp
+        )
+        target_compile_features(
+          umbra_negotiated_willing_to_acquire_candidate_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_negotiated_willing_to_acquire_candidate_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_negotiated_willing_to_acquire_candidate_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_negotiated_willing_to_acquire_candidate_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the receive-order interaction matrix independently buildable.
+        # It isolates active/passive promotion, sender suppression, parameter
+        # validation, and callback-time unsubscribe behavior.
+        add_executable(umbra_receive_order_interaction_catch2
+          cpp/tests/receive_order_interaction_catch2.cpp
+        )
+        target_compile_features(
+          umbra_receive_order_interaction_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_receive_order_interaction_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_receive_order_interaction_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_receive_order_interaction_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the receive-order directed-interaction case independently
+        # buildable. It isolates target-known routing, declaration fences,
+        # sender exclusion, and target-departure callback suppression.
+        add_executable(umbra_directed_interaction_known_target_catch2
+          cpp/tests/directed_interaction_known_target_catch2.cpp
+        )
+        target_compile_features(
+          umbra_directed_interaction_known_target_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_directed_interaction_known_target_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_directed_interaction_known_target_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_directed_interaction_known_target_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the directed subscription selector matrix independently
+        # buildable. It isolates default by-ownership, universal, empty-set,
+        # and supplied-class mode changes.
+        add_executable(umbra_directed_interaction_subscription_kind_catch2
+          cpp/tests/directed_interaction_subscription_kind_catch2.cpp
+        )
+        target_compile_features(
+          umbra_directed_interaction_subscription_kind_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_directed_interaction_subscription_kind_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_directed_interaction_subscription_kind_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_directed_interaction_subscription_kind_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the strict three-dimensional object-attribute overlap case
+        # independently buildable. It isolates complete-overlap routing and
+        # one-dimension disjoint suppression under HLA_EVOKED.
+        add_executable(umbra_three_dimensional_regional_object_attribute_overlap_catch2
+          cpp/tests/three_dimensional_regional_object_attribute_overlap_catch2.cpp
+        )
+        target_compile_features(
+          umbra_three_dimensional_regional_object_attribute_overlap_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_three_dimensional_regional_object_attribute_overlap_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_three_dimensional_regional_object_attribute_overlap_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_three_dimensional_regional_object_attribute_overlap_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the partial multi-attribute negotiated-cancellation case
+        # independently buildable. It isolates the retained-versus-cancelled
+        # member reservation and the single confirmation/notification path.
+        add_executable(umbra_negotiated_divestiture_partial_acquisition_cancellation_catch2
+          cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_negotiated_divestiture_partial_acquisition_cancellation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_negotiated_divestiture_partial_acquisition_cancellation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_negotiated_divestiture_partial_acquisition_cancellation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_negotiated_divestiture_partial_acquisition_cancellation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the pre-delivery cancellation race independently buildable. It
+        # isolates stale confirmation suppression and negotiated-state cleanup.
+        add_executable(umbra_negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2
+          cpp/tests/negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the negotiated Willing-to-Acquire continuation case
+        # independently buildable. It isolates superseding regular acquisition
+        # plus cancellation before the next candidate's confirmation.
+        add_executable(umbra_negotiated_willing_to_acquire_continuation_catch2
+          cpp/tests/negotiated_willing_to_acquire_continuation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_negotiated_willing_to_acquire_continuation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_negotiated_willing_to_acquire_continuation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_negotiated_willing_to_acquire_continuation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_negotiated_willing_to_acquire_continuation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the two-dimensional multi-attribute DDM source-isolation case
+        # independently buildable. It proves per-attribute source-region
+        # overlap, conjunctive range filtering, and restoration.
+        add_executable(umbra_regional_multi_attribute_ddm_catch2
+          cpp/tests/regional_multi_attribute_ddm_catch2.cpp
+        )
+        target_compile_features(
+          umbra_regional_multi_attribute_ddm_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_regional_multi_attribute_ddm_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_regional_multi_attribute_ddm_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_regional_multi_attribute_ddm_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the default-region routing case independently buildable. It
+        # isolates ordinary/default source fallback from explicit regional
+        # association and subscriber declarations.
+        add_executable(umbra_default_region_object_routing_catch2
+          cpp/tests/default_region_object_routing_catch2.cpp
+        )
+        target_compile_features(
+          umbra_default_region_object_routing_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_default_region_object_routing_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_default_region_object_routing_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_default_region_object_routing_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 region-template lifecycle independently buildable.
+        # This isolates official create/commit/delete/range-bound semantics
+        # from the large federation-management aggregate, whose unrelated
+        # source-integrity failures must not hide this focused evidence.
+        add_executable(umbra_region_lifecycle_catch2
+          cpp/tests/region_lifecycle_catch2.cpp
+        )
+        target_compile_features(
+          umbra_region_lifecycle_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_region_lifecycle_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_region_lifecycle_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_region_lifecycle_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 Query Attribute Ownership grouping case independently
+        # buildable. It isolates owner/unowned result callbacks and queued
+        # report nullification from the large federation-management aggregate.
+        add_executable(umbra_attribute_ownership_query_catch2
+          cpp/tests/attribute_ownership_query_catch2.cpp
+        )
+        target_compile_features(
+          umbra_attribute_ownership_query_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_attribute_ownership_query_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_attribute_ownership_query_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_attribute_ownership_query_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the ownership-transfer/update-region cleanup case independently
+        # buildable. It isolates the former-owner association boundary from
+        # the large federation-management aggregate.
+        add_executable(umbra_ownership_transfer_update_region_catch2
+          cpp/tests/ownership_transfer_update_region_catch2.cpp
+        )
+        target_compile_features(
+          umbra_ownership_transfer_update_region_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_ownership_transfer_update_region_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_ownership_transfer_update_region_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_ownership_transfer_update_region_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 If Available acquisition path independently buildable.
+        # It isolates Willing-to-Acquire state and terminal callbacks from the
+        # large federation-management aggregate.
+        add_executable(umbra_attribute_ownership_acquisition_if_available_catch2
+          cpp/tests/attribute_ownership_acquisition_if_available_catch2.cpp
+        )
+        target_compile_features(
+          umbra_attribute_ownership_acquisition_if_available_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_attribute_ownership_acquisition_if_available_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_attribute_ownership_acquisition_if_available_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_attribute_ownership_acquisition_if_available_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 regular acquisition/release-denial path independently
+        # buildable. It isolates the owner-release handshake from the aggregate.
+        add_executable(umbra_attribute_ownership_acquisition_catch2
+          cpp/tests/attribute_ownership_acquisition_catch2.cpp
+        )
+        target_compile_features(
+          umbra_attribute_ownership_acquisition_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_attribute_ownership_acquisition_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_attribute_ownership_acquisition_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_attribute_ownership_acquisition_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 unconditional-divestiture/assumption path independently
+        # buildable. It isolates ownership release and candidate filtering from
+        # the large federation-management aggregate.
+        add_executable(umbra_unconditional_attribute_ownership_divestiture_catch2
+          cpp/tests/unconditional_attribute_ownership_divestiture_catch2.cpp
+        )
+        target_compile_features(
+          umbra_unconditional_attribute_ownership_divestiture_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_unconditional_attribute_ownership_divestiture_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_unconditional_attribute_ownership_divestiture_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_unconditional_attribute_ownership_divestiture_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 resign-action unconditional-divestiture path
+        # independently buildable from the aggregate federation-management test.
+        add_executable(umbra_resign_action_unconditional_divestiture_catch2
+          cpp/tests/resign_action_unconditional_divestiture_catch2.cpp
+        )
+        target_compile_features(
+          umbra_resign_action_unconditional_divestiture_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_resign_action_unconditional_divestiture_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_resign_action_unconditional_divestiture_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_resign_action_unconditional_divestiture_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 Connection Lost automatic-unconditional-divestiture
+        # path independently buildable from the aggregate test. It isolates
+        # the configured forced-resignation disposition and survivor offer.
+        add_executable(umbra_connection_loss_automatic_unconditional_divestiture_catch2
+          cpp/tests/connection_loss_automatic_unconditional_divestiture_catch2.cpp
+        )
+        target_compile_features(
+          umbra_connection_loss_automatic_unconditional_divestiture_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_connection_loss_automatic_unconditional_divestiture_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_connection_loss_automatic_unconditional_divestiture_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_connection_loss_automatic_unconditional_divestiture_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 Connection Lost pending-acquisition cancellation path
+        # independently buildable from the aggregate test. It isolates stale
+        # owner-release suppression and subsequent survivor eligibility.
+        add_executable(umbra_connection_loss_automatic_cancel_pending_acquisition_catch2
+          cpp/tests/connection_loss_automatic_cancel_pending_acquisition_catch2.cpp
+        )
+        target_compile_features(
+          umbra_connection_loss_automatic_cancel_pending_acquisition_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_connection_loss_automatic_cancel_pending_acquisition_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_connection_loss_automatic_cancel_pending_acquisition_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_connection_loss_automatic_cancel_pending_acquisition_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 resign-action pending-acquisition rejection boundary
+        # independently buildable from the aggregate test.
+        add_executable(umbra_resign_action_pending_acquisition_rejection_catch2
+          cpp/tests/resign_action_pending_acquisition_rejection_catch2.cpp
+        )
+        target_compile_features(
+          umbra_resign_action_pending_acquisition_rejection_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_resign_action_pending_acquisition_rejection_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_resign_action_pending_acquisition_rejection_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_resign_action_pending_acquisition_rejection_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 voluntary resign cancellation path independently
+        # buildable. It isolates stale regular-acquisition callbacks from the
+        # aggregate federation-management test.
+        add_executable(umbra_resign_action_cancel_pending_acquisition_catch2
+          cpp/tests/resign_action_cancel_pending_acquisition_catch2.cpp
+        )
+        target_compile_features(
+          umbra_resign_action_cancel_pending_acquisition_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_resign_action_cancel_pending_acquisition_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_resign_action_cancel_pending_acquisition_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_resign_action_cancel_pending_acquisition_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 negotiated cancellation boundary independently
+        # buildable. It covers the stale release and confirmation callbacks
+        # selected by a pending negotiated transfer.
+        add_executable(umbra_resign_action_cancel_negotiated_pending_catch2
+          cpp/tests/resign_action_cancel_negotiated_pending_catch2.cpp
+        )
+        target_compile_features(
+          umbra_resign_action_cancel_negotiated_pending_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_resign_action_cancel_negotiated_pending_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_resign_action_cancel_negotiated_pending_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_resign_action_cancel_negotiated_pending_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 If Available cancellation boundary independently
+        # buildable. It isolates Willing-to-Acquire cleanup and callback
+        # suppression from the aggregate federation-management test.
+        add_executable(umbra_resign_action_cancel_if_available_pending_catch2
+          cpp/tests/resign_action_cancel_if_available_pending_catch2.cpp
+        )
+        target_compile_features(
+          umbra_resign_action_cancel_if_available_pending_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_resign_action_cancel_if_available_pending_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_resign_action_cancel_if_available_pending_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_resign_action_cancel_if_available_pending_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 voluntary DELETE_OBJECTS resignation case
+        # independently buildable. It isolates the delete-privilege guard and
+        # receive-order Remove Object Instance callback.
+        add_executable(umbra_resign_action_delete_objects_catch2
+          cpp/tests/resign_action_delete_objects_catch2.cpp
+        )
+        target_compile_features(
+          umbra_resign_action_delete_objects_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_resign_action_delete_objects_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_resign_action_delete_objects_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_resign_action_delete_objects_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 final-federate resignation rule independently
+        # buildable. It isolates the §4.12.4 directive-two override and the
+        # reusable object-name boundary from the aggregate test.
+        add_executable(umbra_resign_action_final_federate_catch2
+          cpp/tests/resign_action_final_federate_catch2.cpp
+        )
+        target_compile_features(
+          umbra_resign_action_final_federate_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_resign_action_final_federate_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_resign_action_final_federate_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_resign_action_final_federate_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the 2025 FDD update-rate metadata lookup independently
+        # buildable. It isolates named-rate/default lookup and subscription
+        # state projection from the aggregate federation-management source.
+        add_executable(umbra_update_rate_value_catch2
+          cpp/tests/update_rate_value_catch2.cpp
+        )
+        target_compile_features(
+          umbra_update_rate_value_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_update_rate_value_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_update_rate_value_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_update_rate_value_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the passive object-attribute subscription case independently
+        # buildable. It isolates the 2025 passive-declaration rule from the
+        # ordinary and regional discovery/reflection paths.
+        add_executable(umbra_passive_object_attribute_subscription_catch2
+          cpp/tests/passive_object_attribute_subscription_catch2.cpp
+        )
+        target_compile_features(
+          umbra_passive_object_attribute_subscription_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_passive_object_attribute_subscription_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_passive_object_attribute_subscription_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_passive_object_attribute_subscription_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the non-timestamped Local Delete Object Instance case
+        # independently buildable. It isolates local knowledge removal and
+        # the FederateOwnsAttributes/OwnershipAcquisitionPending guards.
+        add_executable(umbra_local_delete_object_instance_catch2
+          cpp/tests/local_delete_object_instance_catch2.cpp
+        )
+        target_compile_features(
+          umbra_local_delete_object_instance_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_local_delete_object_instance_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_local_delete_object_instance_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_local_delete_object_instance_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the Local Delete Object Instance service-report regression
+        # independently buildable. It verifies the filesystem-backed MOM
+        # record shape and switch gating for the accepted transition.
+        add_executable(umbra_local_delete_object_instance_service_report_catch2
+          cpp/tests/local_delete_object_instance_service_report_catch2.cpp
+        )
+        target_compile_features(
+          umbra_local_delete_object_instance_service_report_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_local_delete_object_instance_service_report_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_local_delete_object_instance_service_report_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_local_delete_object_instance_service_report_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the failed Local Delete Object Instance service-report matrix
+        # independently buildable. It checks serial ordering and exact failure
+        # vocabulary around the accepted local-forget transition.
+        add_executable(umbra_local_delete_object_instance_failure_service_report_catch2
+          cpp/tests/local_delete_object_instance_failure_service_report_catch2.cpp
+        )
+        target_compile_features(
+          umbra_local_delete_object_instance_failure_service_report_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_local_delete_object_instance_failure_service_report_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_local_delete_object_instance_failure_service_report_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_local_delete_object_instance_failure_service_report_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the failed Local Delete Object Instance MOM-interaction matrix
+        # independently buildable. It decodes the official report contract
+        # under HLA_IMMEDIATE without coupling to the aggregate test binary.
+        add_executable(umbra_local_delete_object_instance_failure_service_report_interaction_catch2
+          cpp/tests/local_delete_object_instance_failure_service_report_interaction_catch2.cpp
+        )
+        target_compile_features(
+          umbra_local_delete_object_instance_failure_service_report_interaction_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_local_delete_object_instance_failure_service_report_interaction_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_local_delete_object_instance_failure_service_report_interaction_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_local_delete_object_instance_failure_service_report_interaction_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the regular acquisition-cancellation ownership slice
+        # independently buildable. It isolates the confirmation boundary and
+        # stale callback suppression from the broader ownership matrix.
+        add_executable(umbra_attribute_ownership_acquisition_cancellation_catch2
+          cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_attribute_ownership_acquisition_cancellation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_attribute_ownership_acquisition_cancellation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_attribute_ownership_acquisition_cancellation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_attribute_ownership_acquisition_cancellation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the owner-denial cancellation race independently buildable. It
+        # exercises the callback-boundary arbitration without broad ownership
+        # matrix setup.
+        add_executable(umbra_ownership_acquisition_cancellation_race_catch2
+          cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp
+        )
+        target_compile_features(
+          umbra_ownership_acquisition_cancellation_race_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_ownership_acquisition_cancellation_race_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_ownership_acquisition_cancellation_race_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_ownership_acquisition_cancellation_race_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the competing transfer cancellation race independently
+        # buildable. It proves Divestiture If Wanted wins over a queued
+        # cancellation confirmation at the callback boundary.
+        add_executable(umbra_ownership_acquisition_cancellation_transfer_race_catch2
+          cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp
+        )
+        target_compile_features(
+          umbra_ownership_acquisition_cancellation_transfer_race_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_ownership_acquisition_cancellation_transfer_race_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_ownership_acquisition_cancellation_transfer_race_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_ownership_acquisition_cancellation_transfer_race_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the ordinary mixed TSO/FQR/TARA/NMRA interaction case
+        # independently buildable.  This preserves a focused alternate-time
+        # grant lane while the aggregate federation-management source is under
+        # recovery.
+        add_executable(umbra_timestamped_interaction_mixed_advance_catch2
+          cpp/tests/timestamped_interaction_mixed_advance_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_interaction_mixed_advance_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_interaction_mixed_advance_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_interaction_mixed_advance_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_interaction_mixed_advance_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the cross-producer timestamp-order case independently
+        # buildable. It exercises two publisher queues and two constrained
+        # recipient queues without depending on the damaged aggregate source.
+        add_executable(umbra_timestamped_interaction_cross_producer_order_catch2
+          cpp/tests/timestamped_interaction_cross_producer_order_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_interaction_cross_producer_order_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_interaction_cross_producer_order_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_interaction_cross_producer_order_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_interaction_cross_producer_order_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the source-resignation fanout case independently buildable. It
+        # proves that already-admitted TSO payloads survive producer departure
+        # for each recipient-local queue.
+        add_executable(umbra_timestamped_interaction_source_resignation_fanout_catch2
+          cpp/tests/timestamped_interaction_source_resignation_fanout_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_interaction_source_resignation_fanout_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_interaction_source_resignation_fanout_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_interaction_source_resignation_fanout_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_interaction_source_resignation_fanout_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the ordinary interaction re-enable case independently
+        # buildable. It checks that a queued TSO passel belongs to the joined
+        # federate lifetime rather than one Time Constrained enablement.
+        add_executable(umbra_timestamped_interaction_reenable_catch2
+          cpp/tests/timestamped_interaction_reenable_catch2.cpp
+        )
+        target_compile_features(
+          umbra_timestamped_interaction_reenable_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_timestamped_interaction_reenable_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_timestamped_interaction_reenable_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_timestamped_interaction_reenable_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the regional Auto Provide overlap/suppression case independently
+        # buildable. It is a recovered source slice from the aggregate test
+        # while that translation unit remains under repair.
+        add_executable(umbra_regional_auto_provide_overlap_catch2
+          cpp/tests/regional_auto_provide_overlap_catch2.cpp
+        )
+        target_compile_features(
+          umbra_regional_auto_provide_overlap_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_regional_auto_provide_overlap_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_regional_auto_provide_overlap_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_regional_auto_provide_overlap_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the regional Auto Provide provider-response case independently
+        # buildable. It covers both callback models and the reflected scoped
+        # value produced by the owner callback.
+        add_executable(umbra_regional_auto_provide_response_catch2
+          cpp/tests/regional_auto_provide_response_catch2.cpp
+        )
+        target_compile_features(
+          umbra_regional_auto_provide_response_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_regional_auto_provide_response_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_regional_auto_provide_response_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_regional_auto_provide_response_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the regional multi-provider Auto Provide transfer case
+        # independently buildable. It verifies ownership handoff followed by
+        # one request/reflection from each eligible provider in both callback
+        # models.
+        add_executable(umbra_regional_auto_provide_multi_provider_catch2
+          cpp/tests/regional_auto_provide_multi_provider_catch2.cpp
+        )
+        target_compile_features(
+          umbra_regional_auto_provide_multi_provider_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_regional_auto_provide_multi_provider_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_regional_auto_provide_multi_provider_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_regional_auto_provide_multi_provider_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the multi-source-region Auto Provide response case independently
+        # buildable. It checks source-region separation and one provider request
+        # per eligible source attribute in both callback models.
+        add_executable(umbra_regional_auto_provide_multi_source_catch2
+          cpp/tests/regional_auto_provide_multi_source_catch2.cpp
+        )
+        target_compile_features(
+          umbra_regional_auto_provide_multi_source_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_regional_auto_provide_multi_source_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_regional_auto_provide_multi_source_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_regional_auto_provide_multi_source_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timestamped regional Auto Provide response case
+        # independently buildable. It checks one TSO reflection and retraction
+        # lifecycle in both callback models.
+        add_executable(umbra_regional_auto_provide_timestamped_response_catch2
+          cpp/tests/regional_auto_provide_timestamped_response_catch2.cpp
+        )
+        target_compile_features(
+          umbra_regional_auto_provide_timestamped_response_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_regional_auto_provide_timestamped_response_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_regional_auto_provide_timestamped_response_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_regional_auto_provide_timestamped_response_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timestamped Auto Provide admission-fence case independently
+        # buildable. It verifies a discovery-time MOM switch mutation suppresses
+        # provider admission and that re-enabling permits a fresh TSO discovery.
+        add_executable(umbra_regional_auto_provide_timestamped_switch_admission_catch2
+          cpp/tests/regional_auto_provide_timestamped_switch_admission_catch2.cpp
+        )
+        target_compile_features(
+          umbra_regional_auto_provide_timestamped_switch_admission_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_regional_auto_provide_timestamped_switch_admission_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_regional_auto_provide_timestamped_switch_admission_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_regional_auto_provide_timestamped_switch_admission_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the timestamped Auto Provide switch-mutation case independently
+        # buildable. It verifies an admitted TSO response survives a later
+        # switch disable while a re-enabled execution admits fresh discovery.
+        add_executable(umbra_regional_auto_provide_timestamped_switch_mutation_catch2
+          cpp/tests/regional_auto_provide_timestamped_switch_mutation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_regional_auto_provide_timestamped_switch_mutation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_regional_auto_provide_timestamped_switch_mutation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_regional_auto_provide_timestamped_switch_mutation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_regional_auto_provide_timestamped_switch_mutation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the non-timestamped Auto Provide admission-fence case
+        # independently buildable. It verifies a discovery callback can turn
+        # the switch off before provider planning, then re-enable fresh work.
+        add_executable(umbra_regional_auto_provide_switch_admission_catch2
+          cpp/tests/regional_auto_provide_switch_admission_catch2.cpp
+        )
+        target_compile_features(
+          umbra_regional_auto_provide_switch_admission_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_regional_auto_provide_switch_admission_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_regional_auto_provide_switch_admission_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_regional_auto_provide_switch_admission_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
+        )
+
+        # Keep the regional Auto Provide switch-mutation case independently
+        # buildable. It covers MOM switch admission, ownership transfer, and
+        # fresh discovery after re-enabling the switch.
+        add_executable(umbra_regional_auto_provide_switch_mutation_catch2
+          cpp/tests/regional_auto_provide_switch_mutation_catch2.cpp
+        )
+        target_compile_features(
+          umbra_regional_auto_provide_switch_mutation_catch2
+          PRIVATE cxx_std_20
+        )
+        target_include_directories(
+          umbra_regional_auto_provide_switch_mutation_catch2
+          PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+        )
+        target_compile_definitions(
+          umbra_regional_auto_provide_switch_mutation_catch2
+          PRIVATE
+            UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+            UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+        )
+        target_link_libraries(
+          umbra_regional_auto_provide_switch_mutation_catch2
+          PRIVATE
+            umbra_fom_validation_backend
+            umbra::rti
+            umbra::fedtime
+            umbra::authorizer
+            Catch2::Catch2WithMain
         )
 
         # Keep the small FOM declaration-management slice independently
@@ -3488,6 +9126,1196 @@ if(BUILD_TESTING)
         DISCOVERY_MODE POST_BUILD
       )
     endif()
+    if(TARGET umbra_process_boundary_private_catch2)
+      catch_discover_tests(umbra_process_boundary_private_catch2
+        TEST_PREFIX "umbra.process_boundary_private.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_auto_provide_mom_catch2)
+      catch_discover_tests(umbra_auto_provide_mom_catch2
+        TEST_PREFIX "umbra.auto_provide_mom.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_mom_federate_set_switches_catch2)
+      catch_discover_tests(umbra_mom_federate_set_switches_catch2
+        TEST_PREFIX "umbra.mom_federate_set_switches.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_service_report_writer_failure_catch2)
+      catch_discover_tests(umbra_service_report_writer_failure_catch2
+        TEST_PREFIX "umbra.service_report_writer_failure.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_auto_provide_disabled_discovery_only_catch2)
+      catch_discover_tests(umbra_auto_provide_disabled_discovery_only_catch2
+        TEST_PREFIX "umbra.auto_provide_disabled_discovery_only.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_object_instance_name_reservation_catch2)
+      catch_discover_tests(umbra_object_instance_name_reservation_catch2
+        TEST_PREFIX "umbra.object_instance_name_reservation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_object_instance_named_registration_catch2)
+      catch_discover_tests(umbra_object_instance_named_registration_catch2
+        TEST_PREFIX "umbra.object_instance_named_registration.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_object_instance_registration_discovery_catch2)
+      catch_discover_tests(umbra_object_instance_registration_discovery_catch2
+        TEST_PREFIX "umbra.object_instance_registration_discovery.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_regional_object_attribute_routing_catch2)
+      catch_discover_tests(umbra_regional_object_attribute_routing_catch2
+        TEST_PREFIX "umbra.regional_object_attribute_routing.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_zero_dimensional_regional_interaction_catch2)
+      catch_discover_tests(umbra_zero_dimensional_regional_interaction_catch2
+        TEST_PREFIX "umbra.zero_dimensional_regional_interaction.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_default_region_interaction_routing_catch2)
+      catch_discover_tests(umbra_default_region_interaction_routing_catch2
+        TEST_PREFIX "umbra.default_region_interaction_routing.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_multi_region_interaction_routing_catch2)
+      catch_discover_tests(umbra_multi_region_interaction_routing_catch2
+        TEST_PREFIX "umbra.multi_region_interaction_routing.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_mixed_region_interaction_validation_catch2)
+      catch_discover_tests(umbra_mixed_region_interaction_validation_catch2
+        TEST_PREFIX "umbra.mixed_region_interaction_validation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_object_instance_deletion_catch2)
+      catch_discover_tests(umbra_object_instance_deletion_catch2
+        TEST_PREFIX "umbra.object_instance_deletion.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_receive_order_attribute_update_catch2)
+      catch_discover_tests(umbra_receive_order_attribute_update_catch2
+        TEST_PREFIX "umbra.receive_order_attribute_update.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_delay_subscription_evaluation_timestamped_directed_interaction_catch2)
+      catch_discover_tests(umbra_delay_subscription_evaluation_timestamped_directed_interaction_catch2
+        TEST_PREFIX "umbra.delay_subscription_evaluation_timestamped_directed_interaction.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_delay_subscription_evaluation_directed_interaction_catch2)
+      catch_discover_tests(umbra_delay_subscription_evaluation_directed_interaction_catch2
+        TEST_PREFIX "umbra.delay_subscription_evaluation_directed_interaction.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_service_report_file_confirm_synchronization_point_registration_catch2)
+      catch_discover_tests(umbra_service_report_file_confirm_synchronization_point_registration_catch2
+        TEST_PREFIX "umbra.service_report_file_confirm_synchronization_point_registration.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_service_report_file_announce_synchronization_point_catch2)
+      catch_discover_tests(umbra_service_report_file_announce_synchronization_point_catch2
+        TEST_PREFIX "umbra.service_report_file_announce_synchronization_point.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_service_report_file_federation_synchronized_catch2)
+      catch_discover_tests(umbra_service_report_file_federation_synchronized_catch2
+        TEST_PREFIX "umbra.service_report_file_federation_synchronized.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_service_report_file_synchronization_point_achieved_catch2)
+      catch_discover_tests(umbra_service_report_file_synchronization_point_achieved_catch2
+        TEST_PREFIX "umbra.service_report_file_synchronization_point_achieved.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_service_report_file_federation_synchronized_resignation_catch2)
+      catch_discover_tests(umbra_service_report_file_federation_synchronized_resignation_catch2
+        TEST_PREFIX "umbra.service_report_file_federation_synchronized_resignation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_local_delete_timestamped_attribute_catch2)
+      catch_discover_tests(umbra_local_delete_timestamped_attribute_catch2
+        TEST_PREFIX "umbra.local_delete_timestamped_attribute.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_local_delete_timestamped_object_removal_catch2)
+      catch_discover_tests(umbra_local_delete_timestamped_object_removal_catch2
+        TEST_PREFIX "umbra.local_delete_timestamped_object_removal.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_attribute_source_resignation_catch2)
+      catch_discover_tests(umbra_timestamped_attribute_source_resignation_catch2
+        TEST_PREFIX "umbra.timestamped_attribute_source_resignation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_attribute_source_resignation_fanout_catch2)
+      catch_discover_tests(umbra_timestamped_attribute_source_resignation_fanout_catch2
+        TEST_PREFIX "umbra.timestamped_attribute_source_resignation_fanout.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_attribute_update_ownership_transfer_catch2)
+      catch_discover_tests(umbra_timestamped_attribute_update_ownership_transfer_catch2
+        TEST_PREFIX "umbra.timestamped_attribute_update_ownership_transfer.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_custom_transportation_type_control_catch2)
+      catch_discover_tests(umbra_custom_transportation_type_control_catch2
+        TEST_PREFIX "umbra.custom_transportation_type_control.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_custom_transportation_delivery_catch2)
+      catch_discover_tests(umbra_custom_transportation_delivery_catch2
+        TEST_PREFIX "umbra.custom_transportation_delivery.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_custom_transportation_ordinary_regional_interaction_catch2)
+      catch_discover_tests(umbra_custom_transportation_ordinary_regional_interaction_catch2
+        TEST_PREFIX "umbra.custom_transportation_ordinary_regional_interaction.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_custom_transportation_ordinary_regional_attribute_catch2)
+      catch_discover_tests(umbra_custom_transportation_ordinary_regional_attribute_catch2
+        TEST_PREFIX "umbra.custom_transportation_ordinary_regional_attribute.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_custom_transportation_timestamped_delivery_catch2)
+      catch_discover_tests(umbra_custom_transportation_timestamped_delivery_catch2
+        TEST_PREFIX "umbra.custom_transportation_timestamped_delivery.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_custom_transportation_timestamped_directed_delivery_catch2)
+      catch_discover_tests(umbra_custom_transportation_timestamped_directed_delivery_catch2
+        TEST_PREFIX "umbra.custom_transportation_timestamped_directed_delivery.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_custom_transportation_timestamped_regional_attribute_delivery_catch2)
+      catch_discover_tests(umbra_custom_transportation_timestamped_regional_attribute_delivery_catch2
+        TEST_PREFIX "umbra.custom_transportation_timestamped_regional_attribute_delivery.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_mom_transportation_type_change_request_catch2)
+      catch_discover_tests(umbra_mom_transportation_type_change_request_catch2
+        TEST_PREFIX "umbra.mom_transportation_type_change_request.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_directed_interaction_multi_recipient_source_resignation_catch2)
+      catch_discover_tests(umbra_timestamped_directed_interaction_multi_recipient_source_resignation_catch2
+        TEST_PREFIX "umbra.timestamped_directed_interaction_multi_recipient_source_resignation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_directed_interaction_tar_nmr_catch2)
+      catch_discover_tests(umbra_timestamped_directed_interaction_tar_nmr_catch2
+        TEST_PREFIX "umbra.timestamped_directed_interaction_tar_nmr.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_federation_mom_save_conditionals_catch2)
+      catch_discover_tests(umbra_federation_mom_save_conditionals_catch2
+        TEST_PREFIX "umbra.federation_mom_save_conditionals.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_federation_mom_current_fdd_catch2)
+      catch_discover_tests(umbra_federation_mom_current_fdd_catch2
+        TEST_PREFIX "umbra.federation_mom_current_fdd.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_galt_lits_periodic_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_galt_lits_periodic_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_galt_lits_periodic.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_tso_length_periodic_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_tso_length_periodic_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_tso_length_periodic.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_time_state_duration_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_time_state_duration_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_time_state_duration.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_reflection_count_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_reflection_count_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_reflection_count.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_updates_sent_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_updates_sent_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_updates_sent.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_object_instances_updated_report_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_object_instances_updated_report_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_object_instances_updated_report.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_object_instances_that_can_be_deleted_report_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_object_instances_that_can_be_deleted_report_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_object_instances_that_can_be_deleted_report.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_object_instances_reflected_report_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_object_instances_reflected_report_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_object_instances_reflected_report.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_object_instance_information_report_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_object_instance_information_report_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_object_instance_information_report.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_reflections_received_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_reflections_received_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_reflections_received.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_interactions_received_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_interactions_received_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_interactions_received.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_directed_interactions_received_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_directed_interactions_received_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_directed_interactions_received.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_interactions_sent_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_interactions_sent_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_interactions_sent.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_mom_sender_count_reports_null_buckets_catch2)
+      catch_discover_tests(umbra_mom_sender_count_reports_null_buckets_catch2
+        TEST_PREFIX "umbra.mom_sender_count_reports_null_buckets.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_removed_object_count_tso_retraction_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_removed_object_count_tso_retraction_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_removed_object_count_tso_retraction.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_allow_relaxed_ddm_object_attribute_catch2)
+      catch_discover_tests(umbra_allow_relaxed_ddm_object_attribute_catch2
+        TEST_PREFIX "umbra.allow_relaxed_ddm_object_attribute.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_directed_interaction_reenable_catch2)
+      catch_discover_tests(umbra_timestamped_directed_interaction_reenable_catch2
+        TEST_PREFIX "umbra.timestamped_directed_interaction_reenable.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_directed_interaction_source_resignation_catch2)
+      catch_discover_tests(umbra_timestamped_directed_interaction_source_resignation_catch2
+        TEST_PREFIX "umbra.timestamped_directed_interaction_source_resignation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_directed_interaction_retraction_catch2)
+      catch_discover_tests(umbra_timestamped_directed_interaction_retraction_catch2
+        TEST_PREFIX "umbra.timestamped_directed_interaction_retraction.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_directed_interaction_immediate_source_resignation_catch2)
+      catch_discover_tests(umbra_timestamped_directed_interaction_immediate_source_resignation_catch2
+        TEST_PREFIX "umbra.timestamped_directed_interaction_immediate_source_resignation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_send_interaction_retraction_catch2)
+      catch_discover_tests(umbra_timestamped_send_interaction_retraction_catch2
+        TEST_PREFIX "umbra.timestamped_send_interaction_retraction.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_send_interaction_no_fanout_catch2)
+      catch_discover_tests(umbra_timestamped_send_interaction_no_fanout_catch2
+        TEST_PREFIX "umbra.timestamped_send_interaction_no_fanout.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_attribute_update_no_fanout_catch2)
+      catch_discover_tests(umbra_timestamped_attribute_update_no_fanout_catch2
+        TEST_PREFIX "umbra.timestamped_attribute_update_no_fanout.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_attribute_update_queued_passel_retraction_catch2)
+      catch_discover_tests(umbra_timestamped_attribute_update_queued_passel_retraction_catch2
+        TEST_PREFIX "umbra.timestamped_attribute_update_queued_passel_retraction.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_tso_designator_terminalization_catch2)
+      catch_discover_tests(umbra_timestamped_tso_designator_terminalization_catch2
+        TEST_PREFIX "umbra.timestamped_tso_designator_terminalization.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_interaction_regulation_reenable_catch2)
+      catch_discover_tests(umbra_timestamped_interaction_regulation_reenable_catch2
+        TEST_PREFIX "umbra.timestamped_interaction_regulation_reenable.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_regional_attribute_update_mixed_advance_catch2)
+      catch_discover_tests(umbra_timestamped_regional_attribute_update_mixed_advance_catch2
+        TEST_PREFIX "umbra.timestamped_regional_attribute_update_mixed_advance.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_default_region_attribute_update_mixed_advance_catch2)
+      catch_discover_tests(umbra_timestamped_default_region_attribute_update_mixed_advance_catch2
+        TEST_PREFIX "umbra.timestamped_default_region_attribute_update_mixed_advance.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_default_region_attribute_update_retract_alternate_advance_catch2)
+      catch_discover_tests(umbra_timestamped_default_region_attribute_update_retract_alternate_advance_catch2
+        TEST_PREFIX "umbra.timestamped_default_region_attribute_update_retract_alternate_advance.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_regional_attribute_update_retract_mixed_advance_catch2)
+      catch_discover_tests(umbra_timestamped_regional_attribute_update_retract_mixed_advance_catch2
+        TEST_PREFIX "umbra.timestamped_regional_attribute_update_retract_mixed_advance.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_regional_attribute_update_tar_nmr_catch2)
+      catch_discover_tests(umbra_timestamped_regional_attribute_update_tar_nmr_catch2
+        TEST_PREFIX "umbra.timestamped_regional_attribute_update_tar_nmr.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_regional_attribute_update_resignation_catch2)
+      catch_discover_tests(umbra_timestamped_regional_attribute_update_resignation_catch2
+        TEST_PREFIX "umbra.timestamped_regional_attribute_update_resignation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_regional_attribute_update_mixed_fanout_catch2)
+      catch_discover_tests(umbra_timestamped_regional_attribute_update_mixed_fanout_catch2
+        TEST_PREFIX "umbra.timestamped_regional_attribute_update_mixed_fanout.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_regional_best_effort_timestamped_attribute_rate_catch2)
+      catch_discover_tests(umbra_regional_best_effort_timestamped_attribute_rate_catch2
+        TEST_PREFIX "umbra.regional_best_effort_timestamped_attribute_rate.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_regional_best_effort_attribute_rate_catch2)
+      catch_discover_tests(umbra_regional_best_effort_attribute_rate_catch2
+        TEST_PREFIX "umbra.regional_best_effort_attribute_rate.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_attribute_update_available_advance_catch2)
+      catch_discover_tests(umbra_timestamped_attribute_update_available_advance_catch2
+        TEST_PREFIX "umbra.timestamped_attribute_update_available_advance.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_attribute_update_rate_reduction_catch2)
+      catch_discover_tests(umbra_timestamped_attribute_update_rate_reduction_catch2
+        TEST_PREFIX "umbra.timestamped_attribute_update_rate_reduction.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_attribute_update_reenable_catch2)
+      catch_discover_tests(umbra_timestamped_attribute_update_reenable_catch2
+        TEST_PREFIX "umbra.timestamped_attribute_update_reenable.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_attribute_update_alternate_advance_catch2)
+      catch_discover_tests(umbra_timestamped_attribute_update_alternate_advance_catch2
+        TEST_PREFIX "umbra.timestamped_attribute_update_alternate_advance.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_attribute_order_cohort_catch2)
+      catch_discover_tests(umbra_timestamped_attribute_order_cohort_catch2
+        TEST_PREFIX "umbra.timestamped_attribute_order_cohort.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_default_region_interaction_retract_alternate_advance_catch2)
+      catch_discover_tests(umbra_timestamped_default_region_interaction_retract_alternate_advance_catch2
+        TEST_PREFIX "umbra.timestamped_default_region_interaction_retract_alternate_advance.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_interaction_regulation_reenable_changed_lookahead_catch2)
+      catch_discover_tests(umbra_timestamped_interaction_regulation_reenable_changed_lookahead_catch2
+        TEST_PREFIX "umbra.timestamped_interaction_regulation_reenable_changed_lookahead.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_tso_directed_reenable_changed_lookahead_catch2)
+      catch_discover_tests(umbra_tso_directed_reenable_changed_lookahead_catch2
+        TEST_PREFIX "umbra.timestamped_directed_interaction_regulation_reenable_changed_lookahead.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_attribute_update_regulation_reenable_changed_lookahead_catch2)
+      catch_discover_tests(umbra_timestamped_attribute_update_regulation_reenable_changed_lookahead_catch2
+        TEST_PREFIX "umbra.timestamped_attribute_update_regulation_reenable_changed_lookahead.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timed_multi_recipient_regional_attribute_restore_negotiated_cancel_catch2)
+      catch_discover_tests(umbra_timed_multi_recipient_regional_attribute_restore_negotiated_cancel_catch2
+        TEST_PREFIX "umbra.timed_multi_recipient_regional_attribute_restore_negotiated_cancel.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_tso_regional_negotiated_cancel_restore_catch2)
+      catch_discover_tests(umbra_tso_regional_negotiated_cancel_restore_catch2
+        TEST_PREFIX "umbra.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_cancel_pending_after_restore.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_tso_regional_negotiated_continuation_restore_catch2)
+      catch_discover_tests(umbra_tso_regional_negotiated_continuation_restore_catch2
+        TEST_PREFIX "umbra.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_continuation_after_restore.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_tso_regional_regular_continuation_restore_catch2)
+      catch_discover_tests(umbra_tso_regional_regular_continuation_restore_catch2
+        TEST_PREFIX "umbra.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_regular_candidate_continuation_after_restore.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_tso_regional_mixed_continuation_restore_catch2)
+      catch_discover_tests(umbra_tso_regional_mixed_continuation_restore_catch2
+        TEST_PREFIX "umbra.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_mixed_candidate_continuation_after_restore.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_tso_mixed_pre_delivery_cancel_catch2)
+      catch_discover_tests(umbra_tso_mixed_pre_delivery_cancel_catch2
+        TEST_PREFIX "umbra.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_retained_regular_pre_delivery_cancel_after_restore.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_tso_mixed_confirmation_cancel_catch2)
+      catch_discover_tests(umbra_tso_mixed_confirmation_cancel_catch2
+        TEST_PREFIX "umbra.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_retained_regular_confirmation_cancel_after_restore.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_tso_regional_negotiated_confirmation_cancel_restore_catch2)
+      catch_discover_tests(umbra_tso_regional_negotiated_confirmation_cancel_restore_catch2
+        TEST_PREFIX "umbra.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_confirmation_cancel_after_restore.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_attribute_update_flush_queue_catch2)
+      catch_discover_tests(umbra_timestamped_attribute_update_flush_queue_catch2
+        TEST_PREFIX "umbra.timestamped_attribute_update_flush_queue.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_flush_queue_future_input_catch2)
+      catch_discover_tests(umbra_flush_queue_future_input_catch2
+        TEST_PREFIX "umbra.flush_queue_future_input.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_request_retraction_timestamped_deletion_no_fanout_catch2)
+      catch_discover_tests(umbra_request_retraction_timestamped_deletion_no_fanout_catch2
+        TEST_PREFIX "umbra.request_retraction_timestamped_deletion_no_fanout.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_object_deletion_retraction_catch2)
+      catch_discover_tests(umbra_timestamped_object_deletion_retraction_catch2
+        TEST_PREFIX "umbra.timestamped_object_deletion_retraction.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_object_deletion_joined_owner_retraction_catch2)
+      catch_discover_tests(umbra_timestamped_object_deletion_joined_owner_retraction_catch2
+        TEST_PREFIX "umbra.timestamped_object_deletion_joined_owner_retraction.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_flush_queue_request_optimistic_time_catch2)
+      catch_discover_tests(umbra_flush_queue_request_optimistic_time_catch2
+        TEST_PREFIX "umbra.flush_queue_request_optimistic_time.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_terminal_timestamped_deletion_tombstone_catch2)
+      catch_discover_tests(umbra_terminal_timestamped_deletion_tombstone_catch2
+        TEST_PREFIX "umbra.terminal_timestamped_deletion_tombstone.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_object_deletion_source_resignation_fanout_catch2)
+      catch_discover_tests(umbra_timestamped_object_deletion_source_resignation_fanout_catch2
+        TEST_PREFIX "umbra.timestamped_object_deletion_source_resignation_fanout.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_next_message_request_queued_tso_catch2)
+      catch_discover_tests(umbra_next_message_request_queued_tso_catch2
+        TEST_PREFIX "umbra.next_message_request_queued_tso.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_available_time_advance_inclusive_galt_catch2)
+      catch_discover_tests(umbra_available_time_advance_inclusive_galt_catch2
+        TEST_PREFIX "umbra.available_time_advance_inclusive_galt.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_connection_loss_attribute_update_tso_suppressed_cleanup_catch2)
+      catch_discover_tests(umbra_connection_loss_attribute_update_tso_suppressed_cleanup_catch2
+        TEST_PREFIX "umbra.connection_loss_attribute_update_tso_suppressed_cleanup.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2)
+      catch_discover_tests(umbra_connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2
+        TEST_PREFIX "umbra.connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_connection_loss_attribute_update_tso_automatic_cleanup_catch2)
+      catch_discover_tests(umbra_connection_loss_attribute_update_tso_automatic_cleanup_catch2
+        TEST_PREFIX "umbra.connection_loss_attribute_update_tso_automatic_cleanup.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_connection_loss_directed_selector_mutation_catch2)
+      catch_discover_tests(umbra_connection_loss_directed_selector_mutation_catch2
+        TEST_PREFIX "umbra.connection_loss_directed_selector_mutation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_connection_loss_attribute_update_tso_asynchronous_delivery_catch2)
+      catch_discover_tests(umbra_connection_loss_attribute_update_tso_asynchronous_delivery_catch2
+        TEST_PREFIX "umbra.connection_loss_attribute_update_tso_asynchronous_delivery.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_interaction_source_resignation_catch2)
+      catch_discover_tests(umbra_timestamped_interaction_source_resignation_catch2
+        TEST_PREFIX "umbra.timestamped_interaction_source_resignation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_default_region_attribute_update_catch2)
+      catch_discover_tests(umbra_timestamped_default_region_attribute_update_catch2
+        TEST_PREFIX "umbra.timestamped_default_region_attribute_update.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_default_region_attribute_reenable_catch2)
+      catch_discover_tests(umbra_timestamped_default_region_attribute_reenable_catch2
+        TEST_PREFIX "umbra.timestamped_default_region_attribute_reenable.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_default_region_attribute_mixed_fanout_catch2)
+      catch_discover_tests(umbra_timestamped_default_region_attribute_mixed_fanout_catch2
+        TEST_PREFIX "umbra.timestamped_default_region_attribute_mixed_fanout.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_attribute_ownership_divestiture_if_wanted_mixed_acquirer_catch2)
+      catch_discover_tests(umbra_attribute_ownership_divestiture_if_wanted_mixed_acquirer_catch2
+        TEST_PREFIX "umbra.attribute_ownership_divestiture_if_wanted_mixed_acquirer.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_attribute_ownership_divestiture_if_wanted_pending_catch2)
+      catch_discover_tests(umbra_attribute_ownership_divestiture_if_wanted_pending_catch2
+        TEST_PREFIX "umbra.attribute_ownership_divestiture_if_wanted_pending.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_negotiated_attribute_ownership_divestiture_pending_catch2)
+      catch_discover_tests(umbra_negotiated_attribute_ownership_divestiture_pending_catch2
+        TEST_PREFIX "umbra.negotiated_attribute_ownership_divestiture_pending.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_mom_service_reporting_interlock_catch2)
+      catch_discover_tests(umbra_mom_service_reporting_interlock_catch2
+        TEST_PREFIX "umbra.mom_service_reporting_interlock.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_deletable_object_count_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_deletable_object_count_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_deletable_object_count.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_ro_length_periodic_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_ro_length_periodic_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_ro_length_periodic.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_updates_sent_periodic_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_updates_sent_periodic_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_updates_sent_periodic.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_updated_object_count_periodic_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_updated_object_count_periodic_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_updated_object_count_periodic.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_registered_object_count_periodic_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_registered_object_count_periodic_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_registered_object_count_periodic.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_deleted_object_count_periodic_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_deleted_object_count_periodic_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_deleted_object_count_periodic.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_removed_object_count_periodic_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_removed_object_count_periodic_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_removed_object_count_periodic.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_joined_federate_mom_discovered_object_count_periodic_catch2)
+      catch_discover_tests(umbra_joined_federate_mom_discovered_object_count_periodic_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_discovered_object_count_periodic.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_handle_normalization_catch2)
+      catch_discover_tests(umbra_handle_normalization_catch2
+        TEST_PREFIX "umbra.handle_normalization.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_negotiated_willing_to_acquire_candidate_catch2)
+      catch_discover_tests(umbra_negotiated_willing_to_acquire_candidate_catch2
+        TEST_PREFIX "umbra.negotiated_willing_to_acquire_candidate.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_receive_order_interaction_catch2)
+      catch_discover_tests(umbra_receive_order_interaction_catch2
+        TEST_PREFIX "umbra.receive_order_interaction.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_directed_interaction_known_target_catch2)
+      catch_discover_tests(umbra_directed_interaction_known_target_catch2
+        TEST_PREFIX "umbra.directed_interaction_known_target.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_directed_interaction_subscription_kind_catch2)
+      catch_discover_tests(umbra_directed_interaction_subscription_kind_catch2
+        TEST_PREFIX "umbra.directed_interaction_subscription_kind.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_three_dimensional_regional_object_attribute_overlap_catch2)
+      catch_discover_tests(umbra_three_dimensional_regional_object_attribute_overlap_catch2
+        TEST_PREFIX "umbra.three_dimensional_regional_object_attribute_overlap.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_negotiated_divestiture_partial_acquisition_cancellation_catch2)
+      catch_discover_tests(umbra_negotiated_divestiture_partial_acquisition_cancellation_catch2
+        TEST_PREFIX "umbra.negotiated_divestiture_partial_acquisition_cancellation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2)
+      catch_discover_tests(umbra_negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2
+        TEST_PREFIX "umbra.negotiated_divestiture_pre_delivery_acquisition_cancellation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_negotiated_willing_to_acquire_continuation_catch2)
+      catch_discover_tests(umbra_negotiated_willing_to_acquire_continuation_catch2
+        TEST_PREFIX "umbra.negotiated_willing_to_acquire_continuation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_regional_multi_attribute_ddm_catch2)
+      catch_discover_tests(umbra_regional_multi_attribute_ddm_catch2
+        TEST_PREFIX "umbra.regional_multi_attribute_ddm.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_default_region_object_routing_catch2)
+      catch_discover_tests(umbra_default_region_object_routing_catch2
+        TEST_PREFIX "umbra.default_region_object_routing.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_region_lifecycle_catch2)
+      catch_discover_tests(umbra_region_lifecycle_catch2
+        TEST_PREFIX "umbra.region_lifecycle.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_attribute_ownership_query_catch2)
+      catch_discover_tests(umbra_attribute_ownership_query_catch2
+        TEST_PREFIX "umbra.attribute_ownership_query.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_ownership_transfer_update_region_catch2)
+      catch_discover_tests(umbra_ownership_transfer_update_region_catch2
+        TEST_PREFIX "umbra.ownership_transfer_update_region.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_attribute_ownership_acquisition_if_available_catch2)
+      catch_discover_tests(umbra_attribute_ownership_acquisition_if_available_catch2
+        TEST_PREFIX "umbra.attribute_ownership_acquisition_if_available.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_attribute_ownership_acquisition_catch2)
+      catch_discover_tests(umbra_attribute_ownership_acquisition_catch2
+        TEST_PREFIX "umbra.attribute_ownership_acquisition.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_unconditional_attribute_ownership_divestiture_catch2)
+      catch_discover_tests(umbra_unconditional_attribute_ownership_divestiture_catch2
+        TEST_PREFIX "umbra.unconditional_attribute_ownership_divestiture.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_resign_action_unconditional_divestiture_catch2)
+      catch_discover_tests(umbra_resign_action_unconditional_divestiture_catch2
+        TEST_PREFIX "umbra.resign_action_unconditional_divestiture.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_connection_loss_automatic_unconditional_divestiture_catch2)
+      catch_discover_tests(umbra_connection_loss_automatic_unconditional_divestiture_catch2
+        TEST_PREFIX "umbra.connection_loss_automatic_unconditional_divestiture.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_connection_loss_automatic_cancel_pending_acquisition_catch2)
+      catch_discover_tests(umbra_connection_loss_automatic_cancel_pending_acquisition_catch2
+        TEST_PREFIX "umbra.connection_loss_automatic_cancel_pending_acquisition.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_resign_action_pending_acquisition_rejection_catch2)
+      catch_discover_tests(umbra_resign_action_pending_acquisition_rejection_catch2
+        TEST_PREFIX "umbra.resign_action_pending_acquisition_rejection.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_resign_action_cancel_pending_acquisition_catch2)
+      catch_discover_tests(umbra_resign_action_cancel_pending_acquisition_catch2
+        TEST_PREFIX "umbra.resign_action_cancel_pending_acquisition.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_resign_action_cancel_negotiated_pending_catch2)
+      catch_discover_tests(umbra_resign_action_cancel_negotiated_pending_catch2
+        TEST_PREFIX "umbra.resign_action_cancel_negotiated_pending.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_resign_action_cancel_if_available_pending_catch2)
+      catch_discover_tests(umbra_resign_action_cancel_if_available_pending_catch2
+        TEST_PREFIX "umbra.resign_action_cancel_if_available_pending.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_resign_action_delete_objects_catch2)
+      catch_discover_tests(umbra_resign_action_delete_objects_catch2
+        TEST_PREFIX "umbra.resign_action_delete_objects.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_resign_action_final_federate_catch2)
+      catch_discover_tests(umbra_resign_action_final_federate_catch2
+        TEST_PREFIX "umbra.resign_action_final_federate.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_update_rate_value_catch2)
+      catch_discover_tests(umbra_update_rate_value_catch2
+        TEST_PREFIX "umbra.update_rate_value.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_passive_object_attribute_subscription_catch2)
+      catch_discover_tests(umbra_passive_object_attribute_subscription_catch2
+        TEST_PREFIX "umbra.passive_object_attribute_subscription.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_local_delete_object_instance_catch2)
+      catch_discover_tests(umbra_local_delete_object_instance_catch2
+        TEST_PREFIX "umbra.local_delete_object_instance.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_local_delete_object_instance_service_report_catch2)
+      catch_discover_tests(umbra_local_delete_object_instance_service_report_catch2
+        TEST_PREFIX "umbra.local_delete_object_instance_service_report.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_local_delete_object_instance_failure_service_report_catch2)
+      catch_discover_tests(umbra_local_delete_object_instance_failure_service_report_catch2
+        TEST_PREFIX "umbra.local_delete_object_instance_failure_service_report.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_local_delete_object_instance_failure_service_report_interaction_catch2)
+      catch_discover_tests(umbra_local_delete_object_instance_failure_service_report_interaction_catch2
+        TEST_PREFIX "umbra.local_delete_object_instance_failure_service_report_interaction.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_attribute_ownership_acquisition_cancellation_catch2)
+      catch_discover_tests(umbra_attribute_ownership_acquisition_cancellation_catch2
+        TEST_PREFIX "umbra.attribute_ownership_acquisition_cancellation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_ownership_acquisition_cancellation_race_catch2)
+      catch_discover_tests(umbra_ownership_acquisition_cancellation_race_catch2
+        TEST_PREFIX "umbra.ownership_acquisition_cancellation_race.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_ownership_acquisition_cancellation_transfer_race_catch2)
+      catch_discover_tests(umbra_ownership_acquisition_cancellation_transfer_race_catch2
+        TEST_PREFIX "umbra.ownership_acquisition_cancellation_transfer_race.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_interaction_mixed_advance_catch2)
+      catch_discover_tests(umbra_timestamped_interaction_mixed_advance_catch2
+        TEST_PREFIX "umbra.timestamped_interaction_mixed_advance.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_interaction_cross_producer_order_catch2)
+      catch_discover_tests(umbra_timestamped_interaction_cross_producer_order_catch2
+        TEST_PREFIX "umbra.timestamped_interaction_cross_producer_order.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_interaction_source_resignation_fanout_catch2)
+      catch_discover_tests(umbra_timestamped_interaction_source_resignation_fanout_catch2
+        TEST_PREFIX "umbra.timestamped_interaction_source_resignation_fanout.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_timestamped_interaction_reenable_catch2)
+      catch_discover_tests(umbra_timestamped_interaction_reenable_catch2
+        TEST_PREFIX "umbra.timestamped_interaction_reenable.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_regional_auto_provide_overlap_catch2)
+      catch_discover_tests(umbra_regional_auto_provide_overlap_catch2
+        TEST_PREFIX "umbra.regional_auto_provide_overlap.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_regional_auto_provide_response_catch2)
+      catch_discover_tests(umbra_regional_auto_provide_response_catch2
+        TEST_PREFIX "umbra.regional_auto_provide_response.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_regional_auto_provide_multi_provider_catch2)
+      catch_discover_tests(umbra_regional_auto_provide_multi_provider_catch2
+        TEST_PREFIX "umbra.regional_auto_provide_multi_provider.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_regional_auto_provide_multi_source_catch2)
+      catch_discover_tests(umbra_regional_auto_provide_multi_source_catch2
+        TEST_PREFIX "umbra.regional_auto_provide_multi_source.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_regional_auto_provide_timestamped_response_catch2)
+      catch_discover_tests(umbra_regional_auto_provide_timestamped_response_catch2
+        TEST_PREFIX "umbra.regional_auto_provide_timestamped_response.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_regional_auto_provide_timestamped_switch_admission_catch2)
+      catch_discover_tests(umbra_regional_auto_provide_timestamped_switch_admission_catch2
+        TEST_PREFIX "umbra.regional_auto_provide_timestamped_switch_admission.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_regional_auto_provide_timestamped_switch_mutation_catch2)
+      catch_discover_tests(umbra_regional_auto_provide_timestamped_switch_mutation_catch2
+        TEST_PREFIX "umbra.regional_auto_provide_timestamped_switch_mutation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_regional_auto_provide_switch_admission_catch2)
+      catch_discover_tests(umbra_regional_auto_provide_switch_admission_catch2
+        TEST_PREFIX "umbra.regional_auto_provide_switch_admission.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_regional_auto_provide_switch_mutation_catch2)
+      catch_discover_tests(umbra_regional_auto_provide_switch_mutation_catch2
+        TEST_PREFIX "umbra.regional_auto_provide_switch_mutation.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
     if(TARGET umbra_fom_declaration_management_catch2)
       catch_discover_tests(umbra_fom_declaration_management_catch2
         TEST_PREFIX "umbra.fom_declaration_management.catch2."
@@ -3498,6 +10326,13 @@ if(BUILD_TESTING)
     if(TARGET umbra_fom_composer_catch2)
       catch_discover_tests(umbra_fom_composer_catch2
         TEST_PREFIX "umbra.fom_composer.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+    if(TARGET umbra_federation_registry_catch2)
+      catch_discover_tests(umbra_federation_registry_catch2
+        TEST_PREFIX "umbra.federation_registry.catch2."
         ADD_TAGS_AS_LABELS
         DISCOVERY_MODE POST_BUILD
       )
@@ -3584,6 +10419,432 @@ if(BUILD_TESTING)
       VERBATIM
     )
 
+    # Keep the public joined-federate MOM report-file projection independently
+    # buildable.  This is a deliberately small object-management lane: it
+    # proves the official HLAreportServiceFile attribute through discovery,
+    # reflection, and a requested-value replay without depending on the large
+    # federation-management aggregate translation unit.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_joined_federate_mom_report_file_catch2
+        cpp/tests/joined_federate_mom_report_file_catch2.cpp
+      )
+      target_compile_features(umbra_joined_federate_mom_report_file_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_joined_federate_mom_report_file_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_joined_federate_mom_report_file_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_joined_federate_mom_report_file_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_joined_federate_mom_report_file_catch2
+        TEST_PREFIX "umbra.joined_federate_mom_report_file.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the public durable application-value restart contract independently
+    # buildable.  The aggregate federation-management source contains the
+    # historical scenario, while this focused target provides a clean source
+    # pointer, exact CTest filter, and fast filesystem/re-hydration loop.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_public_process_restart_application_value_catch2
+        cpp/tests/public_process_restart_application_value_catch2.cpp
+      )
+      target_compile_features(umbra_public_process_restart_application_value_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_public_process_restart_application_value_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_public_process_restart_application_value_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_public_process_restart_application_value_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_public_process_restart_application_value_catch2
+        TEST_PREFIX "umbra.public_process_restart_application_value.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the object-class handle/name lookup contract independently
+    # buildable.  The aggregate federation-management translation unit also
+    # contains this case, but the focused target preserves a fast lookup lane
+    # while unrelated aggregate tests are under development.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_object_class_lookup_catch2
+        cpp/tests/object_class_lookup_catch2.cpp
+      )
+      target_compile_features(umbra_object_class_lookup_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_object_class_lookup_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_object_class_lookup_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_object_class_lookup_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_object_class_lookup_catch2
+        TEST_PREFIX "umbra.object_class_lookup.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the interaction-class handle/name lookup contract independently
+    # buildable alongside the object-class lookup lane.  This prevents a
+    # focused Support Services check from depending on the aggregate
+    # federation-management translation unit.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_interaction_class_lookup_catch2
+        cpp/tests/interaction_class_lookup_catch2.cpp
+      )
+      target_compile_features(umbra_interaction_class_lookup_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_interaction_class_lookup_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_interaction_class_lookup_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_interaction_class_lookup_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_interaction_class_lookup_catch2
+        TEST_PREFIX "umbra.interaction_class_lookup.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the inherited attribute handle/name lookup contract independently
+    # buildable with the same official-header and embedded-profile boundary.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_attribute_lookup_catch2
+        cpp/tests/attribute_lookup_catch2.cpp
+      )
+      target_compile_features(umbra_attribute_lookup_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_attribute_lookup_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_attribute_lookup_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_attribute_lookup_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_attribute_lookup_catch2
+        TEST_PREFIX "umbra.attribute_lookup.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the inherited parameter handle/name lookup contract independently
+    # buildable with the same official-header and embedded-profile boundary.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_parameter_lookup_catch2
+        cpp/tests/parameter_lookup_catch2.cpp
+      )
+      target_compile_features(umbra_parameter_lookup_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_parameter_lookup_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_parameter_lookup_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_parameter_lookup_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_parameter_lookup_catch2
+        TEST_PREFIX "umbra.parameter_lookup.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the dimension metadata/lookup contract independently buildable.
+    # This focused DDM-foundation lane preserves fast feedback for FOM
+    # hierarchy, stable handles, available-dimension sets, and upper bounds
+    # without requiring the aggregate federation-management executable.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_dimension_lookup_catch2
+        cpp/tests/dimension_lookup_catch2.cpp
+      )
+      target_compile_features(umbra_dimension_lookup_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_dimension_lookup_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_dimension_lookup_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_dimension_lookup_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_dimension_lookup_catch2
+        TEST_PREFIX "umbra.dimension_lookup.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the mandatory transportation-type lookup pair independently
+    # buildable.  This Support Services lane verifies the official
+    # HLAreliable/HLAbestEffort handles and names without compiling the
+    # aggregate federation-management translation unit.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_transportation_type_lookup_catch2
+        cpp/tests/transportation_type_lookup_catch2.cpp
+      )
+      target_compile_features(umbra_transportation_type_lookup_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_transportation_type_lookup_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_transportation_type_lookup_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_transportation_type_lookup_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_transportation_type_lookup_catch2
+        TEST_PREFIX "umbra.transportation_type_lookup.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the later-join transportation-handle stability case independently
+    # buildable.  This FOM-composition slice exercises immutable execution
+    # directory identity without compiling the aggregate federation-management
+    # translation unit.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_custom_transportation_handle_stability_catch2
+        cpp/tests/custom_transportation_handle_stability_catch2.cpp
+      )
+      target_compile_features(umbra_custom_transportation_handle_stability_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_custom_transportation_handle_stability_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_custom_transportation_handle_stability_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_custom_transportation_handle_stability_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_custom_transportation_handle_stability_catch2
+        TEST_PREFIX "umbra.custom_transportation_handle_stability.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the mandatory Receive/TimeStamp order-type lookup pair independently
+    # buildable.  The aggregate federation-management translation unit also
+    # contains this case, but the focused target keeps Support Services lookup
+    # feedback isolated from order-control and delivery behavior.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_order_type_lookup_catch2
+        cpp/tests/order_type_lookup_catch2.cpp
+      )
+      target_compile_features(umbra_order_type_lookup_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_order_type_lookup_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_order_type_lookup_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_order_type_lookup_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_order_type_lookup_catch2
+        TEST_PREFIX "umbra.order_type_lookup.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the order-control state transition case independently buildable.
+    # This isolates class defaults, per-instance overrides, and publisher-
+    # scoped interaction order from the aggregate time-management executable.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_order_type_control_catch2
+        cpp/tests/order_type_control_catch2.cpp
+      )
+      target_compile_features(umbra_order_type_control_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_order_type_control_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_order_type_control_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_order_type_control_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_order_type_control_catch2
+        TEST_PREFIX "umbra.order_type_control.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep ordinary declaration-relevance advisories independently buildable.
+    # This isolates active/passive publication and subscription transitions
+    # from regional declaration and service-report delivery cases.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_declaration_relevance_advisory_catch2
+        cpp/tests/declaration_relevance_advisory_catch2.cpp
+      )
+      target_compile_features(umbra_declaration_relevance_advisory_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_declaration_relevance_advisory_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_declaration_relevance_advisory_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_declaration_relevance_advisory_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_declaration_relevance_advisory_catch2
+        TEST_PREFIX "umbra.declaration_relevance_advisory.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep regional declaration-relevance advisories independently buildable.
+    # This isolates active/passive region-scoped declarations from ordinary
+    # relevance and from full regional DDM delivery.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_regional_declaration_relevance_advisory_catch2
+        cpp/tests/regional_declaration_relevance_advisory_catch2.cpp
+      )
+      target_compile_features(umbra_regional_declaration_relevance_advisory_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_regional_declaration_relevance_advisory_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_regional_declaration_relevance_advisory_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_regional_declaration_relevance_advisory_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_regional_declaration_relevance_advisory_catch2
+        TEST_PREFIX "umbra.regional_declaration_relevance_advisory.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep federation-list callback reports independently runnable so the
+    # Support Services listing boundary does not require the aggregate suite.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_federation_listing_catch2
+        cpp/tests/federation_listing_catch2.cpp
+      )
+      target_compile_features(umbra_federation_listing_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_federation_listing_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_federation_listing_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_federation_listing_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_federation_listing_catch2
+        TEST_PREFIX "umbra.federation_listing.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep declaration-relevance service-report ordering independently
+    # buildable. This preserves the filesystem-backed report seam while
+    # separating durability-before-callback assertions from advisory routing.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_declaration_relevance_service_report_catch2
+        cpp/tests/declaration_relevance_service_report_catch2.cpp
+      )
+      target_compile_features(umbra_declaration_relevance_service_report_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_declaration_relevance_service_report_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_declaration_relevance_service_report_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+      target_link_libraries(umbra_declaration_relevance_service_report_catch2 PRIVATE
+        umbra_fom_validation_backend
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_declaration_relevance_service_report_catch2
+        TEST_PREFIX "umbra.declaration_relevance_service_report.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
     # Keep the embedded regional Attribute Relevance Advisory regression
     # independently buildable.  The aggregate 2025 Catch2 executable also
     # contains the large federation-management translation unit; this focused
@@ -3621,6 +10882,359 @@ if(BUILD_TESTING)
         DEPENDS umbra_attribute_relevance_advisory_catch2
         COMMENT "Writing regional-attribute-relevance Catch2 JUnit artifact"
         VERBATIM
+      )
+    endif()
+
+    # Keep the ordinary Attribute Relevance Advisory rate-reissue contract
+    # independently buildable.  This lane isolates active-maximum changes
+    # from the broader regional and public-process advisory suites.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_attribute_relevance_rate_reissue_catch2
+        cpp/tests/attribute_relevance_rate_reissue_catch2.cpp
+      )
+      target_compile_features(umbra_attribute_relevance_rate_reissue_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_attribute_relevance_rate_reissue_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_attribute_relevance_rate_reissue_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+      )
+      target_link_libraries(umbra_attribute_relevance_rate_reissue_catch2 PRIVATE
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_attribute_relevance_rate_reissue_catch2
+        TEST_PREFIX "umbra.attribute_relevance_rate_reissue.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the regional Attribute Relevance Advisory rate-designator contract
+    # independently buildable.  This lane isolates source-region overlap and
+    # restoration from the ordinary active-maximum case.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_regional_attribute_relevance_rate_designator_catch2
+        cpp/tests/regional_attribute_relevance_rate_designator_catch2.cpp
+      )
+      target_compile_features(umbra_regional_attribute_relevance_rate_designator_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_regional_attribute_relevance_rate_designator_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_regional_attribute_relevance_rate_designator_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+      )
+      target_link_libraries(umbra_regional_attribute_relevance_rate_designator_catch2 PRIVATE
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_regional_attribute_relevance_rate_designator_catch2
+        TEST_PREFIX "umbra.regional_attribute_relevance_rate_designator.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the known-class-disabled Attribute Relevance Advisory contract
+    # independently buildable.  This lane isolates the static policy's
+    # registered-class subscription walk from its enabled counterpart.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_attribute_relevance_known_class_disabled_subscription_catch2
+        cpp/tests/attribute_relevance_known_class_disabled_subscription_catch2.cpp
+      )
+      target_compile_features(umbra_attribute_relevance_known_class_disabled_subscription_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_attribute_relevance_known_class_disabled_subscription_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_attribute_relevance_known_class_disabled_subscription_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+      )
+      target_link_libraries(umbra_attribute_relevance_known_class_disabled_subscription_catch2 PRIVATE
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_attribute_relevance_known_class_disabled_subscription_catch2
+        TEST_PREFIX "umbra.attribute_relevance_known_class_disabled_subscription.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep the known-class-enabled Attribute Relevance Advisory contract
+    # independently buildable.  This lane isolates the static policy's
+    # known-class subscription walk from its disabled counterpart.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_attribute_relevance_known_class_enabled_subscription_catch2
+        cpp/tests/attribute_relevance_known_class_enabled_subscription_catch2.cpp
+      )
+      target_compile_features(umbra_attribute_relevance_known_class_enabled_subscription_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_attribute_relevance_known_class_enabled_subscription_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_attribute_relevance_known_class_enabled_subscription_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+      )
+      target_link_libraries(umbra_attribute_relevance_known_class_enabled_subscription_catch2 PRIVATE
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_attribute_relevance_known_class_enabled_subscription_catch2
+        TEST_PREFIX "umbra.attribute_relevance_known_class_enabled_subscription.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep passive regional update-rate lookup independently buildable.  This
+    # lane isolates active-rate reduction from update delivery and advisory
+    # transition evidence.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_update_rate_passive_regional_subscription_catch2
+        cpp/tests/update_rate_passive_regional_subscription_catch2.cpp
+      )
+      target_compile_features(umbra_update_rate_passive_regional_subscription_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_update_rate_passive_regional_subscription_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_update_rate_passive_regional_subscription_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+      )
+      target_link_libraries(umbra_update_rate_passive_regional_subscription_catch2 PRIVATE
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_update_rate_passive_regional_subscription_catch2
+        TEST_PREFIX "umbra.update_rate_passive_regional_subscription.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
+
+    # Keep mixed ordinary update-rate subscription gating independently
+    # buildable. This lane proves per-attribute reduction without widening
+    # into timestamped, regional, or advisory evidence.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+    add_executable(umbra_mixed_update_rate_subscriptions_catch2
+      cpp/tests/mixed_update_rate_subscriptions_catch2.cpp
+    )
+      target_compile_features(umbra_mixed_update_rate_subscriptions_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_mixed_update_rate_subscriptions_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_mixed_update_rate_subscriptions_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+      )
+      target_link_libraries(umbra_mixed_update_rate_subscriptions_catch2 PRIVATE
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_mixed_update_rate_subscriptions_catch2
+        TEST_PREFIX "umbra.mixed_update_rate_subscriptions.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
+      )
+
+    # Keep federation-teardown update-rate-history isolation independently
+    # buildable. This is the next bounded row after mixed per-attribute gating.
+    add_executable(umbra_federation_teardown_update_rate_history_catch2
+      cpp/tests/federation_teardown_update_rate_history_catch2.cpp
+    )
+    target_compile_features(umbra_federation_teardown_update_rate_history_catch2 PRIVATE cxx_std_20)
+    target_include_directories(umbra_federation_teardown_update_rate_history_catch2 PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+    )
+    target_compile_definitions(umbra_federation_teardown_update_rate_history_catch2 PRIVATE
+      UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+    target_link_libraries(umbra_federation_teardown_update_rate_history_catch2 PRIVATE
+      umbra::rti
+      Catch2::Catch2WithMain
+    )
+    catch_discover_tests(umbra_federation_teardown_update_rate_history_catch2
+      TEST_PREFIX "umbra.federation_teardown_update_rate_history.catch2."
+      ADD_TAGS_AS_LABELS
+      DISCOVERY_MODE POST_BUILD
+    )
+
+    # Keep the multi-recipient default-region save/restore regression
+    # independently buildable. The aggregate federation-management source is
+    # intentionally left intact for historical coverage, while this focused
+    # target keeps the restore/retraction ledger lane runnable in isolation.
+    add_executable(umbra_restore_live_tso_default_region_attribute_update_multi_recipient_catch2
+      cpp/tests/restore_live_tso_default_region_attribute_update_multi_recipient_catch2.cpp
+    )
+    target_compile_features(umbra_restore_live_tso_default_region_attribute_update_multi_recipient_catch2 PRIVATE cxx_std_20)
+    target_include_directories(umbra_restore_live_tso_default_region_attribute_update_multi_recipient_catch2 PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+    )
+    target_compile_definitions(umbra_restore_live_tso_default_region_attribute_update_multi_recipient_catch2 PRIVATE
+      UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+    target_link_libraries(umbra_restore_live_tso_default_region_attribute_update_multi_recipient_catch2 PRIVATE
+      umbra::rti
+      Catch2::Catch2WithMain
+    )
+    catch_discover_tests(umbra_restore_live_tso_default_region_attribute_update_multi_recipient_catch2
+      TEST_PREFIX "umbra.restore_live_tso_default_region_attribute_update_multi_recipient.catch2."
+      ADD_TAGS_AS_LABELS
+      DISCOVERY_MODE POST_BUILD
+    )
+
+    # Keep the timed explicit-source regional-interaction restore case
+    # independently buildable.  Its aggregate declaration remains useful for
+    # historical coverage, while this target keeps the timed save-boundary
+    # queue/retraction lane runnable without the aggregate translation unit.
+    add_executable(umbra_timed_restore_live_tso_regional_interaction_catch2
+      cpp/tests/timed_restore_live_tso_regional_interaction_catch2.cpp
+    )
+    target_compile_features(umbra_timed_restore_live_tso_regional_interaction_catch2 PRIVATE cxx_std_20)
+    target_include_directories(umbra_timed_restore_live_tso_regional_interaction_catch2 PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+    )
+    target_compile_definitions(umbra_timed_restore_live_tso_regional_interaction_catch2 PRIVATE
+      UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+    target_link_libraries(umbra_timed_restore_live_tso_regional_interaction_catch2 PRIVATE
+      umbra::rti
+      Catch2::Catch2WithMain
+    )
+    catch_discover_tests(umbra_timed_restore_live_tso_regional_interaction_catch2
+      TEST_PREFIX "umbra.timed_restore_live_tso_regional_interaction.catch2."
+      ADD_TAGS_AS_LABELS
+      DISCOVERY_MODE POST_BUILD
+    )
+
+    # Keep the timestamped regional-interaction source-resignation regression
+    # independently buildable.  The aggregate declaration remains useful for
+    # historical coverage, while this focused target keeps the membership and
+    # queued-delivery lane runnable without the aggregate translation unit.
+    add_executable(umbra_timed_live_tso_regional_interaction_source_resignation_catch2
+      cpp/tests/timed_live_tso_regional_interaction_source_resignation_catch2.cpp
+    )
+    target_compile_features(umbra_timed_live_tso_regional_interaction_source_resignation_catch2 PRIVATE cxx_std_20)
+    target_include_directories(umbra_timed_live_tso_regional_interaction_source_resignation_catch2 PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+    )
+    target_compile_definitions(umbra_timed_live_tso_regional_interaction_source_resignation_catch2 PRIVATE
+      UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+    target_link_libraries(umbra_timed_live_tso_regional_interaction_source_resignation_catch2 PRIVATE
+      umbra::rti
+      Catch2::Catch2WithMain
+    )
+    catch_discover_tests(umbra_timed_live_tso_regional_interaction_source_resignation_catch2
+      TEST_PREFIX "umbra.timed_live_tso_regional_interaction_source_resignation.catch2."
+      ADD_TAGS_AS_LABELS
+      DISCOVERY_MODE POST_BUILD
+    )
+
+    # Keep the live regional multi-recipient restore regression independently
+    # buildable.  The aggregate declaration remains historical coverage, while
+    # this target makes the fan-out/retraction ledger slice directly runnable.
+    add_executable(umbra_restore_live_tso_regional_interaction_multi_recipient_catch2
+      cpp/tests/restore_live_tso_regional_interaction_multi_recipient_catch2.cpp
+    )
+    target_compile_features(umbra_restore_live_tso_regional_interaction_multi_recipient_catch2 PRIVATE cxx_std_20)
+    target_include_directories(umbra_restore_live_tso_regional_interaction_multi_recipient_catch2 PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+    )
+    target_compile_definitions(umbra_restore_live_tso_regional_interaction_multi_recipient_catch2 PRIVATE
+      UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+    target_link_libraries(umbra_restore_live_tso_regional_interaction_multi_recipient_catch2 PRIVATE
+      umbra::rti
+      Catch2::Catch2WithMain
+    )
+    catch_discover_tests(umbra_restore_live_tso_regional_interaction_multi_recipient_catch2
+      TEST_PREFIX "umbra.restore_live_tso_regional_interaction_multi_recipient.catch2."
+      ADD_TAGS_AS_LABELS
+      DISCOVERY_MODE POST_BUILD
+    )
+
+    # Keep the timed regional-attribute source-resignation-after-restore case
+    # independently buildable. The aggregate declaration remains historical
+    # coverage; this target gives the saved source-region/queue lifetime slice
+    # an exact compile, run, and CTest handle.
+    add_executable(umbra_timed_regional_attr_source_resign_restore_catch2
+      cpp/tests/timed_live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp
+    )
+    target_compile_features(umbra_timed_regional_attr_source_resign_restore_catch2 PRIVATE cxx_std_20)
+    target_include_directories(umbra_timed_regional_attr_source_resign_restore_catch2 PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+    )
+    target_compile_definitions(umbra_timed_regional_attr_source_resign_restore_catch2 PRIVATE
+      UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+    target_link_libraries(umbra_timed_regional_attr_source_resign_restore_catch2 PRIVATE
+      umbra::rti
+      Catch2::Catch2WithMain
+    )
+    catch_discover_tests(umbra_timed_regional_attr_source_resign_restore_catch2
+      TEST_PREFIX "umbra.timed_live_tso_regional_attribute_update_source_resignation_after_restore.catch2."
+      ADD_TAGS_AS_LABELS
+      DISCOVERY_MODE POST_BUILD
+    )
+
+    # Keep the timed explicit-source regional-attribute restore baseline
+    # independently buildable. This is the save-boundary companion to the
+    # source-resignation-after-restore lane above.
+    add_executable(umbra_timed_restore_regional_attr_catch2
+      cpp/tests/timed_restore_live_tso_regional_attribute_update_catch2.cpp
+    )
+    target_compile_features(umbra_timed_restore_regional_attr_catch2 PRIVATE cxx_std_20)
+    target_include_directories(umbra_timed_restore_regional_attr_catch2 PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+    )
+    target_compile_definitions(umbra_timed_restore_regional_attr_catch2 PRIVATE
+      UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+    target_link_libraries(umbra_timed_restore_regional_attr_catch2 PRIVATE
+      umbra::rti
+      Catch2::Catch2WithMain
+    )
+    catch_discover_tests(umbra_timed_restore_regional_attr_catch2
+      TEST_PREFIX "umbra.timed_restore_live_tso_regional_attribute_update.catch2."
+      ADD_TAGS_AS_LABELS
+      DISCOVERY_MODE POST_BUILD
+    )
+    endif()
+
+    # Keep synchronization-point service coverage independently buildable.
+    # The aggregate federation-management translation unit is intentionally
+    # kept separate while unrelated development cases are repaired.
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      add_executable(umbra_synchronization_point_catch2
+        cpp/tests/synchronization_point_catch2.cpp
+      )
+      target_compile_features(umbra_synchronization_point_catch2 PRIVATE cxx_std_20)
+      target_include_directories(umbra_synchronization_point_catch2 PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+      )
+      target_compile_definitions(umbra_synchronization_point_catch2 PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+      )
+      target_link_libraries(umbra_synchronization_point_catch2 PRIVATE
+        umbra::rti
+        Catch2::Catch2WithMain
+      )
+      catch_discover_tests(umbra_synchronization_point_catch2
+        TEST_PREFIX "umbra.synchronization_point.catch2."
+        ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD
       )
     endif()
 
@@ -3705,6 +11319,7 @@ if(BUILD_TESTING)
       umbra_federate_lifecycle_smoke
     )
     umbra_add_ctest_lane(umbra_test_federation_management "^federation-management$")
+    umbra_add_ctest_service_lane(umbra_test_federation_listing federation-listing)
     umbra_add_ctest_service_lane(umbra_test_explicit_mim explicit-mim)
     umbra_add_ctest_lane(umbra_test_time_management "^time-management$")
     umbra_add_ctest_lane(umbra_test_float_time "^float-time$")
@@ -4378,29 +11993,66 @@ if(BUILD_TESTING)
     # compliance selector, so the artifact remains aligned with the roadmap's
     # mapped process-boundary edit/build/test slice.
     if(TARGET umbra_ieee1516_2025_connection_catch2)
-      # Prefer the independently buildable process-boundary executable when
-      # it is available; the aggregate target remains the fallback for
-      # profiles that do not enable the embedded service.
-      set(_umbra_process_boundary_catch2_target
+      # The public process-boundary source is independently buildable; the
+      # aggregate target remains the fallback for profiles that do not enable
+      # the embedded service.
+      set(_umbra_process_boundary_public_target
         umbra_ieee1516_2025_connection_catch2
       )
     else()
-      set(_umbra_process_boundary_catch2_target
+      set(_umbra_process_boundary_public_target
         umbra_ieee1516_2025_catch2
       )
     endif()
-    add_custom_target(umbra_process_boundary_junit
-      COMMAND ${CMAKE_COMMAND} -E make_directory
-        "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary"
-      COMMAND $<TARGET_FILE:${_umbra_process_boundary_catch2_target}>
-        "[process-boundary]"
-        --allow-running-no-tests
-        --reporter junit
-        --out "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary.xml"
-      DEPENDS ${_umbra_process_boundary_catch2_target}
-      COMMENT "Writing process-boundary Catch2 JUnit artifact"
-      VERBATIM
+    if(
+      TARGET umbra_process_boundary_private_catch2
+      AND TARGET umbra_ieee1516_2025_connection_catch2
+      AND Python3_Interpreter_FOUND
     )
+      # The indexed process-boundary lane contains independently buildable
+      # private service/transport and public endpoint cases. Keep both targets
+      # separate and merge their valid XML reports; the damaged aggregate
+      # federation-management translation unit must not be the hidden source
+      # of JUnit evidence.
+      add_custom_target(umbra_process_boundary_junit
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+          "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary"
+        COMMAND $<TARGET_FILE:umbra_process_boundary_private_catch2>
+          "[process-boundary]"
+          --allow-running-no-tests
+          --reporter junit
+          --out "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-private.xml"
+        COMMAND $<TARGET_FILE:${_umbra_process_boundary_public_target}>
+          "[process-boundary]"
+          --allow-running-no-tests
+          --reporter junit
+          --out "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-public.xml"
+        COMMAND ${Python3_EXECUTABLE}
+          "${CMAKE_CURRENT_SOURCE_DIR}/tools/merge_junit_reports.py"
+          --output
+          "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary.xml"
+          "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-private.xml"
+          "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-public.xml"
+        DEPENDS
+          umbra_process_boundary_private_catch2
+          ${_umbra_process_boundary_public_target}
+        COMMENT "Writing complete process-boundary Catch2 JUnit artifact"
+        VERBATIM
+      )
+    else()
+      add_custom_target(umbra_process_boundary_junit
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+          "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary"
+        COMMAND $<TARGET_FILE:${_umbra_process_boundary_public_target}>
+          "[process-boundary]"
+          --allow-running-no-tests
+          --reporter junit
+          --out "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary.xml"
+        DEPENDS ${_umbra_process_boundary_public_target}
+        COMMENT "Writing process-boundary Catch2 JUnit artifact"
+        VERBATIM
+      )
+    endif()
   else()
     message(STATUS "Catch2 v3 not found; configure with -DUMBRA_FETCH_CATCH2=ON or provide Catch2::Catch2WithMain")
   endif()

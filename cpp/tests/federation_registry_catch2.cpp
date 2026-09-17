@@ -1253,7 +1253,7 @@ TEST_CASE(
       directory);
 
   EmbeddedFederationRegistry source({}, store);
-  REQUIRE(source.create(L"exercise", composedDirectedInteractionDefinition()).status ==
+  REQUIRE(source.create(L"exercise", composedRestaurantDefinition()).status ==
       FederationRegistryStatus::applied);
   auto publisher = source.join(
       L"exercise", L"publisher", L"publisher", noOpCallbackRoute());
@@ -1318,7 +1318,12 @@ TEST_CASE(
   REQUIRE(registered.objectInstanceHandle != 0U);
   auto discoveries = source.planObjectInstanceDiscoveriesForInstance(
       L"exercise", registered.objectInstanceHandle);
-  REQUIRE(discoveries.size() == 1U);
+  REQUIRE(discoveries.size() == 2U);
+  std::set<std::uint64_t> discoveredFederates;
+  for (auto const& discovery : discoveries) {
+    discoveredFederates.insert(discovery.receivingFederateId);
+  }
+  REQUIRE(discoveredFederates == std::set<std::uint64_t>{publisherId, handoffOwnerId});
   REQUIRE(source.beginObjectInstanceDiscovery(
       L"exercise", publisherId, registered.objectInstanceHandle).has_value());
   REQUIRE(source.beginObjectInstanceDiscovery(
@@ -1549,7 +1554,7 @@ TEST_CASE(
       directory);
 
   EmbeddedFederationRegistry source({}, store);
-  REQUIRE(source.create(L"exercise", composedDirectedInteractionDefinition()).status ==
+  REQUIRE(source.create(L"exercise", composedRestaurantDefinition()).status ==
       FederationRegistryStatus::applied);
   auto publisher = source.join(
       L"exercise", L"publisher", L"publisher", noOpCallbackRoute());
@@ -1611,7 +1616,17 @@ TEST_CASE(
   REQUIRE(registered.objectInstanceHandle != 0U);
   auto discoveries = source.planObjectInstanceDiscoveriesForInstance(
       L"exercise", registered.objectInstanceHandle);
-  REQUIRE(discoveries.size() == 1U);
+  // Both the publisher and the future handoff owner are subscribed to the
+  // registered class's marker attribute. Object discovery is driven by
+  // object-class attribute subscriptions, independently of the directed
+  // interaction's by-ownership selector, so each joined federate receives one
+  // discovery candidate before ownership changes.
+  REQUIRE(discoveries.size() == 2U);
+  std::set<std::uint64_t> discoveredFederates;
+  for (auto const& discovery : discoveries) {
+    discoveredFederates.insert(discovery.receivingFederateId);
+  }
+  REQUIRE(discoveredFederates == std::set<std::uint64_t>{publisherId, handoffOwnerId});
   REQUIRE(source.beginObjectInstanceDiscovery(
       L"exercise", publisherId, registered.objectInstanceHandle));
   REQUIRE(source.beginObjectInstanceDiscovery(
@@ -3894,6 +3909,12 @@ TEST_CASE(
   REQUIRE(phaseFor(deliveredId) == 2U);
   REQUIRE(phaseFor(inTransitId) == 1U);
   REQUIRE(phaseFor(queuedId) == 0U);
+
+  // A process acknowledgement carries only the execution-owned message id;
+  // the registry resolves the private queue sequence at this boundary.
+  REQUIRE(registry.completeTsoDeliveryFor(
+      L"exercise", receiver.membership->id, inTransitId).delivery.status ==
+      umbra::detail::FederationTsoDeliveryStatus::applied);
 }
 
 TEST_CASE(
@@ -6025,7 +6046,8 @@ TEST_CASE(
       federateId,
       L"process-restart-barrier",
       {0x01U, 0x02U},
-      {federateId});
+      {federateId},
+      true);
   REQUIRE(registered.status ==
       umbra::detail::SynchronizationPointRegistrationStatus::applied);
 
@@ -6070,8 +6092,71 @@ TEST_CASE(
       std::string{"\x01\x02", 2U});
   REQUIRE(image.synchronizationPoints.front().synchronizationSet ==
       std::vector<std::uint64_t>{federateId});
+  REQUIRE_FALSE(image.synchronizationPoints.front().lateJoinExpansionAllowed);
 
   std::filesystem::remove_all(directory, ignored);
+}
+
+TEST_CASE(
+    "Synchronization-point late-join expansion respects an explicit synchronization set",
+    "[unit][kernel][federation-registry][synchronization][late-join]") {
+  EmbeddedFederationRegistry registry;
+  REQUIRE(registry.create(L"exercise", validDefinition()).status ==
+      FederationRegistryStatus::applied);
+
+  auto first = registry.join(
+      L"exercise", L"trainer", L"first", noOpCallbackRoute());
+  REQUIRE(first.status == FederationRegistryStatus::applied);
+  REQUIRE(first.membership);
+  auto const firstId = first.membership->id;
+
+  auto explicitRegistration = registry.registerSynchronizationPoint(
+      L"exercise",
+      firstId,
+      L"explicit-scope",
+      {0x01U},
+      {firstId},
+      true);
+  REQUIRE(explicitRegistration.status ==
+      umbra::detail::SynchronizationPointRegistrationStatus::applied);
+  REQUIRE(explicitRegistration.succeeded);
+
+  auto second = registry.join(
+      L"exercise", L"trainer", L"second", noOpCallbackRoute());
+  REQUIRE(second.status == FederationRegistryStatus::applied);
+  REQUIRE(second.membership);
+  auto const secondId = second.membership->id;
+  auto explicitAnnouncements = registry.announcePendingSynchronizationPoints(
+      L"exercise", secondId);
+  REQUIRE(explicitAnnouncements.status ==
+      umbra::detail::SynchronizationPointAnnouncementStatus::applied);
+  REQUIRE(explicitAnnouncements.announcements.empty());
+
+  auto defaultRegistration = registry.registerSynchronizationPoint(
+      L"exercise",
+      firstId,
+      L"default-scope",
+      {0x02U},
+      {},
+      false);
+  REQUIRE(defaultRegistration.status ==
+      umbra::detail::SynchronizationPointRegistrationStatus::applied);
+  REQUIRE(defaultRegistration.succeeded);
+
+  auto third = registry.join(
+      L"exercise", L"trainer", L"third", noOpCallbackRoute());
+  REQUIRE(third.status == FederationRegistryStatus::applied);
+  REQUIRE(third.membership);
+  auto const thirdId = third.membership->id;
+  auto announcements = registry.announcePendingSynchronizationPoints(
+      L"exercise", thirdId);
+  REQUIRE(announcements.status ==
+      umbra::detail::SynchronizationPointAnnouncementStatus::applied);
+  REQUIRE(announcements.announcements.size() == 1U);
+  REQUIRE(announcements.announcements.front().label == L"default-scope");
+  REQUIRE(announcements.announcements.front().receivingFederateId == thirdId);
+  REQUIRE(announcements.announcements.front().userSuppliedTag ==
+      std::vector<unsigned char>{0x02U});
 }
 
 TEST_CASE(
@@ -6575,6 +6660,84 @@ TEST_CASE(
       registered.objectInstanceHandle);
   REQUIRE(continuation.front().attributeHandles == efficiencyOnly);
   REQUIRE(continuation.front().userSuppliedTag == divestitureTag);
+
+  std::filesystem::remove_all(directory, ignored);
+}
+
+TEST_CASE(
+    "Filesystem state image restores federation save conditionals in a fresh registry",
+    "[unit][kernel][federation-registry][save-restore][durable-save][filesystem][restore]"
+    "[process-restart][application-ledger-state][federation-mom-save-conditionals]") {
+  auto const directory = temporarySaveCommitDirectory();
+  std::error_code ignored;
+  std::filesystem::remove_all(directory, ignored);
+  auto store = std::make_shared<umbra::detail::FilesystemFederationSaveCommitStore>(
+      directory);
+
+  auto completeSave = [](EmbeddedFederationRegistry& registry,
+                         std::wstring const& label,
+                         std::uint64_t federateId) {
+    REQUIRE(registry.requestFederationSave(
+        L"exercise", federateId, label).status ==
+        umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(registry.federateSaveBegun(L"exercise", federateId).status ==
+        umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(registry.federateSaveComplete(L"exercise", federateId)
+        .saveCompletedSuccessfully);
+  };
+
+  EmbeddedFederationRegistry source({}, store);
+  REQUIRE(source.create(L"exercise", composedRestaurantDefinition()).status ==
+      FederationRegistryStatus::applied);
+  auto joined = source.join(
+      L"exercise", L"trainer", L"alice", noOpCallbackRoute());
+  REQUIRE(joined.status == FederationRegistryStatus::applied);
+  REQUIRE(joined.membership);
+  auto const federateId = joined.membership->id;
+
+  std::wstring const firstLabel = L"save-history-first";
+  std::wstring const secondLabel = L"save-history-second";
+  completeSave(source, firstLabel, federateId);
+  completeSave(source, secondLabel, federateId);
+
+  auto secondCommit = store->load(L"exercise", secondLabel);
+  REQUIRE(secondCommit.has_value());
+  auto secondImage = umbra::detail::FederationStateImageCodec::decode(
+      secondCommit->stateImage);
+  REQUIRE(secondImage.saveHistoryPresent);
+  // Save completion updates HLAlastSave* after the durable snapshot is
+  // committed, so the second image must retain the first completed label.
+  REQUIRE(secondImage.lastSaveName == firstLabel);
+  REQUIRE_FALSE(secondImage.lastSaveTimeEncoding.has_value());
+  REQUIRE(secondImage.nextSaveName.empty());
+  REQUIRE_FALSE(secondImage.nextSaveTimeEncoding.has_value());
+
+  EmbeddedFederationRegistry restarted({}, store);
+  REQUIRE(restarted.create(L"exercise", composedRestaurantDefinition()).status ==
+      FederationRegistryStatus::applied);
+  auto restartedJoined = restarted.join(
+      L"exercise", L"trainer", L"alice", noOpCallbackRoute());
+  REQUIRE(restartedJoined.status == FederationRegistryStatus::applied);
+  REQUIRE(restartedJoined.membership);
+  REQUIRE(restartedJoined.membership->id == federateId);
+  REQUIRE(restarted.requestFederationRestore(
+      L"exercise", federateId, secondLabel).status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+  REQUIRE(restarted.federateRestoreComplete(L"exercise", federateId).status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+
+  // A subsequent save snapshots the rehydrated application-visible
+  // HLAlastSave* values. If restore only rebuilt control/temporal state, this
+  // image would incorrectly lose the first label.
+  auto const thirdLabel = L"save-history-after-restore";
+  completeSave(restarted, thirdLabel, federateId);
+  auto thirdCommit = store->load(L"exercise", thirdLabel);
+  REQUIRE(thirdCommit.has_value());
+  auto thirdImage = umbra::detail::FederationStateImageCodec::decode(
+      thirdCommit->stateImage);
+  REQUIRE(thirdImage.saveHistoryPresent);
+  REQUIRE(thirdImage.lastSaveName == firstLabel);
+  REQUIRE_FALSE(thirdImage.lastSaveTimeEncoding.has_value());
 
   std::filesystem::remove_all(directory, ignored);
 }
@@ -11773,6 +11936,565 @@ TEST_CASE(
               .subscribedObjectClassDirectedInteractions.size() == 1U);
   REQUIRE(roundTripImage.interactionDeclarations[1]
               .subscribedObjectClassDirectedInteractions.front().active);
+
+  std::filesystem::remove_all(directory, ignored);
+}
+
+TEST_CASE(
+    "Federation state images preserve deferred update-region associations across a v1 codec round trip",
+    "[unit][kernel][federation-registry][save-restore][durable-save][state-image]"
+    "[ownership-management][ddm][deferred-update-region-association]"
+    "[deferred-update-region-association-state-image][process-restart]") {
+  umbra::detail::FederationStateImage image;
+  image.federationName = L"exercise";
+  image.logicalTimeImplementationName = L"HLAinteger64Time";
+  image.members = {
+      {1U, L"owner", L"trainer", 0U, 0U, 0, 0U},
+      {2U, L"acquirer", L"trainer", 0U, 0U, 0, 0U},
+  };
+  image.regionCount = 2U;
+  image.regions = {
+      {90U, 2U, {}, {}, {}, false, false},
+      {91U, 2U, {}, {}, {}, false, false},
+  };
+  image.objectInstanceCount = 1U;
+  image.objects.push_back({
+      42U,
+      L"table-42",
+      4U,
+      1U,
+      false,
+      0U,
+      {{3U, 1U, "HLAreliable", 0U, {}}},
+  });
+  image.deferredUpdateRegionAssociationsPresent = true;
+  image.deferredUpdateRegionAssociations.push_back({42U, 2U, 3U, {91U, 90U}});
+
+  auto const encoded = umbra::detail::FederationStateImageCodec::encode(image);
+  REQUIRE(encoded.find("deferredUpdateRegionAssociations=1\n") != std::string::npos);
+
+  auto const decoded = umbra::detail::FederationStateImageCodec::decode(encoded);
+  REQUIRE(decoded.deferredUpdateRegionAssociationsPresent);
+  REQUIRE(decoded.deferredUpdateRegionAssociations.size() == 1U);
+  auto const& association = decoded.deferredUpdateRegionAssociations.front();
+  REQUIRE(association.objectInstanceHandle == 42U);
+  REQUIRE(association.federateId == 2U);
+  REQUIRE(association.attributeHandle == 3U);
+  REQUIRE(association.regionHandles == std::vector<std::uint64_t>{90U, 91U});
+  REQUIRE(umbra::detail::FederationStateImageCodec::encode(decoded) == encoded);
+
+  auto malformed = image;
+  malformed.deferredUpdateRegionAssociations.push_back({42U, 2U, 3U, {90U}});
+  REQUIRE_THROWS(umbra::detail::FederationStateImageCodec::encode(malformed));
+}
+
+TEST_CASE(
+    "Filesystem fresh-registry restore promotes a deferred update-region association after ownership acquisition",
+    "[integration][development-profile][federation-registry][save-restore][durable-save]"
+    "[filesystem][process-restart][ownership-management][ddm]"
+    "[deferred-update-region-association-state-image-restore]"
+    "[rti.service.request-federation-save][rti.service.federate-save-begun]"
+    "[rti.service.federate-save-complete][rti.service.request-federation-restore]"
+    "[rti.service.federate-restore-complete][rti.service.associate-regions-for-updates]"
+    "[rti.service.attribute-ownership-acquisition-if-available]"
+    "[rti.service.attribute-ownership-divestiture-if-wanted]") {
+  auto const directory = temporarySaveCommitDirectory();
+  std::error_code ignored;
+  std::filesystem::remove_all(directory, ignored);
+  auto store = std::make_shared<umbra::detail::FilesystemFederationSaveCommitStore>(
+      directory);
+
+  auto regionalDefinition = [&] {
+    std::filesystem::path const testData =
+        std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
+    std::vector<PrevalidatedFomModule> modules{
+        validatedModule(
+            resourcePath("mim/HLAstandardMIM-2025.xml"),
+            FomModuleKind::mim,
+            L"urn:umbra:test:state-image-restore-mim"),
+        validatedModule(
+            testData / "regional-ownership-fanout-fom.xml",
+            FomModuleKind::fom,
+            L"urn:umbra:test:state-image-restore-ownership"),
+    };
+    LibXml2FomModuleComposer composer(
+        resourcePath("schemas/IEEE1516-FDD-2025.xsd"));
+    auto result = composer.compose(modules);
+    CAPTURE(result.diagnostics);
+    REQUIRE(result.status == FomCompositionStatus::valid);
+    REQUIRE(result.catalog);
+    REQUIRE(result.fdd);
+    return FederationDefinition{
+        std::move(result.modules),
+        L"HLAinteger64Time",
+        std::move(result.catalog),
+        std::move(result.fdd),
+    };
+  }();
+  auto restartDefinition = regionalDefinition;
+
+  EmbeddedFederationRegistry source({}, store);
+  REQUIRE(source.create(L"exercise", std::move(regionalDefinition)).status ==
+      FederationRegistryStatus::applied);
+  auto owner = source.join(
+      L"exercise", L"owner-type", L"owner", noOpCallbackRoute());
+  auto newOwner = source.join(
+      L"exercise", L"owner-type", L"new-owner", noOpCallbackRoute());
+  auto receiver = source.join(
+      L"exercise", L"receiver-type", L"receiver", noOpCallbackRoute());
+  REQUIRE(owner.membership);
+  REQUIRE(newOwner.membership);
+  REQUIRE(receiver.membership);
+
+  auto const objectClass = source.objectClassHandleFor(
+      L"exercise", "HLAobjectRoot.UmbraRegionalOwnershipFanout");
+  auto const attribute = source.attributeHandleFor(
+      L"exercise", "HLAobjectRoot.UmbraRegionalOwnershipFanout", "ProviderBValue");
+  auto const dimension = source.dimensionHandleFor(L"exercise", "UmbraRegionX");
+  REQUIRE(objectClass.has_value());
+  REQUIRE(attribute.has_value());
+  REQUIRE(dimension.has_value());
+  std::set<std::uint64_t> const attributes{*attribute};
+  REQUIRE(source.setObjectClassAttributePublication(
+               L"exercise", owner.membership->id, *objectClass, attributes, true) ==
+      umbra::detail::ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(source.setObjectClassAttributePublication(
+               L"exercise", newOwner.membership->id, *objectClass, attributes, true) ==
+      umbra::detail::ObjectClassAttributeDeclarationStatus::applied);
+
+  auto ownerRegionResult = source.createRegion(
+      L"exercise", owner.membership->id, {*dimension});
+  auto deferredRegionResult = source.createRegion(
+      L"exercise", newOwner.membership->id, {*dimension});
+  auto receiverRegionResult = source.createRegion(
+      L"exercise", receiver.membership->id, {*dimension});
+  REQUIRE(ownerRegionResult.status == umbra::detail::RegionServiceStatus::applied);
+  REQUIRE(deferredRegionResult.status == umbra::detail::RegionServiceStatus::applied);
+  REQUIRE(receiverRegionResult.status == umbra::detail::RegionServiceStatus::applied);
+  auto const ownerRegion = ownerRegionResult.regionHandle;
+  auto const deferredRegion = deferredRegionResult.regionHandle;
+  auto const receiverRegion = receiverRegionResult.regionHandle;
+  for (auto const [federateId, regionHandle] : std::vector<std::pair<std::uint64_t, std::uint64_t>>{
+           {owner.membership->id, ownerRegion},
+           {newOwner.membership->id, deferredRegion},
+           {receiver.membership->id, receiverRegion}}) {
+    REQUIRE(source.setRangeBounds(
+                 L"exercise", federateId, regionHandle, *dimension,
+                 umbra::detail::RegionRangeBounds{0UL, 2UL}) ==
+        umbra::detail::RegionServiceStatus::applied);
+    REQUIRE(source.commitRegionModifications(
+                 L"exercise", federateId, {regionHandle}) ==
+        umbra::detail::RegionServiceStatus::applied);
+  }
+
+  std::map<std::uint64_t, std::set<std::uint64_t>> const deferredSubscription{
+      {*attribute, {deferredRegion}}};
+  std::map<std::uint64_t, std::set<std::uint64_t>> const receiverSubscription{
+      {*attribute, {receiverRegion}}};
+  REQUIRE(source.setObjectClassAttributeRegionalSubscription(
+               L"exercise", newOwner.membership->id, *objectClass,
+               deferredSubscription, true) ==
+      umbra::detail::RegionalObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(source.setObjectClassAttributeRegionalSubscription(
+               L"exercise", receiver.membership->id, *objectClass,
+               receiverSubscription, true) ==
+      umbra::detail::RegionalObjectClassAttributeDeclarationStatus::applied);
+
+  std::map<std::uint64_t, std::set<std::uint64_t>> const ownerRegistration{
+      {*attribute, {ownerRegion}}};
+  auto registered = source.registerObjectInstance(
+      L"exercise", owner.membership->id, *objectClass, &ownerRegistration);
+  REQUIRE(registered.status ==
+      umbra::detail::ObjectInstanceRegistrationStatus::applied);
+  REQUIRE(registered.objectInstanceHandle != 0U);
+  auto discoveries = source.planObjectInstanceDiscoveriesForInstance(
+      L"exercise", registered.objectInstanceHandle);
+  REQUIRE(discoveries.size() == 2U);
+  REQUIRE(source.beginObjectInstanceDiscovery(
+      L"exercise", newOwner.membership->id, registered.objectInstanceHandle));
+  REQUIRE(source.beginObjectInstanceDiscovery(
+      L"exercise", receiver.membership->id, registered.objectInstanceHandle));
+
+  // Fresh-registry materialization is intentionally bounded to an object
+  // whose latest application value is durable.  Seed that value through the
+  // same accepted update boundary used by the process service so the restore
+  // slice exercises the regional ownership ledger rather than an empty
+  // registration shell.
+  std::string const valueBytes{"restore"};
+  std::vector<std::pair<std::uint64_t, rti1516_2025::VariableLengthData>> values{{
+      *attribute,
+      rti1516_2025::VariableLengthData(valueBytes.data(), valueBytes.size()),
+  }};
+  REQUIRE(source.recordSuccessfulUpdateAttributeValues(
+      L"exercise",
+      owner.membership->id,
+      registered.objectInstanceHandle,
+      *objectClass,
+      {"HLAreliable"},
+      &values) == FederationRegistryStatus::applied);
+
+  REQUIRE(source.associateRegionsForUpdates(
+               L"exercise", newOwner.membership->id,
+               registered.objectInstanceHandle, deferredSubscription) ==
+      umbra::detail::ObjectInstanceRegionAssociationStatus::applied);
+  auto beforeTransfer = source.planReceiveOrderAttributeUpdate(
+      L"exercise", owner.membership->id, registered.objectInstanceHandle, {*attribute});
+  REQUIRE(beforeTransfer.status ==
+      umbra::detail::ReceiveOrderAttributeUpdateStatus::applied);
+  REQUIRE(beforeTransfer.passels.size() == 1U);
+  REQUIRE(beforeTransfer.passels.front().sentRegionHandles ==
+      std::set<std::uint64_t>{ownerRegion});
+
+  std::wstring const saveLabel = L"deferred-update-region-association-restore";
+  REQUIRE(source.requestFederationSave(
+               L"exercise", owner.membership->id, saveLabel).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE(source.federateSaveBegun(
+               L"exercise", owner.membership->id).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE(source.federateSaveBegun(
+               L"exercise", newOwner.membership->id).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE(source.federateSaveBegun(
+               L"exercise", receiver.membership->id).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE_FALSE(source.federateSaveComplete(
+      L"exercise", owner.membership->id).saveCompletedSuccessfully);
+  REQUIRE_FALSE(source.federateSaveComplete(
+      L"exercise", newOwner.membership->id).saveCompletedSuccessfully);
+  REQUIRE(source.federateSaveComplete(
+      L"exercise", receiver.membership->id).saveCompletedSuccessfully);
+
+  auto committed = store->load(L"exercise", saveLabel);
+  REQUIRE(committed.has_value());
+  auto savedImage = umbra::detail::FederationStateImageCodec::decode(
+      committed->stateImage);
+  REQUIRE(savedImage.deferredUpdateRegionAssociationsPresent);
+  REQUIRE(savedImage.deferredUpdateRegionAssociations.size() == 1U);
+  auto const& savedAssociation = savedImage.deferredUpdateRegionAssociations.front();
+  REQUIRE(savedAssociation.objectInstanceHandle == registered.objectInstanceHandle);
+  REQUIRE(savedAssociation.federateId == newOwner.membership->id);
+  REQUIRE(savedAssociation.attributeHandle == *attribute);
+  REQUIRE(savedAssociation.regionHandles == std::vector<std::uint64_t>{deferredRegion});
+
+  EmbeddedFederationRegistry restarted({}, store);
+  REQUIRE(restarted.create(L"exercise", std::move(restartDefinition)).status ==
+      FederationRegistryStatus::applied);
+  auto restartedOwner = restarted.join(
+      L"exercise", L"owner-type", L"owner", noOpCallbackRoute());
+  auto restartedNewOwner = restarted.join(
+      L"exercise", L"owner-type", L"new-owner", noOpCallbackRoute());
+  auto restartedReceiver = restarted.join(
+      L"exercise", L"receiver-type", L"receiver", noOpCallbackRoute());
+  REQUIRE(restartedOwner.membership);
+  REQUIRE(restartedNewOwner.membership);
+  REQUIRE(restartedReceiver.membership);
+  REQUIRE(restartedOwner.membership->id == owner.membership->id);
+  REQUIRE(restartedNewOwner.membership->id == newOwner.membership->id);
+  REQUIRE(restartedReceiver.membership->id == receiver.membership->id);
+
+  REQUIRE(restarted.requestFederationRestore(
+               L"exercise", restartedOwner.membership->id, saveLabel).status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+  REQUIRE(restarted.federateRestoreComplete(
+               L"exercise", restartedOwner.membership->id).status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+  REQUIRE(restarted.federateRestoreComplete(
+               L"exercise", restartedNewOwner.membership->id).status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+  REQUIRE(restarted.federateRestoreComplete(
+               L"exercise", restartedReceiver.membership->id).status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+
+  auto const restoredAttribute = restarted.attributeHandleFor(
+      L"exercise", "HLAobjectRoot.UmbraRegionalOwnershipFanout", "ProviderBValue");
+  REQUIRE(restoredAttribute.has_value());
+  REQUIRE(*restoredAttribute == *attribute);
+  auto restoredBeforeTransfer = restarted.planReceiveOrderAttributeUpdate(
+      L"exercise", restartedOwner.membership->id,
+      registered.objectInstanceHandle, {*restoredAttribute});
+  REQUIRE(restoredBeforeTransfer.status ==
+      umbra::detail::ReceiveOrderAttributeUpdateStatus::applied);
+  REQUIRE(restoredBeforeTransfer.passels.size() == 1U);
+  REQUIRE(restoredBeforeTransfer.passels.front().sentRegionHandles ==
+      std::set<std::uint64_t>{ownerRegion});
+
+  std::vector<unsigned char> const acquisitionTag{'r', 'e', 's', 't', 'o', 'r', 'e'};
+  auto acquisition = restarted.planAttributeOwnershipAcquisitionIfAvailable(
+      L"exercise", restartedNewOwner.membership->id,
+      registered.objectInstanceHandle, {*restoredAttribute}, acquisitionTag);
+  REQUIRE(acquisition.status ==
+      umbra::detail::AttributeOwnershipAcquisitionIfAvailableStatus::applied);
+  REQUIRE(acquisition.requestId != 0U);
+  std::vector<unsigned char> const divestitureTag{'d', 'i', 'v', '-', 'r', 'e', 's', 't', 'o', 'r', 'e'};
+  auto divestiture = restarted.planAttributeOwnershipDivestitureIfWanted(
+      L"exercise", restartedOwner.membership->id,
+      registered.objectInstanceHandle, {*restoredAttribute}, divestitureTag);
+  REQUIRE(divestiture.status ==
+      umbra::detail::AttributeOwnershipDivestitureIfWantedStatus::applied);
+  REQUIRE(divestiture.divestedAttributeHandles == std::set<std::uint64_t>{*restoredAttribute});
+  REQUIRE(divestiture.notifications.size() == 1U);
+  auto const& notification = divestiture.notifications.front();
+  auto notificationDelivery = restarted.beginAttributeOwnershipDivestitureIfWantedNotification(
+      L"exercise", restartedNewOwner.membership->id,
+      registered.objectInstanceHandle, notification.notificationId,
+      notification.attributeHandles);
+  REQUIRE(notificationDelivery.has_value());
+  REQUIRE(notificationDelivery->securedAttributeHandles ==
+      std::set<std::uint64_t>{*restoredAttribute});
+  auto restoredOwnership = restarted.attributeOwnedByFederate(
+      L"exercise", restartedNewOwner.membership->id,
+      registered.objectInstanceHandle, *restoredAttribute);
+  REQUIRE(restoredOwnership.status ==
+      umbra::detail::AttributeOwnershipCheckStatus::applied);
+  REQUIRE(restoredOwnership.ownedByRequestingFederate);
+
+  auto afterTransfer = restarted.planReceiveOrderAttributeUpdate(
+      L"exercise", restartedNewOwner.membership->id,
+      registered.objectInstanceHandle, {*restoredAttribute});
+  REQUIRE(afterTransfer.status ==
+      umbra::detail::ReceiveOrderAttributeUpdateStatus::applied);
+  REQUIRE(afterTransfer.passels.size() == 1U);
+  REQUIRE(afterTransfer.passels.front().sentRegionHandles ==
+      std::set<std::uint64_t>{deferredRegion});
+
+  std::filesystem::remove_all(directory, ignored);
+}
+
+TEST_CASE(
+    "Register Object Instance With Regions uses the default region and execution-wide generated names",
+    "[unit][kernel][federation-registry][object-management][ddm][default-region]"
+    "[object-instance-name][rti.service.register-object-instance-with-regions]"
+    "[rti.service.publish-object-class-attributes][rti.service.subscribe-object-class-attributes]"
+    "[federate.callback.discover-object-instance]") {
+  auto store = std::make_shared<umbra::detail::MemoryFederationSaveCommitStore>();
+  EmbeddedFederationRegistry registry({}, store);
+  REQUIRE(registry.create(L"exercise", composedRestaurantDefinition()).status ==
+      FederationRegistryStatus::applied);
+
+  auto owner = registry.join(
+      L"exercise", L"publisher", L"owner", noOpCallbackRoute());
+  auto observer = registry.join(
+      L"exercise", L"subscriber", L"observer", noOpCallbackRoute());
+  REQUIRE(owner.membership);
+  REQUIRE(observer.membership);
+
+  auto const soda = registry.objectClassHandleFor(
+      L"exercise", "HLAobjectRoot.Food.Drink.Soda");
+  auto const flavor = registry.attributeHandleFor(
+      L"exercise", "HLAobjectRoot.Food.Drink.Soda", "Flavor");
+  auto const sodaDimension = registry.dimensionHandleFor(
+      L"exercise", "SodaFlavor");
+  REQUIRE(soda.has_value());
+  REQUIRE(flavor.has_value());
+  REQUIRE(sodaDimension.has_value());
+  std::set<std::uint64_t> const flavorOnly{*flavor};
+  REQUIRE(registry.setObjectClassAttributePublication(
+      L"exercise", owner.membership->id, *soda, flavorOnly, true) ==
+      umbra::detail::ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(registry.setObjectClassAttributeSubscription(
+      L"exercise", observer.membership->id, *soda, flavorOnly, true) ==
+      umbra::detail::ObjectClassAttributeDeclarationStatus::applied);
+
+  // An empty region set in the supplied pair is the official default-region
+  // form for a class attribute that has available dimensions.
+  std::map<std::uint64_t, std::set<std::uint64_t>> emptyRegionPair{{*flavor, {}}};
+  auto first = registry.registerObjectInstance(
+      L"exercise", owner.membership->id, *soda, &emptyRegionPair);
+  REQUIRE(first.status ==
+      umbra::detail::ObjectInstanceRegistrationStatus::applied);
+  REQUIRE(first.objectInstanceHandle != 0U);
+  REQUIRE(first.objectInstanceName.starts_with(L"UmbraObjectInstance-"));
+
+  auto firstDiscoveries = registry.planObjectInstanceDiscoveriesForInstance(
+      L"exercise", first.objectInstanceHandle);
+  REQUIRE(firstDiscoveries.size() == 1U);
+  REQUIRE(registry.beginObjectInstanceDiscovery(
+      L"exercise", observer.membership->id, first.objectInstanceHandle));
+  auto firstPlan = registry.planReceiveOrderAttributeUpdate(
+      L"exercise", owner.membership->id, first.objectInstanceHandle,
+      {*flavor});
+  REQUIRE(firstPlan.status ==
+      umbra::detail::ReceiveOrderAttributeUpdateStatus::applied);
+  REQUIRE(firstPlan.passels.size() == 1U);
+  REQUIRE(firstPlan.passels.front().sentAttributeHandles ==
+      std::vector<std::uint64_t>{*flavor});
+  REQUIRE(firstPlan.passels.front().sentRegionHandles.empty());
+  REQUIRE(firstPlan.passels.front().defaultRegionUsed);
+  REQUIRE(firstPlan.passels.front().recipients.size() == 1U);
+  REQUIRE(firstPlan.passels.front().recipients.front().federateId ==
+      observer.membership->id);
+
+  // Omitting the optional pair argument has the same default-region result,
+  // and every generated name remains unique within the federation execution.
+  auto second = registry.registerObjectInstance(
+      L"exercise", owner.membership->id, *soda);
+  REQUIRE(second.status ==
+      umbra::detail::ObjectInstanceRegistrationStatus::applied);
+  REQUIRE(second.objectInstanceHandle != first.objectInstanceHandle);
+  REQUIRE(second.objectInstanceName.starts_with(L"UmbraObjectInstance-"));
+  REQUIRE(second.objectInstanceName != first.objectInstanceName);
+  auto secondPlan = registry.planReceiveOrderAttributeUpdate(
+      L"exercise", owner.membership->id, second.objectInstanceHandle,
+      {*flavor});
+  REQUIRE(secondPlan.status ==
+      umbra::detail::ReceiveOrderAttributeUpdateStatus::applied);
+  REQUIRE(secondPlan.passels.size() == 1U);
+  REQUIRE(secondPlan.passels.front().sentRegionHandles.empty());
+  REQUIRE(secondPlan.passels.front().defaultRegionUsed);
+
+  // An empty attribute/region-pair collection also leaves every available
+  // instance attribute on the default region for this atomic service.
+  std::map<std::uint64_t, std::set<std::uint64_t>> noRegionPairs;
+  auto emptyCollectionRegistration = registry.registerObjectInstance(
+      L"exercise", owner.membership->id, *soda, &noRegionPairs);
+  REQUIRE(emptyCollectionRegistration.status ==
+      umbra::detail::ObjectInstanceRegistrationStatus::applied);
+  auto emptyCollectionPlan = registry.planReceiveOrderAttributeUpdate(
+      L"exercise", owner.membership->id,
+      emptyCollectionRegistration.objectInstanceHandle, {*flavor});
+  REQUIRE(emptyCollectionPlan.status ==
+      umbra::detail::ReceiveOrderAttributeUpdateStatus::applied);
+  REQUIRE(emptyCollectionPlan.passels.size() == 1U);
+  REQUIRE(emptyCollectionPlan.passels.front().sentRegionHandles.empty());
+  REQUIRE(emptyCollectionPlan.passels.front().defaultRegionUsed);
+
+  // A non-empty pair remains distinguishable from the default-region form.
+  auto sourceRegion = registry.createRegion(
+      L"exercise", owner.membership->id, {*sodaDimension});
+  REQUIRE(sourceRegion.status == umbra::detail::RegionServiceStatus::applied);
+  REQUIRE(registry.setRangeBounds(
+      L"exercise", owner.membership->id, sourceRegion.regionHandle,
+      *sodaDimension, {0UL, 1UL}) ==
+      umbra::detail::RegionServiceStatus::applied);
+  REQUIRE(registry.commitRegionModifications(
+      L"exercise", owner.membership->id, {sourceRegion.regionHandle}) ==
+      umbra::detail::RegionServiceStatus::applied);
+  std::map<std::uint64_t, std::set<std::uint64_t>> explicitRegionPair{{
+      *flavor, {sourceRegion.regionHandle}}};
+  auto explicitRegistration = registry.registerObjectInstance(
+      L"exercise", owner.membership->id, *soda, &explicitRegionPair);
+  REQUIRE(explicitRegistration.status ==
+      umbra::detail::ObjectInstanceRegistrationStatus::applied);
+  auto explicitPlan = registry.planReceiveOrderAttributeUpdate(
+      L"exercise", owner.membership->id,
+      explicitRegistration.objectInstanceHandle, {*flavor});
+  REQUIRE(explicitPlan.status ==
+      umbra::detail::ReceiveOrderAttributeUpdateStatus::applied);
+  REQUIRE(explicitPlan.passels.size() == 1U);
+  REQUIRE(explicitPlan.passels.front().sentRegionHandles ==
+      std::set<std::uint64_t>{sourceRegion.regionHandle});
+  REQUIRE_FALSE(explicitPlan.passels.front().defaultRegionUsed);
+}
+
+TEST_CASE(
+    "Filesystem fresh-registry restore seeds declaration relevance before the next mutation",
+    "[unit][kernel][federation-registry][save-restore][durable-save][filesystem][restore]"
+    "[process-restart][declaration-relevance-state][declaration-management]") {
+  auto const directory = temporarySaveCommitDirectory();
+  std::error_code ignored;
+  std::filesystem::remove_all(directory, ignored);
+  auto store = std::make_shared<umbra::detail::FilesystemFederationSaveCommitStore>(
+      directory);
+
+  EmbeddedFederationRegistry source({}, store);
+  REQUIRE(source.create(L"exercise", composedRestaurantDefinition()).status ==
+      FederationRegistryStatus::applied);
+  auto publisher = source.join(
+      L"exercise", L"publisher", L"publisher", noOpCallbackRoute());
+  auto subscriber = source.join(
+      L"exercise", L"subscriber", L"subscriber", noOpCallbackRoute());
+  REQUIRE(publisher.membership);
+  REQUIRE(subscriber.membership);
+
+  auto const publisherId = publisher.membership->id;
+  auto const subscriberId = subscriber.membership->id;
+  auto const objectClass = source.objectClassHandleFor(
+      L"exercise", "HLAobjectRoot.Food.Drink.Soda");
+  auto const attribute = source.attributeHandleFor(
+      L"exercise", "HLAobjectRoot.Food.Drink.Soda", "Flavor");
+  auto const interactionClass = source.interactionClassHandleFor(
+      L"exercise", "HLAinteractionRoot.ServerAction.TakeOrder");
+  REQUIRE(objectClass.has_value());
+  REQUIRE(attribute.has_value());
+  REQUIRE(interactionClass.has_value());
+
+  REQUIRE(source.setObjectClassAttributePublication(
+               L"exercise", publisherId, *objectClass, {*attribute}, true) ==
+      umbra::detail::ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(source.setObjectClassAttributeSubscription(
+               L"exercise", subscriberId, *objectClass, {*attribute}, true) ==
+      umbra::detail::ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(source.setInteractionClassPublication(
+               L"exercise", publisherId, *interactionClass, true) ==
+      umbra::detail::InteractionClassDeclarationStatus::applied);
+  REQUIRE(source.setInteractionClassSubscription(
+               L"exercise", subscriberId, *interactionClass, true) ==
+      umbra::detail::InteractionClassDeclarationStatus::applied);
+
+  auto sourceBaseline = source.planDeclarationAdvisories(L"exercise");
+  REQUIRE(sourceBaseline.size() == 2U);
+
+  std::wstring const saveLabel = L"declaration-relevance-process-restart";
+  REQUIRE(source.requestFederationSave(
+               L"exercise", publisherId, saveLabel).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE(source.federateSaveBegun(L"exercise", publisherId).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE(source.federateSaveBegun(L"exercise", subscriberId).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE_FALSE(source.federateSaveComplete(
+      L"exercise", publisherId).saveCompletedSuccessfully);
+  REQUIRE(source.federateSaveComplete(
+      L"exercise", subscriberId).saveCompletedSuccessfully);
+
+  EmbeddedFederationRegistry restarted({}, store);
+  REQUIRE(restarted.create(L"exercise", composedRestaurantDefinition()).status ==
+      FederationRegistryStatus::applied);
+  auto restartedPublisher = restarted.join(
+      L"exercise", L"publisher", L"publisher", noOpCallbackRoute());
+  auto restartedSubscriber = restarted.join(
+      L"exercise", L"subscriber", L"subscriber", noOpCallbackRoute());
+  REQUIRE(restartedPublisher.membership);
+  REQUIRE(restartedSubscriber.membership);
+  REQUIRE(restartedPublisher.membership->id == publisherId);
+  REQUIRE(restartedSubscriber.membership->id == subscriberId);
+
+  REQUIRE(restarted.requestFederationRestore(
+               L"exercise", publisherId, saveLabel).status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+  REQUIRE(restarted.federateRestoreComplete(
+               L"exercise", publisherId).status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+  REQUIRE(restarted.federateRestoreComplete(
+               L"exercise", subscriberId).status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+
+  // Restoring declarations must establish the current relevance baseline,
+  // so an immediate planner pass has no synthetic Start/Turn-On edges.
+  auto baseline = restarted.planDeclarationAdvisories(L"exercise");
+  REQUIRE(baseline.empty());
+
+  // A real edge after restore remains visible: disabling both subscriptions
+  // produces exactly the matching Stop/Turn-Off transitions.
+  REQUIRE(restarted.setObjectClassAttributeSubscription(
+               L"exercise", subscriberId, *objectClass, {*attribute}, false) ==
+      umbra::detail::ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(restarted.setInteractionClassSubscription(
+               L"exercise", subscriberId, *interactionClass, false) ==
+      umbra::detail::InteractionClassDeclarationStatus::applied);
+  auto transitions = restarted.planDeclarationAdvisories(L"exercise");
+  REQUIRE(transitions.size() == 2U);
+  REQUIRE(std::count_if(
+              transitions.begin(), transitions.end(), [](auto const& advisory) {
+                return advisory.kind ==
+                    umbra::detail::DeclarationAdvisoryKind::stop_registration_for_object_class;
+              }) == 1U);
+  REQUIRE(std::count_if(
+              transitions.begin(), transitions.end(), [](auto const& advisory) {
+                return advisory.kind ==
+                    umbra::detail::DeclarationAdvisoryKind::turn_interactions_off;
+              }) == 1U);
 
   std::filesystem::remove_all(directory, ignored);
 }

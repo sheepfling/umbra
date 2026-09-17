@@ -7,6 +7,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -29,6 +30,9 @@ class ProcessFederationCallbackBridgeError final : public std::runtime_error {
 // the embedded public binding; it is not a public API or a conformance claim.
 class ProcessFederationCallbackBridge final {
  public:
+  using CallbackCompletionHandler = std::function<void()>;
+  using TsoDeliveryCompletionHandler = std::function<void(std::uint64_t)>;
+
   explicit ProcessFederationCallbackBridge(
       rti1516_2025::FederateAmbassador& recipient,
       CallbackDispatchModel model = CallbackDispatchModel::evoked);
@@ -64,6 +68,34 @@ class ProcessFederationCallbackBridge final {
   // enable/disable gating, and ambassador lifetime remain identical.
   void submitAttributeUpdate(ProcessFederationAttributeUpdateEvent event);
 
+  // Queue one provider-side Request Attribute Value Update callback through
+  // the same callback dispatcher/session as all other process events.
+  void submitAttributeValueUpdateRequest(
+      ProcessFederationAttributeValueUpdateRequestEvent event);
+
+  // Queue one Query Attribute Ownership result through the official
+  // FederateAmbassador callback family. Grouping remains the service's
+  // responsibility; this bridge only reconstructs the selected report kind.
+  void submitAttributeOwnershipQuery(
+      ProcessFederationAttributeOwnershipQueryEvent event);
+
+  // Queue one Attribute Ownership Acquisition If Available terminal result
+  // through the official notification/unavailable callback pair.
+  void submitAttributeOwnershipAcquisitionIfAvailable(
+      ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent event);
+
+  // Queue the regular Acquisition Notification or owner-side Request
+  // Attribute Ownership Release callback selected by the process service.
+  void submitAttributeOwnershipAcquisition(
+      ProcessFederationAttributeOwnershipAcquisitionEvent event);
+
+  // Queue one Attribute Ownership Unavailable callback caused by an owner-side
+  // Attribute Ownership Release Denied request.  It remains distinct from the
+  // If Available terminal callback so the process event contract mirrors the
+  // official service invocation that produced it.
+  void submitAttributeOwnershipUnavailable(
+      ProcessFederationAttributeOwnershipUnavailableEvent event);
+
   // Queue one object-instance discovery through the official 6.9 callback
   // surface.  Discovery shares the process callback dispatcher/session but
   // remains a distinct event type so the receiving ambassador cannot mistake
@@ -85,6 +117,52 @@ class ProcessFederationCallbackBridge final {
   // official Turn Updates On/Off callback surface.
   void submitAttributeRelevanceAdvisory(
       ProcessFederationAttributeRelevanceAdvisoryEvent event);
+
+  // Queue the process-side confirmation/report callbacks for instance
+  // transportation-type control. The process service has already selected
+  // the standard transportation name; this bridge only reconstructs handles
+  // and invokes the official FederateAmbassador surface.
+  void submitAttributeTransportationTypeChange(
+      ProcessFederationAttributeTransportationTypeChangeEvent event);
+  void submitAttributeTransportationTypeQuery(
+      ProcessFederationAttributeTransportationTypeQueryEvent event);
+
+  // Queue one process-side Time Regulation Enabled callback.  The value may
+  // be the selected factory's initial time, which is valid for a role-enable
+  // callback even though an interaction timestamp must be finite.
+  void submitTimeRegulationEnabled(ProcessFederationLogicalTime event);
+  // Queue the matching process-side Time Constrained Enabled callback.  Keep
+  // this distinct from regulation so the official callback cannot be
+  // accidentally projected onto the wrong role.
+  void submitTimeConstrainedEnabled(ProcessFederationLogicalTime event);
+
+  // Notify the owning ambassador only after the official role-enable
+  // callback has crossed the FederateAmbassador boundary.  The process
+  // endpoint may complete the private state transition eagerly, but the
+  // public request-pending guard must remain set until this callback runs.
+  void setTimeRoleEnableCompletionHandlers(
+      CallbackCompletionHandler regulation,
+      CallbackCompletionHandler constrained);
+
+  // Install the process-client acknowledgement hook.  A timestamped event
+  // is acknowledged only after its official FederateAmbassador callback has
+  // crossed the callback boundary (or after a queued event is suppressed by
+  // Request Retraction).
+  void setTsoDeliveryCompletionHandler(
+      TsoDeliveryCompletionHandler handler);
+
+  // Queue one process-side Time Advance Grant through the official callback
+  // surface.  The private endpoint owns the state transition; this bridge
+  // owns only reconstruction and callback-model delivery.
+  void submitTimeAdvanceGrant(ProcessFederationLogicalTime event);
+
+  // Queue the two-value Flush Queue Grant callback.  FQR has a callback-time
+  // actual grant and an optimistic logical-time floor; keep it distinct from
+  // ordinary Time Advance Grant so the public FederateAmbassador surface is
+  // never projected through the wrong callback.
+  void submitFlushQueueGrant(
+      ProcessFederationLogicalTime grantedTime,
+      ProcessFederationLogicalTime optimisticTime);
 
   // Install the client-owned switch state used to suppress an advisory that
   // was already queued for HLA_EVOKED before the RTIambassador disabled the
@@ -110,12 +188,16 @@ class ProcessFederationCallbackBridge final {
     bool callbackStarted = false;
     bool retractionRequested = false;
     bool retractionCallbackQueued = false;
+    bool deliveryAcknowledged = false;
   };
 
   std::shared_ptr<CallbackDispatcher> dispatcher_;
   std::shared_ptr<rti1516_2025::umbra_binding_detail::CallbackSession>
       callbackSession_;
   std::shared_ptr<std::atomic_bool> attributeRelevanceAdvisorySwitchState_;
+  CallbackCompletionHandler timeRegulationEnabledCompletion_;
+  CallbackCompletionHandler timeConstrainedEnabledCompletion_;
+  TsoDeliveryCompletionHandler tsoDeliveryCompletion_;
   mutable std::mutex retractionMutex_;
   std::unordered_map<
       std::uint64_t,

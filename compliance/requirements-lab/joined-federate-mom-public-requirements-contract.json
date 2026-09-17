@@ -78,7 +78,7 @@
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::momTimeDurations",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes time-state durations directly and periodically",
+        "cpp/tests/joined_federate_mom_time_state_duration_catch2.cpp::Embedded joined-federate MOM exposes time-state durations directly and periodically",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_joined_federate_mom_time_state_durations"
       ],
       "notes": "HLAstandardMIM defines HLAtimeGrantedTime as an HLAinteger32BE HLAmsec duration. This bounded development-profile slice exposes a non-consuming direct Request Attribute Value Update value and a consume-once HLAsetTiming periodic value from the federation-owned wall-clock state, with nonnegative official four-octet encoding in both callback models. It does not claim the full time-statistics matrix, public MOM producer mapping, remote transport, JUnit/protected review, or conformance evidence."
@@ -90,7 +90,7 @@
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::momTimeDurations",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes time-state durations directly and periodically",
+        "cpp/tests/joined_federate_mom_time_state_duration_catch2.cpp::Embedded joined-federate MOM exposes time-state durations directly and periodically",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_joined_federate_mom_time_state_durations"
       ],
       "notes": "HLAstandardMIM defines HLAtimeAdvancingTime as an HLAinteger32BE HLAmsec duration. This bounded development-profile slice exposes the current advancing interval through direct Request Attribute Value Update and the registry-owned consume-once periodic reflection route, preserving official four-octet nonnegative encoding and both callback models. It does not claim every time-management transition, the full time-statistics matrix, public MOM producer mapping, remote transport, JUnit/protected review, or conformance evidence."
@@ -126,7 +126,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes federation GALT and LITS"
+        "cpp/tests/joined_federate_mom_galt_lits_periodic_catch2.cpp::Embedded joined-federate MOM exposes federation GALT and LITS"
       ],
       "notes": "HLAGALT and HLALITS are official HLAlogicalTime Periodic attributes. This bounded development-profile case proves direct known-object requests and HLAsetTiming delivery use the same federation-owned time snapshot/calculator as Query GALT/Query LITS: a joined regulator's initial time plus lookahead yields defined value 2 for both bounds, and disabling the sole regulator returns the MIM empty-array undefined form. It does not claim the remaining HLAcount/statistical periodic attributes, public MOM producer mapping, remote transport, or conformance evidence."
     },
@@ -137,7 +137,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes queued TSO length"
+        "cpp/tests/joined_federate_mom_tso_length_periodic_catch2.cpp::Embedded joined-federate MOM exposes queued TSO length"
       ],
       "notes": "HLATSOlength is an official HLAcount Periodic attribute whose semantics count TSO messages queued for the joined federate. This bounded case proves direct and HLAsetTiming reflections read the coordinator's recipient-scoped queued ledger: one timestamped interaction is reported as count 1 before the target grant, and count 0 after delivery; in-transit and completed delivery state are not counted as queued. It does not claim the remaining traffic statistics, public MOM producer mapping, remote transport, or conformance evidence."
     },
@@ -148,7 +148,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes deletable object count"
+        "cpp/tests/joined_federate_mom_deletable_object_count_catch2.cpp::Embedded joined-federate MOM exposes deletable object count"
       ],
       "notes": "HLAstandardMIM defines HLAobjectInstancesThatCanBeDeleted as an HLAcount of live object instances whose HLAprivilegeToDeleteObject is owned by the represented joined federate. This bounded case reads the existing object ownership ledger, excludes RTI-owned MOM objects, and proves direct requests 0 before registration, 1 after a real implicit-privilege registration, periodic HLAsetTiming value 1, and 0 after the owner deletes the object. It does not claim the remaining traffic/statistical counts, public MOM producer mapping, remote transport, or conformance evidence."
     },
@@ -159,7 +159,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes receive-order queue length",
+        "cpp/tests/joined_federate_mom_ro_length_periodic_catch2.cpp::Embedded joined-federate MOM exposes receive-order queue length",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_joined_federate_mom_ro_length_tracks_queued_messages"
       ],
       "notes": "HLAstandardMIM defines HLAROlength as the number of receive-order messages waiting for the represented joined federate. This bounded development-profile slice reads the live callback-route/deferred-receive ledger, proves direct HLAinteger32BE values 0 before a send, 1 while one application receive-order callback is queued, 1 through HLAsetTiming periodic reflection, and 0 after the target crosses its callback boundary. The native case covers HLA_EVOKED and the Java/JPype companion covers both HLA_EVOKED and HLA_IMMEDIATE. The generic Lab candidate does not express the represented-federate queue source, callback gate, direct/periodic relation, or callback model; RL-108 records that refinement gap. Remaining statistical attributes, public MOM producer mapping, remote transport, JUnit promotion, and conformance remain open."
@@ -171,7 +171,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes successful update count"
+        "cpp/tests/joined_federate_mom_updates_sent_periodic_catch2.cpp::Embedded joined-federate MOM exposes HLAupdatesSent count"
       ],
       "notes": "HLAstandardMIM defines HLAupdatesSent as the total number of times the represented joined federate has successfully invoked Update Attribute Values. This bounded case uses an RTI-owned membership counter advanced only after synchronous validation/queue admission, proves direct values 0 before any invocation and 1 then 2 after two accepted updates, and verifies periodic HLAsetTiming reflection of 2. It counts service invocations rather than individual attribute values or downstream reflections; other traffic/statistical attributes, public MOM producer mapping, remote transport, and conformance evidence remain open."
     },
@@ -182,7 +182,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes successful update count"
+        "cpp/tests/joined_federate_mom_updated_object_count_periodic_catch2.cpp::Embedded joined-federate MOM exposes HLAobjectInstancesUpdated count"
       ],
       "notes": "HLAstandardMIM defines HLAobjectInstancesUpdated as the HLAcount of distinct object instances for which the represented joined federate has successfully invoked Update Attribute Values. This bounded case retains the accepted-boundary object-handle set on the joined membership, proves direct values 0 before updates, 1 after two invocations for one object, and 2 after a successful update for a second object, then verifies periodic reflection of 2 alongside HLAupdatesSent=3. Repeated updates to one object do not inflate the distinct-object count; remaining HLAcount/statistical attributes, public MOM producer mapping, remote transport, and conformance evidence remain open."
     },
@@ -193,7 +193,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes successful update count"
+        "cpp/tests/joined_federate_mom_registered_object_count_periodic_catch2.cpp::Embedded joined-federate MOM exposes HLAobjectInstancesRegistered count"
       ],
       "notes": "HLAstandardMIM defines HLAobjectInstancesRegistered as the HLAcount of successful Register Object Instance and Register Object Instance with Regions invocations since Join. This bounded case increments one membership-owned counter in the common registry registration path, proves direct values 0 before registration, 1 after the first object, and 2 after the second, and verifies periodic reflection of 2 alongside HLAupdatesSent=3 and HLAobjectInstancesUpdated=2. Invalid registrations do not increment the counter; remaining HLAcount/statistical attributes, public MOM producer mapping, remote transport, and conformance evidence remain open."
     },
@@ -204,7 +204,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::deleteObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes successful update count"
+        "cpp/tests/joined_federate_mom_deleted_object_count_periodic_catch2.cpp::Embedded joined-federate MOM exposes HLAobjectInstancesDeleted count"
       ],
       "notes": "HLAstandardMIM defines HLAobjectInstancesDeleted as the total number of Delete Object Instance invocations by the joined federate since Join. This bounded case increments the membership-owned count after accepted receive-order deletion and after successful timestamped deletion queue admission, proves direct values 0/1/2 and periodic reflection of 0 before deletion and 2 after two deletions, and keeps the historical count across object purge. Retracted timestamped deletion does not decrement the historical invocation statistic; remaining HLAcount/statistical attributes, public MOM producer mapping, remote transport, and conformance evidence remain open."
     },
@@ -215,8 +215,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginObjectInstanceRemoval",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes successful update count",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction reconstitutes a delivered timestamped object deletion"
+        "cpp/tests/joined_federate_mom_removed_object_count_periodic_catch2.cpp::Embedded joined-federate MOM HLAobjectInstancesRemoved counts committed callbacks",
+        "cpp/tests/timestamped_object_deletion_retraction_catch2.cpp::Embedded Request Retraction reconstitutes a delivered timestamped object deletion"
       ],
       "notes": "HLAstandardMIM defines HLAobjectInstancesRemoved as the total number of Remove Object Instance service invocations for the represented joined federate since Join. This bounded case advances the recipient-owned counter only when an ordinary application-object receive-order or timestamped removal reaches its callback-admission boundary, leaves a pending legally retracted timestamped removal uncounted, and preserves a count for a removal retracted after delivery. The C++ vectors prove the receiving federate's direct value at 0, 1, and 2 after two committed receive-order callbacks and its periodic HLAsetTiming reflection at 2; the reconstitution vector proves one delivered timestamped removal remains counted while a suppressed constrained recipient remains at zero after retraction. RTI-owned joined-federate MOM-object removal, remaining HLAcount/statistical attributes, public MOM producer mapping, remote transport, and conformance evidence remain open."
     },
@@ -227,7 +227,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginObjectInstanceDiscovery",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM exposes successful update count"
+        "cpp/tests/joined_federate_mom_discovered_object_count_periodic_catch2.cpp::Embedded joined-federate MOM HLAobjectInstancesDiscovered counts eligible callbacks"
       ],
       "notes": "HLAstandardMIM defines HLAobjectInstancesDiscovered as the total number of Discover Object Instance invocations for the represented joined federate since Join and requires repeated discovery after Local Delete Object Instance to contribute again. This bounded development-profile slice advances the recipient-owned counter only after the ordinary application-object callback route has passed membership, declaration, class-selection, and known-state checks; it proves direct values 0, 1, 2, and 3, a periodic value of 3, and a third discovery for the same object after local deletion and a repeated eligible subscription. RTI-owned joined-federate MOM-object discovery, other statistical attributes, public MOM producer mapping, remote transport, and conformance evidence remain open."
     },
@@ -350,7 +350,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::recordSuccessfulObjectInstanceReflection",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM separates reflection totals from distinct objects"
+        "cpp/tests/joined_federate_mom_reflection_count_catch2.cpp::Embedded joined-federate MOM separates reflection totals from distinct objects"
       ],
       "notes": "HLAstandardMIM defines HLAobjectInstancesReflected as the number of distinct application object instances for which the represented joined federate has received a Reflect Attribute Values callback. This bounded development-profile slice retains a joined-lifetime object-handle set at the accepted callback boundary, excludes RTI-owned MOM reflections, proves direct values 0, 1, 1, and 2 for repeated updates to one object followed by an update to a second object, keeps the value at 2 for a queued timestamped reflection of the first object, and verifies periodic HLAsetTiming value 2. The generic Lab candidate does not encode the distinct-object relation, callback boundary, or RTI-owned exclusion; RL-107 records that refinement gap. Remaining statistical attributes, public producer mapping, remote transport, protected review, JUnit promotion, and conformance remain open."
     },
@@ -361,7 +361,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::recordSuccessfulReflectionReceipt",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM separates reflection totals from distinct objects"
+        "cpp/tests/joined_federate_mom_reflection_count_catch2.cpp::Embedded joined-federate MOM separates reflection totals from distinct objects"
       ],
       "notes": "HLAstandardMIM defines HLAreflectionsReceived as the number of accepted Reflect Attribute Values callback invocations at the represented joined federate. This bounded development-profile slice advances one receiver-owned counter immediately before each application callback, excludes MOM-owned callback traffic and suppressed projections, proves direct values 0, 1, 2, 3, and 4 across three receive-order updates plus one queued timestamped update, and verifies periodic HLAsetTiming value 4. The generic Lab candidate does not relate the statistic to callback admission, timestamped delivery, or RTI-owned exclusion; RL-107 records that refinement gap. Remaining statistical attributes, public producer mapping, remote transport, protected review, JUnit promotion, and conformance remain open."
     },
@@ -372,7 +372,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planMomObjectInstancesUpdatedReport",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesUpdated reports class-grouped counts",
+        "cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp::Embedded MOM requestObjectInstancesUpdated reports class-grouped counts",
         "cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp::Embedded MOM requestObjectInstancesUpdated reports class-grouped counts"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestObjectInstancesUpdated as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportObjectInstancesUpdated response with HLAobjectClassBasedCounts. This bounded native-first slice consumes the request without ordinary publication validation, snapshots the target joined-federate update ledger by registered object class, encodes the official nested HLAvariableArray<HLAfixedRecord> value, and routes the reliable report through the target HLAfederate dimension point. The focused case proves two classes with one distinct object each after repeated updates, an empty user tag, default-invalid RTI producer, and callback-gated delivery. The generic Lab candidate does not express request-to-report correlation, class grouping, nested encoding, or the RTI producer route; RL-109 records that refinement gap. Other HLArequest/HLAreport families, transportation-specific statistics, remote transport, JUnit/protected review, and conformance remain open."
@@ -384,7 +384,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planMomObjectInstancesThatCanBeDeletedReport",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts",
+        "cpp/tests/joined_federate_mom_object_instances_that_can_be_deleted_report_catch2.cpp::Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts",
         "cpp/tests/joined_federate_mom_object_instances_that_can_be_deleted_report_catch2.cpp::Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestObjectInstancesThatCanBeDeleted as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportObjectInstancesThatCanBeDeleted response with HLAobjectClassBasedCounts. This bounded native-first slice derives live class-grouped counts from the authoritative HLAprivilegeToDeleteObject ownership ledger, encodes the official nested value, and routes a reliable report through the target HLAfederate dimension point. The focused case proves two registered classes initially report one deletable instance each, then deleting one instance removes only that class from the next report; the report has an empty tag, default-invalid RTI producer, and callback-gated delivery. The generic Lab candidate does not express request-to-report correlation, live ownership semantics, class grouping, nested encoding, or the RTI producer route; RL-110 records that refinement gap. Other HLArequest/HLAreport families, transportation-specific statistics, remote transport, JUnit/protected review, and conformance remain open."
@@ -396,7 +396,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planMomObjectInstancesReflectedReport",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesReflected reports distinct reflected instances",
+        "cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp::Embedded MOM requestObjectInstancesReflected reports distinct reflected instances",
         "cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp::Embedded MOM requestObjectInstancesReflected reports distinct reflected instances"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestObjectInstancesReflected as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportObjectInstancesReflected response with HLAobjectClassBasedCounts. This bounded native-first slice derives joined-lifetime distinct reflected-instance counts from the accepted application Reflect Attribute Values callback ledger, groups them by registered object class, encodes the official nested value, and routes a reliable report through the target HLAfederate dimension point. The focused case proves two classes after two initial reflections plus a repeated reflection of one object, empty tag, default-invalid RTI producer, and callback-gated delivery. The generic Lab candidate does not express request-to-report correlation, callback-boundary ownership, distinct-object semantics, class grouping, nested encoding, or the RTI producer route; RL-111 records that refinement gap. Other HLArequest/HLAreport families, transportation-specific statistics, remote transport, JUnit/protected review, and conformance remain open."
@@ -408,8 +408,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planMomUpdatesSentReport",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestUpdatesSent reports class and transportation counts",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM sender count reports emit NULL buckets for empty ledgers"
+        "cpp/tests/joined_federate_mom_updates_sent_catch2.cpp::Embedded MOM requestUpdatesSent reports class and transportation counts",
+        "cpp/tests/mom_sender_count_reports_null_buckets_catch2.cpp::Embedded MOM sender count reports emit NULL buckets for empty ledgers"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestUpdatesSent as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportUpdatesSent response for each supported transportation type, with HLAtransportation and nested HLAupdateCounts parameters. This bounded native-first slice records accepted Update Attribute Values by registered object class and effective HLAreliable/HLAbestEffort transportation, emits one reliable report per supported transportation including an empty HLAupdateCounts NULL response, encodes the official nested HLAobjectClassBasedCounts value, and routes through the target HLAfederate dimension point with callback-time membership/subscription revalidation. The focused cases prove two best-effort Server updates and one reliable Soda update, plus an empty-ledger report for both transport buckets; reports have empty tags, default-invalid RTI producers, and HLA_EVOKED delivery. The generic Lab candidate does not express per-transport report cardinality, accepted-update boundary, registered-class grouping, nested encoding, private endpoint, or producer route; RL-112 records that refinement gap. Custom/remote transportation, other HLArequest/HLAreport families, JUnit/protected review, and conformance remain open."
     },
@@ -420,8 +420,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planMomInteractionsSentReport",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestInteractionsSent reports class and transportation counts",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM sender count reports emit NULL buckets for empty ledgers"
+        "cpp/tests/joined_federate_mom_interactions_sent_catch2.cpp::Embedded MOM requestInteractionsSent reports class and transportation counts",
+        "cpp/tests/mom_sender_count_reports_null_buckets_catch2.cpp::Embedded MOM sender count reports emit NULL buckets for empty ledgers"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestInteractionsSent as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportInteractionsSent response for each supported transportation type. This bounded native-first slice records accepted ordinary, regional, timestamped, directed, and accepted MOM Send Interaction invocations by sent interaction class and effective HLAreliable/HLAbestEffort transportation, emits one reliable report per supported transportation including an empty HLAinteractionCounts NULL response, encodes the official array, and routes reliable reports through the target HLAfederate dimension point with callback-time membership/subscription revalidation. The focused cases prove one reliable ordinary TakeOrder, one best-effort TakeOrder, one reliable regional MainCourseServed count, and an empty-ledger report for both transport buckets; reports have empty tags, default-invalid RTI producers, and HLA_EVOKED delivery. The generic Lab candidate does not express per-transport report cardinality, regional inclusion, accepted sender boundary, class grouping, nested encoding, private endpoint, or producer route; RL-113 records that refinement gap. Custom/remote transportation, the remaining MOM request/report families, JUnit/protected review, and conformance remain open."
     },
@@ -433,7 +433,7 @@
       "source_symbol": "EmbeddedFederationRegistry::planMomDirectedInteractionsSentReport",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestDirectedInteractionsSent reports directed class and transportation counts",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM sender count reports emit NULL buckets for empty ledgers"
+        "cpp/tests/mom_sender_count_reports_null_buckets_catch2.cpp::Embedded MOM sender count reports emit NULL buckets for empty ledgers"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestDirectedInteractionsSent as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportDirectedInteractionsSent response for each supported transportation type. This bounded native-first slice records accepted directed Send Interaction invocations separately from the all-interactions ledger by sent interaction class and effective HLAreliable/HLAbestEffort transportation, emits one reliable report per supported transportation including an empty HLAinteractionCounts NULL response, encodes the official array, and routes reliable reports through the target HLAfederate dimension point with callback-time membership/subscription revalidation. The focused cases prove two reliable directed TakeOrder sends plus an empty best-effort bucket, empty tags, default-invalid RTI producers, and HLA_EVOKED delivery. The generic Lab candidate does not express directed-subset accounting, per-transport report cardinality, accepted sender boundary, class grouping, nested encoding, private endpoint, or producer route; RL-114 records that refinement gap. Custom/remote transportation, the remaining MOM request/report families, JUnit/protected review, and conformance remain open."
     },
@@ -444,7 +444,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planMomReflectionsReceivedReport",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestReflectionsReceived reports class and transportation counts"
+        "cpp/tests/joined_federate_mom_reflections_received_catch2.cpp::Embedded MOM requestReflectionsReceived reports class and transportation counts"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestReflectionsReceived as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportReflectionsReceived response for each transportation type. This bounded native-first slice records accepted application Reflect Attribute Values callbacks at the receiver boundary by registered object class and effective HLAreliable/HLAbestEffort transportation, emits both standard buckets including an empty HLAreflectCounts NULL response, encodes the official HLAobjectClassBasedCounts array, and routes reliable reports through the target HLAfederate dimension point with callback-time membership/subscription revalidation. The focused case proves one reliable and one best-effort reflection, then an empty report for a joined federate with no reflections; reports have empty tags, default-invalid RTI producers, and HLA_EVOKED delivery. The generic Lab candidate does not express callback-boundary reflection semantics, per-transport report cardinality, registered-class grouping, nested encoding, private endpoint, or producer route; RL-118 records that refinement gap. Custom/remote transportation, other MOM request/report families, JUnit/protected review, and conformance remain open."
     },
@@ -455,7 +455,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planMomObjectInstanceInformationReport",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstanceInformation reports known and NULL object state",
+        "cpp/tests/joined_federate_mom_object_instance_information_report_catch2.cpp::Embedded MOM requestObjectInstanceInformation reports known and NULL object state",
         "cpp/tests/joined_federate_mom_object_instance_information_report_catch2.cpp::Embedded MOM requestObjectInstanceInformation reports known and NULL object state"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestObjectInstanceInformation as a Subscribe-only MOM request carrying HLAobjectInstance and requires one RTI-originated HLAreportObjectInstanceInformation response. This bounded native-first slice snapshots the requesting joined federate's object knowledge at the request boundary, emits the requested HLAobjectInstance plus an official nested HLAattributeHandleList, and includes HLAregisteredClass/HLAknownClass only when the represented federate knows the object. The focused case proves the NULL response for an object removed from the observer's known-object ledger, the known response with no owned attributes, and the registering federate's response containing both Efficiency and the implicitly published HLAprivilegeToDeleteObject ownership. Reports use reliable transport, the target federate's private dimension point, empty tags, default-invalid RTI producers, and callback-gated delivery. The generic Lab candidate does not express request-object correlation, known-vs-NULL parameter omission, nested attribute-handle-list encoding, ownership/class snapshot semantics, private endpoint, or producer route; RL-119 records that refinement gap. Other MOM request/report families, remote transport, JUnit/protected review, and conformance remain open."
@@ -500,7 +500,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planMomInteractionsReceivedReport",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestInteractionsReceived reports class and transportation counts"
+        "cpp/tests/joined_federate_mom_interactions_received_catch2.cpp::Embedded MOM requestInteractionsReceived reports class and transportation counts"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestInteractionsReceived as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportInteractionsReceived response for each supported transportation type. This bounded native-first slice records accepted application Receive Interaction callbacks at the receiver boundary by original sent interaction class and effective HLAreliable/HLAbestEffort transportation, emits both standard buckets including an empty HLAinteractionCounts NULL response, encodes the official HLAinteractionCounts array, and routes reliable reports through the target HLAfederate dimension point with callback-time membership/subscription revalidation. The focused case proves one reliable and one best-effort TakeOrder receive, empty tag, default-invalid RTI producer, and HLA_EVOKED delivery. The generic Lab candidate does not express callback-boundary receipt semantics, per-transport report cardinality, sent-class grouping, nested encoding, private endpoint, or producer route; RL-115 records that refinement gap. Custom/remote transportation, directed-receipt reports, other MOM request/report families, JUnit/protected review, and conformance remain open."
     },
@@ -511,7 +511,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planMomDirectedInteractionsReceivedReport",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestDirectedInteractionsReceived reports directed counts and NULL buckets"
+        "cpp/tests/joined_federate_mom_directed_interactions_received_catch2.cpp::Embedded MOM requestDirectedInteractionsReceived reports directed counts and NULL buckets"
       ],
       "notes": "The official HLAstandardMIM defines HLArequestDirectedInteractionsReceived as a Subscribe-only MOM request carrying HLAfederate and requires one RTI-originated HLAreportDirectedInteractionsReceived response for each supported transportation type. This native-first slice records accepted directed Receive Interaction callbacks separately from the all-interactions receive ledger, groups them by original sent interaction class and effective HLAreliable/HLAbestEffort transportation, emits both standard buckets including an empty HLAinteractionCounts NULL response, and routes reliable reports through the target HLAfederate dimension point with callback-time membership/subscription revalidation. The focused case proves that an ordinary receive is excluded, one reliable directed TakeOrder receive is counted, the best-effort bucket is empty, and the report has an empty tag, default-invalid RTI producer, and HLA_EVOKED delivery. The generic Lab candidate does not express directed callback-boundary receipt semantics, per-transport report cardinality, sent-class grouping, nested encoding, private endpoint, or producer route; RL-116 records that refinement gap. Custom/remote transportation, the other MOM request/report families, JUnit/protected review, and conformance remain open."
     }

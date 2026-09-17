@@ -46,6 +46,8 @@ inline constexpr wchar_t food_served[] =
     L"HLAinteractionRoot.CustomerTransactions.FoodServed";
 inline constexpr wchar_t main_course_served[] =
     L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+inline constexpr wchar_t two_dimensional_regional_interaction[] =
+    L"HLAinteractionRoot.UmbraTwoDimensionalRegionInteraction";
 inline constexpr wchar_t server_take_order[] =
     L"HLAinteractionRoot.ServerAction.TakeOrder";
 inline constexpr wchar_t dimension_fixture_interaction[] =

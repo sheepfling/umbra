@@ -13,7 +13,7 @@
       "source_symbol": "UmbraRtiAmbassador::normalizeServiceGroup",
       "tests": [
         "cpp/tests/handle_normalization_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
+        "cpp/tests/handle_normalization_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers handle normalization return arguments through MOM interaction"
       ]
     },
@@ -25,7 +25,7 @@
       "source_symbol": "UmbraRtiAmbassador::normalizeFederateHandle",
       "tests": [
         "cpp/tests/handle_normalization_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
+        "cpp/tests/handle_normalization_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers handle normalization return arguments through MOM interaction"
       ]
     },
@@ -37,7 +37,7 @@
       "source_symbol": "UmbraRtiAmbassador::normalizeObjectClassHandle",
       "tests": [
         "cpp/tests/handle_normalization_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
+        "cpp/tests/handle_normalization_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers handle normalization return arguments through MOM interaction"
       ]
     },
@@ -49,7 +49,7 @@
       "source_symbol": "UmbraRtiAmbassador::normalizeInteractionClassHandle",
       "tests": [
         "cpp/tests/handle_normalization_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
+        "cpp/tests/handle_normalization_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers handle normalization return arguments through MOM interaction"
       ]
     },
@@ -61,7 +61,7 @@
       "source_symbol": "UmbraRtiAmbassador::normalizeObjectInstanceHandle",
       "tests": [
         "cpp/tests/handle_normalization_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
+        "cpp/tests/handle_normalization_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers handle normalization return arguments through MOM interaction"
       ]
     },
@@ -73,7 +73,7 @@
       "source_symbol": "EmbeddedFederationRegistry::normalizedHandleValue",
       "tests": [
         "cpp/tests/handle_normalization_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates"
+        "cpp/tests/handle_normalization_catch2.cpp::Embedded handle normalization supplies stable DDM point-range coordinates"
       ]
     }
   ]

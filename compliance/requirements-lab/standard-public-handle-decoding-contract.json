@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "kind": "portable-cpp-tck-contract",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "title": "Portable standard C++ federation-scoped handle decoding contract",
+  "portable_boundary": {
+    "headers": "official IEEE 1516.1-2025 C++ RTI API headers",
+    "implementation": "RTIambassador and FederateAmbassador only",
+    "inputs": "provider library, DDM FOM, endpoint, callback model, and logical-time implementation supplied by adapter",
+    "forbidden": [
+      "private headers",
+      "private registry access",
+      "provider-specific diagnostics",
+      "cross-RTI wire-encoding assumptions"
+    ]
+  },
+  "standard_surface": [
+    "RTIambassador.decodeFederateHandle",
+    "RTIambassador.decodeObjectClassHandle",
+    "RTIambassador.decodeInteractionClassHandle",
+    "RTIambassador.decodeObjectInstanceHandle",
+    "RTIambassador.decodeAttributeHandle",
+    "RTIambassador.decodeParameterHandle",
+    "RTIambassador.decodeDimensionHandle",
+    "RTIambassador.decodeRegionHandle",
+    "RTIambassador.decodeMessageRetractionHandle"
+  ],
+  "assertions": [
+    "all decoders reject use before connect with NotConnected",
+    "all decoders reject use before join with FederateNotExecutionMember",
+    "actual federation-scoped handles round-trip through their matching decoder",
+    "a provider-created timestamped message-retraction handle round-trips",
+    "empty encodings are rejected with CouldNotDecode"
+  ],
+  "evidence_scope": "portable source boundary plus installed-package adapter, both standard callback models",
+  "notes": "This slice proves public C++ decoder behavior and lifecycle boundaries; it does not claim cross-provider encoding interoperability or protected-review evidence."
+}

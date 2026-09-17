@@ -188,8 +188,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped regional interaction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped regional interaction to multiple recipients"
+        "cpp/tests/restore_live_tso_regional_interaction_catch2.cpp::Embedded federation restore restores a saved live timestamped regional interaction",
+        "cpp/tests/restore_live_tso_regional_interaction_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped regional interaction to multiple recipients"
       ]
     },
     {
@@ -210,7 +210,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Send Interaction With Regions before interaction callback"
+        "cpp/tests/timestamped_regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records timestamped Send Interaction With Regions before interaction callback"
       ],
       "notes": "The accepted timestamped Send Interaction With Regions boundary uses the joined federate's shared file-or-MOM selector. In the filesystem-selected path, the one durable record preserves the type-27 interaction class, type-40 parameter map, type-43 source-region set, type-63 tag, type-31 timestamp, and type-33 message-retraction return before the constrained recipient callback. The paired HLA_IMMEDIATE public MOM case decodes the same service type 2 interaction and all supplied/returned forms, then proves the report is present before the constrained callback. This is bounded C++ development-profile evidence; the Requirements Lab provides no row-level backend/lifecycle relation for this service-report matrix (RL-105/RL-152), so validation and conformance remain open."
     },
@@ -221,7 +221,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted timestamped regional Send Interaction With Regions through MOM interaction"
+        "cpp/tests/timestamped_regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted timestamped regional Send Interaction With Regions through MOM interaction"
       ],
       "notes": "The HLA_IMMEDIATE observer receives the accepted timestamped regional Send Interaction With Regions service report before the constrained regional Receive Interaction callback. The decoder verifies service type 2, type-27/type-40/type-43/type-63/type-31 supplied forms, the quoted Table 5 type-33 MessageRetractionHandle return, success true, empty exception, and serial zero; the callback verifies the source RegionHandle, timestamp, TIMESTAMP order metadata, and valid retraction. Requirements Lab RL-105/RL-152 leave this as development traceability rather than Lab validation or conformance."
     },
@@ -232,8 +232,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed timestamped regional Send Interaction With Regions invocations",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed timestamped regional Send Interaction With Regions invocations through MOM interaction"
+        "cpp/tests/timestamped_regional_interaction_failure_service_report_file_catch2.cpp::Embedded service reporting records failed timestamped regional Send Interaction With Regions invocations",
+        "cpp/tests/timestamped_regional_interaction_failure_service_report_interaction_catch2.cpp::Embedded service reporting delivers failed timestamped regional Send Interaction With Regions invocations through MOM interaction"
       ],
       "notes": "The focused C++ failure matrix covers timestamped Send Interaction With Regions pre-admission failures for an invalid interaction class, invalid parameter, invalid region, and invalid logical time. The filesystem and HLA_IMMEDIATE public-MOM paths preserve serials zero through three, object-management service type 2, type-27/type-40/type-43/type-63/type-31 supplied forms, Null return, false success, and exact exception text; no application Receive Interaction is delivered. Requirements Lab RL-105/RL-152 provide no row-level backend or conditional-failure relation, so this remains development-profile traceability rather than validation or conformance."
     }

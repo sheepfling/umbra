@@ -262,4 +262,174 @@ TEST_CASE(
   }
 }
 
+TEST_CASE(
+    "Embedded attribute relevance advisories follow scope transitions",
+    "[integration][development-profile][federation-management][object-management][ddm]"
+    "[callbacks][callback-immediate][callback-suppression][attribute-relevance-advisory]"
+    "[attribute-relevance-scope-transition][update-rate-reissue][2025]"
+    "[rti.service.get-attribute-relevance-advisory-switch]"
+    "[rti.service.set-attribute-relevance-advisory-switch]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.unsubscribe-object-class-attributes]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.register-object-instance]"
+    "[federate.callback.turn-updates-on-for-object-instance]"
+    "[federate.callback.turn-updates-off-for-object-instance]") {
+  auto runScenario = [](CallbackModel callbackModel) {
+    ReportingFederateAmbassador ownerReports;
+    ReportingFederateAmbassador subscriberReports;
+    auto owner = makeRti();
+    auto subscriber = makeRti();
+    auto const federationName = nextFederationName();
+    auto const fomModule =
+        resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+    REQUIRE_NOTHROW(owner->connect(ownerReports, callbackModel));
+    REQUIRE_NOTHROW(subscriber->connect(subscriberReports, callbackModel));
+    REQUIRE_NOTHROW(owner->createFederationExecution(
+        federationName,
+        fomModule,
+        standard_hla::mom::integer64_time));
+    REQUIRE_NOTHROW(owner->joinFederationExecution(
+        L"ordinary-advisory-owner", L"ordinary-advisory-owner", federationName));
+    REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+        L"ordinary-advisory-subscriber",
+        L"ordinary-advisory-subscriber",
+        federationName));
+    suppressDeclarationRelevanceAdvisories(*owner);
+
+    auto const soda = owner->getObjectClassHandle(fixture_hla::fom::food_drink_soda);
+    auto const flavor = owner->getAttributeHandle(soda, fixture_hla::fixture::flavor);
+    REQUIRE(soda.isValid());
+    REQUIRE(flavor.isValid());
+    REQUIRE(owner->getAttributeRelevanceAdvisorySwitch());
+    REQUIRE(subscriber->getAttributeRelevanceAdvisorySwitch());
+
+    AttributeHandleSet const flavorOnly{flavor};
+    REQUIRE_NOTHROW(owner->publishObjectClassAttributes(soda, flavorOnly));
+
+    auto drainOwnerCallbacks = [&] {
+      if (callbackModel == HLA_EVOKED) {
+        while (owner->evokeMultipleCallbacks(0.0, 0.0)) {
+        }
+      }
+    };
+    auto drainSubscriberCallbacks = [&] {
+      if (callbackModel == HLA_EVOKED) {
+        while (subscriber->evokeMultipleCallbacks(0.0, 0.0)) {
+        }
+      }
+    };
+
+    // Register before changing the subscription so the owner-directed
+    // advisory is the transition under test (registration itself only plans
+    // discovery callbacks).
+    ObjectInstanceHandle objectInstance;
+    REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(soda));
+
+    // A default (unspecified) subscription uses the no-rate callback form.
+    REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+        soda,
+        flavorOnly,
+        true));
+    // The subscription also discovers an already-registered object.  Under
+    // HLA_EVOKED the initial owner-directed advisory is planned only after
+    // that discovery callback commits the receiver's known-instance state.
+    drainSubscriberCallbacks();
+    drainOwnerCallbacks();
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.size() == 1U);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.front().objectInstance ==
+            objectInstance);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.front().attributes ==
+            flavorOnly);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.empty());
+
+    REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(soda, flavorOnly));
+    drainOwnerCallbacks();
+    REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.size() == 1U);
+    REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.front().objectInstance ==
+            objectInstance);
+    REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.front().attributes ==
+            flavorOnly);
+    ownerReports.turnUpdatesOnForObjectInstanceReports.clear();
+    ownerReports.turnUpdatesOffForObjectInstanceReports.clear();
+
+    // The switch gates both callback overloads.  A disabled switch must not
+    // leak a queued or immediate advisory while the subscription changes.
+    REQUIRE_NOTHROW(owner->setAttributeRelevanceAdvisorySwitch(false));
+    REQUIRE_FALSE(owner->getAttributeRelevanceAdvisorySwitch());
+    REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+        soda,
+        flavorOnly,
+        true,
+        L"High"));
+    drainOwnerCallbacks();
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.empty());
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.empty());
+    REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.empty());
+    REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(soda, flavorOnly));
+    drainOwnerCallbacks();
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.empty());
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.empty());
+    REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.empty());
+
+    REQUIRE_NOTHROW(owner->setAttributeRelevanceAdvisorySwitch(true));
+    REQUIRE(owner->getAttributeRelevanceAdvisorySwitch());
+
+    // An explicit subscription uses the rate-bearing overload and a later
+    // designator change reissues the active maximum rate.
+    REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+        soda,
+        flavorOnly,
+        true,
+        L"High"));
+    drainOwnerCallbacks();
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.empty());
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.size() == 1U);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.front().objectInstance ==
+            objectInstance);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.front().attributes ==
+            flavorOnly);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.front().updateRateDesignator ==
+            L"High");
+    ownerReports.turnUpdatesOnForObjectInstanceRateReports.clear();
+
+    REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+        soda,
+        flavorOnly,
+        true,
+        L"Medium"));
+    drainOwnerCallbacks();
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceReports.empty());
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.size() == 1U);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.front().objectInstance ==
+            objectInstance);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.front().attributes ==
+            flavorOnly);
+    REQUIRE(ownerReports.turnUpdatesOnForObjectInstanceRateReports.front().updateRateDesignator ==
+            L"Medium");
+
+    REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(soda, flavorOnly));
+    drainOwnerCallbacks();
+    REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.size() == 1U);
+    REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.front().objectInstance ==
+            objectInstance);
+    REQUIRE(ownerReports.turnUpdatesOffForObjectInstanceReports.front().attributes ==
+            flavorOnly);
+
+    REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+    REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(owner->disconnect());
+    REQUIRE_NOTHROW(subscriber->disconnect());
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
+}
+
 }  // namespace

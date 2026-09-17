@@ -123,6 +123,66 @@ bool isTransportServiceOperation(TransportServiceOperation operation) noexcept {
     case TransportServiceOperation::request_retraction:
     case TransportServiceOperation::local_delete_object_instance:
     case TransportServiceOperation::delete_object_instance:
+    case TransportServiceOperation::query_logical_time:
+    case TransportServiceOperation::enable_time_regulation:
+    case TransportServiceOperation::query_time_bounds:
+    case TransportServiceOperation::enable_time_constrained:
+    case TransportServiceOperation::time_advance_request:
+    case TransportServiceOperation::time_advance_grant:
+    case TransportServiceOperation::query_lookahead:
+    case TransportServiceOperation::modify_lookahead:
+    case TransportServiceOperation::time_advance_request_available:
+    case TransportServiceOperation::next_message_request:
+    case TransportServiceOperation::next_message_request_available:
+    case TransportServiceOperation::get_object_instance_handle:
+    case TransportServiceOperation::get_object_instance_name:
+    case TransportServiceOperation::get_object_class_name:
+    case TransportServiceOperation::get_interaction_class_name:
+    case TransportServiceOperation::get_attribute_name:
+    case TransportServiceOperation::get_parameter_name:
+    case TransportServiceOperation::get_dimension_name:
+    case TransportServiceOperation::get_transportation_type_handle:
+    case TransportServiceOperation::get_transportation_type_name:
+    case TransportServiceOperation::get_available_dimensions_for_object_class:
+    case TransportServiceOperation::get_available_dimensions_for_interaction_class:
+    case TransportServiceOperation::get_convey_region_designator_sets_switch:
+    case TransportServiceOperation::set_convey_region_designator_sets_switch:
+    case TransportServiceOperation::subscribe_interaction_class_with_regions:
+    case TransportServiceOperation::unsubscribe_interaction_class_with_regions:
+    case TransportServiceOperation::send_interaction_with_regions:
+    case TransportServiceOperation::request_attribute_value_update:
+    case TransportServiceOperation::request_attribute_value_update_class:
+    case TransportServiceOperation::request_attribute_value_update_class_with_regions:
+    case TransportServiceOperation::disable_time_regulation:
+    case TransportServiceOperation::disable_time_constrained:
+    case TransportServiceOperation::is_attribute_owned_by_federate:
+    case TransportServiceOperation::get_known_object_class_handle:
+    case TransportServiceOperation::query_attribute_ownership:
+    case TransportServiceOperation::attribute_ownership_acquisition_if_available:
+    case TransportServiceOperation::attribute_ownership_acquisition:
+    case TransportServiceOperation::attribute_ownership_release_denied:
+    case TransportServiceOperation::cancel_attribute_ownership_acquisition:
+    case TransportServiceOperation::
+        cancel_negotiated_attribute_ownership_divestiture:
+    case TransportServiceOperation::negotiated_attribute_ownership_divestiture:
+    case TransportServiceOperation::confirm_divestiture:
+    case TransportServiceOperation::unconditional_attribute_ownership_divestiture:
+    case TransportServiceOperation::get_federate_handle:
+    case TransportServiceOperation::get_federate_name:
+    case TransportServiceOperation::normalize_federate_handle:
+    case TransportServiceOperation::normalize_object_class_handle:
+    case TransportServiceOperation::normalize_interaction_class_handle:
+    case TransportServiceOperation::normalize_object_instance_handle:
+    case TransportServiceOperation::flush_queue_request:
+    case TransportServiceOperation::acknowledge_tso_delivery:
+    case TransportServiceOperation::get_automatic_resign_directive:
+    case TransportServiceOperation::set_automatic_resign_directive:
+    case TransportServiceOperation::change_interaction_order_type:
+    case TransportServiceOperation::change_attribute_order_type:
+    case TransportServiceOperation::change_default_attribute_order_type:
+    case TransportServiceOperation::change_default_attribute_transportation_type:
+    case TransportServiceOperation::request_attribute_transportation_type_change:
+    case TransportServiceOperation::query_attribute_transportation_type:
       return true;
   }
   return false;

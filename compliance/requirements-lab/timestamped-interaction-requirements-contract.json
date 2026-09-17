@@ -12,8 +12,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "validateTsoTimestamp",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives source resignation"
+        "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/timestamped_interaction_source_resignation_fanout_catch2.cpp::Embedded queued timestamped interaction survives source resignation"
       ]
     },
     {
@@ -23,7 +23,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
@@ -34,12 +34,12 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions before the lost federate's last-known time",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss schedules cutoff TSO delivery requested after the loss",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped interactions preserve different-timestamp order for each constrained recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives source resignation",
+        "cpp/tests/timestamped_interaction_cross_producer_order_catch2.cpp::Embedded timestamped interactions preserve different-timestamp order for each constrained recipient",
+        "cpp/tests/timestamped_interaction_source_resignation_fanout_catch2.cpp::Embedded queued timestamped interaction survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped default-region interaction survives source resignation for each recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded producer advance requests terminalize expired TSO designators"
+        "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
+        "cpp/tests/timestamped_default_region_interaction_retract_alternate_advance_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants",
+        "cpp/tests/timestamped_tso_designator_terminalization_catch2.cpp::Embedded producer advance requests terminalize expired TSO designators"
       ]
     },
     {
@@ -49,9 +49,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed timestamped interactions deliver before FQR TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded producer advance requests terminalize expired TSO designators"
+        "cpp/tests/timestamped_interaction_mixed_advance_catch2.cpp::Embedded mixed timestamped interactions deliver before FQR TARA and NMRA grants",
+        "cpp/tests/timestamped_default_region_interaction_retract_alternate_advance_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants",
+        "cpp/tests/timestamped_tso_designator_terminalization_catch2.cpp::Embedded producer advance requests terminalize expired TSO designators"
       ],
       "notes": "One bounded ordinary non-regional TSO case admits the same queued interaction through Flush Queue Request, Time Advance Request Available, and Next Message Request Available. It proves callback-before-grant ordering, FQR actual/optimistic time, producer GALT setup, and official timestamp/order/tag/producer metadata. Broader alternate-advance, re-enable, remote, save/restore, package/JUnit/protected-review, and conformance evidence remain open."
     },
@@ -62,8 +62,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives source resignation",
+        "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/timestamped_interaction_source_resignation_fanout_catch2.cpp::Embedded queued timestamped interaction survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
@@ -71,10 +71,10 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions before the lost federate's last-known time",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss schedules cutoff TSO delivery requested after the loss",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped interactions preserve different-timestamp order for each constrained recipient",
+        "cpp/tests/timestamped_interaction_cross_producer_order_catch2.cpp::Embedded timestamped interactions preserve different-timestamp order for each constrained recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped default-region interaction survives source resignation for each recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
+        "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
+        "cpp/tests/timestamped_default_region_interaction_retract_alternate_advance_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
     },
     {
@@ -84,7 +84,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped interaction survives time-constrained re-enable",
+        "cpp/tests/timestamped_interaction_reenable_catch2.cpp::Embedded ordinary timestamped interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
@@ -98,7 +98,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable"
+        "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable"
       ],
       "notes": "This bounded ordinary non-regional case keeps one accepted timestamped interaction in the recipient's queue while the producer disables Time Regulation, callback-gated re-enables it at the same lookahead, and then advances to the message timestamp. It proves one original-metadata Receive Interaction callback before the matching grant and terminal retraction classification. It does not establish changed-lookahead, alternate-advance, other timestamped-family, save/restore, transport, or conformance behavior."
     },
@@ -109,7 +109,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives source resignation for each recipient",
+        "cpp/tests/timestamped_interaction_source_resignation_fanout_catch2.cpp::Embedded queued timestamped interaction survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped default-region interaction survives source resignation for each recipient"
       ],
       "notes": "The ordinary four-member case accepts one timestamp-6 Send Interaction for two constrained recipients, admits direct TAR(6) and NMR(10) while the producer regulator is present, then resigns the producer with NO_ACTION. Its default-region Restaurant FOM companion repeats the two-recipient lifecycle with explicit overlapping subscriber regions and a private default source realization. An independent regulator releases each recipient-local queue one at a time; every Receive Interaction callback retains the original payload, tag, producer, timestamp/order, supplied-empty region marker, and retraction metadata before its matching grant. The resigned producer cannot invoke Retract because the official membership precondition takes precedence; the surviving queues still consume the accepted message exactly once. Other resignation actions, alternate advances, recovery, transport, package/JUnit/protected-review evidence, and conformance remain open."
@@ -122,10 +122,10 @@
       "source_symbol": "recipient.receiveInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers timestamped Send Interaction through MOM interaction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives source resignation",
+        "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
+        "cpp/tests/timestamped_interaction_source_resignation_fanout_catch2.cpp::Embedded queued timestamped interaction survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
@@ -137,7 +137,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss schedules cutoff TSO delivery requested after the loss",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped default-region interaction survives source resignation for each recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
+        "cpp/tests/timestamped_default_region_interaction_retract_alternate_advance_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
     },
     {
@@ -147,7 +147,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::scheduleEligibleTimeAdvanceGrants",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped interactions preserve different-timestamp order for each constrained recipient"
+        "cpp/tests/timestamped_interaction_cross_producer_order_catch2.cpp::Embedded timestamped interactions preserve different-timestamp order for each constrained recipient"
       ],
       "notes": "This public four-federate case submits timestamp 7 before timestamp 5 from separate producers, adds a second timestamp-5 message to form an equal-timestamp cohort, and advances two independent constrained recipients at exact 5 and 7 boundaries. It asserts that each recipient receives the complete timestamp-5 cohort before timestamp 7 and preserves the official metadata, while deliberately making no claim about the order within the equal-timestamp cohort, which the Lab leaves indeterminate."
     },
@@ -158,9 +158,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeMessageRetractionHandle",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives source resignation",
+        "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
+        "cpp/tests/timestamped_interaction_source_resignation_fanout_catch2.cpp::Embedded queued timestamped interaction survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed default-region timestamped interactions deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
@@ -169,7 +169,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped default-region interaction survives source resignation for each recipient",
         "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the standard HLAvariableArray handle encoding",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
+        "cpp/tests/timestamped_default_region_interaction_retract_alternate_advance_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
     },
     {
@@ -179,14 +179,14 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retireTsoMessagePayloadsAtOrBefore",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped interaction survives source resignation",
+        "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
+        "cpp/tests/timestamped_interaction_source_resignation_fanout_catch2.cpp::Embedded queued timestamped interaction survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions through the lost federate's last-known time",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions before the lost federate's last-known time",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss schedules cutoff TSO delivery requested after the loss",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded producer advance requests terminalize expired TSO designators"
+        "cpp/tests/timestamped_tso_designator_terminalization_catch2.cpp::Embedded producer advance requests terminalize expired TSO designators"
       ]
     },
     {
@@ -196,10 +196,10 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
+        "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+        "cpp/tests/timestamped_default_region_interaction_retract_alternate_advance_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
     },
     {
@@ -209,14 +209,14 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
+        "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction returns a retraction designator without recipient fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+        "cpp/tests/timestamped_send_interaction_no_fanout_catch2.cpp::Embedded timestamped Send Interaction returns a retraction designator without recipient fanout",
+        "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped default-region interaction",
         "cpp/tests/timed_restore_live_tso_default_region_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region interaction at the save boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
+        "cpp/tests/timestamped_default_region_interaction_retract_alternate_advance_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
     },
     {

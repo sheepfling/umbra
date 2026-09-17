@@ -29,11 +29,14 @@
       "source_symbol": "UmbraRtiAmbassador::registerObjectInstanceWithRegions",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/allow_relaxed_ddm_object_attribute_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
+        "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional object-class subscription arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
+        "cpp/tests/regional_object_attribute_routing_catch2.cpp::Embedded regional object services reject region dimensions outside available object dimensions",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
       ]
     },
     {
@@ -56,9 +59,12 @@
       ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::associateRegionsForUpdates",
-      "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional object-attribute association arguments"
+        "tests": [
+          "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
+          "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional object-attribute association arguments",
+        "cpp/tests/regional_object_attribute_routing_catch2.cpp::Embedded regional object services reject region dimensions outside available object dimensions",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
       ]
     },
     {
@@ -82,10 +88,11 @@
       "source_symbol": "UmbraRtiAmbassador::unassociateRegionsForUpdates",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/allow_relaxed_ddm_object_attribute_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
+        "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional object-attribute association arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
       ]
     },
     {
@@ -110,10 +117,13 @@
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributesWithRegions",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/allow_relaxed_ddm_object_attribute_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
+        "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
+        "cpp/tests/regional_object_attribute_routing_catch2.cpp::Embedded regional object services reject region dimensions outside available object dimensions",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
       ]
     },
     {
@@ -137,10 +147,10 @@
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributesWithRegions",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional object-class subscription arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     }
   ]

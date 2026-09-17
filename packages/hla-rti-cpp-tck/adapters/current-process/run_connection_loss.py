@@ -46,6 +46,8 @@ def parse_arguments() -> argparse.Namespace:
             "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
             "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
             "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract",
+            "cpp-tck.automatic-resign-directive-delete-objects",
+            "cpp-tck.automatic-resign-directive-delete-objects-contract",
         ),
         default="cpp-tck.connection-loss-cleanup",
     )
@@ -185,6 +187,13 @@ def run_one(
         "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
     }:
         (marker_directory / "automatic-unconditional.mode").write_text(
+            "enabled\n", encoding="utf-8"
+        )
+    if scenario_id in {
+        "cpp-tck.automatic-resign-directive-delete-objects",
+        "cpp-tck.automatic-resign-directive-delete-objects-contract",
+    }:
+        (marker_directory / "automatic-delete-objects.mode").write_text(
             "enabled\n", encoding="utf-8"
         )
     if scenario_id in {

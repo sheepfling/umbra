@@ -24,11 +24,11 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::localDeleteObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Local Delete Object Instance preserves 2025 federation state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
+        "cpp/tests/local_delete_object_instance_catch2.cpp::Embedded Local Delete Object Instance preserves 2025 federation state",
+        "cpp/tests/local_delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+        "cpp/tests/local_delete_timestamped_object_removal_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
       ]
     }
   ]

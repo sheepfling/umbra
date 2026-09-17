@@ -93,10 +93,10 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional interaction ranges",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_passive_interaction_subscriptions_require_active_replacement",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed regional Send Interaction With Regions invocations",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
+        "cpp/tests/regional_interaction_failure_service_report_file_catch2.cpp::Embedded service reporting records failed regional Send Interaction With Regions invocations",
+        "cpp/tests/regional_interaction_failure_service_report_interaction_catch2.cpp::Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction",
+        "cpp/tests/regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback",
+        "cpp/tests/regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
       ]
     }
   ]

@@ -495,6 +495,12 @@ int run(
       receiver->subscribeObjectClassDirectedInteractions(
           receiverObjectClass, subscribedInteractions, true);
 
+      // Timestamped Retract is only legal while the producer is time
+      // regulating. Establish that role through the official public surface
+      // before exercising the positive and negative retraction paths.
+      sender->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1));
+      static_cast<void>(sender->evokeCallback(0.0));
+
       // The attribute subscription makes the already-registered target
       // discoverable.  Consume that callback before entering the directed
       // interaction slice so the next Evoke is reserved for the directed

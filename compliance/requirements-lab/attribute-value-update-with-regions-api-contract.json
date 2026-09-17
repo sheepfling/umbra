@@ -31,7 +31,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
         "cpp/tests/regional_attribute_value_update_provider_response_recheck_catch2.cpp::Embedded regional provider response rechecks DDM eligibility at reflection delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Provide Attribute Value Update reports before callback delivery",
-        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_request_response"
+        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_object_request_response",
+        "cpp/tests/regional_object_attribute_routing_catch2.cpp::Embedded regional object services reject region dimensions outside available object dimensions"
       ]
     },
     {

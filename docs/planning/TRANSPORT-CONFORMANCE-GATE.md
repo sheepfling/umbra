@@ -4,7 +4,7 @@ Status: design gate for the next transport/conformance slice. The current
 embedded endpoint now has ordinary, timestamped, parameterized-envelope,
 connection-loss, object-registration, named-registration, ordinary
 object-class-subscription, and ordinary attribute-update installed-profile
-process evidence;
+process evidence, including a read-only Query Logical Time baseline;
 it remains foundation evidence until the
 CTest/JUnit/configuration artifacts receive protected review. It must not be
 promoted as conformance by itself.
@@ -21,6 +21,8 @@ python tools/query_rti_work.py check --lane process-boundary --summary --compact
 python tools/query_rti_work.py test "Private process service binds create join and receive-order interaction to the federation registry" --summary --compact
 python tools/query_rti_work.py test "Private registry-bound service exchanges federation traffic across independently launched processes" --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes public Create, Join, and Resign through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py test "RTIambassador obtains the selected logical-time factory after a configured process join" --summary --compact
+python tools/query_rti_work.py test "RTIambassadors resolve federate handles and names through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes public Send Interaction through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador resolves interaction and parameter handles through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador publishes object-class attributes and registers an object through a configured process endpoint" --summary --compact
@@ -37,6 +39,20 @@ python tools/query_rti_work.py test "RTIambassador routes ordinary interaction d
 python tools/query_rti_work.py test "RTIambassador receives a process interaction through the official Evoke callback surface" --summary --compact
 python tools/query_rti_work.py test "RTIambassador preserves a timestamped process interaction through the official Evoke callback surface" --summary --compact
 python tools/query_rti_work.py trace "RTIambassador delivers a directed interaction through the official Evoke callback surface" --summary --compact
+python tools/query_rti_work.py focus process-time-advance-malformed-encoding --summary --compact
+python tools/query_rti_work.py trace "RTIambassador rejects malformed logical-time encoding through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix "RTIambassador rejects malformed logical-time encoding through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py focus process-time-advance-federation-scheduler --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors coordinate deferred process time advances through the federation scheduler" --summary --compact
+python tools/query_rti_work.py matrix "RTIambassadors coordinate deferred process time advances through the federation scheduler" --summary --compact
+python tools/query_rti_work.py focus process-tso-interaction-before-grant --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors deliver a deferred timestamped process interaction before the grant" --summary --compact
+python tools/query_rti_work.py matrix "RTIambassadors deliver a deferred timestamped process interaction before the grant" --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors deliver a deferred timestamped process interaction before the grant$" --output-on-failure
+python tools/query_rti_work.py focus process-time-advance-next-message-queued-focused --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors select queued timestamped process messages for next-message advances" --summary --compact
+python tools/query_rti_work.py matrix "RTIambassadors select queued timestamped process messages for next-message advances" --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors select queued timestamped process messages for next-message advances$" --output-on-failure
 python tools/query_rti_work.py lane federate.callback.request-retraction --summary --compact
 python tools/query_rti_work.py test "Private process service routes ordinary Update Attribute Values to a subscribed receiver" --summary --compact
 python tools/query_rti_work.py lane rti.service.subscribe-object-class-attributes --summary --compact
@@ -53,23 +69,372 @@ ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-
 python tools/verify_process_package_lanes.py --ctest ctest --test-dir <build-dir>/package-smoke-consumer --index docs/planning/ROADMAP-INDEX.json --config Debug
 ```
 
-The current query baseline is 38 executable `process-boundary` cases / 1617
-focused-JUnit assertions, all mapped and source-located; the local-delete codec
+The current query baseline is 109 mapped `process-boundary` plan rows / 5,239
+indexed Catch2 assertions, all mapped and source-located. The stable label has
+108 registered CTest executions. The current merged JUnit report contains 4,132
+testcases with zero failures/errors (the older m108 snapshot contained 2,733).
+The local-delete codec
 adds 9 direct assertions, the private registry integration 44, and the public
 two-federate endpoint integration 18; receive-order Delete Object Instance adds
 a 25-assertion codec contract and a 25-assertion public endpoint/removal-
 callback integration; the timestamped public endpoint slice adds 64 assertions
-under HLA_EVOKED and HLA_IMMEDIATE. Each completed slice records
-its exact per-case assertion count in `ROADMAP-INDEX.json`.
-The completed timestamped Delete Object Instance slice is indexed in that
-source file. The next bounded source slice is explicitly planned in that index:
-the HLA_IMMEDIATE companion for timestamped regional Update Attribute Values
-through the configured process endpoint. Its ten requirement ids, six canonical
-2025 sections, official API surfaces, source-file target, and `[process-boundary]`
-filter are emitted by
-`python tools/query_rti_work.py next --summary --compact`; it is not counted
-as executable evidence until the C++ case is added.
-The 38-case query count is the unique mapped plan/test-declaration count; when
+under HLA_EVOKED and HLA_IMMEDIATE; the timestamped regional Update Attribute
+Values endpoint adds 86 assertions under both models; the regional
+subscription-removal endpoint adds 112 assertions under both models; the disjoint
+regional-update endpoint adds 50, the remote regional subscription/update
+endpoint adds 66, the regional-registration endpoint adds 34, and the
+object-registration endpoint adds 20 under both models, and the public object-class
+subscription endpoint adds 24 under both callback models; the public object-discovery
+endpoint adds 44 assertions under both callback models and exercises the official
+`discoverObjectInstance` callback. The private registry-binding case now adds a
+four-assertion Query Logical Time protocol round-trip plus a ten-assertion
+official encoded `Enable Time Regulation`/retained-state check, and the public
+Create/Join/Resign case adds a two-assertion official-factory reconstruction
+check plus a four-assertion callback-gating check. The focused remote
+`getTimeFactory` slice adds nine assertions and verifies that the selected
+logical-time implementation crosses Join without consulting a process-local
+registry; FOM-catalog distribution remains a separate protocol slice. The
+federate-identity lookup slice adds eleven assertions across two configured
+ambassadors, proving active-name lookup and post-resignation designator-name
+retention through the same process service. These
+are bounded process role/state baselines. The process TAR pending-role slices add 28 callback-gated
+assertions, the malformed logical-time decode fence adds 9 assertions mapped to
+clause `8.8.3`, and the two-federate process federation scheduler adds 30
+assertions for deferred constrained TAR, regulator-driven release, unsolicited
+grant transport, and Evoke delivery. The focused timestamped process
+interaction-before-grant slice adds 62 `HLA_EVOKED` assertions, 20
+Requirements-Lab anchors, and 13 canonical 2025 sections; query it with
+`process-tso-in-transit`. The public pre-grant attribute-retraction slice is
+now independently complete with 51 `HLA_EVOKED` assertions, 20 Lab anchors,
+13 canonical sections, and 16 official C++ API surfaces:
+
+```powershell
+python tools/query_rti_work.py focus process-tso-attribute-retraction-before-callback --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors suppress a retracted timestamped process attribute before the callback" --summary --compact
+python tools/query_rti_work.py check --lane process-tso-attribute-retraction-before-callback --summary --compact
+```
+
+The directed TSO callback-gating slice is independently selectable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-tso-directed-interaction-callback-gating --summary --compact
+python tools/query_rti_work.py focus process-tso-directed-interaction-callback-gating --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors retain a timestamped directed interaction while callbacks are disabled" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-tso-directed-interaction-callback-gating --summary --compact
+python tools/query_rti_work.py check --lane process-tso-directed-interaction-callback-gating --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors retain a timestamped directed interaction while callbacks are disabled$" --output-on-failure
+```
+
+It records 62 `HLA_EVOKED` assertions, 21 Requirements-Lab anchors, 16
+canonical 2025 sections, and 18 official C++ API surfaces. It keeps the
+timestamped directed interaction and matching grant queued while callbacks are
+disabled, then delivers the directed interaction before the grant after
+re-enable with TIMESTAMP/TIMESTAMP metadata. It is private foundation evidence,
+not a conformance claim.
+
+The preceding process TSO fan-out slice is independently selectable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-tso-interaction-fanout-integration --summary --compact
+python tools/query_rti_work.py focus process-tso-interaction-fanout --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors fan out multiple timestamped process interactions FIFO to every subscribed receiver before one grant" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-tso-interaction-fanout-integration --summary --compact
+python tools/query_rti_work.py check --lane process-tso-interaction-fanout --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors fan out multiple timestamped process interactions FIFO to every subscribed receiver before one grant$" --output-on-failure
+```
+
+It records 133 `HLA_EVOKED` assertions, 20 Requirements-Lab anchors, 13
+canonical 2025 sections, and 15 official C++ API surfaces. It queues two
+same-timestamp interactions and one later timestamped interaction once, fans
+each out to two subscribed receivers, proves FIFO delivery across the
+timestamp-five and timestamp-seven grants at the shared GALT/LITS boundary,
+and acknowledges all six deliveries through the process seam. The preceding
+multiple-message FIFO lane remains independently selectable with 51 assertions
+at `cpp/tests/ieee1516_2025_connection_catch2.cpp:23633`. Changed-lookahead,
+directed/regional DDM, resignation, save/restore,
+package/JUnit, protected review, validation, interoperability, and
+conformance remain separate lanes.
+
+The regional callback-gating companion is now green at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:25321` with 69 `HLA_EVOKED`
+assertions, 28 Lab anchors, 16 canonical 2025 sections, and 20 official C++
+API surfaces. It uses one sender/receiver regional overlap, disables the
+receiver callback gate before the timestamped send is admitted, proves that
+the interaction and matching grant remain withheld, then re-enables callbacks
+and observes exactly one interaction before one grant. Its focused handles are:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-tso-regional-interaction-callback-gating --summary --compact
+python tools/query_rti_work.py focus process-tso-regional-interaction-callback-gating --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors retain a timestamped regional interaction while callbacks are disabled" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-tso-regional-interaction-callback-gating --summary --compact
+python tools/query_rti_work.py check --lane process-tso-regional-interaction-callback-gating --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors retain a timestamped regional interaction while callbacks are disabled$" --output-on-failure
+```
+
+This remains private foundation evidence. CTest/JUnit packaging, protected
+review, interoperability, Requirements-Lab validation, and conformance are
+still separate gates.
+
+Multiple-message ordering, directed/regional TSO, save/restore, package/JUnit,
+validation, interoperability, and conformance remain separate.
+The queued-TSO NMR/NMRA companion is a separate two-federate proof with 101
+`HLA_EVOKED`/`HLA_IMMEDIATE` assertions and 19 Lab anchors across 12 canonical
+2025 sections;
+it selects timestamp 5, then 8, from the receiver queue and checks each
+interaction callback before its grant. Keep GALT/LITS, Flush Queue, retraction,
+multi-recipient ordering, save/restore, package/review, validation,
+interoperability, and conformance in their own lanes.
+The immediate-callback GALT/LITS companion is independently selectable with
+14 `HLA_IMMEDIATE` assertions, five Lab anchors, and four canonical 2025
+sections:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-query-time-bounds-immediate-integration --summary --compact
+python tools/query_rti_work.py focus process-query-time-bounds-immediate --summary --compact
+python tools/query_rti_work.py trace "RTIambassador queries GALT and LITS through a configured process endpoint with immediate callbacks" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-query-time-bounds-immediate-integration --summary --compact
+python tools/query_rti_work.py check --lane process-query-time-bounds-immediate --summary --compact
+```
+
+It proves the Time Regulation Enabled callback crosses the process endpoint
+before the immediate call returns and that undefined GALT/LITS preserve caller
+output values; multi-federate bounds, queued/in-transit TSO, grants,
+save/restore, and conformance remain separate.
+Each completed slice records its exact
+per-case assertion count in `ROADMAP-INDEX.json`.
+
+The available multi-federate companion is independently selectable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-query-time-bounds-multi-federate-integration --summary --compact
+python tools/query_rti_work.py focus process-query-time-bounds-multi-federate --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors expose defined GALT and LITS across configured process federates" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-query-time-bounds-multi-federate-integration --summary --compact
+python tools/query_rti_work.py check --lane process-query-time-bounds-multi-federate --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors expose defined GALT and LITS across configured process federates$" --output-on-failure
+```
+
+This 24-assertion `HLA_IMMEDIATE` case maps the same five Lab anchors to four
+canonical 2025 sections, proves self-regulator exclusion, and proves that an
+observer receives defined GALT/LITS from the other regulator's lookahead.
+Queued/in-transit TSO, grants, save/restore, package/JUnit, validation, and
+conformance remain separate. The queued-TSO LITS companion is independently
+selectable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-query-time-bounds-queued-tso-integration --summary --compact
+python tools/query_rti_work.py focus process-query-time-bounds-queued-tso --summary --compact
+python tools/query_rti_work.py trace "RTIambassador queries LITS from queued timestamped process input after regulator disable" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-query-time-bounds-queued-tso-integration --summary --compact
+python tools/query_rti_work.py check --lane process-query-time-bounds-queued-tso --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador queries LITS from queued timestamped process input after regulator disable$" --output-on-failure
+```
+
+This 31-assertion `HLA_IMMEDIATE` case maps the same five Lab anchors to four
+canonical sections, queues timestamped input for a constrained observer,
+preserves undefined GALT after regulator disable, and reports the queued
+timestamp as defined LITS. In-transit TSO, zero-lookahead epsilon, grants,
+retraction, save/restore, package/JUnit, validation, and conformance remain
+separate.
+
+The zero-lookahead GALT/LITS companion is independently selectable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-query-time-bounds-zero-lookahead-integration --summary --compact
+python tools/query_rti_work.py focus process-query-time-bounds-zero-lookahead --summary --compact
+python tools/query_rti_work.py trace "RTIambassador exposes a zero-lookahead exclusive GALT and LITS boundary through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-query-time-bounds-zero-lookahead-integration --summary --compact
+python tools/query_rti_work.py check --lane process-query-time-bounds-zero-lookahead --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador exposes a zero-lookahead exclusive GALT and LITS boundary through a configured process endpoint$" --output-on-failure
+```
+
+This 28-assertion `HLA_EVOKED` case maps six Lab anchors to four canonical
+sections plus six official C++ API surfaces. It advances a zero-lookahead
+regulator through an evoked Time Advance Grant and proves the observer sees
+the exclusive integer boundary. In-transit TSO, queued-TSO delivery, grant
+scheduling, retraction, save/restore, package/JUnit, validation, and
+conformance remain separate.
+The latest reverse-FOM lookup slice is independently selectable:
+
+```powershell
+python tools/query_rti_work.py focus reverse-fom-lookup --summary --compact
+python tools/query_rti_work.py trace "RTIambassador reports reverse FOM lookup errors through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix reverse-fom-lookup --summary --compact
+python tools/query_rti_work.py check --lane reverse-fom-lookup --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports reverse FOM lookup errors through a configured process endpoint$" --output-on-failure
+```
+
+The lane now contains four source-located cases and 76 aggregate assertions
+(m102 contributes 20; m103 contributes 24; m104 contributes 16; m105
+contributes 16) under both `HLA_EVOKED` and `HLA_IMMEDIATE`. The m105 public
+process case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:13738` records
+16 assertions and maps six Lab requirements to canonical 2025 clauses `9.1.2`,
+`10.19`, and `10.20.4`; it exercises four official C++ API surfaces and keeps
+unknown-name/invalid-handle error behavior separate from m104's successful
+dimension/transportation round trips. The m104, m103, m102, and m101 cases
+remain available through exact title/lane handles; multi-federate declaration
+management, package, review, validation, interoperability, and conformance
+evidence remain separate.
+The latest process callback-ordering slice is independently selectable:
+
+```powershell
+python tools/query_rti_work.py focus process-multi-recipient-callback-ordering --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors preserve per-recipient interaction FIFO through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix process-multi-recipient-callback-ordering --summary --compact
+python tools/query_rti_work.py check --lane process-multi-recipient-callback-ordering --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors preserve per-recipient interaction FIFO through a configured process endpoint$" --output-on-failure
+```
+
+The m107 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:14059` records
+79 assertions under `HLA_EVOKED` and `HLA_IMMEDIATE`, maps ten Lab anchors to six canonical 2025
+subsections (`4`, `5.1.4`, `6.12`, `6.12.4`, `6.13`, and `10.60.6`), and
+exercises five official C++ API surfaces. Two subscribed receivers each observe
+their own FIFO tag sequence with preserved parameters/producer identity, one
+receive callback per Evoke Callback, and sender exclusion. Immediate delivery,
+callback-disable, timestamped/region/directed fanout, package/JUnit, protected
+review, validation, interoperability, and conformance remain separate.
+
+The newest process TSO/DDM slice is independently selectable:
+
+```powershell
+python tools/query_rti_work.py focus timestamped-process-regional-interaction --summary --compact
+python tools/query_rti_work.py trace m109.embedded-process-tso-regional-interaction --summary --compact
+python tools/query_rti_work.py matrix "RTIambassadors deliver a timestamped regional interaction through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py test "RTIambassadors deliver a timestamped regional interaction through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-process-regional-interaction --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors deliver a timestamped regional interaction through a configured process endpoint$" --output-on-failure
+```
+
+The m109 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:15148` records
+71 `HLA_EVOKED` assertions, 28 Lab anchors, 16 canonical 2025 subsections,
+and 20 official C++ API surfaces. It verifies overlap-qualified timestamped
+regional process delivery, time-advance gating, conveyed source-region
+metadata, and timestamp/order/retraction reconstruction. Keep the broader
+callback-disable, directed, relaxed-DDM, package, review, validation,
+interoperability, and conformance lanes separate.
+
+The preceding process DDM slice is independently selectable:
+
+```powershell
+python tools/query_rti_work.py focus process-multi-recipient-regional-interaction --summary --compact
+python tools/query_rti_work.py trace m108.embedded-process-multi-recipient-regional-interaction --summary --compact
+python tools/query_rti_work.py matrix "RTIambassadors preserve per-recipient regional interaction scope through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py test "RTIambassadors preserve per-recipient regional interaction scope through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py check --lane process-multi-recipient-regional-interaction --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors preserve per-recipient regional interaction scope through a configured process endpoint$" --output-on-failure
+```
+
+The m108 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:14505` records
+126 assertions under both official callback models, maps thirteen Lab anchors
+to seven canonical 2025 subsections, and exercises thirteen official C++ API
+surfaces. It proves overlap-filtered delivery to two disjoint regional
+recipients, send-time source-region metadata, and sender exclusion. Keep
+timestamped/retraction, directed, relaxed-DDM, callback-disable, package/JUnit,
+protected review, validation, interoperability, and conformance in separate
+lanes.
+
+The preceding process DDM metadata slice is independently selectable:
+
+```powershell
+python tools/query_rti_work.py focus process-available-dimensions-hierarchy --summary --compact
+python tools/query_rti_work.py trace process-available-dimensions-hierarchy --summary --compact
+python tools/query_rti_work.py matrix process-available-dimensions-hierarchy --summary --compact
+python tools/query_rti_work.py check --lane process-available-dimensions-hierarchy --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador resolves available FOM dimensions through a configured process endpoint$" --output-on-failure
+```
+
+The m106 case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:13886` records
+28 assertions under both callback models, maps four Lab anchors to clause
+`9.1.2`, and covers two official C++ API surfaces. It verifies inherited
+object-class dimensions, an empty interaction-class set, unknown classes, and
+official invalid-handle mapping through the federation-owned process catalog.
+Process region lifecycle/routing and multi-federate hierarchy behavior remain
+separate lanes.
+The completed public object-discovery slice is indexed in that source file with
+three requirement ids, three canonical 2025 sections, six official API surfaces,
+and 44 assertions under both callback models. The connection support-types,
+filesystem service-report configuration, AttributeHandle, callback-route,
+immediate-callback reentrancy, callback-disable, evoked one-at-a-time,
+concurrent-serialization, disabled-backlog, Evoke Multiple FIFO,
+evoked-disabled-pending, callback-session-close, callback-session concurrent-invocation,
+and callback-session active-close baselines are independently indexed with mapped or
+explicit internal-boundary dispositions. The external IEEE 1516-2010 ordered-
+catalog compatibility case is now indexed with 13 passing assertions and
+clauses `4.5.5`/`4.11.4`, explicitly separate from 2025 service conformance.
+The strict 2025-mode rejection and mixed-edition composer guard are also indexed
+as two- and seven-assertion compatibility-only clause-4 slices. The ambiguous
+202x edition-setting guard is indexed as a one-assertion explicit
+no-standalone-Lab-surface policy row. The RPR full-family object-registration
+and custom-payload compatibility slices and the official FederateHandle
+SDK-consumability/encoding baselines are now indexed with explicit
+dispositions, and the private federate lifecycle state-machine slices are now
+mapped. The regional-unpublish update-region lifetime slice is indexed with 17
+assertions and 18 requirement anchors. The receive-order deletion update-region
+lifetime slice is indexed with 17 assertions and 20 requirement anchors. The
+final object-removal callback update-region lifetime slice is indexed with 27
+assertions and 21 requirement anchors. The Join advisory-switch seed slice is
+indexed with 16 assertions and 13 requirement anchors. The Join-time explicit
+NoAction automatic-resign slice is indexed with 7 assertions and 9 requirement
+anchors. The completed federation-management
+order and transportation MOM service-classification case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34242`; that slice is
+indexed with 66 assertions and 19 requirement anchors. The joined-federate MOM
+regional discovery slice is indexed with 124 assertions and 17 requirement
+anchors. The next bounded source action is the unplanned federation-management
+regional Request Attribute Value Update provider-response case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3786`; the
+joined-federate MOM/FOM-module snapshot slice is indexed with 12 assertions and
+6 requirement anchors, and the report-file identity save/restore slice is
+indexed with 46 assertions and 18 requirement anchors;
+its exact source location and `[federation-management]` filter are emitted by
+`python tools/query_rti_work.py next --pointer` and it must be mapped
+as provider-response and regional-overlap evidence before it is treated as
+evidence.
+The restored-baseline provider-response slice is indexed with 44 assertions
+and 20 requirement anchors. The timestamped Delete Object Instance retraction
+slice at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4305` is
+mapped but marked `failing-test-harness`: the HLA_EVOKED run stops at line 4354
+after 14/15 assertions on a stale `EvokeCallback` expectation. Repair that
+harness before promoting deletion/retraction/removal evidence. The known-class-
+disabled attribute-relevance case at
+`cpp/tests/attribute_relevance_known_class_disabled_subscription_catch2.cpp:97` is now green
+with 35 HLA_EVOKED assertions, 18 Requirements-Lab anchors, 13 canonical 2025
+sections, and 18 official C++ API surfaces. The paired static known-class-
+enabled case at
+`cpp/tests/attribute_relevance_known_class_enabled_subscription_catch2.cpp:97` is also green
+with 30 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 13 canonical 2025
+sections, and 17 official C++ API surfaces. The update-rate passive-regional-
+subscription case at
+`cpp/tests/update_rate_passive_regional_subscription_catch2.cpp:73` is also green
+with 43 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 12 canonical 2025
+sections, and 21 official C++ API surfaces. The custom-transportation
+handle-stability case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44136` and the
+restored-baseline timestamped MOM interaction case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4538` are mapped and
+green. The restored-baseline regional Provide Attribute Value Update case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4697` is green with
+251 assertions and 11 Requirements-Lab anchors. The three-dimensional
+regional object-attribute overlap case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47660` is green with
+57 assertions and 10 Requirements-Lab anchors. The restored-baseline regional
+Request Attribute Value Update solicitation case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4999` is green with
+58 assertions, 9 Requirements-Lab anchors, 7 canonical 2025 sections, and 20
+official C++ API surfaces. The restored-baseline timestamped regional Update
+Attribute Values MOM failure case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5461` is green with
+138 assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 30
+official C++ API surfaces. The restored-baseline timestamped Update Attribute
+Values file-failure case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5863` is now green
+with 218 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025
+sections, and 15 official C++ API surfaces. The next source action is the
+unplanned restored-baseline timestamped regional Update Attribute Values
+reflection-order case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:6297`.
+The 40-case query count is the unique mapped plan/test-declaration count; when
 both the aggregate and dedicated connection executables are configured, the
 `process-boundary` CTest label intentionally runs both registrations. The m24
 private and
@@ -136,8 +501,8 @@ Before those eight consumers execute,
 `verify_process_package_lanes.py` compares their exact names and labels with the
 eight `next_process_package_*` handles in `ROADMAP-INDEX.json`; a catalog mismatch
 fails the installable-package gate. `coverage --lane transport` reports
-57 transport plan entries (53 mapped, 52 source-located, and five retained
-historical source-drift rows); use the
+82 transport plan entries (76 mapped, 82 source-located, and no retained
+source-drift rows; 6 have no Lab requirement mapping); use the
 bounded query and lane check to select work without reopening the full catalog.
 The public connection-loss portion of the first reviewable gate is now green;
 protected review and final conformance promotion remain open.

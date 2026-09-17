@@ -18,6 +18,172 @@ bundle under `.compliance/` is intentionally ignored, so each observation
 below names the pinned revision and durable source identifiers rather than
 depending on an uncommitted export artifact.
 
+### 2026-09-08 local roadmap-query guard (not a Requirements Lab recurrence)
+
+The bounded roadmap index exposed two workflow edges that could make an
+unchanged Lab look like the next task: a live FOM family retained a deleted
+Catch2 baseline pointer, and the global integrity check treated append-only
+historical completion rows (including out-of-scope 2010/source-only cases) as
+current work. The index now repairs the FOM pointer by carrying the live
+empty-module case in the Catch2 plan; `check` validates the live roadmap, plan,
+2025 mappings, and C++ source index by default; and `check --historical` is the
+explicit strict ledger audit. Source-only rows remain queryable through
+`unplanned`/`--include-source-only` but do not block the 2025 implementation
+handoff. This is a local query/traceability guard, not a Requirements Lab
+content change or requirement-number recurrence.
+
+The same bounded repair pass restored the source-backed regional-unpublish
+case to the live DDM lane and removed a repeated API selector from its
+neighboring regional-deletion row. The query guard now rejects repeated
+requirement, API, section, or tag entries in a Catch2 plan row, so this class
+of plan corruption is reported by the live check before the CTest traceability
+gate is run.
+
+### 2026-09-09 bounded mixed-dimensional DDM slice (not a Requirements Lab recurrence)
+
+The next DDM increment stays within the pinned 2025 export: the focused
+`Embedded mixed-dimensional regional interactions reject an invalid region set
+atomically` case uses the validated Restaurant FOM and maps four existing
+`9.1.3.3` requirement records (page 220 lines 122, 140, 143, and 149). It
+creates one available `ServerId` region and one valid-but-unavailable
+`SodaFlavor` region, verifies `InvalidRegionContext` before any partial send is
+routed, then verifies the valid subset still delivers with source-region
+metadata. This is additive C++ evidence, not a Lab content change, numbering
+change, or recurrence; no new `RL-###` entry is consumed.
+
+The roadmap/query surface now exposes this case as the exact
+`mixed-region-interaction-validation` lane and the new `case` command can emit
+its source, direct requirement-to-subsection pairs, owner, API surfaces, and
+CTest handle in one bounded card. This keeps the next task discoverable without
+reopening the unchanged Lab or scanning the full Catch2 plan.
+
+During the same bounded pass, a text patch against a repetitive JSON context
+temporarily merged several adjacent Catch2 records (duplicate keys and
+swallowed row identities). The parser/regression duplicate-key guard caught the
+damage before it could be treated as evidence. The affected service-report,
+restore, and regional-lifetime rows were repaired from their isolated canonical
+records; the accepted time-role and save/restore MOM cases were then added with
+their exact source lines and 2025 mappings. Future plan edits must anchor on a
+unique `id`, replace
+one complete record at a time, and run the live JSON/check guard immediately.
+This is a plan-maintenance failure mode, not a Requirements Lab content change
+or a new numbering recurrence.
+
+### 2026-09-09 bounded empty regional-subscription-set DDM slice (not a Requirements Lab recurrence)
+
+The focused C++ increment adds the official `HLA_EVOKED` case
+`Embedded regional interaction subscription empty sets are no-ops` at
+`cpp/tests/multi_region_interaction_routing_catch2.cpp:307`. It maps two
+existing pinned 2025 Part 1.1 requirement records (page 221 lines 8 and 14)
+to §9.1.4 and verifies the narrow lifecycle: an empty regional subscription
+does not create delivery, an empty regional unsubscription does not remove a
+live overlap route, and the corresponding non-empty operations do. The case
+has 23 assertions and 10 official C++ API surfaces. This is additive
+development-profile evidence, not a Lab content change, numbering change, or
+recurrence; no new `RL-###` entry is consumed.
+
+The first focused run briefly asserted optional sent-region metadata without
+enabling the `Convey Region Designator Sets` switch. The failure was a local
+harness expectation, not a Requirements Lab defect; the unrelated assertions
+were removed and the exact CTest filter then passed (23 assertions). The row
+is now explicitly indexed as the `subscription-empty-set` lane with case,
+trace, matrix, check, and CTest handles, so this behavior can be resumed
+without reopening the Lab or scanning the full Catch2 plan. At that point the
+live plan was 1,185 rows with 1,121 mapped cases and 841 unique
+requirement-to-2025-section pairs (37.88% of 2,220 pinned requirements); the
+following slice advances those totals without changing the pinned Lab.
+
+### 2026-09-09 bounded unavailable-dimension subscription DDM slice (not a Requirements Lab recurrence)
+
+The focused C++ increment adds the official `HLA_EVOKED` case
+`Embedded regional interaction subscriptions reject unavailable dimensions
+atomically` at
+`cpp/tests/mixed_region_interaction_validation_catch2.cpp:228`. It maps the
+existing pinned 2025 Part 1.1 requirement at page 221 line 20 to §9.1.4 and
+verifies that a committed region containing a dimension unavailable to
+`MainCourseServed` is rejected with `InvalidRegionContext` before any
+subscription is recorded. A later valid `ServerId` subscription still
+delivers once, proving the failed declaration did not leave hidden state. The
+case has 36 assertions and 11 official C++ API surfaces. This is additive
+development-profile evidence, not a Lab content change, numbering change, or
+recurrence; no new `RL-###` entry is consumed.
+
+The row is indexed as the exact `subscription-dimension-validation` lane with
+case, trace, matrix, check, and CTest handles. At that point the live plan was
+1,186 rows with 1,122 mapped cases and 842 unique requirement-to-2025-section
+pairs (37.93% of 2,220 pinned requirements); the following slice advances
+those totals without changing the pinned Lab. The existing empty-set and
+unavailable-dimension slices remain separate so future overlap, passive/active,
+relaxed/direct DDM, timestamped/retraction, transport, save/restore,
+validation, and conformance work can be selected without a Lab-wide scan.
+
+### 2026-09-09 bounded whole-class default-region removal DDM slice (not a Requirements Lab recurrence)
+
+The focused C++ increment adds the official `HLA_EVOKED` case
+`Embedded whole-class interaction unsubscription removes default-region
+subscription` at
+`cpp/tests/default_region_interaction_routing_catch2.cpp:241`. It maps the
+existing pinned 2025 Part 1.1 requirement at page 221 line 35 to §9.1.4 and
+verifies that an ordinary subscription receives a default-region interaction,
+then stops receiving after `Unsubscribe Interaction Class`. The case has 20
+assertions and seven official C++ API surfaces. This is additive
+development-profile evidence, not a Lab content change, numbering change, or
+recurrence; no new `RL-###` entry is consumed.
+
+The row is indexed as the exact `whole-class-unsubscribe` lane with case,
+trace, matrix, check, and CTest handles. At that point the live plan was
+1,187 rows with 1,123 mapped cases and 843 unique
+requirement-to-2025-section pairs (37.97% of 2,220 pinned requirements),
+while the empty-set and unavailable-dimension lanes remain independently
+queryable.
+
+### 2026-09-09 bounded object-name release mapping refinement (not a Requirements Lab recurrence)
+
+The pinned 2025 export includes the immutable
+`requirement-candidate-content-clauses-06-object-management-page-117-l36-6`
+record under §6.7.5. Its source text describes the multiple-name release
+postcondition: every supplied name was previously reserved by the joined
+federate, a released name becomes available again, and an unreserved name
+aborts release of the complete list. The existing green C++ reservation case
+at `cpp/tests/object_instance_name_reservation_catch2.cpp:95` already exercises
+that bounded state transition with 68 assertions, including the atomic failed
+release followed by successful release of the complete reserved set.
+
+This was a traceability-only refinement: the requirement ID was added to the
+existing `object-instance-name-reservation` plan row and focus card; no runtime
+behavior or Lab export changed, and no new `RL-###` recurrence is warranted.
+The exact bounded checks are:
+
+~~~powershell
+python tools/query_rti_work.py requirement requirement-candidate-content-clauses-06-object-management-page-117-l36-6 --summary --compact
+python tools/query_rti_work.py focus object-instance-name-reservation --summary --compact
+python tools/query_rti_work.py gaps --family object-ddm-ownership --clause clause-6.7.5 --summary --compact --limit 4
+~~~
+
+The live snapshot after this mapping refinement is 1,188 plan rows, 1,124
+mapped cases, and 851 unique requirement-to-2025-section pairs (38.33% of
+2,220 pinned requirements). The §6.7.5 family query is now fully covered
+(3/3); broader object/DDM gaps remain intentionally separate lanes.
+
+### 2026-09-09 bounded §9.1.4 traceability refinement (not a Requirements Lab recurrence)
+
+The existing C++ evidence was sufficient to close four additional direct
+2025 mappings without adding another test or reopening the pinned Lab. The
+empty-set case's non-empty follow-up subscription now maps the rule that a
+joined federate uses a region to establish interaction-receiving
+requirements (page 221 line 41). The multi-region interaction case now also
+maps the definitions of update and subscription region sets (page 221 lines
+47 and 53) and its one-dimensional positive-range overlap rule (page 221 line
+62). Its standard-section list now carries both §9.1.3.3 and §9.1.4, while
+the exact `trace`/`matrix` cards retain the bounded evidence language.
+
+At that point the live bounded snapshot was 1,187 plan rows, 1,123 mapped
+cases, and 847 unique requirement-to-2025-section pairs (38.15% of 2,220
+pinned requirements). The remaining family-local §9.1.4 gaps were deliberately
+separate: no-common-dimension behavior (line 68), strict-versus-relaxed range
+boundaries (line 71), and time-axis independence (line 89). They stayed in the
+indexed queue rather than being inferred from the existing cases.
+
 The current synchronization target is the `v0.1.0.a1` all-edition export. It
 contains six documents: 2010 and 2025 editions of Parts 1, 1.1, and 1.2. The
 2025 Part 1.1 corpus now exports 1,860 requirements (up from 1,697 in the
@@ -25,6 +191,114 @@ historical revision cited by the older observations below). Existing Umbra
 contracts remain implementation-scoped to 2025; the 2010 documents are
 included in the portable bundle and lock so their numbering remains available
 for future edition-specific contracts.
+
+### 2026-09-09 focused strict-versus-relaxed DDM traceability slice (not a Requirements Lab recurrence)
+
+The current pinned `v0.1.0.a1` export at
+`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4` contains the immutable
+`requirement-candidate-content-clauses-09-data-distribution-management-page-221-l71-22`
+record for the §9.1.4 strict-versus-relaxed range-overlap rule. The older RL-030
+observation is retained as a historical fact about revision
+`4f012fb1c21367cfde67aab8498ae00e2a64c615`; it is not a current omission and
+does not require a new recurrence id.
+
+The existing green C++ case at
+`cpp/tests/regional_auto_provide_response_catch2.cpp:148` now maps that
+candidate directly. Its 240 assertions cover strict filtering, the selected
+exact-touch relaxed boundary, positive-gap suppression, and restoration of
+strict overlap under both `HLA_EVOKED` and `HLA_IMMEDIATE`. The plan row and
+roadmap index expose the dedicated `strict-relaxed-ddm-boundary` focus, trace,
+matrix, check, and CTest handles. This is development-profile evidence only;
+it does not turn the implementation-defined policy into a conformance claim.
+
+The live bounded snapshot is now 1,188 plan rows, 1,124 mapped cases, and 851
+unique requirement-to-2025-section pairs (38.33% of 2,220 pinned
+requirements). The family-local §9.1.4 gap query is now closed (13/13); future
+DDM work should select a different indexed lane rather than reopening the Lab.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py case umbra-cpp-public-regional-automatic-provision-relaxed-ddm-integration --summary --compact
+python tools/query_rti_work.py focus strict-relaxed-ddm-boundary --summary --compact
+python tools/query_rti_work.py trace "Embedded regional Auto Provide applies Allow Relaxed DDM to touching source projections and suppresses positive gaps under HLA_EVOKED and HLA_IMMEDIATE" --summary --compact
+python tools/query_rti_work.py matrix strict-relaxed-ddm-boundary --summary --compact
+python tools/query_rti_work.py check --lane strict-relaxed-ddm-boundary --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\\.regional_auto_provide_response\\.catch2\\.Embedded regional Auto Provide applies Allow Relaxed DDM to touching source projections and suppresses positive gaps under HLA_EVOKED and HLA_IMMEDIATE$" --output-on-failure
+~~~
+
+### 2026-09-09 focused time-axis-independence traceability slice (not a Requirements Lab recurrence)
+
+The next bounded traceability slice promoted an existing green C++ case rather
+than reopening the pinned Lab. The case at
+`cpp/tests/timestamped_regional_attribute_update_tar_nmr_catch2.cpp:151`
+records 94 `HLA_EVOKED` assertions. It sends one committed,
+overlap-qualified regional attribute passel to two time-constrained recipients:
+one advances with ordinary TAR and the other with NMR. Both receive the same
+DDM-filtered passel before their respective grants, preserving the source
+region and callback metadata. The row now maps the existing page 221 line 89
+requirement to §9.1.4, exposes nine official C++ API surfaces, and is indexed
+as `time-axis-independence`. No Lab export changed and no recurrence identifier
+is consumed.
+
+The live bounded snapshot is now 1,188 plan rows, 1,124 mapped cases, and 849
+unique requirement-to-2025-section pairs (38.24% of 2,220 pinned
+requirements). The remaining family-local §9.1.4 gap is the strict-versus-
+relaxed range boundary (line 71); it remains explicitly queued because the
+Requirements-Lab candidate/contract discrepancy is still unresolved.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py case umbra-cpp-timestamped-regional-attribute-update-tar-nmr-integration --summary --compact
+python tools/query_rti_work.py focus time-axis-independence --summary --compact
+python tools/query_rti_work.py trace "Embedded regional timestamped attribute updates deliver before TAR and NMR grants" --summary --compact
+python tools/query_rti_work.py matrix time-axis-independence --summary --compact
+python tools/query_rti_work.py check --lane time-axis-independence --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.timestamped_regional_attribute_update_tar_nmr\.catch2\.Embedded regional timestamped attribute updates deliver before TAR and NMR grants$" --output-on-failure
+~~~
+
+### 2026-09-09 focused no-common-dimension implementation slice (not a Requirements Lab recurrence)
+
+The next bounded implementation slice used the existing two-dimensional
+regional object-attribute fixture rather than reopening the pinned Lab. The
+new C++ case at
+`cpp/tests/regional_object_attribute_routing_catch2.cpp:343` records 45
+`HLA_EVOKED` assertions. It creates valid X-only and Y-only regions with the
+same numeric range, proves that no-common-dimension source/subscription pairs
+produce neither discovery nor reflection, then replaces the subscription with
+the same-dimension X region as a positive control. The case maps the existing
+page 221 line 68 requirement to §9.1.4 and exposes 15 official C++ API
+surfaces. No Lab export changed and no recurrence identifier is consumed.
+
+At that point the live bounded snapshot was 1,188 plan rows, 1,124 mapped
+cases, and 848 unique requirement-to-2025-section pairs (38.2% of 2,220 pinned
+requirements). The remaining family-local §9.1.4 gaps were the strict-versus-
+relaxed range boundary (line 71) and time-axis independence (line 89); both
+stayed explicitly queued rather than being inferred from that case.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py case umbra-cpp-regional-object-attribute-no-common-dimension-integration --summary --compact
+python tools/query_rti_work.py focus no-common-dimension --summary --compact
+python tools/query_rti_work.py trace "Embedded regional object attributes with no common dimensions never overlap" --summary --compact
+python tools/query_rti_work.py matrix no-common-dimension --summary --compact
+python tools/query_rti_work.py check --lane no-common-dimension --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.regional_object_attribute_routing\.catch2\.Embedded regional object attributes with no common dimensions never overlap$" --output-on-failure
+~~~
+
+### 2026-09-05 local source-index guard (not a Requirements Lab recurrence)
+
+The bounded C++ source index previously treated a `TEST_CASE` declaration as
+located even when an enclosing preprocessor conditional was left open. The
+current dirty aggregate test translation unit reproduces that edge with an
+unbalanced `#if 0`; its apparent declarations are not executable evidence.
+`query_rti_work.py dashboard` and `status` now flag unbalanced conditionals in
+source health and direct contributors to the focused/recovery lane instead of
+silently treating those locations as runnable. This is a local source-artifact
+integrity guard, not a new Lab defect or a requirement-numbering change, so it
+does not consume the next `RL-180` recurrence identifier.
 
 ### Recurrence-ledger decision — 2026-08-25
 
@@ -6940,7 +7214,7 @@ tag, and retraction metadata remain intact. The focused C++ regression passes
 with callback-before-grant ordering and rejects post-resignation retraction with
 `FederateNotExecutionMember`. This is bounded development-profile evidence, not
 Lab validation, remote transport, JUnit/protected-review evidence, or a
-conformance claim; the focused Catch2 case passes 66 assertions.
+conformance claim; the focused Catch2 case passes 58 assertions.
 
 The Lab still does not express the compound relation among voluntary producer
 departure, invocation-time regional attribute realization, callback-time
@@ -10255,6 +10529,111 @@ python tools/query_rti_work.py trace "Private process local-delete request and r
 python tools/query_rti_work.py check --lane process-boundary --summary --compact
 ```
 
+### 2026-09-02 queryability maintenance — Join automatic-resign directive
+
+The unplanned federation-management source head `Embedded joins preserve an
+explicit FOM NoAction automatic-resign directive` is now indexed as
+`umbra-cpp-join-automatic-resign-directive-integration` (7 assertions). Its
+bounded mapping covers the official Connect/Create/Join/Resign/Destroy/
+Disconnect and Get Automatic Resign Directive C++ surfaces, Join-time FOM
+composition, the schema-valid 2025 support-switch table, and the accepted
+NoAction value. The exact CTest passes independently under
+`[federation-management]` in 0.34 seconds. The full C++ plan is now 958 rows;
+the derived unplanned source queue is 160 declarations. The next exact source
+head is `Embedded order and transportation MOM reports retain their service
+classifications` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34242`. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — MOM order/transport classification
+
+The next source-only federation-management case `Embedded order and
+transportation MOM reports retain their service classifications` is now
+indexed as `umbra-cpp-order-transportation-mom-classification-integration` (66
+assertions). Its mapping is deliberately limited to the four order/transport
+change services, their HLAreportServiceInvocation classifications, and the
+minimal declaration/lifecycle setup. The exact CTest passes in 0.48 seconds;
+the source-only queue is now 159 declarations. The next exact source head is
+`Embedded joined-federate MOM snapshots retain only FOM modules supplied at
+Join` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35623`. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Joined-federate MOM FOM-module snapshot
+
+The joined-federate MOM snapshot source head `Embedded joined-federate MOM
+snapshots retain only FOM modules supplied at Join` is now indexed as
+`umbra-cpp-joined-federate-mom-fom-module-snapshot-integration` (12 assertions).
+The official lifecycle surfaces are mapped, while the private snapshot helper
+and selected filesystem read remain explicitly test-only seams. The case passes
+in 0.67 seconds and verifies that the Join-scoped module list and initial
+service-report record do not claim the federation creator's base FOM. The
+source-only queue is now 158 declarations. The next exact source head is
+`Embedded joined-federate MOM report-file identity survives save and restore` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35682`. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Joined-federate MOM report-file save/restore
+
+The unplanned federation-management source head `Embedded joined-federate MOM
+report-file identity survives save and restore` is now indexed as
+`umbra-cpp-joined-federate-mom-report-file-save-restore-integration` (46
+assertions). Its focused mapping covers the official HLA_IMMEDIATE
+Connect/Create/Join, MOM lookup/subscription, reporting-switch, save/restore,
+Request Attribute Value Update, Reflect Attribute Values, and lifecycle
+surfaces. The private joined-federate snapshot seam and filesystem reads are
+explicitly test-only; the row proves one stable HLAreportServiceFile path and
+continued append growth across one accepted save/restore cycle, not exact Table
+5 decoding, process-restart durability, or conformance. The exact CTest passes
+in 0.47 seconds. The full C++ plan is now 961 rows; the derived unplanned
+source queue is 157 declarations. The next exact source head is
+`Embedded joined-federate MOM regional discovery uses the immutable HLAfederate
+point` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36106`. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Joined-federate MOM regional discovery
+
+The next federation-management source head `Embedded joined-federate MOM
+regional discovery uses the immutable HLAfederate point` is now indexed as
+`umbra-cpp-joined-federate-mom-regional-discovery-integration` (124 assertions,
+17 requirement anchors). The focused row exercises the official Connect,
+Create/Join/Resign/Destroy/Disconnect, MOM lookup, Normalize Federate Handle,
+region lifecycle, regional subscription, regional and ordinary Request
+Attribute Value Update, Evoke Callback, and Discover/Reflect/Remove callback
+surfaces under both HLA_EVOKED and HLA_IMMEDIATE. It proves disjoint suppression,
+overlap-triggered public MOM discovery/reflection, stale evoked request
+suppression, immediate callback-boundary behavior, independent non-regional
+requests, and removal on resignation. The service-report directory is fixture
+configuration only; this row makes no report-file/path claim and is not
+conformance evidence. The direct Catch2 executable passes all 124 assertions.
+The full C++ plan is now 962 rows; the derived unplanned source queue is 156
+declarations. The next exact source head is `Embedded regional Request Attribute
+Value Update supports a 2025 provider response (restored baseline copy)` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3786`. No Requirements
+Lab resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Restored-baseline regional provider response
+
+The restored-baseline federation-management source head `Embedded regional
+Request Attribute Value Update supports a 2025 provider response (restored
+baseline copy)` is now indexed as
+`umbra-cpp-regional-attribute-value-update-provider-response-restored-baseline-integration`
+(44 assertions, 20 requirement anchors) at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3786`. The focused
+HLA_EVOKED case is separately queryable from its earlier same-title sibling and
+records the official regional request, provider callback, response update,
+reflection, user-tag, reliable transport, source-region, discovery, and
+teardown surfaces. It is development-profile evidence only; automatic
+provision, timestamped/retraction, stale-eligibility, relaxed DDM,
+save/restore, remote/package, Requirements Lab validation, and conformance
+remain separate. The direct Catch2 executable passes all 44 assertions. The
+full C++ plan is now 963 rows; the derived unplanned source queue is 155
+declarations. The next exact source head is `Embedded timestamped Delete Object
+Instance reconstitutes on retraction and removes before grant` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4305`. No Requirements
+Lab resynchronization or new numbered requirement was performed.
+
 ### 2026-09-02 implementation slice — Public process receive-order Delete Object Instance
 
 The public process endpoint now carries ordinary `RTIambassador::deleteObjectInstance`
@@ -10302,3 +10681,6855 @@ python tools/query_rti_work.py test "RTIambassador routes Local Delete Object In
 python tools/query_rti_work.py trace "RTIambassador routes Local Delete Object Instance through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py check --lane process-boundary --summary --compact
 ```
+
+### 2026-09-02 queryability maintenance — Timestamped Delete Object Instance harness boundary
+
+The next federation-management source head, `Embedded timestamped Delete Object
+Instance reconstitutes on retraction and removes before grant`, is now indexed
+as `umbra-cpp-timestamped-delete-object-instance-retraction-integration` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4305`. Its mapping
+contains 26 2025 Requirements-Lab anchors and the official Connect/Create/Join,
+object-management, time-management, Delete Object Instance, Retract, and
+callback surfaces. The direct HLA_EVOKED run is a deterministic harness failure:
+15 assertions were observed, 14 passed, and line 4354 fails because the copied
+test expects `EvokeCallback(0.0)` to be false immediately after
+`Enable Time Regulation`, while the RTI correctly queues the official
+`timeRegulationEnabled` callback. The timestamped delete, retraction,
+reconstitution, removal metadata, and grant-order assertions after that
+boundary were not executed and are not evidence. The 4.9 MB translation unit
+was not changed because `apply_patch` cannot safely read it; repair the small
+harness expectation in a later source-edit pass, then rerun the exact selector.
+This is a test-harness rough edge, not a Requirements Lab change: no Lab
+resynchronization or new numbered requirement was performed. The next exact
+source head is the unplanned attribute-relevance case at
+`cpp/tests/attribute_relevance_known_class_disabled_subscription_catch2.cpp:97`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant" --summary --compact
+python tools/query_rti_work.py search failing-test-harness --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-03 implementation slice — Live timestamped regional interaction restore
+
+The bounded `time-save-restore` handoff is now a standalone native C++ Catch2
+case, `Embedded federation restore restores a saved live timestamped regional
+interaction`, at
+`cpp/tests/restore_live_tso_regional_interaction_catch2.cpp:175`. Its focused
+HLA_EVOKED run is green with 74 assertions. The case saves one
+overlap-qualified explicit-source timestamped interaction while queued,
+terminalizes the post-save designator, restores the saved interaction and
+retraction ledger, and proves the original source RegionHandle set is delivered
+before Flush Queue Grant followed by one legal post-restore Request Retraction.
+The row is mapped to 11 Requirements-Lab anchors, 11 canonical IEEE
+1516.1-2025 sections (`4.19`, `4.21.1`, `4.23`, `4.27`, `4.32`, `8.1.5`,
+`8.1.6`, `8.22.3`, `8.23.3`, `9.10`, and `9.12`), and 17 official C++ API
+surfaces. The first failing run was a test setup issue: a lookahead of one made
+TAR(1) equal the ordinary GALT boundary, so the grant was correctly held; the
+focused fixture now uses lookahead five and asserts both Initiate Federate Save
+callbacks and the receiver's grant. This is bounded live FQR restore evidence;
+timed/durable restore, region mutation, passive/relaxed DDM, alternate
+advances, changed membership/ownership, transport, package/JUnit/protected
+review, interoperability, and conformance remain open. No Requirements Lab
+resynchronization or new numbered requirement was performed.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus timestamped-regional-interaction-live-restore --summary --compact
+python tools/query_rti_work.py trace "Embedded federation restore restores a saved live timestamped regional interaction" --summary --compact
+python tools/query_rti_work.py matrix "Embedded federation restore restores a saved live timestamped regional interaction" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-regional-interaction-live-restore --summary --compact
+ctest --test-dir <build-dir> -C Debug -L timestamped-regional-interaction-live-restore --output-on-failure
+```
+
+### 2026-09-03 implementation slice — Live timestamped interaction restore fan-out
+
+The next deterministic `ready` handoff is now a standalone native C++ Catch2
+case, `Embedded federation restore restores one queued timestamped interaction
+to multiple recipients`, at
+`cpp/tests/restore_live_tso_interaction_multi_recipient_catch2.cpp:173`. Its
+focused HLA_EVOKED run is green with 116 assertions. The case saves one
+non-regional timestamped `Send Interaction` while queued for two independently
+constrained recipients, terminalizes the post-save designator, restores the
+typed payload and both pending-recipient/retraction entries, delivers each
+copy through its own Flush Queue Grant, and then verifies one legal Request
+Retraction callback reaches each delivered recipient. The row is mapped to 11
+Requirements-Lab anchors, 10 canonical IEEE 1516.1-2025 sections, and 20
+official C++ API surfaces. This is bounded live multi-recipient FQR restore
+evidence; regional/DDM, timed or durable restore, pending/in-transit advances,
+changed membership/ownership, alternate advances, transport, package/JUnit/
+protected-review evidence, interoperability, and conformance remain open. A
+first fixture attempt asserted Initiate Federate Save labels that are outside
+this row's selected contract; those non-contract assertions were removed,
+while the normative save/restore and delivery boundaries remain asserted. No
+Requirements Lab resynchronization or new
+numbered requirement was performed.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus timestamped-interaction-restore-multi-recipient --summary --compact
+python tools/query_rti_work.py trace "Embedded federation restore restores one queued timestamped interaction to multiple recipients" --summary --compact
+python tools/query_rti_work.py matrix "Embedded federation restore restores one queued timestamped interaction to multiple recipients" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-interaction-restore-multi-recipient --summary --compact
+ctest --test-dir <build-dir> -C Debug -L timestamped-interaction-restore-multi-recipient --output-on-failure
+```
+
+### 2026-09-03 implementation slice — Timestamped regional interaction service-report file
+
+The next deterministic `ready` handoff is now a standalone native C++ Catch2
+case, `Embedded service reporting records timestamped Send Interaction With
+Regions before interaction callback`, at
+`cpp/tests/timestamped_regional_interaction_service_report_file_catch2.cpp:220`.
+Its focused HLA_EVOKED run is green with 242 assertions. Using the production
+filesystem service-report directory, it proves the serial-zero accepted
+`SendInteractionWithRegions` record retains the type-27 interaction class,
+type-40 parameter map, type-43 region set, type-63 tag, type-31 timestamp, and
+type-33 MessageRetractionHandle before the constrained regional Receive
+Interaction callback. Temporal-driving reports are disabled after the
+accepted record so callback-entry ordering is directly observable. The row is
+mapped to one Requirements-Lab anchor (`11.5`), one canonical IEEE
+1516.1-2025 section, and eight selected official C++ API surfaces. This is
+bounded service-report file evidence; failed regional-send matrices, public
+HLAreportServiceInvocation delivery, switch re-enable/save/restore, remote,
+package/JUnit/protected-review evidence, interoperability, and conformance
+remain open. The initial mismatch was a fixture issue, not a Lab change: the
+temporal-driving calls were themselves appending reports before callback entry.
+No Requirements Lab resynchronization or new numbered requirement was
+performed.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus timestamped-regional-interaction-service-report --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records timestamped Send Interaction With Regions before interaction callback" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting records timestamped Send Interaction With Regions before interaction callback" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-regional-interaction-service-report --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\\.ieee1516_2025\\.catch2\\.(Embedded service reporting records timestamped Send Interaction With Regions before interaction callback|Embedded service reporting delivers accepted timestamped regional Send Interaction With Regions through MOM interaction)$" --output-on-failure
+```
+
+### 2026-09-03 implementation slice — Timestamped regional interaction service-report MOM
+
+The next planned row was implemented as a separate native C++ Catch2 case,
+`Embedded service reporting delivers accepted timestamped regional Send
+Interaction With Regions through MOM interaction`, at
+`cpp/tests/timestamped_regional_interaction_service_report_interaction_catch2.cpp:179`.
+Its focused run is green with 248 assertions across an HLA_EVOKED publisher and
+receiver plus an HLA_IMMEDIATE observer. With Send Service Reports to File
+disabled, the observer receives exactly one public
+`HLAreportServiceInvocation` for the accepted serial-zero regional send before
+the constrained callback; the case decodes the type-27/type-40/type-43/type-63/
+type-31 supplied forms, the quoted Table 5 type-33 MessageRetractionHandle
+return, success/empty-exception fields, and the callback's source region,
+timestamp, TIMESTAMP order, and valid retraction. This is bounded §11.5 MOM
+service-report evidence; failed regional-send matrices, file re-enable/lifecycle,
+save/restore, remote/package/JUnit/protected-review evidence, interoperability,
+and conformance remain open. No Requirements Lab resynchronization or new
+numbered requirement was performed.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus timestamped-regional-interaction-service-report --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting delivers accepted timestamped regional Send Interaction With Regions through MOM interaction" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting delivers accepted timestamped regional Send Interaction With Regions through MOM interaction" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-regional-interaction-service-report --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\\.ieee1516_2025\\.catch2\\.(Embedded service reporting records timestamped Send Interaction With Regions before interaction callback|Embedded service reporting delivers accepted timestamped regional Send Interaction With Regions through MOM interaction)$" --output-on-failure
+```
+
+### 2026-09-03 implementation slice — Timestamped regional interaction service-report failures
+
+The next two planned rows were implemented as native C++ Catch2 failure
+matrices without re-reading the Requirements Lab. The production filesystem
+case, `cpp/tests/timestamped_regional_interaction_failure_service_report_file_catch2.cpp:157`,
+is green with 307 HLA_EVOKED assertions. The paired public-MOM case,
+`cpp/tests/timestamped_regional_interaction_failure_service_report_interaction_catch2.cpp:90`,
+is green with 189 HLA_IMMEDIATE observer assertions. Both exercise invalid
+interaction-class, parameter, region, and logical-time timestamped regional
+send calls; together they preserve serials zero through three, the
+type-27/type-40/type-43/type-63/type-31 supplied forms, type-34 Null returns,
+false indicators, exact exception text, and no application regional callback.
+The file case uses the configured production filesystem store; the MOM case
+keeps Send Service Reports to File disabled and decodes the same failures
+through HLAreportServiceInvocation. Each row maps to §11.5 and its indexed
+official C++ API surfaces. No Requirements Lab resynchronization or new
+numbered requirement was performed.
+
+Bounded queries:
+
+~~~powershell
+python tools/query_rti_work.py focus timestamped-regional-interaction-failure --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records failed timestamped regional Send Interaction With Regions invocations" --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting delivers failed timestamped regional Send Interaction With Regions invocations through MOM interaction" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-regional-interaction-failure --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\\.ieee1516_2025\\.catch2\\.(Embedded service reporting records failed timestamped regional Send Interaction With Regions invocations|Embedded service reporting delivers failed timestamped regional Send Interaction With Regions invocations through MOM interaction)$" --output-on-failure
+~~~
+
+### 2026-09-03 validation note — Global plan drift versus bounded lane checks
+
+The full `python tools/requirements_lab.py check-plan` remains red on existing
+historical rows whose exact Catch2 declarations are not present in the current
+native source tree, plus three older API-surface inventory mismatches. This is
+not a failure of the completed restore or service-report slices: their exact
+`query_rti_work.py check --lane ...` mapping checks pass, and the exact Catch2
+selectors pass. The broad service-report label also selects generated
+traceability checks with historical selectors; keep that output as a
+reconciliation backlog, but use the exact `-R` selector printed by `focus` for
+implementation decisions so known drift does not trigger another Requirements
+Lab search.
+
+Bounded queries:
+
+```powershell
+python tools/requirements_lab.py check-plan
+python tools/query_rti_work.py check --lane timestamped-regional-interaction-live-restore --summary --compact
+python tools/query_rti_work.py check --lane timestamped-interaction-restore-multi-recipient --summary --compact
+python tools/query_rti_work.py check --lane timestamped-regional-interaction-service-report --summary --compact
+python tools/query_rti_work.py check --lane timestamped-regional-interaction-failure --summary --compact
+```
+
+### 2026-09-03 queryability maintenance — Direct next-slice handoff
+
+The roadmap index already contained the exact Requirements-Lab ids and
+canonical 2025 subsection mappings, but the active family still retained a
+completed baseline pointer. That made normal resume work spend time reading
+historical prose before reaching the planned-row queue. The read-only
+`query_rti_work.py ready` view now resolves exactly one deterministic planned
+row (or one unplanned source declaration) and prints its plan id, exact
+`TEST_CASE` title, requirement ids, `document_id:clause_id` section keys, C++
+API surfaces, and trace/implementation handles. A planned row remains a
+contract until its C++ declaration exists; no requirement is inferred and no
+Requirements Lab resynchronization or new numbered requirement was performed.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py ready --json
+python tools/query_rti_work.py trace "Embedded federation restore restores a saved live timestamped regional interaction" --summary --compact
+```
+
+### 2026-09-03 implementation slice — Timestamped Delete Object Instance MOM failure interaction
+
+The next indexed queue head, `Embedded service reporting delivers failed
+timestamped Delete Object Instance invocations through MOM interaction`, is
+now a standalone native C++ source declaration at
+`cpp/tests/timestamped_delete_object_instance_failure_service_report_interaction_catch2.cpp:85`.
+Its focused HLA_IMMEDIATE run is green with 92 assertions. The plan row carries
+five Requirements-Lab anchors, four canonical IEEE 1516.1-2025 sections
+(`6.16`, `6.16.4`, `8.22.3`, and `11.5`), and five official C++ API surfaces.
+The case records unknown-object and earlier-than-lookahead failures through
+HLAreportServiceInvocation, preserving type-37/type-63/type-31 supplied forms,
+the type-34 Null returned argument, false indicators, exact exception text, and
+serials zero and one. This is bounded development-profile evidence; accepted
+deletion/retraction delivery, recipient callbacks, regional variants,
+validation, and conformance remain open. RL-152 records the missing Lab
+row-level conditional mapping; no new Lab requirement or resynchronization was
+performed.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py focus timestamped-delete-object-instance-failure-mom-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting delivers failed timestamped Delete Object Instance invocations through MOM interaction" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting delivers failed timestamped Delete Object Instance invocations through MOM interaction" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-delete-object-instance-failure-mom-interaction --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting delivers failed timestamped Delete Object Instance invocations through MOM interaction$" --output-on-failure
+```
+
+### 2026-09-03 implementation slice — Timestamped Delete Object Instance MOM interaction
+
+The next indexed queue head, `Embedded service reporting delivers accepted
+timestamped Delete Object Instance through MOM interaction`, is now a
+standalone native C++ source declaration at
+`cpp/tests/timestamped_delete_object_instance_service_report_interaction_catch2.cpp:145`.
+Its focused run is green with 104 assertions across HLA_EVOKED publisher/
+receiver callbacks and an HLA_IMMEDIATE observer. The plan row carries five
+Requirements-Lab anchors, four canonical IEEE 1516.1-2025 sections (`6.16`,
+`6.17.1`, `8.1.5`, and `11.5`), and ten official C++ API surfaces.
+The case decodes the type-33 MessageRetractionHandle return through
+HLAreportServiceInvocation while file reporting is disabled, then verifies one
+timestamped Remove Object Instance callback before its matching grant with the
+same object, tag, producer, time/order, and retraction metadata. This is
+bounded development-profile evidence; regional deletion, alternate advances,
+recipient-local report files, save/restore, validation, and conformance remain
+open. RL-105/RL-152 record the missing Lab report-backend relation; no new Lab
+requirement or resynchronization was performed.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py focus timestamped-delete-object-instance-service-report-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting delivers accepted timestamped Delete Object Instance through MOM interaction" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting delivers accepted timestamped Delete Object Instance through MOM interaction" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-delete-object-instance-service-report-interaction --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting delivers accepted timestamped Delete Object Instance through MOM interaction$" --output-on-failure
+```
+
+### 2026-09-03 implementation slice — Time-regulated timestamped Delete Object Instance sender file
+
+The next indexed queue head, `Embedded service reporting records time-regulated
+timestamped Delete Object Instance with retraction handle`, is now a standalone
+native C++ source declaration at
+`cpp/tests/time_regulated_timestamped_delete_object_instance_service_report_catch2.cpp:206`.
+Its focused HLA_EVOKED run is green with 172 assertions. The plan row carries
+five Requirements-Lab anchors, five canonical IEEE 1516.1-2025 sections
+(`6.16`, `6.17.1`, `8.1.5`, `8.1.6`, and `11.5`), and eight official C++ API
+surfaces. The case proves the type-33 MessageRetractionHandle return for a
+time-regulated timestamped Delete Object Instance, retains one advertised
+filesystem identity across a report-switch disable/re-enable cycle, and
+delivers the timestamped Remove Object Instance callback before its matching
+grant with the original object, tag, producer, time/order, and retraction
+metadata. This is bounded development-profile evidence; regional deletion,
+alternate advances, recipient-local callback files, save/restore, validation,
+and conformance remain open. RL-105/RL-152 record the missing Lab report-backend
+and row-level failure relations; no new Lab requirement or resynchronization was
+performed.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py focus timestamped-delete-object-instance-time-regulated-sender-file --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records time-regulated timestamped Delete Object Instance with retraction handle" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting records time-regulated timestamped Delete Object Instance with retraction handle" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-delete-object-instance-time-regulated-sender-file --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting records time-regulated timestamped Delete Object Instance with retraction handle$" --output-on-failure
+```
+
+### 2026-09-03 implementation slice — Timestamped Delete Object Instance sender file
+
+The accepted planned case, `Embedded service reporting records timestamped
+Delete Object Instance before removal callback`, is now restored as a
+standalone native C++ source declaration at
+`cpp/tests/timestamped_delete_object_instance_service_report_catch2.cpp:193`.
+Its focused HLA_EVOKED run is green with 91 assertions. The plan row carries
+four Requirements-Lab anchors, four canonical IEEE 1516.1-2025 sections
+(`6.16`, `6.17.1`, `8.1.5`, and `11.5`), and the official Delete Object
+Instance/Remove Object Instance plus service-report switch API surfaces. The
+case proves that an accepted non-time-regulated timestamped deletion appends
+the type-37/type-63/type-31 record with the type-34 Null returned argument
+before the recipient's timestamped removal callback, retaining object, tag,
+producer, logical time, order, and absent retraction metadata. This remains
+bounded development-profile evidence; regulated type-33 return, regional and
+retraction variants, recipient-local callback files, validation, and
+conformance remain open. RL-105/RL-152 record the missing Lab report-backend
+and row-level failure relations; no new Lab requirement or resynchronization
+was performed.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py focus timestamped-delete-object-instance-sender-file --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records timestamped Delete Object Instance before removal callback" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting records timestamped Delete Object Instance before removal callback" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-delete-object-instance-sender-file --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting records timestamped Delete Object Instance before removal callback$" --output-on-failure
+```
+
+### 2026-09-03 implementation slice — Timestamped Delete Object Instance failure file
+
+The exact planned case, `Embedded service reporting records failed timestamped
+Delete Object Instance invocations`, is now restored as a standalone native C++
+source declaration at
+`cpp/tests/timestamped_delete_object_instance_failure_service_report_catch2.cpp:127`.
+Its focused HLA_EVOKED run is green with 134 assertions. The plan row carries
+five Requirements-Lab anchors, four canonical IEEE 1516.1-2025 sections
+(`6.16`, `6.16.4`, `8.22.3`, and `11.5`), and the official Delete Object
+Instance plus service-report switch API surfaces. The case uses the production
+filesystem store and verifies deterministic serial-0/serial-1 records for the
+unknown-object and earlier-than-lookahead failures, including the supplied
+type-37/type-63/type-31 forms, Null returned argument, false indicator, and
+exact exception text. This remains bounded development-profile evidence; it
+does not claim accepted deletion, recipient-local callback or MOM-interaction
+delivery, regional/retraction variants, validation, or conformance. The
+Requirements Lab has no row-level conditional failure mapping (RL-152), so no
+new Lab requirement or resynchronization was performed.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py focus timestamped-delete-object-instance-failure-service-report --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records failed timestamped Delete Object Instance invocations" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting records failed timestamped Delete Object Instance invocations" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-delete-object-instance-failure-service-report --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting records failed timestamped Delete Object Instance invocations$" --output-on-failure
+```
+
+### 2026-09-03 implementation slice — Alternate-advance directed TSO
+
+The first planned source-drift head from the indexed queue,
+`Embedded timestamped directed interaction delivers before FQR TARA and NMRA
+grants`, is now restored as a standalone C++ Catch2 declaration at
+`cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp:164`.
+Its focused HLA_EVOKED run is green with 108 assertions. The plan row carries
+15 Requirements-Lab anchors, 10 canonical IEEE 1516.1-2025 sections, and 11
+official C++ API surfaces. The case sends one target-qualified timestamped
+directed interaction, drives independent FQR/TARA/NMRA advances, verifies each
+directed callback precedes its grant, and checks that a delivered retraction is
+terminal.
+
+The historical body expected `EvokeCallback` to return false immediately after
+`Enable Time Regulation`; the 2025 implementation queues the successful
+enablement callback, so the standalone slice consumes that callback before
+asserting the empty queue. This is a local stale-harness correction, not a
+Requirements-Lab recurrence and it does not consume a new RL number.
+
+This is a source-identity and bounded evidence maintenance change, not a Lab
+resynchronization or a new numbered requirement. Historical contract selectors
+that pointed into the aggregate federation-management translation unit now point
+to the standalone source. DDM, lower-bound rejection, save/restore,
+ownership/resignation, remote/package/JUnit/protected-review evidence,
+interoperability, and conformance remain open. The stable
+`timestamped-directed-interaction-alternate-advance` lane provides the exact
+CTest filter and avoids broad aggregate scans.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py focus timestamped-directed-interaction-alternate-advance --summary --compact
+python tools/query_rti_work.py trace "Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants" --summary --compact
+python tools/query_rti_work.py matrix "Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-directed-interaction-alternate-advance --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants$" --output-on-failure
+```
+
+### 2026-09-03 implementation slice — Joined-federate MOM state save/restore
+
+The next planned source-drift head, `Embedded joined-federate MOM HLAfederateState
+follows save and restore callbacks`, is now restored as a standalone C++ Catch2
+case at `cpp/tests/joined_federate_mom_federate_state_save_restore_catch2.cpp:138`.
+Its focused run is green with 152 assertions across HLA_EVOKED and
+HLA_IMMEDIATE. The plan row carries the single Requirements-Lab anchor for
+§11.4.1 and 11 official C++ save/restore service and callback surfaces. It
+verifies the observer-visible state sequence 1→3→1→5→1 and suppresses the
+saving federate's own state transition event.
+
+The historical row had no current source declaration; restoring it required no
+Requirements-Lab resynchronization or new numbered requirement. The old body
+is preserved as a focused public MOM test, with source identity, assertion
+count, callback models, API surfaces, and canonical section now indexed. Other
+MOM attributes, public MOM interaction routing, remote/package/JUnit/protected-
+review evidence, validation, and conformance remain open. The stable
+`joined-federate-mom-federate-state` lane is the bounded handoff.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py focus joined-federate-mom-federate-state --summary --compact
+python tools/query_rti_work.py trace "Embedded joined-federate MOM HLAfederateState follows save and restore callbacks" --summary --compact
+python tools/query_rti_work.py matrix "Embedded joined-federate MOM HLAfederateState follows save and restore callbacks" --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-federate-state --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded joined-federate MOM HLAfederateState follows save and restore callbacks$" --output-on-failure
+```
+
+### 2026-09-03 queryability maintenance — Auto Provide service-report boundary
+
+The new standalone C++ case, `Embedded Auto Provide service reporting records
+empty tag before its callback`, is indexed at
+`cpp/tests/auto_provide_service_report_file_catch2.cpp:166` with 142
+HLA_EVOKED assertions, five Requirements-Lab requirement anchors, and four
+canonical 2025 sections (`1`, `6.1.10`, `11.5`, and `11.5.2`), plus six
+official C++ API surfaces. The stable
+`auto-provide-service-report` lane now returns two mapped cases and 143
+aggregate assertions, including the existing one-assertion Table 5 formatter
+unit. The plan, four contract references, roadmap index, and C++/roadmap query
+cards all use the standalone source identity; no Requirements Lab resync or
+requirement renumbering was performed.
+
+The exact integration and formatter CTest filter is green. A broad
+`-L auto-provide-service-report` invocation also selects the existing
+Requirements-Lab traceability checks, which still contain unrelated historical
+selectors for removed aggregate federation-management cases. That is local
+contract/catalog drift, not a Lab export defect; use the exact CTest filter
+printed by `focus auto-provide-service-report` until those historical selectors
+are repaired. The lane-scoped `check` and `unplanned --path` gates pass.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py focus auto-provide-service-report --summary --compact
+python tools/query_rti_work.py trace "Embedded Auto Provide service reporting records empty tag before its callback" --summary --compact
+python tools/query_rti_work.py matrix "Embedded Auto Provide service reporting records empty tag before its callback" --summary --compact
+python tools/query_rti_work.py check --lane auto-provide-service-report --summary --compact
+```
+
+### 2026-09-03 queryability maintenance — Table 5 handle normalization
+
+The exact source queue head, `MOM service-report files use the Table 5 handle
+normalization forms`, is now indexed as
+`umbra-cpp-mom-service-report-handle-normalization-unit` at
+`cpp/tests/mom_service_report_encoding_catch2.cpp:716`. Its focused Catch2 run
+is green with 18 assertions. The case is deliberately classified as
+SDK-encoding foundation evidence: it covers NormalizeServiceGroup and the
+FederateHandle, ObjectClassHandle, InteractionClassHandle, and
+ObjectInstanceHandle normalization forms, while the service-report formatter
+is an internal seam rather than a standalone Requirements-Lab API surface.
+Runtime MOM switch gating, immutable filesystem identity, package/JUnit,
+protected review, interoperability, and conformance remain separate lanes.
+No Requirements Lab resynchronization or new numbered requirement was
+performed. The next work query should select the indexed implementation slice,
+not repeat a full source or Lab scan.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py matrix service-report-encoding --summary --compact
+python tools/query_rti_work.py trace umbra-cpp-mom-service-report-handle-normalization-unit --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/mom_service_report_encoding_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-03 focused evidence gate — Timestamped directed-interaction harness repair
+
+The two previously indexed harness findings are repaired without changing the
+Requirements-Lab mapping. The HLA_EVOKED Delay Subscription Evaluation case,
+`Embedded Delay Subscription Evaluation defers timestamped directed interaction
+eligibility`, now drains the owner's queued callback work and passes with 166
+assertions under both HLA_EVOKED and HLA_IMMEDIATE in the focused target at
+`cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp:129`.
+The HLA_EVOKED TSO/retraction case, `Embedded timestamped directed interaction
+queues TSO before the grant and supports retraction`, now drains the publisher's
+queued time-regulation callback and passes with 56 assertions in the focused
+target at `cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp:150`.
+Their plan rows are promoted from
+`failing-test-harness` to `implemented-in-noninstallable-development-profile`;
+the repaired assertions are evidence for the bounded timestamped paths only,
+not for regional/DDM, ownership, save/restore, transport, package/JUnit,
+protected review, interoperability, or conformance. This is a source-harness
+repair, not a new Requirements-Lab issue or resynchronization.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded Delay Subscription Evaluation defers timestamped directed interaction eligibility" --summary --compact
+python tools/query_rti_work.py trace "Embedded timestamped directed interaction queues TSO before the grant and supports retraction" --summary --compact
+python tools/query_rti_work.py focus delay-subscription-evaluation-timestamped-directed-interaction --summary --compact
+python tools/query_rti_work.py focus timestamped-directed-interaction-tso-retraction --summary --compact
+```
+
+### 2026-09-03 queryability maintenance — Source-line drift after test growth
+
+Focused checks also exposed a separate bookkeeping rough edge: adding source
+cases shifts later `recent_completed_slices` line pointers, even though the
+underlying test and Requirements-Lab mapping are unchanged. The affected
+time-management pointers were refreshed to the current derived `TEST_CASE`
+locations, and the time-management and timestamped-directed-interaction lane
+checks now pass. This is catalog/source-coordinate maintenance only; it is not
+a new Requirements-Lab issue and does not justify resynchronizing the Lab.
+Prefer `trace`/`matrix` (which derive locations from the current checkout) over
+copying historical line numbers from prose snapshots.
+
+### 2026-09-03 queryability maintenance — Disabled source artifacts are not work
+
+The object-management focus card exposed a classifier edge: a retained `#if 0`
+malformed transport-loss declaration had a source location and was therefore
+counted as an executable candidate, while its zero assertion count made clear
+that it could not run. The query tool now excludes
+`disabled-source-artifact` rows from executable-candidate counts and reports
+their ids separately. This keeps historical artifacts searchable without
+letting them displace a real implementation slice or trigger a Requirements
+Lab rescan.
+
+### 2026-09-03 focused evidence gate — installable package and process JUnit
+
+The active transport/conformance gate was rerun without a broad suite scan.
+`cmake --build .build --config Debug --target umbra_test_installable_package`
+completed successfully, including the clean downstream package-config smoke
+(`umbra.package_config`, 1/1). The separate
+`umbra_process_boundary_junit` target also completed and wrote
+`.build/compliance/process-boundary/process-boundary.xml`; the bounded
+artifact covers 40 source-located Catch2 cases and 1,942 assertions, all 40
+mapped to 118 unique Requirements-Lab IDs and 60 canonical 2025 sections.
+This is current package/JUnit evidence, not protected-review acceptance or a
+conformance promotion. The generated XML remains build output and is not
+added to the tracked source tree. No Requirements Lab resynchronization or new
+numbered requirement was performed.
+
+Bounded queries:
+
+```powershell
+cmake --build .build --config Debug --target umbra_test_installable_package
+cmake --build .build --config Debug --target umbra_process_boundary_junit
+python tools/query_rti_work.py coverage --lane process-boundary --summary --compact
+python tools/query_rti_work.py check --lane process-boundary --summary --compact
+```
+
+### 2026-09-02 queryability maintenance — Header and binding-shell source queue
+
+Five existing C++ declarations from `ieee1516_2025_headers_catch2.cpp` were
+selected from the bounded `unplanned` queue, run under the focused Catch2
+selectors, and added to the plan with exact source-derived locations. Their
+green assertion counts are 2 (API version), 36 (exception identities), 4
+(federation listing profile gate), 15 (FOM/transport lookup profile gate), and
+20 (initial object/ownership service-set profile gate). The first two are
+support-type evidence; the latter three retain official API-surface IDs but
+are explicitly marked SDK/API traceability rather than standalone
+Requirements-Lab or conformance evidence. No Requirements Lab resynchronization
+or new numbered requirement was performed. The global source-only queue is now
+115 declarations, and the translation-unit queue for the recent federation-
+management slices remains exhausted. The five rows share the exact
+`header-binding-shell` lane so the whole source queue is discoverable in one
+bounded matrix lookup without relying on a broad repository search.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py matrix header-binding-shell --summary --compact --limit 10
+python tools/query_rti_work.py matrix "The binding shell profile-gates the initial 2025 object-instance service set explicitly" --summary --compact
+python tools/query_rti_work.py unplanned --summary --compact --limit 10
+```
+
+### 2026-09-02 bounded source queue — standardized logical-time foundation
+
+The next five declarations from the global source-only queue were already
+green in the native C++ time-support implementation: integer64 value/arithmetic
+and decode (15/6 assertions), float64 value/arithmetic and decode (12/4), and
+reference factory selection (11). Each is now an explicit Catch2 plan row with
+the exact `cpp/tests/ieee1516_2025_time_catch2.cpp` location, a shared
+`time-support` lane, and pinned IEEE 1516.1-2025 Clause 12.4/12.4.2 anchors.
+These are SDK/encoding foundation results, not public time-service or
+conformance evidence. No Requirements-Lab resynchronization or new numbered
+requirement was performed. The global source-only queue is now 110
+declarations.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py matrix time-support --summary --compact --limit 10
+python tools/query_rti_work.py focus time-support --summary --compact
+python tools/query_rti_work.py unplanned --summary --compact --limit 1
+```
+
+### 2026-09-02 bounded source queue — InteractionClassHandle support
+
+The next two declarations from the global source-only queue were already green
+in the native C++ handle foundation: `The official InteractionClassHandle has
+stable embedded value semantics` (10 assertions) and `The embedded
+InteractionClassHandle rejects malformed encodings and buffers` (3). Each is
+now an explicit Catch2 plan row at its exact declaration in
+`cpp/tests/interaction_class_handle_catch2.cpp`, under the shared
+`interaction-class-handle` lane. The value-semantic row is intentionally
+SDK-consumability evidence with no standalone Requirements-Lab/API mapping;
+the malformed-encoding row reuses the pinned 2025 HLAvariableArray handle
+encoding candidate. These rows do not claim public interaction services,
+interoperability, or conformance. No Requirements-Lab resynchronization or new
+numbered requirement was performed. The global source-only queue is now 108
+declarations.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py matrix interaction-class-handle --summary --compact --limit 10
+python tools/query_rti_work.py focus interaction-class-handle --summary --compact
+python tools/query_rti_work.py trace "The embedded InteractionClassHandle rejects malformed encodings and buffers" --summary --compact
+python tools/query_rti_work.py unplanned --summary --compact --limit 1
+```
+
+### 2026-09-02 bounded source queue — 2025 FOM validator and schema policy
+
+The next three declarations from the global source-only queue were already
+green in the native libxml2 validator: supplied 2025 modules under DIF (14
+assertions), distinct missing/invalid/DTD-bearing outcomes (5), and the strict
+OMT-versus-DIF schema-policy guard (8). Each is now an explicit Catch2 plan row
+under the shared `fom-validator` lane with exact source locations and pinned
+IEEE 1516.2-2025 Clause 6.1.3/D.2 anchors. The rows retain the distinction
+between vendored official XSD validation and Umbra's local diagnostic/status
+taxonomy; they do not claim complete FDD composition, public Create behavior,
+package/JUnit/protected-review evidence, interoperability, or conformance. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+The global source-only queue is now 105 declarations.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py matrix fom-validator --summary --compact --limit 10
+python tools/query_rti_work.py focus fom-validator --summary --compact
+python tools/query_rti_work.py trace "The libxml2 FOM validator accepts supplied IEEE 1516.2-2025 modules under DIF" --summary --compact
+python tools/query_rti_work.py unplanned --summary --compact --limit 1
+```
+
+### 2026-09-02 bounded source queue — MessageRetractionHandle encoding guard
+
+The next declaration from the global source-only queue,
+`MessageRetractionHandle rejects malformed HLAvariableArray encodings`, was
+already green in the native C++ handle foundation (3 assertions). It is now an
+explicit Catch2 plan row at `cpp/tests/message_retraction_handle_catch2.cpp:43`
+under the `message-retraction-handle` lane. The row reuses the pinned 2025
+HLAvariableArray handle-encoding candidate and remains SDK/encoding evidence;
+it does not claim retraction-service behavior, interoperability,
+package/JUnit/protected-review evidence, or conformance. No Requirements Lab
+resynchronization or new numbered requirement was performed. The global
+source-only queue is now 104 declarations.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py matrix message-retraction-handle --summary --compact
+python tools/query_rti_work.py focus message-retraction-handle --summary --compact
+python tools/query_rti_work.py trace "MessageRetractionHandle rejects malformed HLAvariableArray encodings" --summary --compact
+python tools/query_rti_work.py unplanned --summary --compact --limit 1
+```
+
+### 2026-09-02 bounded source queue — MOM service-report parameter encoding
+
+The next declaration from the global source-only queue, `MOM service-report
+parameters carry their declared MIM encodings`, was already green in the native
+C++ observability foundation (5 assertions). It is now an explicit Catch2 plan
+row at `cpp/tests/mom_service_report_encoding_catch2.cpp:80` under the shared
+`service-report-encoding` lane. The row maps the Table 5 HLAargumentList
+requirements at IEEE 1516.1-2025 Clause 11.5.1 and remains encoding evidence;
+runtime report routing, filesystem identity/lifecycle, complete argument-form
+coverage, package/JUnit/protected-review evidence, interoperability, and
+conformance remain separate. No Requirements Lab resynchronization or new
+numbered requirement was performed. The global source-only queue is now 103
+declarations.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py matrix service-report-encoding --summary --compact
+python tools/query_rti_work.py focus service-report-encoding --summary --compact
+python tools/query_rti_work.py trace "MOM service-report parameters carry their declared MIM encodings" --summary --compact
+python tools/query_rti_work.py unplanned --summary --compact --limit 1
+```
+
+### 2026-09-02 bounded source queue — MOM service-report record primitives
+
+The next five declarations in the MOM encoding source were already green and
+are now explicit plan rows under the shared `service-report-encoding` lane:
+JSON-like argument primitives (8 assertions), the initial record formatter (1),
+successful-void records (2), empty supplied arguments (1), and failed records
+with a Null return (1). Their exact source locations and Clause 11.5/11.5.1
+requirements are queryable without expanding the 72-case translation-unit
+queue. These are private Table 5/MOM encoding results; filesystem report
+identity/lifecycle, runtime routing, package/JUnit/protected-review evidence,
+interoperability, and conformance remain separate. No Requirements Lab
+resynchronization or new numbered requirement was performed. The global
+source-only queue is now 98 declarations.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py matrix service-report-encoding --summary --compact --limit 10
+python tools/query_rti_work.py focus service-report-encoding --summary --compact
+python tools/query_rti_work.py trace "MOM service-report files begin with the Table 5 initial record" --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/mom_service_report_encoding_catch2.cpp --summary --compact --limit 1
+```
+
+### 2026-09-02 bounded source queue — DDM service-report argument forms
+
+The next four declarations in the MOM encoding source were already green and
+are now explicit rows in the shared `service-report-encoding` lane: Commit
+Region Modifications (4 assertions), attribute-region association list (3),
+Delete Region (3), and Set Range Bounds (3). Each retains its exact source
+location and the shared Clause 11.5.1 HLAargumentList/JSON-like encoding
+anchors. This is DDM argument-shape evidence only; region lifecycle,
+association/overlap semantics, runtime reporting, file identity/lifecycle,
+package/JUnit/protected-review evidence, interoperability, and conformance
+remain separate. No Requirements Lab resynchronization or new numbered
+requirement was performed. The global source-only queue is now 94 declarations.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py matrix service-report-encoding --summary --compact --limit 20
+python tools/query_rti_work.py focus service-report-encoding --summary --compact
+python tools/query_rti_work.py trace "MOM service-report files use the Table 5 Set Range Bounds argument forms" --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/mom_service_report_encoding_catch2.cpp --summary --compact --limit 1
+```
+
+### 2026-09-02 bounded source queue — DDM service-report return forms
+
+The next declaration, `MOM service-report files use the Table 5 Create Region
+and Get Range Bounds return forms`, was already green in the native formatter
+foundation (5 assertions). It is now an explicit row in the
+`service-report-encoding` lane at `cpp/tests/mom_service_report_encoding_catch2.cpp:339`,
+with Clause 11.5.1 HLAargumentList/JSON-like encoding anchors. This remains
+DDM encoding evidence only; region/range lifecycle, runtime service routing,
+filesystem report identity/lifecycle, package/JUnit/protected-review evidence,
+interoperability, and conformance remain separate. No Requirements Lab
+resynchronization or new numbered requirement was performed. The global
+source-only queue is now 93 declarations.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py matrix service-report-encoding --summary --compact --limit 20
+python tools/query_rti_work.py focus service-report-encoding --summary --compact
+python tools/query_rti_work.py trace "MOM service-report files use the Table 5 Create Region and Get Range Bounds return forms" --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/mom_service_report_encoding_catch2.cpp --summary --compact --limit 1
+```
+
+### 2026-09-02 bounded source queue — Support-dimension service-report forms
+
+The next declaration, `MOM service-report files use the Table 5 support
+dimension lookup forms`, was already green in the native formatter foundation
+(6 assertions). It is now an explicit row in the `service-report-encoding`
+lane at `cpp/tests/mom_service_report_encoding_catch2.cpp:411`, with the
+Clause 11.5.1 HLAargumentList, returned-argument, and JSON-like value anchors.
+This remains support-service encoding evidence only; public dimension lookup,
+runtime reporting, filesystem identity/lifecycle, package/JUnit/protected-review
+evidence, interoperability, and conformance remain separate. No Requirements
+Lab resynchronization or new numbered requirement was performed. The global
+source-only queue is now 92 declarations.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py matrix service-report-encoding --summary --compact --limit 20
+python tools/query_rti_work.py focus service-report-encoding --summary --compact
+python tools/query_rti_work.py trace "MOM service-report files use the Table 5 support dimension lookup forms" --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/mom_service_report_encoding_catch2.cpp --summary --compact --limit 1
+```
+
+### 2026-09-03 bounded source queue — Order and transportation report forms
+
+The next declaration, `MOM service-report files use the Table 5 order and
+transportation lookup forms`, was already green in the native formatter
+foundation (4 assertions). It is now an explicit row in the
+`service-report-encoding` lane at `cpp/tests/mom_service_report_encoding_catch2.cpp:552`,
+with the Clause 11.5.1 HLAargumentList, returned-argument, and JSON-like value
+anchors. This remains OrderType/TransportationTypeHandle encoding evidence
+only; public lookup behavior, runtime reporting, filesystem identity/lifecycle,
+package/JUnit/protected-review evidence, interoperability, and conformance
+remain separate. No Requirements Lab resynchronization or new numbered
+requirement was performed. The global source-only queue is now 91 declarations.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py matrix service-report-encoding --summary --compact --limit 20
+python tools/query_rti_work.py focus service-report-encoding --summary --compact
+python tools/query_rti_work.py trace "MOM service-report files use the Table 5 order and transportation lookup forms" --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/mom_service_report_encoding_catch2.cpp --summary --compact --limit 1
+```
+
+### 2026-09-03 bounded source queue — Federate and object-class report forms
+
+The next declaration, `MOM service-report files use the Table 5 federate and
+object-class lookup forms`, was already green in the native formatter
+foundation (4 assertions). It is now an explicit row in the
+`service-report-encoding` lane at `cpp/tests/mom_service_report_encoding_catch2.cpp:644`,
+with the Clause 11.5.1 HLAargumentList, returned-argument, and JSON-like value
+anchors. This remains lookup-argument encoding evidence only; public lookup
+behavior, runtime reporting, filesystem identity/lifecycle, package/JUnit/
+protected-review evidence, interoperability, and conformance remain separate.
+No Requirements Lab resynchronization or new numbered requirement was
+performed. The global source-only queue is now 90 declarations.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py matrix service-report-encoding --summary --compact --limit 20
+python tools/query_rti_work.py focus service-report-encoding --summary --compact
+python tools/query_rti_work.py trace "MOM service-report files use the Table 5 federate and object-class lookup forms" --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/mom_service_report_encoding_catch2.cpp --summary --compact --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Public HLAfloat64Time representation
+
+The exact source declaration, `Embedded public time management preserves the
+official HLAfloat64Time representation`, is now mapped as
+`umbra-cpp-public-float64-time-representation-integration` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:76784`. Its focused
+HLA_EVOKED run is green with 31 assertions. The row carries 15
+Requirements-Lab anchors and 12 canonical IEEE 1516.1-2025 sections, plus the
+official time-factory, Query Logical Time, Query Lookahead, Enable Time
+Regulation, Time Advance Request, Evoke Callback, Time Regulation Enabled, and
+Time Advance Grant surfaces. It verifies the selected HLAfloat64Time factory,
+the initial zero value, callback-gated regulation, the requested 0.25 lookahead,
+and logical-time mutation only at the 1.5 grant. This is bounded ordinary TAR
+and representation evidence, not a claim for alternate advances, TSO, DDM,
+save/restore, package/JUnit, protected review, interoperability, or
+conformance. No Requirements Lab resynchronization or new numbered requirement
+was performed. The source-only queue now advances to the four no-TSO GALT/NRG
+cases below.
+
+### 2026-09-02 queryability maintenance — No-TSO GALT/NRG focused four-case set
+
+The following four exact source declarations are now mapped and green in the
+embedded HLA_EVOKED development profile:
+
+* `Embedded NRG-disabled constrained TAR waits until a regulator becomes active`
+  at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:77307` — 21
+  assertions, mapping `m66.embedded-nrg-disabled-constrained-tar-regulator-activation`.
+  With NRG disabled, an undefined-GALT constrained TAR waits; a regulator at
+  time zero/lookahead two makes TAR(1) eligible.
+* `Embedded constrained TAR is released when time-constrained mode is disabled`
+  at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:77349` — 15
+  assertions, mapping `m67.embedded-constrained-tar-time-constrained-disable-release`.
+  Disabling the constrained role removes the GALT restriction and releases the
+  queued TAR(1).
+* `Embedded NRG-enabled constrained TAR is released when its only regulator disables`
+  at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:77382` — 27
+  assertions, mapping `m68.embedded-nrg-enabled-constrained-tar-regulator-disable-release`.
+  The enabled NRG switch releases TAR(2) when the sole regulator disables and
+  GALT becomes undefined.
+* `Embedded NRG-enabled constrained TAR is released when its only regulator resigns`
+  at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:77428` — 24
+  assertions, mapping `m69.embedded-nrg-enabled-constrained-tar-regulator-resignation-release`.
+  The same enabled-NRG release occurs when the sole regulator resigns.
+
+These rows are deliberately bounded to no-TSO strict-GALT/NRG policy, role
+transitions, TAR, grant, and lifecycle. They do not claim Query GALT/LITS,
+alternate advance modes, TSO ordering, DDM, object/interaction delivery,
+ownership, save/restore, MOM, remote transport, package/JUnit/protected-review
+evidence, interoperability, or conformance. No Requirements Lab resynchronization
+or new numbered requirement was performed. The source-only queue for this
+translation unit is now exhausted; use `next --pointer` for the explicit
+exhausted state and choose the next bounded service family rather than
+rescanning the unchanged Lab.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded public time management preserves the official HLAfloat64Time representation" --summary --compact
+python tools/query_rti_work.py trace "Embedded NRG-disabled constrained TAR waits until a regulator becomes active" --summary --compact
+python tools/query_rti_work.py trace "Embedded constrained TAR is released when time-constrained mode is disabled" --summary --compact
+python tools/query_rti_work.py trace "Embedded NRG-enabled constrained TAR is released when its only regulator disables" --summary --compact
+python tools/query_rti_work.py trace "Embedded NRG-enabled constrained TAR is released when its only regulator resigns" --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Timestamped regional interaction TSO/retraction
+
+The exact source declaration, `Embedded timestamped regional interaction queues
+TSO before the grant and supports retraction`, is now mapped as
+`umbra-cpp-timestamped-regional-interaction-tso-retraction-integration` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:75428`. Its focused
+HLA_EVOKED run is green with 68 assertions. The row carries 14
+Requirements-Lab anchors, 14 canonical IEEE 1516.1-2025 sections, and the
+official Connect/Create/Join, interaction/parameter/dimension lookup, region
+creation/range/commit/deletion, regional subscription, Convey Region Designator
+Sets, time-role, timestamped Send Interaction With Regions, Retract, grant,
+receive, Evoke, and lifecycle C++ surfaces.
+
+The case proves overlapping explicit regions admit a timestamp-7 interaction at
+the matching grant, a timestamp-6 passel can be retracted before delivery, an
+invalid earlier timestamp is rejected, post-delivery retraction is rejected, and
+the conveyed source-region designator set is preserved for a later timestamp-8
+delivery. Callback ordering is explicitly checked as grant/interaction/grant.
+This is bounded embedded development-profile evidence for §§4.19, 8.1.5,
+8.1.6, 8.22.3, 8.23.3, 9.10, 9.12, and 9.12.5 plus federation lifecycle; it
+does not claim alternate advances, Delay Subscription Evaluation,
+default/relaxed DDM, ownership, save/restore, MOM, remote transport,
+package/JUnit/protected-review evidence, interoperability, or conformance. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+The public HLAfloat64Time representation and the four following no-TSO GALT/NRG
+cases are now mapped; the source-only queue for this translation unit is
+exhausted.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded timestamped regional interaction queues TSO before the grant and supports retraction" --summary --compact
+python tools/query_rti_work.py search timestamped-regional-interaction --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Disabled malformed transport-loss artifact
+
+The source-only queue exposed a declaration named `DISABLED malformed: Embedded
+transport loss releases automatic cleanup after a cutoff attribute update is
+suppressed` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:63554`. It is inside
+`#if 0`, does not appear in the Catch2 executable, and its body references
+undeclared `first`/`second`/`attribute` state. It is therefore indexed as
+`umbra-cpp-disabled-malformed-transport-loss-cutoff-attribute-update-source-artifact`
+with status `disabled-source-artifact`, zero assertions, and empty
+Requirements-Lab/API arrays. This is a source-artifact disposition, not a Lab
+issue or conformance evidence. If the scenario is revived, repair it in a
+separate change and create a new mapped selector; do not re-enable this body as
+part of the normal queue. The next runnable source head is the regional
+interaction source-region snapshot case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:69776`.
+
+### 2026-09-02 queryability maintenance — Regional interaction source-region snapshot
+
+The exact next runnable declaration, `Embedded evoked regional interaction
+retains its send-time source region`, is now indexed as
+`umbra-cpp-evoked-regional-interaction-source-region-snapshot-integration` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:69776`. Its focused
+HLA_EVOKED selector is green with 42 assertions. The case sends while source
+region `[0,10)` overlaps subscriber region `[5,15)`, mutates the source to a
+disjoint range before callback eviction, and verifies the admitted callback
+retains the original sent-region designator; a later disjoint send is
+suppressed and a restored-overlap send is admitted. The row carries nine exact
+Requirements-Lab anchors (federation lifecycle plus §§9.10, 9.12, and 9.12.5),
+canonical sections, and official C++ API surfaces. This is bounded
+receive-order DDM/source-snapshot evidence; it does not claim timestamped or
+retraction behavior, default/relaxed DDM, ownership, save/restore, MOM,
+transport, package/JUnit/protected-review, interoperability, or conformance.
+No Requirements Lab resynchronization or new numbered requirement was
+performed. The next exact source head is the unplanned timestamped regional
+interaction TSO/retraction declaration at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:75428`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded evoked regional interaction retains its send-time source region" --summary --compact
+python tools/query_rti_work.py search regional-interaction --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Immediate timestamped directed source resignation
+
+The exact next source declaration, `Embedded immediate timestamped directed
+interaction survives source resignation`, is now indexed as
+`umbra-cpp-timestamped-directed-interaction-immediate-source-resignation-integration`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:62516`. Its
+focused HLA_EVOKED selector is green with 45 assertions. The case keeps the
+receiver non-time-constrained, queues one timestamped directed interaction,
+resigns the sender before the receiver callback boundary, and verifies the
+receiver still gets one callback with target, producer, reliable
+transportation, tag, timestamp/order, and retraction metadata preserved. The
+row carries 12 exact Requirements-Lab anchors, canonical 2025 sections, and
+official C++ API surfaces. This is a bounded source-derived immediate-recipient
+and resignation slice; it does not promote time-constrained grant/retraction,
+Delay Subscription Evaluation, regional/DDM, ownership, save/restore,
+transport, package/JUnit/protected-review, interoperability, or conformance.
+No Requirements Lab resynchronization or new numbered requirement was
+performed. The next exact source head is the disabled malformed transport-loss
+declaration at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:63554`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded immediate timestamped directed interaction survives source resignation" --summary --compact
+python tools/query_rti_work.py search immediate-callback --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### RL-180 — Timestamped TSO test assumes an empty Evoke queue after enabling time regulation
+
+**Status:** resolved in the focused C++ extraction; retained as a historical
+Umbra consumer/test-harness recurrence, not a Requirements Lab numbering change
+or a conformance finding.
+
+The pinned 2025 Requirements-Lab export and its requirement/API identifiers are
+unchanged. The next indexed native C++ source declaration,
+`Embedded timestamped directed interaction queues TSO before the grant and
+supports retraction`, reproduces the same callback-drain boundary already
+recorded by the m59 timestamped directed Delay Subscription Evaluation slice:
+the HLA_EVOKED publisher path asserts
+`REQUIRE_FALSE(publisher->evokeCallback(0.0))` immediately after
+`Enable Time Regulation`. The official `timeRegulationEnabled` callback is
+queued at that service boundary, so the single Evoke call legitimately returns
+`true`. The historical aggregate selector was red at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:62448` with 21
+observed assertions (20 passed, 1 failed). The focused replacement now passes
+with 56 assertions at
+`cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp:150`; its
+later TSO delivery, grant-order, and post-delivery retraction assertions are
+therefore queryable as bounded development-profile evidence.
+
+This is a recurrence after the earlier callback-drain expectation was thought
+to be addressed, so it consumes the next post-RL-157 identifier rather than
+editing the historical RL-001..RL-157 record. The deterministic repair is to
+consume the queued callback by draining
+`publisher->evokeCallback(0.0)` until it returns false before asserting that no
+work remains, then split the case into a focused target. The focused row is now
+`implemented-in-noninstallable-development-profile`; the aggregate translation
+unit remains historical context only. No Lab resynchronization was performed.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded timestamped directed interaction queues TSO before the grant and supports retraction" --summary --compact
+python tools/query_rti_work.py focus timestamped-directed-interaction-tso-retraction --summary --compact
+python tools/query_rti_work.py search timestamped-directed-retraction --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Directed Delay Subscription Evaluation
+
+The exact source declaration, `Embedded Delay Subscription Evaluation defers
+directed interaction eligibility`, is now mapped as
+`umbra-cpp-delay-subscription-evaluation-directed-interaction-integration` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61005`. Its focused
+HLA_EVOKED/HLA_IMMEDIATE run is green with 120 assertions. The row carries
+three Requirements-Lab anchors, one canonical IEEE 1516.1-2025 section
+(`8.1.10`), and 22 official C++ API surfaces, including the vector-FOM Create
+Federation Execution overload, receive-order Send Directed Interaction, and
+the object-class directed publication/subscription overloads. The enabled
+creation-time switch retains a route-only directed message until the receiver
+adds its selector before the callback boundary; the disabled default does not
+retain the initially ineligible message; and unsubscribe before delivery
+suppresses an accepted route in both callback models. This is bounded directed
+receive-order evidence, not timestamped, regional, retraction, ownership,
+transport, package/JUnit/protected-review, interoperability, or conformance
+evidence. No Requirements Lab resynchronization or new numbered requirement
+was performed. The next exact source head is the unplanned timestamped
+directed-interaction Delay Subscription Evaluation case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61158`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded Delay Subscription Evaluation defers directed interaction eligibility" --summary --compact
+python tools/query_rti_work.py section hla-1516.1-2025:clause-8.1.10 --summary --compact
+python tools/query_rti_work.py lane delay-subscription-evaluation --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Official C++ overload mapping correction
+
+An overload audit of the recent source-backed rows found catalog mapping
+errors, not a Requirements-Lab defect: several rows advertised the
+configuration `connect` overload even though their source calls the official
+two-argument `connect(FederateAmbassador&, CallbackModel)`, and several
+vector-FOM source calls were paired with the one-string Create Federation
+Execution ID. The plan now uses
+`api.2025.cpp.rtiambassador.connect.027cac2b3705` for the two-argument calls
+and `api.2025.cpp.rtiambassador.createfederationexecution.b7555a12e578` for
+the vector-FOM overload, while retaining the configuration and one-string IDs
+where the source actually uses those signatures. The corrected focused rows
+are m40, m42, m43, m44, m48, m49, m50, m52, m53, m54, m55, m56, m57, and the
+new m58 row; m41, m45, and m46 retain configuration Connect but now use the
+vector-FOM Create overload. This is a traceability repair only: no source or
+runtime behavior changed, and the unchanged Requirements Lab was not
+rescanned.
+
+### 2026-09-02 queryability maintenance — Restored-baseline timestamped file failure
+
+The exact source declaration, `Embedded service reporting records failed
+timestamped Update Attribute Values invocations (restored baseline copy)`, is
+now mapped as
+`umbra-cpp-timestamped-update-attribute-values-failure-file-restored-baseline-integration`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5863`. Its
+focused HLA_EVOKED run is green with 218 assertions. The row carries 11
+Requirements-Lab anchors, 9 canonical IEEE 1516.1-2025 sections, and 15
+official C++ API surfaces. It creates one configured joined-federate report
+file and decodes three failed timestamped Update Attribute Values invocations,
+preserving the type-37/type-2/type-63/type-31 supplied forms, Null returned
+arguments, false success indicators, exact ObjectInstanceNotKnown/
+AttributeNotDefined/InvalidLogicalTime text, and serials zero through two.
+This is intentionally a distinct restored-baseline source identity for the
+existing timestamped file-failure matrix; the filesystem sink and duplicate
+identity are source-derived refinements, while RL-152 records the missing
+row-level conditional failure relation. It is not evidence for accepted
+timestamped sender output, HLAreportServiceInvocation interaction delivery,
+reflection/retraction callbacks, re-enable/save/restore behavior, or
+conformance. No Requirements Lab resynchronization or new numbered requirement
+was performed. The source-only reconciliation queue remains ordered by numeric
+declaration line; the next exact source head is the unplanned restored-baseline
+timestamped regional Update Attribute Values reflection-order case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:6297`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded service reporting records failed timestamped Update Attribute Values invocations (restored baseline copy)" --summary --compact
+python tools/query_rti_work.py search timestamped-attribute-update-failure --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Restored-baseline timestamped regional reflection order
+
+The exact source declaration, `Embedded service reporting records timestamped
+regional Update Attribute Values before reflection callback (restored baseline
+copy)`, is now mapped as
+`umbra-cpp-timestamped-regional-update-service-report-file-restored-baseline-integration`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:6297`. Its focused
+HLA_EVOKED run is green with 206 assertions. The row carries 11
+Requirements-Lab anchors, 9 canonical IEEE 1516.1-2025 sections, and 30
+official C++ API surfaces. It creates one configured joined-federate report
+file, admits one overlapping timestamped regional update, verifies the
+serial-zero type-37/type-2/type-63/type-31 sender record is durable before the
+constrained reflection callback, and checks source-region, order, timestamp,
+tag, and retraction metadata at delivery. The explicit regional setup and
+restored-baseline identity are source-derived refinements; RL-152 records the
+missing row-level conditional/backend relation. This is not evidence for full
+switch lifecycle, MOM interaction routing, broader TSO/retraction behavior,
+package/JUnit/protected review, interoperability, or conformance. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+The next exact source head is the unplanned negotiated-divestiture partial
+acquisition-cancellation case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51392`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded service reporting records timestamped regional Update Attribute Values before reflection callback (restored baseline copy)" --summary --compact
+python tools/query_rti_work.py search timestamped-regional-attribute-update-service-report --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Restored-baseline Unpublish Object Class Attributes
+
+The exact source declaration, `Embedded service reporting preserves Unpublish
+Object Class Attributes arguments`, is now mapped as
+`umbra-cpp-service-report-file-unpublish-object-class-attributes-restored-baseline-integration`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:8625`. Its
+focused HLA_EVOKED run is green with 102 assertions. The row carries 7
+Requirements-Lab anchors, 5 canonical IEEE 1516.1-2025 sections, and the
+official Unpublish Object Class Attributes C++ surface. It proves that an
+undefined invocation does not append a file record, then preserves the
+accepted Publish and Unpublish Object Class Attributes successful-void records
+with serials zero and one, ObjectClassHandle type 36, and AttributeHandleSet
+type 1. The source identity is a restored-baseline duplicate of the existing
+unpublish service-report lane; Table 5/RL-067/RL-076/RL-078 gaps remain explicit.
+This is not evidence for the whole-class overload, complete declaration or
+ownership behavior, advisory delivery, timestamped behavior, save/restore,
+DDM, package/JUnit/protected review, interoperability, or conformance. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+The next exact source head is the unplanned negotiated-divestiture partial
+acquisition-cancellation case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51392`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded service reporting preserves Unpublish Object Class Attributes arguments" --summary --compact
+python tools/query_rti_work.py search unpublish-object-class-attributes --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Negotiated-divestiture partial cancellation
+
+The exact source declaration, `Embedded negotiated divestiture retains
+uncancelled attributes after a partial acquisition cancellation`, is now
+mapped as
+`umbra-cpp-negotiated-divestiture-partial-acquisition-cancellation-integration`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51392`. Its
+focused HLA_EVOKED run is green with 48 assertions. The row carries 12
+Requirements-Lab anchors, 8 canonical IEEE 1516.1-2025 sections, and 22
+official C++ API surfaces. It queues a two-attribute regular acquisition and
+negotiated divestiture, cancels only one member before delivery, verifies the
+single cancellation callback contains only that member, retains the other
+member's confirmation reservation and acquisition tag, transfers only that
+member on Confirm Divestiture, propagates the confirmation tag to the
+acquisition notification, and explicitly removes the cancelled negotiated
+state. Partial-cancellation continuation is a source-derived refinement; the
+ownership contract records the private-state relations. This is not evidence
+for full owner search, Willing-to-Acquire arbitration, mixed or RTI-owned
+state, resignation/save-restore behavior, timestamped/retraction behavior,
+package/JUnit/protected review, interoperability, or conformance. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+The next exact source head is the unplanned pre-delivery acquisition-cancellation
+race at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51525`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation" --summary --compact
+python tools/query_rti_work.py search ownership-acquisition-cancellation-race --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Negotiated-divestiture pre-delivery cancellation
+
+The exact source declaration, `Embedded negotiated divestiture suppresses a
+confirmation after pre-delivery acquisition cancellation`, is now mapped as
+`umbra-cpp-negotiated-divestiture-pre-delivery-acquisition-cancellation-integration`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51525`. Its focused
+HLA_EVOKED run is green with 33 assertions. The row carries 12
+Requirements-Lab anchors, 8 canonical IEEE 1516.1-2025 sections, and 20
+official C++ API surfaces. It queues an ordinary owner-side release request,
+starts negotiated divestiture, accepts acquisition cancellation before either
+owner callback boundary, drains the two superseded internal dispatcher work
+items, and proves that neither Request Divestiture Confirmation nor Request
+Attribute Ownership Release reaches user code while the requester receives
+only the cancellation confirmation. The distinction between an internally
+drained callback task and a delivered public callback is now explicit in the
+test; the ownership contract records the private-state relation. This is not
+evidence for full owner search, Willing-to-Acquire arbitration, mixed or
+RTI-owned state, resignation/save-restore behavior, timestamped/retraction
+behavior, remote/package/JUnit/protected review, interoperability, or
+conformance. No Requirements Lab resynchronization or new numbered requirement
+was performed. The next exact source head is the unplanned disabled Auto
+Provide discovery case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52918`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation" --summary --compact
+python tools/query_rti_work.py search pre-delivery-cancellation --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Disabled Auto Provide discovery baseline
+
+The exact source declaration, `Embedded disabled Auto Provide leaves discovery
+without a provider callback`, is now mapped as
+`umbra-cpp-auto-provide-disabled-discovery-only-integration` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52918`. Its focused
+HLA_EVOKED run is green with 21 assertions. The row carries one
+Requirements-Lab anchor, one canonical IEEE 1516.1-2025 section, and 15
+official C++ API surfaces. With Auto Provide at its default Disabled state, it
+registers one published object, verifies exactly one discovery callback, and
+verifies that the owner receives no Provide Attribute Value Update callback.
+The disabled/default switch boundary is anchored to clause 6.1.10; the
+discovery-only consequence is a source-derived refinement. This is not evidence
+for enabled Auto Provide, owner grouping, regional or relaxed-DDM behavior,
+switch mutation/MOM control, timestamped behavior, save/restore,
+remote/package/JUnit/protected review, interoperability, or conformance. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+The next exact source head is the unplanned Federation Synchronized
+service-report case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:57666`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded disabled Auto Provide leaves discovery without a provider callback" --summary --compact
+python tools/query_rti_work.py search disabled-switch --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Federation Synchronized after synchronization-set resignation
+
+The exact source declaration, `Embedded service reporting records Federation
+Synchronized after a synchronization-set resignation`, is now mapped as
+`umbra-cpp-service-report-file-federation-synchronized-resignation-integration`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:57666`. Its
+focused HLA_EVOKED run is green with 23 assertions. The row carries three
+Requirements-Lab anchors, three canonical IEEE 1516.1-2025 sections, and four
+official C++ API surfaces. It registers a synchronization point for two joined
+federates, records the first achievement, resigns the non-achieving set member,
+and verifies that the remaining federate's report file appends the §4.18.2
+Federation Synchronized record with an empty failed-to-sync set before its
+callback is delivered. File identity, serial ordering, and callback-boundary
+durability are source-derived refinements; this is not evidence for distributed
+transport, public MOM interaction delivery, broader save/restore,
+remote/package/JUnit/protected review, interoperability, or conformance. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+The next exact source head is the unplanned terminal TSO expiration case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:58330`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded service reporting records Federation Synchronized after a synchronization-set resignation" --summary --compact
+python tools/query_rti_work.py search federation-synchronized-service-report --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Regional timestamped best-effort update-rate gating
+
+The exact source declaration, "Embedded regional best-effort timestamped
+attribute updates honor the subscribed rate", is now mapped as
+umbra-cpp-regional-best-effort-timestamped-attribute-updates-subscribed-rate-integration
+at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59710. Its focused
+HLA_EVOKED run is green with 57 assertions. The row carries 30
+Requirements-Lab anchors, 19 canonical IEEE 1516.1-2025 sections, and 28
+official C++ API surfaces. A two-dimensional source and subscription region
+overlap exactly; the active Low (0.2 Hz) declaration admits the first
+timestamped best-effort update at time 2, consumes the matching grant, and
+suppresses the immediate second timestamped update at time 3 while still
+completing the grant. This is bounded timestamped regional update-rate evidence;
+regional overlap, timestamped Low-rate suppression, and cleanup ordering are
+source-derived. It does not claim reliable no-drop, producer-rate measurement,
+retraction delivery, alternate advances, save/restore, MOM, remote transport,
+package/JUnit/protected-review evidence, interoperability, or conformance. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+
+Bounded queries:
+
+    python tools/query_rti_work.py trace "Embedded regional best-effort timestamped attribute updates honor the subscribed rate" --summary --compact
+    python tools/query_rti_work.py section hla-1516.1-2025:clause-8.1.5 --summary --compact
+    python tools/query_rti_work.py lane timestamped-attribute-update --summary --compact
+    python tools/query_rti_work.py next --pointer --summary --compact
+    python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+
+The m58 directed-interaction Delay Subscription Evaluation case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61005` is now green
+with 120 assertions, three Requirements-Lab anchors, one canonical Section
+8.1.10 mapping, and 22 official C++ API surfaces. The next exact source head
+is the unplanned timestamped directed-interaction Delay Subscription Evaluation
+case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61158`.
+
+### 2026-09-02 queryability maintenance — Timestamped-lane check drift
+
+The bounded integrity command
+`python tools/query_rti_work.py check --lane timestamped-attribute-update
+--summary --compact` remains red for five pre-existing catalog/ledger issues;
+the new m57 row itself is mapped, source-located, and green. One historical
+coordinator row had retained the retired requirement ID
+`requirement-candidate-content-clauses-08-time-management-page-177-l50-15`;
+the plan now uses the pinned corpus's ownership-management ID
+`requirement-candidate-content-clauses-07-ownership-management-page-177-l50-15`
+for that same source row. This is a local catalog-prefix correction, not a
+Requirements-Lab resynchronization or a new numbered requirement. The check
+still reports
+three recent-ledger source locations that no longer match their declarations
+(`recent_completed_slices[0]` at line 94451, `[2]` at line 94600, and `[4]` at
+line 94834), and one more mismatch at `[23]` at line 60143. Six older
+timestamped-attribute rows remain intentionally source-unlocated, including the
+connection-loss and live-TSO restore histories. These are traceability/catalog
+cleanup items, not evidence of a new Requirements Lab defect and not a reason to
+rescan the unchanged Lab; keep them as a separate repair queue while the source
+pointer continues at m59.
+
+### 2026-09-02 queryability maintenance — Regional best-effort update-rate gating
+
+The exact source declaration, "Embedded regional best-effort attribute updates
+honor the subscribed rate", is now mapped as
+umbra-cpp-regional-best-effort-attribute-updates-subscribed-rate-integration at
+cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59566. Its focused
+HLA_EVOKED run is green with 47 assertions. The row carries 19 Requirements-Lab
+anchors, 11 canonical IEEE 1516.1-2025 sections, and 22 official C++ API
+surfaces. A two-dimensional source and subscription region overlap exactly; an
+active Low (0.2 Hz) declaration delivers the first best-effort update,
+suppresses the immediate second update, and after unsubscribe/resubscribe starts
+a fresh generation that admits the next update. This is bounded regional
+update-rate and subscription-generation evidence; regional overlap and cleanup
+ordering are source-derived. It does not claim reliable no-drop,
+producer-rate measurement, timestamped delivery, MOM, alternate advances,
+save/restore, remote transport, package/JUnit/protected-review evidence,
+interoperability, or conformance. No Requirements Lab resynchronization or new
+numbered requirement was performed.
+
+Bounded queries:
+
+    python tools/query_rti_work.py trace "Embedded regional best-effort attribute updates honor the subscribed rate" --summary --compact
+    python tools/query_rti_work.py section hla-1516.1-2025:clause-6.1.13 --summary --compact
+    python tools/query_rti_work.py lane regional-attribute-update --summary --compact
+    python tools/query_rti_work.py next --pointer --summary --compact
+    python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+
+The next exact source head is "Embedded regional best-effort timestamped
+attribute updates honor the subscribed rate" at
+cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59710.
+
+### 2026-09-02 queryability maintenance — Federation teardown preserves update-rate history
+
+The exact source declaration, "Embedded federation teardown preserves update-rate
+history for another live federation", is now mapped as
+umbra-cpp-federation-teardown-preserves-update-rate-history-integration at
+cpp/tests/federation_teardown_update_rate_history_catch2.cpp:158. Its focused
+HLA_EVOKED run is green with 46 assertions. The row carries nine
+Requirements-Lab anchors, five canonical IEEE 1516.1-2025 sections
+(4.5.5, 4.6.5, 4.11.4, 4.12, and 6.1.13), and 15 official C++ API surfaces.
+Two live executions deliberately use names where one is a textual prefix of
+the other. Each establishes Low-rate admission history; after the first
+execution resigns and is destroyed, the surviving execution remains suppressed
+on its immediate update. This is bounded per-execution update-rate state
+isolation; exact execution-key retention is source-derived. It does not claim
+unsubscribe removal, reliable no-drop, producer-rate measurement,
+timestamped/regional delivery, MOM, alternate advances, save/restore, remote
+transport, package/JUnit/protected-review evidence, interoperability, or
+conformance. No Requirements Lab resynchronization or new numbered requirement
+was performed.
+
+Bounded queries:
+
+    python tools/query_rti_work.py trace "Embedded federation teardown preserves update-rate history for another live federation" --summary --compact
+    python tools/query_rti_work.py section hla-1516.1-2025:clause-4.6.5 --summary --compact
+    python tools/query_rti_work.py focus update-rate-federation-teardown-isolation --summary --compact
+    python tools/query_rti_work.py next --pointer --summary --compact
+    python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+
+The next exact source head is "Embedded regional best-effort attribute updates
+honor the subscribed rate" at
+cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59566.
+
+### 2026-09-02 queryability maintenance — Mixed update-rate subscriptions
+
+The exact source declaration, "Embedded mixed update-rate subscriptions gate each
+attribute independently", is now mapped as
+umbra-cpp-mixed-update-rate-subscriptions-independent-attribute-gating-integration
+at cpp/tests/mixed_update_rate_subscriptions_catch2.cpp:199. Its
+focused HLA_EVOKED run is green with 37 assertions. The row carries eight
+Requirements-Lab anchors, two canonical IEEE 1516.1-2025 sections
+(5.2.4 and 6.1.13), and 15 official C++ API surfaces. The composed FOM
+declares Low at 0.2 Hz and High at 30 Hz; one best-effort attribute is actively
+subscribed with Low while a second uses HLAdefault. The first update delivers
+both attributes, while an immediate second update suppresses only the Low
+attribute and still delivers the default-rate attribute. This is bounded
+per-attribute update-rate admission evidence; it does not claim unsubscribe
+removal, reliable no-drop, producer-rate measurement, timestamped/regional
+delivery, MOM, alternate advances, save/restore, remote transport,
+package/JUnit/protected-review evidence, interoperability, or conformance.
+No Requirements Lab resynchronization or new numbered requirement was performed.
+
+Bounded queries:
+
+    python tools/query_rti_work.py trace "Embedded mixed update-rate subscriptions gate each attribute independently" --summary --compact
+    python tools/query_rti_work.py section hla-1516.1-2025:clause-5.2.4 --summary --compact
+    python tools/query_rti_work.py focus update-rate-mixed-attribute-gating --summary --compact
+    python tools/query_rti_work.py next --pointer --summary --compact
+    python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+
+The next exact source head is "Embedded federation teardown preserves
+update-rate history for another live federation" at
+cpp/tests/federation_teardown_update_rate_history_catch2.cpp:158.
+
+### 2026-09-02 queryability maintenance — Timestamped Update Attribute Values queue/retraction
+
+The exact source declaration, `Embedded timestamped Update Attribute Values
+queues passels before the grant and supports retraction`, is now mapped as
+`umbra-cpp-timestamped-update-attribute-values-queued-passel-retraction-integration`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59032`. Its
+focused HLA_EVOKED run is green with 68 assertions. The row carries twelve
+Requirements-Lab anchors, six canonical IEEE 1516.1-2025 sections, and 24
+official C++ API surfaces. It verifies the timestamp-6 pre-grant retract,
+per-transportation timestamp-7 reflections, reflection-before-grant ordering,
+and the terminal second designator without claiming regional, MOM service
+report, alternate-advance, recovery, remote, or conformance behavior.
+
+The first Evoke Callback after enabling Time Regulation also exposed a bounded
+Umbra setup edge: an internal joined-federate MOM conditional callback can
+precede the public Time Regulation Enabled callback after object registration.
+The test now drains that internal queue and asserts the public callback. This
+is an Umbra callback-queue/test-harness refinement, not Requirements-Lab
+content drift or a new RL recurrence; no observation identifier is consumed.
+
+Bounded queries:
+
+```text
+python tools/query_rti_work.py trace "Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction" --summary --compact
+python tools/query_rti_work.py section hla-1516.1-2025:clause-6.10 --summary --limit 20
+python tools/query_rti_work.py lane mixed-transportation --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+The next exact source head is `Embedded regional best-effort attribute updates
+honor the subscribed rate` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59566`. No
+Requirements Lab resynchronization or new numbered requirement was performed.
+
+### 2026-09-02 queryability maintenance — Terminal TSO designators across producer advances
+
+The exact source declaration, `Embedded producer advance requests terminalize
+expired TSO designators`, is now mapped as
+`umbra-cpp-terminalize-expired-tso-designators-across-advance-forms-integration`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:58330`. Its
+focused HLA_EVOKED run is green with 40 assertions. The row carries nine
+Requirements-Lab anchors, eight canonical IEEE 1516.1-2025 sections, and 21
+official C++ API surfaces. It sends five timestamped interactions exactly at
+the strict lookahead boundary, advances through TAR, TARA, NMR, NMRA, and FQR,
+and verifies each returned MessageRetractionHandle is valid before the
+corresponding accepted producer advance makes it terminal and raises
+MessageCanNoLongerBeRetracted. The constrained recipient remains idle, so no
+delivery fanout is claimed. This is a bounded terminal-designator and
+alternate-advance matrix, not evidence for grant ordering, payload delivery,
+save/restore, distributed transport, package/JUnit/protected review,
+interoperability, or conformance. No Requirements Lab resynchronization or new
+numbered requirement was performed. The next exact source head is the
+unplanned timestamped Update Attribute Values queue/retraction case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59032`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded producer advance requests terminalize expired TSO designators" --summary --compact
+python tools/query_rti_work.py search terminal-retraction --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Three-dimensional regional overlap
+
+The exact source declaration, `Embedded three-dimensional regional object
+attributes require complete overlap`, is now mapped as
+`umbra-cpp-three-dimensional-regional-object-attribute-overlap-integration` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47660`. Its focused
+HLA_EVOKED run is green with 57 assertions. The row carries 10
+Requirements-Lab anchors, 10 canonical IEEE 1516.1-2025 sections, and 24
+official C++ API surfaces. It uses BarQuantity, SodaFlavor, and Sweetener as a
+three-dimensional region: complete overlap delivers discovery and reflection,
+each one-dimension disjoint mutation suppresses the update, and restoring
+complete overlap delivers the next reflection with source-region metadata.
+The complete-overlap result is recorded as a source-derived refinement of the
+regional routing candidates; it is not evidence for relaxed DDM, automatic
+provision, timestamped/retraction behavior, immediate callbacks, package, or
+conformance. No Requirements Lab resynchronization or new numbered requirement
+was performed. The next exact source head is the unplanned regional Request
+Attribute Value Update solicitation case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4999`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded three-dimensional regional object attributes require complete overlap" --summary --compact
+python tools/query_rti_work.py search complete-overlap --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Restored-baseline regional request filtering
+
+The exact source declaration, `Embedded regional Request Attribute Value Update
+filters 2025 owner solicitations (restored baseline copy)`, is now mapped as
+`umbra-cpp-regional-attribute-value-update-request-restored-baseline-integration`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4999`. Its focused
+HLA_EVOKED run is green with 58 assertions. The row carries 9 present
+Requirements-Lab anchors, 7 canonical IEEE 1516.1-2025 sections, and 20
+official C++ API surfaces. It proves committed region ownership/context
+validation, empty region-pair no-op behavior, disjoint explicit-region filtering
+with default-region eligibility, overlap re-admission after recommit, copied
+user tags, and callback-entry rechecks. The finer-grained empty-pair,
+default-region, and context candidate IDs referenced by the private
+attribute-value-update contract are not present in the current Lab export; this
+is recorded as a traceability gap rather than repaired by inventing a new Lab
+requirement. The filtering and restored-baseline identity remain source-derived
+refinements, not complete Lab validation. No Requirements Lab resynchronization
+or new numbered requirement was performed. The source-only queue is ordered by
+numeric declaration line, so the next exact source head is the unplanned
+restored-baseline timestamped regional Update Attribute Values MOM failure case
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5461`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded regional Request Attribute Value Update filters 2025 owner solicitations (restored baseline copy)" --summary --compact
+python tools/query_rti_work.py search regional-request-filtering --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Restored-baseline regional timestamped failure
+
+The exact source declaration, `Embedded service reporting delivers failed
+timestamped regional Update Attribute Values invocations through MOM interaction
+(restored baseline copy)`, is now mapped as
+`umbra-cpp-timestamped-regional-update-failure-mom-interaction-restored-baseline-integration`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5461`. Its focused
+run is green with 138 assertions across an HLA_EVOKED publisher and
+HLA_IMMEDIATE observer. The row carries 11 Requirements-Lab anchors, 9
+canonical IEEE 1516.1-2025 sections, and 30 official C++ API surfaces. It
+decodes three failed timestamped regional Update Attribute Values invocations
+through HLAreportServiceInvocation after explicit committed regional setup,
+preserving the type-37/type-2/type-63/type-31 supplied forms, Null returned
+arguments, false success indicators, exact exception text, and serials zero
+through two. This is intentionally a distinct source identity for the existing
+regional RL-152 failure matrix; the regional setup and restored-baseline copy
+are source-derived refinements, not accepted delivery or conformance evidence.
+No Requirements Lab resynchronization or new numbered requirement was
+performed. The source-only reconciliation query now sorts declaration lines
+numerically; this fixes the prior lexical `path:line` ordering that surfaced a
+line such as 51392 before 5461. The next exact source head is the unplanned restored-baseline
+timestamped Update Attribute Values file-failure case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5863`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction (restored baseline copy)" --summary --compact
+python tools/query_rti_work.py search timestamped-regional-attribute-update-failure --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Restored-baseline regional Provide Attribute Value Update
+
+The restored-baseline source declaration, `Embedded regional Provide Attribute
+Value Update reports before callback delivery (restored baseline copy)`, is
+now mapped as
+`umbra-cpp-regional-provide-attribute-value-update-restored-baseline-integration`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4697`. Its focused
+HLA_EVOKED run is green with 251 assertions. The row carries 11
+Requirements-Lab anchors, 9 canonical IEEE 1516.1-2025 sections, and 21
+official C++ API surfaces. It admits one overlap-qualified regional request
+and proves the requester service record plus the owner's type-37/type-1/type-63
+Provide Attribute Value Update record are present at callback entry before user
+callback delivery. This is intentionally a distinct source identity for the
+existing regional service-report lane; callback-entry ordering and the
+restored-baseline copy are source-derived refinements, not new numbered
+requirements or a conformance claim. No Requirements Lab resynchronization was
+performed. The next exact source head is the unplanned three-dimensional
+regional object-attribute overlap case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47660`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded regional Provide Attribute Value Update reports before callback delivery (restored baseline copy)" --summary --compact
+python tools/query_rti_work.py search restored-baseline-copy --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Custom transportation handle stability
+
+The exact source declaration, `Embedded custom transportation handles remain
+stable across an additional FOM join`, is now mapped as
+`umbra-cpp-custom-transportation-handle-stability-integration` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44136`. Its focused
+HLA_EVOKED run is green with 21 assertions. The row carries 12
+Requirements-Lab anchors, 11 canonical 2025 sections, and 8 official C++ API
+surfaces. It creates an execution from a two-module FOM, records the existing
+custom transportation handle, then joins an earlier-sorting extension module
+and proves that the existing name keeps the same handle for both joined
+federates while the new transportation receives a distinct shared mapping.
+The immutable-handle result is recorded as a source-derived refinement of the
+FOM transportation-table/reference/module rules; it is not evidence for
+delivery, duplicate conflicts, DDM, immediate callbacks, package, or
+conformance. No Requirements Lab resynchronization or new numbered
+requirement was performed. The next exact source head is the restored-baseline
+MOM failure matrix at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4538`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded custom transportation handles remain stable across an additional FOM join" --summary --compact
+python tools/query_rti_work.py search transportation-handle-stability --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Restored-baseline timestamped update failure
+
+The restored-baseline source declaration, `Embedded service reporting delivers
+failed timestamped Update Attribute Values invocations through MOM interaction
+(restored baseline copy)`, is now mapped as
+`umbra-cpp-timestamped-update-attribute-values-failure-mom-interaction-restored-baseline`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4538`. Its focused
+HLA_EVOKED/HLA_IMMEDIATE run is green with 125 assertions. The row carries 11
+Requirements-Lab anchors, 9 canonical IEEE 1516.1-2025 sections, and 13
+official C++ API surfaces. It decodes three failed timestamped Update
+Attribute Values invocations through HLAreportServiceInvocation, preserving
+the supplied object/attribute/tag/timestamp forms, Null returned arguments,
+false success indicators, exact exception text, and serials zero through two.
+This is intentionally a distinct source identity for the existing RL-152
+failure matrix, not a new normative requirement or a claim of accepted
+timestamped delivery. No Requirements Lab resynchronization or new numbered
+requirement was performed. The next exact source head is the unplanned
+regional Provide Attribute Value Update case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4697`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded service reporting delivers failed timestamped Update Attribute Values invocations through MOM interaction (restored baseline copy)" --summary --compact
+python tools/query_rti_work.py search restored-baseline-copy --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Passive regional update-rate lookup
+
+The next source declaration, `Embedded update-rate lookup ignores passive
+regional subscriptions`, is now indexed as
+`umbra-cpp-update-rate-lookup-passive-regional-subscription-integration` at
+`cpp/tests/update_rate_passive_regional_subscription_catch2.cpp:73`. Its focused
+HLA_EVOKED run is green with 43 assertions. The row carries 15
+Requirements-Lab anchors, 12 canonical IEEE 1516.1-2025 sections, and 21
+official C++ API surfaces. It proves that the active Low regional declaration
+reports 0.2, a passive High declaration contributes no second reduction,
+activating that High declaration reports 30.0, and removing it restores Low.
+The passive-regional filtering behavior is recorded as a source-derived
+refinement; this is not evidence for attribute-update delivery, advisory
+callbacks, complete regional overlap semantics, immediate callbacks, package,
+or conformance. No Requirements Lab resynchronization or new numbered
+requirement was performed. The next exact source head is the unplanned custom-
+transportation handle case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44136`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded update-rate lookup ignores passive regional subscriptions" --summary --compact
+python tools/query_rti_work.py focus update-rate-passive-regional-subscription --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Known-class-enabled attribute relevance
+
+The paired static-policy case, `Embedded attribute relevance advisories honor
+known class when the static policy is enabled`, is now indexed as
+`umbra-cpp-attribute-relevance-known-class-enabled-subscription-integration` at
+`cpp/tests/attribute_relevance_known_class_enabled_subscription_catch2.cpp:97`. Its focused
+HLA_EVOKED run is green with 30 assertions. The row carries 15
+Requirements-Lab anchors, 13 canonical IEEE 1516.1-2025 sections, and 17
+official C++ API surfaces. It proves that the enabled known-class policy keeps
+the initial Employee advisory but suppresses the later Server-only advisory
+while Server is not known to the subscriber. This is a bounded
+development-profile refinement paired with the disabled-policy case; it does
+not claim Turn Updates Off, explicit update-rate, regional, immediate,
+process/package, or conformance coverage. No Requirements Lab resynchronization
+or new numbered requirement was performed. The next exact source head is the
+unplanned update-rate case at
+`cpp/tests/update_rate_passive_regional_subscription_catch2.cpp:73`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded attribute relevance advisories honor known class when the static policy is enabled" --summary --compact
+python tools/query_rti_work.py search known-class-enabled --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Known-class-disabled attribute relevance
+
+The exact next source declaration, `Embedded attribute relevance advisories use
+subscriptions when known-class policy is disabled`, is now mapped as
+`umbra-cpp-attribute-relevance-known-class-disabled-subscription-integration` at
+`cpp/tests/attribute_relevance_known_class_disabled_subscription_catch2.cpp:97`. Its focused
+HLA_EVOKED run is green with 35 assertions. The row carries 18 Requirements-Lab
+anchors, 13 canonical IEEE 1516.1-2025 sections, and 18 official C++ API
+surfaces, including the static Advisories Use Known Class getter, ordinary
+publication/subscription/registration, Evoke Multiple Callbacks, discovery,
+and Turn Updates On/Off callbacks. The source-derived refinement is explicit:
+with the known-class policy disabled, a later Server-only subscription still
+causes the owner-directed relevance advisory after discovery through Employee.
+This is development-profile traceability only; the paired enabled-policy case,
+regional/rate matrices, process/package evidence, and conformance remain open.
+No Requirements Lab resynchronization or new numbered requirement was performed.
+The next exact source head is the unplanned static known-class-enabled case at
+`cpp/tests/attribute_relevance_known_class_enabled_subscription_catch2.cpp:97`.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded attribute relevance advisories use subscriptions when known-class policy is disabled" --summary --compact
+python tools/query_rti_work.py search known-class-disabled --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-02 queryability maintenance — Timestamped directed Delay Subscription harness finding
+
+The historical aggregate declaration, `Embedded Delay Subscription Evaluation
+defers timestamped directed interaction eligibility`, was indexed as
+`umbra-cpp-delay-subscription-evaluation-timestamped-directed-interaction-integration`
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61158`. Its
+aggregate run was reproducibly red with 123 observed assertions (121 passed, 2
+failed) at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61247`.
+Both failures are the HLA_EVOKED owner time-regulation callback-count
+expectation after a single `EvokeCallback`; the callback queue is not empty
+after that one call, so the test must drain `owner->evokeCallback(0.0)` before
+asserting `timeRegulationEnabled`. This is a source-harness repair queue, not a
+new Requirements-Lab issue. The row retains the three Section 8.1.10 anchors
+and exact timestamped directed-interaction API surfaces. That aggregate finding
+was repaired by the focused target recorded in the 2026-09-03 evidence gate;
+the current source is
+`cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp:129`
+with 166 passing assertions. No Requirements Lab resynchronization or new
+numbered requirement was performed. The later focused TSO/retraction repair is
+recorded in RL-180 and the 2026-09-03 evidence gate.
+
+Bounded queries:
+
+```powershell
+python tools/query_rti_work.py trace "Embedded Delay Subscription Evaluation defers timestamped directed interaction eligibility" --summary --compact
+python tools/query_rti_work.py search delay-subscription-evaluation --summary --compact
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
+```
+
+### 2026-09-04 bounded implementation — Regional multi-recipient timestamped restore
+
+The next indexed handoff was implemented without re-reading or re-numbering the
+unchanged Requirements Lab. The exact source declaration, `Embedded federation
+restore restores one queued timestamped regional interaction to multiple
+recipients`, is now mapped as
+`umbra-cpp-restore-live-tso-regional-interaction-multi-recipient-integration`
+at `cpp/tests/restore_live_tso_regional_interaction_multi_recipient_catch2.cpp:169`.
+Its focused HLA_EVOKED run is green with 128 assertions. The row carries 11
+Requirements-Lab anchors, 11 canonical IEEE 1516.1-2025 sections, and 35
+selected official C++ API surfaces. It saves one overlap-qualified explicit-
+source `Send Interaction With Regions` passel for two independently constrained
+recipients, restores both recipient-local queues and the live retraction ledger,
+preserves the original source RegionHandle set, and proves callback-before-
+Flush-Queue-Grant followed by one legal Request Retraction per recipient. This
+is bounded untimed live regional multi-recipient FQR restore evidence; timed or
+durable restore, pending/in-transit multi-member advances, region mutation,
+passive/relaxed DDM, changed membership/ownership, alternate advances, remote
+transport, package/JUnit/protected-review evidence, interoperability, and
+conformance remain open. No Requirements Lab resynchronization or new numbered
+observation was performed; the existing RL-176/RL-177/RL-178 history remains
+the applicable go-back/source-artifact record.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus timestamped-regional-interaction-restore-multi-recipient --summary --compact
+python tools/query_rti_work.py trace "Embedded federation restore restores one queued timestamped regional interaction to multiple recipients" --summary --compact
+python tools/query_rti_work.py matrix "Embedded federation restore restores one queued timestamped regional interaction to multiple recipients" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-regional-interaction-restore-multi-recipient --summary --compact
+cmake --build <build-dir> --config Debug --target umbra_restore_live_tso_regional_interaction_multi_recipient_catch2
+ctest --test-dir <build-dir> -C Debug -R "^umbra\\.restore_live_tso_regional_interaction_multi_recipient\\.catch2\\.Embedded federation restore restores one queued timestamped regional interaction to multiple recipients$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Timed explicit-source regional attribute restore
+
+The next indexed handoff was implemented without re-reading or re-numbering the
+unchanged Requirements Lab. The exact source declaration, `Embedded timed
+federation restore restores a live explicit-source regional timestamped
+attribute update at the save boundary`, is now mapped as
+`umbra-cpp-timed-restore-live-tso-explicit-regional-attribute-update-integration`
+at `cpp/tests/timed_restore_live_tso_regional_attribute_update_catch2.cpp:190`.
+Its focused HLA_EVOKED run is green with 84 assertions. The row carries 23
+Requirements-Lab anchors, 15 canonical IEEE 1516.1-2025 sections, and 23
+selected official C++ API surfaces. It saves at logical time 6 while an
+overlap-qualified explicit-source `Update Attribute Values` passel at timestamp
+8 remains queued, removes the live association after save, restores the object,
+source RegionHandle, recipient ledger, and retraction identity, then proves
+Flush Queue reflection at actual time 7 with optimistic time 8. This is bounded
+timed live regional restore evidence; durable persistence, alternate advances,
+post-save region mutation, changed membership/ownership, transport,
+package/JUnit/protected-review evidence, interoperability, and conformance
+remain open. No Requirements Lab resynchronization or new numbered observation
+was performed; RL-137/RL-141 remain the applicable cross-service relation-gap
+history.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus tso-regional-attribute-update-timed-live-restore-state --summary --compact
+python tools/query_rti_work.py trace "Embedded timed federation restore restores a live explicit-source regional timestamped attribute update at the save boundary" --summary --compact
+python tools/query_rti_work.py matrix tso-regional-attribute-update-timed-live-restore-state --summary --compact
+python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-live-restore-state --summary --compact
+cmake --build <build-dir> --config Debug --target umbra_timed_restore_regional_attr_catch2
+ctest --test-dir <build-dir> -C Debug -R "^umbra\\.timed_restore_live_tso_regional_attribute_update\\.catch2\\.Embedded timed federation restore restores a live explicit-source regional timestamped attribute update at the save boundary$" --output-on-failure
+~~~
+
+The strict unscoped `umbra.planning.work_index` test still reports the known
+historical source-pointer/unlocated-row backlog; this new lane contributes no
+such error. Use the lane-scoped `check --lane` command above as the iteration
+gate and reserve the unscoped check for deliberate whole-plan reconciliation.
+
+### 2026-09-04 bounded implementation — Timed regional source resignation after restore
+
+The next indexed handoff was implemented without re-reading or re-numbering the
+unchanged Requirements Lab. The exact source declaration, `Embedded timed live
+regional timestamped attribute update survives source mutation and resignation
+after restore`, is now mapped as
+`umbra-cpp-timed-live-tso-regional-attribute-update-source-resignation-after-restore-integration`
+at `cpp/tests/timed_live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp:180`.
+Its focused HLA_EVOKED run is green with 106 assertions. The row carries 27
+Requirements-Lab anchors, 18 canonical IEEE 1516.1-2025 sections, and 23
+selected official C++ API surfaces. It saves an overlap-qualified explicit-
+source timestamp-8 update at logical time 6, mutates the source region before
+and after restore, resigns the producer with `UNCONDITIONALLY_DIVEST_ATTRIBUTES`,
+and proves an independent regulator releases the surviving receiver's saved
+passel while retaining the invocation-time source RegionHandle, payload,
+timestamp, tag, and callback ordering. This is bounded timed live regional
+source-resignation evidence; durable persistence, alternate advances,
+passive/relaxed DDM, changed membership/ownership, transport,
+package/JUnit/protected-review evidence, interoperability, validation, and
+conformance remain open. No Requirements Lab resynchronization or new numbered
+observation was performed; the existing RL-137/RL-141 cross-service relation
+history remains applicable.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus tso-regional-attribute-update-timed-live-resignation-state --summary --compact
+python tools/query_rti_work.py trace "Embedded timed live regional timestamped attribute update survives source mutation and resignation after restore" --summary --compact
+python tools/query_rti_work.py matrix "Embedded timed live regional timestamped attribute update survives source mutation and resignation after restore" --summary --compact
+python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-live-resignation-state --summary --compact
+cmake --build <build-dir> --config Debug --target umbra_timed_regional_attr_source_resign_restore_catch2
+ctest --test-dir <build-dir> -C Debug -R "^umbra\\.timed_live_tso_regional_attribute_update_source_resignation_after_restore\\.catch2\\.Embedded timed live regional timestamped attribute update survives source mutation and resignation after restore$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Timed regional attribute restore fan-out
+
+The next bounded C++ handoff is now source-backed at
+`cpp/tests/timed_restore_live_tso_regional_attribute_update_multi_recipient_catch2.cpp:190`.
+The focused `timestamped-regional-attribute-timed-restore-multi-recipient`
+lane is green with 157 HLA_EVOKED assertions, 23 Requirements-Lab anchors, 15
+canonical IEEE 1516.1-2025 sections, and 23 selected official C++ API surfaces.
+It schedules one overlap-qualified explicit-source timestamp-8
+`Update Attribute Values` passel for two constrained regional recipients,
+saves at logical time 6, terminalizes the post-save designator, restores both
+recipient-local ledgers and the committed source `RegionHandle`, and releases
+each recipient independently at actual time 7 (optimistic time 8) before one
+Request Retraction reaches both. This is bounded timed regional multi-recipient
+restore evidence; durable persistence, alternate advances, region mutation,
+passive/relaxed DDM, changed membership/ownership, transport, package/JUnit/
+protected-review evidence, interoperability, validation, and conformance
+remain open.
+
+This slice also corrected a query-index rough edge: an older recent-completion
+entry pointed at a stale monolithic source line for the same plan id. The
+recent entry now points to the dedicated source file, preventing duplicate
+completion records and making the lane-scoped check authoritative. No
+Requirements Lab resynchronization or new numbered observation was performed;
+the existing RL-137/RL-141 cross-service relation history remains applicable.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus timestamped-regional-attribute-timed-restore-multi-recipient --summary --compact
+python tools/query_rti_work.py trace "Embedded timed federation restore restores one queued explicit-source regional timestamped attribute update to multiple recipients" --summary --compact
+python tools/query_rti_work.py matrix "Embedded timed federation restore restores one queued explicit-source regional timestamped attribute update to multiple recipients" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-regional-attribute-timed-restore-multi-recipient --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded timed federation restore restores one queued explicit-source regional timestamped attribute update to multiple recipients$" --output-on-failure
+~~~
+
+The strict unscoped `umbra.planning.work_index` test remains a separate
+historical reconciliation gate; use the lane-scoped check above for iteration
+so this focused slice does not inherit unrelated source-pointer drift.
+
+### 2026-09-04 bounded implementation — Timed regional multi-recipient source resignation
+
+The next indexed handoff is now source-backed at
+`cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_source_resignation_after_restore_catch2.cpp:190`.
+The focused `tso-regional-attribute-update-timed-multi-resignation-state` lane
+is green with 167 HLA_EVOKED assertions, 27 Requirements-Lab anchors, 18
+canonical IEEE 1516.1-2025 sections, and 22 selected official C++ API surfaces.
+The four-member case keeps one overlap-qualified explicit-source timestamp-8
+update queued through the logical-time-6 save, mutates the source region before
+and after restore, resigns the producer with
+`UNCONDITIONALLY_DIVEST_ATTRIBUTES`, and uses an independent regulating clock
+to release both constrained recipients while retaining the invocation-time
+source RegionHandle, payload, timestamp, tag, and callback ordering. This is
+bounded timed live regional source-resignation fan-out evidence; alternate
+resignation actions, durable persistence, passive/relaxed DDM, changed
+membership/ownership, transport, package/JUnit/protected-review evidence,
+interoperability, validation, and conformance remain open. No Requirements Lab
+resynchronization or new numbered observation was performed.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus tso-regional-attribute-update-timed-multi-resignation-state --summary --compact
+python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update survives source mutation and resignation after restore" --summary --compact
+python tools/query_rti_work.py matrix "Embedded timed multi-recipient regional timestamped attribute update survives source mutation and resignation after restore" --summary --compact
+python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-multi-resignation-state --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded timed multi-recipient regional timestamped attribute update survives source mutation and resignation after restore$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Timed regional delete-then-divest fan-out
+
+The next indexed handoff is now source-backed at
+`cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_delete_then_divest_after_restore_catch2.cpp:218`.
+The focused `tso-regional-attribute-update-timed-delete-state` lane is green
+with 124 HLA_EVOKED assertions, 36 Requirements-Lab anchors, 19 canonical
+IEEE 1516.1-2025 sections, and 25 selected official C++ API surfaces. The
+four-member case keeps one overlap-qualified explicit-source timestamp-8
+`Update Attribute Values` passel queued through the logical-time-6 save,
+restores the committed source region after a pre-restore mutation, mutates it
+to a disjoint range, and resigns the producer with
+`DELETE_OBJECTS_THEN_DIVEST`. Each constrained recipient independently flushes
+one receive-order Remove Object Instance; the stale timestamped reflection is
+suppressed and post-delivery object-name lookup reports
+`ObjectInstanceNotKnown`. This is bounded delete-then-divest evidence;
+alternate resignation actions, pending ownership, passive/relaxed DDM, durable
+persistence, changed membership/ownership, remote transport, package/JUnit/
+protected-review evidence, interoperability, validation, and conformance
+remain open. No Requirements Lab resynchronization or new numbered
+observation was performed.
+
+Harness note: an initial version assumed one `evokeCallback(0.0)` call would
+return false after a recipient Flush Queue Request. The callback route can
+legitimately require multiple evocations (Remove Object Instance followed by
+Flush Queue Grant), so the focused test now drains until false before checking
+ordering. This is a test-harness boundary, not a Requirements-Lab numbering
+change.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus tso-regional-attribute-update-timed-delete-state --summary --compact
+python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update is suppressed after delete-then-divest resignation following restore" --summary --compact
+python tools/query_rti_work.py matrix "Embedded timed multi-recipient regional timestamped attribute update is suppressed after delete-then-divest resignation following restore" --summary --compact
+python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-delete-state --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded timed multi-recipient regional timestamped attribute update is suppressed after delete-then-divest resignation following restore$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Timed regional pending-ownership cancellation
+
+The next source-backed handoff is
+`cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_cancel_pending_ownership_after_restore_catch2.cpp:251`.
+The focused `tso-regional-attribute-update-timed-cancel-pending-ownership-state`
+lane is green with 130 HLA_EVOKED assertions, 39 Requirements-Lab anchors, 21
+canonical IEEE 1516.1-2025 sections, and 28 selected official C++ API surfaces.
+After restore, the first constrained recipient publishes and queues a regular
+`Attribute Ownership Acquisition`, then resigns with
+`CANCEL_PENDING_OWNERSHIP_ACQUISITIONS`. The queued owner-release callback is
+consumed as stale work, the departing recipient receives no stale timestamped
+reflection, and the surviving recipient receives one saved reflection before
+its grant while the object remains known. This is bounded pending-ownership
+cancellation evidence; If Available and negotiated cancellation remain
+separate action slices. No Requirements Lab resynchronization or new numbered
+observation was performed.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus tso-regional-attribute-update-timed-cancel-pending-ownership-state --summary --compact
+python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update survives requester cancellation of pending ownership acquisition after restore" --summary --compact
+python tools/query_rti_work.py matrix "Embedded timed multi-recipient regional timestamped attribute update survives requester cancellation of pending ownership acquisition after restore" --summary --compact
+python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-cancel-pending-ownership-state --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded timed multi-recipient regional timestamped attribute update survives requester cancellation of pending ownership acquisition after restore$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Timed regional cancel-then-delete-then-divest fan-out
+
+The next indexed handoff is source-backed at
+`cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_cancel_then_delete_then_divest_after_restore_catch2.cpp:218`.
+The focused `tso-regional-attribute-update-timed-cancel-state` lane is green
+with 124 HLA_EVOKED assertions, 36 Requirements-Lab anchors, 19 canonical
+IEEE 1516.1-2025 sections, and 25 selected official C++ API surfaces. The
+four-member case carries one overlap-qualified explicit-source timestamp-8
+`Update Attribute Values` passel through a logical-time-6 save/restore,
+mutates the source region to a disjoint range, and resigns the producer with
+`CANCEL_THEN_DELETE_THEN_DIVEST`. Each constrained recipient independently
+receives one receive-order Remove Object Instance at its Flush Queue boundary;
+the stale timestamped reflection is suppressed and post-delivery object-name
+lookup reports `ObjectInstanceNotKnown`. This is bounded combined-resignation
+evidence; the regular pending-ownership cancellation companion is now
+separately source-backed and queryable in the following focused section. No
+Requirements Lab resynchronization or new numbered observation was performed.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus tso-regional-attribute-update-timed-cancel-state --summary --compact
+python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update is suppressed after cancel-then-delete-then-divest resignation following restore" --summary --compact
+python tools/query_rti_work.py matrix "Embedded timed multi-recipient regional timestamped attribute update is suppressed after cancel-then-delete-then-divest resignation following restore" --summary --compact
+python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-cancel-state --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded timed multi-recipient regional timestamped attribute update is suppressed after cancel-then-delete-then-divest resignation following restore$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Timed regional If Available pending-ownership cancellation
+
+The If Available action-specific companion is now source-backed at
+`cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_if_available_cancel_pending_ownership_after_restore_catch2.cpp:251`.
+Its focused
+`tso-regional-attribute-update-timed-if-available-cancel-pending-ownership-state`
+lane passes with 130 HLA_EVOKED assertions, 41 Requirements-Lab anchors, 22
+canonical IEEE 1516.1-2025 sections, and 29 selected official C++ API surfaces.
+After restore, the first constrained recipient queues an If Available ownership
+acquisition, which creates only private Willing-to-Acquire state; no owner-
+release callback is emitted. The recipient then resigns with
+`CANCEL_PENDING_OWNERSHIP_ACQUISITIONS`, suppressing its stale requester-side
+terminal callback and timestamped reflection, while the surviving recipient
+receives exactly one saved reflection before its grant and retains a known
+object. This is bounded If Available cancellation evidence; regular and
+negotiated cancellation, producer resignation, passive/relaxed DDM, changed
+membership/ownership, remote transport, package/JUnit/protected-review
+evidence, interoperability, validation, and conformance remain open. No
+Requirements Lab resynchronization or new numbered observation was performed.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus tso-regional-attribute-update-timed-if-available-cancel-pending-ownership-state --summary --compact
+python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update survives requester cancellation of pending If Available ownership acquisition after restore" --summary --compact
+python tools/query_rti_work.py matrix "Embedded timed multi-recipient regional timestamped attribute update survives requester cancellation of pending If Available ownership acquisition after restore" --summary --compact
+python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-if-available-cancel-pending-ownership-state --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded timed multi-recipient regional timestamped attribute update survives requester cancellation of pending If Available ownership acquisition after restore$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Timed regional negotiated regular-candidate continuation
+
+The negotiated regular-candidate continuation is now source-backed at
+`cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_regular_candidate_continuation_after_restore_catch2.cpp:307`.
+Its focused
+`tso-regional-attribute-update-timed-negotiated-regular-candidate-state` lane
+passes with 163 HLA_EVOKED assertions, 46 Requirements-Lab anchors, 24
+canonical IEEE 1516.1-2025 sections, and 30 selected official C++ API surfaces.
+After restore, the first constrained recipient and the independent clock each
+queue a regular ownership acquisition. Negotiated divestiture initially
+selects the first requester; its `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS`
+resignation consumes the stale confirmation path, while a reissued negotiation
+selects the retained regular candidate and carries its acquisition tag through
+Request Divestiture Confirmation. The surviving constrained recipient receives
+the saved timestamped reflection before its grant, and Confirm Divestiture then
+transfers ownership with one acquisition notification. This is bounded
+negotiated-continuation evidence; If Available/mixed candidates, negotiated
+cancellation variants, producer resignation, passive/relaxed DDM, changed
+membership/ownership, remote transport, package/JUnit/protected-review
+evidence, interoperability, validation, and conformance remain open. No
+Requirements Lab resynchronization or new numbered observation was performed.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus tso-regional-attribute-update-timed-negotiated-regular-candidate-state --summary --compact
+python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update continues from a regular request to a regular candidate after restore" --summary --compact
+python tools/query_rti_work.py matrix "Embedded timed multi-recipient regional timestamped attribute update continues from a regular request to a regular candidate after restore" --summary --compact
+python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-negotiated-regular-candidate-state --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded timed multi-recipient regional timestamped attribute update continues from a regular request to a regular candidate after restore$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Timed regional mixed If Available-to-regular continuation
+
+The mixed If Available-to-regular continuation is now source-backed at
+`cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_if_available_regular_candidate_continuation_after_restore_catch2.cpp:307`.
+Its focused
+`tso-regional-attribute-update-timed-negotiated-if-available-regular-candidate-continuation-state`
+lane passes with 163 HLA_EVOKED assertions, 48 Requirements-Lab anchors, 25
+canonical IEEE 1516.1-2025 sections, and 31 selected official C++ API surfaces.
+After restore, the first constrained recipient queues an If Available ownership
+acquisition and the independent clock queues a regular candidate. Negotiated
+divestiture selects the first candidate; its resignation with
+`CANCEL_PENDING_OWNERSHIP_ACQUISITIONS` consumes stale confirmation work, while
+reissued negotiation selects the retained regular candidate. The surviving
+constrained recipient receives the saved timestamped reflection before its
+grant, and Confirm Divestiture transfers ownership with one acquisition
+notification. This is bounded mixed-candidate continuation evidence; negotiated
+cancellation variants, producer resignation, passive/relaxed DDM, changed
+membership/ownership, remote transport, package/JUnit/protected-review
+evidence, interoperability, validation, and conformance remain open. No
+Requirements Lab resynchronization or new numbered observation was performed.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus tso-regional-attribute-update-timed-negotiated-if-available-regular-candidate-continuation-state --summary --compact
+python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update continues from an If Available request to a regular candidate after restore" --summary --compact
+python tools/query_rti_work.py matrix "Embedded timed multi-recipient regional timestamped attribute update continues from an If Available request to a regular candidate after restore" --summary --compact
+python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-negotiated-if-available-regular-candidate-continuation-state --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded timed multi-recipient regional timestamped attribute update continues from an If Available request to a regular candidate after restore$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Attribute Scope Advisory lane
+
+The source-backed Attribute Scope Advisory slice is isolated in
+`cpp/tests/attribute_scope_advisory_catch2.cpp:97`. Its HLA_EVOKED and
+HLA_IMMEDIATE sections pass with 187 assertions and map nine immutable
+Requirements-Lab anchors to five canonical 2025 sections and eleven official
+C++ API surfaces. It keeps two attributes in one grouped callback, covers
+known-object committed overlap, source update-region association, ordinary and
+regional subscription, and receiver-region transitions, suppresses stale
+evoked work at callback entry, and proves the per-federate switch gate plus the
+default-region replacement no-transition boundary. This is new local
+development-profile evidence, not a Lab resynchronization or a new numbered
+recurrence; timestamped/retraction, relaxed DDM, save/restore, transport,
+packaging, protected review, validation, and conformance remain separate.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus object-attribute-scope-advisory-state --summary --compact
+python tools/query_rti_work.py trace "Embedded regional object scope callbacks follow 2025 region, association, and subscription changes" --summary --compact
+python tools/query_rti_work.py matrix "Embedded regional object scope callbacks follow 2025 region, association, and subscription changes" --summary --compact
+python tools/query_rti_work.py check --lane object-attribute-scope-advisory-state --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded regional object scope callbacks follow 2025 region, association, and subscription changes$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Enabled Auto Provide baseline
+
+The previously unlocated enabled Auto Provide plan row is now a standalone
+C++ case at `cpp/tests/auto_provide_baseline_catch2.cpp:84`. It passes 28
+HLA_EVOKED assertions and maps three existing Requirements-Lab anchors to
+canonical clauses 1 and 6.1.10 across 15 official C++ API surfaces. The
+regional fixture's enabled FDD value is
+observed federation-wide; one active discovery produces one grouped provider
+callback for both owned in-scope attributes with the required empty
+RTI-invoked tag. This is local development-profile evidence that closes a
+plan/source traceability gap, not a Requirements-Lab resynchronization or a
+new numbered recurrence. Disabled discovery, MOM mutation, regional and
+relaxed-DDM filtering, multiple providers, timestamped behavior, save/restore,
+package/JUnit/protected-review evidence, validation, and conformance remain
+separate lanes.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus auto-provide-baseline-state --summary --compact
+python tools/query_rti_work.py trace "Embedded Auto Provide solicits in-scope owners after discovery" --summary --compact
+python tools/query_rti_work.py matrix "Embedded Auto Provide solicits in-scope owners after discovery" --summary --compact
+python tools/query_rti_work.py check --lane auto-provide-baseline-state --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded Auto Provide solicits in-scope owners after discovery$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Object-instance Request Attribute Value Update baseline
+
+The next bounded C++ handoff is now source-backed at
+`cpp/tests/attribute_value_update_request_baseline_catch2.cpp:93`. Its
+`attribute-value-update-request-baseline-state` lane passes 36 HLA_EVOKED
+assertions, maps eight existing Requirements-Lab anchors to canonical 2025
+clauses 6.21, 6.21.5, and 6.22, and records 15 official C++ API surfaces. The
+case proves known-instance targeting, grouped solicitation of current external
+owners, suppression of unowned attributes, suppression of a requester-owned
+attribute, request-tag propagation, and evoked callback delivery using the
+attribute-update passel FOM. The sibling class overload, regional requests,
+automatic provision, timestamped/retraction behavior, response delivery, and
+broader DDM/ownership/save/restore/package evidence remain separate lanes.
+This is local development-profile evidence only; no Requirements Lab
+resynchronization or new numbered recurrence was performed.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus attribute-value-update-request-baseline-state --summary --compact
+python tools/query_rti_work.py trace "Embedded object-instance Request Attribute Value Update solicits 2025 owners" --summary --compact
+python tools/query_rti_work.py matrix "Embedded object-instance Request Attribute Value Update solicits 2025 owners" --summary --compact
+python tools/query_rti_work.py check --lane attribute-value-update-request-baseline-state --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded object-instance Request Attribute Value Update solicits 2025 owners$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Object-class Request Attribute Value Update baseline
+
+The following bounded C++ handoff is now source-backed at
+`cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp:94`.
+Its `object-class-attribute-value-update-request-baseline-state` lane passes
+43 HLA_EVOKED assertions, maps seven existing Requirements-Lab anchors to
+canonical 2025 clauses 6.21, 6.21.5, and 6.22, and records 15 official C++ API
+surfaces. The case uses the attribute-update passel FOM to register two
+concrete child instances and one requester-owned base instance, then proves
+class-designator expansion, one grouped external-owner callback per concrete
+instance, unowned/requester-owned suppression, request-tag propagation, and
+evoked delivery. Regional class requests, automatic provision,
+timestamped/retraction behavior, response delivery, and broader
+DDM/ownership/save/restore/package evidence remain separate. This is local
+development-profile evidence only; no Requirements Lab resynchronization or
+new numbered recurrence was performed.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus object-class-attribute-value-update-request-baseline-state --summary --compact
+python tools/query_rti_work.py trace "Embedded object-class Request Attribute Value Update solicits 2025 subclass owners" --summary --compact
+python tools/query_rti_work.py matrix "Embedded object-class Request Attribute Value Update solicits 2025 subclass owners" --summary --compact
+python tools/query_rti_work.py check --lane object-class-attribute-value-update-request-baseline-state --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded object-class Request Attribute Value Update solicits 2025 subclass owners$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Object-class provider service-report file
+
+The next bounded C++ handoff is now source-backed at
+`cpp/tests/object_class_attribute_value_update_service_report_catch2.cpp:196`.
+Its `object-class-provide-attribute-value-update-service-report` lane passes
+403 HLA_EVOKED assertions, maps six existing Requirements-Lab anchors to
+canonical 2025 clauses 6.21, 6.21.5, 6.22, 11.5, and 11.5.2, and records 19
+official C++ API surfaces. The case uses the production filesystem store: one
+immutable report file is allocated for each joined federate, setup reporting is
+disabled, and the provider file is checked at callback entry for serial-ordered
+Table 5 type-37/type-1/type-63 records carrying the propagated base64 tag. The
+requester file remains unchanged. This is local development-profile evidence;
+it is not a Requirements Lab resynchronization, new numbered recurrence,
+public MOM interaction claim, or conformance claim.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus object-class-provide-attribute-value-update-service-report --summary --compact
+python tools/query_rti_work.py trace "Embedded class Request Attribute Value Update reports each provider callback before delivery" --summary --compact
+python tools/query_rti_work.py matrix "Embedded class Request Attribute Value Update reports each provider callback before delivery" --summary --compact
+python tools/query_rti_work.py check --lane object-class-provide-attribute-value-update-service-report --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded class Request Attribute Value Update reports each provider callback before delivery$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Request Attribute Value Update report arguments
+
+The next bounded C++ handoff is now source-backed at
+`cpp/tests/request_attribute_value_update_service_report_catch2.cpp:204`.
+Its `request-attribute-value-update-service-report-file` lane passes 242
+HLA_EVOKED assertions, maps four existing Requirements-Lab anchors to canonical
+2025 clauses 6.21, 6.21.5, 11.5, and 11.5.2.1, and records three official C++
+API surfaces. The production filesystem case first proves an unknown-object
+rejection is file-silent, then checks one accepted object-instance and one
+accepted object-class request. Each record preserves its type-37 or type-36
+designator, complete type-1 AttributeHandleSet, and type-63 base64 tag before
+the separately queued provider callback; the requester callback stream remains
+empty. This is local development-profile evidence, not a Requirements Lab
+resynchronization, new numbered recurrence, public MOM interaction claim, or
+conformance claim.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus request-attribute-value-update-service-report-file --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting preserves Request Attribute Value Update arguments" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting preserves Request Attribute Value Update arguments" --summary --compact
+python tools/query_rti_work.py check --lane request-attribute-value-update-service-report-file --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting preserves Request Attribute Value Update arguments$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Provider Attribute Value Update service-report file
+
+The next bounded C++ handoff is source-backed at
+`cpp/tests/provide_attribute_value_update_service_report_catch2.cpp:201`.
+Its `provide-attribute-value-update-service-report-file` lane passes 145 HLA_EVOKED
+assertions, maps six existing Requirements-Lab anchors to canonical 2025
+clauses 6.21, 6.21.5, 6.22, 11.5, and 11.5.2, and records five official C++
+request/provider API surfaces. The production filesystem case enables only the
+provider route for one known object-instance request, proves the owner file is
+unchanged while HLA_EVOKED work is pending, and observes one serial-0
+successful-void Table 5 type-37/type-1/type-63 record at the first callback
+instruction. The requester file remains unchanged. This is local
+development-profile evidence, not a Requirements Lab resynchronization, new
+numbered recurrence, public MOM interaction claim, or conformance claim.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus provide-attribute-value-update-service-report-file --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records Provide Attribute Value Update before its callback" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting records Provide Attribute Value Update before its callback" --summary --compact
+python tools/query_rti_work.py check --lane provide-attribute-value-update-service-report-file --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting records Provide Attribute Value Update before its callback$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Receive-order Update Attribute Values service-report file
+
+The next bounded C++ handoff is source-backed at
+`cpp/tests/update_attribute_values_service_report_catch2.cpp:224`. Its
+`update-attribute-values-service-report-file` lane passes 157 HLA_EVOKED
+assertions, maps four existing Requirements-Lab anchors to canonical 2025
+clauses 6.10, 11.5, and 11.5.2.1, and records the two official Update/Reflect
+Attribute Values API surfaces. The production filesystem case first proves an
+unknown-object receive-order update is file-silent, then checks one accepted
+non-timestamped known-object update. Its serial-ordered successful-void Table 5
+record preserves the type-37 object-instance designator, type-2
+AttributeHandleValueMap, type-63 base64 tag, and type-34 Null optional
+timestamp before the separately queued reflection callback; the receiver file
+remains unchanged. This is local development-profile evidence, not a
+Requirements Lab resynchronization, new numbered recurrence, public MOM
+interaction claim, or conformance claim. Timestamped/regional/DDM forms,
+return/failure records, interaction-selected delivery, packaging, validation,
+and protected-review evidence remain separate lanes.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus update-attribute-values-service-report-file --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting preserves receive-order Update Attribute Values arguments" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting preserves receive-order Update Attribute Values arguments" --summary --compact
+python tools/query_rti_work.py check --lane update-attribute-values-service-report-file --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting preserves receive-order Update Attribute Values arguments$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Receive-order Delete Object Instance service-report file
+
+The next bounded C++ handoff is source-backed at
+`cpp/tests/delete_object_instance_service_report_catch2.cpp:194`. Its
+`delete-object-instance-service-report-file` lane passes 106 HLA_EVOKED
+assertions, maps five existing Requirements-Lab anchors to canonical 2025
+clauses 6.16, 6.16.4, 11.5, and 11.5.2.1, and records the two official
+Delete/Remove Object Instance API surfaces. The production filesystem case
+first proves an unknown-object receive-order deletion is file-silent, then
+checks one accepted non-timestamped known-object deletion. Its successful-void
+Table 5 record preserves the type-37 object-instance designator, type-63
+base64 tag, and type-34 Null optional timestamp before the separately queued
+removal callback; the receiver file remains unchanged. This is local
+development-profile evidence, not a Requirements Lab resynchronization, new
+numbered recurrence, public MOM interaction claim, or conformance claim.
+Timestamped/regional/DDM forms, return/failure records, interaction-selected
+delivery, packaging, validation, and protected-review evidence remain separate
+lanes.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus delete-object-instance-service-report-file --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting preserves receive-order Delete Object Instance arguments" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting preserves receive-order Delete Object Instance arguments" --summary --compact
+python tools/query_rti_work.py check --lane delete-object-instance-service-report-file --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting preserves receive-order Delete Object Instance arguments$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Receive-order Delete Object Instance failure-file matrix
+
+The next bounded C++ handoff is source-backed at
+`cpp/tests/delete_object_instance_failure_service_report_catch2.cpp:135`.
+Its `delete-object-instance-failure-file-matrix` lane passes 137 HLA_EVOKED
+assertions, maps four existing Requirements-Lab anchors to canonical 2025
+clauses 6.16, 6.16.4, and 11.5, and records the Delete Object Instance service
+plus both service-report switch accessors. The production filesystem matrix
+checks failed serial-0 and serial-2 unknown-object records around accepted
+serial-1 deletion, preserving type-37/type-63/type-34 supplied forms, a Null
+returned argument, false indicators, and exact exception text. This is local
+development-profile evidence, not a Requirements Lab resynchronization, new
+numbered recurrence, public MOM interaction claim, or conformance claim.
+The configured process endpoint exposes the public-path diagnostic
+`The supplied ObjectInstanceHandle is not known to this federate.`; this is a
+runtime-path detail, not a Requirements-Lab defect or new numbered issue.
+Timestamped failure, regional/DDM, MOM-interaction, packaging, validation, and
+protected-review evidence remain separate lanes.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus delete-object-instance-failure-file-matrix --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records failed receive-order Delete Object Instance invocations" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting records failed receive-order Delete Object Instance invocations" --summary --compact
+python tools/query_rti_work.py check --lane delete-object-instance-failure-file-matrix --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting records failed receive-order Delete Object Instance invocations$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Receive-order Delete Object Instance failure MOM interaction
+
+The next bounded C++ handoff is source-backed at
+`cpp/tests/delete_object_instance_failure_service_report_interaction_catch2.cpp:84`.
+Its `delete-object-instance-failure-mom-interaction` lane passes 124
+HLA_IMMEDIATE assertions, maps four existing Requirements-Lab anchors to
+canonical 2025 clauses 6.16, 6.16.4, and 11.5, and decodes object-management
+service type 2 through the official `HLAreportServiceInvocation` interaction.
+The observer verifies failed serial-0 and serial-2 reports around accepted
+serial-1 deletion, with type-37/type-63/type-34 supplied forms, Null return,
+false indicators, and exact exception text. This is local development-profile
+evidence, not a Requirements Lab resynchronization, new numbered recurrence,
+filesystem-routing claim, or conformance claim. Timestamped/regional/DDM
+forms, packaging, validation, and protected review remain separate lanes.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus delete-object-instance-failure-mom-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting delivers failed receive-order Delete Object Instance invocations through MOM interaction" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting delivers failed receive-order Delete Object Instance invocations through MOM interaction" --summary --compact
+python tools/query_rti_work.py check --lane delete-object-instance-failure-mom-interaction --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting delivers failed receive-order Delete Object Instance invocations through MOM interaction$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Regional provider response DDM recheck
+
+The next bounded C++ handoff is now source-backed at
+`cpp/tests/regional_attribute_value_update_provider_response_recheck_catch2.cpp:136`.
+Its `regional-provider-response-ddm-recheck` lane passes 39 HLA_EVOKED
+assertions, maps four existing Requirements-Lab anchors to canonical 2025
+clauses 6.10 and 9.13.1, and records eight official C++ API surfaces. The
+case arranges one overlap-qualified regional Request Attribute Value Update,
+answers from the provider's standard callback with a no-time Update Attribute
+Values response, then commits a valid disjoint requester range before the
+queued reflection callback is evoked. The stale reflection is suppressed at
+the recipient callback boundary. This is local development-profile evidence,
+not a Requirements Lab resynchronization, new numbered recurrence, automatic
+provision claim, successful post-mutation reflection claim, timestamped/
+retraction claim, relaxed-DDM claim, packaging/validation claim, or conformance
+claim. No Requirements Lab defect was observed; the existing RL-180/RL-181
+ledger remains unchanged.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus regional-provider-response-ddm-recheck --summary --compact
+python tools/query_rti_work.py trace "Embedded regional provider response rechecks DDM eligibility at reflection delivery" --summary --compact
+python tools/query_rti_work.py matrix "Embedded regional provider response rechecks DDM eligibility at reflection delivery" --summary --compact
+python tools/query_rti_work.py check --lane regional-provider-response-ddm-recheck --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded regional provider response rechecks DDM eligibility at reflection delivery$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Ordinary provider response
+
+The adjacent non-regional C++ handoff is now source-backed at
+`cpp/tests/attribute_value_update_response_catch2.cpp:129`. Its
+`attribute-value-update-response` lane passes 37 HLA_EVOKED assertions, maps
+six existing Requirements-Lab anchors to canonical 2025 clauses 6.10, 6.21,
+and 6.21.5, and records four official C++ API surfaces. The case proves a
+known-object Request Attribute Value Update reaches the provider callback with
+the request tag, the provider invokes no-time Update Attribute Values from
+callback user code, and the requester receives one receive-order reflection
+with the response value/tag, producer, reliable transport, and no sent-region
+designator. This is local development-profile evidence, not a Requirements Lab
+resynchronization, new numbered recurrence, or conformance claim. No Lab defect
+was observed; the RL-180/RL-181 ledger remains unchanged. Regional/DDM,
+automatic provision, timestamped/retraction, update-rate, save/restore,
+packaging, validation, and protected-review evidence remain separate lanes.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus attribute-value-update-response --summary --compact
+python tools/query_rti_work.py trace "Embedded Request Attribute Value Update supports a 2025 provider response" --summary --compact
+python tools/query_rti_work.py matrix "Embedded Request Attribute Value Update supports a 2025 provider response" --summary --compact
+python tools/query_rti_work.py check --lane attribute-value-update-response --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded Request Attribute Value Update supports a 2025 provider response$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Ownership/update-region transfer
+
+The next object/ownership/DDM handoff is now source-backed at
+`cpp/tests/ownership_transfer_update_region_catch2.cpp:142`. Its
+`ownership-transfer-update-region` lane passes 88 HLA_EVOKED assertions, maps
+five existing Requirements-Lab anchors to canonical 2025 clauses 7.1.2.1,
+9.1.3.3, 9.5.4, and 9.6, and records eight official C++ API surfaces. The
+case registers one object with an explicit source region, queues If Available
+acquisition, completes Divestiture If Wanted, proves the former owner cannot
+update, verifies the first new-owner update uses the default source
+realization with an empty conveyed-region set, and then verifies that an
+explicit replacement association from the new owner restores regional
+delivery. The paired API and requirements contracts now point to this
+standalone case rather than the aggregate translation unit. This is local
+development-profile evidence, not a Requirements Lab resynchronization, new
+numbered recurrence, or conformance claim. No Lab defect was observed; the
+RL-180/RL-181 ledger remains unchanged. Confirm Divestiture, unconditional and
+negotiated transfer forms, timestamped/default-region behavior, scope
+advisories, save/restore, packaging, validation, and protected-review evidence
+remain separate lanes.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus ownership-transfer-update-region --summary --compact
+python tools/query_rti_work.py trace "Embedded ownership transfer clears the former owner's 2025 update-region association" --summary --compact
+python tools/query_rti_work.py matrix "Embedded ownership transfer clears the former owner's 2025 update-region association" --summary --compact
+python tools/query_rti_work.py check --lane ownership-transfer-update-region --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded ownership transfer clears the former owner's 2025 update-region association$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Ordinary regional interaction failure file
+
+The ordinary regional `Send Interaction With Regions` failure-file handoff is
+now source-backed at
+`cpp/tests/regional_interaction_failure_service_report_file_catch2.cpp:151`.
+Its `ordinary-regional-interaction-failure-service-report-file` lane passes
+302 HLA_EVOKED assertions, maps the existing Requirements-Lab candidate
+`requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5`
+to canonical 2025 clause 11.5, and records the three official C++ API surfaces
+for the service, reporting switch, and file switch. The real configured
+joined-federate filesystem route records invalid interaction-class, parameter,
+and region invocations with serials zero through two, type-27/type-40/type-43/
+type-63/type-34 supplied forms, Table 5 type-34 Null returns, false indicators,
+exact public exception text, and no application callback. The dedicated API and
+requirements contracts point to the standalone source. This is local
+development-profile traceability, not a Requirements Lab resynchronization,
+new numbered recurrence, or conformance claim. No Lab defect was observed;
+the RL-180/RL-181 ledger remains unchanged. RL-105 records the truncated
+cross-cutting candidate text and RL-152 records the missing row-level
+conditional failure/backend relation. The paired HLA_IMMEDIATE MOM row,
+accepted regional delivery, timestamped/re-enable/save/restore, transport,
+package/JUnit/protected-review, validation, and conformance remain separate.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus ordinary-regional-interaction-failure-service-report-file --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records failed regional Send Interaction With Regions invocations" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting records failed regional Send Interaction With Regions invocations" --summary --compact
+python tools/query_rti_work.py check --lane ordinary-regional-interaction-failure-service-report-file --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting records failed regional Send Interaction With Regions invocations$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Ordinary regional interaction failure MOM
+
+The paired ordinary regional HLA_IMMEDIATE MOM-interaction handoff is now
+source-backed at
+`cpp/tests/regional_interaction_failure_service_report_interaction_catch2.cpp:88`.
+Its `ordinary-regional-interaction-failure-mom-interaction` lane passes 149
+assertions, maps the existing Requirements-Lab candidates at page 292 lines 9
+and 18 to canonical clause 11.5, and records five official C++ API surfaces.
+With Send Service Reports To File disabled, an HLA_IMMEDIATE observer decodes
+serials zero through two from `HLAreportServiceInvocation` for invalid
+interaction-class, parameter, and region calls, preserving type-27/type-40/
+type-43/type-63/type-34 supplied forms, the type-34 Null returned argument,
+false indicators, and exact exception text; no application callback is
+expected. The dedicated contracts now cover both file and MOM destinations.
+This is local development-profile traceability, not a Requirements Lab
+resynchronization, new numbered recurrence, or conformance claim. No Lab defect
+was observed; the RL-180/RL-181 ledger remains unchanged. RL-105/RL-152 remain
+the bounded cross-cutting/truncated-candidate and conditional failure/backend
+caveats. Keep the filesystem row, accepted regional delivery,
+timestamped/re-enable/save/restore, transport, package/JUnit/protected-review,
+validation, and conformance independent.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus ordinary-regional-interaction-failure-mom-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction" --summary --compact
+python tools/query_rti_work.py check --lane ordinary-regional-interaction-failure-mom-interaction --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Accepted ordinary regional interaction file
+
+The accepted ordinary regional service-report file handoff is now
+source-backed at
+`cpp/tests/regional_interaction_service_report_file_catch2.cpp:185`. Its
+`ordinary-regional-interaction-service-report-file` lane passes 173 HLA_EVOKED
+assertions, maps the existing page-292-line-18 Requirements-Lab candidate to
+canonical clause 11.5, and records six official C++ API surfaces. The case
+uses a real configured joined-federate filesystem, keeps switches disabled
+during setup, then verifies one overlap-qualified ordinary regional Send
+Interaction With Regions record at serial zero before the constrained Receive
+Interaction callback. It preserves type-27/type-40/type-43/type-63/type-34
+supplied forms, the type-34 Null returned argument, source RegionHandleSet,
+payload, producer, and tag metadata. This is local development-profile
+traceability, not a Requirements Lab resynchronization, new numbered
+recurrence, or conformance claim. No Lab defect was observed; RL-180/RL-181
+remain unchanged and RL-105/RL-152 remain the bounded service-report caveats.
+Keep the paired MOM/failure rows, timestamped/re-enable/save/restore,
+transport, package/JUnit/protected-review, validation, and conformance
+independent.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus ordinary-regional-interaction-service-report-file --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback" --summary --compact
+python tools/query_rti_work.py check --lane ordinary-regional-interaction-service-report-file --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation — Accepted ordinary regional interaction MOM
+
+The accepted ordinary regional MOM-interaction handoff is now source-backed at
+`cpp/tests/regional_interaction_service_report_interaction_catch2.cpp:128`.
+Its `ordinary-regional-interaction-service-report-mom-interaction` lane passes
+107 assertions across HLA_EVOKED publisher/receiver and an HLA_IMMEDIATE
+observer, maps the page-292-line-9 and line-18 candidates to canonical clause
+11.5, and records five official C++ API surfaces. With file reporting disabled,
+the observer subscribes to `HLAreportServiceInvocation` and decodes one
+accepted serial-zero Send Interaction With Regions record before the constrained
+application callback: service type 2, exact type-27/type-40/type-43/type-63/
+type-34 supplied forms, the type-34 Null return, success, empty exception,
+source RegionHandleSet, payload, producer, and tag. This is local
+development-profile traceability, not a Requirements Lab resynchronization,
+new numbered recurrence, or conformance claim. No Lab defect was observed;
+RL-180/RL-181 remain unchanged and RL-105/RL-152 remain the bounded
+cross-cutting/backend caveats. The filesystem row, failure matrices,
+timestamped/re-enable/save/restore, transport, package/JUnit/protected-review,
+validation, and conformance remain separate.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py focus ordinary-regional-interaction-service-report-mom-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction" --summary --compact
+python tools/query_rti_work.py check --lane ordinary-regional-interaction-service-report-mom-interaction --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded traceability correction — Joined-federate MOM/file lifecycle
+
+The public joined-federate MOM/file identity case is now indexed under the
+canonical `selected_requirements_lab_requirement_ids` field (an older singular
+plan-field spelling had silently hidden its mapping). The
+`service-report-file-lifecycle` lane is consequently three source-located C++
+cases, all mapped, with 232 assertions, 25 Lab requirement references, and 19
+canonical 2025 sections. The public discovery/reflection/removal case is
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35806` with 152
+assertions across HLA_EVOKED and HLA_IMMEDIATE. It covers active ordinary
+HLAmanager.HLAfederate discovery, all seven Table 8 initial values including
+the absolute HLAreportServiceFile path, known-object requested-value replay,
+transportation metadata, independent paths for simultaneous joined federates,
+and resignation removal. The switch-cycle case remains at line 35458 (34
+assertions), and the save/restore companion at line 35683 (46 assertions).
+The query tool now rejects the legacy field spelling so future mapping drift is
+visible immediately. This is a local traceability correction and development-
+profile evidence only; no Requirements Lab resynchronization, new numbered
+recurrence, validation, or conformance claim was made. RL-180/RL-181 remain
+unchanged and RL-041/RL-043 remain the existing MOM caveats.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus service-report-file-lifecycle --summary --compact
+python tools/query_rti_work.py matrix service-report-file-lifecycle --summary --compact --limit 10
+python tools/query_rti_work.py trace m82.mapping.embedded-joined-federate-mom-public-object-management --summary --compact
+python tools/query_rti_work.py test "Embedded joined-federate MOM objects use the public discovery reflection and removal route" --summary --compact
+python tools/query_rti_work.py check --lane service-report-file-lifecycle --summary --compact
+ctest --test-dir <build-dir> -C Debug -L service-report-file-lifecycle --output-on-failure
+~~~
+
+### 2026-09-04 bounded disposition — MIM/FDD policy catalog
+
+The service-reporting lane's remaining FDD/MIM policy-catalog row is now
+explicitly classified rather than left looking like an accidentally unmapped
+public requirement. `The FDD catalog preserves MIM attribute policy for a
+future RTI-owned MOM object` is source-backed at
+`cpp/tests/libxml2_fom_composer_catch2.cpp:747` and passes 19 assertions. It
+checks the catalog's HLAreportServiceFile type, update policy, required/
+ownership/sharing/transport/order metadata, and the Static-versus-Conditional
+MIM conflict. This is an internal resource-level regression, not a standalone
+Requirements-Lab API surface, so it intentionally has zero selected Lab
+requirements, standard sections, and C++ API identifiers. RL-041 records the
+source conflict and RL-034 records the missing immutable Table 5 record-
+structure candidates. The lane now reports four explicit internal/test-seam
+dispositions and zero unclassified rows; no Requirements Lab resynchronization
+or new numbered recurrence is warranted.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py test "The FDD catalog preserves MIM attribute policy for a future RTI-owned MOM object" --summary --compact
+python tools/query_rti_work.py unmapped --lane service-reporting --disposition explicit --summary --compact
+python tools/query_rti_work.py check --lane service-reporting --summary --compact
+~~~
+
+### 2026-09-04 bounded evidence refresh — Timestamped deletion/retraction
+
+The previously recorded stale callback expectation in the timestamped Delete
+Object Instance retraction case has been repaired in the C++ harness. The
+HLA_EVOKED case at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4305` now drains the
+joined-federate MOM work item after Enable Time Regulation and passes all 49
+assertions, including deletion, retraction, reconstitution, removal metadata,
+and grant ordering. The indexed plan row was already mapped to 26 Lab
+requirements, 16 canonical 2025 sections, and 23 official C++ API surfaces;
+this note refreshes the older failure description in the roadmap documents.
+It remains development-profile evidence rather than Lab validation or
+conformance, and no Requirements Lab resynchronization or new numbered
+recurrence was needed.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py trace "Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-delete-object-instance-failure-service-report --summary --compact
+<build-dir>\\Debug\\umbra_ieee1516_2025_catch2.exe "Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant" --reporter compact
+~~~
+
+### 2026-09-04 bounded implementation slice — process temporal-state ownership
+
+The process federation service now creates one official `FederateTimeState`
+when each federate joins, registers that object with the federation time
+coordinator, retains it in the process session, and clears it on successful
+resignation. `Query Logical Time` reads that retained object instead of
+reconstructing a fresh factory initial value on every request. The focused
+private service case adds three assertions for the retained state, bringing
+the process-boundary lane to 40 mapped/source-located cases and 1,942 indexed
+focused-JUnit assertions. This is a foundational ownership boundary only;
+process role-enable, grant scheduling, and cross-federate TSO coordination
+remain separate work. No Requirements Lab resynchronization or new numbered
+recurrence was performed.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py test "Private process service binds create join and receive-order interaction to the federation registry" --summary --compact
+python tools/query_rti_work.py matrix api.2025.cpp.rtiambassador.querylogicaltime.cb29c063787c --summary --compact --limit 10
+python tools/query_rti_work.py focus process-boundary --summary --compact
+python tools/query_rti_work.py check --lane process-boundary --summary --compact
+cmake --build <build-dir> --config Debug --target umbra_process_boundary_junit
+~~~
+
+### 2026-09-04 bounded implementation slice — process Enable Time Regulation
+
+The process endpoint now carries the first role-enable boundary through the
+official C++ time surfaces. The private service validates an encoded
+`HLAinteger64Interval`, applies it to the joined federate's retained
+`FederateTimeState`, and returns the enabled logical-time representation. The
+public process lifecycle sends `RTIambassador::enableTimeRegulation`, queues
+the official `timeRegulationEnabled` callback, and verifies callback gating
+under `HLA_EVOKED` before `Query Logical Time` and `Resign`. The bounded lane is
+40 mapped/source-located cases and 1,952 focused-JUnit assertions, with 121
+requirement anchors and 62 canonical 2025 sections. This is an immediate
+server-side grant foundation only; cross-federate grant scheduling, TSO
+coordination, and conformance are not claimed. No Requirements Lab
+resynchronization or new numbered recurrence was performed.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py test "Private process service binds create join and receive-order interaction to the federation registry" --summary --compact
+python tools/query_rti_work.py test "RTIambassador routes public Create, Join, and Resign through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05 --summary --compact --limit 10
+python tools/query_rti_work.py focus process-boundary --summary --compact
+python tools/query_rti_work.py check --lane process-boundary --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "(Private process service binds create join and receive-order interaction to the federation registry|RTIambassador routes public Create, Join, and Resign through a configured process endpoint)$" --output-on-failure
+~~~
+
+### 2026-09-04 queryability maintenance — custom transportation lane and aggregate gate
+
+The declared-custom-transportation rows now have one exact plan taxonomy handle,
+`custom-transportation`, and the roadmap index assigns that handle to the
+object/DDM family with a seven-test aggregate CTest selector. The ordinary
+receive-order and ordinary-regional delivery rows have additionally been
+extracted into focused handles documented below. The remaining six delivery-
+form rows are explicit no-standalone-Requirements-Lab dispositions;
+the transportation-type
+control row maps the attribute default/change/query assertions to eight existing
+2025 candidates in §§6.26–6.29 and explicitly leaves its interaction-control
+subpath as API traceability because the Lab exports no corresponding standalone
+row. No requirement ID was invented and no Lab resynchronization was performed.
+
+The bounded classifier was also corrected so canonical
+`selected_requirements_lab_requirement_ids` are recognized as mapped even when a
+row carries an API-surface disposition. The lane therefore reports one mapped
+case, eight explicit dispositions, and zero unclassified rows. Its exact focus
+card is marked `execution-blocked`, however: rebuilding the aggregate
+`umbra_ieee1516_2025_catch2` target against the current checkout still fails at
+the pre-existing malformed/incomplete source regions around lines 47104, 47870,
+48342, and 48452. The seven remaining aggregate CTest selectors enumerate
+successfully with `ctest -N`; the extracted ordinary cases have their own
+focused runtime passes below. No runtime pass is claimed for the aggregate rows until it
+is repaired or those cases are extracted into standalone targets. This is the
+same checkout/source-
+integrity problem recorded in the 2026-09-02 observation, not a new Lab
+numbering event or a custom-transport semantic finding; RL-180/RL-181 remain
+unchanged.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus custom-transportation --summary --compact
+python tools/query_rti_work.py unmapped --lane custom-transportation --disposition explicit --summary --compact
+python tools/query_rti_work.py trace "Embedded transportation-type controls accept declared FOM transportation handles" --summary --compact
+ctest --test-dir <build-dir> -C Debug -N -R "^umbra\.ieee1516_2025\.catch2\.(Embedded timestamped delivery accepts a declared custom FOM transportation|Embedded directed delivery accepts a declared custom FOM transportation|Embedded timestamped directed delivery accepts a declared custom FOM transportation|Embedded ordinary regional attribute delivery accepts a declared custom FOM transportation|Embedded timestamped regional attribute delivery accepts a declared custom FOM transportation|Embedded timestamped regional delivery accepts a declared custom FOM transportation|Embedded transportation-type controls accept declared FOM transportation handles)$"
+~~~
+
+### 2026-09-06 bounded implementation slice — ordinary custom transportation delivery
+
+The ordinary receive-order custom-transportation case is now extracted into
+`cpp/tests/custom_transportation_delivery_catch2.cpp:142` with the focused
+target `umbra_custom_transportation_delivery_catch2`. It passes 42
+`HLA_EVOKED` assertions and verifies the official interaction and attribute
+callback surfaces preserve the declared FOM transportation, producer handle,
+user tag, and decoded attribute handle. The plan row remains an explicit
+development-profile/API disposition because the 2025 Requirements Lab exports
+no standalone requirement candidate for this user-declared delivery form; no
+conformance or interoperability claim is made.
+
+This extraction removes the ordinary case from the blocked aggregate handoff;
+the timestamped, regional, directed, and transportation-control rows remain
+separate aggregate or already-focused lanes. It is a testability change, not a
+Requirements Lab resynchronization or a new numbered recurrence.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus custom-transportation-delivery --summary --compact
+python tools/query_rti_work.py trace "Embedded ordinary delivery accepts a declared custom FOM transportation" --summary --compact
+python tools/query_rti_work.py matrix "Embedded ordinary delivery accepts a declared custom FOM transportation" --summary --compact
+python tools/query_rti_work.py check --lane custom-transportation-delivery --summary --compact
+cmake --build <build-dir> --config Release --target umbra_custom_transportation_delivery_catch2
+ctest --test-dir <build-dir> -C Release -R "^umbra\.custom_transportation_delivery\.catch2\.Embedded ordinary delivery accepts a declared custom FOM transportation$" --output-on-failure
+~~~
+
+### 2026-09-06 bounded implementation slice — ordinary regional custom transportation
+
+The ordinary regional custom-transportation row is now extracted into
+`cpp/tests/custom_transportation_ordinary_regional_interaction_catch2.cpp:107`
+with the focused target
+`umbra_custom_transportation_ordinary_regional_interaction`. It passes 40
+`HLA_EVOKED` assertions and verifies overlapping two-dimensional regions,
+conveyed region designators, and preservation of the declared transportation,
+producer, and tag through the official receive-order interaction callback. The
+plan row remains an explicit development-profile/API disposition: the 2025
+Requirements Lab has no standalone candidate for this user-declared delivery
+form, so no conformance or interoperability claim is made.
+
+This extraction removes the ordinary regional case from the damaged aggregate;
+the directed, timestamped, regional-attribute, and transportation-control rows
+remain separate aggregate or already-focused lanes. No Requirements Lab
+resynchronization or new numbered recurrence was performed.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus custom-transportation-ordinary-regional-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded ordinary regional delivery accepts a declared custom FOM transportation" --summary --compact
+python tools/query_rti_work.py matrix "Embedded ordinary regional delivery accepts a declared custom FOM transportation" --summary --compact
+python tools/query_rti_work.py check --lane custom-transportation-ordinary-regional-interaction --summary --compact
+cmake --build <build-dir> --config Release --target umbra_custom_transportation_ordinary_regional_interaction_catch2
+ctest --test-dir <build-dir> -C Release -R "^umbra\.custom_transportation_ordinary_regional_interaction\.catch2\.Embedded ordinary regional delivery accepts a declared custom FOM transportation$" --output-on-failure
+~~~
+
+### 2026-09-06 bounded implementation slice — ordinary regional-attribute custom transportation
+
+The ordinary regional-attribute custom-transportation row is now extracted into
+`cpp/tests/custom_transportation_ordinary_regional_attribute_catch2.cpp:121`
+with the focused target
+`umbra_custom_transportation_ordinary_regional_attribute`. It passes 51
+`HLA_EVOKED` assertions and verifies regional object registration, conveyed
+region designators, decoded attribute payload, and preservation of the
+declared transportation through the official ordinary Reflect Attribute Values
+callback. The plan row remains an explicit development-profile/API disposition
+because the 2025 Requirements Lab exports no standalone candidate for this
+user-declared delivery form; no conformance or interoperability claim is made.
+
+This extraction removes the ordinary regional-attribute case from the damaged
+aggregate. The timestamped regional-attribute, directed, and remaining
+transportation rows stay separate lanes. No Requirements Lab resynchronization
+or new numbered recurrence was performed.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus custom-transportation-ordinary-regional-attribute --summary --compact
+python tools/query_rti_work.py trace "Embedded ordinary regional attribute delivery accepts a declared custom FOM transportation" --summary --compact
+python tools/query_rti_work.py matrix "Embedded ordinary regional attribute delivery accepts a declared custom FOM transportation" --summary --compact
+python tools/query_rti_work.py check --lane custom-transportation-ordinary-regional-attribute --summary --compact
+cmake --build <build-dir> --config Release --target umbra_custom_transportation_ordinary_regional_attribute_catch2
+ctest --test-dir <build-dir> -C Release -R "^umbra\.custom_transportation_ordinary_regional_attribute\.catch2\.Embedded ordinary regional attribute delivery accepts a declared custom FOM transportation$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation slice — standalone region lifecycle
+
+The region-template lifecycle case was extracted from the federation-management
+aggregate into `cpp/tests/region_lifecycle_catch2.cpp`. The isolated target
+`umbra_region_lifecycle_catch2` builds and passes 67 assertions under
+`[region-lifecycle]`, covering the official create/commit/delete region,
+dimension-set, range-bound, and region-handle decode surfaces, including
+pending-versus-committed bounds, FOM upper-bound validation, owner guards, and
+deletion protection while a regional subscription is active. Both the original
+aggregate row and the standalone row now carry the eight exact Requirements
+Lab candidate IDs from `region-lifecycle-requirements-contract.json` and the
+seven official C++ API-surface IDs. This is development-profile evidence only;
+region realization/routing, timestamped behavior, save/restore application
+ledgers, remote/package evidence, validation, and conformance remain open.
+
+This extraction is a testability improvement, not a new Requirements Lab
+numbering event. The aggregate source remains independently blocked by its
+existing malformed regions; the focused target does not depend on that file.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus region-lifecycle --summary --compact
+python tools/query_rti_work.py trace "Standalone 2025 region templates preserve pending and committed range state" --summary --compact
+python tools/query_rti_work.py matrix region-lifecycle --summary --compact
+cmake --build <build-dir> --config Debug --target umbra_region_lifecycle_catch2
+<build-dir>\\Debug\\umbra_region_lifecycle_catch2.exe "[region-lifecycle]"
+~~~
+
+### 2026-09-04 queryability maintenance — DDM interaction-region mapping
+
+The existing aggregate case `Embedded regional interaction subscriptions
+filter 2025 receive-order sends` is now mapped to ten exact Lab candidates
+covering §9.10, §9.11.2, §9.12, §9.12.5, and the §11.5 file-report boundary.
+Those mappings correspond to the behavior the case actually exercises:
+independent ordinary/regional subscription state, empty-set no-ops, strict
+overlap filtering, invalid and foreign designators, and accepted regional
+subscription/unsubscription file records. The active/passive pair-state
+candidates remain owned by the separate passive-subscription regression.
+
+The companion `convey-region-designator` plan row now maps only the three
+candidates it exercises (switch control, runtime modification, and the
+Support Services setter). Its compound reflection-and-interaction candidate
+is intentionally not mapped because this row is interaction-only; that is a
+traceability boundary, not a new Lab defect. The regional Request Attribute
+Value Update case is now also mapped to the nine unique Lab IDs in its focused
+contract, so the bounded DDM unclassified queue is empty (seven explicit
+no-standalone rows remain). The next DDM action can therefore be selected from
+an explicit disposition or an implementation lane without another unchanged-
+Lab resynchronization.
+
+Bounded queries:
+
+~~~powershell
+python tools/query_rti_work.py unmapped --lane ddm --disposition unclassified --summary --compact
+python tools/query_rti_work.py trace "Embedded regional interaction subscriptions filter 2025 receive-order sends" --summary --compact
+python tools/query_rti_work.py focus ddm --summary --compact
+~~~
+
+### 2026-09-04 queryability maintenance — transportation-type MOM bridge
+
+The exact `Embedded MOM transportation-type request interactions invoke
+public changes` case is now mapped to the twelve unique Lab candidates that
+its source actually exercises: the attribute and interaction confirmation
+boundaries, prospective transportation changes, invoker scoping, malformed and
+missing-parameter rejection, and the HLAreportServiceInvocation observation.
+It is not mapped to ownership-reset or query/report candidates that this case
+does not call; those remain covered by the dedicated transportation-control and
+service-report rows. The interaction-management unclassified queue is now
+empty, and the row remains development-profile evidence rather than
+conformance evidence because its aggregate executable is still subject to the
+known source-integrity gate.
+
+Bounded queries:
+
+~~~powershell
+python tools/query_rti_work.py focus interaction-management --summary --compact
+python tools/query_rti_work.py trace "Embedded MOM transportation-type request interactions invoke public changes" --summary --compact
+python tools/query_rti_work.py check --lane interaction-management --summary --compact
+~~~
+
+### 2026-09-04 bounded implementation slice — standalone Query Attribute Ownership
+
+The owner/unowned Query Attribute Ownership workflow is now independently
+buildable in `cpp/tests/attribute_ownership_query_catch2.cpp:125` as
+`umbra_attribute_ownership_query_catch2`. It passes 48 assertions under
+HLA_EVOKED, validates the official query/error boundaries, groups owner and
+unowned attributes into the corresponding callbacks, and proves that a
+queued query is suppressed when the object is deleted. The aggregate plan row
+and the standalone row both carry the six exact candidate IDs from
+`attribute-ownership-query-requirements-contract.json`; the read-only ownership
+check row carries its two exact IDs from the companion contract. RTI-owned
+callback behavior remains deliberately owned by the existing dedicated rows,
+so this extraction does not overclaim that result kind.
+
+This is a testability and navigation improvement, not a new Requirements Lab
+numbering event. The aggregate federation-management source remains subject to
+its existing source-integrity gate; only the focused target is claimed green.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus query-attribute-ownership --summary --compact
+python tools/query_rti_work.py trace "Standalone Query Attribute Ownership groups 2025 owner and unowned results" --summary --compact
+python tools/query_rti_work.py matrix query-attribute-ownership --summary --compact
+python tools/query_rti_work.py check --lane query-attribute-ownership --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.attribute_ownership_query\.catch2\.Standalone Query Attribute Ownership groups 2025 owner and unowned results$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation slice — standalone If Available acquisition
+
+The bounded If Available ownership-acquisition workflow is now independently
+buildable in `cpp/tests/attribute_ownership_acquisition_if_available_catch2.cpp:125`
+as `umbra_attribute_ownership_acquisition_if_available_catch2`. It passes 59
+assertions under HLA_EVOKED, covering the official request validation gates,
+publication and known-instance checks, repeat Willing to Acquire state,
+callback-time assignment and unavailable arbitration, and suppression of a
+queued terminal callback after object deletion. The aggregate plan row and
+standalone row now carry the four exact candidate IDs from
+`attribute-ownership-acquisition-if-available-requirements-contract.json`.
+
+This is a focused extraction for navigation and test velocity, not a new Lab
+numbering event. Regular and negotiated acquisition/divestiture, resign-action
+matrices, save/restore, DDM, remote/package evidence, validation, and
+conformance remain separate work.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus attribute-ownership-acquisition-if-available --summary --compact
+python tools/query_rti_work.py trace "Standalone Attribute Ownership Acquisition If Available resolves 2025 callbacks" --summary --compact
+python tools/query_rti_work.py matrix attribute-ownership-acquisition-if-available --summary --compact
+python tools/query_rti_work.py check --lane attribute-ownership-acquisition-if-available --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.attribute_ownership_acquisition_if_available\.catch2\.Standalone Attribute Ownership Acquisition If Available resolves 2025 callbacks$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation slice — standalone regular acquisition
+
+The regular Attribute Ownership Acquisition workflow is now independently
+buildable in `cpp/tests/attribute_ownership_acquisition_catch2.cpp:141` as
+`umbra_attribute_ownership_acquisition_catch2`. It passes 74 assertions under
+HLA_EVOKED, covering request validation, pending-state and If Available
+override behavior, one owner-side release request, callback-time acquisition
+of an unowned attribute, Release Denied termination, publication guards, and
+queued-work suppression after deletion. The aggregate plan row and standalone
+row now carry the six exact candidate IDs actually exercised from
+`attribute-ownership-acquisition-requirements-contract.json`; explicit
+cancellation and race candidates remain intentionally separate.
+
+This is a focused extraction for navigation and test velocity, not a new Lab
+numbering event. Negotiated/unconditional divestiture, explicit cancellation,
+resign-action matrices, save/restore, DDM, remote/package evidence,
+validation, and conformance remain separate work.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus attribute-ownership-acquisition --summary --compact
+python tools/query_rti_work.py trace "Standalone Attribute Ownership Acquisition honors 2025 release and denial callbacks" --summary --compact
+python tools/query_rti_work.py matrix attribute-ownership-acquisition --summary --compact
+python tools/query_rti_work.py check --lane attribute-ownership-acquisition --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.attribute_ownership_acquisition\.catch2\.Standalone Attribute Ownership Acquisition honors 2025 release and denial callbacks$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation slice — standalone unconditional divestiture
+
+The Unconditional Attribute Ownership Divestiture workflow is now independently
+buildable in
+`cpp/tests/unconditional_attribute_ownership_divestiture_catch2.cpp:122` as
+`umbra_unconditional_attribute_ownership_divestiture_catch2`. It passes 116
+assertions under HLA_EVOKED, covering whole-set validation, immediate
+unownership, preservation of pending regular/If Available acquisition work,
+grouped eligible Request Attribute Ownership Assumption callbacks, tag
+propagation, unpublished/stale filtering, and a later ownership transfer.
+The aggregate row and standalone row now carry the six exact candidate IDs
+from `unconditional-attribute-ownership-divestiture-requirements-contract.json`.
+
+This is a focused extraction for navigation and test velocity, not a new Lab
+numbering event. Negotiated/confirmation divestiture, resign-action matrices,
+save/restore, DDM, remote/package evidence, validation, and conformance remain
+separate work.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus unconditional-attribute-ownership-divestiture --summary --compact
+python tools/query_rti_work.py trace "Standalone Unconditional Attribute Ownership Divestiture offers eligible 2025 federates" --summary --compact
+python tools/query_rti_work.py matrix unconditional-attribute-ownership-divestiture --summary --compact
+python tools/query_rti_work.py check --lane unconditional-attribute-ownership-divestiture --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.unconditional_attribute_ownership_divestiture\.catch2\.Standalone Unconditional Attribute Ownership Divestiture offers eligible 2025 federates$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation slice — standalone resign-action directive 1
+
+The standalone resign-action extraction is independently buildable in
+`cpp/tests/resign_action_unconditional_divestiture_catch2.cpp:104` as
+`umbra_resign_action_unconditional_divestiture_catch2`. It passes 32 assertions
+under HLA_EVOKED and maps the official resignation, assumption-callback, and
+ownership-acquisition surfaces to the three existing §4.12 candidate rows:
+resolving owned instance attributes, leaving them unowned, and offering current
+eligible survivors. The aggregate resign-action row and the standalone row now
+share those exact Lab IDs, with no new Requirements Lab numbering event.
+
+This is a focused extraction for navigation and test velocity, not a complete
+resign-action or conformance claim. Directive combinations, terminal callback
+re-search, RTI-owned state, remote/package evidence, JUnit/protected review,
+Lab validation, and conformance remain separate work. The known aggregate
+federation-management source-integrity gate is unchanged; only the standalone
+target is claimed green.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus resign-action-unconditional-divestiture --summary --compact
+python tools/query_rti_work.py trace "Standalone resign action unconditionally divests attributes for the 2025 ownership model" --summary --compact
+python tools/query_rti_work.py matrix resign-action-unconditional-divestiture --summary --compact
+python tools/query_rti_work.py check --lane resign-action-unconditional-divestiture --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.resign_action_unconditional_divestiture\.catch2\.Standalone resign action unconditionally divests attributes for the 2025 ownership model$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation slice — standalone Connection Lost directive 1
+
+The Connection Lost automatic-unconditional-divestiture case is now extracted
+from the aggregate federation-management source into
+`cpp/tests/connection_loss_automatic_unconditional_divestiture_catch2.cpp:95`.
+The independently built HLA_EVOKED target passes 38 assertions: the official
+support-service setter/getter selects `UNCONDITIONALLY_DIVEST_ATTRIBUTES`, the
+embedded fault reaches `connectionLost`, the retained object remains known,
+the lost member's attributes become unowned, and an eligible survivor receives
+one `Request Attribute Ownership Assumption` callback. The aggregate row and
+standalone row now carry the existing Connection Lost, automatic-resign, and
+support-switch requirement IDs, including the documented RL-060 limitation
+that the closest candidate does not spell out the directive continuation.
+
+This is a focused extraction for navigation and test velocity, not a new Lab
+numbering event or a remote-transport/conformance claim. The other automatic
+resign directives and timestamped cutoff matrix remain separate lanes; the
+aggregate source-integrity gate is unchanged.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus connection-lost-automatic-unconditional-divestiture --summary --compact
+python tools/query_rti_work.py trace "Standalone transport loss applies the configured automatic unconditional-divest directive" --summary --compact
+python tools/query_rti_work.py matrix connection-lost-automatic-unconditional-divestiture --summary --compact
+python tools/query_rti_work.py check --lane connection-lost-automatic-unconditional-divestiture --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.connection_loss_automatic_unconditional_divestiture\.catch2\.Standalone transport loss applies the configured automatic unconditional-divest directive$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation slice — standalone Connection Lost directive 3
+
+The pending-acquisition cancellation case is now extracted into
+`cpp/tests/connection_loss_automatic_cancel_pending_acquisition_catch2.cpp:113`.
+Its independently built HLA_EVOKED target passes 48 assertions: the lost
+federate's `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS` setting is readable, the
+fault reaches `connectionLost`, the queued owner-release callback is suppressed
+after membership loss, and a later unconditional divestiture offers the
+attribute to the remaining eligible survivor. The aggregate and standalone
+rows use the existing Connection Lost, automatic-resign, and support-switch
+IDs; no new Lab numbering event is introduced.
+
+This is development-profile evidence only. The closest Lab candidate covers
+the automatic-resign step but does not name every cancellation continuation;
+the remaining directive combinations, timestamped cutoff matrix,
+remote/package evidence, JUnit/protected review, validation, and conformance
+remain separate.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus connection-lost-automatic-cancel-pending-acquisition --summary --compact
+python tools/query_rti_work.py trace "Standalone transport loss cancels the lost federate's pending ownership acquisition" --summary --compact
+python tools/query_rti_work.py matrix connection-lost-automatic-cancel-pending-acquisition --summary --compact
+python tools/query_rti_work.py check --lane connection-lost-automatic-cancel-pending-acquisition --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.connection_loss_automatic_cancel_pending_acquisition\.catch2\.Standalone transport loss cancels the lost federate's pending ownership acquisition$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation slice — standalone resign pending-acquisition rejection
+
+The voluntary resign-action precondition is now independently buildable in
+`cpp/tests/resign_action_pending_acquisition_rejection_catch2.cpp:113` as
+`umbra_resign_action_pending_acquisition_rejection_catch2`. It passes 23
+HLA_EVOKED assertions: a regular acquisition remains pending, unconditional
+divestiture is rejected with `OwnershipAcquisitionPending`, and directive 5
+cancels the pending request without delivering the stale owner-release
+callback. The aggregate and standalone rows share the existing §4.12 resign
+candidate and §7.8 regular-acquisition candidates; no new Lab numbering event
+is introduced.
+
+This remains development-profile evidence only. The Requirements Lab has no
+directive-5-specific row, so the cancellation continuation is recorded as a
+bounded traceability interpretation rather than a conformance claim.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus resign-action-pending-acquisition-rejection --summary --compact
+python tools/query_rti_work.py trace "Standalone resign action rejects pending ownership acquisition work" --summary --compact
+python tools/query_rti_work.py matrix resign-action-pending-acquisition-rejection --summary --compact
+python tools/query_rti_work.py check --lane resign-action-pending-acquisition-rejection --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.resign_action_pending_acquisition_rejection\.catch2\.Standalone resign action rejects pending ownership acquisition work$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation slice — standalone resign cancellation variants
+
+The three previously unclassified aggregate resign-action cancellation cases
+are now independently buildable and indexed without changing Requirements-Lab
+numbering:
+
+* `resign_action_cancel_pending_acquisition_catch2.cpp:96` passes 24
+  HLA_EVOKED assertions for directive-3 cancellation of a pending regular
+  acquisition and suppression of the queued owner-release callback.
+* `resign_action_cancel_negotiated_pending_catch2.cpp:114` passes 25
+  HLA_EVOKED assertions for cancellation of the departing acquirer's regular
+  acquisition plus negotiated-divestiture confirmation state, with both stale
+  owner callback kinds suppressed.
+* `resign_action_cancel_if_available_pending_catch2.cpp:115` passes 22
+  HLA_EVOKED assertions for removal of the departing federate's Willing to
+  Acquire reservation and suppression of its queued terminal callback.
+
+Each aggregate row now carries its selected official C++ API surfaces and
+stable §4.12/§7.2/§7.3/§7.8/§7.9.1/§7.15 requirement candidates, and each
+standalone row carries the same requirement IDs plus its exact source line,
+assertion count, Catch2 target, and CTest filter. These are development-profile
+traceability/runtime results only; they do not claim remote transport,
+package/JUnit/protected-review evidence, Requirements-Lab validation, or
+conformance. The focused ownership query card now exposes all three handles.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus resign-action-cancel-pending-acquisition --summary --compact
+python tools/query_rti_work.py focus resign-action-cancel-negotiated-pending --summary --compact
+python tools/query_rti_work.py focus resign-action-cancel-if-available-pending --summary --compact
+python tools/query_rti_work.py trace "Standalone resign action cancels pending ownership acquisition work" --summary --compact
+python tools/query_rti_work.py matrix resign-action-cancel-negotiated-pending --summary --compact
+python tools/query_rti_work.py check --lane resign-action-cancel-if-available-pending --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "resign_action_cancel_(pending_acquisition|negotiated_pending|if_available_pending)" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation slice — standalone resign directive 2
+
+The next queue-selected object-management case is now extracted into
+`cpp/tests/resign_action_delete_objects_catch2.cpp:96`. Its independently
+built HLA_EVOKED target passes 25 assertions: the owner hits the official
+`FederateOwnsAttributes` guard under `NO_ACTION`, `DELETE_OBJECTS` removes the
+delete-privileged object, the peer receives one `Remove Object Instance`
+callback with the empty tag and producing-federate handle, and the removed
+object becomes `ObjectInstanceNotKnown`.
+
+The aggregate and standalone plan rows now carry the official Resign and
+Remove Object Instance C++ API IDs plus the existing §4.12, §6.16, §6.16.4,
+and §6.17.1 candidate IDs. The standalone row has the exact Catch2 target,
+CTest filter, source line, and assertion count; `resign-action-delete-objects`
+is registered under the `object-ddm-ownership` roadmap owner. This is
+development-profile traceability/runtime evidence only; timestamped or mixed
+deletion, remote/package/JUnit/protected-review evidence, Lab validation, and
+conformance remain separate.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus resign-action-delete-objects --summary --compact
+python tools/query_rti_work.py trace "Standalone resign action deletes delete-privileged objects and reports removal" --summary --compact
+python tools/query_rti_work.py matrix resign-action-delete-objects --summary --compact
+python tools/query_rti_work.py check --lane resign-action-delete-objects --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.resign_action_delete_objects\.catch2\.Standalone resign action deletes delete-privileged objects and reports removal$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation slice — final-federate resignation
+
+The next indexed object-management case is now extracted into
+`cpp/tests/resign_action_final_federate_catch2.cpp:69`. Its independently
+built HLA_EVOKED target passes 22 assertions: a final federate resigning with
+`NO_ACTION` still follows the §4.12.4 directive-two rule, and a rejoined
+federate can reserve and register the deleted object's former name.
+
+The aggregate and standalone plan rows carry the official Resign, named
+registration, reservation, and reservation-success callback C++ API IDs plus
+the direct §4.12, §4.12.4, §6.2, and §6.3 candidate IDs. The standalone row
+has the exact Catch2 target, CTest filter, source line, and assertion count;
+`resign-action-final-federate` is registered under the
+`object-ddm-ownership` roadmap owner. This is development-profile
+traceability/runtime evidence only; mixed ownership, all action combinations,
+remote/package/JUnit/protected-review evidence, Lab validation, and
+conformance remain separate.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus resign-action-final-federate --summary --compact
+python tools/query_rti_work.py trace "Standalone final-federate resignation applies directive two regardless of the supplied action" --summary --compact
+python tools/query_rti_work.py matrix resign-action-final-federate --summary --compact
+python tools/query_rti_work.py check --lane resign-action-final-federate --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.resign_action_final_federate\.catch2\.Standalone final-federate resignation applies directive two regardless of the supplied action$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded implementation slice — update-rate metadata lookup
+
+The bounded mapping backlog selected the update-rate lookup case at aggregate
+source line 43777. It is now extracted into
+`cpp/tests/update_rate_value_catch2.cpp:48`; the independently built
+HLA_EVOKED target passes 40 assertions covering FDD High/Medium/Low values,
+default aliases, invalid designators, active/passive subscription projection,
+unsubscribe removal, and the known-object/attribute error boundaries.
+
+The aggregate and standalone plan rows carry the exact Get Update Rate Value,
+Get Update Rate Value For Attribute, object declaration, and subscription C++
+API IDs plus direct candidate mappings for §5.2.4, §5.8, §10.11.6, and §10.12.
+The standalone row has its source line, target, CTest filter, assertion count,
+and `update-rate-value` roadmap lane under `object-ddm-ownership`. This is
+development-profile traceability/runtime evidence only; producer-rate
+enforcement, MOM, remote/package/JUnit/protected-review evidence, Lab
+validation, and conformance remain separate.
+
+Bounded queries and execution:
+
+~~~powershell
+python tools/query_rti_work.py focus update-rate-value --summary --compact
+python tools/query_rti_work.py trace "Standalone update-rate lookup exposes FDD values and the default attribute boundary" --summary --compact
+python tools/query_rti_work.py matrix update-rate-value --summary --compact
+python tools/query_rti_work.py check --lane update-rate-value --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.update_rate_value\.catch2\.Standalone update-rate lookup exposes FDD values and the default attribute boundary$" --output-on-failure
+~~~
+
+### 2026-09-04 bounded disposition — effective FDD/MIM inheritance catalog
+
+The exact next mapping-queue row, `The FDD catalog resolves complete
+inherited policy for a joined-federate MOM object`, is now explicitly
+classified at `cpp/tests/libxml2_fom_composer_catch2.cpp:787`. It remains an
+internal FDD/MIM effective-attribute merge regression, not a standalone
+public RTI service or Requirements-Lab API surface: the test retains inherited
+`HLAprivilegeToDeleteObject` DivestAcquire/optional policy alongside the direct
+joined-federate MOM NoTransfer/required attributes. The plan records zero
+selected Lab requirements, canonical sections, and C++ API identifiers rather
+than inventing a mapping for this helper contract. RL-041 records the pinned
+Lab's Static-versus-Conditional `HLAreportServiceFile` source conflict and
+RL-034 records the missing immutable Table 5 record-structure candidates.
+
+This disposition keeps the row queryable and prevents it from being treated
+as an implementation handoff. It is development-profile evidence only, not
+validation or conformance.
+
+Bounded queries:
+
+~~~powershell
+python tools/query_rti_work.py trace "The FDD catalog resolves complete inherited policy for a joined-federate MOM object" --summary --compact
+python tools/query_rti_work.py unmapped --lane object-ddm-ownership --disposition explicit --summary --compact
+python tools/query_rti_work.py check --lane object-ddm-ownership --summary --compact
+~~~
+
+### 2026-09-05 bounded evidence repair — complete process-boundary JUnit
+
+The process-boundary JUnit target previously selected only the independently
+buildable public connection executable, even though the indexed lane also
+contained ten private service/transport cases. The aggregate executable cannot
+be used as a reproducible workaround because its federation-management source
+still fails at the known damaged lines 47104, 47870, 48342, and 48452.
+
+`umbra_process_boundary_private_catch2` now builds those six private process
+test sources independently. `umbra_process_boundary_junit` runs that target
+and the public connection target separately, then merges their XML through
+`tools/merge_junit_reports.py` into the existing
+`.build/compliance/process-boundary/process-boundary.xml` path. The merged
+artifact has zero failures/errors, 88 parameterized testcases, and all 40
+planned process-boundary test titles (the 10 private plus 30 public source-
+located rows); the plan remains the source of truth for 1,952 indexed
+assertions and 121 mapped Requirements-Lab IDs across 62 canonical 2025
+sections.
+
+This fixes evidence completeness without changing any Requirements Lab
+mapping or promoting the lane beyond development/package evidence.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_process_boundary_private_catch2
+cmake --build .build --config Debug --target umbra_process_boundary_junit
+ctest --test-dir .build -C Debug -L process-boundary --output-on-failure
+python tools/query_rti_work.py coverage --lane process-boundary --summary --compact
+python tools/query_rti_work.py check --lane process-boundary --summary --compact
+~~~
+
+### 2026-09-05 bounded disposition — private joined-federate MOM seams
+
+The two remaining `mom-object-foundation` rows are now explicitly classified
+as internal evidence rather than left in the unmapped queue:
+`Embedded joins retain an unpublished RTI-owned joined-federate MOM snapshot`
+(`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35519`) and
+`The registry builds a private joined-federate MOM snapshot from canonical Join
+FOM modules` (`cpp/tests/libxml2_fom_composer_catch2.cpp:834`). Neither row is
+a public RTI service or official C++ API surface. The public joined-federate
+MOM object-management row owns the normative Connect/Create/Join,
+discovery/reflection, requested-value, transportation, and resignation
+mapping; these private identity, metadata, and FOM-module-provenance helpers
+remain development-profile implementation evidence only. RL-041 records the
+`HLAreportServiceFile` Static-versus-Conditional source conflict, RL-043 the
+RTI-created MOM producer-designator boundary, and RL-034 the missing immutable
+Table 5 record-structure candidates. No new numbered Requirements Lab issue or
+resynchronization is warranted.
+
+The disposition keeps the lane queryable and removes two false mapping
+backlog entries:
+
+~~~powershell
+python tools/query_rti_work.py focus mom-object-foundation --summary --compact
+python tools/query_rti_work.py unmapped --lane mom-object-foundation --disposition unclassified --summary --compact
+python tools/query_rti_work.py check --lane mom-object-foundation --summary --compact
+~~~
+
+### 2026-09-05 bounded tooling correction — roadmap and plan navigation
+
+The first-read query card had grown to 1,517 lines through repeated lane
+additions, which made normal resumption behave like a full-plan search. It is
+now a 135-line command card; the detailed examples remain in
+`docs/planning/QUERY-GUIDE.md`. `tools/query_rti_work.py plan [<heading-query>]`
+now indexes implementation-plan headings and derived breadcrumb paths without
+printing the plan prose. The checked-in roadmap mapping counts were refreshed
+to the live plan (1,133 Catch2 rows, 100 without a Lab requirement mapping: 62
+explicit dispositions and 38 unclassified; two source-unlocated rows), so the
+status view no longer reports a stale snapshot warning. This is a local
+queryability correction, not a Requirements Lab resynchronization or a new
+numbered Lab issue.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py plan "current indexed" --summary --compact
+python tools/query_rti_work.py status --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-09 bounded implementation slice — multi-region interaction routing
+
+The next bounded interaction slice is now a standalone official C++ Catch2
+case at `cpp/tests/multi_region_interaction_routing_catch2.cpp:106`. It records
+107 HLA_EVOKED assertions, four direct 2025 Requirements-Lab anchors, one
+canonical section (`9.1.3.3`), and nine official C++ API surfaces. The test
+uses the validated Restaurant FOM and multiple positive-dimensional source and
+subscription regions. A send with `{sourceX, sourceY}` reaches the X-only,
+Y-only, and combined subscribers exactly once, while the disjoint subscriber
+receives nothing; Y-only and X-only sends then prove union projection and exact
+source RegionHandleSet metadata without duplicate callbacks.
+
+The first draft used the sibling two-dimensional interaction fixture, but that
+artifact is not accepted by the current 2025 FOM validator at federation
+creation. The focused case now uses the official Restaurant FOM and canonical
+`hla_test_names.hpp` constants. This is a fixture/validation boundary, not a
+Requirements-Lab defect or resynchronization; no Lab issue number was
+consumed. The implementation remains development-profile traceability
+evidence, not a conformance claim.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_multi_region_interaction_routing_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.multi_region_interaction_routing\\.catch2\\.Embedded multi-region interactions route each overlapping source realization once$" --output-on-failure
+python tools/query_rti_work.py focus multi-region-regional-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded multi-region interactions route each overlapping source realization once" --summary --compact
+python tools/query_rti_work.py matrix multi-region-regional-interaction --summary --compact
+python tools/query_rti_work.py check --lane multi-region-regional-interaction --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-09 bounded implementation slice — focused positive-dimensional regional-interaction routing
+
+The next interaction-routing slice is now a standalone official C++ Catch2
+case at `cpp/tests/default_region_interaction_routing_catch2.cpp:89`. It records
+50 HLA_EVOKED assertions, eight direct 2025 Requirements-Lab anchors, four
+canonical sections (`9`, `9.1.3.3`, `9.1.4`, and `9.1.8`), and 11 official C++
+API surfaces. The scenario covers positive-dimensional overlap delivery,
+disjoint regional shadowing, ordinary subscription restoration, default-region
+source delivery, and the conveyed empty region-designator set.
+
+The first focused run appeared to disagree with the aggregate executable only
+because the aggregate binary was stale. Rebuilding both targets reproduced the
+same runtime edge: interaction recipient selection suppressed ordinary/default
+fallback for every explicit sent-region set. That was too coarse. The runtime
+now distinguishes a positive-dimensional explicit realization that overlaps
+the default region from an explicit zero-dimensional realization, which
+overlaps nothing under §9.1.3.2. Ordinary delivery is therefore restored for
+the positive-dimensional case while the zero-dimensional interaction gate
+continues to suppress fallback. This is an Umbra runtime correction, not a
+Requirements-Lab resynchronization or a new numbered Lab issue; no Lab issue
+number was consumed.
+
+The focused and aggregate interaction tests both pass, as do the neighboring
+zero-dimensional object/interaction and passive regional-interaction lanes.
+The focused row is intentionally independent from the zero-dimensional row so
+the query tool can select either exact slice without scanning the full plan.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_default_region_interaction_routing_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.default_region_interaction_routing\\.catch2\\.Embedded focused default-region interaction routing derives 2025 ordinary and regional effectiveness$" --output-on-failure
+ctest --test-dir .build -C Debug -R "^umbra\\.ieee1516_2025\\.catch2\\.Embedded default-region interaction routing derives 2025 ordinary and regional effectiveness$" --output-on-failure
+ctest --test-dir .build -C Debug -R "(zero_dimensional_regional_interaction|regional_object_attribute_routing|passive_regional_interaction)" --output-on-failure
+python tools/query_rti_work.py focus focused-positive-dimensional-regional-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded focused default-region interaction routing derives 2025 ordinary and regional effectiveness" --summary --compact
+python tools/query_rti_work.py matrix focused-positive-dimensional-regional-interaction --summary --compact
+python tools/query_rti_work.py check --lane focused-positive-dimensional-regional-interaction --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-09 bounded implementation slice — zero-dimensional regional-interaction non-overlap
+
+The interaction-side successor is now a standalone official C++ Catch2 lane at
+`cpp/tests/zero_dimensional_regional_interaction_catch2.cpp:91`. It establishes
+an ordinary default-region `Send Interaction` delivery baseline, then sends the
+same interaction with an explicitly empty `RegionHandleSet`; the subscriber
+receives the baseline and no callback for the empty realization. The case
+records 28 HLA_EVOKED assertions, seven official C++ API surfaces, and one
+existing Requirements-Lab anchor,
+`requirement-candidate-content-clauses-09-data-distribution-management-page-219-l23-7`
+(`hla-1516.1-2025:clause-9.1.3.2`).
+
+The first draft used a hand-typed interaction path that did not exist in the
+Restaurant FOM and failed before its first assertion. The focused fixture now
+uses the canonical `hla_test_names.hpp` constants, preventing this local
+extraction/fixture typo from being mistaken for an RTI or Requirements-Lab
+problem. No Lab resynchronization or new issue number was needed. The lane is
+kept separate from the object-side zero-dimensional case so each focus command
+selects one executable C++ slice.
+
+The live bounded snapshot is 838 of 2,220 direct requirement-to-section pairs
+(37.75%), with 1,382 requirements still uncovered; adding this second test for
+the same normative anchor does not inflate the unique requirement count.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_zero_dimensional_regional_interaction_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.zero_dimensional_regional_interaction\\.catch2\\.Embedded zero-dimensional regional interactions do not overlap the default region$" --output-on-failure
+python tools/query_rti_work.py focus zero-dimensional-regional-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded zero-dimensional regional interactions do not overlap the default region" --summary --compact
+python tools/query_rti_work.py check --lane zero-dimensional-regional-interaction --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-09 bounded implementation slice — zero-dimensional region non-overlap
+
+The focused C++ HLA_EVOKED routing case now covers the §9.1.3.2 rule that a
+zero-dimensional region realization does not overlap any other realization,
+including the default region. It creates and commits an explicitly empty
+dimension set, registers `SodaFlavor` with that region, and drives a default
+region subscriber through discovery and reflection checkpoints. Both callbacks
+remain absent, producing 26 passing assertions and a direct mapping to
+`requirement-candidate-content-clauses-09-data-distribution-management-page-219-l23-7`.
+
+That test exposed a real Umbra predicate defect: ordinary/default subscription
+paths were being selected even when an explicit zero-dimensional update region
+was present. Discovery, scope/advisory, update delivery, rate selection, and
+interaction recipient selection now treat any explicit update/sent-region
+association as suppressing ordinary default fallback; the existing
+`regionOverlapsDefault` empty-realization rule remains the normative boundary.
+The fix is local runtime work, not a Requirements-Lab revision or numbering
+change, and no in-memory or silent fallback behavior was introduced.
+
+The current bounded snapshot is 838 of 2,220 direct requirement-to-section
+pairs (37.75%), with 1,382 requirements still uncovered. The focused lane is
+development-profile traceability evidence only; interaction-side
+zero-dimensional sends, dimensional overlap matrices, timestamped/retraction,
+save/restore, transport, validation, and conformance remain separate gates.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_regional_object_attribute_routing_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.regional_object_attribute_routing\\.catch2\\.Embedded zero-dimensional region realizations do not overlap the default region$" --output-on-failure
+ctest --test-dir .build -C Debug -R "^umbra\\.regional_object_attribute_routing\\.catch2\\.(Embedded regional object attributes filter 2025 no-time updates by overlap|Embedded regional object services reject region dimensions outside available object dimensions)$" --output-on-failure
+python tools/query_rti_work.py focus zero-dimensional-region --summary --compact
+python tools/query_rti_work.py trace "Embedded zero-dimensional region realizations do not overlap the default region" --summary --compact
+python tools/query_rti_work.py check --lane zero-dimensional-region --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-09 bounded implementation — regional interaction available-dimension rejection
+
+The unchanged Requirements-Lab export had one remaining uncovered requirement
+in the selected object/DDM slice: `requirement-candidate-content-clauses-09-
+data-distribution-management-page-220-l140-45` (canonical 2025 subsection
+`9.1.3.3`). The existing ordinary regional Send Interaction With Regions
+failure/MOM case now creates a committed `SodaFlavor` region for the
+`MainCourseServed` interaction, verifies `InvalidRegionContext`, and decodes
+the corresponding fourth `HLAreportServiceInvocation` failure record. This
+keeps the evidence in C++/Catch2 and closes the family-scoped gap without a
+Lab resynchronization or a new Requirements-Lab issue number.
+
+The focused case is indexed with 179 HLA_IMMEDIATE assertions, three Lab
+anchors, five official C++ API surfaces, and canonical sections `9.1.3.3` and
+`11.5`. The family-scoped query now reports 23 of 23 selected requirements
+mapped; global direct requirement-to-section traceability is 829 of 2,220
+(37.34%).
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_ieee1516_2025_catch2
+ctest --test-dir .build -C Debug -R "regional Send Interaction With Regions invocations through MOM interaction$" --output-on-failure
+python tools/query_rti_work.py gaps --family object-ddm-ownership --document hla-1516.1-2025 --clause clause-9.1.3.3 --summary --compact --limit 12
+python tools/query_rti_work.py trace "Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-09 bounded mapping follow-on — region specification activation
+
+The same bounded review found existing C++ evidence for four adjacent
+`9.1.3.2` requirements, so no new test code or Lab extraction was needed.
+The regional interaction filtering case already rejects a committed region
+whose dimensions are unavailable to the interaction; the embedded and
+standalone region-lifecycle cases already exercise invalid commit without all
+range bounds, pending bounds becoming active only after a successful commit,
+and the committed-state transition. Those exact rows now carry the four Lab
+IDs and remain independently queryable through `trace`, `requirement`, and
+`check --lane`.
+
+This follow-on raises the direct 2025 requirement-to-section traceability
+snapshot to 833 of 2,220 requirements (37.52%), with 1,387 still uncovered.
+It is an indexed mapping refinement over existing green C++ tests, not a
+Requirements-Lab revision or conformance claim.
+
+### 2026-09-09 bounded mapping follow-on — update-region association boundaries
+
+The existing no-time regional object-attribute routing case now isolates the
+§9.1.3.2 update-region rules: the regional realization supplied during
+registration is used for later updates, an empty `Associate Regions For
+Updates` region set leaves the association set unchanged, and an explicit
+`Unassociate Regions For Updates` removes the source (region, attribute)
+triple while the default region remains observable. Its plan row now carries
+`requirement-candidate-content-clauses-09-data-distribution-management-page-219-l122-39`,
+`requirement-candidate-content-clauses-09-data-distribution-management-page-219-l152-49`
+and
+`requirement-candidate-content-clauses-09-data-distribution-management-page-219-l158-51`
+(`9.1.3.2`), keeping this requirement-to-test link in the official C++
+Catch2 lane without adding a duplicate case or rescanning the Lab. The focused
+case is green with 61 assertions.
+
+This indexed refinement raises direct 2025 requirement-to-section
+traceability to 837 of 2,220 requirements (37.70%), with 1,383 still
+uncovered. It is traceability evidence only; it does not promote the lane to
+validation or conformance.
+
+### 2026-09-09 bounded mapping follow-on — latest range-bound selection
+
+The existing standalone and embedded region-lifecycle cases already set one
+dimension twice before a successful commit and verify that the most recent
+`Set Range Bounds` values are both the pending values and the committed
+specification. Both plan rows now carry
+`requirement-candidate-content-clauses-09-data-distribution-management-page-219-l104-34`
+(`9.1.3.2`), so the requirement is reachable through either focused C++ lane
+without a duplicate test or a Requirements-Lab rescan.
+
+This indexed refinement raises direct 2025 requirement-to-section
+traceability to 836 of 2,220 requirements (37.66%), with 1,384 still
+uncovered. It is traceability evidence only; it does not promote the lanes to
+validation or conformance.
+
+### 2026-09-05 bounded implementation slice — ordinary declaration-relevance advisories
+
+The ordinary declaration-management relevance case is now an independently
+runnable official C++ Catch2 lane. It records 77 HLA_EVOKED assertions and
+maps the active/passive object and interaction declaration transitions, seeded
+and mutable per-federate advisory switches, idempotent publication/subscription
+behavior, and all four RTI-initiated callbacks to 13 unique Requirements Lab
+candidates across clauses 5.8, 5.10.2, 5.14.3, 5.15.3, 5.16.5, and 5.17.6.
+
+The extraction also exposed a recurring maintenance edge: contract selectors
+must move with an extracted test. The declaration-advisory contracts already
+contained the exact aggregate selector, but the new focused selector had to be
+added to all 14 requirement roles and eight API roles so contract validation
+and source-level traceability agree. This is local bookkeeping, not a Lab
+rescan or a new normative interpretation.
+
+This remains development-profile evidence only. Regional declaration
+advisories, service-report ordering, package/JUnit, protected review, Lab
+validation, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_declaration_relevance_advisory_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.declaration_relevance_advisory\\.catch2\\." --output-on-failure
+ctest --test-dir .build -C Debug -R "umbra\\.ieee1516_2025\\.(declaration_relevance_advisory|order_type_control)_.*" --output-on-failure
+python tools/query_rti_work.py focus declaration-relevance-advisory --summary --compact
+python tools/query_rti_work.py trace "Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions" --summary --compact
+python tools/query_rti_work.py matrix "Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-05 bounded implementation slice — declaration-relevance service-report ordering
+
+The declaration-relevance service-report case is now an independently runnable
+focused C++ lane. It extracts the existing two-federate filesystem-backed
+scenario from the aggregate federation-management translation unit and keeps
+the production `ServiceReportConfiguration` directory behavior in the path.
+The focused executable records 143 HLA_EVOKED assertions. For each of the four
+RTI-initiated declaration advisories it verifies the exact Table 5 object-class
+handle (type 36) or interaction-class handle (type 27) form, the publisher's
+independent file serial sequence, and that the report is durable before the
+corresponding callback is evoked. This makes the file-order boundary queryable
+without rerunning the full aggregate suite; public MOM interaction delivery and
+regional advisory routing remain separate lanes.
+
+During extraction the focused copy exposed a malformed local expected JSON raw
+string (the opening quote was omitted), which caused one assertion to compare
+against a truncated descriptor. The literal was corrected in the focused test;
+the runtime and aggregate behavior were unchanged. This is an extraction/test
+fixture issue, not a Requirements Lab defect or a new numbered Lab issue.
+
+The broad `mom_service_reporting_requirements_traceability` contract had been
+reporting stale aggregate selectors for 22 older service-report cases
+(local-delete, synchronization, and regional interaction titles whose focused
+sources already existed elsewhere). Those selectors are now pointed at the
+existing focused C++ sources, so the contract check passes without changing any
+Requirements Lab IDs or source records. The repair is crosswalk maintenance;
+the dedicated executable and the focused declaration-relevance lane remain
+independently runnable.
+
+### 2026-09-05 bounded implementation slice — federation-listing services
+
+The existing federation-listing case is now an independently runnable focused
+C++ lane instead of an aggregate-only source row. It records 41 assertions in
+both HLA_EVOKED and HLA_IMMEDIATE modes and covers List Federation Executions /
+Report Federation Executions (clause 4.8.4), List Federation Execution Members
+and its member/missing reports (clause 4.10.3), connection gating, complete
+execution/member identity reporting, and callback-session cleanup after
+disconnect. The two plan rows share one executable source and are mapped to
+the four local Lab anchors plus all five official C++ API surfaces; the index
+counts the shared executable assertions once to avoid double-counting.
+
+This is source/test traceability and development-profile evidence only. The
+Requirements Lab contracts had existing selectors for the aggregate source;
+the focused selector was added alongside them without changing Lab IDs or
+standard content. Package/JUnit, protected review, Lab validation, and
+conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_federation_listing_catch2
+ctest --test-dir .build -C Debug -L "^federation-listing$" --output-on-failure
+python tools/query_rti_work.py focus federation-listing --summary --compact
+python tools/query_rti_work.py trace "Embedded federation-list services dispatch standards reports in both callback models" --summary --compact
+python tools/query_rti_work.py matrix "Embedded federation-list services dispatch standards reports in both callback models" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_declaration_relevance_service_report_catch2
+ctest --test-dir .build -C Debug -R "^umbra\.declaration_relevance_service_report\.catch2\." --output-on-failure
+ctest --test-dir .build -C Debug -R "umbra\.ieee1516_2025\.(declaration_relevance_advisory|regional_declaration_relevance_advisory)_.*" --output-on-failure
+python tools/query_rti_work.py focus declaration-relevance-service-report --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting records declaration relevance advisories before callbacks" --summary --compact
+python tools/query_rti_work.py matrix "Embedded service reporting records declaration relevance advisories before callbacks" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-05 bounded implementation slice — order-type control callback boundary
+
+The order-type control behavior is now isolated in an independently runnable
+official C++ Catch2 target. Its local crosswalk pins nine 2025 Requirements Lab
+candidates to clauses 8.24.4, 8.25.3, and 8.26.4, covering FOM/default
+attribute order, per-instance overrides, publisher-scoped interaction order,
+legal Receive/TimeStamp delivery, invalid-order validation, and teardown.
+
+While extracting the case, the aggregate harness exposed a stale expectation:
+object registration legitimately queues the official
+`turnUpdatesOnForObjectInstance` callback, but the aggregate test immediately
+asserts `REQUIRE_FALSE(publisher->evokeCallback(0.0))`. The focused harness
+explicitly drains and verifies that callback before continuing. This is a
+harness synchronization issue, not a Requirements Lab change; it is recorded
+here so aggregate repair can be deliberate rather than causing another broad
+requirements rescan.
+
+The first bounded contract check also caught selector drift from earlier test
+extractions: the contract still named moved standalone sources and an old
+provider-response title. Those selectors were corrected to the current source
+paths/titles, and both order-control contract checks now pass. Keep future
+extractions updating the contract selector at the same time as the source move.
+
+This is development-profile evidence only. Alternate time/TSO modes,
+save/restore, remote transport, packaging/JUnit, protected review, Lab
+validation, and conformance remain open.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_order_type_control_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.order_type_control\\.catch2\\." --output-on-failure
+python tools/query_rti_work.py focus order-type-control --summary --compact
+python tools/query_rti_work.py trace "Embedded order type control captures defaults, instance overrides, and publisher interaction order" --summary --compact
+python tools/query_rti_work.py matrix "Embedded order type control captures defaults, instance overrides, and publisher interaction order" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-05 bounded implementation slice — regional declaration-relevance advisories
+
+The region-scoped declaration-management case is now an independently
+runnable official C++ Catch2 lane. It records 49 HLA_EVOKED assertions and
+maps passive/active regional object and interaction declarations, region setup,
+and Start/Stop Registration plus Turn Interactions On/Off callbacks to 10
+Requirements Lab candidates across clauses 5.8, 5.10.2, 5.14.3, 5.15.3,
+5.16.5, and 5.17.6.
+
+This extraction keeps complete regional DDM routing out of the lane: only
+declaration relevance and callback transitions are asserted. The regional
+contract now includes the focused selector alongside the aggregate selector,
+so the C++ source, Lab contract, roadmap plan, and one-command trace/matrix
+queries remain aligned without a Requirements Lab rescan.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_regional_declaration_relevance_advisory_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.regional_declaration_relevance_advisory\\.catch2\\." --output-on-failure
+ctest --test-dir .build -C Debug -R "umbra\\.ieee1516_2025\\.regional_declaration_relevance_advisory_.*" --output-on-failure
+python tools/query_rti_work.py focus declaration-relevance-advisory-regional --summary --compact
+python tools/query_rti_work.py trace "Embedded regional declaration relevance advisories follow active subscriptions" --summary --compact
+python tools/query_rti_work.py matrix "Embedded regional declaration relevance advisories follow active subscriptions" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-05 bounded implementation slice — mandatory order-type lookup
+
+The mandatory Receive/TimeStamp order-type lookup pair is now extracted into
+an independently runnable native C++ lane. The focused case uses the official
+IEEE 1516.1-2025 binding and covers NotConnected and
+FederateNotExecutionMember lifecycle guards, the two legal order names and
+values, stable name/type round-trips, InvalidOrderName, InvalidOrderType, and
+clean teardown. It is mapped to the five exact local Lab candidates in
+clauses 8.2, 10.17.4, and 10.19, plus the two official RTIambassador API
+surfaces.
+
+This is a local crosswalk and executable extraction, not a Requirements Lab
+edit or conformance promotion. The aggregate service-report case remains
+listed for broad coverage; order-control, alternate time/TSO modes,
+save/restore, transport, packaging/JUnit, protected review, Lab validation,
+and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_order_type_lookup_catch2
+ctest --test-dir .build -C Debug -R "^umbra\.order_type_lookup\.catch2\." --output-on-failure
+ctest --test-dir .build -C Debug -R "umbra\.ieee1516_2025\.order_type_(requirements|api)_traceability$" --output-on-failure
+python tools/query_rti_work.py trace "Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-04 synchronization-point scope correction — explicit sets do not expand
+
+The bounded synchronization-point slice exposed a runtime conformance edge:
+the registry previously expanded every pending point to a late joiner. The
+2025 rule expands only points registered without the optional synchronization
+set; an explicitly scoped set must remain limited to its designated members.
+The registry now retains that distinction in live state and in the durable
+state-image format (while accepting older five-field images with the legacy
+default), and the public adapter passes the overload-presence bit through the
+registry boundary. The new 18-assertion regression proves explicit-set
+suppression and omitted-set expansion; the existing 22-assertion sync-point
+save/restore case proves the new bit round-trips. The new focused public
+HLA_EVOKED and HLA_IMMEDIATE cases each pass with 65 assertions, and the
+complete dedicated federation-registry lane remains green: 79/79 CTest cases.
+
+The regression is mapped locally to the 2025 optional-set and late-join
+requirements. Public callback-model and distributed-transport coverage remain
+separate; no Requirements Lab resynchronization or conformance promotion was
+performed.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_federation_registry_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.federation_registry\\.catch2\\.Synchronization-point late-join expansion respects an explicit synchronization set$" --output-on-failure
+ctest --test-dir .build -C Debug -R "^umbra\\.federation_registry\\.catch2\\." --output-on-failure
+cmake --build .build --config Debug --target umbra_synchronization_point_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.synchronization_point\\.catch2\\." --output-on-failure
+python tools/query_rti_work.py trace "Synchronization-point late-join expansion respects an explicit synchronization set" --summary --compact
+python tools/query_rti_work.py check --lane federation-registry --summary --compact
+~~~
+
+### 2026-09-04 bounded test-oracle correction — subscription-driven discovery
+
+The dedicated `umbra_federation_registry_catch2` lane exposed two stale
+assertions in the durable directed-interaction restore cases. Both tests
+expected one discovery after a by-ownership handoff, but the 2025 object
+management rule makes discovery subscription-driven: the publishing federate
+and the future handoff owner are both subscribed candidates, so two discovery
+callbacks are correct. The test oracle now asserts the exact two-federate
+recipient set and records the three Section 6.1.2 candidate/discovery
+requirements in each plan row. No RTI behavior change or Requirements Lab
+resynchronization was needed.
+
+The corrected source-backed slice is independently runnable as
+`umbra_federation_registry_catch2`; its 78 discovered CTest cases pass. Keep
+the aggregate federation-management translation unit separate because its
+known source errors are unrelated to this lane.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_federation_registry_catch2
+ctest --test-dir .build -C Debug --output-on-failure -R "^umbra\\.federation_registry\\.catch2\\."
+python tools/query_rti_work.py trace "Filesystem state image restores a by-ownership directed interaction and follows target ownership handoff" --summary --compact
+python tools/query_rti_work.py check --lane federation-registry --summary --compact
+~~~
+
+### 2026-09-04 bounded crosswalk cleanup — lifecycle callback rows
+
+The existing Disconnect and forced Federate Resigned Catch2 rows were already
+source-located with concrete development/compliance evidence scopes, but
+their plan entries had no direct 2025 requirement IDs. The plan
+now maps Disconnect to `req-disconnect-service-terminates-connection` and the
+RTI-forced Federate Resigned callback to
+`req-federate-resigned-callback-behavior`. The legacy Connection Lost row also
+now carries the two existing Connection Lost requirements used by its focused
+error-path companion. The callback-control baseline now carries the existing
+two-callback-model clause, and the federate-management lifecycle row carries
+the existing Create, Destroy, Join, and Resign clauses. These are local
+crosswalk completions, not Lab edits or conformance promotions; the duplicate
+Connection Lost and lifecycle titles remain visible by plan id so their
+evidence scopes are not conflated. The Connect overload row remains an explicit
+RL-045 disposition because the pinned aggregate crosswalk is still ambiguous.
+
+Bounded verification:
+
+~~~powershell
+ctest --test-dir .build -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador disconnect terminates an unjoined connection$" --output-on-failure
+python tools/query_rti_work.py trace "RTIambassador disconnect terminates an unjoined connection" --summary --compact
+python tools/query_rti_work.py trace "Embedded RTI control forces the official federate-resigned transition" --summary --compact
+python tools/query_rti_work.py status --summary --compact
+~~~
+
+### 2026-09-04 bounded crosswalk cleanup — selected time-factory service
+
+The `getTimeFactory` integration was source-located and exercised the official
+API surface, but its plan row was previously unclassified because the Lab's
+export does not provide an implementation mapping for that service. The plan
+now records the two directly relevant 2025 implementation clauses
+(`12.11.2` and `12.12.1.1`), adds the row to the `time-support` query lane, and
+records all 13 Catch2 assertions. The test deliberately claims only the
+HLAinteger64Time selection and membership/connection lifecycle it exercises;
+the other standardized factories, packaging, JUnit, protected review,
+interoperability, and conformance remain open. This is a local crosswalk
+completion, not a Requirements Lab edit or a validation promotion.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py trace "Embedded getTimeFactory returns the joined federation's selected time factory" --summary --compact
+python tools/query_rti_work.py status --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-05 bounded tooling correction — reverse contract candidates for relocated tests
+
+The local Requirements-Lab contracts contain exact Catch2 test titles whose
+source qualifiers still point at the historical aggregate translation unit
+after focused tests were extracted. A normal unmapped query previously showed
+only the plan gap, so contributors had to search every contract to discover
+whether a candidate Lab record already existed. The bounded query tool now
+indexes contract test references only when the caller requests
+`--show-contract-candidates`. It reports the candidate Lab id and clause, and
+marks an exact-title candidate as `[source-mismatch]` when its contract path
+does not match the current source path. This keeps stale relocation visible
+without treating it as a clean mapping or silently rewriting the contract.
+
+The first mappings made through this view are the explicit-MIM case (one
+requirement, clause 4.5.5), the static Advisories Use Known Class getter (two
+requirements, clause 10.55.1), Next Message Request (two requirements, clause
+8.10.2), and the Available/NMRA boundary (four requirements across clauses
+8.9, 8.11, and 8.11.3). The source-mismatch marker remains on the latter two
+contract records because their exact titles are still recorded against the old
+aggregate file; the current focused sources are authoritative for the test
+location. No Requirements Lab content or immutable identifier changed, so no
+new numbered Lab issue is warranted.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py unmapped --disposition unclassified --show-contract-candidates --summary --compact --limit 8
+python tools/query_rti_work.py trace "Embedded Next Message Request grants at the next queued TSO timestamp" --summary --compact
+python tools/query_rti_work.py trace "Embedded Available time advances use inclusive GALT and queued TSO delivery" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-05 bounded implementation slice — dimension metadata and lookup
+
+The dimension metadata case is now an independently runnable focused lane.
+The local 2025 Requirements Lab crosswalk pins four candidate records under
+clause 9.1.2: available dimensions for an object-class attribute, available
+dimensions for an object-instance attribute, available dimensions for an
+interaction class, and retention of a dimension upper bound from the FOM. The
+focused Catch2 executable exercises the official available-dimension,
+dimension-handle, dimension-name, and dimension-upper-bound APIs before
+connection, after connection but before membership, after joining the 2025
+Restaurant FOM, and after a compatible additional-FOM join. It verifies
+inherited object/interaction dimension sets, stable handles and names, FOM
+upper bounds, invalid-handle/name errors, and clean teardown.
+
+This is a local crosswalk and executable extraction, not a Requirements Lab
+edit or conformance promotion. The aggregate test remains listed for broad
+coverage, while the focused source is the independently runnable evidence
+boundary. The object-instance candidate is retained in the contract because
+the Lab export expresses the available-dimension rule at the object-class /
+attribute boundary; this case does not register an object instance. Region
+lifecycle, range state, DDM routing, packaging/JUnit, remote transport,
+protected review, Lab validation, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_dimension_lookup_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.dimension_lookup\\.catch2\\." --output-on-failure
+python tools/query_rti_work.py trace "Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-05 bounded implementation slice — mandatory transportation lookup
+
+The mandatory transportation-type lookup case now has its own fast C++ lane.
+The exact 2025 Requirements Lab candidates are clause 10.19 (Get
+Transportation Type Handle) and clause 10.20.4 (Get Transportation Type Name).
+The focused Catch2 executable uses the official APIs before connection, after
+connection but before membership, and after joining the 2025 Restaurant FOM.
+It verifies the required HLAreliable and HLAbestEffort names and handles,
+stable round-trips, invalid transportation-name and invalid-handle exceptions,
+and clean teardown.
+
+This is source/test traceability and development-profile evidence, not a
+conformance promotion. Custom transportation composition/delivery,
+transportation-type changes, package/JUnit, remote transport, protected
+review, validation, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_transportation_type_lookup_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.transportation_type_lookup\\.catch2\\." --output-on-failure
+ctest --test-dir .build -C Debug -L "^transportation-type-lookup$" --output-on-failure
+ctest --test-dir .build -C Debug -R "umbra\\.ieee1516_2025\\.(transportation_type_requirements_traceability|transportation_type_api_traceability)$" --output-on-failure
+python tools/query_rti_work.py trace "Embedded transportation type lookup exposes the mandatory 2025 support pair" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-05 bounded crosswalk repair — declared transportation lookup
+
+The aggregate case `Embedded transportation type lookup resolves a declared
+FOM transportation per execution` is now mapped to the existing generic
+Get Transportation Type Handle and Get Transportation Type Name candidates
+(`requirement-candidate-content-clauses-10-support-services-page-256-l152-37`
+and `...page-257-l108-25`, clauses 10.19 and 10.20.4). Its source pointer is
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44092`, with 17
+HLA_EVOKED assertions. The case exercises the same normative lookup contracts
+for a declared FOM name across two joined federates; custom delivery and
+transportation-type changes remain separate. No Requirements Lab IDs or source
+records changed, and the transportation-type requirements contract now includes
+the exact selector.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py trace "Embedded transportation type lookup resolves a declared FOM transportation per execution" --summary --compact
+python tools/query_rti_work.py matrix "Embedded transportation type lookup resolves a declared FOM transportation per execution" --summary --compact
+python tools/requirements_lab.py check --contract compliance/requirements-lab/transportation-type-requirements-contract.json
+~~~
+
+### 2026-09-05 bounded mapping boundary - transportation-type controls
+
+The next roadmap handoff, `Embedded transportation type control commits at
+callbacks and preserves FOM defaults`, is now fully source-indexed at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45246` with 71
+HLA_EVOKED assertions. It exercises official attribute and interaction
+transportation controls, but the aggregate body crosses multiple service
+families; existing attribute/interaction contracts enumerate broader candidate
+sets than this case independently proves. The plan therefore records the row as
+an explicit development-profile disposition rather than inventing a combined
+requirement mapping. The next action is to split attribute and interaction
+controls into focused C++ lanes and assign only their directly covered Lab
+candidates.
+
+Bounded handoff:
+
+~~~powershell
+python tools/query_rti_work.py ready --family transport-and-conformance --summary --compact
+python tools/query_rti_work.py trace "Embedded transportation type control commits at callbacks and preserves FOM defaults" --summary --compact
+~~~
+
+### 2026-09-05 bounded crosswalk repair - time-role control
+
+The time-role control row `Embedded time-role services keep enable requests
+callback-gated before TSO support` is now mapped to eight exact 2025 Lab
+requirement candidates in clauses 8, 8.2, 8.3.1, 8.5.5, 8.6.3, 8.7.5, and
+8.21.5. Its authoritative source-index pointer is
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51406`; the case
+contains 51 assertions and exercises both `HLA_EVOKED` and `HLA_IMMEDIATE`.
+The mapping covers callback-gated regulation/constrained enable, role clearing
+on disable, assigned lookahead, Query Lookahead, and lifecycle exceptions. It
+does not promote complete TSO delivery/order, timestamped queue behavior,
+Modify Lookahead, save/restore, packaging/JUnit, validation, or conformance.
+
+The existing time-role requirements and API contracts had four stale aggregate
+selectors that still pointed at the large federation-management translation
+unit. They were repaired narrowly to the current focused selectors for
+timestamped interaction re-enable, object-class provider response, and the two
+timestamped attribute re-enable cases. Both contracts now pass the pinned
+Requirements Lab bundle without changing any Lab IDs or re-syncing the bundle.
+
+The focused label passes its registered registry/traceability checks, and the
+aggregate federation-management target is now rebuilt and discoverable. The
+case passes all 51 assertions through the `time-role` CTest label:
+
+~~~powershell
+python tools/query_rti_work.py focus time-role --summary --compact --limit 8
+python tools/query_rti_work.py trace "Embedded time-role services keep enable requests callback-gated before TSO support" --summary --compact
+python tools/query_rti_work.py matrix "Embedded time-role services keep enable requests callback-gated before TSO support" --summary --compact
+ctest --test-dir .build -C Debug -L "^time-role$" --output-on-failure
+~~~
+
+### 2026-09-05 bounded crosswalk repair - Modify Lookahead
+
+The next exact roadmap row, `Embedded Modify Lookahead applies increases
+immediately and decreases gradually`, is now mapped to the seven existing
+2025 Lab requirement candidates in clause 8.20.4. Its authoritative
+source-index pointer is
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51523`; the case has
+28 `HLA_EVOKED` assertions. It covers lifecycle and time-advancing fences,
+nonnegative input, immediate nondecreasing changes, deferred decreases at
+grant boundaries, and Query Lookahead observations. Future-input coordination,
+save/restore, timestamped delivery, transport, package/JUnit, validation, and
+conformance remain separate.
+
+The existing Modify Lookahead requirements and API contracts already matched
+the pinned bundle, so no Lab re-sync or selector repair was needed. The rebuilt
+aggregate exact case and its CTest label pass all 28 assertions, along with the
+requirements/API contract checks.
+
+Bounded handoff:
+
+~~~powershell
+python tools/query_rti_work.py focus modify-lookahead --summary --compact --limit 8
+python tools/query_rti_work.py trace "Embedded Modify Lookahead applies increases immediately and decreases gradually" --summary --compact
+python tools/query_rti_work.py matrix "Embedded Modify Lookahead applies increases immediately and decreases gradually" --summary --compact
+ctest --test-dir .build -C Debug -L "^modify-lookahead$" --output-on-failure
+~~~
+
+### 2026-09-05 bounded crosswalk repair - Flush Queue Request
+
+The next exact roadmap row, `Embedded Flush Queue Request flushes queued TSO and
+reports optimistic time`, is now mapped to five existing 2025 Lab candidates
+across clauses 8.12 and 8.12.3. Its authoritative source-index pointer is
+`cpp/tests/flush_queue_request_optimistic_time_catch2.cpp:140`; the case has
+42 `HLA_EVOKED` assertions and three official C++ API surfaces. It covers
+queued timestamped delivery before the Flush Queue Grant, minimum request/GALT
+/earliest-delivered grant selection, optimistic time, callback ordering, and
+logical-time fences. The separate service-report boundary, regional and
+future-input variants, save/restore, transport, validation, and conformance
+remain separate.
+
+The existing Flush Queue Request requirements/API contracts carried six stale
+aggregate selectors for the regional/mixed, future-input, timestamped
+attribute, and expired-designator companions. They were repaired narrowly to
+their current focused files; the pinned bundle and all Lab IDs were unchanged.
+Both contracts now pass. The focused case and the repaired aggregate source
+both pass all 42 assertions; the `flush-queue-request` label runs its focused
+behavior companions plus both requirements/API checks.
+
+Bounded handoff:
+
+~~~powershell
+python tools/query_rti_work.py focus flush-queue-request --summary --compact --limit 8
+python tools/query_rti_work.py trace "Embedded Flush Queue Request flushes queued TSO and reports optimistic time" --summary --compact
+python tools/query_rti_work.py matrix "Embedded Flush Queue Request flushes queued TSO and reports optimistic time" --summary --compact
+ctest --test-dir .build -C Debug -L "^flush-queue-request$" --output-on-failure
+~~~
+
+### 2026-09-05 bounded crosswalk repair - no-TSO GALT scheduler
+
+The next exact time-management row, `Embedded constrained TAR waits for GALT
+and is released by a regulator advance`, is now mapped to two existing 2025
+Lab candidates in clause 8. Its authoritative source-index pointer is
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51813`; the case has
+30 `HLA_EVOKED` assertions and four official C++ API surfaces. It exercises
+Time Advance Request, Enable Time Regulation, Enable Time Constrained, and Time
+Advance Grant: a constrained TAR remains pending at the regulator's GALT and
+is released only when the regulator's pending advance raises GALT before its
+own grant. NRG/undefined-GALT transitions, timestamped ordering, alternate
+advance modes, save/restore, transport, package/JUnit, validation, and
+conformance remain separate evidence lanes.
+
+The existing time-grant-scheduler contract already matched the pinned bundle;
+no Requirements Lab resync or selector repair was needed. The rebuilt
+aggregate exact case passes all 30 assertions, and the exact filter and the
+`no-tso-galt-scheduler` query handle remain the authoritative bounded entry
+points.
+
+Bounded handoff:
+
+~~~powershell
+python tools/query_rti_work.py focus no-tso-galt-scheduler --summary --compact --limit 8
+python tools/query_rti_work.py trace "Embedded constrained TAR waits for GALT and is released by a regulator advance" --summary --compact
+python tools/query_rti_work.py matrix "Embedded constrained TAR waits for GALT and is released by a regulator advance" --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded constrained TAR waits for GALT and is released by a regulator advance$" --output-on-failure
+~~~
+
+### 2026-09-05 bounded crosswalk repair - Query GALT/Query LITS bounds
+
+The next exact time-management row, `Embedded Query GALT and Query LITS observe
+other regulator time and pending advances`, is now mapped to five existing 2025
+Lab candidates across clauses 8, 8.1.5, 8.18.1, and 8.19.3. Its authoritative
+source-index pointer is
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51581`; the case has
+35 `HLA_EVOKED` assertions and two official C++ API surfaces. It exercises
+Query GALT and Query LITS: bounds are undefined before an active regulator,
+become defined from the regulator's current lookahead, include its pending
+advance before grant dispatch, match one another, reject a mismatched logical-
+time type, and become undefined after regulation is disabled. Scheduler release,
+timestamped delivery/order, alternate advance modes, save/restore, transport,
+package/JUnit, validation, and conformance remain separate evidence lanes.
+
+The existing Query GALT/Query LITS requirements and API contracts already
+listed this exact case and matched the pinned bundle; no Requirements Lab
+resync or selector repair was needed. The rebuilt aggregate exact case passes
+all 35 assertions; use the `query-galt-lits` focus handle and exact
+title/filter as the bounded entry points.
+
+Bounded handoff:
+
+~~~powershell
+python tools/query_rti_work.py focus query-galt-lits --summary --compact --limit 8
+python tools/query_rti_work.py trace "Embedded Query GALT and Query LITS observe other regulator time and pending advances" --summary --compact
+python tools/query_rti_work.py matrix "Embedded Query GALT and Query LITS observe other regulator time and pending advances" --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded Query GALT and Query LITS observe other regulator time and pending advances$" --output-on-failure
+~~~
+
+### RL-181 — Support-switch contracts retain stale selectors after focused-source extraction
+
+**Status:** verified Requirements Lab contract-selector recurrence; no pinned
+2025 requirement or API identifier changed.
+
+The support-switch requirements and API contracts still contained three stale
+test selectors: two regional connection-loss entries used the old line anchor
+`cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159`, and the
+Allow Relaxed DDM object-attribute entry still pointed at the large
+`ieee1516_2025_federation_management_catch2.cpp` translation unit. The current
+focused evidence is the exact regional selector title in
+`connection_loss_regional_selector_mutation_catch2.cpp` and the standalone
+`allow_relaxed_ddm_object_attribute_catch2.cpp` selector. The selectors were
+repaired narrowly; both support-switch contracts now pass against the pinned
+bundle. This is a recurrence of the source-extraction selector drift already
+tracked in RL-160/RL-176/RL-179, so it is recorded as RL-181 rather than folded
+into an historical entry. No Requirements Lab resynchronization was performed.
+
+### 2026-09-05 bounded crosswalk repair - support-switch state
+
+The first remaining unclassified C++ row, `Embedded support switches are
+seeded per federate and retain static FDD policy`, is now mapped to eight
+existing 2025 Lab candidates across clauses 8.1.10, 9.1.8, 10.44, 10.45.3,
+10.46.6, 10.48.1, 10.50.6, and 10.55.1. Its authoritative source-index
+pointer is `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:28504`;
+the case has 40 `HLA_EVOKED` assertions and twelve official C++ API surfaces.
+It verifies FDD-seeded per-federate support state, per-federate mutation
+isolation, static Delay Subscription Evaluation and Allow Relaxed DDM getters,
+and InvalidResignAction handling. MOM HLAsetSwitches, report-service
+subscription interlocks, connection-loss cleanup, delayed timestamped
+delivery, relaxed-DDM routing, filesystem reporting, package/JUnit,
+validation, and conformance remain separate evidence lanes.
+
+The existing support-switch service and API contracts already listed this
+exact case. Their three stale selectors were repaired narrowly under RL-181;
+the pinned bundle and all Lab IDs remain unchanged. The direct run of the already-built exact case
+passed all 40 assertions. Aggregate native discovery remains behind the
+documented federation-management source-integrity gate; use the
+`support-switch-state` focus handle and exact title/filter as the bounded entry
+points.
+
+Bounded handoff:
+
+~~~powershell
+python tools/query_rti_work.py focus support-switch-state --summary --compact --limit 8
+python tools/query_rti_work.py trace "Embedded support switches are seeded per federate and retain static FDD policy" --summary --compact
+python tools/query_rti_work.py matrix "Embedded support switches are seeded per federate and retain static FDD policy" --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded support switches are seeded per federate and retain static FDD policy$" --output-on-failure
+~~~
+
+### 2026-09-05 bounded crosswalk repair - whole-object-class declaration
+
+The next unclassified declaration row, `Embedded object class attribute
+declarations retain 2025 FOM and lifecycle boundaries`, is now mapped to eight
+existing 2025 Lab candidates in clauses 5.3, 5.3.3, and 5.9. Its authoritative
+source-index pointer is
+`cpp/tests/fom_declaration_management_catch2.cpp:139`; the case has
+34 `HLA_EVOKED` assertions and six official C++ API surfaces. It exercises
+whole-class unpublication/unsubscription alongside attribute-set declaration
+calls, proving invalid-handle/member fences, inherited publication lifetime,
+ordinary subscription removal with independent regional state, idempotent
+teardown, and update rejection after unpublication. Publication setup,
+ownership arbitration, regional teardown, save/restore, transport,
+package/JUnit, validation, and conformance remain separate evidence lanes.
+
+The existing whole-object-class declaration requirements/API contracts already
+matched the pinned bundle; no Requirements Lab resync or selector repair was
+needed. The direct run of the already-built exact case passed all 34
+assertions. Aggregate native discovery remains behind the documented
+federation-management source-integrity gate; use the
+`whole-object-class-declaration` focus handle and exact title/filter as the
+bounded entry points.
+
+Bounded handoff:
+
+~~~powershell
+python tools/query_rti_work.py focus whole-object-class-declaration --summary --compact --limit 8
+python tools/query_rti_work.py trace "Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries" --summary --compact
+python tools/query_rti_work.py matrix "Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries" --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.fom_declaration_management\.catch2\.Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries$" --output-on-failure
+~~~
+
+### 2026-09-05 explicit disposition - public handle decoding
+
+The final unclassified C++ row, `Embedded public handle decoders enforce
+lifecycle and preserve encoded identities`, is now an explicit API-traceability
+disposition rather than an invented requirement mapping. The Requirements Lab
+exports the eight official 2025 C++ decode surfaces, but no standalone
+requirement candidate for this codec behavior. Its authoritative source-index
+pointer is `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:24487`;
+the exact case passes 50 assertions covering NotConnected and
+FederateNotExecutionMember fences, federation-scoped round trips, and
+CouldNotDecode rejection of empty values. Cross-RTI interoperability, external
+transport, package/JUnit, protected review, validation, and conformance remain
+separate evidence lanes.
+
+No Requirements Lab resynchronization was performed and no requirement IDs were
+invented. The `public-handle-decoding` lane handle is the authoritative entry
+point while the aggregate source-integrity gate remains in place.
+
+Bounded handoff:
+
+~~~powershell
+python tools/query_rti_work.py focus public-handle-decoding --summary --compact --limit 8
+python tools/query_rti_work.py trace "Embedded public handle decoders enforce lifecycle and preserve encoded identities" --summary --compact
+python tools/query_rti_work.py matrix "Embedded public handle decoders enforce lifecycle and preserve encoded identities" --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded public handle decoders enforce lifecycle and preserve encoded identities$" --output-on-failure
+~~~
+
+### 2026-09-05 bounded implementation slice - object-class lookup
+
+The object-class handle/name case was previously present only in the large
+federation-management translation unit and had no direct requirement mapping.
+The exact 2025 Lab statements are now pinned locally: clause 10.4.6 requires
+Get Object Class Handle to return the handle associated with the supplied class
+name, and clause 10.6.2 requires Get Object Class Name to return the name
+associated with the supplied handle. A small focused Catch2 executable now
+exercises the official C++ APIs through the embedded profile, including
+NotConnected and FederateNotExecutionMember lifecycle errors, stable
+name/handle round-trips, NameNotFound, InvalidObjectClassHandle, and a
+compatible additional-FOM join that extends the catalog without changing the
+original handle.
+
+This is a local crosswalk and executable extraction, not a Requirements Lab
+edit or conformance promotion. The aggregate test remains listed for broad
+coverage, while the focused source is the independently runnable evidence
+boundary. Packaging/JUnit, remote transport, protected review, Lab validation,
+and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_object_class_lookup_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.object_class_lookup\\.catch2\\." --output-on-failure
+python tools/query_rti_work.py trace "Embedded object-class lookup services use stable handles from the joined federation FOM" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-05 bounded implementation slice — interaction-class lookup
+
+The interaction-class handle/name case followed the same extraction path as
+object-class lookup. The exact 2025 Lab statements are pinned locally: clause
+10.13.2 requires Get Interaction Class Handle to return the handle associated
+with the supplied interaction class name, and clause 10.14.5 requires Get
+Interaction Class Name to return the name associated with the supplied handle.
+The focused Catch2 executable exercises the official C++ APIs before
+connection, after connection but before membership, after joining the 2025
+Restaurant FOM, and after a compatible additional-FOM join. It verifies stable
+handles, name round-trips, NameNotFound, InvalidInteractionClassHandle, and
+clean teardown.
+
+This is a local crosswalk and executable extraction, not a Requirements Lab
+edit or conformance promotion. The aggregate test remains listed for broad
+coverage, while the focused source is the independently runnable evidence
+boundary. Packaging/JUnit, remote transport, protected review, Lab validation,
+and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_interaction_class_lookup_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.interaction_class_lookup\\.catch2\\." --output-on-failure
+python tools/query_rti_work.py trace "Embedded interaction-class lookup services use stable handles from the joined federation FOM" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-05 bounded implementation slice — inherited attribute lookup
+
+The inherited attribute handle/name case is now an independently runnable
+focused lane. The exact 2025 Lab statements are pinned locally: clause 10.9.1
+requires Get Attribute Handle to return the class-attribute handle associated
+with the supplied name and object class, and clause 10.10.3 requires Get
+Attribute Name to return the class-attribute name associated with the supplied
+handle and object class. The focused Catch2 executable exercises those APIs
+before connection, after connection but before membership, after joining the
+2025 Restaurant FOM, and after a compatible additional-FOM join. It verifies
+inherited definitions, stable handles, name round-trips, NameNotFound,
+InvalidObjectClassHandle, InvalidAttributeHandle, AttributeNotDefined, and
+clean teardown.
+
+This is a local crosswalk and executable extraction, not a Requirements Lab
+edit or conformance promotion. The aggregate test remains listed for broad
+coverage, while the focused source is the independently runnable evidence
+boundary. Packaging/JUnit, remote transport, protected review, Lab validation,
+and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_attribute_lookup_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.attribute_lookup\\.catch2\\." --output-on-failure
+python tools/query_rti_work.py trace "Embedded attribute lookup resolves inherited definitions in the joined federation FOM" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-05 bounded implementation slice — inherited parameter lookup
+
+The inherited parameter handle/name case completes the focused Support
+Services lookup set. The exact 2025 Lab records are both under clause 10.16.1:
+Get Parameter Handle shall return the handle associated with the supplied
+parameter name and interaction class, and Get Parameter Name shall return the
+name associated with the supplied handle and interaction class. The focused
+Catch2 executable exercises the official C++ APIs across connection and
+membership guards, inherited definitions, stable handles, name round-trips,
+NameNotFound, InvalidInteractionClassHandle, InvalidParameterHandle,
+InteractionParameterNotDefined, compatible additional-FOM extension, and clean
+teardown.
+
+This is a local crosswalk and executable extraction, not a Requirements Lab
+edit or conformance promotion. The aggregate test remains listed for broad
+coverage, while the focused source is the independently runnable evidence
+boundary. Packaging/JUnit, remote transport, protected review, Lab validation,
+and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_parameter_lookup_catch2
+ctest --test-dir .build -C Debug -R "^umbra\\.parameter_lookup\\.catch2\\." --output-on-failure
+python tools/query_rti_work.py trace "Embedded parameter lookup resolves inherited definitions in the joined federation FOM" --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+the documented federation-management source-integrity gate; use the
+`query-galt-lits` focus handle and exact title/filter as the bounded entry points.
+
+### RL-182 — Multi-recipient directed TSO source-resignation case needs an independent regulator
+
+**Status:** verified focused test-harness correction; no pinned 2025 requirement/API identifier changed.
+
+The pinned 2025 Requirements-Lab export is unchanged. The newly extracted
+native C++ case initially failed because the test resigned the only time
+regulator before FQR/TARA/NMRA requests; FQR could flush, but TARA/NMRA had no
+remaining regulator and no grant (zero directed callbacks and zero grants).
+This is a test setup defect, not a Lab numbering change and not evidence that
+only the first recipient can receive the payload.
+
+The focused harness now enables the surviving owner as an independent regulator
+with lookahead 10 before the source sends, drains that callback, and checks the
+official post-resignation `FederateNotExecutionMember` Retract boundary. The
+exact standalone case passes 113 HLA_EVOKED assertions; FQR/TARA/NMRA each
+receive one directed callback before their own grant, with target/producer/tag/
+time/order/transport/retraction preserved. No runtime change was required. No
+Requirements Lab resynchronization was performed.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus timestamped-directed-interaction-multi-recipient-source-resignation --summary --compact
+python tools/query_rti_work.py trace "Embedded queued timestamped directed interaction survives source resignation for each recipient" --summary --compact
+python tools/query_rti_work.py matrix "Embedded queued timestamped directed interaction survives source resignation for each recipient" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-directed-interaction-multi-recipient-source-resignation --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.timestamped_directed_interaction_multi_recipient_source_resignation\.catch2\.Embedded queued timestamped directed interaction survives source resignation for each recipient$" --output-on-failure
+~~~
+
+### RL-183 — Direct TAR/NMR directed TSO frontier extracted as a separate lane
+
+**Status:** verified focused native C++ extraction; no pinned 2025 requirement/API identifier changed.
+
+The pinned 2025 Requirements-Lab export is unchanged. The direct TAR/NMR case
+was previously represented only by an aggregate plan title, which made it hard
+to run without pulling in the broader FQR/TARA/NMRA alternate-advance test. A
+two-recipient focused executable now sends one target-qualified timestamped
+directed interaction at time 7, admits TAR(7) and NMR(10), and verifies that
+each Receive Directed Interaction callback precedes its grant. The producer
+completes TAR at 2 and post-delivery Retract reports the terminal
+`MessageCanNoLongerBeRetracted` boundary.
+
+The exact standalone case passes 79 HLA_EVOKED assertions and preserves target,
+producer, tag, logical time, order, transportation, and retraction metadata for
+both recipients. This is a source/test indexing improvement and executable
+evidence extraction, not a Requirements Lab edit or conformance promotion. The
+broader TARA/NMRA/FQR combinations, directed DDM, save/restore, ownership,
+remote transport, package/JUnit/protected-review evidence, interoperability,
+and conformance remain separate work.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus timestamped-directed-interaction-tar-nmr --summary --compact
+python tools/query_rti_work.py trace "Embedded timestamped directed interaction delivers before TAR and NMR grants" --summary --compact
+python tools/query_rti_work.py matrix "Embedded timestamped directed interaction delivers before TAR and NMR grants" --summary --compact
+python tools/query_rti_work.py check --lane timestamped-directed-interaction-tar-nmr --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.timestamped_directed_interaction_tar_nmr\.catch2\.Embedded timestamped directed interaction delivers before TAR and NMR grants$" --output-on-failure
+~~~
+
+### RL-184 — Aggregate regression source-pointer drift was repaired
+
+**Status:** verified repaired aggregate source index; no pinned requirement or
+API identifier changed.
+
+The aggregate federation-management translation unit had an unfinished
+disabled `#if 0` block and a stray HLAsetTiming fragment. That combination
+made the aggregate target fail to compile and left the plan pointer for
+`Embedded Time Advance Request changes logical time only at Time Advance Grant
+dispatch` stale at `63216`. The fragment was removed, the disabled block was
+closed at its valid boundary, and the authoritative pointer is now
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51254`.
+
+The related time-role, Modify Lookahead, no-TSO GALT, and Query GALT/LITS
+pointers were refreshed to their current declarations (`51401`, `51518`,
+`51808`, and `51576`). The aggregate target now builds, the bounded
+custom-transportation lane passes all 8/8 tests, and the six repaired aggregate
+time/MOM/handle cases pass. This was a source/test-integrity repair only; the
+Requirements-Lab export and all Lab IDs remain unchanged.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_ieee1516_2025_catch2 -- /m:1
+ctest --test-dir .build -C Debug -L "^custom-transportation$" --output-on-failure
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.(Embedded time-role services keep enable requests callback-gated before TSO support|Embedded Modify Lookahead applies increases immediately and decreases gradually|Embedded constrained TAR waits for GALT and is released by a regulator advance|Embedded Query GALT and Query LITS observe other regulator time and pending advances|Embedded support switches are seeded per federate and retain static FDD policy|Embedded public handle decoders enforce lifecycle and preserve encoded identities)$" --output-on-failure
+python tools/query_rti_work_regression.py
+~~~
+
+### RL-185 — Federation MOM save-conditionals extracted from disabled aggregate
+
+**Status:** verified focused native C++ extraction; no pinned 2025 requirement/API identifier changed.
+
+The pinned Requirements-Lab export is unchanged. The historical aggregate test
+contract was trapped behind the unfinished federation-management `#if 0`, so
+the save-conditional lifecycle was not independently runnable. A focused
+official C++ case now discovers the RTI-owned HLAfederation object, requests all
+four conditional save attributes, verifies empty initial values, pending
+HLAunicodeString/HLAinteger64Time name/time, clear-on-admission at the
+constrained TAR boundary, and last-name/time after all three federates complete
+the save. The exact case passes 95 HLA_EVOKED assertions.
+
+This is source/test extraction and traceability repair, not a Lab edit or
+conformance promotion. Restore semantics, remote transport, package/JUnit,
+protected review, interoperability, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus federation-mom-save-conditionals --summary --compact
+python tools/query_rti_work.py trace "Embedded federation MOM save conditionals follow pending admission and completion" --summary --compact
+python tools/query_rti_work.py matrix "Embedded federation MOM save conditionals follow pending admission and completion" --summary --compact
+python tools/query_rti_work.py check --lane federation-mom-save-conditionals --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.federation_mom_save_conditionals\.catch2\.Embedded federation MOM save conditionals follow pending admission and completion$" --output-on-failure
+~~~
+
+### RL-186 — Joined-federate MOM GALT/LITS projection extracted from disabled aggregate
+
+**Status:** verified focused native C++ extraction; no pinned 2025 requirement/API identifier changed.
+
+The pinned Requirements-Lab export is unchanged. The historical aggregate case
+for `Embedded joined-federate MOM exposes federation GALT and LITS` had no
+source pointer, so its already-implemented contract was not independently
+runnable or selectable from the indexed queue. A focused official C++ case now
+discovers an HLAfederate MOM object, requests HLAGALT/HLALITS directly, compares
+those values with Query GALT/Query LITS, verifies one HLAsetTiming periodic
+reflection at regulator time 0 plus lookahead 2, and verifies the official
+empty-array undefined values after the sole regulator disables. The exact case
+passes 58 HLA_EVOKED assertions.
+
+This is source/test extraction and traceability repair, not a Lab edit or
+conformance promotion. Remaining HLAcount/statistical MOM families, public
+producer mapping, restore semantics, remote transport, package/JUnit,
+protected review, interoperability, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-galt-lits-periodic --summary --compact
+python tools/query_rti_work.py trace "Embedded joined-federate MOM exposes federation GALT and LITS" --summary --compact
+python tools/query_rti_work.py matrix "Embedded joined-federate MOM exposes federation GALT and LITS" --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-galt-lits-periodic --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.joined_federate_mom_galt_lits_periodic\.catch2\.Embedded joined-federate MOM exposes federation GALT and LITS$" --output-on-failure
+~~~
+
+### RL-187 — Joined-federate MOM queued TSO length extracted from disabled aggregate
+
+**Status:** verified focused native C++ extraction; no pinned 2025 requirement/API identifier changed.
+
+The pinned Requirements-Lab export is unchanged. The historical aggregate case
+for `Embedded joined-federate MOM exposes queued TSO length` had no source
+pointer, so its implemented queue projection was not independently runnable or
+selectable from the indexed queue. A focused official C++ case now registers a
+timestamped interaction, requests HLATSOlength directly, verifies one queued
+entry before the target grant, checks the same count through HLAsetTiming
+periodic reflection with RTI-originated reliable metadata, and verifies zero
+after delivery. The exact case passes 65 HLA_EVOKED assertions.
+
+This is source/test extraction and traceability repair, not a Lab edit or
+conformance promotion. Remaining traffic/statistical MOM families, public
+producer mapping, restore semantics, remote transport, package/JUnit,
+protected review, interoperability, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-tso-length-periodic --summary --compact
+python tools/query_rti_work.py trace "Embedded joined-federate MOM exposes queued TSO length" --summary --compact
+python tools/query_rti_work.py matrix "Embedded joined-federate MOM exposes queued TSO length" --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-tso-length-periodic --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.joined_federate_mom_tso_length_periodic\.catch2\.Embedded joined-federate MOM exposes queued TSO length$" --output-on-failure
+~~~
+
+### RL-188 — Duplicate retraction title separated from the MOM removed-count row
+
+**Status:** plan/index repair; no pinned 2025 requirement/API identifier changed.
+
+The pinned Requirements-Lab export is unchanged. The Catch2 plan contained two
+different rows with the same title `Embedded Request Retraction reconstitutes a
+delivered timestamped object deletion`: one row carried the full object
+management/retraction contract, while the earlier MOM row was named for the
+receiving federate's `HLAobjectInstancesRemoved` history. A duplicate title made
+`trace` return two records and made a bounded source handoff ambiguous. The MOM
+row is now explicitly titled `Embedded joined-federate MOM HLAobjectInstancesRemoved
+preserves history after timestamped retraction`, mapped to both the MOM and
+deletion/retraction clauses it exercises, and backed by a standalone 89-assertion
+native C++ case. The separate full retraction row remains unchanged for its own
+future source extraction.
+
+This is roadmap/test traceability repair, not a Lab edit or conformance
+promotion. Keep exact lane tags and test titles in commands so future work does
+not create the duplicate selection boundary again.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-removed-object-count-tso-retraction --summary --compact
+python tools/query_rti_work.py trace "Embedded joined-federate MOM HLAobjectInstancesRemoved preserves history after timestamped retraction" --summary --compact
+python tools/query_rti_work.py matrix "Embedded joined-federate MOM HLAobjectInstancesRemoved preserves history after timestamped retraction" --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-removed-object-count-tso-retraction --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.joined_federate_mom_removed_object_count_tso_retraction\.catch2\.Embedded joined-federate MOM HLAobjectInstancesRemoved preserves history after timestamped retraction$" --output-on-failure
+~~~
+
+### RL-189 — TSO retraction lifetime split from generic regulation re-enable
+
+**Status:** verified focused native C++ extraction; no pinned 2025 requirement/API identifier changed.
+
+The pinned Requirements-Lab export is unchanged and was not re-synchronized.
+The indexed queue had a narrower contract hidden beside the generic
+timestamped-delivery re-enable case: disabling time regulation must reject a
+live timestamped retraction, while re-enabling the same regulation and waiting
+for `timeRegulationEnabled` must leave that original
+`MessageRetractionHandle` usable. The focused case is now source-mapped at
+`timestamped_interaction_regulation_reenable_catch2.cpp:256`, with 30
+`HLA_EVOKED` assertions, five requirement IDs, four canonical §8 sections, and
+six official API surfaces. It also verifies the terminal
+`MessageCanNoLongerBeRetracted` result after the successful retract, so this
+row is not conflated with the separate recipient-delivery or changed-lookahead
+variants.
+
+This is roadmap/test traceability work, not a Lab edit or conformance
+promotion. Production-profile behavior, remote transport, persistence,
+package/JUnit evidence, protected review, interoperability, and conformance
+remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus tso-retraction-disable-reenable-lifetime --summary --compact
+python tools/query_rti_work.py trace "Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable" --summary --compact
+python tools/query_rti_work.py matrix "Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable" --summary --compact
+python tools/query_rti_work.py check --lane tso-retraction-disable-reenable-lifetime --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.timestamped_interaction_regulation_reenable\.catch2\.Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable$" --output-on-failure
+~~~
+
+### RL-190 — No-recipient timestamped attribute designator extracted as a focused lane
+
+**Status:** verified focused native C++ extraction; no pinned 2025 requirement/API identifier changed.
+
+The pinned Requirements-Lab export is unchanged and was not re-synchronized.
+The indexed queue already named the one-federate `Update Attribute Values`
+contract, but its source declaration was trapped in the damaged aggregate
+translation unit. A standalone official C++ case now publishes a TSO-preferred
+attribute, registers one object without an eligible subscriber, verifies a
+valid `MessageRetractionHandle`, accepts the first `Retract`, and verifies that
+the producer advance boundary makes a later designator report
+`MessageCanNoLongerBeRetracted`. The focused case is source-mapped at
+`timestamped_attribute_update_no_fanout_catch2.cpp:54`, with 20
+`HLA_EVOKED` assertions, four requirement IDs, three canonical sections
+(`6.10`, `8.1.5`, and `8.22.3`), and three official API surfaces.
+
+This is roadmap/test traceability work, not a Lab edit or conformance
+promotion. Regional overlap, Receive-order no-designator behavior, alternate
+advances, re-enable/save-restore lifetime, transport, package/JUnit, protected
+review, interoperability, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus tso-attribute-update-no-fanout-designator --summary --compact
+python tools/query_rti_work.py trace "Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout" --summary --compact
+python tools/query_rti_work.py matrix "Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout" --summary --compact
+python tools/query_rti_work.py check --lane tso-attribute-update-no-fanout-designator --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.timestamped_attribute_update_no_fanout\.catch2\.Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout$" --output-on-failure
+~~~
+
+### RL-191 — Delivered-recipient object deletion reconstitution extracted as a focused lane
+
+**Status:** verified focused native C++ extraction; no pinned 2025 requirement/API identifier changed.
+
+The pinned Requirements-Lab export is unchanged and was not re-synchronized.
+The planned object-deletion row required a narrower three-federate proof than
+the existing no-recipient deletion guard: one nonconstrained subscriber must
+receive `Remove Object Instance`, one time-constrained subscriber must remain
+pending, and a legal `Retract` must restore the invocation-time object name,
+known state, and split attribute ownership before issuing `Request Retraction`
+to only the delivered recipient. The focused case is now source-mapped at
+`timestamped_object_deletion_retraction_catch2.cpp:147`, with 57
+`HLA_EVOKED` assertions, eight requirement IDs, four canonical sections
+(`6.16`, `6.17.1`, `8.22.3`, and `8.23.3`), and four official API surfaces.
+Advancing the still-pending recipient verifies that no stale removal or
+retraction callback is revived, and a second producer retract verifies the
+terminal `MessageCanNoLongerBeRetracted` classification.
+
+This is roadmap/test traceability work, not a Lab edit or conformance
+promotion. The no-fanout boundary, timing/resignation variants, alternate
+advances, tombstone/reclamation, save/restore, transport, package/JUnit,
+protected review, interoperability, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus tso-object-deletion-retraction-reconstitution --summary --compact
+python tools/query_rti_work.py trace "Embedded Request Retraction reconstitutes a delivered timestamped object deletion" --summary --compact
+python tools/query_rti_work.py matrix "Embedded Request Retraction reconstitutes a delivered timestamped object deletion" --summary --compact
+python tools/query_rti_work.py check --lane tso-object-deletion-retraction-reconstitution --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.timestamped_object_deletion_retraction\.catch2\.Embedded Request Retraction reconstitutes a delivered timestamped object deletion$" --output-on-failure
+~~~
+
+### RL-192 — Joined-owner resignation filtering extracted as a focused lane
+
+**Status:** verified focused native C++ extraction; no pinned 2025 requirement/API identifier changed.
+
+The pinned Requirements-Lab export is unchanged and was not re-synchronized.
+The next indexed retraction contract required a distinct ownership/membership
+boundary: an attribute owner that already received `Remove Object Instance`
+resigns before a legal `Retract`, while a still-joined recipient remains
+eligible. The new three-federate official C++ case transfers one attribute to
+the departing owner, records both timestamped removals, resigns that owner,
+then verifies survivor-only `Request Retraction`, object/name reconstitution,
+and `Attribute Is Not Owned` for the departed owner's former attribute. It is
+source-mapped at
+`timestamped_object_deletion_joined_owner_retraction_catch2.cpp:170`, with 65
+`HLA_EVOKED` assertions, four requirement-to-subsection pairs across clauses
+`6.16` and `8.22.3`, and six official C++ API surfaces.
+
+This is roadmap/test traceability work, not a Lab edit or conformance
+promotion. Pending-recipient resignation, producer resignation, other resign
+actions, active in-flight ownership, alternate advances, save/restore,
+transport, package/JUnit, protected review, interoperability, and conformance
+remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus tso-object-deletion-joined-owner-retraction --summary --compact
+python tools/query_rti_work.py trace "Embedded Request Retraction reconstitutes timestamped deletion only for joined owners" --summary --compact
+python tools/query_rti_work.py matrix tso-object-deletion-joined-owner-retraction --summary --compact
+python tools/query_rti_work.py check --lane tso-object-deletion-joined-owner-retraction --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.timestamped_object_deletion_joined_owner_retraction\.catch2\.Embedded Request Retraction reconstitutes timestamped deletion only for joined owners$" --output-on-failure
+~~~
+
+### RL-193 — Optimistic-time Flush Queue Request extracted as a focused lane
+
+**Status:** verified focused native C++ extraction; no pinned 2025 requirement/API identifier changed.
+
+The pinned Requirements-Lab export is unchanged and was not re-synchronized.
+The next indexed time-management row was a basic Flush Queue Request contract
+whose aggregate source pointer no longer resolved to its declared test title.
+A standalone official C++ case now queues two timestamped interactions, proves
+FIFO delivery before `Flush Queue Grant`, records actual grant 5 and optimistic
+time 7, and rejects an earlier time advance after the flush. It is
+source-mapped at `flush_queue_request_optimistic_time_catch2.cpp:140`, with 58
+`HLA_EVOKED` assertions, five direct requirement-to-subsection pairs across
+clauses `8.12` and `8.12.3`, and three official C++ API surfaces.
+
+This is roadmap/test traceability work, not a Lab edit or conformance
+promotion. Service-report encoding, regional/future-input variants,
+save/restore, transport, package/JUnit, protected review, interoperability,
+and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus flush-queue-request-optimistic-time --summary --compact
+python tools/query_rti_work.py trace "Embedded Flush Queue Request flushes queued TSO and reports optimistic time" --summary --compact
+python tools/query_rti_work.py matrix flush-queue-request-optimistic-time --summary --compact
+python tools/query_rti_work.py check --lane flush-queue-request-optimistic-time --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.flush_queue_request_optimistic_time\.catch2\.Embedded Flush Queue Request flushes queued TSO and reports optimistic time$" --output-on-failure
+~~~
+
+### RL-194 — Joined-federate MOM time-state durations extracted as a focused lane
+
+**Status:** verified focused native C++ extraction; no pinned 2025 requirement/API identifier changed.
+
+The pinned Requirements-Lab export is unchanged and was not re-synchronized.
+The next indexed MOM contract required a bounded proof for the two official
+time-state duration attributes. The new standalone C++ case exercises direct
+known-object Request Attribute Value Update and one HLAsetTiming periodic
+reflection under both HLA_EVOKED and HLA_IMMEDIATE. It decodes
+`HLAtimeGrantedTime` and `HLAtimeAdvancingTime` as `HLAinteger32BE`, proves
+direct reads are non-consuming, and proves the registry-owned periodic path
+consumes the interval once before monotonic accumulation resumes. It is
+source-mapped at
+`joined_federate_mom_time_state_duration_catch2.cpp:120`, with 192 assertions,
+one direct requirement-to-subsection mapping at clause `11.4.1`, and nine
+official C++ API surfaces.
+
+This is roadmap/test traceability work, not a Lab edit or conformance
+promotion. Additional MOM attributes, time-state/traffic matrices,
+save/restore, transport, package/JUnit, protected review, interoperability,
+and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-time-state-duration --summary --compact
+python tools/query_rti_work.py trace "Embedded joined-federate MOM exposes time-state durations directly and periodically" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-time-state-duration --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-time-state-duration --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.joined_federate_mom_time_state_duration\.catch2\.Embedded joined-federate MOM exposes time-state durations directly and periodically$" --output-on-failure
+~~~
+
+### RL-195 — Joined-federate MOM reflection counts extracted as a focused lane
+
+**Status:** verified focused native C++ extraction; no pinned 2025 requirement/API identifier changed.
+
+The pinned Requirements-Lab export is unchanged and was not re-synchronized.
+The next indexed MOM contract needed a source-located proof that distinct
+object instances and callback invocations are different statistics. The new
+standalone C++ case registers two application objects, delivers repeated
+receive-order updates, queues one timestamped update, and verifies direct
+`HLAobjectInstancesReflected` values `0/1/1/2` against
+`HLAreflectionsReceived` values `0/1/2/3`, then `2/4` after the matching grant.
+It also proves MOM-owned reflections are excluded and reproduces `2/4` through
+one periodic `HLAsetTiming` reflection. It is source-mapped at
+`joined_federate_mom_reflection_count_catch2.cpp:140`, with 103
+`HLA_EVOKED` assertions, one direct requirement-to-subsection mapping at
+clause `11.4.1`, and 17 official C++ API surfaces.
+
+This is roadmap/test traceability work, not a Lab edit or conformance
+promotion. HLA_IMMEDIATE, additional MOM statistics, regional/transport
+variants, save/restore, package/JUnit, protected review, interoperability,
+and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-reflection-counts --summary --compact
+python tools/query_rti_work.py trace "Embedded joined-federate MOM separates reflection totals from distinct objects" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-reflection-counts --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-reflection-counts --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.joined_federate_mom_reflection_count\.catch2\.Embedded joined-federate MOM separates reflection totals from distinct objects$" --output-on-failure
+~~~
+
+### RL-196 — Joined-federate MOM updates-sent reports extracted as a focused lane
+
+**Status:** verified focused native C++ extraction; no pinned 2025 requirement/API identifier changed.
+
+The pinned Requirements-Lab export is unchanged and was not re-synchronized.
+The next indexed MOM contract needed a source-located proof that
+`HLArequestUpdatesSent` produces one reliable RTI-originated
+`HLAreportUpdatesSent` interaction per supported transportation. The new
+standalone C++ case changes the registered `Server.Efficiency` default to
+`HLAbestEffort`, accepts two Server updates, accepts one reliable
+`Soda.Flavor` update, and decodes the official `HLAtransportation` plus nested
+`HLAobjectClassBasedCounts` values. It also requests an idle joined federate
+and verifies an empty NULL counts array for both transportation buckets,
+callback-gated delivery, empty tag, and an invalid RTI producer handle. It is
+source-mapped at
+`joined_federate_mom_updates_sent_catch2.cpp:145`, with 98 `HLA_EVOKED`
+assertions, one direct requirement-to-subsection mapping at clause `11.4.1`,
+and 13 official C++ API surfaces.
+
+This is roadmap/test traceability work, not a Lab edit or conformance
+promotion. HLA_IMMEDIATE, custom/remote transportation, timestamped and
+update-rate variants, the remaining public MOM request/report families,
+save/restore, package/JUnit, protected review, interoperability, and
+conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-updates-sent --summary --compact
+python tools/query_rti_work.py trace "Embedded MOM requestUpdatesSent reports class and transportation counts" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-updates-sent --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-updates-sent --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.joined_federate_mom_updates_sent\.catch2\.Embedded MOM requestUpdatesSent reports class and transportation counts$" --output-on-failure
+~~~
+
+### RL-197 — Joined-federate MOM interactions-sent reports extracted as a focused lane
+
+**Status:** verified focused native C++ extraction; no pinned 2025 requirement/API identifier changed.
+
+The pinned Requirements-Lab export is unchanged and was not re-synchronized.
+The next indexed MOM contract needed a source-located proof that
+`HLArequestInteractionsSent` produces one reliable RTI-originated
+`HLAreportInteractionsSent` interaction per supported transportation and
+includes regional sends. The new standalone C++ case accepts one reliable and
+one best-effort `TakeOrder`, changes transportation through the official
+confirmation callback, accepts one reliable regional `MainCourseServed`, and
+decodes the official `HLAtransportation` plus nested
+`HLAinteractionCounts` values. It also requests an idle joined federate and
+verifies an empty NULL counts array for both transportation buckets,
+callback-gated delivery, empty tag, and an invalid RTI producer handle. It is
+source-mapped at
+`joined_federate_mom_interactions_sent_catch2.cpp:153`, with 107
+`HLA_EVOKED` assertions, one direct requirement-to-subsection mapping at
+clause `11.4.1`, and 15 official C++ API surfaces.
+
+This is roadmap/test traceability work, not a Lab edit or conformance
+promotion. HLA_IMMEDIATE, custom/remote transportation, timestamped variants,
+the remaining public MOM request/report families, save/restore,
+package/JUnit, protected review, interoperability, and conformance remain
+separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-interactions-sent --summary --compact
+python tools/query_rti_work.py trace "Embedded MOM requestInteractionsSent reports class and transportation counts" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-interactions-sent --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-interactions-sent --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.joined_federate_mom_interactions_sent\.catch2\.Embedded MOM requestInteractionsSent reports class and transportation counts$" --output-on-failure
+~~~
+
+### RL-198 — Cross-family MOM sender-count reports need an explicit empty-ledger contract
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned 2025 corpus supplies the generic MOM report requirement and clause
+11.4.1, but it does not provide a single executable relation covering the
+empty-ledger behavior for `HLAreportUpdatesSent`, `HLAreportInteractionsSent`,
+and `HLAreportDirectedInteractionsSent` together. The focused C++ slice
+`mom_sender_count_reports_null_buckets_catch2.cpp:116` records 111
+`HLA_EVOKED` assertions and keeps the cross-family relation explicit in the
+local plan row `umbra-cpp-mom-sender-count-reports-null-buckets-integration`.
+It verifies two reliable/best-effort transportation buckets for each family,
+official empty nested count arrays, reliable RTI-originated metadata, and
+callback gating for an idle joined federate. No Lab resynchronization was
+needed; the immutable candidate and canonical subsection mapping remain
+unchanged. Keep this relation local until the Lab can express the family-wide
+empty-ledger/cardinality contract directly.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus mom-sender-count-reports-null-buckets --summary --compact
+python tools/query_rti_work.py trace "Embedded MOM sender count reports emit NULL buckets for empty ledgers" --summary --compact
+python tools/query_rti_work.py matrix mom-sender-count-reports-null-buckets --summary --compact
+python tools/query_rti_work.py check --lane mom-sender-count-reports-null-buckets --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.mom_sender_count_reports_null_buckets\.catch2\.Embedded MOM sender count reports emit NULL buckets for empty ledgers$" --output-on-failure
+~~~
+
+### RL-199 — Reflections-received reporting must target the receiver ledger
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned 2025 corpus exposes the generic MOM report requirement and clause
+11.4.1, but the exported candidate does not state the crucial relation between
+`HLArequestReflectionsReceived`'s `HLAfederate` parameter and the referenced
+joined federate's accepted application-reflection ledger. The focused C++ case
+`joined_federate_mom_reflections_received_catch2.cpp:194` records 129
+`HLA_EVOKED` assertions and makes that relation executable: two best-effort
+Server callbacks and one reliable Soda callback are delivered to a receiver,
+the request names that receiver, and the report returns one populated bucket
+per supported transportation. A second request names an idle joined federate
+and verifies two empty `HLAreflectCounts` NULL buckets. The case also keeps
+application producer metadata distinct from RTI-originated report metadata.
+No Lab resynchronization was needed; the immutable candidate and canonical
+subsection mapping remain unchanged. Keep this receiver-ledger relation local
+until the Lab can express the request-target/cardinality contract directly.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-reflections-received --summary --compact
+python tools/query_rti_work.py trace "Embedded MOM requestReflectionsReceived reports class and transportation counts" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-reflections-received --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-reflections-received --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.joined_federate_mom_reflections_received\.catch2\.Embedded MOM requestReflectionsReceived reports class and transportation counts$" --output-on-failure
+~~~
+
+### RL-200 — Interactions-received reporting must target the receiver ledger
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned 2025 corpus exposes the generic MOM report requirement and clause
+11.4.1, but the exported candidate does not state the relation between
+`HLArequestInteractionsReceived`'s `HLAfederate` parameter and the represented
+joined federate's accepted application receive-callback ledger. The focused C++
+case `joined_federate_mom_interactions_received_catch2.cpp:149` records 113
+`HLA_EVOKED` assertions and makes that relation executable: one reliable and
+one best-effort `TakeOrder` callback are delivered to a receiver, the request
+names that receiver, and the report returns one populated bucket per supported
+transportation. A second request names an idle joined federate and verifies two
+empty `HLAinteractionCounts` NULL buckets. The case also keeps application
+producer metadata distinct from RTI-originated report metadata. No Lab
+resynchronization was needed; the immutable candidate and canonical subsection
+mapping remain unchanged. Keep this receiver-ledger relation local until the
+Lab can express the request-target/cardinality contract directly.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-interactions-received --summary --compact
+python tools/query_rti_work.py trace "Embedded MOM requestInteractionsReceived reports class and transportation counts" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-interactions-received --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-interactions-received --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.joined_federate_mom_interactions_received\.catch2\.Embedded MOM requestInteractionsReceived reports class and transportation counts$" --output-on-failure
+~~~
+
+### RL-201 — Directed interactions-received reporting must exclude ordinary receives
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned 2025 corpus exposes the generic MOM report requirement and clause
+11.4.1, but the exported candidate does not state that
+`HLArequestDirectedInteractionsReceived` reports the directed subset of the
+represented federate's accepted receive callbacks rather than every ordinary
+interaction receive. The focused C++ case
+`joined_federate_mom_directed_interactions_received_catch2.cpp:180` records 119
+`HLA_EVOKED` assertions and makes that relation executable: an ordinary and a
+directed `TakeOrder` are both delivered to a receiver, only the directed
+callback enters the directed ledger, and the report returns one populated
+reliable bucket plus an empty best-effort bucket. An idle request verifies two
+empty `HLAinteractionCounts` NULL buckets. No Lab resynchronization was needed;
+the immutable candidate and canonical subsection mapping remain unchanged.
+Keep this directed-subset relation local until the Lab can express the
+callback-boundary and ordinary-exclusion contract directly.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-directed-interactions-received --summary --compact
+python tools/query_rti_work.py trace "Embedded MOM requestDirectedInteractionsReceived reports directed counts and NULL buckets" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-directed-interactions-received --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-directed-interactions-received --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.joined_federate_mom_directed_interactions_received\.catch2\.Embedded MOM requestDirectedInteractionsReceived reports directed counts and NULL buckets$" --output-on-failure
+~~~
+
+### RL-202 — Regional attribute source-resignation row needs explicit default-source labeling
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned candidate set for the timestamped regional attribute source-
+resignation scenario names the regional update and resignation relations but
+its original local plan metadata selected `registerObjectInstanceWithRegions`
+while the intended boundary is ordinary `registerObjectInstance` with the
+RTI's private default source region. The focused C++ case
+`timestamped_regional_attribute_update_resignation_catch2.cpp:146` now records
+58 `HLA_EVOKED` assertions and makes the distinction explicit: a regional
+subscriber receives one queued timestamped passel after source
+`UNCONDITIONALLY_DIVEST_ATTRIBUTES` resignation, the independent regulator
+releases it before the receiver's TAR(7) grant, the callback carries a
+supplied-empty `RegionHandleSet`, and post-resignation `Retract` raises
+`FederateNotExecutionMember`. The local plan row now uses the official
+`registerObjectInstance` and `changeDefaultAttributeOrderType` API surfaces,
+and the `default-region` query tag. No Lab resynchronization was needed; the
+immutable candidate and canonical subsection mappings remain unchanged.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus timestamped-regional-attribute-update-resignation --summary --compact
+python tools/query_rti_work.py trace "Embedded queued timestamped regional attribute update survives source resignation" --summary --compact
+python tools/query_rti_work.py matrix timestamped-regional-attribute-update-resignation --summary --compact
+python tools/query_rti_work.py check --lane timestamped-regional-attribute-update-resignation --summary --compact
+cmake --build .build --config Debug --target umbra_timestamped_regional_attribute_update_resignation_catch2
+ctest --test-dir .build -C Debug -R "^umbra\.timestamped_regional_attribute_update_resignation\.catch2\.Embedded queued timestamped regional attribute update survives source resignation$" --output-on-failure
+~~~
+
+### RL-203 — Negotiated cancellation needs a pre-confirmation lifecycle boundary
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned candidate set groups negotiated divestiture, requester resignation,
+and saved regional delivery, but it does not expose a compact lifecycle row for
+the boundary where an If Available willing-to-acquire reservation is present,
+the owner has entered negotiated Waiting, and the requester resigns with
+`CANCEL_PENDING_OWNERSHIP_ACQUISITIONS` before `Request Divestiture Confirmation`.
+The focused C++ case
+`timed_live_tso_regional_attribute_update_multi_recipient_negotiated_cancel_pending_after_restore_catch2.cpp:263`
+records 135 `HLA_EVOKED` assertions and makes that boundary executable: stale
+negotiated confirmation work is suppressed, no owner-release or acquisition
+notification callback is delivered, ownership remains with the source, and the
+surviving constrained recipient receives exactly one saved reflection at its
+Flush Queue boundary. No Lab resynchronization was needed; the immutable
+candidate and canonical subsection mappings remain unchanged. Keep this
+pre-confirmation cancellation relation local until the Lab can express the
+state transition and callback-suppression contract directly.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus tso-regional-attribute-update-timed-negotiated-cancel-pending-after-restore --summary --compact
+python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update survives requester cancellation of pending negotiated ownership transfer after restore" --summary --compact
+python tools/query_rti_work.py matrix tso-regional-attribute-update-timed-negotiated-cancel-pending-after-restore --summary --compact
+python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-negotiated-cancel-pending-after-restore --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_cancel_pending_after_restore\.catch2\.Embedded timed multi-recipient regional timestamped attribute update survives requester cancellation of pending negotiated ownership transfer after restore$" --output-on-failure
+~~~
+
+### RL-204 — If Available callback consumption is a continuation boundary
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The first run of the focused negotiated-continuation-after-restore case exposed
+a lifecycle edge that the pinned candidate set does not describe: an accepted
+`attributeOwnershipAcquisitionIfAvailable` request can still have an evoked
+callback queued, and beginning that callback while the owner still holds the
+attribute consumes the request as unavailable. Draining the independent clock's
+callback before `Confirm Divestiture` therefore produced `NoAcquisitionPending`.
+The corrected C++ case
+`timed_live_tso_regional_attribute_update_multi_recipient_negotiated_continuation_after_restore_catch2.cpp:283`
+keeps both callbacks pending, lets the first requester resign with
+`CANCEL_PENDING_OWNERSHIP_ACQUISITIONS`, reissues negotiation against the
+second pending callback, and drains the stale clock callback only after
+`Confirm Divestiture`. It now passes with 158 `HLA_EVOKED` assertions, forwards
+the second acquisition tag, preserves the saved regional reflection ordering,
+and delivers one terminal acquisition notification after ownership transfer.
+No Requirements Lab resynchronization was needed; the immutable candidate and
+canonical subsection mappings remain unchanged. Keep the distinction between a
+queued If Available callback and a persistent post-callback Willing-to-Acquire
+reservation local until the Lab can express that state boundary directly.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus tso-regional-attribute-update-timed-negotiated-continuation-after-restore --summary --compact
+python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update continues to a retained negotiated ownership candidate after restore" --summary --compact
+python tools/query_rti_work.py matrix tso-regional-attribute-update-timed-negotiated-continuation-after-restore --summary --compact
+python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-negotiated-continuation-after-restore --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_continuation_after_restore\.catch2\.Embedded timed multi-recipient regional timestamped attribute update continues to a retained negotiated ownership candidate after restore$" --output-on-failure
+~~~
+
+### RL-205 — Cancellation after Request Divestiture Confirmation is a distinct boundary
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned candidate set describes negotiated divestiture and the
+`Cancel Negotiated Attribute Ownership Divestiture` service, but it does not
+provide a compact row for cancellation after `Request Divestiture
+Confirmation` has already reached the owner. The focused C++ case
+`timed_live_tso_regional_attribute_update_multi_recipient_negotiated_confirmation_cancel_after_restore_catch2.cpp:283`
+records 161 `HLA_EVOKED` assertions and makes this boundary executable: two
+If Available requests are queued, the first requester resigns with
+`CANCEL_PENDING_OWNERSHIP_ACQUISITIONS`, the retained candidate is selected for
+negotiation, and the owner receives confirmation before cancelling. Cancellation
+keeps ownership with the source and rejects a stale `Confirm Divestiture`; the
+queued clock callback then reports unavailable and no owner-release callback is
+emitted. No Requirements Lab resynchronization was needed; the immutable
+candidate and canonical subsection mappings remain unchanged. Keep the
+post-confirmation cancellation and queued-callback distinction local until the
+Lab can express that state boundary directly.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus tso-regional-attribute-update-timed-negotiated-confirmation-cancel-after-restore --summary --compact
+python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update cancels retained negotiated owner confirmation after restore" --summary --compact
+python tools/query_rti_work.py matrix tso-regional-attribute-update-timed-negotiated-confirmation-cancel-after-restore --summary --compact
+python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-negotiated-confirmation-cancel-after-restore --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_confirmation_cancel_after_restore\.catch2\.Embedded timed multi-recipient regional timestamped attribute update cancels retained negotiated owner confirmation after restore$" --output-on-failure
+~~~
+
+### RL-206 — Different-timestamp attribute order needs a recipient-local executable row
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned candidates cover timestamped attribute admission and queueing but do
+not provide a small row that contrasts a later timestamp submitted first with
+an earlier equal-timestamp cohort across more than one constrained recipient.
+The focused C++ case
+`timestamped_attribute_order_cohort_catch2.cpp:152` records 87 `HLA_EVOKED`
+assertions and makes that boundary executable: timestamp 7 is submitted before
+two timestamp-5 updates, each constrained recipient receives both timestamp-5
+records before its grant and then timestamp 7 at the next grant, and callback
+metadata is preserved. The order within the equal-timestamp cohort is left
+unspecified. No Requirements Lab resynchronization was needed; the immutable
+candidate and canonical subsection mappings remain unchanged.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus timestamped-attribute-order-cohort --summary --compact
+python tools/query_rti_work.py trace "Embedded timestamped attribute updates preserve different-timestamp order for each constrained recipient" --summary --compact
+python tools/query_rti_work.py matrix timestamped-attribute-order-cohort --summary --compact
+python tools/query_rti_work.py check --lane timestamped-attribute-order-cohort --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.timestamped_attribute_order_cohort\.catch2\.Embedded timestamped attribute updates preserve different-timestamp order for each constrained recipient$" --output-on-failure
+~~~
+
+### RL-207 — Directed changed-lookahead needs a target-qualified executable row
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned candidates cover directed interaction delivery and the Time
+Regulation lookahead rules, but they do not provide a compact executable row
+that combines a known target object with regulation disable/re-enable and a
+changed lookahead. The focused C++ case
+`timestamped_directed_interaction_regulation_reenable_changed_lookahead_catch2.cpp:151`
+records 57 `HLA_EVOKED` assertions and makes that boundary queryable: one
+target-qualified reliable interaction is queued at time five under lookahead
+one, regulation is disabled and re-enabled at lookahead three, Query Lookahead
+reports the new value, and advancing the producer to time two releases the
+directed callback at time five before the constrained recipient's grant. Target,
+tag, producer, timestamp/order, transportation, callback, and terminal
+retraction metadata remain intact. No Requirements Lab resynchronization was
+needed; the immutable candidates and canonical subsection mappings remain
+unchanged.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus timestamped-directed-interaction-regulation-reenable-changed-lookahead --summary --compact
+python tools/query_rti_work.py trace "Embedded queued timestamped directed interaction survives time-regulation disable and re-enable with changed lookahead" --summary --compact
+python tools/query_rti_work.py matrix timestamped-directed-interaction-regulation-reenable-changed-lookahead --summary --compact
+python tools/query_rti_work.py check --lane timestamped-directed-interaction-regulation-reenable-changed-lookahead --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.timestamped_directed_interaction_regulation_reenable_changed_lookahead\.catch2\.Embedded queued timestamped directed interaction survives time-regulation disable and re-enable with changed lookahead$" --output-on-failure
+~~~
+
+### RL-208 — Current-FDD MOM refresh is a distinct executable boundary
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The next indexed handoff was implemented without re-reading or re-numbering the
+unchanged Requirements Lab. The focused C++ case
+`federation_mom_current_fdd_catch2.cpp:150` is now mapped as
+`umbra-cpp-federation-mom-current-fdd-integration`. It records 60
+`HLA_EVOKED` assertions against the pinned clause-4 content-access candidate
+`requirement-candidate-content-clauses-04-federation-management-page-049-l19-4`.
+The case discovers the RTI-owned `HLAfederation` object, requests
+`HLAcurrentFDD` through the official `HLAunicodeString` representation, checks
+the schema-composed base FDD, observes a reliable conditional reflection after
+an additional compatible FOM Join contributes `UmbraReferenceFixtureClass`,
+and confirms that a direct Request Attribute Value Update returns the same
+refreshed value. It also checks the default-invalid RTI producer, empty tag,
+no-region metadata, known-object lookups, and the reliable transportation
+report. This is development-profile traceability evidence only; the Lab's
+cross-cutting clause record does not model the MOM object/attribute lifecycle,
+the conditional refresh trigger, or the direct-request agreement.
+
+No Requirements Lab resynchronization was needed. Keep the current-FDD MOM
+relation local until the Lab can express those state and callback boundaries
+directly; remote transport, full FDD/module access matrices, JUnit/protected
+review, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus federation-mom-current-fdd --summary --compact
+python tools/query_rti_work.py trace "Embedded federation MOM exposes and refreshes HLAcurrentFDD" --summary --compact
+python tools/query_rti_work.py matrix "Embedded federation MOM exposes and refreshes HLAcurrentFDD" --summary --compact
+python tools/query_rti_work.py check --lane federation-mom-current-fdd --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.federation_mom_current_fdd\.catch2\.Embedded federation MOM exposes and refreshes HLAcurrentFDD$" --output-on-failure
+~~~
+
+### RL-209 — Later-join transportation identity is an executable FOM-composition boundary
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The indexed transportation-handle stability row was previously represented
+only by a stale aggregate source pointer. Without reopening or resynchronizing
+the unchanged Requirements Lab, it is now isolated at
+`cpp/tests/custom_transportation_handle_stability_catch2.cpp:44` as
+`umbra-cpp-custom-transportation-handle-stability-integration`. The 21
+`HLA_EVOKED` assertions map the existing federation lifecycle and
+transportation-table candidates to 11 canonical 2025 sections. A later Join
+adds an earlier-sorting transportation; the test proves the existing handle
+and name remain unchanged for both joined federates while the new handle/name
+is shared. This immutable execution-directory consequence is source-derived;
+transport delivery, mutation, conflict handling, remote/package/JUnit,
+protected review, interoperability, and conformance remain separate.
+
+No Requirements Lab resynchronization was needed. The source pointer is now
+focused and the aggregate row remains diagnostic only.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus transportation-handle-stability --summary --compact
+python tools/query_rti_work.py trace "Embedded custom transportation handles remain stable across an additional FOM join" --summary --compact
+python tools/query_rti_work.py matrix "Embedded custom transportation handles remain stable across an additional FOM join" --summary --compact
+python tools/query_rti_work.py check --lane transportation-handle-stability --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.custom_transportation_handle_stability\.catch2\.Embedded custom transportation handles remain stable across an additional FOM join$" --output-on-failure
+~~~
+
+### RL-210 — Unnamed registration/discovery needs a focused callback boundary
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The next indexed object/DDM row was represented only by an aggregate source
+pointer and had no executable source location. It is now isolated without
+resynchronizing the unchanged Requirements Lab at
+`cpp/tests/object_instance_registration_discovery_catch2.cpp:78` as
+`umbra-cpp-object-instance-registration-discovery-integration`. The focused
+case records 81 assertions under both `HLA_EVOKED` and `HLA_IMMEDIATE`, mapping
+eight Lab anchors to clauses 5.1.2, 6.1.2, 6.8.4, and 6.9.3. It covers
+publication preconditions, generated unnamed instance identity, exact and
+superclass discovery promotion, unsubscribe-before-callback re-evaluation,
+and recipient-local known-instance/name/handle lookups. Deletion/removal,
+named registration, regional DDM, ownership, timestamped behavior,
+save/restore, remote/package/JUnit, protected review, and conformance remain
+separate.
+
+No Requirements Lab resynchronization was needed; the aggregate declaration
+remains historical and diagnostic.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus object-instance-registration-discovery --summary --compact
+python tools/query_rti_work.py trace "Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle" --summary --compact
+python tools/query_rti_work.py matrix "Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle" --summary --compact
+python tools/query_rti_work.py check --lane object-instance-registration-discovery --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.object_instance_registration_discovery\.catch2\.Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle$" --output-on-failure
+~~~
+
+### RL-211 — Attribute Relevance Advisory plan row needed an exact C++ declaration
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row `umbra-cpp-attribute-relevance-advisory-integration` was
+marked implemented but had no matching `TEST_CASE` declaration, so it was
+returned repeatedly by `ready` as source-unlocated work. The existing focused
+regional target now contains the exact ordinary-scope declaration at
+`cpp/tests/attribute_relevance_advisory_catch2.cpp:265`. It records 106
+assertions under `HLA_EVOKED` and `HLA_IMMEDIATE`, mapping nine Lab anchors
+directly to clauses 6.23, 6.24, and 10.37.1. The case covers subscription after
+discovery, default/no-rate and explicit-rate-bearing Turn Updates On callbacks,
+switch-disabled suppression, and active-rate reissue.
+
+No Requirements Lab resynchronization was needed; the plan and live source
+index now agree. The separate regional callback-entry case remains an
+independent lane and source declaration.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus attribute-relevance-scope-transition --summary --compact
+python tools/query_rti_work.py trace "Embedded attribute relevance advisories follow scope transitions" --summary --compact
+python tools/query_rti_work.py matrix "Embedded attribute relevance advisories follow scope transitions" --summary --compact
+python tools/query_rti_work.py check --lane attribute-relevance-scope-transition --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.attribute_relevance_advisory\.catch2\.Embedded attribute relevance advisories follow scope transitions$" --output-on-failure
+~~~
+
+### RL-212 — Query Attribute Ownership MOM-interaction row needed an exact C++ declaration
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row `umbra-cpp-mom-query-attribute-ownership-interaction-integration`
+was implemented in the development profile but had no matching `TEST_CASE`
+declaration, so `ready` repeatedly returned it as source-unlocated work. The
+existing standalone ownership target now contains the exact declaration at
+`cpp/tests/attribute_ownership_query_catch2.cpp:296`. It records 67 assertions
+with an HLA_IMMEDIATE MOM observer and an HLA_EVOKED ownership-result requester,
+decoding the type-3 `HLAreportServiceInvocation` (type-37 object and type-1
+attribute-set arguments, type-34 null return, success, empty exception, and
+serial zero) before the grouped owner/unowned callbacks.
+
+The row is mapped to 11 existing Lab anchors across clauses 7.17.5, 7.18.4,
+11.5, 11.5.1, 11.5.2, and 11.5.2.1. No Lab resynchronization was needed;
+the plan and live source index now agree. RTI-owned and generic failure/return
+forms, file publication, ownership mutation, save/restore, DDM, remote/package
+evidence, protected review, validation, and conformance remain separate work.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus query-attribute-ownership-service-report-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting delivers Query Attribute Ownership through MOM interaction" --summary --compact
+python tools/query_rti_work.py matrix query-attribute-ownership-service-report-interaction --summary --compact
+python tools/query_rti_work.py check --lane query-attribute-ownership-service-report-interaction --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.attribute_ownership_query\.catch2\.Embedded service reporting delivers Query Attribute Ownership through MOM interaction$" --output-on-failure
+~~~
+
+### RL-213 — Cancel Attribute Ownership Acquisition MOM row needed an exact C++ declaration
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-service-report-interaction-cancel-attribute-ownership-acquisition-integration`
+was implemented in the development profile but had no matching `TEST_CASE`
+declaration, so `ready` repeatedly returned it as source-unlocated work. The
+ownership-acquisition cancellation target now contains the exact declaration
+at `cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp:387`.
+It records 77 assertions with an HLA_IMMEDIATE MOM observer and an HLA_EVOKED
+requester, decoding one reliable type-3 `HLAreportServiceInvocation` (type-37
+object and type-1 attribute-set supplied records, type-34 null return,
+successful indicator, empty exception, and serial zero) before the queued
+confirmation callback.
+
+The row is mapped to six existing Lab anchors across clauses 7.15, 7.16, 11.5,
+11.5.2, and 11.5.2.1, with five official C++ API surfaces including
+`Subscribe Interaction Class` and `Receive Interaction`. No Lab
+resynchronization was needed; the plan, roadmap index, and live source index
+now agree. File-selected/rejected paths, broader ownership races,
+`HLAreportServiceFile` publication, save/restore, DDM, remote/package/JUnit,
+protected review, validation, and conformance remain separate work.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus cancel-attribute-ownership-acquisition-service-report-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM" --summary --compact
+python tools/query_rti_work.py matrix cancel-attribute-ownership-acquisition-service-report-interaction --summary --compact
+python tools/query_rti_work.py check --lane cancel-attribute-ownership-acquisition-service-report-interaction --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.attribute_ownership_acquisition_cancellation\.catch2\.Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM$" --output-on-failure
+~~~
+
+### RL-214 — Cancel Negotiated Attribute Ownership Divestiture MOM row needed an exact C++ declaration
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-service-report-interaction-cancel-negotiated-attribute-ownership-divestiture-integration`
+was implemented in the development profile but had no matching `TEST_CASE`
+declaration, so `ready` repeatedly returned it as source-unlocated work. The
+negotiated ownership target now contains the exact declaration at
+`cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp:547`.
+It records 87 assertions with an HLA_IMMEDIATE MOM observer and an HLA_EVOKED
+owner, decoding one reliable type-3 `HLAreportServiceInvocation` (type-37
+object and type-1 attribute-set supplied records, type-34 null return,
+successful indicator, empty exception, and serial zero) before the restored
+ordinary release callback.
+
+The row is mapped to five existing Lab anchors across clauses 7.8, 7.14.6,
+11.5, 11.5.2, and 11.5.2.1, with six official C++ API surfaces including
+`Subscribe Interaction Class` and `Receive Interaction`. No Lab
+resynchronization was needed; the plan, roadmap index, recent-slice ledger,
+and live source index now agree. File-selected/rejected paths, complete
+negotiated arbitration, `HLAreportServiceFile` publication, save/restore, DDM,
+remote/package/JUnit, protected review, validation, and conformance remain
+separate work.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus cancel-negotiated-attribute-ownership-divestiture-service-report-interaction --summary --compact
+python tools/query_rti_work.py trace "Embedded service reporting delivers Cancel Negotiated Attribute Ownership Divestiture through MOM interaction" --summary --compact
+python tools/query_rti_work.py matrix cancel-negotiated-attribute-ownership-divestiture-service-report-interaction --summary --compact
+python tools/query_rti_work.py check --lane cancel-negotiated-attribute-ownership-divestiture-service-report-interaction --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.negotiated_attribute_ownership_divestiture_pending\.catch2\.Embedded service reporting delivers Cancel Negotiated Attribute Ownership Divestiture through MOM interaction$" --output-on-failure
+~~~
+
+### RL-215 — Service Reporting interlock needed a dedicated source-backed C++ lane
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-mom-service-reporting-interlock-integration` was implemented in the
+development profile but had no matching `TEST_CASE` declaration, so `ready`
+could not provide a bounded source-backed handoff. The new dedicated target
+contains the exact declaration at
+`cpp/tests/mom_service_reporting_interlock_catch2.cpp:50` and records 41
+`HLA_EVOKED` assertions. It rejects active and passive ordinary and regional
+`HLAreportServiceInvocation` subscriptions while Service Reporting is enabled,
+preserves the switch on failed enable attempts, and verifies
+removal-before-enable recovery after unsubscription. Its regional setup uses
+the standard MIM `HLAserviceGroup` dimension and committed range.
+
+The row is mapped to three existing Lab anchors across clauses 5.10.2, 9.10.3,
+and 11.5, with eight official C++ API surfaces. During this slice the runtime
+ordinary-subscription guard was tightened so passive declarations cannot evade
+the standard subscription interlock; the regional path already applied the
+same rule. No Lab resynchronization was needed; the plan, roadmap index, recent
+slice ledger, and live source index now agree. Generic MOM interaction routing,
+filesystem report-file lifecycle, `HLAreportServiceFile` publication,
+remote/package/JUnit, protected review, validation, and conformance remain
+separate work.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus service-reporting-interlock --summary --compact
+python tools/query_rti_work.py trace "Embedded MOM service-reporting state excludes report-service subscriptions" --summary --compact
+python tools/query_rti_work.py matrix service-reporting-interlock --summary --compact
+python tools/query_rti_work.py check --lane service-reporting-interlock --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.mom_service_reporting_interlock\.catch2\.Embedded MOM service-reporting state excludes report-service subscriptions$" --output-on-failure
+~~~
+
+### RL-216 — Joined-federate deletable-object MOM row needed an exact C++ declaration
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-joined-federate-mom-deletable-object-count-periodic-integration`
+was implemented in the development profile but had no matching `TEST_CASE`
+declaration, so `ready` could not expose the next MOM ownership handoff as a
+source-backed lane. The new dedicated target contains the exact declaration at
+`cpp/tests/joined_federate_mom_deletable_object_count_catch2.cpp:108` and
+records 55 `HLA_EVOKED` assertions. It subscribes to the owner's joined-
+federate MOM object, requests `HLAobjectInstancesThatCanBeDeleted` directly,
+and verifies the live `HLAprivilegeToDeleteObject` count transitions 0 → 1
+after implicit-privilege registration, 1 through periodic `HLAsetTiming`
+reflection, and 0 after owner deletion. RTI-owned MOM objects are excluded.
+
+The row is mapped to the existing §11.4.1 Lab anchor with 12 official C++ API
+surfaces. No Lab resynchronization was needed; the plan, roadmap index, recent
+slice ledger, and live source index now agree. Remaining MOM traffic/statistics,
+regional/transport variants, public producer mapping, filesystem reporting,
+remote/package/JUnit, protected review, validation, and conformance remain
+separate work.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-deletable-object-count --summary --compact
+python tools/query_rti_work.py trace "Embedded joined-federate MOM exposes deletable object count" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-deletable-object-count --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-deletable-object-count --summary --compact
+ctest --test-dir .build -C Release -R "^umbra\.joined_federate_mom_deletable_object_count\.catch2\.Embedded joined-federate MOM exposes deletable object count$" --output-on-failure
+~~~
+
+### RL-217 — Joined-federate MOM receive-order length needed an exact C++ declaration
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-joined-federate-mom-ro-length-periodic-integration` is now
+source-backed by the exact declaration
+`Embedded joined-federate MOM exposes receive-order queue length` at
+`cpp/tests/joined_federate_mom_ro_length_periodic_catch2.cpp:134`. Its focused
+HLA_EVOKED run is green with 63 assertions. The native case maps the generic
+§11.4.1 MOM candidate to 12 official C++ API surfaces and proves the
+recipient-scoped `HLAROlength` queue transition 0 → 1 before callback delivery,
+1 through `HLAsetTiming` periodic reflection, and 0 after the receive-order
+callback. The direct request preserves the accepted-boundary value so an earlier
+queued application callback cannot change the requested snapshot; RTI-owned MOM
+traffic is not counted.
+
+No Lab resynchronization was needed. The plan, roadmap index, recent-slice
+ledger, and live source index now agree. Deferred asynchronous/TSO variants,
+remaining MOM statistics, regional/transport variants, public producer mapping,
+filesystem reporting, remote/package/JUnit/protected-review evidence, Lab
+validation, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-ro-length-periodic --summary --compact
+python tools/query_rti_work.py trace "Embedded joined-federate MOM exposes receive-order queue length" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-ro-length-periodic --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-ro-length-periodic --summary --compact
+cmake --build .build --config Release --target umbra_joined_federate_mom_ro_length_periodic_catch2
+ctest --test-dir .build -C Release -R "^umbra\.joined_federate_mom_ro_length_periodic\.catch2\.Embedded joined-federate MOM exposes receive-order queue length$" --output-on-failure
+~~~
+
+### RL-218 — Joined-federate MOM `HLAupdatesSent` needed an exact C++ declaration
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-joined-federate-mom-updates-sent-periodic-integration` is now
+source-backed by the exact declaration
+`Embedded joined-federate MOM exposes HLAupdatesSent count` at
+`cpp/tests/joined_federate_mom_updates_sent_periodic_catch2.cpp:108`. Its
+focused HLA_EVOKED run is green with 56 assertions. The native case maps the
+generic §11.4.1 MOM candidate to 12 official C++ API surfaces and proves that
+the joined-federate `HLAupdatesSent` value is recipient-scoped and counts
+accepted `Update Attribute Values` service invocations: 0 → 1 → 2. An
+`HLAsetTiming` periodic reflection preserves the accepted count at 2; it does
+not count individual attribute values, MOM reflections, or callbacks.
+
+No Lab resynchronization was needed. The plan, roadmap index, recent-slice
+ledger, and live source index now agree. Remaining MOM traffic/statistics,
+regional/transport variants, public producer mapping, timestamped/update-rate
+variants, filesystem reporting, remote/package/JUnit/protected-review
+evidence, Lab validation, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-updates-sent-periodic --summary --compact
+python tools/query_rti_work.py trace "Embedded joined-federate MOM exposes HLAupdatesSent count" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-updates-sent-periodic --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-updates-sent-periodic --summary --compact
+cmake --build .build --config Release --target umbra_joined_federate_mom_updates_sent_periodic_catch2
+ctest --test-dir .build -C Release -R "^umbra\.joined_federate_mom_updates_sent_periodic\.catch2\.Embedded joined-federate MOM exposes HLAupdatesSent count$" --output-on-failure
+~~~
+
+### RL-219 — Joined-federate MOM `HLAobjectInstancesUpdated` needed an exact C++ declaration
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-joined-federate-mom-updated-object-count-periodic-integration` is
+now source-backed by the exact declaration
+`Embedded joined-federate MOM exposes HLAobjectInstancesUpdated count` at
+`cpp/tests/joined_federate_mom_updated_object_count_periodic_catch2.cpp:109`.
+Its focused HLA_EVOKED run is green with 77 assertions. The native case maps
+the generic §11.4.1 MOM candidate to 12 official C++ API surfaces and proves
+that the joined-federate `HLAobjectInstancesUpdated` value is a distinct-object
+HLAcount: 0 before updates, 1 after two accepted updates to one object, and 2
+after an accepted update to a second object. Periodic `HLAsetTiming` reflection
+preserves 2 alongside `HLAupdatesSent=3`; repeated service invocations,
+individual attribute values, MOM reflections, and downstream callbacks do not
+inflate the distinct-object count.
+
+No Lab resynchronization was needed. The plan, roadmap index, recent-slice
+ledger, and live source index now agree. Remaining MOM traffic/statistics,
+timestamped/update-rate and regional/transport variants, public producer
+mapping, filesystem reporting, remote/package/JUnit/protected-review evidence,
+Lab validation, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-updated-object-count-periodic --summary --compact
+python tools/query_rti_work.py trace "Embedded joined-federate MOM exposes HLAobjectInstancesUpdated count" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-updated-object-count-periodic --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-updated-object-count-periodic --summary --compact
+cmake --build .build --config Release --target umbra_joined_federate_mom_updated_object_count_periodic_catch2
+ctest --test-dir .build -C Release -R "^umbra\.joined_federate_mom_updated_object_count_periodic\.catch2\.Embedded joined-federate MOM exposes HLAobjectInstancesUpdated count$" --output-on-failure
+~~~
+
+### RL-220 — Joined-federate MOM `HLAobjectInstancesRegistered` needed an exact C++ declaration
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-joined-federate-mom-registered-object-count-periodic-integration`
+is now source-backed by the exact declaration
+`Embedded joined-federate MOM exposes HLAobjectInstancesRegistered count` at
+`cpp/tests/joined_federate_mom_registered_object_count_periodic_catch2.cpp:115`.
+Its focused HLA_EVOKED run is green with 112 assertions. The native case maps
+the generic §11.4.1 MOM candidate to 12 official C++ API surfaces and proves
+that the joined-federate `HLAobjectInstancesRegistered` value is an accepted
+registration HLAcount: 0 before registration, 1 after the first successful
+object registration, and 2 after a second. Three accepted updates establish
+the companion `HLAupdatesSent=3` and `HLAobjectInstancesUpdated=2` values;
+periodic `HLAsetTiming` reflection preserves the complete snapshot.
+
+No Lab resynchronization was needed. The plan, roadmap index, recent-slice
+ledger, and live source index now agree. Invalid registration paths, remaining
+MOM traffic/statistics, timestamped/update-rate and regional/transport
+variants, public producer mapping, filesystem reporting, remote/package/JUnit/
+protected-review evidence, Lab validation, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-registered-object-count-periodic --summary --compact
+python tools/query_rti_work.py trace "Embedded joined-federate MOM exposes HLAobjectInstancesRegistered count" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-registered-object-count-periodic --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-registered-object-count-periodic --summary --compact
+cmake --build .build --config Release --target umbra_joined_federate_mom_registered_object_count_periodic_catch2
+ctest --test-dir .build -C Release -R "^umbra\.joined_federate_mom_registered_object_count_periodic\.catch2\.Embedded joined-federate MOM exposes HLAobjectInstancesRegistered count$" --output-on-failure
+~~~
+
+### RL-221 — Receiving-federate MOM `HLAobjectInstancesRemoved` needed an exact C++ declaration
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-joined-federate-mom-removed-object-count-periodic-integration`
+is source-backed by the exact declaration
+`Embedded joined-federate MOM HLAobjectInstancesRemoved counts committed callbacks`
+at `cpp/tests/joined_federate_mom_removed_object_count_periodic_catch2.cpp:145`.
+Its focused HLA_EVOKED run is green with 78 assertions. The native case maps
+the generic §11.4.1 MOM candidate to 14 official C++ API surfaces and proves
+the receiving federate's committed no-time Remove Object Instance callback
+ledger: direct and periodic values are 0 before removal, 1 after the first
+callback, and 2 after the second. Sender-side deletion history and MOM
+reflections do not inflate the recipient-scoped value; timestamped/retraction
+semantics remain covered by the separate TSO vector.
+
+No Lab resynchronization was needed. The plan, roadmap index, recent-slice
+ledger, and live source index now agree. Remaining MOM statistics, public
+producer mapping, timestamped/update-rate and regional/transport variants,
+filesystem reporting, remote/package/JUnit/protected-review evidence, Lab
+validation, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-removed-object-count-periodic --summary --compact
+python tools/query_rti_work.py trace "Embedded joined-federate MOM HLAobjectInstancesRemoved counts committed callbacks" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-removed-object-count-periodic --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-removed-object-count-periodic --summary --compact
+cmake --build .build --config Release --target umbra_joined_federate_mom_removed_object_count_periodic_catch2
+ctest --test-dir .build -C Release -R "^umbra\.joined_federate_mom_removed_object_count_periodic\.catch2\.Embedded joined-federate MOM HLAobjectInstancesRemoved counts committed callbacks$" --output-on-failure
+~~~
+
+### RL-222 — Receiving-federate MOM `HLAobjectInstancesDiscovered` needed an exact C++ declaration
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-joined-federate-mom-discovered-object-count-periodic-integration`
+is source-backed by the exact declaration
+`Embedded joined-federate MOM HLAobjectInstancesDiscovered counts eligible callbacks`
+at `cpp/tests/joined_federate_mom_discovered_object_count_periodic_catch2.cpp:127`.
+Its focused HLA_EVOKED run is green with 66 assertions. The native case maps
+the generic §11.4.1 MOM candidate to 14 official C++ API surfaces and proves
+the receiving federate's committed application-object discovery ledger: direct
+and periodic values are 0 before discovery, 2 after two ordinary discovery
+callbacks, and 3 after Local Delete Object Instance followed by an eligible
+subscription rediscovery. RTI-owned MOM discovery is excluded.
+
+No Lab resynchronization was needed. The plan, roadmap index, recent-slice
+ledger, and live source index now agree. Remaining MOM statistics, public
+producer mapping, timestamped/update-rate and regional/transport variants,
+filesystem reporting, remote/package/JUnit/protected-review evidence, Lab
+validation, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-discovered-object-count-periodic --summary --compact
+python tools/query_rti_work.py trace "Embedded joined-federate MOM HLAobjectInstancesDiscovered counts eligible callbacks" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-discovered-object-count-periodic --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-discovered-object-count-periodic --summary --compact
+cmake --build .build --config Release --target umbra_joined_federate_mom_discovered_object_count_periodic_catch2
+ctest --test-dir .build -C Release -R "^umbra\.joined_federate_mom_discovered_object_count_periodic\.catch2\.Embedded joined-federate MOM HLAobjectInstancesDiscovered counts eligible callbacks$" --output-on-failure
+~~~
+
+### RL-223 — Handle-normalization support services received a bounded native C++ lane
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row `umbra-cpp-handle-normalization-integration` is now
+source-backed by the exact declaration `Embedded handle normalization supplies
+stable DDM point-range coordinates` at
+`cpp/tests/handle_normalization_catch2.cpp:60`. Its focused HLA_EVOKED run is
+green with 52 assertions. The native case maps six immutable Requirements-Lab
+anchors to §§10.1.3 and 10.29–10.33 and selects all five official C++
+normalizer surfaces. It proves NotConnected/FederateNotExecutionMember fences,
+typed invalid-designator errors, equal execution-scoped coordinates through two
+joined ambassadors, the seven-value HLAserviceGroup domain, and
+federate-coordinate stability after resignation.
+
+No Requirements-Lab resynchronization was needed. The plan, contracts, roadmap
+index, recent-slice ledger, and live source index now agree. The broader DDM
+region realization, distributed execution, save/restore, report routing,
+transport, package/JUnit/protected-review evidence, Lab validation, and
+conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus handle-normalization --summary --compact
+python tools/query_rti_work.py trace "Embedded handle normalization supplies stable DDM point-range coordinates" --summary --compact
+python tools/query_rti_work.py matrix object-ddm-ownership --summary --compact
+python tools/query_rti_work.py check --lane handle-normalization --summary --compact
+cmake --build .build --config Release --target umbra_handle_normalization_catch2
+ctest --test-dir .build -C Release -R "^umbra\.handle_normalization\.catch2\.Embedded handle normalization supplies stable DDM point-range coordinates$" --output-on-failure
+~~~
+
+### RL-224 — `HLArequestObjectInstancesUpdated` needed an exact native C++ handoff lane
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-joined-federate-mom-object-instances-updated-report-integration`
+is now source-backed by the exact declaration
+`Embedded MOM requestObjectInstancesUpdated reports class-grouped counts` at
+`cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp:137`.
+Its focused HLA_EVOKED run is green with 42 assertions. The native case maps
+the generic §11.4.1 MOM candidate to the official C++ lookup, publication,
+registration, update, request, callback, and receive surfaces. It consumes
+the Subscribe-only request, snapshots the joined-lifetime update ledger by
+registered object class, proves repeated updates of one object remain one
+distinct count, and decodes two entries from the official nested
+`HLAobjectClassBasedCounts` value. The RTI-originated report is callback-gated,
+reliable, empty-tagged, and carries the default-invalid producer handle.
+
+No Requirements-Lab resynchronization was needed. The plan, public-MOM
+contract, roadmap index, recent-slice ledger, and live source index now agree.
+The other MOM request/report families, HLA_IMMEDIATE, transport and timestamp
+variants, remote/package/JUnit/protected-review evidence, Lab validation, and
+conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-object-instances-updated-report --summary --compact
+python tools/query_rti_work.py trace "Embedded MOM requestObjectInstancesUpdated reports class-grouped counts" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-object-instances-updated-report --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-object-instances-updated-report --summary --compact
+cmake --build .build --config Release --target umbra_joined_federate_mom_object_instances_updated_report_catch2
+ctest --test-dir .build -C Release -R "^umbra\.joined_federate_mom_object_instances_updated_report\.catch2\.Embedded MOM requestObjectInstancesUpdated reports class-grouped counts$" --output-on-failure
+~~~
+
+### RL-225 — `HLArequestObjectInstancesThatCanBeDeleted` needed a live-ownership C++ handoff lane
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-joined-federate-mom-object-instances-that-can-be-deleted-report-integration`
+is now source-backed by the exact declaration
+`Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts`
+at `cpp/tests/joined_federate_mom_object_instances_that_can_be_deleted_report_catch2.cpp:137`.
+Its focused HLA_EVOKED run is green with 53 assertions. The native case maps
+the generic §11.4.1 MOM candidate to the official C++ object/interaction and
+callback surfaces. It consumes the Subscribe-only request, derives live
+`HLAprivilegeToDeleteObject` ownership counts grouped by registered class,
+proves two live classes before deletion and one remaining class after an
+accepted deletion, and decodes the nested `HLAobjectClassBasedCounts` value.
+The RTI-originated reports are callback-gated, reliable, empty-tagged, and
+carry the default-invalid producer handle.
+
+No Requirements-Lab resynchronization was needed. The plan, public-MOM
+contract, roadmap index, recent-slice ledger, and live source index now agree.
+The other MOM request/report families, HLA_IMMEDIATE, transport/timestamp
+variants, remote/package/JUnit/protected-review evidence, Lab validation, and
+conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-object-instances-that-can-be-deleted-report --summary --compact
+python tools/query_rti_work.py trace "Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-object-instances-that-can-be-deleted-report --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-object-instances-that-can-be-deleted-report --summary --compact
+cmake --build .build --config Release --target umbra_joined_federate_mom_object_instances_that_can_be_deleted_report_catch2
+ctest --test-dir .build -C Release -R "^umbra\.joined_federate_mom_object_instances_that_can_be_deleted_report\.catch2\.Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts$" --output-on-failure
+~~~
+
+### RL-226 — `HLArequestObjectInstancesReflected` needed a receiving-ledger C++ handoff lane
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-joined-federate-mom-object-instances-reflected-report-integration`
+is source-backed by the exact declaration
+`Embedded MOM requestObjectInstancesReflected reports distinct reflected instances`
+at `cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp:160`.
+Its focused HLA_EVOKED run is green with 51 assertions. The native case maps
+the generic §11.4.1 MOM candidate to 14 official C++ API surfaces and proves
+that the report is scoped to the requesting/receiving federate's accepted
+application reflection callback ledger, not the sender's update ledger. Two
+classes are reported after two initial reflections plus a repeated reflection
+of one object, with distinct-instance count 1 for each class. The official
+nested `HLAobjectClassBasedCounts` value is decoded from one reliable
+RTI-originated report with empty tag and default-invalid producer metadata.
+
+This lane corrected a semantic trap found during focused implementation: the
+registry's reflected-object projection is keyed by the receiving federate's
+callback ledger. Requesting the sender would therefore produce a valid but
+empty report for this scenario. RL-111 records the generic Lab relation gap;
+it cannot express request/report correlation, callback-boundary ownership,
+distinct-object semantics, nested encoding, or the producer route.
+
+No Requirements-Lab resynchronization was needed. The plan, public-MOM
+contract, roadmap index, recent-slice ledger, consistency guard, and live source
+index now agree. HLA_IMMEDIATE, transport/timestamp variants, other MOM
+request/report families, remote/package/JUnit/protected-review evidence, Lab
+validation, and conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-object-instances-reflected-report --summary --compact
+python tools/query_rti_work.py trace "Embedded MOM requestObjectInstancesReflected reports distinct reflected instances" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-object-instances-reflected-report --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-object-instances-reflected-report --summary --compact
+cmake --build .build --config Release --target umbra_joined_federate_mom_object_instances_reflected_report_catch2
+ctest --test-dir .build -C Release -R "^umbra\.joined_federate_mom_object_instances_reflected_report\.catch2\.Embedded MOM requestObjectInstancesReflected reports distinct reflected instances$" --output-on-failure
+~~~
+
+### RL-227 — `HLArequestObjectInstanceInformation` needed a known/NULL C++ handoff lane
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-joined-federate-mom-object-instance-information-report-integration`
+is source-backed by the exact declaration
+`Embedded MOM requestObjectInstanceInformation reports known and NULL object state`
+at `cpp/tests/joined_federate_mom_object_instance_information_report_catch2.cpp:146`.
+Its focused HLA_EVOKED run is green with 71 assertions. The native case maps
+the generic §11.4.1 MOM candidate to 13 official C++ API surfaces and proves
+the official nested `HLAattributeHandleList`, registered/known class values,
+the registering federate's `Efficiency` plus implicit
+`HLAprivilegeToDeleteObject` ownership, and the MIM NULL response after
+requester-local knowledge is removed with Local Delete Object Instance.
+Reports are reliable, callback-gated, empty-tagged, and carry the
+default-invalid RTI producer through the requesting federate's private
+`HLAfederate` point.
+
+No Requirements-Lab resynchronization was needed. The plan, public-MOM
+contract, roadmap index, recent-slice ledger, consistency guard, and live source
+index now agree. HLA_IMMEDIATE, transport variants, other MOM request/report
+families, remote/package/JUnit/protected-review evidence, Lab validation, and
+conformance remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus joined-federate-mom-object-instance-information-report --summary --compact
+python tools/query_rti_work.py trace "Embedded MOM requestObjectInstanceInformation reports known and NULL object state" --summary --compact
+python tools/query_rti_work.py matrix joined-federate-mom-object-instance-information-report --summary --compact
+python tools/query_rti_work.py check --lane joined-federate-mom-object-instance-information-report --summary --compact
+cmake --build .build --config Release --target umbra_joined_federate_mom_object_instance_information_report_catch2
+ctest --test-dir .build -C Release -R "^umbra\.joined_federate_mom_object_instance_information_report\.catch2\.Embedded MOM requestObjectInstanceInformation reports known and NULL object state$" --output-on-failure
+~~~
+
+### RL-228 — the active-maximum rate-reissue row needed a standalone C++ handoff
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-attribute-relevance-advisory-rate-reissue-integration` is now
+source-backed by the exact declaration
+`Embedded attribute relevance advisories reissue turn-on when the active update rate changes`
+at `cpp/tests/attribute_relevance_rate_reissue_catch2.cpp:108`. Its focused
+run is green with 108 assertions under both `HLA_EVOKED` and `HLA_IMMEDIATE`.
+The three-federate native case maps seven pinned object-management requirements
+to §§6.23/6.24 and proves the official rate-bearing callback contract: High
+establishes the active maximum, lower-rate peers remain silent, Medium and
+High changes reissue Turn Updates On, removing the higher-rate peer refreshes
+Low, and removing the last relevant declaration emits Turn Updates Off.
+
+The generic Lab candidates provide the normative maximum-rate and switch
+requirements but do not encode multi-federate maximum selection, callback rate
+payloads, lower-peer no-reissue behavior, or final-off ordering. No
+Requirements-Lab resynchronization was needed; the plan, roadmap index,
+recent-slice ledger, consistency guard, and live source index now agree. The
+regional/DDM, public-process, package/JUnit/protected-review, validation,
+interoperability, and conformance lanes remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus attribute-relevance-rate-reissue --summary --compact
+python tools/query_rti_work.py trace "Embedded attribute relevance advisories reissue turn-on when the active update rate changes" --summary --compact
+python tools/query_rti_work.py matrix attribute-relevance-rate-reissue --summary --compact
+python tools/query_rti_work.py check --lane attribute-relevance-rate-reissue --summary --compact
+cmake --build .build --config Release --target umbra_attribute_relevance_rate_reissue_catch2
+ctest --test-dir .build -C Release -R "^umbra\.attribute_relevance_rate_reissue\.catch2\.Embedded attribute relevance advisories reissue turn-on when the active update rate changes$" --output-on-failure
+~~~
+
+### RL-229 — the regional rate-designator row needed a source-region C++ handoff
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-regional-attribute-relevance-advisory-rate-designator-integration`
+is now source-backed by the exact declaration
+`Embedded regional attribute relevance advisories retain explicit update-rate designators`
+at `cpp/tests/regional_attribute_relevance_rate_designator_catch2.cpp:105`.
+Its focused run is green with 100 assertions under both `HLA_EVOKED` and
+`HLA_IMMEDIATE`. The native case maps eight pinned requirements to §§6.23,
+6.24, and 10.37.1 and proves overlapping source-region registration, disjoint
+source-region suppression, one Turn Updates Off on loss of overlap, and one
+High-rate Turn Updates On re-entry after the original overlap is restored.
+
+The generic Lab candidates supply the regional/object-management and switch
+requirements but do not encode source-region overlap transitions, private
+default-source re-entry, callback rate-payload retention, or the callback
+boundary ordering used by this lane. No Requirements-Lab resynchronization was
+needed; the plan, roadmap index, recent-slice ledger, consistency guard, and
+live source index now agree. Ordinary active-maximum, public-process, package/
+JUnit/protected-review, validation, interoperability, and conformance remain
+separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus regional-attribute-relevance-rate-designator --summary --compact
+python tools/query_rti_work.py trace "Embedded regional attribute relevance advisories retain explicit update-rate designators" --summary --compact
+python tools/query_rti_work.py matrix regional-attribute-relevance-rate-designator --summary --compact
+python tools/query_rti_work.py check --lane regional-attribute-relevance-rate-designator --summary --compact
+cmake --build .build --config Release --target umbra_regional_attribute_relevance_rate_designator_catch2
+ctest --test-dir .build -C Release -R "^umbra\.regional_attribute_relevance_rate_designator\.catch2\.Embedded regional attribute relevance advisories retain explicit update-rate designators$" --output-on-failure
+~~~
+
+### RL-230 — the known-class-disabled advisory row needed a standalone C++ handoff
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-attribute-relevance-known-class-disabled-subscription-integration`
+is now source-backed by the exact declaration
+`Embedded attribute relevance advisories use subscriptions when known-class policy is disabled`
+at `cpp/tests/attribute_relevance_known_class_disabled_subscription_catch2.cpp:97`.
+Its focused run is green with 35 `HLA_EVOKED` assertions. The two-federate
+native case maps 18 pinned requirements to 13 canonical 2025 sections and
+proves discovery of a `Server` instance through an `Employee` subscription,
+then the Server-only owner-directed Turn Updates On/Off transition while the
+static Advisories Use Known Class policy is disabled.
+
+The generic Lab candidates provide the federation, declaration, object,
+advisory-switch, and callback anchors but do not encode the source-derived
+registered-class subscription walk that keeps Server-only relevance visible
+when the receiver knows only Employee. No Requirements-Lab resynchronization
+was needed; the plan, roadmap index, recent-slice ledger, consistency guard, and
+live source index now agree. The paired enabled-policy case, rate, regional/DDM,
+public-process, package/JUnit/protected-review, validation, interoperability,
+and conformance lanes remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus known-class-disabled --summary --compact
+python tools/query_rti_work.py trace "Embedded attribute relevance advisories use subscriptions when known-class policy is disabled" --summary --compact
+python tools/query_rti_work.py matrix known-class-disabled --summary --compact
+python tools/query_rti_work.py check --lane known-class-disabled --summary --compact
+cmake --build .build --config Release --target umbra_attribute_relevance_known_class_disabled_subscription_catch2
+ctest --test-dir .build -C Release -R "^umbra\.attribute_relevance_known_class_disabled_subscription\.catch2\.Embedded attribute relevance advisories use subscriptions when known-class policy is disabled$" --output-on-failure
+~~~
+
+### RL-231 — the known-class-enabled advisory row needed a standalone C++ handoff
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The paired pinned plan row
+`umbra-cpp-attribute-relevance-known-class-enabled-subscription-integration`
+is now source-backed by the exact declaration
+`Embedded attribute relevance advisories honor known class when the static policy is enabled`
+at `cpp/tests/attribute_relevance_known_class_enabled_subscription_catch2.cpp:97`.
+Its focused run is green with 30 `HLA_EVOKED` assertions. The two-federate
+native case maps 15 pinned requirements to 13 canonical 2025 sections and
+proves the initial Employee advisory, then suppresses a later Server-only
+owner-directed advisory while the static known-class policy is enabled and the
+subscriber still knows only Employee; removing the Employee subscription
+produces the expected Off transition.
+
+The generic Lab candidates provide the federation, declaration, object,
+advisory-switch, and callback anchors but do not encode the source-derived
+known-class suppression consequence. No Requirements-Lab resynchronization was
+needed; the plan, roadmap index, recent-slice ledger, consistency guard, and
+live source index now agree. The disabled-policy case, rate, regional/DDM,
+public-process, package/JUnit/protected-review, validation, interoperability,
+and conformance lanes remain separate.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus known-class-enabled --summary --compact
+python tools/query_rti_work.py trace "Embedded attribute relevance advisories honor known class when the static policy is enabled" --summary --compact
+python tools/query_rti_work.py matrix known-class-enabled --summary --compact
+python tools/query_rti_work.py check --lane known-class-enabled --summary --compact
+cmake --build .build --config Release --target umbra_attribute_relevance_known_class_enabled_subscription_catch2
+ctest --test-dir .build -C Release -R "^umbra\.attribute_relevance_known_class_enabled_subscription\.catch2\.Embedded attribute relevance advisories honor known class when the static policy is enabled$" --output-on-failure
+~~~
+
+### RL-232 — the passive regional update-rate row needed a standalone C++ handoff
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-update-rate-lookup-passive-regional-subscription-integration`
+is now source-backed by the exact declaration
+`Embedded update-rate lookup ignores passive regional subscriptions` at
+`cpp/tests/update_rate_passive_regional_subscription_catch2.cpp:73`.
+Its focused run is green with 43 `HLA_EVOKED` assertions. The native case maps
+15 pinned requirements to 12 canonical 2025 sections and 21 official C++ API
+surfaces. It proves that an active Low regional declaration reports 0.2, a
+passive High declaration does not contribute a second reduction, activating
+that same High declaration reports 30.0, and removing it restores Low.
+
+The generic Lab candidates provide the federation, FDD update-rate, regional
+subscription, and lookup anchors but do not encode this passive-regional
+filtering consequence. No Requirements-Lab resynchronization or new numbered
+requirement was needed; the plan, roadmap index, recent-slice ledger,
+consistency guard, and live source index now agree. Update delivery, advisory
+reissue, regional overlap, HLA_IMMEDIATE, public-process,
+package/JUnit/protected-review, validation, interoperability, and conformance
+remain separate lanes.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus update-rate-passive-regional-subscription --summary --compact
+python tools/query_rti_work.py trace "Embedded update-rate lookup ignores passive regional subscriptions" --summary --compact
+python tools/query_rti_work.py matrix update-rate-passive-regional-subscription --summary --compact
+python tools/query_rti_work.py check --lane update-rate-passive-regional-subscription --summary --compact
+cmake --build .build --config Release --target umbra_update_rate_passive_regional_subscription_catch2
+ctest --test-dir .build -C Release -R "^umbra\.update_rate_passive_regional_subscription\.catch2\.Embedded update-rate lookup ignores passive regional subscriptions$" --output-on-failure
+~~~
+
+### RL-233 — mixed update-rate gating now has a standalone C++ handoff
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The pinned plan row
+`umbra-cpp-mixed-update-rate-subscriptions-independent-attribute-gating-integration`
+is now source-backed by the exact declaration
+`Embedded mixed update-rate subscriptions gate each attribute independently` at
+`cpp/tests/mixed_update_rate_subscriptions_catch2.cpp:199`. Its focused
+`HLA_EVOKED` run and exact CTest selector are green with 37 assertions. The
+native case maps eight pinned requirements to the two canonical IEEE
+1516.1-2025 sections 5.2.4 and 6.1.13 and 15 official C++ API surfaces.
+
+The composed FOM declares Low at 0.2 Hz and High at 30 Hz. One best-effort
+attribute is actively subscribed with Low while a second uses `HLAdefault`:
+the first update delivers both attributes, while an immediate second update
+suppresses only the Low-rate attribute and still delivers the default-rate
+attribute. This is bounded per-attribute update-rate admission evidence; it
+does not claim unsubscribe removal, reliable no-drop, producer-rate
+measurement, timestamped or regional delivery, MOM, alternate advances,
+save/restore, remote transport, package/JUnit/protected-review evidence,
+interoperability, or conformance. No Requirements Lab resynchronization or
+new numbered requirement was performed.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus update-rate-mixed-attribute-gating --summary --compact
+python tools/query_rti_work.py trace "Embedded mixed update-rate subscriptions gate each attribute independently" --summary --compact
+python tools/query_rti_work.py matrix update-rate-mixed-attribute-gating --summary --compact
+python tools/query_rti_work.py check --lane update-rate-mixed-attribute-gating --summary --compact
+cmake --build .build --config Release --target umbra_mixed_update_rate_subscriptions_catch2
+ctest --test-dir .build -C Release -R "^umbra\.mixed_update_rate_subscriptions\.catch2\.Embedded mixed update-rate subscriptions gate each attribute independently$" --output-on-failure
+~~~
+
+### RL-234 — bounded roadmap queries now distinguish executable work from source reconciliation
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The roadmap/test index and query tool now keep three queues distinct: exact
+unplanned C++ declarations that need a new Catch2 plan row, planned rows whose
+source handoff needs reconciliation, and executable candidates that can be
+implemented next. Historical aggregate rows that were split into standalone
+tests remain in the append-only recent ledger with a `superseded_by` marker;
+bounded `recent` views omit them while retaining the audit trail. Rows marked
+`source-missing-needs-reconciliation` or `disabled-source-artifact` remain
+visible to diagnostics but cannot become a runnable next handoff.
+
+At that snapshot the live view was aligned with the checked-in index: 1,139
+Catch2 plan cases, 1,074 mapped cases, 65 explicit unmapped cases, six
+source-unlocated diagnostics (zero actionable), and seven source-only
+declarations. Its next source handoff was deliberately small and exact:
+`Embedded federation restore restores one queued timestamped default-region
+attribute update to multiple recipients` at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1173`.
+
+No Requirements-Lab resynchronization or new numbered requirement was needed.
+The canonical direct requirement-to-2025-subsection mappings remain available
+through `trace`/`matrix`; `roadmap` also accepts an exact Lab requirement id,
+canonical 2025 subsection, or official C++ API surface and resolves its owning
+family. The query consistency guard passes.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py dashboard --summary --compact
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py recent --summary --compact --limit 3
+python tools/query_rti_work.py next --pointer --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### RL-235 — superseded aggregate ledger rows can hide an already-green source declaration
+
+**Status:** verified local traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The append-only roadmap ledger contained the historical green multi-recipient
+default-region restore declaration at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1173`, but marked the
+ledger entry `superseded_by: source-queue-reconciliation-after-standalone-slice-split`
+without an active Catch2 plan row. The source index therefore surfaced an
+already-passing test as `unplanned-source`, which made the next-work handoff
+look like implementation work instead of a missing mapping record. This is a
+local index lifecycle edge, not a changed requirement and not a reason to
+resynchronize the Requirements Lab.
+
+The declaration is now promoted to the active m83 plan row
+`umbra-cpp-restore-live-tso-default-region-attribute-update-multi-recipient-integration`.
+It is mapped to 18 pinned Requirements-Lab requirements, 14 canonical IEEE
+1516.1-2025 sections, and 24 official C++ API surfaces, with 123 green
+`HLA_EVOKED` assertions. The exact lane has two mapped cases (the existing
+two-federate baseline and this three-federate ledger-isolation case); the
+focused lane total remains 123 because the baseline row has no recorded
+assertion count. The global source pointer advanced to the next genuinely
+unplanned declaration, which was then promoted as the m84 timed regional-
+interaction restore slice. That source-resignation declaration was subsequently
+promoted as m85; the current pointer is always derived by `ready` rather than
+copied from this historical note.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py trace "Embedded federation restore restores one queued timestamped default-region attribute update to multiple recipients" --summary --compact
+python tools/query_rti_work.py focus timestamped-default-region-attribute-restore-multi-recipient --summary --compact
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### RL-236 — timed explicit-source regional-interaction restore promoted without a Lab resync
+
+The next source-backed declaration was extracted into the independently
+runnable `timestamped-regional-interaction-timed-restore` lane at
+`cpp/tests/timed_restore_live_tso_regional_interaction_catch2.cpp:5`. The
+standalone HLA_EVOKED case passes 55 assertions and maps 18 pinned
+Requirements-Lab requirements, 15 canonical IEEE 1516.1-2025 sections, and
+24 official C++ API surfaces. It saves one timestamp-8 explicit-source
+`Send Interaction With Regions` passel at logical time 6, restores the queued
+source-region/retraction state, delivers it before the Flush Queue grant, and
+observes one legal post-delivery Request Retraction. The aggregate declaration
+remains historical coverage; no Requirements-Lab resynchronization or new
+numbered requirement was needed.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus timestamped-regional-interaction-timed-restore --summary --compact
+python tools/query_rti_work.py trace "Embedded timed federation restore restores a live timestamped regional interaction at the save boundary" --summary --compact
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### RL-237 — timestamped regional-interaction source resignation promoted without a Lab resync
+
+The next source-backed declaration was extracted into the independently
+runnable `timestamped-regional-interaction-source-resignation` lane at
+`cpp/tests/timed_live_tso_regional_interaction_source_resignation_catch2.cpp:14`.
+The standalone HLA_EVOKED case passes 60 assertions and maps 14 pinned
+Requirements-Lab requirements, 14 canonical IEEE 1516.1-2025 sections, and
+27 official C++ API surfaces. It admits one explicit-source timestamp-6
+passel before the producer resigns, releases the queued delivery through an
+independent regulator, preserves source-region metadata, and verifies that the
+resigned producer cannot retract the delivered message. No Requirements-Lab
+resynchronization or new numbered requirement was needed.
+After promotion, `ready --summary --compact` advances the bounded queue to
+`Embedded federation restore restores one queued timestamped regional interaction
+to multiple recipients` at
+`cpp/tests/restore_live_tso_regional_interaction_multi_recipient_catch2.cpp:169`.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus timestamped-regional-interaction-source-resignation --summary --compact
+python tools/query_rti_work.py trace "Embedded queued timestamped regional interaction survives source resignation" --summary --compact
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### RL-238 — timestamped regional-interaction restore fan-out promoted without a Lab resync
+
+The queued source declaration was promoted into the independently runnable
+`timestamped-regional-interaction-restore-multi-recipient` lane at
+`cpp/tests/restore_live_tso_regional_interaction_multi_recipient_catch2.cpp:169`.
+The standalone HLA_EVOKED case passes 128 assertions and maps 11 pinned
+Requirements-Lab requirements, 11 canonical IEEE 1516.1-2025 sections, and 35
+official C++ API surfaces. It saves one overlap-qualified explicit-source
+timestamped interaction for two independently constrained regional recipients,
+retracts the live message, restores both recipient queue entries and the
+retraction ledger, and verifies each restored copy before its own Flush Queue
+grant with one legal Request Retraction callback. No Requirements-Lab
+resynchronization or new numbered requirement was needed. After promotion,
+`ready --summary --compact` advances to the next exact timed explicit-source
+regional attribute-update restore declaration at
+`cpp/tests/timed_restore_live_tso_regional_attribute_update_catch2.cpp:190`.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus timestamped-regional-interaction-restore-multi-recipient --summary --compact
+python tools/query_rti_work.py trace "Embedded federation restore restores one queued timestamped regional interaction to multiple recipients" --summary --compact
+python tools/query_rti_work.py matrix timestamped-regional-interaction-restore-multi-recipient --summary --compact
+python tools/query_rti_work.py check --lane timestamped-regional-interaction-restore-multi-recipient --summary --compact
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+ctest --test-dir .build -C Debug -R "^umbra\.restore_live_tso_regional_interaction_multi_recipient\.catch2\.Embedded federation restore restores one queued timestamped regional interaction to multiple recipients$" --output-on-failure
+~~~
+
+### RL-239 — timed regional source-resignation slice restored from historical metadata
+
+The next source declaration was promoted using the repository's prior plan
+revision as the metadata source; the pinned Requirements Lab itself was not
+re-read or renumbered. The standalone HLA_EVOKED case at
+`cpp/tests/timed_live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp:180`
+passes 106 assertions and maps 27 requirements to 18 canonical 2025 sections
+and 23 official C++ API surfaces. Its focused lane is
+`tso-regional-attribute-update-timed-live-resignation-state` and its exact
+runtime handle is `umbra_timed_regional_attr_source_resign_restore_catch2`.
+The descriptive target was shortened because the original MSBuild-generated
+path exceeded Windows' 260-character limit; the CTest title and lane identity
+remain unchanged. The older live-resignation row's overlapping timed tag was
+removed so the focused lane contains exactly this case.
+
+No Requirements-Lab resynchronization or new numbered requirement was needed.
+The next source pointer is the timed explicit-source regional attribute restore
+case emitted by `ready --summary --compact`.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus tso-regional-attribute-update-timed-live-resignation-state --summary --compact
+python tools/query_rti_work.py trace "Embedded timed live regional timestamped attribute update survives source mutation and resignation after restore" --summary --compact
+python tools/query_rti_work.py matrix tso-regional-attribute-update-timed-live-resignation-state --summary --compact
+python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-live-resignation-state --summary --compact
+python tools/query_rti_work.py ready --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+ctest --test-dir .build -C Debug -R "^umbra\.timed_live_tso_regional_attribute_update_source_resignation_after_restore\.catch2\.Embedded timed live regional timestamped attribute update survives source mutation and resignation after restore$" --output-on-failure
+~~~
+
+### RL-240 — directed-interaction regression lane needed bounded callback and argument repairs
+
+**Status:** verified local test/traceability refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The bounded `directed` CTest lane exposed eight aggregate cases whose setup
+drain assertions still expected `publisher->evokeCallback(0.0)` to return
+false after time-regulation enablement. The current callback contract permits
+setup callbacks there, so those assertions were changed to drain the publisher
+queue before the directed-interaction evidence. The same pass exposed one
+stale service-report assertion: the `SendDirectedInteraction` supplied-
+argument record already verifies five entries (including the optional
+timestamp), but asserted a four-entry array; the cardinality now matches the
+verified record.
+
+No implementation behavior or Requirements-Lab requirement was changed. The
+repair is source-local, keeps the exact aggregate declarations source-backed,
+and leaves the dedicated directed lanes unchanged. The complete cross-target
+verification label is green: 40/40 tests, including MOM/service reporting,
+timestamped delivery, retraction, save/restore, target departure, transport
+loss, and alternate-advance coverage. The indexed `directed` lane remains
+queryable as 42 plan rows: 40 mapped runnable rows plus two explicit
+no-standalone-surface dispositions.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus directed --summary --compact
+python tools/query_rti_work.py matrix directed --summary --compact
+python tools/query_rti_work.py check --lane directed --summary --compact
+ctest --test-dir .build -C Debug -L "^directed$" --output-on-failure --output-junit directed-lane-final.xml
+python tools/query_rti_work_regression.py
+~~~
+
+### RL-241 — process-boundary evidence counts needed an explicit traceability split
+
+**Status:** verified local planning/evidence refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The process-boundary lane was already fully mapped, but its executable evidence
+has more than one useful count. The indexed plan contains 52 unique mapped
+Catch2 declarations, recording 2,246 assertions across 130 direct
+requirement-to-2025-section pairs. The stable `process-boundary` CTest label
+selects 93 executable test instances across the independently buildable private
+process target and public connection target. The merged
+`compliance/process-boundary/process-boundary.xml` report currently contains
+2,250 report testcases and zero failures.
+
+These counts are now stored in the process-boundary `lane_handles` metadata and
+printed by `focus process-boundary`; the query card and guide explain that the
+52-row value is the traceability count, 2,246 is the indexed assertion count,
+93 is the CTest execution count, and 2,250 is the JUnit report count. This
+prevents future work selection from treating a cross-target execution/report
+count as a new Requirements-Lab row or reopening the unchanged catalog.
+
+Bounded verification:
+
+~~~powershell
+ctest --test-dir .build -C Debug -L "^process-boundary$" --output-on-failure --output-junit process-boundary-current.xml
+cmake --build .build --config Debug --target umbra_process_boundary_junit -- /m:1
+python tools/query_rti_work.py focus process-boundary --summary --compact
+python tools/query_rti_work.py check --lane process-boundary --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### RL-242 — federation MOM content-report evidence needs a standalone lane
+
+**Status:** verified local planning/test refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The existing aggregate federation-management translation unit already carried
+a mapped clause-4 FOM-module/MIM content-report case, but its surrounding dirty
+source made that aggregate an unsafe place for the next bounded implementation
+slice. The behavior is now represented by a clean native C++ case in
+`federation_mom_current_fdd_catch2.cpp`, with its own
+`federation-mom-content-reports` lane. The row reuses the existing pinned
+content-access requirement and canonical `hla-1516.1-2025:clause-4` mapping;
+no new Lab requirement or resynchronization was needed.
+
+The focused case records 55 HLA_EVOKED assertions and covers both
+HLArequestFOMmoduleData/HLArequestMIMdata request paths, reliable reports,
+callback-time subscription gating, and malformed-request rejection. The
+aggregate case remains historical evidence; the standalone lane is the
+implementation and CTest entry point.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_federation_mom_current_fdd_catch2 -- /m:1
+ctest --test-dir .build -C Debug -L "^federation-mom-content-reports$" --output-on-failure
+python tools/query_rti_work.py focus federation-mom-content-reports --summary --compact
+python tools/query_rti_work.py trace "Embedded federation MOM content reports FOM module and MIM data through a focused lane" --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### RL-243 — reverse-FOM error coverage and cross-target counts need one bounded index refresh
+
+**Status:** verified local planning/test refinement; not a Requirements-Lab
+extraction defect or conformance finding.
+
+The process reverse-FOM lane now has a dedicated native C++ error matrix at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:13677`. The 16-assertion case
+runs under both `HLA_EVOKED` and `HLA_IMMEDIATE`, keeps unknown-name rejection
+and invalid-handle rejection on a separate process fence, and maps the four
+official dimension/transportation handle/name surfaces to the six existing
+Requirements-Lab anchors and canonical 2025 clauses `9.1.2`, `10.19`, and
+`10.20.4`. It adds no new Lab requirement and does not require another Lab
+resynchronization.
+
+The checked-in query index was refreshed at the same time: 1,161 Catch2 plan
+rows (1,096 mapped and 65 explicit dispositions), four reverse-FOM cases with
+76 aggregate assertions, and the cross-target `process-boundary` evidence
+baseline of 63 mapped rows / 2,497 indexed assertions / 104 CTest executions /
+2,500 merged-JUnit testcases. The important distinction is that the plan and
+assertion counts are traceability values, while CTest and JUnit counts are
+execution/report values; `focus process-boundary` now exposes both without
+requiring a broad scan. A stale lane-handle count was caught and corrected by
+the consistency guard, which should remain the fast check after future slice
+additions.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus reverse-fom-lookup --summary --compact
+python tools/query_rti_work.py trace "RTIambassador reports reverse FOM lookup errors through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix reverse-fom-lookup --summary --compact
+python tools/query_rti_work.py focus process-boundary --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### RL-244 — process available-dimensions hierarchy needed a bounded public slice
+
+**Status:** verified local implementation and traceability refinement; not a
+Requirements-Lab extraction defect or conformance finding.
+
+The next indexed process gap was concrete rather than a Lab resynchronization:
+process-connected ambassadors already resolved individual dimensions, but the
+public `getAvailableDimensionsForObjectClass` and
+`getAvailableDimensionsForInteractionClass` surfaces had no process routing.
+The implementation adds separate private service operations, public endpoint
+routing, inherited object/interaction hierarchy handling, empty-set behavior,
+and official invalid-handle mapping. A joined federate keeps the same process
+identity while the service resolves the federation-owned FOM hierarchy.
+
+The m106 case at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:13825` records 28 assertions
+under both `HLA_EVOKED` and `HLA_IMMEDIATE`, maps four existing Lab anchors to
+`hla-1516.1-2025:clause-9.1.2`, and covers two official C++ API surfaces. No
+new Lab requirement was added and the unchanged catalog was not rescanned.
+Focused execution passed; the complete process-boundary label is green at
+105/105, and the merged process JUnit report contains 2,528 testcases with
+zero failures. These differ from the 64 mapped plan rows and 2,525 indexed
+assertions because plan rows/assertions are traceability metrics while CTest
+and JUnit are cross-target execution/report metrics.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus process-available-dimensions-hierarchy --summary --compact
+python tools/query_rti_work.py trace process-available-dimensions-hierarchy --summary --compact
+python tools/query_rti_work.py matrix process-available-dimensions-hierarchy --summary --compact
+python tools/query_rti_work.py check --lane process-available-dimensions-hierarchy --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador resolves available FOM dimensions through a configured process endpoint$" --output-on-failure
+ctest --test-dir .build -C Debug -L process-boundary --output-on-failure
+cmake --build .build --config Debug --target umbra_process_boundary_junit -- /m:1
+python tools/query_rti_work_regression.py
+~~~
+
+### RL-245 — multi-recipient callback ordering needed a bounded public process slice
+
+**Status:** verified local implementation and traceability refinement; not a
+Requirements-Lab extraction defect or conformance finding.
+
+The next callback-ordering step was implemented as a bounded native C++ slice,
+without reopening the unchanged Requirements Lab. The m107 case at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:13998` joins one sender and two
+subscribed receivers through the configured process endpoint, sends two
+ordinary interactions, and verifies that each receiver independently observes
+the same FIFO tag sequence through one callback per `Evoke Callback`. It also
+checks interaction-class, transport, producer, parameter, tag, empty-region,
+and sender-exclusion projections. The case records 79 assertions under
+`HLA_EVOKED` and `HLA_IMMEDIATE`, maps ten existing Lab anchors to six canonical 2025 subsections, and covers
+five official C++ API surfaces. Immediate delivery, callback-disable,
+timestamped/region/directed fanout, review, validation, interoperability, and
+conformance remain separate lanes.
+
+The exact lane is indexed as
+`process-multi-recipient-callback-ordering`; the broad
+`multi-federate-callback-ordering` family remains open only for newly identified
+evidence. The process-boundary baseline is now 65 mapped plan rows / 2,604
+indexed assertions / 106 CTest executions / 2,607 merged-JUnit testcases, with
+zero failures. These are deliberately separate traceability, assertion,
+execution, and report metrics; no new Lab requirement was added and no catalog
+resynchronization was needed.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus process-multi-recipient-callback-ordering --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors preserve per-recipient interaction FIFO through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix process-multi-recipient-callback-ordering --summary --compact
+python tools/query_rti_work.py check --lane process-multi-recipient-callback-ordering --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors preserve per-recipient interaction FIFO through a configured process endpoint$" --output-on-failure
+ctest --test-dir .build -C Debug -L process-boundary --output-on-failure
+cmake --build .build --config Debug --target umbra_process_boundary_junit -- /m:1
+python tools/query_rti_work_regression.py
+~~~
+
+### RL-246 — native contract selectors drifted after the focused-source refresh
+
+**Status:** verified Umbra consumer/traceability recurrence; not a
+Requirements-Lab extraction defect or conformance finding.
+
+The focused-source refresh exposed a recurrence of the selector-drift pattern
+recorded in RL-160, RL-176, RL-179, and RL-181. Requirements-Lab contract
+records still named the old aggregate translation unit (and a small set of
+bare `path:line` anchors), even though the corresponding Catch2 cases had been
+split into current native source files. A bounded audit found 1,117 stale
+aggregate selectors and 46 native line anchors across the local contracts;
+those references were relocated to the exact current C++ path/title selectors.
+
+An exact local guard then caught 26 additional prefix selectors that the Lab
+checker accepted as substring matches. Those were also made exact. External
+portable TCK symbols remain intentionally classified as external and are not
+rewritten. No Requirements-Lab resynchronization or catalog change was needed.
+
+The recurrence is now prevented by the bounded `contract-drift` query and the
+traceability CTest gate, which require every native contract reference to match
+the current C++ declaration path and title while reporting external symbols
+separately. This keeps source refreshes queryable without reopening the
+unchanged Lab export.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py contract-drift --summary --compact
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+ctest --test-dir .build -C Debug -L traceability --output-on-failure
+~~~
+
+### 2026-09-08 local slice — Register Object Instance With Regions default-region/generated-name lane
+
+No Requirements Lab resynchronization or new numbered observation was needed.
+The bounded native C++ case at
+`cpp/tests/federation_registry_catch2.cpp:12258` passes 48 assertions and is
+indexed as `register-object-instance-with-regions-default-region-generated-name`.
+It maps four existing 2025 requirements to clauses 9.5 and 9.5.4 and four
+official C++ API anchors. The case proves that empty supplied region sets and
+empty pair collections use the default region for available dimensions,
+generated object-instance names are unique within the federation execution,
+and explicit regions remain distinguishable. It is development-profile evidence
+only; public named-registration, remote transport, package/JUnit/protected
+review, validation, interoperability, and conformance remain separate.
+
+The normal bounded checks are green. `check --historical` still reports the
+pre-existing retained completion-ledger drift (unknown family aliases in older
+recent-slice rows and superseded source-only selectors); that strict audit is
+kept separate from the live queue and does not block this focused lane.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py focus register-object-instance-with-regions-default-region-generated-name --summary --compact
+python tools/query_rti_work.py trace "Register Object Instance With Regions uses the default region and execution-wide generated names" --summary --compact
+python tools/query_rti_work.py matrix register-object-instance-with-regions-default-region-generated-name --summary --compact --limit 5
+python tools/query_rti_work.py check --lane register-object-instance-with-regions-default-region-generated-name --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.federation_registry\.catch2\.Register Object Instance With Regions uses the default region and execution-wide generated names$" --output-on-failure
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-09 source-to-plan reconciliation — Table 5 service-report encodings
+
+The bounded `unplanned` query identified 30 C++ `TEST_CASE` declarations in
+`cpp/tests/mom_service_report_encoding_catch2.cpp` that had source coverage
+but no individual Catch2 plan row. They are now explicit plan entries with
+their source line, assertion count, unique mapping handle, and the existing
+11.5.1/11.5.2.1 Table 5 requirement candidates. The entries cover restore and
+resignation descriptors, time values, interaction/object/attribute handles,
+directed and ordinary interaction forms, ownership forms, and synchronization
+forms. They remain private SDK-encoding evidence, not runtime or conformance
+evidence.
+
+This was a local traceability repair only: no Requirements Lab resynchronization
+or new numbered Lab issue was performed. The live snapshot is now 1,184 plan
+cases, 1,120 mapped cases, 64 explicit no-standalone-surface cases, zero
+source-only cases, and one non-actionable source-unlocated legacy row. Exact
+case cards now resolve these rows without a broad source search.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py unplanned --summary --compact --limit 40
+python tools/query_rti_work.py case umbra-cpp-mom-service-report-query-federation-restore-status-unit --summary --compact
+python tools/requirements_lab.py check-plan
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### 2026-09-09 bounded mapping follow-on — §9.1.3.2 relationship anchor
+
+The family-scoped gap query identified one remaining uncovered cross-cutting
+anchor: `requirement-candidate-content-clauses-09-data-distribution-management-page-219-l113-36`,
+the clause-level statement introducing the DDM relationships for object
+classes, class attributes, object instances, and instance attributes. The
+existing no-time regional object-attribute routing case already exercises that
+relationship through regional registration, update association and
+unassociation, default-region fallback, subscription, and overlap-filtered
+discovery/reflection. Its plan row now carries the exact Lab requirement; no
+new C++ test or Requirements-Lab extraction was needed.
+
+This closes the selected family-scoped §9.1.3.2 gap at 12/12 mapped
+requirements. The global live snapshot is now 839 of 2,220 direct
+requirement-to-section pairs (37.79%), with 1,381 requirements still
+uncovered. This is a traceability refinement over an existing green test, not
+a conformance claim or a Lab revision.
+
+Bounded verification:
+
+~~~powershell
+python tools/query_rti_work.py requirement requirement-candidate-content-clauses-09-data-distribution-management-page-219-l113-36 --summary --compact
+python tools/query_rti_work.py case umbra-cpp-regional-object-attribute-routing-integration --summary --compact
+python tools/query_rti_work.py gaps --family object-ddm-ownership --clause clause-9.1.3.2 --summary --compact --limit 3
+python tools/query_rti_work.py check --summary --compact
+python tools/query_rti_work_regression.py
+~~~
+
+### RL-247 — valid zero-length default-region vectors exposed a process-protocol guard defect
+
+**Status:** verified Umbra consumer/protocol recurrence; not a
+Requirements-Lab extraction defect or conformance finding.
+
+The first public process-boundary slice for Register Object Instance With
+Regions exposed a rough edge that a broad Lab search would not have found: the
+local `readAttributeRegionMap` decoder required two 64-bit values for every map
+entry. The 2025 default-region form legitimately carries an attribute identity
+followed by a zero-length region vector, so the decoder rejected the valid
+request as `invalid-request` before the federation registry saw it. This was a
+local structural-minimum bug, not a changed requirement or numbering issue.
+
+The decoder now requires only the attribute identity and vector-count fields;
+the existing exact vector-length and handle validation remains in force. No
+memory fallback, alternate wire format, or Lab resynchronization was added.
+The focused public endpoint case proves the correction under both
+`HLA_EVOKED` and `HLA_IMMEDIATE`, with 48 assertions, four existing Lab
+requirements, two 2025 clauses (9.5 and 9.5.4), and five official C++ API
+surfaces.
+
+Keep this as a numbered post-246 implementation observation so a future
+recurrence is distinguishable from a Requirements-Lab export change.
+It follows the recurrence-recording discipline established by RL-160, while
+the present defect is confined to the Umbra process decoder. The same bounded
+regression pass also corrected the declaration-line pointers for the existing
+process time/lookup and multi-recipient rows where a prior focused-source
+refresh had left stale three-line offsets; those were local index drift, not a
+new Lab revision.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_ieee1516_2025_connection_catch2 --parallel 4
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador registers available-dimensional attributes on the default region and exposes generated names through a configured process endpoint$" --output-on-failure
+python tools/query_rti_work.py focus public-process-register-object-instance-with-regions-default-region-generated-name --summary --compact
+python tools/query_rti_work.py check --lane public-process-register-object-instance-with-regions-default-region-generated-name --summary --compact
+python tools/query_rti_work_regression.py
+~~~

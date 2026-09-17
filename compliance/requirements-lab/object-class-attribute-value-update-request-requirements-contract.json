@@ -14,7 +14,7 @@
       "tests": [
         "cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
         "cpp/tests/object_class_attribute_value_update_service_report_catch2.cpp::Embedded class Request Attribute Value Update reports each provider callback before delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -25,7 +25,7 @@
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateClassRequest",
       "tests": [
         "cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -36,7 +36,7 @@
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateClassRequest",
       "tests": [
         "cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -47,7 +47,7 @@
       "source_symbol": "EmbeddedFederationRegistry::objectInstanceRegisteredAtOrBelowClass",
       "tests": [
         "cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -58,7 +58,7 @@
       "source_symbol": "candidateAttributeValueUpdateClassProvideRecipient",
       "tests": [
         "cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -71,7 +71,7 @@
         "cpp/tests/object_class_attribute_value_update_request_baseline_catch2.cpp::Embedded object-class Request Attribute Value Update solicits 2025 subclass owners",
         "cpp/tests/request_attribute_value_update_service_report_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
         "cpp/tests/object_class_attribute_value_update_service_report_catch2.cpp::Embedded class Request Attribute Value Update reports each provider callback before delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {

@@ -648,6 +648,7 @@ struct SynchronizationPointAnnouncement {
   std::vector<unsigned char> userSuppliedTag;
   FederateCallbackRoute callbackRoute;
   FederateServiceReportRoute serviceReportRoute;
+  FederatePublicServiceReportRoute publicServiceReportRoute;
 };
 
 struct FederationSynchronizedNotification {
@@ -655,6 +656,7 @@ struct FederationSynchronizedNotification {
   std::set<std::uint64_t> failedToSyncFederateIds;
   FederateCallbackRoute callbackRoute;
   FederateServiceReportRoute serviceReportRoute;
+  FederatePublicServiceReportRoute publicServiceReportRoute;
 };
 
 enum class SynchronizationPointRegistrationStatus {
@@ -1541,6 +1543,11 @@ struct NegotiatedAttributeOwnershipDivestiturePlan {
   NegotiatedAttributeOwnershipDivestitureStatus status =
       NegotiatedAttributeOwnershipDivestitureStatus::applied;
   std::vector<AttributeOwnershipAcquisitionWorkItem> workItems;
+  // A negotiated offer also starts the standard Request Attribute Ownership
+  // Assumption search for currently eligible federates.  Keep those callback
+  // records beside the acquisition work so the ambassador can preserve the
+  // service-before-callback ordering without exposing a second public path.
+  std::vector<AttributeOwnershipAssumptionRecipient> assumptionRecipients;
 };
 
 struct RequestDivestitureConfirmationDelivery {
@@ -1707,15 +1714,16 @@ struct AttributeOwnershipAssumptionRecipient {
   std::set<std::uint64_t> attributeHandles;
   ObjectInstanceCallbackRoute callbackRoute;
   // A continuation search can outlive the original service call. Preserve
-  // the originating divestiture tag per grouped callback so a later
+  // the originating unconditional- or negotiated-divestiture tag per grouped callback so a later
   // publication/discovery re-offer remains standards-visible.
   std::vector<unsigned char> userSuppliedTag;
 };
 
-// The callback-entry recheck reports only attributes that remain unowned and
-// for which the original recipient is still publishing at its known class and
-// remains outside both acquisition-pending states.  A changed lifecycle or
-// ownership boundary becomes an ordinary no-delivery outcome.
+// The callback-entry recheck reports only attributes that remain eligible at
+// the recipient's known class and remain outside both acquisition-pending
+// states. Unconditional offers require the attribute to be unowned; a
+// negotiated offer may retain its current owner until confirmation. A changed
+// lifecycle or ownership boundary becomes an ordinary no-delivery outcome.
 struct AttributeOwnershipAssumptionDelivery {
   std::uint64_t objectInstanceHandle = 0;
   std::set<std::uint64_t> attributeHandles;
@@ -1724,7 +1732,7 @@ struct AttributeOwnershipAssumptionDelivery {
 // A queued Request Attribute Ownership Assumption callback is a live route
 // around a durable search reservation. Keep this callback identity separate
 // from ownershipAssumptionRecipientsByAttribute: that map records candidates
-// already offered during the unowned interval, while this vector records only
+// already offered during the current divestiture interval, while this vector records only
 // callback work that has not reached its one-shot begin boundary yet.
 struct PendingAttributeOwnershipAssumptionCallback {
   std::uint64_t receivingFederateId = 0;
@@ -3159,7 +3167,8 @@ class EmbeddedFederationRegistry final {
       std::uint64_t registeringFederateId,
       std::wstring label,
       std::vector<unsigned char> userSuppliedTag,
-      std::set<std::uint64_t> const& synchronizationSet);
+      std::set<std::uint64_t> const& synchronizationSet,
+      bool synchronizationSetWasSupplied);
 
   [[nodiscard]] SynchronizationPointAnnouncementPlan
   announcePendingSynchronizationPoints(
@@ -3567,6 +3576,14 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] FederationTsoDeliveryRegistryResult completeTsoDelivery(
       std::wstring const& federationName,
       TsoQueuedMessage const& message);
+
+  // Process-boundary acknowledgements carry only the execution-owned message
+  // id and recipient identity.  Resolve the private queue sequence inside the
+  // registry rather than exposing it in the transport protocol.
+  [[nodiscard]] FederationTsoDeliveryRegistryResult completeTsoDeliveryFor(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId,
+      std::uint64_t messageId);
 
   // Completes a timestamped recipient boundary when its current declaration
   // suppresses every user callback. This is distinct from delivery and
@@ -5087,6 +5104,10 @@ class EmbeddedFederationRegistry final {
       std::set<std::uint64_t> synchronizationSet;
       std::set<std::uint64_t> announcedFederates;
       std::map<std::uint64_t, bool> achievedFederates;
+      // Only a registration without the optional set expands to a late
+      // joining federate.  Preserve this distinction through save/restore;
+      // an explicitly scoped point must not silently broaden its membership.
+      bool lateJoinExpansionAllowed = true;
     };
 
     struct SaveOperation {
@@ -5234,8 +5255,15 @@ class EmbeddedFederationRegistry final {
       // default before the ownership notification is delivered.
       std::map<std::uint64_t, rti1516_2025::OrderType> attributeOrderTypes;
       // Explicit region associations used by the no-time Update Attribute
-      // Values path. Missing entries retain the ordinary no-region behavior.
+      // Values path for the current owner. Missing entries retain the ordinary
+      // no-region behavior. Associations made by a federate that does not
+      // currently own an attribute are retained separately until that
+      // federate acquires ownership.
       std::map<std::uint64_t, std::set<std::uint64_t>> updateRegionsByAttribute;
+      std::map<
+          std::uint64_t,
+          std::map<std::uint64_t, std::set<std::uint64_t>>>
+          deferredUpdateRegionsByFederate;
       // Latest accepted application values. Receive-order updates commit at
       // admission; timestamped updates commit at their callback/reclaim
       // boundary so a retracted payload never becomes current state.
@@ -5450,9 +5478,11 @@ class EmbeddedFederationRegistry final {
       Federation::ObjectInstance const& instance,
       std::uint64_t requestId,
       std::uint64_t attributeHandle);
-  // An ownership-assumption search is scoped to one unowned interval. Once an
+  // An ownership-assumption search is scoped to one divestiture offer. Once an
   // attribute becomes owned, a later divestiture starts a fresh search and
-  // must not inherit the prior search's recipient reservations or tag.
+  // must not inherit the prior search's recipient reservations or tag. A
+  // negotiated offer is the one exception to the usual unowned interval: its
+  // owner remains owner while the assumption callbacks are outstanding.
   static void clearOwnershipAssumptionSearch(
       Federation::ObjectInstance& instance,
       std::uint64_t attributeHandle);
@@ -5636,6 +5666,10 @@ class EmbeddedFederationRegistry final {
   // forward to a later owner.
   static void clearUpdateRegionAssociation(
       Federation::ObjectInstance& objectInstance,
+      std::uint64_t attributeHandle) noexcept;
+  static void promoteDeferredUpdateRegionAssociation(
+      Federation::ObjectInstance& objectInstance,
+      std::uint64_t federateId,
       std::uint64_t attributeHandle) noexcept;
   static void refreshRegionUsage(Federation& federation);
 
@@ -5965,6 +5999,12 @@ class EmbeddedFederationRegistry final {
       Federation& federation,
       FederationStateImage const& image,
       Federation const& liveFederation);
+
+  // Recomputes the declaration-relevance baseline while the registry mutex
+  // is already held. Restore uses this to seed the post-image state without
+  // exposing synthetic Start/Turn-On callbacks to application code.
+  [[nodiscard]] std::vector<DeclarationAdvisory>
+  planDeclarationAdvisoriesLocked(std::wstring const& federationName);
 
   static void restoreTsoQueueFromStateImage(
       Federation& federation,

@@ -152,6 +152,13 @@ class FederationTimeCoordinator final {
   [[nodiscard]] FederationTsoDeliveryStatus completeTsoDelivery(
       TsoQueuedMessage const& message);
 
+  // Completes one in-transit delivery using the execution-owned message id
+  // and recipient identity.  Process transports do not need to reconstruct
+  // the queue's private sequence/timestamp tuple in an acknowledgement.
+  [[nodiscard]] FederationTsoDeliveryStatus completeTsoDeliveryFor(
+      std::uint64_t recipientFederateId,
+      std::uint64_t messageId);
+
   // The delivered-since-last-advance set is cleared at the private grant
   // boundary after the recipient's logical time changes.
   [[nodiscard]] std::size_t clearDeliveredTsoMessages(

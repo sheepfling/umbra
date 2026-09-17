@@ -177,8 +177,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed regional Send Interaction With Regions invocations",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction"
+        "cpp/tests/regional_interaction_failure_service_report_file_catch2.cpp::Embedded service reporting records failed regional Send Interaction With Regions invocations",
+        "cpp/tests/regional_interaction_failure_service_report_interaction_catch2.cpp::Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction"
       ],
       "notes": "The no-time regional Send Interaction With Regions failure matrix covers invalid interaction-class, parameter, and region designators. Filesystem and HLA_IMMEDIATE service-report routes preserve serials zero through two, interaction-management service type 2, type-27/type-40/type-43/type-63/type-34 supplied forms, Null returns, false success, exact exception text, and no application Receive Interaction callback. Requirements Lab RL-105/RL-152 provide no row-level conditional-failure/backend relation; this is development-profile traceability rather than validation or conformance."
     },
@@ -189,8 +189,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulVoidServiceReportToFileIfSelected",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
+        "cpp/tests/regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback",
+        "cpp/tests/regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
       ],
       "notes": "The accepted ordinary regional Send Interaction With Regions matrix verifies the five supplied Table 5 slots (type-27 interaction class, type-40 parameter map, type-43 source-region set, type-63 tag, and type-34 Null timestamp), a Null return, interaction-management service type 2, success true, serial zero, and delivery of the source RegionHandleSet to the constrained application callback. The configured filesystem and HLA_IMMEDIATE HLAreportServiceInvocation routes are both covered before callback admission. Requirements Lab RL-105/RL-152 provide no row-level backend/lifecycle relation for this cross-cutting §11.5.1 behavior; this is development-profile traceability rather than validation or conformance."
     }

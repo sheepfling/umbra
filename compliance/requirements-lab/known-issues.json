@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "purpose": "Known, bounded Requirements Lab export and usability issues. This ledger is evidence about the pinned export; it does not rewrite or silently remap Lab requirement identifiers.",
+  "export_policy": "The pinned 2025 Requirements Lab export remains the source of truth. Re-run synchronization only when the pinned export changes; record recurrences as a new issue id.",
+  "issues": [
+    {
+      "id": "RL-177",
+      "status": "open",
+      "kind": "semantic-extraction-clause-boundary",
+      "title": "Page-132 object-management postconditions inherit the following 6.18.1 heading",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-132-l107-30",
+        "requirement-candidate-content-clauses-06-object-management-page-132-l113-32"
+      ],
+      "exported_clause": "6.18.1",
+      "normative_clause": "6.17.4",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/06-object-management-page-132.tex",
+        "lines": "107-118",
+        "page": 132
+      },
+      "symptom": "The generated requirement statements describe Delete Object Instance postconditions (including the Flush Queue Request and disable-time-constrained cases), but the semantic export labels both records as clause 6.18.1, the subsequent Local Delete Object Instance service.",
+      "impact": "A direct gap query can report the requirements under the wrong subsection and a test mapping must not silently replace the exported clause. This can make a correct implementation look uncovered or attach evidence to the wrong standard section.",
+      "workaround": "Keep the stable Lab ids and exported clause in traceability data; record the source-heading correction here and use the pinned source page when selecting or reviewing a focused test. Do not mutate the Lab export in the RTI repository.",
+      "reproduction": "python tools/query_rti_work.py gaps --family object-ddm-ownership --clause 6.18 --summary --compact --limit 40",
+      "detected": "2026-09-09"
+    }
+  ]
+}

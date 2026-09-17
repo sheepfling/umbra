@@ -1126,12 +1126,23 @@ def check_catch2_plan(plan_path: Path, bundle_path: Path) -> tuple[str, ...]:
         if not isinstance(test_case, str) or not test_case.strip():
             findings.append(f"{entry_id}: test_case must be a non-empty string")
         else:
-            for selector in _catch2_selector_parts(test_case):
-                normalized_selector = " ".join(selector.split())
-                if not any(normalized_selector in source for source in source_texts):
-                    findings.append(
-                        f"{entry_id}: Catch2 selector {selector!r} is absent from cpp/tests"
-                    )
+            # Historical aggregate rows and intentionally disabled source
+            # artifacts keep their original human-readable selector even
+            # after a focused extraction or a #if 0 fence.  They remain
+            # queryable planning records, but are not executable evidence and
+            # therefore must not fail the live source-selector guard.
+            non_executable_statuses = {
+                "planned",
+                "source-missing-needs-reconciliation",
+                "disabled-source-artifact",
+            }
+            if entry.get("status") not in non_executable_statuses:
+                for selector in _catch2_selector_parts(test_case):
+                    normalized_selector = " ".join(selector.split())
+                    if not any(normalized_selector in source for source in source_texts):
+                        findings.append(
+                            f"{entry_id}: Catch2 selector {selector!r} is absent from cpp/tests"
+                        )
 
         tags = entry.get("tags")
         if not isinstance(tags, list) or not tags or not all(

@@ -44,6 +44,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.composite-data-elements-contract` | Provider- and FOM-independent composite `DataElement` contract: fixed/variable arrays, aligned fixed records, nested record arrays, mapped and unknown variant alternatives, extendable variants, typed forms, and malformed padding/length boundaries |
 | `cpp-tck.connection-callback-contract` | Standard adapter-backed connection and callback-control contract: all four `connect` overloads, callback-model rejection, pre-connect boundaries, duplicate-connect handling, callback enable/disable and servicing, disconnect, and reconnect |
 | `cpp-tck.federation-lifecycle-contract` | Standard adapter-backed federation lifecycle contract: create/join/resign/destroy, automatic-resign directives, federation/member reports, federate handle lookups, duplicate-membership failures, and missing-federation boundaries |
+| `cpp-tck.automatic-resign-directive-delete-objects` | Promoted standard automatic-resign contract after a joined federate is lost: `DELETE_OBJECTS`, `connectionLost`, ordinary object removal, and object-name lookup cleanup |
+| `cpp-tck.automatic-resign-directive-delete-objects-contract` | Promoted adapter-backed contract for automatic resignation on connection loss using only standard callbacks, lookups, and lifecycle calls |
 | `java-tck.overloads-and-exceptions` | Pre-connect `NotConnected` boundaries for listing, lookup, name reservation, and disconnect; all four official Connect overloads, unsupported callback-model rejection, duplicate-connect handling, reconnect-after-disconnect, empty-queue callback servicing, Disable/Enable Callbacks, and Disconnect |
 | `java-tck.encoder-round-trip` | Official 16/32/64-bit integer, boolean, floating-point, UTF-16BE text, opaque, array, fixed-record, variant-record, and extendable-variant-record encodings, including alignment, signed element counts, caller-owned opaque storage, copied/borrowed storage, type-shape, custom boundary, and malformed-value boundaries |
 | `java-tck.malformed-inputs` | Missing/malformed FOM sources and malformed encoded values |
@@ -515,6 +517,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-attribute-update-rate-reduction-contract` | Standard adapter-backed contract for timestamped update-rate reduction and retraction |
 | `cpp-tck.handle-wire-formats` | Dimension, region, and message-retraction handle encoding/decoding, direct-buffer and `VariableLengthData&` parity, encoded-length and truncated-buffer checks, copied-handle value semantics, and DDM/timestamped-service boundaries |
 | `cpp-tck.handle-wire-formats-contract` | Standard adapter-backed handle encoding and decoding contract |
+| `cpp-tck.public-handle-decoding` | Every official federation-scoped handle decoder: lifecycle boundaries, live handle round trips, timestamped message-retraction decoding, and malformed-input rejection |
+| `cpp-tck.public-handle-decoding-contract` | Standard adapter-backed public handle-decoding contract |
 | `java-tck.ownership` | Pre-connect and pre-join ownership-service boundaries, ownership queries (including unowned reports), invalid object/attribute boundaries, assumption offers, negotiated and If Wanted acquisition/divestiture, If Available acquisition/unavailability, unconditional divestiture, denial, and cancellation |
 | `cpp-tck.ownership-management-contract` | Standard adapter-backed ordinary attribute-ownership contract for queries, assumption offers, negotiated and If Wanted acquisition/divestiture, If Available acquisition, unconditional divestiture, denial, cancellation, callbacks, and lifecycle boundaries |
 | `cpp-tck.partial-attribute-ownership-transfer` | Multi-attribute ownership acquisition and cancellation with an If Wanted transfer of only the uncanceled attribute, including release, cancellation, acquisition, tag, and ownership-state assertions |
@@ -613,6 +617,12 @@ asynchronous-delivery, save/restore, and connection-loss cases are C++ adapter
 extensions. Time-dependent scenarios are skipped when the
 adapter does not select a logical-time implementation; connection loss is
 skipped when no adapter trigger is supplied.
+The promoted `cpp-tck.public-handle-decoding` scenario and its contract twin
+exercise all nine official federation-scoped handle decoders, including
+timestamped message-retraction handles, lifecycle boundaries, and malformed
+encodings. The focused installed-package lane passed 4/4 callback-model cases;
+the merged verified installed-package gate passed all 620 scenario IDs and
+1,240 callback-model cases.
 The transport-change duplicate-request assertion is strict in evoked mode;
 immediate mode verifies the already-committed confirmation and delivery state,
 because an immediate callback may close the pending window before a second
@@ -1480,8 +1490,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-  that is 614 scenario IDs and 1228 matrix cases. `--scenario-set all`
-  configures the same 614 available IDs (1228 cases); the catalog currently has
+  that is 620 scenario IDs and 1240 matrix cases. `--scenario-set all`
+  configures the same 620 available IDs (1240 cases); the catalog currently has
   no unpromoted scenarios. Candidate-inclusive figures later in this document
   are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1705,6 +1715,12 @@ The promoted `cpp-tck.standard-exception-boundaries` scenario and its contract
 twin add deterministic service-level exception outcomes to that API inventory,
 using only the adapter-supplied baseline FOM and standard federation services;
 there is no Java runtime claim for this C++-only extension.
+The promoted `cpp-tck.post-resignation-service-boundaries` scenario and its
+contract twin extend that boundary across standard lookups, declarations,
+object and interaction services, time management, synchronization, and save
+requests after resignation. The focused installed-package lane passed 4/4
+callback-model cases; the source remains limited to official IEEE C++ headers
+and the standard library.
 The promoted `cpp-tck.enum-contract` runner exposes the official C++
 enumeration families as an independently selectable, provider- and
 FOM-independent slice; its parity anchor is

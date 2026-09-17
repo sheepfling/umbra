@@ -12,7 +12,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
+        "cpp/tests/object_instance_named_registration_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_callbacks_and_exceptions"
       ]
     },
@@ -23,7 +23,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
+        "cpp/tests/object_instance_named_registration_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_callbacks_and_exceptions"
       ]
     },
@@ -34,7 +34,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
+        "cpp/tests/object_instance_named_registration_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_callbacks_and_exceptions"
       ]
     },
@@ -45,7 +45,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
+        "cpp/tests/object_instance_named_registration_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_callbacks_and_exceptions"
       ]
     },
@@ -56,7 +56,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueObjectInstanceDiscovery",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
+        "cpp/tests/object_instance_named_registration_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_callbacks_and_exceptions"
       ]
     },
@@ -67,7 +67,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
+        "cpp/tests/object_instance_named_registration_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_callbacks_and_exceptions"
       ]
     },
@@ -78,7 +78,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerObjectInstanceWithRegions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
+        "cpp/tests/object_instance_named_registration_catch2.cpp::Embedded 2025 named object-instance registration consumes reservations",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_callbacks_and_exceptions"
       ]
     }

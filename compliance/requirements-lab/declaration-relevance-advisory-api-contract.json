@@ -81,7 +81,7 @@
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
+        "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
       ]
     },
     {
@@ -111,7 +111,7 @@
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
+        "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
       ]
     },
     {

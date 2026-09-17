@@ -57,13 +57,13 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate transport loss forces directive two",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
+        "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
         "cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
+        "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
@@ -79,13 +79,13 @@
       "source_symbol": "EmbeddedFederationRegistry::resignLocked",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions through the lost federate's last-known time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_catch2.cpp::Embedded transport loss delivers timestamped attribute updates through the lost federate's last-known time",
         "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
+        "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time",
@@ -93,7 +93,7 @@
         "cpp/tests/connection_loss_object_deletion_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped deletion to each pending survivor",
         "cpp/tests/connection_loss_directed_tso_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
         "cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
+        "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions before the lost federate's last-known time",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss schedules cutoff TSO delivery requested after the loss",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
@@ -107,13 +107,13 @@
       "source_symbol": "EmbeddedFederationRegistry::connectionLossTsoDeliveryMayGrant",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers timestamped interactions through the lost federate's last-known time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_catch2.cpp::Embedded transport loss delivers timestamped attribute updates through the lost federate's last-known time",
         "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
+        "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time",
@@ -167,11 +167,11 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginObjectInstanceRemoval",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
+        "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates"
       ]
     },
@@ -183,7 +183,7 @@
       "source_symbol": "EmbeddedFederationRegistry::timestampedDirectedInteractionRecipientFor",
       "tests": [
         "cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed"
+        "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed"
       ]
     },
     {
@@ -194,10 +194,10 @@
       "source_symbol": "EmbeddedFederationRegistry::releaseConnectionLossDeferredObjectInstanceRemovals",
       "tests": [
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed"
+        "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
+        "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed"
       ]
     },
     {
@@ -237,7 +237,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::receiveOrderAttributeUpdateRecipientFor",
       "tests": [
-        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     }
   ]

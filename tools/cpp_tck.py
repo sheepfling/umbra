@@ -21,6 +21,14 @@ EXPECTED_ADAPTER_MANAGED_SKIPS = {
         "cpp-tck.connection-loss-cleanup-contract",
         "requires an adapter-managed connection-loss fixture",
     ),
+    (
+        "cpp-tck.automatic-resign-directive-delete-objects",
+        "requires an adapter-managed connection-loss fixture",
+    ),
+    (
+        "cpp-tck.automatic-resign-directive-delete-objects-contract",
+        "requires an adapter-managed connection-loss fixture",
+    ),
 }
 STANDARD_HEADERS = {
     "algorithm",
@@ -230,9 +238,16 @@ def validate_sources() -> list[str]:
             if match is None:
                 continue
             delimiter, include = match.groups()
-            if delimiter == '"':
+            if (
+                delimiter == '"'
+                and not (path.name == "portable_tck.cpp" and include == "main.cpp")
+            ):
                 findings.append(f"portable C++ TCK uses a local include at {path}:{line_number}: {include}")
-            elif include not in OFFICIAL_API_HEADERS and include not in STANDARD_HEADERS:
+            elif (
+                delimiter == "<"
+                and include not in OFFICIAL_API_HEADERS
+                and include not in STANDARD_HEADERS
+            ):
                 findings.append(f"portable C++ TCK includes a non-standard header at {path}:{line_number}: {include}")
     fom_directory = SOURCE_ROOT / "fom"
     required_fom_names = (
@@ -259,15 +274,27 @@ def validate_sources() -> list[str]:
     return findings
 
 
+def scenario_inventory() -> list[str]:
+    main_source = (SOURCE_ROOT / "src" / "main.cpp").read_text(encoding="utf-8")
+    match = SCENARIO_INVENTORY_PATTERN.search(main_source)
+    if match is None:
+        return []
+    inventory = re.findall(r'"([^"]+)"', match.group("body"))
+    shim_path = SOURCE_ROOT / "src" / "portable_tck.cpp"
+    if shim_path.is_file():
+        shim_source = shim_path.read_text(encoding="utf-8")
+        inventory.extend(
+            re.findall(r'constexpr char\s+\w+Id\[\]\s*=\s*"([^"]+)"', shim_source)
+        )
+    return inventory
+
+
 def validate_scenario_inventory(catalog: dict[str, Any]) -> list[str]:
     """Ensure the executable's default scenario inventory matches the catalog."""
     source_path = SOURCE_ROOT / "src" / "main.cpp"
-    source = source_path.read_text(encoding="utf-8")
-    match = SCENARIO_INVENTORY_PATTERN.search(source)
-    if match is None:
+    inventory = scenario_inventory()
+    if not inventory:
         return [f"portable C++ TCK scenario inventory is absent: {source_path}"]
-
-    inventory = re.findall(r'"([^"]+)"', match.group("body"))
     catalog_ids = {scenario["id"] for scenario in catalog["scenarios"]}
     findings: list[str] = []
     duplicates = sorted(
@@ -300,13 +327,7 @@ def validate(catalog_path: Path = DEFAULT_CATALOG) -> dict[str, Any]:
     catalog = load_catalog(catalog_path)
     findings = validate_sources()
     findings.extend(validate_scenario_inventory(catalog))
-    source = (SOURCE_ROOT / "src" / "main.cpp").read_text(encoding="utf-8")
-    inventory_match = SCENARIO_INVENTORY_PATTERN.search(source)
-    inventory_count = (
-        len(re.findall(r'"([^"]+)"', inventory_match.group("body")))
-        if inventory_match is not None
-        else 0
-    )
+    inventory_count = len(scenario_inventory())
     promotion_counts = {
         state: sum(1 for item in catalog["scenarios"] if item["promotion"] == state)
         for state in ("promoted", "candidate")

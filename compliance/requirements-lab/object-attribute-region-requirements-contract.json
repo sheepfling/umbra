@@ -3,8 +3,90 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 clauses 9.5 through 9.9 object-attribute regional slice in Umbra's non-installable development profile. It uses only immutable candidate IDs exported by the Requirements Lab. Registration-established associations, additive/idempotent association, empty-region no-op behavior, active-overlap-filtered no-time updates, additive/idempotent per-(object-class, attribute, region) active/passive subscriptions, mode replacement, and regional unsubscription are covered by real Catch2 scenarios. Passive triples remain declared and retain their region lifecycle fence but cannot arrange discovery, scope, or reflection. The standard-wide passive-subscription delivery predicate is source-level evidence on page 30 rather than an immutable candidate; the Clause 9.8 candidate IDs pin the triple state and replacement language (RL-029). A separate direct-source Relaxed DDM regression proves the documented exact-boundary policy through regional registration, discovery, and reflection; RL-030 records that the corresponding §9.1.4/§9.1.8 policy prose has no immutable Lab candidate. Focused filesystem service-report coverage now records the type-36 object-class, type-4 AttributeRegionAssociationList/AttributeSetRegionSetPairList alias, type-6 passive indicator, and type-53/type-34 update-rate slots for §9.8, plus the type-36/type-4 §9.9 shape; composite callback/report returns remain deferred under RL-042. A bounded explicit-source timestamped object-update composition case now proves that an overlap-qualified passel retains its source RegionHandle and callback ordering across a Time Constrained disable/re-enable transition; broader timestamped/retraction behavior remains outside this regional contract. Default-region synthesis, advisory attributesInScope/attributesOutOfScope transitions, broader relaxed-DDM matrices, regional request forms, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice.",
+  "notes": "This source/test traceability contract covers the bounded IEEE 1516.1-2025 §9.1.3.3 region-context boundary and clauses 9.5 through 9.9 object-attribute regional slice in Umbra's non-installable development profile. It uses only immutable candidate IDs exported by the Requirements Lab. The focused context case rejects committed regions whose dimensions are outside a class's available object dimensions across regional registration, update association, regional subscription, and regional Request Attribute Value Update; it does not claim the full regional request/response behavior. Registration-established associations, additive/idempotent association, empty-region no-op behavior, active-overlap-filtered no-time updates, additive/idempotent per-(object-class, attribute, region) active/passive subscriptions, mode replacement, and regional unsubscription are covered by real Catch2 scenarios. Passive triples remain declared and retain their region lifecycle fence but cannot arrange discovery, scope, or reflection. The standard-wide passive-subscription delivery predicate is source-level evidence on page 30 rather than an immutable candidate; the Clause 9.8 candidate IDs pin the triple state and replacement language (RL-029). A separate direct-source Relaxed DDM regression proves the documented exact-boundary policy through regional registration, discovery, and reflection; RL-030 records that the corresponding §9.1.4/§9.1.8 policy prose has no immutable Lab candidate. Focused filesystem service-report coverage now records the type-36 object-class, type-4 AttributeRegionAssociationList/AttributeSetRegionSetPairList alias, type-6 passive indicator, and type-53/type-34 update-rate slots for §9.8, plus the type-36/type-4 §9.9 shape; composite callback/report returns remain deferred under RL-042. A bounded explicit-source timestamped object-update composition case now proves that an overlap-qualified passel retains its source RegionHandle and callback ordering across a Time Constrained disable/re-enable transition; broader timestamped/retraction behavior remains outside this regional contract. Default-region synthesis, advisory attributesInScope/attributesOutOfScope transitions, broader relaxed-DDM matrices, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice.",
   "requirements": [
+    {
+      "id": "umbra-object-regional-deferred-association-cancelled-before-acquisition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l35-11",
+      "clause_id": "clause-9.1.3.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::unassociateRegionsForUpdatesWithScopeChanges",
+      "tests": [
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-deferred-association-before-acquisition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l35-11",
+      "clause_id": "clause-9.1.3.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::associateRegionsForUpdatesWithScopeChanges",
+      "tests": [
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem fresh-registry restore promotes a deferred update-region association after ownership acquisition"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-deferred-association-promotes-on-acquisition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l41-13",
+      "clause_id": "clause-9.1.3.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::promoteDeferredUpdateRegionAssociation",
+      "tests": [
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+        "cpp/tests/federation_registry_catch2.cpp::Filesystem fresh-registry restore promotes a deferred update-region association after ownership acquisition"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-region-context-subset",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l8-2",
+      "clause_id": "clause-9.1.3.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::availableObjectClassDimensions",
+      "tests": [
+        "cpp/tests/regional_object_attribute_routing_catch2.cpp::Embedded regional object services reject region dimensions outside available object dimensions"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-region-context-realizations",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l11-3",
+      "clause_id": "clause-9.1.3.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::availableObjectClassDimensions",
+      "tests": [
+        "cpp/tests/regional_object_attribute_routing_catch2.cpp::Embedded regional object services reject region dimensions outside available object dimensions"
+      ]
+    },
+    {
+      "id": "umbra-object-regional-region-context-update-boundary",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l14-4",
+      "clause_id": "clause-9.1.3.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::availableObjectClassDimensions",
+      "tests": [
+        "cpp/tests/regional_object_attribute_routing_catch2.cpp::Embedded regional object services reject region dimensions outside available object dimensions"
+      ]
+    },
+    {
+      "id": "umbra-object-class-regional-region-context-subset",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l92-30",
+      "clause_id": "clause-9.1.3.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::availableObjectClassDimensions",
+      "tests": [
+        "cpp/tests/regional_object_attribute_routing_catch2.cpp::Embedded regional object services reject region dimensions outside available object dimensions"
+      ]
+    },
+    {
+      "id": "umbra-object-class-regional-region-context-realizations",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l95-31",
+      "clause_id": "clause-9.1.3.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::availableObjectClassDimensions",
+      "tests": [
+        "cpp/tests/regional_object_attribute_routing_catch2.cpp::Embedded regional object services reject region dimensions outside available object dimensions"
+      ]
+    },
     {
       "id": "umbra-object-regional-registration-creates-associated-instance",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l152-41",
@@ -13,10 +95,10 @@
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/allow_relaxed_ddm_object_attribute_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
+        "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {
@@ -29,7 +111,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {
@@ -42,7 +124,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {
@@ -73,10 +155,10 @@
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
+        "cpp/tests/allow_relaxed_ddm_object_attribute_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {
@@ -110,7 +192,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {
@@ -130,7 +212,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscription",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
+        "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
       ]
     },
     {
@@ -140,7 +222,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscription",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
+        "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
       ]
     },
     {
@@ -150,7 +232,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
+        "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"
       ]
     },
     {
@@ -172,7 +254,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional object attributes filter 2025 no-time updates by overlap",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp:159"
+        "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
     {

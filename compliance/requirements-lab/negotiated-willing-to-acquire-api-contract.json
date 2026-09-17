@@ -25,8 +25,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::negotiatedAttributeOwnershipDivestiture",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
+        "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
+        "cpp/tests/negotiated_willing_to_acquire_continuation_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
       ]
     },
     {
@@ -51,8 +51,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipAcquisitionIfAvailable",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
+        "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
+        "cpp/tests/negotiated_willing_to_acquire_continuation_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
       ]
     },
     {
@@ -67,8 +67,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueAttributeOwnershipAcquisitionWorkItem",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
+        "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
+        "cpp/tests/negotiated_willing_to_acquire_continuation_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
       ]
     },
     {
@@ -92,8 +92,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::confirmDivestiture",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
+        "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
+        "cpp/tests/negotiated_willing_to_acquire_continuation_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
       ]
     },
     {
@@ -108,8 +108,23 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueConfirmDivestitureNotifications",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
+        "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
+        "cpp/tests/negotiated_willing_to_acquire_continuation_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture advances after the first willing-to-acquire candidate cancels"
+      ]
+    },
+    {
+      "id": "umbra-embedded-negotiated-willing-to-acquire-assumption",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.requestattributeownershipassumption.51900ab87732",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void requestAttributeOwnershipAssumption( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & offeredAttributes, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "queueAttributeOwnershipAssumptionRecipients",
+      "tests": [
+        "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture forwards its tag to an assumption candidate"
       ]
     }
   ]

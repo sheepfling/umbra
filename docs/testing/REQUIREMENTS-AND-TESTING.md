@@ -112,6 +112,8 @@ python tools/query_rti_work.py trace "The FOM composition preflight resolves ref
 python tools/query_rti_work.py check --lane reference-resolution --summary --compact
 python tools/query_rti_work.py requirement hla-1516.1-2025:clause-8.22.3 --compact
 python tools/query_rti_work.py section hla-1516.1-2025:clause-9.13.1 --summary
+python tools/query_rti_work.py source cpp/tests/external_2010_fom_catch2.cpp --summary --limit 20
+python tools/query_rti_work.py unmapped --disposition unclassified --summary --limit 20
 ```
 
 `work` follows the active `next_work_id` pointer and prints one bounded
@@ -125,16 +127,24 @@ forgiving query across names, tags, API surfaces, Lab IDs, and canonical
 2025 clause/subsection keys; `lanes --summary --limit 40` lists a bounded set of
 the most-used exact tags for focused Catch2/CTest runs (`--limit 0` requests the
 full inventory);
-`unmapped` lists the explicit planning cases that still lack a Lab requirement
-selection. `unplanned --path <source-file>` is the inverse source-to-plan
-queue: it lists C++ `TEST_CASE` declarations with no exact plan title, without
-guessing requirements or status (the current index records 296 globally and
-20 in the FOM-composer slice). Use `next --summary` for a bounded
+`unmapped` lists planning cases that still lack a Lab requirement selection;
+`--disposition explicit` separates documented no-standalone-surface decisions
+from `--disposition unclassified`, which is the actionable mapping queue.
+For a roadmap-family starting point, use `matrix <family-id>` for bounded
+test-to-subsection rows or `coverage --family <family-id>` for totals; summary
+rows include direct `lab_requirement_id -> document_id:clause_id` pairs.
+`unplanned --path <source-file>` is the inverse source-to-plan queue: it lists
+C++ `TEST_CASE` declarations with no exact plan title, without guessing
+requirements or status (the current index records 232 globally and 0 in the
+FOM-composer slice). `source <source-path-substring>` is the bounded reverse
+lookup for planned cases in a known translation unit, with source lines, Lab
+IDs, and canonical 2025 sections. Use `next --summary` for a bounded
 work-selection view that includes
 the exact next task, a green baseline test (when one exists), lane, focused
 CTest selector, and mapping counts; use `next --json` when a script needs the
 same fields without prose. `check --compact` is the cheap source/catalog drift
-gate: it verifies that every plan entry resolves to a C++ `TEST_CASE`, every
+gate; use `check --family <family-id>` for a bounded family gate. It verifies
+that every plan entry resolves to a C++ `TEST_CASE`, every
 selected Lab ID is known, and every indexed standard section and lane exists.
 Use `--compact` when the exact requirement rows and clause mappings are needed;
 compact roadmap-item/status output reports tag and match counts instead of
@@ -3546,11 +3556,13 @@ and conformance remain separate.
 
 `compliance/requirements-lab/object-attribute-region-requirements-contract.json` and
 `compliance/requirements-lab/object-attribute-region-api-contract.json` trace the bounded 2025
-clauses 9.5 through 9.9 object-attribute regional forms to the official C++
-adapter and the `Embedded regional object attributes filter 2025 no-time
-updates by overlap` Catch2 case plus the passive object-attribute regression.
-Together they cover no-name registration with explicit associations,
-additive/idempotent association, empty-region no-ops, active/passive regional
+clauses 9.5 through 9.9 object-attribute regional forms, plus the selected
+cross-cutting §9.1.3.2/§9.1.3.3 relationships, to the official C++ adapter and
+the `Embedded regional object attributes filter 2025 no-time updates by
+overlap` Catch2 case plus the passive object-attribute regression. Together
+they cover no-name registration with explicit associations,
+additive/idempotent association, empty-region no-ops, explicit removal of an
+update association with default-region fallback, active/passive regional
 subscriptions and unsubscriptions, committed region ownership and dimension
 validation, active-overlap-filtered discovery and no-time reflection, passive
 suppression, the optional sent-region callback marker, and disjoint-range

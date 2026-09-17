@@ -933,6 +933,55 @@ void validateObjectVector(std::vector<FederationStateImageObject> const& objects
   }
 }
 
+void validateDeferredUpdateRegionAssociationVector(
+    std::vector<FederationStateImageDeferredUpdateRegionAssociation> const& associations,
+    std::vector<FederationStateImageObject> const& objects) {
+  std::tuple<std::uint64_t, std::uint64_t, std::uint64_t> previous{};
+  bool first = true;
+  for (auto const& association : associations) {
+    auto const current = std::tuple{
+        association.objectInstanceHandle,
+        association.federateId,
+        association.attributeHandle,
+    };
+    if (association.objectInstanceHandle == 0U || association.federateId == 0U ||
+        association.attributeHandle == 0U || (!first && current <= previous) ||
+        association.regionHandles.empty() ||
+        !std::is_sorted(
+            association.regionHandles.begin(), association.regionHandles.end()) ||
+        std::adjacent_find(
+            association.regionHandles.begin(),
+            association.regionHandles.end()) != association.regionHandles.end()) {
+      throw std::runtime_error(
+          "Deferred update-region associations are not strictly ordered in Umbra state image.");
+    }
+    auto const object = std::find_if(
+        objects.begin(),
+        objects.end(),
+        [&association](FederationStateImageObject const& candidate) {
+          return candidate.handle == association.objectInstanceHandle;
+        });
+    if (object == objects.end() ||
+        std::none_of(
+            object->attributes.begin(),
+            object->attributes.end(),
+            [&association](FederationStateImageObjectAttribute const& attribute) {
+              return attribute.handle == association.attributeHandle;
+            })) {
+      throw std::runtime_error(
+          "Deferred update-region association references an unknown object attribute in Umbra state image.");
+    }
+    previous = current;
+    first = false;
+    for (auto const regionHandle : association.regionHandles) {
+      if (regionHandle == 0U) {
+        throw std::runtime_error(
+            "Deferred update-region association has an invalid region in Umbra state image.");
+      }
+    }
+  }
+}
+
 void validatePendingAttributeOwnershipQueryVector(
     std::vector<FederationStateImagePendingAttributeOwnershipQuery> const& queries) {
   std::uint64_t previousRequestId = 0U;
@@ -1845,6 +1894,27 @@ std::string FederationStateImageCodec::encode(FederationStateImage const& image)
   }
   validateObjectVector(objects);
 
+  auto deferredUpdateRegionAssociations = image.deferredUpdateRegionAssociations;
+  std::sort(
+      deferredUpdateRegionAssociations.begin(),
+      deferredUpdateRegionAssociations.end(),
+      [](auto const& first, auto const& second) {
+        return std::tuple{
+                   first.objectInstanceHandle,
+                   first.federateId,
+                   first.attributeHandle} <
+               std::tuple{
+                   second.objectInstanceHandle,
+                   second.federateId,
+                   second.attributeHandle};
+      });
+  for (auto& association : deferredUpdateRegionAssociations) {
+    std::sort(association.regionHandles.begin(), association.regionHandles.end());
+  }
+  validateDeferredUpdateRegionAssociationVector(
+      deferredUpdateRegionAssociations,
+      objects);
+
   auto pendingAttributeOwnershipQueries =
       image.pendingAttributeOwnershipQueries;
   std::sort(
@@ -2136,10 +2206,12 @@ std::string FederationStateImageCodec::encode(FederationStateImage const& image)
       tsoDirectedInteractionMessages.size() * 260U + tsoQueueEntries.size() * 80U +
       pendingAttributeOwnershipQueries.size() * 100U +
       pendingAttributeOwnershipAssumptions.size() * 120U +
+      deferredUpdateRegionAssociations.size() * 96U +
       reservedObjectInstanceNames.size() * 80U +
       synchronizationPoints.size() * 180U +
       regions.size() * 180U +
-      objectClassAttributeDeclarations.size() * 180U);
+      objectClassAttributeDeclarations.size() * 180U +
+      (image.saveHistoryPresent ? 120U : 0U));
   result += FederationStateImage::format;
   result += '\n';
   result += "federationName=";
@@ -2822,6 +2894,29 @@ std::string FederationStateImageCodec::encode(FederationStateImage const& image)
       result += '\n';
     }
   }
+  if (image.deferredUpdateRegionAssociationsPresent ||
+      !deferredUpdateRegionAssociations.empty()) {
+    appendScalar(
+        result,
+        "deferredUpdateRegionAssociations",
+        deferredUpdateRegionAssociations.size());
+    for (auto const& association : deferredUpdateRegionAssociations) {
+      result += "deferredUpdateRegionAssociation=";
+      result += std::to_string(association.objectInstanceHandle);
+      result += '|';
+      result += std::to_string(association.federateId);
+      result += '|';
+      result += std::to_string(association.attributeHandle);
+      result += '|';
+      for (std::size_t index = 0U; index < association.regionHandles.size(); ++index) {
+        if (index != 0U) {
+          result += ',';
+        }
+        result += std::to_string(association.regionHandles[index]);
+      }
+      result += '\n';
+    }
+  }
   appendScalar(
       result,
       "pendingAttributeOwnershipQueries",
@@ -3362,6 +3457,8 @@ std::string FederationStateImageCodec::encode(FederationStateImage const& image)
     result += std::to_string(point.announcedFederates.size());
     result += '|';
     result += std::to_string(point.achievedFederates.size());
+    result += '|';
+    result += point.lateJoinExpansionAllowed ? "1" : "0";
     result += '\n';
     for (auto const federateId : point.synchronizationSet) {
       result += "synchronizationPointMember=";
@@ -3537,6 +3634,25 @@ std::string FederationStateImageCodec::encode(FederationStateImage const& image)
         result += '\n';
       }
     }
+  }
+  if (image.saveHistoryPresent) {
+    if (image.lastSaveName.empty() && image.lastSaveTimeEncoding.has_value()) {
+      throw std::logic_error(
+          "Last-save time cannot be present without a last-save name.");
+    }
+    if (image.nextSaveName.empty() && image.nextSaveTimeEncoding.has_value()) {
+      throw std::logic_error(
+          "Next-save time cannot be present without a next-save name.");
+    }
+    result += "saveHistory=";
+    result += encodeWide(image.lastSaveName);
+    result += '|';
+    result += encodeOptional(image.lastSaveTimeEncoding);
+    result += '|';
+    result += encodeWide(image.nextSaveName);
+    result += '|';
+    result += encodeOptional(image.nextSaveTimeEncoding);
+    result += '\n';
   }
   result += "end\n";
   return result;
@@ -4496,6 +4612,40 @@ FederationStateImage FederationStateImageCodec::decode(std::string_view payload)
   }
   validateObjectVector(image.objects);
   auto interactionMarker = cursor.line();
+  constexpr std::string_view deferredUpdateRegionPrefix =
+      "deferredUpdateRegionAssociations=";
+  if (interactionMarker.starts_with(deferredUpdateRegionPrefix)) {
+    auto const associationCount = parseInteger<std::size_t>(
+        interactionMarker.substr(deferredUpdateRegionPrefix.size()),
+        "deferredUpdateRegionAssociations");
+    image.deferredUpdateRegionAssociationsPresent = true;
+    image.deferredUpdateRegionAssociations.reserve(associationCount);
+    for (std::size_t associationIndex = 0U;
+         associationIndex < associationCount;
+         ++associationIndex) {
+      auto const fields = split(cursor.valueFor("deferredUpdateRegionAssociation"));
+      if (fields.size() != 4U) {
+        throw std::runtime_error(
+            "Malformed deferred update-region association in Umbra state image.");
+      }
+      image.deferredUpdateRegionAssociations.push_back({
+          parseInteger<std::uint64_t>(
+              fields[0],
+              "deferred update-region association object"),
+          parseInteger<std::uint64_t>(
+              fields[1],
+              "deferred update-region association federate"),
+          parseInteger<std::uint64_t>(
+              fields[2],
+              "deferred update-region association attribute"),
+          parseIdList(fields[3], "deferred update-region association regions"),
+      });
+    }
+    validateDeferredUpdateRegionAssociationVector(
+        image.deferredUpdateRegionAssociations,
+        image.objects);
+    interactionMarker = cursor.line();
+  }
   constexpr std::string_view pendingQueryPrefix =
       "pendingAttributeOwnershipQueries=";
   if (interactionMarker.starts_with(pendingQueryPrefix)) {
@@ -5361,7 +5511,7 @@ FederationStateImage FederationStateImageCodec::decode(std::string_view payload)
     image.synchronizationPoints.reserve(synchronizationCount);
     for (std::size_t index = 0U; index < synchronizationCount; ++index) {
       auto const fields = split(cursor.valueFor("synchronizationPoint"));
-      if (fields.size() != 5U) {
+      if (fields.size() != 5U && fields.size() != 6U) {
         throw std::runtime_error(
             "Malformed synchronization point in Umbra state image.");
       }
@@ -5374,6 +5524,10 @@ FederationStateImage FederationStateImageCodec::decode(std::string_view payload)
           fields[3], "synchronization-point announcement count");
       auto const achievedCount = parseInteger<std::size_t>(
           fields[4], "synchronization-point achievement count");
+      if (fields.size() == 6U) {
+        point.lateJoinExpansionAllowed = parseBoolean(
+            fields[5], "synchronization-point late-join expansion");
+      }
       point.synchronizationSet.reserve(synchronizationSetCount);
       for (std::size_t member = 0U; member < synchronizationSetCount; ++member) {
         point.synchronizationSet.push_back(parseInteger<std::uint64_t>(
@@ -5649,6 +5803,35 @@ FederationStateImage FederationStateImageCodec::decode(std::string_view payload)
   }
   validateObjectClassAttributeDeclarationVector(image.objectClassAttributeDeclarations);
   image.objectClassAttributeDeclarationsPresent = true;
+  auto const saveHistoryMarker = cursor.line();
+  if (saveHistoryMarker == "end") {
+    cursor.finish();
+    return image;
+  }
+  constexpr std::string_view saveHistoryPrefix = "saveHistory=";
+  if (!saveHistoryMarker.starts_with(saveHistoryPrefix)) {
+    throw std::runtime_error(
+        "Missing saveHistory section in Umbra state image.");
+  }
+  auto const saveHistoryFields = split(
+      saveHistoryMarker.substr(saveHistoryPrefix.size()));
+  if (saveHistoryFields.size() != 4U) {
+    throw std::runtime_error(
+        "Malformed saveHistory section in Umbra state image.");
+  }
+  image.lastSaveName = decodeWide(saveHistoryFields[0]);
+  image.lastSaveTimeEncoding = decodeOptional(saveHistoryFields[1]);
+  image.nextSaveName = decodeWide(saveHistoryFields[2]);
+  image.nextSaveTimeEncoding = decodeOptional(saveHistoryFields[3]);
+  if (image.lastSaveName.empty() && image.lastSaveTimeEncoding.has_value()) {
+    throw std::runtime_error(
+        "Last-save time cannot be present without a last-save name.");
+  }
+  if (image.nextSaveName.empty() && image.nextSaveTimeEncoding.has_value()) {
+    throw std::runtime_error(
+        "Next-save time cannot be present without a next-save name.");
+  }
+  image.saveHistoryPresent = true;
   cursor.expect("end");
   cursor.finish();
   return image;

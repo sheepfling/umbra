@@ -189,7 +189,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Synchronization Point Achieved argument forms",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files preserve Register Federation Synchronization Point optional-set form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
+        "cpp/tests/service_report_file_confirm_synchronization_point_registration_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
         "cpp/tests/service_report_file_synchronization_point_achieved_catch2.cpp::Embedded service reporting preserves Synchronization Point Achieved arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Federate Save Begun no-argument form",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted Federate Save Begun invocation",
@@ -200,6 +200,28 @@
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Query Federation Save Status no-argument form",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Query Federation Save Status before its response",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_reporting_file_boundary"
+      ]
+    },
+    {
+      "id": "umbra-service-report-file-arguments-use-table-four-json-text",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-294-l14-4",
+      "clause_id": "clause-11.5.2.1",
+      "source": "cpp/src/internal/observability/mom_service_report_encoding.cpp",
+      "source_symbol": "formatMomServiceArgumentList",
+      "notes": "The focused native encoder case checks the Table 5 JSON-like null, boolean, number, string, and set forms used by service-report argument text, including escaping and deterministic set ordering.",
+      "tests": [
+        "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report argument text follows the Table 5 JSON-like primitives"
+      ]
+    },
+    {
+      "id": "umbra-service-report-file-records-are-brace-concatenated",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-294-l17-5",
+      "clause_id": "clause-11.5.2.1",
+      "source": "cpp/src/internal/observability/service_report_store.cpp",
+      "source_symbol": "FilesystemServiceReportWriter",
+      "notes": "The focused Register Object Instance overload matrix compares the physical file with initialText followed immediately by four successful records and one failed record, proving brace-delimited records have no separator and retain append order.",
+      "tests": [
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records all Register Object Instance overloads"
       ]
     },
     {
@@ -292,7 +314,7 @@
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The accepted §7.15 cancellation is delivered through the public HLA_IMMEDIATE service-report interaction after the registry cancellation plan and outside native locks. The focused C++ case decodes ownership-management service type 3, Object instance designator type 37 and Set of attribute designators type 1 supplied records, Null return, successful indicator, reliable transport, unresolved RTI producer, empty exception, and serial zero. This is development-profile interaction evidence only; file-selected/rejected paths, remote transport, packaging, protected-review, Lab validation, and conformance remain open.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM"
+        "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM"
       ]
     },
     {
@@ -564,7 +586,7 @@
       "source_symbol": "UmbraRtiAmbassador::registerFederationSynchronizationPointImpl",
       "notes": "The report producer intentionally precedes submitSynchronizationPointRegistration so the selected registration-success or registration-failure callback cannot be evoked before the durable record. This entry covers only the registering federate's §4.15 report; the separate §4.16 and §4.18 recipient paths are traced below.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
+        "cpp/tests/service_report_file_confirm_synchronization_point_registration_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_report_precedes_sync_registration_callback"
       ]
     },
@@ -589,7 +611,7 @@
       "notes": "The registry carries a weak private report endpoint for each joined federate. Before its §4.16 callback is queued, the recipient route selects that federate's reporting switches, reserves its own serial only for a file record, and appends type-53 label plus the bounded type-63 user tag without changing its joined-federate file identity.",
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Announce Synchronization Point argument form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
+        "cpp/tests/service_report_file_confirm_synchronization_point_registration_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
         "cpp/tests/service_report_file_announce_synchronization_point_catch2.cpp::Embedded service reporting records Announce Synchronization Point at recipient files",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_report_precedes_sync_announcement_callback"
       ]
@@ -2460,8 +2482,8 @@
       "notes": "The embedded RTI consumes the standard HLArequestObjectInstancesUpdated and HLArequestObjectInstancesThatCanBeDeleted MOM interactions, computes class-grouped live object and delete-privilege counts in C++, and emits the RTI-originated HLAreportObjectInstancesUpdated and HLAreportObjectInstancesThatCanBeDeleted reports through the ordinary reliable interaction callback route. The external IEEE Java/JPype vector verifies the invalid producer identity, empty tag, nested HLAobjectClassBasedCounts variable-array/fixed-record encoding, one count for each registered class, and removal of the deleted class from the live ownership projection. This is development-profile evidence only and does not claim the remaining MOM request/report families, producer-handle resolution beyond the standard invalid identity, Lab validation, or conformance.",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_object_instance_counts_request_report",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesUpdated reports class-grouped counts",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts"
+        "cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp::Embedded MOM requestObjectInstancesUpdated reports class-grouped counts",
+        "cpp/tests/joined_federate_mom_object_instances_that_can_be_deleted_report_catch2.cpp::Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts"
       ]
     },
     {
@@ -2473,7 +2495,7 @@
       "notes": "The embedded RTI consumes the standard HLArequestObjectInstancesReflected MOM interaction from the requesting federate, computes distinct reflected application-object counts for the reported federate in C++, and emits the RTI-originated HLAreportObjectInstancesReflected report through the reliable interaction callback route. The external IEEE Java/JPype vector verifies the exact callback metadata and decodes the nested HLAobjectClassBasedCounts payload with one count per reflected object class, independent of repeated updates to one object. This is development-profile evidence only and does not claim the remaining MOM request/report families, producer-handle resolution beyond the standard invalid identity, Lab validation, or conformance.",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_object_instance_counts_request_report",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstancesReflected reports distinct reflected instances"
+        "cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp::Embedded MOM requestObjectInstancesReflected reports distinct reflected instances"
       ]
     },
     {
@@ -2485,7 +2507,7 @@
       "notes": "The embedded RTI consumes the standard HLArequestUpdatesSent MOM interaction, groups accepted attribute updates by transportation and registered object class in C++, and emits one reliable RTI-originated HLAreportUpdatesSent report per represented transportation bucket, including empty HLAupdateCounts buckets. The external IEEE Java/JPype vector decodes HLAtransportation plus nested HLAupdateCounts and verifies two best-effort Server updates versus one reliable Soda update through the standard Java encoder. This is development-profile evidence only and does not claim custom or remote transportation, the remaining MOM request/report families, Lab validation, or conformance.",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_object_instance_counts_request_report",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestUpdatesSent reports class and transportation counts"
+        "cpp/tests/joined_federate_mom_updates_sent_catch2.cpp::Embedded MOM requestUpdatesSent reports class and transportation counts"
       ]
     },
     {
@@ -2497,7 +2519,7 @@
       "notes": "The embedded RTI consumes the standard HLArequestInteractionsSent MOM interaction, groups accepted ordinary and dimensioned sends by transportation and interaction class in C++, and emits one reliable RTI-originated HLAreportInteractionsSent report per represented transportation bucket. The external IEEE Java/JPype vector decodes nested HLAinteractionCounts and verifies reliable TakeOrder, best-effort TakeOrder, and reliable dimensioned MainCourseServed counts through the standard Java encoder. This is development-profile evidence only and does not claim custom or remote transportation, the remaining MOM request/report families, Lab validation, or conformance.",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_interactions_sent_request_report",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestInteractionsSent reports class and transportation counts"
+        "cpp/tests/joined_federate_mom_interactions_sent_catch2.cpp::Embedded MOM requestInteractionsSent reports class and transportation counts"
       ]
     },
     {
@@ -2521,7 +2543,7 @@
       "notes": "The embedded RTI consumes the standard HLArequestInteractionsReceived MOM interaction, groups application interaction callbacks by original sent interaction class and transportation in C++, and emits one reliable RTI-originated HLAreportInteractionsReceived report per supported transportation bucket. The external IEEE Java/JPype vector decodes nested HLAinteractionCounts and verifies one received TakeOrder under reliable and one under best-effort transport through the standard Java encoder. This is development-profile evidence only and does not claim custom or remote transportation, the remaining MOM request/report families, Lab validation, or conformance.",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_interactions_received_request_report",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestInteractionsReceived reports class and transportation counts"
+        "cpp/tests/joined_federate_mom_interactions_received_catch2.cpp::Embedded MOM requestInteractionsReceived reports class and transportation counts"
       ]
     },
     {
@@ -2533,7 +2555,7 @@
       "notes": "The embedded RTI consumes the standard HLArequestDirectedInteractionsReceived MOM interaction, keeps directed application callbacks separate from ordinary interaction receives, and emits one reliable RTI-originated HLAreportDirectedInteractionsReceived report per transportation bucket, including the empty best-effort HLAinteractionCounts bucket. The external IEEE Java/JPype vector decodes the directed nested counts and verifies one reliable directed TakeOrder receive while the ordinary receive is excluded. This is development-profile evidence only and does not claim custom or remote transportation, the remaining MOM request/report families, Lab validation, or conformance.",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_directed_interactions_received_request_report",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestDirectedInteractionsReceived reports directed counts and NULL buckets"
+        "cpp/tests/joined_federate_mom_directed_interactions_received_catch2.cpp::Embedded MOM requestDirectedInteractionsReceived reports directed counts and NULL buckets"
       ]
     },
     {
@@ -2545,7 +2567,7 @@
       "notes": "The embedded RTI consumes the standard HLArequestReflectionsReceived MOM interaction, groups application attribute reflections by registered object class and effective transportation in C++, and emits one reliable RTI-originated HLAreportReflectionsReceived report per transportation bucket, including empty HLAreflectCounts buckets. The external IEEE Java/JPype vector decodes nested HLAobjectClassBasedCounts, verifies reliable and best-effort Server reflections, and requests an empty joined-federate ledger through the standard Java encoder. This is development-profile evidence only and does not claim custom or remote transportation, the remaining MOM request/report families, Lab validation, or conformance.",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_reflections_received_request_report",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestReflectionsReceived reports class and transportation counts"
+        "cpp/tests/joined_federate_mom_reflections_received_catch2.cpp::Embedded MOM requestReflectionsReceived reports class and transportation counts"
       ]
     },
     {
@@ -2557,7 +2579,7 @@
       "notes": "The embedded RTI consumes the standard HLArequestObjectInstanceInformation MOM interaction and emits the RTI-originated HLAreportObjectInstanceInformation response with the requested object handle, nested HLAattributeHandleList, registered class, and known class. The external IEEE Java/JPype vector drives unknown-at-observer NULL, observer-known, and registering-federate reports through the standard Java encoder, including Efficiency and HLAprivilegeToDeleteObject ownership. This is development-profile evidence only and does not claim the remaining MOM request/report families, Lab validation, or conformance.",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_object_instance_information_request_report",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM requestObjectInstanceInformation reports known and NULL object state"
+        "cpp/tests/joined_federate_mom_object_instance_information_report_catch2.cpp::Embedded MOM requestObjectInstanceInformation reports known and NULL object state"
       ]
     },
     {
@@ -2641,7 +2663,7 @@
       "notes": "The embedded RTI exposes the federation-scoped HLAcurrentFDD attribute as an HLAunicodeString containing the materialized current FDD and queues a reliable refresh when a compatible additional-FOM Join changes that FDD. The external IEEE Java/JPype vector decodes the initial Restaurant FOM, observes the UmbraReferenceFixtureClass refresh, and confirms a direct request returns the refreshed value. This is development-profile evidence only and does not claim remote transport, the remaining federation-MOM attributes, Lab validation, or conformance.",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_federation_mom_fom_module_updates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation MOM exposes and refreshes HLAcurrentFDD"
+        "cpp/tests/federation_mom_current_fdd_catch2.cpp::Embedded federation MOM exposes and refreshes HLAcurrentFDD"
       ]
     },
     {

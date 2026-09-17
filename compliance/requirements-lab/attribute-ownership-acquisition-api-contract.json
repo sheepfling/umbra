@@ -29,8 +29,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer",
+        "cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
+        "cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments"
       ]
@@ -50,8 +50,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer",
+        "cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
+        "cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments"
       ]
     },
@@ -76,7 +76,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
+        "cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Release Denied arguments"
       ]
     },
@@ -100,12 +100,12 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::cancelAttributeOwnershipAcquisition",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer",
+        "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
+        "cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
+        "cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership assumption search advances after a declined callback",
     "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
-    "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM"
+    "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM"
       ]
     },
     {
@@ -120,12 +120,12 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "requester.confirmAttributeOwnershipAcquisitionCancellation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer",
+        "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
+        "cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
+        "cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership assumption search advances after a declined callback",
     "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
-    "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM"
+    "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM"
       ]
     },
     {
@@ -141,7 +141,7 @@
       "source_symbol": "requester.attributeOwnershipAcquisitionNotification",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer"
+        "cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer"
       ]
     },
     {
@@ -158,7 +158,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
+        "cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Release Denied arguments"
       ]
     }

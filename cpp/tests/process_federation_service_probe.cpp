@@ -1,4 +1,5 @@
 #include "internal/federation/federation_registry.hpp"
+#include "internal/federation/federation_management_coordinator.hpp"
 #include "internal/federation/process_federation_callback_bridge.hpp"
 #include "internal/federation/process_federation_client.hpp"
 #include "internal/federation/process_federation_service.hpp"
@@ -7,6 +8,7 @@
 #include "internal/handles/federate_handle.hpp"
 #include "internal/handles/interaction_class_handle.hpp"
 #include "internal/handles/transportation_type_handle.hpp"
+#include "internal/time/reference_time_selection.hpp"
 
 #include <RTI/RTI1516.h>
 #include <RTI/NullFederateAmbassador.h>
@@ -16,6 +18,7 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <stdexcept>
@@ -28,6 +31,8 @@ namespace {
 
 using umbra::detail::EmbeddedFederationRegistry;
 using umbra::detail::FederationDefinition;
+using umbra::detail::FederationManagementCoordinator;
+using umbra::detail::FederationManagementResources;
 using umbra::detail::FederationRegistryStatus;
 using umbra::detail::FomCompositionStatus;
 using umbra::detail::FomModuleKind;
@@ -43,6 +48,7 @@ using umbra::detail::ProcessTransportConnection;
 using umbra::detail::ProcessTransportListener;
 using umbra::detail::ProcessTransportServiceDispatcher;
 using umbra::detail::ProcessTransportSession;
+using umbra::detail::ReferenceLogicalTimeSelector;
 using umbra::detail::TransportServiceMessage;
 using umbra::detail::TransportServiceOperation;
 using umbra::detail::TransportServiceStatus;
@@ -128,6 +134,61 @@ FederationDefinition composedRestaurantDefinition() {
   };
 }
 
+// The process endpoint owns the registry, but FOM validation/composition
+// remains a standards-derived service rather than transport behavior. Keep
+// the coordinator's dependencies alive alongside the service so an
+// additional-FOM Join follows the same 2025 path as the embedded profile.
+struct ProcessFomPreparationContext final {
+  LibXml2FomValidator validator;
+  LibXml2FomModuleComposer composer;
+  ReferenceLogicalTimeSelector timeSelector;
+  FederationManagementCoordinator coordinator;
+
+  ProcessFomPreparationContext()
+      : composer(resourcePath("schemas/IEEE1516-FDD-2025.xsd")),
+        coordinator(
+            validator,
+            composer,
+            timeSelector,
+            FederationManagementResources{
+                resourcePath("mim/HLAstandardMIM-2025.xml"),
+                resourcePath("schemas/IEEE1516-DIF-2025.xsd"),
+                std::nullopt}) {}
+};
+
+ProcessFederationServiceOptions makeProcessServiceOptions(
+    ProcessFomPreparationContext& fomContext) {
+  ProcessFederationServiceOptions options;
+  options.pushReceiveOrderEvents = true;
+  options.createFomPreparation =
+      [&fomContext](std::vector<std::wstring> const& fomModules,
+                    std::optional<std::wstring> const& mimModule,
+                    std::wstring const& logicalTimeImplementationName)
+      -> std::optional<FederationDefinition> {
+    auto prepared = fomContext.coordinator.prepareCreate(
+        fomModules,
+        mimModule,
+        logicalTimeImplementationName);
+    if (!prepared.accepted()) {
+      return std::nullopt;
+    }
+    return std::move(prepared.definition);
+  };
+  options.additionalFomPreparation =
+      [&fomContext](FederationDefinition const& existing,
+                    std::vector<std::wstring> const& additionalModules)
+      -> std::optional<FederationDefinition> {
+    auto prepared = fomContext.coordinator.prepareAdditionalModules(
+        existing,
+        additionalModules);
+    if (!prepared.accepted()) {
+      return std::nullopt;
+    }
+    return std::move(prepared.definition);
+  };
+  return options;
+}
+
 void writeText(std::filesystem::path const& path, std::string const& text) {
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   if (!output) {
@@ -185,8 +246,8 @@ std::uint64_t readHandle(std::filesystem::path const& path) {
 
 int runServer(std::filesystem::path const& directory) {
   EmbeddedFederationRegistry registry;
-  ProcessFederationServiceOptions serviceOptions;
-  serviceOptions.pushReceiveOrderEvents = true;
+  ProcessFomPreparationContext fomContext;
+  auto serviceOptions = makeProcessServiceOptions(fomContext);
   ProcessFederationService service(
       registry, composedRestaurantDefinition(), serviceOptions);
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
@@ -269,11 +330,11 @@ int runPublicServer(
     bool parameterized,
     bool objectRegistration,
     bool namedRegistration,
-    bool attributeUpdate,
-    bool directedRetraction) {
+  bool attributeUpdate,
+  bool directedRetraction) {
   EmbeddedFederationRegistry registry;
-  ProcessFederationServiceOptions serviceOptions;
-  serviceOptions.pushReceiveOrderEvents = true;
+  ProcessFomPreparationContext fomContext;
+  auto serviceOptions = makeProcessServiceOptions(fomContext);
   ProcessFederationService service(
       registry, composedRestaurantDefinition(), serviceOptions);
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
@@ -283,8 +344,13 @@ int runPublicServer(
   }
   writeText(directory / "port.txt", std::to_string(listener->address().port));
 
+  bool const automaticCancelPendingAcquisition = std::filesystem::exists(
+      directory / "automatic-cancel-pending-acquisition.mode");
+  bool const automaticDeleteObjects = std::filesystem::exists(
+      directory / "automatic-delete-objects.mode");
   std::unique_ptr<ProcessTransportSession> sender;
   std::unique_ptr<ProcessTransportSession> receiver;
+  std::unique_ptr<ProcessTransportSession> survivor;
   for (int index = 0; index < 2; ++index) {
     auto connection = listener->accept(
         nullptr,
@@ -311,17 +377,37 @@ int runPublicServer(
     return baseSenderHandler(request);
   };
   auto receiverHandler = service.handlerFor(*receiver);
+  std::optional<ProcessTransportServiceDispatcher::Handler> survivorHandler;
   if (!ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler) ||
       !ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler) ||
       !ProcessTransportServiceDispatcher::serveOne(*receiver, receiverHandler)) {
     throw std::runtime_error(
         "The installable process profile server lost Create or Join.");
   }
+  if (automaticCancelPendingAcquisition) {
+    auto connection = listener->accept(
+        nullptr,
+        {"package-process-server", 0x93U},
+        [](std::wstring) {},
+        [](std::wstring) { return false; });
+    if (connection->peerIdentity().endpointId != "package-process-receiver") {
+      throw std::runtime_error(
+          "The installable process profile pending-acquisition server received an unexpected survivor endpoint.");
+    }
+    survivor = std::make_unique<ProcessTransportSession>(std::move(connection));
+    survivorHandler.emplace(service.handlerFor(*survivor));
+    if (!ProcessTransportServiceDispatcher::serveOne(*survivor, *survivorHandler)) {
+      throw std::runtime_error(
+          "The installable process profile pending-acquisition server lost survivor Join.");
+    }
+  }
 
   auto const senderMember = registry.memberByName(
       L"process-execution", L"package-process-sender");
   auto const receiverMember = registry.memberByName(
       L"process-execution", L"package-process-receiver");
+  auto const survivorMember = registry.memberByName(
+      L"process-execution", L"package-process-receiver-survivor");
   auto serveExpectedSender = [&](TransportServiceOperation operation) {
     return ProcessTransportServiceDispatcher::serveOne(
         *sender,
@@ -350,6 +436,109 @@ int runPublicServer(
           return receiverHandler(request);
         });
   };
+  auto serveExpectedSenderAfterEvokedPolls =
+      [&](TransportServiceOperation operation) {
+        while (true) {
+          bool expected = false;
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  *sender,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation ==
+                        TransportServiceOperation::receive_interaction) {
+                      return senderHandler(request);
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          "The installable process profile server received an unexpected sender operation while draining evoked callbacks.");
+                    }
+                    expected = true;
+                    return senderHandler(request);
+                  })) {
+            return false;
+          }
+          if (expected) {
+            return true;
+          }
+        }
+      };
+  // A timestamped process event may arrive as an unsolicited push before the
+  // receiver enters Evoke, or the receiver may cross the polling fence first
+  // and receive the event in that response.  In both cases the callback
+  // bridge acknowledges the delivery on the receiver session before the
+  // producer can legally continue.  Keep the fixture tolerant of either
+  // transport ordering while still validating the acknowledgement boundary.
+  auto serveReceiverDeliveryAndAcknowledgement = [&] {
+    bool polled = false;
+    if (!ProcessTransportServiceDispatcher::serveOne(
+            *receiver,
+            [&](TransportServiceMessage const& request) {
+              if (request.operation == TransportServiceOperation::receive_interaction) {
+                polled = true;
+                return receiverHandler(request);
+              }
+              if (request.operation ==
+                  TransportServiceOperation::acknowledge_tso_delivery) {
+                return receiverHandler(request);
+              }
+              throw std::runtime_error(
+                  "The installable directed-retraction server received an unexpected receiver delivery operation.");
+            })) {
+      return false;
+    }
+    if (polled) {
+      return ProcessTransportServiceDispatcher::serveOne(
+          *receiver,
+          [&](TransportServiceMessage const& request) {
+            if (request.operation !=
+                TransportServiceOperation::acknowledge_tso_delivery) {
+              throw std::runtime_error(
+                  "The installable directed-retraction server lost the receiver TSO acknowledgement.");
+            }
+            return receiverHandler(request);
+          });
+    }
+    return true;
+  };
+  auto serveExpectedSurvivor = [&](TransportServiceOperation operation) {
+    if (!survivor || !survivorHandler) {
+      return false;
+    }
+    return ProcessTransportServiceDispatcher::serveOne(
+        *survivor,
+        [&](TransportServiceMessage const& request) {
+          if (request.operation != operation) {
+            throw std::runtime_error(
+                "The installable process profile pending-acquisition server received an unexpected survivor operation.");
+          }
+          return (*survivorHandler)(request);
+        });
+  };
+  auto serveExpectedReceiverPoll = [&] {
+    return ProcessTransportServiceDispatcher::serveOne(
+        *receiver,
+        [&](TransportServiceMessage const& request) {
+          if (request.operation != TransportServiceOperation::receive_interaction) {
+            throw std::runtime_error(
+                "The installable process profile pending-acquisition server received an unexpected lost-member callback poll.");
+          }
+          return receiverHandler(request);
+        });
+  };
+  auto serveExpectedSurvivorPoll = [&] {
+    if (!survivor || !survivorHandler) {
+      return false;
+    }
+    return ProcessTransportServiceDispatcher::serveOne(
+        *survivor,
+        [&](TransportServiceMessage const& request) {
+          if (request.operation != TransportServiceOperation::receive_interaction) {
+            throw std::runtime_error(
+                "The installable process profile pending-acquisition server received an unexpected survivor callback poll.");
+          }
+          return (*survivorHandler)(request);
+        });
+  };
+
   auto const interactionClass = registry.interactionClassHandleFor(
       L"process-execution",
       "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
@@ -370,6 +559,99 @@ int runPublicServer(
   }
   writeText(directory / "object-class.txt", std::to_string(*objectClass));
   writeText(directory / "interaction-class.txt", std::to_string(*interactionClass));
+
+  if (automaticCancelPendingAcquisition) {
+    if (!survivor || !survivorHandler || !receiverMember || !survivorMember) {
+      throw std::runtime_error(
+          "The installable process profile pending-acquisition member state is incomplete.");
+    }
+    auto const privilegeAttribute = registry.attributeHandleFor(
+        L"process-execution",
+        "HLAobjectRoot.Customer",
+        "HLAprivilegeToDeleteObject");
+    if (!privilegeAttribute) {
+      throw std::runtime_error(
+          "The installable process profile pending-acquisition server could not resolve the privilege attribute.");
+    }
+    if (!serveExpectedSender(TransportServiceOperation::get_object_class_handle) ||
+        !serveExpectedReceiver(TransportServiceOperation::get_object_class_handle) ||
+        !serveExpectedSurvivor(TransportServiceOperation::get_object_class_handle) ||
+        !serveExpectedSender(TransportServiceOperation::get_attribute_handle) ||
+        !serveExpectedReceiver(TransportServiceOperation::get_attribute_handle) ||
+        !serveExpectedSurvivor(TransportServiceOperation::get_attribute_handle) ||
+        !serveExpectedSender(TransportServiceOperation::publish_object_class_attributes) ||
+        !serveExpectedReceiver(TransportServiceOperation::publish_object_class_attributes) ||
+        !serveExpectedReceiver(TransportServiceOperation::subscribe_object_class_attributes) ||
+        !serveExpectedSurvivor(TransportServiceOperation::publish_object_class_attributes) ||
+        !serveExpectedSurvivor(TransportServiceOperation::subscribe_object_class_attributes) ||
+        !serveExpectedSender(TransportServiceOperation::register_object_instance)) {
+      throw std::runtime_error(
+          "The installable process profile pending-acquisition server lost a pre-loss operation.");
+    }
+    if (!serveExpectedReceiverPoll() || !serveExpectedSurvivorPoll()) {
+      throw std::runtime_error(
+          "The installable process profile pending-acquisition server lost object discovery delivery.");
+    }
+    if (!serveExpectedReceiver(TransportServiceOperation::attribute_ownership_acquisition) ||
+        !serveExpectedReceiver(TransportServiceOperation::set_automatic_resign_directive) ||
+        !serveExpectedReceiver(TransportServiceOperation::get_automatic_resign_directive)) {
+      throw std::runtime_error(
+          "The installable process profile pending-acquisition server lost the pending ownership setup.");
+    }
+
+    waitForFile(directory / "connection-loss-ready.ok", [](std::filesystem::path const& marker) {
+      std::ifstream input(marker, std::ios::binary);
+      std::string value;
+      input >> value;
+      if (!input || value != "ready") {
+        throw std::runtime_error(
+            "The installable process profile connection-loss readiness marker is invalid.");
+      }
+      return true;
+    });
+    auto const lost = registry.connectionLost(
+        L"process-execution", receiverMember->id);
+    if (lost.status != FederationRegistryStatus::applied) {
+      throw std::runtime_error(
+          "The installable process profile could not apply pending-acquisition Connection Lost.");
+    }
+    if (!service.dispatchConnectionLossResult(
+            L"process-execution",
+            std::move(lost),
+            receiverMember->id)) {
+      throw std::runtime_error(
+          "The installable process profile could not project pending-acquisition Connection Lost callbacks.");
+    }
+    service.detach(*receiver);
+    receiver->connection()->close();
+    writeText(directory / "receiver-closed.ok", "ok\n");
+    waitForFile(directory / "receiver-loss.ok", [](std::filesystem::path const& marker) {
+      std::ifstream input(marker, std::ios::binary);
+      std::string value;
+      input >> value;
+      if (!input || value != "callback-ok") {
+        throw std::runtime_error(
+            "The installable process profile pending-acquisition loss marker is invalid.");
+      }
+      return true;
+    });
+
+    if (!serveExpectedSenderAfterEvokedPolls(
+            TransportServiceOperation::unconditional_attribute_ownership_divestiture) ||
+        !serveExpectedSurvivorPoll() ||
+        !serveExpectedSurvivor(TransportServiceOperation::is_attribute_owned_by_federate) ||
+        !serveExpectedSurvivor(TransportServiceOperation::resign_federation_execution) ||
+        !serveExpectedSender(TransportServiceOperation::resign_federation_execution)) {
+      throw std::runtime_error(
+          "The installable process profile pending-acquisition server lost post-loss ownership cleanup.");
+    }
+    service.detach(*survivor);
+    service.detach(*sender);
+    survivor->connection()->close();
+    sender->connection()->close();
+    writeText(directory / "server.ok", "ok\n");
+    return 0;
+  }
 
   if (directedRetraction) {
     auto const directedObjectClass = registry.objectClassHandleFor(
@@ -401,21 +683,50 @@ int runPublicServer(
       throw std::runtime_error(
           "The installable directed-retraction server lost a lookup, declaration, or registration request.");
     }
+    if (!serveExpectedSender(TransportServiceOperation::enable_time_regulation)) {
+      throw std::runtime_error(
+          "The installable directed-retraction server lost Enable Time Regulation.");
+    }
     auto const published = registry.publishedObjectClassAttributeHandles(
         L"process-execution", senderMember->id, *directedObjectClass);
     if (!published || !published->contains(*attribute)) {
       throw std::runtime_error(
           "The installable directed-retraction publication was rejected.");
     }
-    if (!serveExpectedSender(TransportServiceOperation::send_directed_interaction) ||
-        !serveExpectedReceiver(TransportServiceOperation::receive_interaction) ||
-        !serveExpectedSender(TransportServiceOperation::retract) ||
-        !serveExpectedReceiver(TransportServiceOperation::receive_interaction) ||
-        !serveExpectedSender(TransportServiceOperation::send_directed_interaction) ||
-        !serveExpectedSender(TransportServiceOperation::retract) ||
-        !serveExpectedReceiver(TransportServiceOperation::receive_interaction)) {
+    char const* directedStage = "sender Send Directed Interaction (positive)";
+    if (!serveExpectedSender(TransportServiceOperation::send_directed_interaction)) {
       throw std::runtime_error(
-          "The installable directed-retraction server lost its positive/retracted directed sequence.");
+          std::string("The installable directed-retraction server lost ") + directedStage + ".");
+    }
+    directedStage = "receiver Evoke (positive directed callback)";
+    if (!serveReceiverDeliveryAndAcknowledgement()) {
+      throw std::runtime_error(
+          std::string("The installable directed-retraction server lost ") + directedStage + ".");
+    }
+    directedStage = "sender Retract (post-delivery)";
+    if (!serveExpectedSender(TransportServiceOperation::retract)) {
+      throw std::runtime_error(
+          std::string("The installable directed-retraction server lost ") + directedStage + ".");
+    }
+    directedStage = "receiver Evoke (Request Retraction callback)";
+    if (!serveExpectedReceiver(TransportServiceOperation::receive_interaction)) {
+      throw std::runtime_error(
+          std::string("The installable directed-retraction server lost ") + directedStage + ".");
+    }
+    directedStage = "sender Send Directed Interaction (pre-delivery retraction)";
+    if (!serveExpectedSender(TransportServiceOperation::send_directed_interaction)) {
+      throw std::runtime_error(
+          std::string("The installable directed-retraction server lost ") + directedStage + ".");
+    }
+    directedStage = "sender Retract (pre-delivery)";
+    if (!serveExpectedSender(TransportServiceOperation::retract)) {
+      throw std::runtime_error(
+          std::string("The installable directed-retraction server lost ") + directedStage + ".");
+    }
+    directedStage = "receiver Evoke (suppressed callback)";
+    if (!serveReceiverDeliveryAndAcknowledgement()) {
+      throw std::runtime_error(
+          std::string("The installable directed-retraction server lost ") + directedStage + ".");
     }
     writeText(directory / "send.ok", "ok\n");
     if (!ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler) ||
@@ -605,6 +916,55 @@ int runPublicServer(
   }
 
   if (connectionLoss) {
+    bool const evokedCallbacks = std::filesystem::exists(directory / "evoked.mode");
+    bool const automaticUnconditional = std::filesystem::exists(
+        directory / "automatic-unconditional.mode");
+    if (automaticUnconditional) {
+      if (!serveExpectedReceiver(TransportServiceOperation::get_object_class_handle) ||
+          !serveExpectedSender(TransportServiceOperation::get_object_class_handle) ||
+          !serveExpectedReceiver(TransportServiceOperation::get_attribute_handle) ||
+          !serveExpectedSender(TransportServiceOperation::get_attribute_handle) ||
+          !serveExpectedReceiver(TransportServiceOperation::get_attribute_handle) ||
+          !serveExpectedSender(TransportServiceOperation::get_attribute_handle) ||
+          !serveExpectedReceiver(TransportServiceOperation::publish_object_class_attributes) ||
+          !serveExpectedSender(TransportServiceOperation::publish_object_class_attributes) ||
+          !serveExpectedSender(TransportServiceOperation::subscribe_object_class_attributes) ||
+          !serveExpectedReceiver(TransportServiceOperation::register_object_instance) ||
+          !serveExpectedReceiver(TransportServiceOperation::get_object_instance_name) ||
+          !serveExpectedSender(TransportServiceOperation::receive_interaction) ||
+          !serveExpectedReceiver(TransportServiceOperation::set_automatic_resign_directive) ||
+          !serveExpectedReceiver(TransportServiceOperation::get_automatic_resign_directive)) {
+        throw std::runtime_error(
+            "The installable process profile automatic-divestiture server lost a pre-loss operation.");
+      }
+    }
+    if (automaticDeleteObjects) {
+      if (!serveExpectedReceiver(TransportServiceOperation::get_object_class_handle) ||
+          !serveExpectedSender(TransportServiceOperation::get_object_class_handle) ||
+          !serveExpectedReceiver(TransportServiceOperation::get_attribute_handle) ||
+          !serveExpectedSender(TransportServiceOperation::get_attribute_handle) ||
+          !serveExpectedReceiver(TransportServiceOperation::publish_object_class_attributes) ||
+          !serveExpectedSender(TransportServiceOperation::subscribe_object_class_attributes) ||
+          !serveExpectedReceiver(TransportServiceOperation::register_object_instance) ||
+          !serveExpectedReceiver(TransportServiceOperation::get_object_instance_name) ||
+          !serveExpectedSender(TransportServiceOperation::receive_interaction) ||
+          !serveExpectedReceiver(TransportServiceOperation::set_automatic_resign_directive) ||
+          !serveExpectedReceiver(TransportServiceOperation::get_automatic_resign_directive) ||
+          !serveExpectedSender(TransportServiceOperation::get_object_instance_handle)) {
+        throw std::runtime_error(
+            "The installable process profile automatic-delete-objects server lost a pre-loss operation.");
+      }
+    }
+    waitForFile(directory / "connection-loss-ready.ok", [](std::filesystem::path const& marker) {
+      std::ifstream input(marker, std::ios::binary);
+      std::string value;
+      input >> value;
+      if (!input || value != "ready") {
+        throw std::runtime_error(
+            "The installable process profile connection-loss readiness marker is invalid.");
+      }
+      return true;
+    });
     // Model a real process/socket loss on the receiver side.  Apply the
     // registry's automatic-resign policy before closing the transport so the
     // surviving sender cannot route a later interaction to a stale member.
@@ -613,6 +973,13 @@ int runPublicServer(
     if (lost.status != FederationRegistryStatus::applied) {
       throw std::runtime_error(
           "The installable process profile could not apply receiver Connection Lost.");
+    }
+    if (!service.dispatchConnectionLossResult(
+            L"process-execution",
+            std::move(lost),
+            receiverMember->id)) {
+      throw std::runtime_error(
+          "The installable process profile could not project receiver Connection Lost callbacks.");
     }
     service.detach(*receiver);
     receiver->connection()->close();
@@ -628,6 +995,36 @@ int runPublicServer(
       return true;
     });
 
+    if (automaticUnconditional) {
+      if (!serveExpectedSenderAfterEvokedPolls(TransportServiceOperation::get_object_instance_handle) ||
+          !serveExpectedSenderAfterEvokedPolls(TransportServiceOperation::is_attribute_owned_by_federate) ||
+          !serveExpectedSenderAfterEvokedPolls(TransportServiceOperation::is_attribute_owned_by_federate)) {
+        throw std::runtime_error(
+            "The installable process profile automatic-divestiture server lost a post-loss ownership operation.");
+      }
+    }
+    if (automaticUnconditional) {
+      if (!serveExpectedSender(TransportServiceOperation::resign_federation_execution)) {
+        throw std::runtime_error(
+            "The installable process profile automatic-divestiture server lost survivor Resign.");
+      }
+      service.detach(*sender);
+      sender->connection()->close();
+      writeText(directory / "server.ok", "ok\n");
+      return 0;
+    }
+    if (automaticDeleteObjects) {
+      if (!serveExpectedSenderAfterEvokedPolls(
+              TransportServiceOperation::get_object_instance_handle) ||
+          !serveExpectedSender(TransportServiceOperation::resign_federation_execution)) {
+        throw std::runtime_error(
+            "The installable process profile automatic-delete-objects server lost a post-loss operation.");
+      }
+      service.detach(*sender);
+      sender->connection()->close();
+      writeText(directory / "server.ok", "ok\n");
+      return 0;
+    }
     // The surviving public sender remains usable after the peer disappears:
     // resolve the class, send a no-recipient interaction, then resign normally.
     if (!serveExpectedSender(TransportServiceOperation::get_interaction_class_handle) ||

@@ -3788,7 +3788,8 @@ EmbeddedFederationRegistry::registerSynchronizationPoint(
     std::uint64_t registeringFederateId,
     std::wstring label,
     std::vector<unsigned char> userSuppliedTag,
-    std::set<std::uint64_t> const& requestedSynchronizationSet) {
+    std::set<std::uint64_t> const& requestedSynchronizationSet,
+    bool synchronizationSetWasSupplied) {
   auto instrumentationScope = beginInstrumentation("registerSynchronizationPoint");
   SynchronizationPointRegistrationPlan plan;
   plan.label = label;
@@ -3844,11 +3845,13 @@ EmbeddedFederationRegistry::registerSynchronizationPoint(
   point.userSuppliedTag = std::move(userSuppliedTag);
   point.synchronizationSet = synchronizationSet;
   point.announcedFederates = synchronizationSet;
+  point.lateJoinExpansionAllowed = !synchronizationSetWasSupplied;
 
   plan.announcements.reserve(synchronizationSet.size());
   for (std::uint64_t federateId : synchronizationSet) {
     auto const route = federation->second.interactionCallbackRoutes.find(federateId);
     auto const reportRoute = federation->second.serviceReportRoutes.find(federateId);
+    auto const publicReportRoute = federation->second.publicServiceReportRoutes.find(federateId);
     plan.announcements.push_back({
         federateId,
         label,
@@ -3857,6 +3860,9 @@ EmbeddedFederationRegistry::registerSynchronizationPoint(
         reportRoute == federation->second.serviceReportRoutes.end()
             ? FederateServiceReportRoute{}
             : reportRoute->second,
+        publicReportRoute == federation->second.publicServiceReportRoutes.end()
+            ? FederatePublicServiceReportRoute{}
+            : publicReportRoute->second,
     });
   }
 
@@ -3898,6 +3904,9 @@ EmbeddedFederationRegistry::announcePendingSynchronizationPoints(
   }
 
   for (auto& [label, point] : federation->second.synchronizationPoints) {
+    if (!point.lateJoinExpansionAllowed) {
+      continue;
+    }
     if (!point.synchronizationSet.insert(newlyJoinedFederateId).second) {
       continue;
     }
@@ -3905,6 +3914,8 @@ EmbeddedFederationRegistry::announcePendingSynchronizationPoints(
       continue;
     }
     auto const reportRoute = federation->second.serviceReportRoutes.find(
+        newlyJoinedFederateId);
+    auto const publicReportRoute = federation->second.publicServiceReportRoutes.find(
         newlyJoinedFederateId);
     plan.announcements.push_back({
         newlyJoinedFederateId,
@@ -3914,6 +3925,9 @@ EmbeddedFederationRegistry::announcePendingSynchronizationPoints(
         reportRoute == federation->second.serviceReportRoutes.end()
             ? FederateServiceReportRoute{}
             : reportRoute->second,
+        publicReportRoute == federation->second.publicServiceReportRoutes.end()
+            ? FederatePublicServiceReportRoute{}
+            : publicReportRoute->second,
     });
   }
   return plan;
@@ -3965,6 +3979,7 @@ SynchronizationPointAchievedPlan EmbeddedFederationRegistry::achieveSynchronizat
     auto const member = federation->second.members.find(federateId);
     auto const route = federation->second.interactionCallbackRoutes.find(federateId);
     auto const reportRoute = federation->second.serviceReportRoutes.find(federateId);
+    auto const publicReportRoute = federation->second.publicServiceReportRoutes.find(federateId);
     if (member == federation->second.members.end() ||
         route == federation->second.interactionCallbackRoutes.end() || !route->second) {
       continue;
@@ -3976,6 +3991,9 @@ SynchronizationPointAchievedPlan EmbeddedFederationRegistry::achieveSynchronizat
         reportRoute == federation->second.serviceReportRoutes.end()
             ? FederateServiceReportRoute{}
             : reportRoute->second,
+        publicReportRoute == federation->second.publicServiceReportRoutes.end()
+            ? FederatePublicServiceReportRoute{}
+            : publicReportRoute->second,
     });
   }
   federation->second.synchronizationPoints.erase(point);
@@ -4971,6 +4989,35 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
         ++association;
       }
     }
+    objectInstance->second.deferredUpdateRegionsByFederate.erase(federateId);
+    for (auto deferredByFederate =
+             objectInstance->second.deferredUpdateRegionsByFederate.begin();
+         deferredByFederate !=
+             objectInstance->second.deferredUpdateRegionsByFederate.end();) {
+      for (auto association = deferredByFederate->second.begin();
+           association != deferredByFederate->second.end();) {
+        for (auto region = association->second.begin();
+             region != association->second.end();) {
+          if (!federation->second.regions.contains(*region)) {
+            region = association->second.erase(region);
+          } else {
+            ++region;
+          }
+        }
+        if (association->second.empty()) {
+          association = deferredByFederate->second.erase(association);
+        } else {
+          ++association;
+        }
+      }
+      if (deferredByFederate->second.empty()) {
+        deferredByFederate =
+            objectInstance->second.deferredUpdateRegionsByFederate.erase(
+                deferredByFederate);
+      } else {
+        ++deferredByFederate;
+      }
+    }
     if (canPurgeDeletedObjectInstance(objectInstance->second)) {
       federation->second.objectInstanceHandlesByName.erase(objectInstance->second.name);
       objectInstance = federation->second.objectInstances.erase(objectInstance);
@@ -5007,6 +5054,8 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
             synchronizationFederateId);
         auto const reportRoute = federation->second.serviceReportRoutes.find(
             synchronizationFederateId);
+        auto const publicReportRoute = federation->second.publicServiceReportRoutes.find(
+            synchronizationFederateId);
         if (route == federation->second.interactionCallbackRoutes.end() || !route->second) {
           continue;
         }
@@ -5017,6 +5066,9 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
             reportRoute == federation->second.serviceReportRoutes.end()
                 ? FederateServiceReportRoute{}
                 : reportRoute->second,
+            publicReportRoute == federation->second.publicServiceReportRoutes.end()
+                ? FederatePublicServiceReportRoute{}
+                : publicReportRoute->second,
         });
       }
       point = federation->second.synchronizationPoints.erase(point);
@@ -5258,6 +5310,11 @@ FederationStateImage EmbeddedFederationRegistry::stateImageFor(
       (federation.nonRegulatedGrantSwitch ? 1U << 2U : 0U) |
       (federation.delaySubscriptionEvaluationSwitch ? 1U << 3U : 0U) |
       (federation.allowRelaxedDDMSwitch ? 1U << 4U : 0U);
+  image.lastSaveName = federation.lastSaveName;
+  image.lastSaveTimeEncoding = encodedLogicalValue(federation.lastSaveTime);
+  image.nextSaveName = federation.nextSaveName;
+  image.nextSaveTimeEncoding = encodedLogicalValue(federation.nextSaveTime);
+  image.saveHistoryPresent = true;
 
   image.interactionDeclarationCount = federation.interactionDeclarations.size();
   image.synchronizationPointCount = federation.synchronizationPoints.size();
@@ -5543,6 +5600,7 @@ FederationStateImage EmbeddedFederationRegistry::stateImageFor(
     savedPoint.announcedFederates.assign(
         point.announcedFederates.begin(),
         point.announcedFederates.end());
+    savedPoint.lateJoinExpansionAllowed = point.lateJoinExpansionAllowed;
     savedPoint.achievedFederates.reserve(point.achievedFederates.size());
     for (auto const& [federateId, succeeded] : point.achievedFederates) {
       savedPoint.achievedFederates.emplace_back(federateId, succeeded);
@@ -6353,6 +6411,23 @@ FederationStateImage EmbeddedFederationRegistry::stateImageFor(
         object.pendingTimestampedDeletionMessageId;
     image.objects.push_back(std::move(savedObject));
   }
+  image.deferredUpdateRegionAssociationsPresent = true;
+  for (auto const& [objectInstanceHandle, object] : federation.objectInstances) {
+    for (auto const& [federateId, associationsByAttribute] :
+         object.deferredUpdateRegionsByFederate) {
+      for (auto const& [attributeHandle, regionHandles] : associationsByAttribute) {
+        if (regionHandles.empty()) {
+          continue;
+        }
+        image.deferredUpdateRegionAssociations.push_back({
+            objectInstanceHandle,
+            federateId,
+            attributeHandle,
+            std::vector<std::uint64_t>(regionHandles.begin(), regionHandles.end()),
+        });
+      }
+    }
+  }
   image.pendingAttributeOwnershipAssumptionsPresent = true;
   for (auto const& [objectInstanceHandle, object] : federation.objectInstances) {
     for (auto const& callback : object.pendingAttributeOwnershipAssumptionCallbacks) {
@@ -6429,6 +6504,25 @@ void EmbeddedFederationRegistry::restoreControlAndTimeFromStateImage(
       (image.federationSwitches & (1U << 3U)) != 0U;
   federation.allowRelaxedDDMSwitch =
       (image.federationSwitches & (1U << 4U)) != 0U;
+
+  if (image.saveHistoryPresent) {
+    if (image.lastSaveName.empty() && image.lastSaveTimeEncoding.has_value()) {
+      throw std::logic_error(
+          "The saved federation save history has a last-save time without a name.");
+    }
+    if (image.nextSaveName.empty() && image.nextSaveTimeEncoding.has_value()) {
+      throw std::logic_error(
+          "The saved federation save history has a next-save time without a name.");
+    }
+    federation.lastSaveName = image.lastSaveName;
+    federation.lastSaveTime = decodeLogicalTimeEncoding(
+        image.logicalTimeImplementationName,
+        image.lastSaveTimeEncoding);
+    federation.nextSaveName = image.nextSaveName;
+    federation.nextSaveTime = decodeLogicalTimeEncoding(
+        image.logicalTimeImplementationName,
+        image.nextSaveTimeEncoding);
+  }
 
   for (auto const& savedMember : image.members) {
     auto member = federation.members.find(savedMember.id);
@@ -6780,6 +6874,7 @@ void EmbeddedFederationRegistry::restoreSynchronizationPointsFromStateImage(
     point.announcedFederates.insert(
         savedPoint.announcedFederates.begin(),
         savedPoint.announcedFederates.end());
+    point.lateJoinExpansionAllowed = savedPoint.lateJoinExpansionAllowed;
 
     for (auto const federateId : point.synchronizationSet) {
       if (!federation.members.contains(federateId) ||
@@ -7524,6 +7619,13 @@ void EmbeddedFederationRegistry::restoreObjectOwnershipLedgersFromStateImage(
                       savedObject.attributes.end(),
                       [](FederationStateImageObjectAttribute const& attribute) {
                         return !attribute.updateRegionHandles.empty();
+                      }) ||
+                  std::any_of(
+                      image.deferredUpdateRegionAssociations.begin(),
+                      image.deferredUpdateRegionAssociations.end(),
+                      [&savedObject](
+                          FederationStateImageDeferredUpdateRegionAssociation const& association) {
+                        return association.objectInstanceHandle == savedObject.handle;
                       }))))) {
       // A process-restart image can materialize only a live object identity
       // whose latest value ledger is present and whose callback-bearing
@@ -7542,6 +7644,9 @@ void EmbeddedFederationRegistry::restoreObjectOwnershipLedgersFromStateImage(
     restoredObject.attributeTransportationTypes.clear();
     restoredObject.attributeOrderTypes.clear();
     restoredObject.updateRegionsByAttribute.clear();
+    if (image.deferredUpdateRegionAssociationsPresent) {
+      restoredObject.deferredUpdateRegionsByFederate.clear();
+    }
     if (savedObject.attributeValuesPresent) {
       restoredObject.attributeValues.clear();
     }
@@ -8560,6 +8665,60 @@ void EmbeddedFederationRegistry::restoreObjectOwnershipLedgersFromStateImage(
     if (!inserted) {
       throw std::logic_error(
           "The saved object ownership ledger has duplicate object handles.");
+    }
+  }
+
+  if (image.deferredUpdateRegionAssociationsPresent) {
+    for (auto const& savedAssociation : image.deferredUpdateRegionAssociations) {
+      auto object = restoredObjects.find(savedAssociation.objectInstanceHandle);
+      if (object == restoredObjects.end() || object->second.deleteAccepted ||
+          savedAssociation.federateId == 0U ||
+          !liveFederation.members.contains(savedAssociation.federateId) ||
+          savedAssociation.attributeHandle == 0U) {
+        throw std::logic_error(
+            "The saved deferred update-region association has an invalid identity.");
+      }
+      auto const savedObject = std::find_if(
+          image.objects.begin(),
+          image.objects.end(),
+          [&savedAssociation](FederationStateImageObject const& candidate) {
+            return candidate.handle == savedAssociation.objectInstanceHandle;
+          });
+      if (savedObject == image.objects.end() ||
+          std::none_of(
+              savedObject->attributes.begin(),
+              savedObject->attributes.end(),
+              [&savedAssociation](FederationStateImageObjectAttribute const& attribute) {
+                return attribute.handle == savedAssociation.attributeHandle;
+              })) {
+        throw std::logic_error(
+            "The saved deferred update-region association references an unknown attribute.");
+      }
+      auto const regionOwnerValid = std::all_of(
+          savedAssociation.regionHandles.begin(),
+          savedAssociation.regionHandles.end(),
+          [&federation, &savedAssociation](std::uint64_t regionHandle) {
+            auto const region = federation.regions.find(regionHandle);
+            return region != federation.regions.end() &&
+                   region->second.ownerFederateId == savedAssociation.federateId &&
+                   region->second.specificationCommitted;
+          });
+      if (!regionOwnerValid) {
+        throw std::logic_error(
+            "The saved deferred update-region association references a region not owned by its federate.");
+      }
+      auto& associationsByAttribute =
+          object->second.deferredUpdateRegionsByFederate[savedAssociation.federateId];
+      auto const [position, inserted] = associationsByAttribute.emplace(
+          savedAssociation.attributeHandle,
+          std::set<std::uint64_t>(
+              savedAssociation.regionHandles.begin(),
+              savedAssociation.regionHandles.end()));
+      static_cast<void>(position);
+      if (!inserted) {
+        throw std::logic_error(
+            "The saved federation has duplicate deferred update-region associations.");
+      }
     }
   }
 
@@ -11372,6 +11531,14 @@ FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreComple
     restoreTsoQueueFromStateImage(snapshot, *restoreOperation->stateImage);
     restoreFederationFromSnapshot(federation->second, snapshot);
     if (!processLocalSnapshot) {
+      // A durable image carries declaration state, while the relevance sets
+      // are derived transition baselines. Seed them after the image is
+      // applied so the next declaration mutation reports only a real edge;
+      // the synthetic planner output is intentionally discarded here.
+      auto declarationAdvisories =
+          planDeclarationAdvisoriesLocked(federationName);
+      static_cast<void>(declarationAdvisories);
+
       // The durable image retains regular acquisition requests but not the
       // callback closures from the process that created it. Re-plan each
       // request now that the fresh registry owns the live membership routes.
@@ -12332,6 +12499,11 @@ EmbeddedFederationRegistry::setFederateMomAttributeState(
         attributeHandle,
         targetFederateId);
     clearOwnershipAssumptionSearch(instance->second, attributeHandle);
+    clearUpdateRegionAssociation(instance->second, attributeHandle);
+    promoteDeferredUpdateRegionAssociation(
+        instance->second,
+        targetFederateId,
+        attributeHandle);
     instance->second.attributeOrderTypes.insert_or_assign(
         attributeHandle,
         *orderType);
@@ -14370,6 +14542,31 @@ FederationTsoDeliveryRegistryResult EmbeddedFederationRegistry::completeTsoDeliv
           {federation->second.timeCoordinator.completeTsoDelivery(message), {}}};
 }
 
+FederationTsoDeliveryRegistryResult
+EmbeddedFederationRegistry::completeTsoDeliveryFor(
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId,
+    std::uint64_t messageId) {
+  auto instrumentationScope = beginInstrumentation("completeTsoDeliveryFor");
+  std::scoped_lock lock(mutex_);
+  auto federation = federations_.find(federationName);
+  if (federation == federations_.end()) {
+    return {FederationTsoRegistryStatus::federation_does_not_exist,
+            {FederationTsoDeliveryStatus::message_not_in_transit, {}}};
+  }
+  if (receivingFederateId == 0 || messageId == 0) {
+    return {FederationTsoRegistryStatus::invalid_request,
+            {FederationTsoDeliveryStatus::invalid_recipient, {}}};
+  }
+  if (!federation->second.members.contains(receivingFederateId)) {
+    return {FederationTsoRegistryStatus::federate_not_member,
+            {FederationTsoDeliveryStatus::invalid_recipient, {}}};
+  }
+  return {FederationTsoRegistryStatus::applied,
+          {federation->second.timeCoordinator.completeTsoDeliveryFor(
+               receivingFederateId, messageId), {}}};
+}
+
 std::vector<ObjectInstanceRemovalRecipient>
 EmbeddedFederationRegistry::releaseConnectionLossDeferredObjectInstanceRemovals(
     std::wstring const& federationName,
@@ -15875,6 +16072,31 @@ void EmbeddedFederationRegistry::clearUpdateRegionAssociation(
   objectInstance.updateRegionsByAttribute.erase(attributeHandle);
 }
 
+void EmbeddedFederationRegistry::promoteDeferredUpdateRegionAssociation(
+    Federation::ObjectInstance& objectInstance,
+    std::uint64_t federateId,
+    std::uint64_t attributeHandle) noexcept {
+  auto deferredByAttribute = objectInstance.deferredUpdateRegionsByFederate.find(federateId);
+  if (deferredByAttribute == objectInstance.deferredUpdateRegionsByFederate.end()) {
+    return;
+  }
+  auto deferred = deferredByAttribute->second.find(attributeHandle);
+  if (deferred == deferredByAttribute->second.end()) {
+    return;
+  }
+  if (!deferred->second.empty()) {
+    objectInstance.updateRegionsByAttribute.insert_or_assign(
+        attributeHandle,
+        deferred->second);
+  } else {
+    objectInstance.updateRegionsByAttribute.erase(attributeHandle);
+  }
+  deferredByAttribute->second.erase(deferred);
+  if (deferredByAttribute->second.empty()) {
+    objectInstance.deferredUpdateRegionsByFederate.erase(deferredByAttribute);
+  }
+}
+
 void EmbeddedFederationRegistry::refreshRegionUsage(Federation& federation) {
   for (auto& [regionHandle, region] : federation.regions) {
     static_cast<void>(regionHandle);
@@ -15918,6 +16140,19 @@ void EmbeddedFederationRegistry::refreshRegionUsage(Federation& federation) {
         auto const region = federation.regions.find(regionHandle);
         if (region != federation.regions.end()) {
           region->second.inUse = true;
+        }
+      }
+    }
+    for (auto const& [federateId, deferredByAttribute] :
+         objectInstance.deferredUpdateRegionsByFederate) {
+      static_cast<void>(federateId);
+      for (auto const& [attributeHandle, regions] : deferredByAttribute) {
+        static_cast<void>(attributeHandle);
+        for (std::uint64_t const regionHandle : regions) {
+          auto const region = federation.regions.find(regionHandle);
+          if (region != federation.regions.end()) {
+            region->second.inUse = true;
+          }
         }
       }
     }
@@ -17268,7 +17503,8 @@ bool EmbeddedFederationRegistry::objectAttributeInScope(
       auto const ordinarySubscription = perClass->second.subscribedAttributes.find(
           attributeHandle);
       if (ordinarySubscription != perClass->second.subscribedAttributes.end() &&
-          ordinarySubscription->second && !hasExplicitSubscriptionRegion) {
+          ordinarySubscription->second && !hasExplicitSubscriptionRegion &&
+          !hasExplicitUpdateRegion) {
         return true;
       }
       if (hasExplicitSubscriptionRegion) {
@@ -17388,7 +17624,8 @@ bool EmbeddedFederationRegistry::objectAttributeRelevantForAdvisory(
       auto const ordinarySubscription = perClass->second.subscribedAttributes.find(
           attributeHandle);
       if (ordinarySubscription != perClass->second.subscribedAttributes.end() &&
-          ordinarySubscription->second && !hasExplicitSubscriptionRegion) {
+          ordinarySubscription->second && !hasExplicitSubscriptionRegion &&
+          !hasExplicitUpdateRegion) {
         return true;
       }
 
@@ -17603,7 +17840,7 @@ EmbeddedFederationRegistry::subscribedUpdateRateDesignatorForAttribute(
       // An explicit regional declaration at this class shadows its ordinary
       // declaration, matching objectAttributeInScope.  Only active entries
       // contribute to the maximum.
-      if (!hasExplicitSubscriptionRegion) {
+      if (!hasExplicitSubscriptionRegion && !hasExplicitUpdateRegion) {
         auto const ordinary = perClass->second.subscribedAttributes.find(
             attributeHandle);
         if (ordinary != perClass->second.subscribedAttributes.end() &&
@@ -18392,7 +18629,7 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
           }
         }
         for (auto const& [subscribedRegionHandle, active] : regional->second) {
-          if (!active) {
+          if (!active && !activeSubscriptionEstablished) {
             continue;
           }
           for (std::uint64_t const sentRegionHandle : currentSentRegions) {
@@ -18846,11 +19083,61 @@ EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient(
   if (declarations == federation.interactionDeclarations.end()) {
     return std::nullopt;
   }
+  // Passive subscriptions do not establish interaction relevance, but they
+  // still receive an interaction when another joined federate's active
+  // subscription has already made that interaction relevant.  Keep this
+  // federation-wide predicate separate from the recipient's own region
+  // overlap check below.  Relevance is declaration-level (the same boundary
+  // used by Turn Interactions On/Off advisories), while delivery remains
+  // constrained by the passive recipient's matching region.
+  bool activeSubscriptionEstablished = false;
+  for (auto const& [candidateFederateId, candidateDeclarations] :
+       federation.interactionDeclarations) {
+    if ((producingSource.kind() == InteractionProducer::Kind::joined_federate &&
+         producingFederateId && candidateFederateId == *producingFederateId) ||
+        !federation.members.contains(candidateFederateId)) {
+      continue;
+    }
+    std::set<std::string> candidateVisited;
+    std::string candidateClassName = *sentClassName;
+    while (!candidateClassName.empty() && candidateVisited.insert(candidateClassName).second) {
+      auto const candidateClassHandle = federation.interactionClassHandles->handleFor(
+          candidateClassName);
+      auto const* candidateClass = federation.definition.catalog->interactionClass(
+          candidateClassName);
+      if (!candidateClassHandle || candidateClass == nullptr) {
+        break;
+      }
+      auto const ordinarySubscription =
+          candidateDeclarations.subscribedInteractionClasses.find(*candidateClassHandle);
+      if (ordinarySubscription != candidateDeclarations.subscribedInteractionClasses.end() &&
+          ordinarySubscription->second) {
+        activeSubscriptionEstablished = true;
+        break;
+      }
+      auto const regionalSubscription =
+          candidateDeclarations.regionalSubscribedInteractionClasses.find(*candidateClassHandle);
+      if (regionalSubscription !=
+              candidateDeclarations.regionalSubscribedInteractionClasses.end() &&
+          std::any_of(
+              regionalSubscription->second.begin(),
+              regionalSubscription->second.end(),
+              [](auto const& entry) { return entry.second; })) {
+        activeSubscriptionEstablished = true;
+        break;
+      }
+      candidateClassName = candidateClass->parentName;
+    }
+    if (activeSubscriptionEstablished) {
+      break;
+    }
+  }
 
-  // The candidate received class is the sent class when it is actively
-  // subscribed, or the closest actively subscribed superclass. Traversing the
-  // parent chain rather than iterating subscriptions also guarantees at most
-  // one callback for a recipient with subscriptions at multiple hierarchy locations.
+  // The candidate received class is the sent class when it is subscribed and
+  // eligible for this delivery, or the closest eligible subscribed
+  // superclass. Traversing the parent chain rather than iterating
+  // subscriptions also guarantees at most one callback for a recipient with
+  // subscriptions at multiple hierarchy locations.
   std::set<std::string> visited;
   std::string currentClassName = *sentClassName;
   while (!currentClassName.empty() && visited.insert(currentClassName).second) {
@@ -18867,22 +19154,44 @@ EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient(
     bool const hasExplicitSubscriptionRegion =
         regional != declarations->second.regionalSubscribedInteractionClasses.end() &&
         !regional->second.empty();
+    bool const hasExplicitSentRegion =
+        sentRegionHandles != nullptr && !sentRegionHandles->empty();
+    // An ordinary interaction subscription is bound to the RTI-provided
+    // default region.  That default overlaps every committed explicit
+    // realization that has at least one dimension, but §9.1.3.2 makes an
+    // explicitly empty realization overlap nothing (including the default).
+    // Keep the explicit-source distinction here instead of treating every
+    // non-null sent-region set as a default-fallback suppression: a positive-
+    // dimensional Send Interaction With Regions remains eligible for an
+    // ordinary subscription once any shadowing regional declaration is gone.
+    bool const explicitSentRegionOverlapsDefault =
+        hasExplicitSentRegion &&
+        std::any_of(
+            sentRegionHandles->begin(),
+            sentRegionHandles->end(),
+            [&federation, regionOverrides](std::uint64_t regionHandle) {
+              return regionOverlapsDefault(federation, regionHandle, regionOverrides);
+            });
     bool const subscribedWithoutRegion =
         ordinarySubscription != declarations->second.subscribedInteractionClasses.end() &&
-        ordinarySubscription->second && !hasExplicitSubscriptionRegion;
+        (ordinarySubscription->second || activeSubscriptionEstablished) &&
+        !hasExplicitSubscriptionRegion &&
+        (!hasExplicitSentRegion || explicitSentRegionOverlapsDefault);
     bool subscribedWithRegion = false;
     if (!subscribedWithoutRegion && hasExplicitSubscriptionRegion) {
       if (sentRegionHandles == nullptr) {
         for (auto const& [subscribedRegionHandle, active] : regional->second) {
-          if (active && regionOverlapsDefault(
-                            federation, subscribedRegionHandle, regionOverrides)) {
+          if ((active || activeSubscriptionEstablished) && regionOverlapsDefault(
+                                                           federation,
+                                                           subscribedRegionHandle,
+                                                           regionOverrides)) {
             subscribedWithRegion = true;
             break;
           }
         }
       } else if (!sentRegionHandles->empty()) {
         for (auto const& [subscribedRegionHandle, active] : regional->second) {
-          if (!active) {
+          if (!active && !activeSubscriptionEstablished) {
             continue;
           }
           for (std::uint64_t const sentRegionHandle : *sentRegionHandles) {
@@ -19441,7 +19750,11 @@ InteractionClassDeclarationStatus EmbeddedFederationRegistry::setInteractionClas
     return InteractionClassDeclarationStatus::interaction_class_not_defined;
   }
   auto const member = federation->second.members.find(federateId);
-  if (active && member->second.serviceReportingSwitch &&
+  // The report-service interaction is excluded while Service Reporting is
+  // enabled regardless of whether the caller requests an active or passive
+  // subscription.  A passive declaration is still a subscription for the
+  // §11.5 interlock and must not create a path around the MOM restriction.
+  if (member->second.serviceReportingSwitch &&
       isReportServiceInvocationInteractionClass(federation->second, interactionClassHandle)) {
     return InteractionClassDeclarationStatus::
         federate_service_invocations_are_being_reported_via_mom;
@@ -19643,6 +19956,12 @@ std::vector<DeclarationAdvisory> EmbeddedFederationRegistry::planDeclarationAdvi
     std::wstring const& federationName) {
   auto instrumentationScope = beginInstrumentation("planDeclarationAdvisories");
   std::scoped_lock lock(mutex_);
+  return planDeclarationAdvisoriesLocked(federationName);
+}
+
+std::vector<DeclarationAdvisory>
+EmbeddedFederationRegistry::planDeclarationAdvisoriesLocked(
+    std::wstring const& federationName) {
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
     return {};
@@ -21140,12 +21459,46 @@ EmbeddedFederationRegistry::associateRegionsForUpdatesWithScopeChanges(
     }
   }
   auto revisedAssociations = instance->second.updateRegionsByAttribute;
+  auto revisedDeferredAssociations = instance->second.deferredUpdateRegionsByFederate;
+  std::set<std::uint64_t> activeAttributeHandles;
   for (auto const& [attributeHandle, regionHandles] : attributesAndRegions) {
-    auto& associated = revisedAssociations[attributeHandle];
-    associated.insert(regionHandles.begin(), regionHandles.end());
-    if (associated.empty()) {
-      revisedAssociations.erase(attributeHandle);
+    auto const owner = instance->second.attributeOwnersByHandle.find(attributeHandle);
+    if (owner != instance->second.attributeOwnersByHandle.end() &&
+        owner->second == federateId) {
+      activeAttributeHandles.insert(attributeHandle);
+      auto& associated = revisedAssociations[attributeHandle];
+      associated.insert(regionHandles.begin(), regionHandles.end());
+      if (associated.empty()) {
+        revisedAssociations.erase(attributeHandle);
+      }
+      auto deferredByAttribute = revisedDeferredAssociations.find(federateId);
+      if (deferredByAttribute != revisedDeferredAssociations.end()) {
+        deferredByAttribute->second.erase(attributeHandle);
+        if (deferredByAttribute->second.empty()) {
+          revisedDeferredAssociations.erase(deferredByAttribute);
+        }
+      }
+    } else {
+      auto& deferred = revisedDeferredAssociations[federateId][attributeHandle];
+      deferred.insert(regionHandles.begin(), regionHandles.end());
+      if (deferred.empty()) {
+        auto deferredByFederate = revisedDeferredAssociations.find(federateId);
+        if (deferredByFederate != revisedDeferredAssociations.end()) {
+          deferredByFederate->second.erase(attributeHandle);
+          if (deferredByFederate->second.empty()) {
+            revisedDeferredAssociations.erase(deferredByFederate);
+          }
+        }
+      }
     }
+  }
+  // A deferred association is an ownership ledger mutation only. It must not
+  // create discovery, scope, or relevance-advisory transitions while another
+  // federate still owns the attribute.
+  if (activeAttributeHandles.empty()) {
+    instance->second.deferredUpdateRegionsByFederate.swap(revisedDeferredAssociations);
+    refreshRegionUsage(federation->second);
+    return {};
   }
   auto result = ObjectInstanceRegionAssociationScopePlan{};
   // Association is also a discovery boundary.  An object registered with the
@@ -21224,7 +21577,7 @@ EmbeddedFederationRegistry::associateRegionsForUpdatesWithScopeChanges(
   result.recipients = objectInstanceScopeChangesForAssociation(
       federation->second,
       instance->second,
-      attributeHandles,
+      activeAttributeHandles,
       revisedAssociations);
   result.attributeRelevanceAdvisories = attributeRelevanceAdvisoriesForScopeChanges(
       federation->second,
@@ -21232,7 +21585,7 @@ EmbeddedFederationRegistry::associateRegionsForUpdatesWithScopeChanges(
   auto transitionAdvisories = attributeRelevanceAdvisoriesForTransitions(
       federation->second,
       0,
-      attributeHandles,
+      activeAttributeHandles,
       nullptr,
       &instance->second.updateRegionsByAttribute,
       &revisedAssociations,
@@ -21243,6 +21596,7 @@ EmbeddedFederationRegistry::associateRegionsForUpdatesWithScopeChanges(
       transitionAdvisories.begin(),
       transitionAdvisories.end());
   instance->second.updateRegionsByAttribute.swap(revisedAssociations);
+  instance->second.deferredUpdateRegionsByFederate.swap(revisedDeferredAssociations);
   refreshRegionUsage(federation->second);
   return result;
 }
@@ -21293,6 +21647,8 @@ EmbeddedFederationRegistry::unassociateRegionsForUpdatesWithScopeChanges(
     return {ObjectInstanceRegionAssociationStatus::attribute_not_defined};
   }
   auto revisedAssociations = instance->second.updateRegionsByAttribute;
+  auto revisedDeferredAssociations = instance->second.deferredUpdateRegionsByFederate;
+  std::set<std::uint64_t> activeAttributeHandles;
   for (auto const& [attributeHandle, regionHandles] : attributesAndRegions) {
     static_cast<void>(attributeHandle);
     for (std::uint64_t const regionHandle : regionHandles) {
@@ -21306,16 +21662,47 @@ EmbeddedFederationRegistry::unassociateRegionsForUpdatesWithScopeChanges(
     }
   }
   for (auto const& [attributeHandle, regionHandles] : attributesAndRegions) {
-    auto associated = revisedAssociations.find(attributeHandle);
-    if (associated == revisedAssociations.end()) {
-      continue;
+    auto const owner = instance->second.attributeOwnersByHandle.find(attributeHandle);
+    if (owner != instance->second.attributeOwnersByHandle.end() &&
+        owner->second == federateId) {
+      activeAttributeHandles.insert(attributeHandle);
+      auto associated = revisedAssociations.find(attributeHandle);
+      if (associated == revisedAssociations.end()) {
+        continue;
+      }
+      for (std::uint64_t const regionHandle : regionHandles) {
+        associated->second.erase(regionHandle);
+      }
+      if (associated->second.empty()) {
+        revisedAssociations.erase(associated);
+      }
+    } else {
+      auto deferredByFederate = revisedDeferredAssociations.find(federateId);
+      if (deferredByFederate == revisedDeferredAssociations.end()) {
+        continue;
+      }
+      auto deferred = deferredByFederate->second.find(attributeHandle);
+      if (deferred == deferredByFederate->second.end()) {
+        continue;
+      }
+      for (std::uint64_t const regionHandle : regionHandles) {
+        deferred->second.erase(regionHandle);
+      }
+      if (deferred->second.empty()) {
+        deferredByFederate->second.erase(deferred);
+      }
+      if (deferredByFederate->second.empty()) {
+        revisedDeferredAssociations.erase(deferredByFederate);
+      }
     }
-    for (std::uint64_t const regionHandle : regionHandles) {
-      associated->second.erase(regionHandle);
-    }
-    if (associated->second.empty()) {
-      revisedAssociations.erase(associated);
-    }
+  }
+  // Removing a deferred association is a private ownership ledger mutation;
+  // only changes to the current owner's active map can alter scope or
+  // discovery.
+  if (activeAttributeHandles.empty()) {
+    instance->second.deferredUpdateRegionsByFederate.swap(revisedDeferredAssociations);
+    refreshRegionUsage(federation->second);
+    return {};
   }
   auto result = ObjectInstanceRegionAssociationScopePlan{};
   // Removing an update-region association can expose the private default
@@ -21394,7 +21781,7 @@ EmbeddedFederationRegistry::unassociateRegionsForUpdatesWithScopeChanges(
   result.recipients = objectInstanceScopeChangesForAssociation(
       federation->second,
       instance->second,
-      attributeHandles,
+      activeAttributeHandles,
       revisedAssociations);
   result.attributeRelevanceAdvisories = attributeRelevanceAdvisoriesForScopeChanges(
       federation->second,
@@ -21402,7 +21789,7 @@ EmbeddedFederationRegistry::unassociateRegionsForUpdatesWithScopeChanges(
   auto transitionAdvisories = attributeRelevanceAdvisoriesForTransitions(
       federation->second,
       0,
-      attributeHandles,
+      activeAttributeHandles,
       nullptr,
       &instance->second.updateRegionsByAttribute,
       &revisedAssociations,
@@ -21413,6 +21800,7 @@ EmbeddedFederationRegistry::unassociateRegionsForUpdatesWithScopeChanges(
       transitionAdvisories.begin(),
       transitionAdvisories.end());
   instance->second.updateRegionsByAttribute.swap(revisedAssociations);
+  instance->second.deferredUpdateRegionsByFederate.swap(revisedDeferredAssociations);
   refreshRegionUsage(federation->second);
   return result;
 }
@@ -23964,6 +24352,25 @@ EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionIfAvailable(
     return std::nullopt;
   }
 
+  // An If Available callback is normally the one-shot boundary that resolves
+  // its willing-to-acquire reservation.  When a negotiated divestiture has
+  // selected this reservation as its candidate, however, that ordinary
+  // callback must not consume the request (or report unavailable) before the
+  // owner receives and confirms Request Divestiture Confirmation.  The
+  // negotiated confirmation owns the transfer boundary; leave this durable
+  // request in place until Confirm Divestiture removes it.
+  for (auto const& [attributeHandle, divestiture] :
+       instance->second.pendingNegotiatedAttributeOwnershipDivestitures) {
+    if (!divestiture.acquiringFederateIsIfAvailable ||
+        divestiture.acquiringFederateId != requestingFederateId ||
+        divestiture.acquisitionRequestId != requestId ||
+        (!divestiture.confirmationQueued && !divestiture.confirmationDelivered) ||
+        !pending->second.desiredAttributeHandles.contains(attributeHandle)) {
+      continue;
+    }
+    return std::nullopt;
+  }
+
   AttributeOwnershipAcquisitionIfAvailableDelivery delivery;
   delivery.objectInstanceHandle = objectInstanceHandle;
   auto revisedAttributeOwners = instance->second.attributeOwnersByHandle;
@@ -24012,9 +24419,14 @@ EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionIfAvailable(
   for (std::uint64_t const attributeHandle : delivery.securedAttributeHandles) {
     clearOwnershipAssumptionSearch(instance->second, attributeHandle);
     // The previous owner's non-default update-region association is not
-    // inherited by the acquirer.  A later owner must explicitly create a new
-    // association before regional updates can use a region again.
+    // inherited by the acquirer. A region association that the acquirer
+    // established while it was not owner is promoted at this ownership
+    // boundary instead.
     clearUpdateRegionAssociation(instance->second, attributeHandle);
+    promoteDeferredUpdateRegionAssociation(
+        instance->second,
+        requestingFederateId,
+        attributeHandle);
     auto const transportationName = attributeDefaultTransportationName(
         federation->second,
         requestingFederateId,
@@ -24129,6 +24541,14 @@ EmbeddedFederationRegistry::planNegotiatedAttributeOwnershipDivestiture(
     return {};
   }
 
+  // A new negotiated offer starts a fresh assumption interval. This also
+  // invalidates any stale queued assumption callback left by an earlier
+  // divestiture that transferred ownership before its callback crossed the
+  // begin boundary.
+  for (std::uint64_t const attributeHandle : attributeHandles) {
+    clearOwnershipAssumptionSearch(instance->second, attributeHandle);
+  }
+
   // Construct every state record before merging it into the federation so an
   // allocation failure cannot leave part of a supplied attribute set waiting
   // for divestiture.
@@ -24150,6 +24570,19 @@ EmbeddedFederationRegistry::planNegotiatedAttributeOwnershipDivestiture(
   }
   instance->second.pendingNegotiatedAttributeOwnershipDivestitures.merge(requestedDivestitures);
 
+  // A negotiated divestiture keeps the current owner in place, but it still
+  // starts the standard Request Attribute Ownership Assumption search. Seed
+  // the same per-attribute search ledger used by unconditional divestiture so
+  // callback-entry rechecks, continuation after a non-accepting candidate, and
+  // later join/publication events all share one durable path. The owner is
+  // excluded by planAttributeOwnershipAssumptionsForFederateLocked below.
+  for (std::uint64_t const attributeHandle : attributeHandles) {
+    instance->second.ownershipAssumptionRecipientsByAttribute.try_emplace(attributeHandle);
+    instance->second.ownershipAssumptionUserSuppliedTagsByAttribute.insert_or_assign(
+        attributeHandle,
+        userSuppliedTag);
+  }
+
   // Keep an already queued ordinary release callback reserved until its
   // callback boundary. If it is invoked while this negotiated divestiture is
   // pending, beginAttributeOwnershipAcquisitionRelease consumes and suppresses
@@ -24160,6 +24593,18 @@ EmbeddedFederationRegistry::planNegotiatedAttributeOwnershipDivestiture(
   result.workItems = planPendingAttributeOwnershipAcquisitionWork(
       federation->second,
       instance->second);
+  for (auto const& [receivingFederateId, membership] : federation->second.members) {
+    static_cast<void>(membership);
+    auto assumptionRecipients = planAttributeOwnershipAssumptionsForFederateLocked(
+        federation->second,
+        receivingFederateId,
+        instance->second.handle,
+        &attributeHandles);
+    result.assumptionRecipients.insert(
+        result.assumptionRecipients.end(),
+        std::make_move_iterator(assumptionRecipients.begin()),
+        std::make_move_iterator(assumptionRecipients.end()));
+  }
   return result;
 }
 
@@ -24478,8 +24923,13 @@ ConfirmDivestiturePlan EmbeddedFederationRegistry::planConfirmDivestiture(
       clearOwnershipAssumptionSearch(instance->second, attributeHandle);
       // A committed update-region association belongs to the former owner;
       // Confirm Divestiture transfers ownership without transferring that
-      // association.
+      // association. A pending association established by the acquiring
+      // federate is promoted at the same ownership boundary.
       clearUpdateRegionAssociation(instance->second, attributeHandle);
+      promoteDeferredUpdateRegionAssociation(
+          instance->second,
+          acquiringFederateId,
+          attributeHandle);
       auto const acquiringClass = instance->second.knownObjectClassHandlesByFederate.find(
           acquiringFederateId);
       if (acquiringClass != instance->second.knownObjectClassHandlesByFederate.end()) {
@@ -24648,6 +25098,11 @@ EmbeddedFederationRegistry::planCancelNegotiatedAttributeOwnershipDivestiture(
   }
   for (std::uint64_t const attributeHandle : attributeHandles) {
     instance->second.pendingNegotiatedAttributeOwnershipDivestitures.erase(attributeHandle);
+    // Canceling the offer also terminates any queued Request Attribute
+    // Ownership Assumption callback that was seeded for this negotiated
+    // interval. The owner remains owner, so retaining the search ledger would
+    // otherwise allow a stale callback or a later join to re-offer it.
+    clearOwnershipAssumptionSearch(instance->second, attributeHandle);
   }
   CancelNegotiatedAttributeOwnershipDivestiturePlan result;
   result.followupWorkItems = planPendingAttributeOwnershipAcquisitionWork(
@@ -25351,6 +25806,10 @@ EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionNotification(
     if (owner == instance->second.attributeOwnersByHandle.end()) {
       instance->second.attributeOwnersByHandle.emplace(attributeHandle, requestingFederateId);
       clearOwnershipAssumptionSearch(instance->second, attributeHandle);
+      promoteDeferredUpdateRegionAssociation(
+          instance->second,
+          requestingFederateId,
+          attributeHandle);
       auto const transportationName = attributeDefaultTransportationName(
           federation->second,
           requestingFederateId,
@@ -25685,6 +26144,14 @@ EmbeddedFederationRegistry::planUnconditionalAttributeOwnershipDivestiture(
     return {};
   }
 
+  // Unconditional divestiture supersedes any negotiated offer or prior
+  // assumption interval for the same attribute. Drop those reservations before
+  // constructing the new candidate set so an old evoked callback cannot leak
+  // the previous tag into the new unowned search.
+  for (std::uint64_t const attributeHandle : attributeHandles) {
+    clearOwnershipAssumptionSearch(instance->second, attributeHandle);
+  }
+
   auto recipientHasPendingAcquisition = [&instance](
                                           std::uint64_t receivingFederateId,
                                           std::uint64_t attributeHandle) {
@@ -25774,6 +26241,7 @@ EmbeddedFederationRegistry::planUnconditionalAttributeOwnershipDivestiture(
         objectInstanceHandle,
         std::move(offeredAttributes),
         callbackRoute->second,
+        userSuppliedTag,
     });
   }
 
@@ -25908,12 +26376,20 @@ EmbeddedFederationRegistry::attributeOwnershipAssumptionDeliveryFor(
   AttributeOwnershipAssumptionDelivery delivery;
   delivery.objectInstanceHandle = objectInstanceHandle;
   for (std::uint64_t const attributeHandle : scheduledAttributeHandles) {
+    auto const owner = instance->second.attributeOwnersByHandle.find(attributeHandle);
+    auto const negotiated =
+        instance->second.pendingNegotiatedAttributeOwnershipDivestitures.find(attributeHandle);
+    bool const negotiatedOffer =
+        owner != instance->second.attributeOwnersByHandle.end() &&
+        negotiated != instance->second.pendingNegotiatedAttributeOwnershipDivestitures.end() &&
+        negotiated->second.divestingFederateId == owner->second &&
+        owner->second != receivingFederateId;
     if (!federation->second.attributeHandles->nameFor(
             federation->second.definition.catalog.get(),
             *receivingKnownClassName,
             attributeHandle) ||
         !publishedAttributes->contains(attributeHandle) ||
-        instance->second.attributeOwnersByHandle.contains(attributeHandle)) {
+        (owner != instance->second.attributeOwnersByHandle.end() && !negotiatedOffer)) {
       auto search = instance->second.ownershipAssumptionRecipientsByAttribute.find(
           attributeHandle);
       if (search != instance->second.ownershipAssumptionRecipientsByAttribute.end()) {
@@ -26064,9 +26540,24 @@ EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederateLocked(
       }
       auto const owner = instance.attributeOwnersByHandle.find(attributeHandle);
       if (owner != instance.attributeOwnersByHandle.end()) {
-        instance.ownershipAssumptionUserSuppliedTagsByAttribute.erase(attributeHandle);
-        search = instance.ownershipAssumptionRecipientsByAttribute.erase(search);
-        continue;
+        auto const negotiated =
+            instance.pendingNegotiatedAttributeOwnershipDivestitures.find(attributeHandle);
+        bool const negotiatedOffer =
+            negotiated != instance.pendingNegotiatedAttributeOwnershipDivestitures.end() &&
+            negotiated->second.divestingFederateId == owner->second;
+        // A negotiated offer is the only ownership-assumption path that may
+        // retain an owner while the callback search is active. Never offer it
+        // back to the divesting owner itself; that owner is already the
+        // authoritative source of the pending transfer.
+        if (!negotiatedOffer || owner->second == receivingFederateId) {
+          if (!negotiatedOffer) {
+            instance.ownershipAssumptionUserSuppliedTagsByAttribute.erase(attributeHandle);
+            search = instance.ownershipAssumptionRecipientsByAttribute.erase(search);
+          } else {
+            ++search;
+          }
+          continue;
+        }
       }
       if (search->second.contains(receivingFederateId) ||
           !federation.attributeHandles->nameFor(
@@ -26410,8 +26901,13 @@ EmbeddedFederationRegistry::planAttributeOwnershipDivestitureIfWanted(
     clearOwnershipAssumptionSearch(instance->second, attributeHandle);
     // Divestiture If Wanted transfers the attribute synchronously, but the
     // former owner's explicit update-region association still ends at the
-    // ownership boundary.
+    // ownership boundary. A pending association belonging to the selected
+    // acquirer is promoted at that same boundary.
     clearUpdateRegionAssociation(instance->second, attributeHandle);
+    promoteDeferredUpdateRegionAssociation(
+        instance->second,
+        selectedAcquirer.receivingFederateId,
+        attributeHandle);
     instance->second.attributeOrderTypes.erase(attributeHandle);
     auto const acquiringClass = instance->second.knownObjectClassHandlesByFederate.find(
         selectedAcquirer.receivingFederateId);

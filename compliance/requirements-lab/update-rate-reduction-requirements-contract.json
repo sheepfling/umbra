@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "document_id": "hla-1516.1-2025",
   "status": "portable-tck-standard-contract",
   "notes": "This contract records the portable acceptance conditions for a timestamped update-rate reduction scenario. It is an interoperability test contract, not a provider implementation claim: a provider must receive an adapter-supplied FOM containing one reliable and one best-effort attribute plus a positive named update rate.",

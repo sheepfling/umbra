@@ -75,11 +75,15 @@ state that exists because several federates participate in one federation.
   framed-data path used by the first process-boundary implementation slice;
   they are not a public HLA service or conformance claim.
 - process_federation_service files bind the private framed service envelope to
-  the registry for the first Create/Join and receive-order interaction slice;
-  the default receiver queue remains an internal polling projection for the
-  focused service tests. `process_federation_callback_bridge` converts a
-  pushed receive-order event into the official C++ `FederateAmbassador`
-  callback using the shared immediate/evoked callback-session seam.
+  the registry for the Create/Join and receive-order interaction slices;
+  Create carries the official FOM/MIM/logical-time designators through an
+  injected standards-derived preparation callback, and Join carries
+  additional FOM designators through the same atomic composition boundary.
+  The default receiver queue remains an internal polling
+  projection for the focused service tests. `process_federation_callback_bridge`
+  converts a pushed receive-order event into the official C++
+  `FederateAmbassador` callback using the shared immediate/evoked
+  callback-session seam.
 - process_federation_client owns the private client-side request identities,
   response validation, unsolicited event buffering, and callback-bridge
   handoff. `process_federation_service_probe` and its Catch2 coordinator use

@@ -21492,6 +21492,444 @@ void scenarioStandardExceptionBoundariesContract(
   scenarioStandardExceptionBoundaries(options, model);
 }
 
+void scenarioPostResignationServiceBoundaries(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "post-resignation-owner");
+  Session member(options, model, "post-resignation-member");
+  auto const federation = federationName(options, "post-resignation-service-boundaries");
+  connectAndJoin(owner, member, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const memberClass = member.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const memberAttribute = member.rtiAmbassador().getAttributeHandle(
+      memberClass,
+      options.attributeName);
+  auto const memberInteraction = member.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const memberParameter = member.rtiAmbassador().getParameterHandle(
+      memberInteraction,
+      options.parameterName);
+  require(
+      ownerClass.isValid() && ownerAttribute.isValid() && memberClass.isValid() &&
+          memberAttribute.isValid() && memberInteraction.isValid() &&
+          memberParameter.isValid(),
+      "post-resignation boundary setup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const memberAttributes{memberAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  member.rtiAmbassador().subscribeObjectClassAttributes(
+      memberClass,
+      memberAttributes,
+      true,
+      L"");
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(object.isValid(), "post-resignation boundary setup returned an invalid object");
+  waitFor(
+      member,
+      [&] { return member.recorder().hasDiscovery(object); },
+      options,
+      "post-resignation boundary object discovery");
+  auto const objectName = member.rtiAmbassador().getObjectInstanceName(object);
+  require(
+      !objectName.empty() &&
+          member.rtiAmbassador().getObjectInstanceHandle(objectName) == object &&
+          member.rtiAmbassador().getKnownObjectClassHandle(object) == memberClass,
+      "post-resignation boundary object identity did not round-trip");
+
+  auto const reliable = member.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(reliable.isValid(), "post-resignation boundary reliable handle is invalid");
+  auto time = makeTimeContext(member);
+  auto logicalTime = time.factory->makeInitial();
+  auto galt = time.factory->makeInitial();
+  auto lits = time.factory->makeInitial();
+  auto lookahead = time.factory->makeZero();
+
+  std::vector<std::uint8_t> const valueBytes{0x50U, 0x52U};
+  rti::AttributeHandleValueMap values;
+  values.emplace(
+      memberAttribute,
+      rti::VariableLengthData(valueBytes.data(), valueBytes.size()));
+  std::vector<std::uint8_t> const parameterBytes{0x50U, 0x41U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      memberParameter,
+      rti::VariableLengthData(parameterBytes.data(), parameterBytes.size()));
+  rti::VariableLengthData const emptyTag;
+  rti::InteractionClassHandleSet const emptyInteractionClasses;
+  rti::FederateHandleSet const synchronizationSet{owner.federateHandle()};
+  std::set<std::wstring> const reservedNames{
+      federation + L"-post-resignation-a",
+      federation + L"-post-resignation-b"};
+
+  member.resign(rti::NO_ACTION);
+  auto requireNotMember = [&](std::function<void()> operation,
+                              std::string const& description) {
+    requireException(
+        std::move(operation),
+        L"FederateNotExecutionMember",
+        description);
+  };
+
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getFederateHandle(
+            options.ownerFederateName));
+      },
+      "federate name lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getFederateName(
+            owner.federateHandle()));
+      },
+      "federate handle lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getObjectClassHandle(
+            options.objectClassName));
+      },
+      "object-class handle lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getObjectClassName(memberClass));
+      },
+      "object-class name lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getKnownObjectClassHandle(object));
+      },
+      "known object-class lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getObjectInstanceHandle(objectName));
+      },
+      "object-instance handle lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getObjectInstanceName(object));
+      },
+      "object-instance name lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getAttributeHandle(
+            memberClass,
+            options.attributeName));
+      },
+      "attribute handle lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getAttributeName(
+            memberClass,
+            memberAttribute));
+      },
+      "attribute name lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getInteractionClassHandle(
+            options.interactionClassName));
+      },
+      "interaction-class handle lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getInteractionClassName(
+            memberInteraction));
+      },
+      "interaction-class name lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getParameterHandle(
+            memberInteraction,
+            options.parameterName));
+      },
+      "parameter handle lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getParameterName(
+            memberInteraction,
+            memberParameter));
+      },
+      "parameter name lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getAvailableDimensionsForObjectClass(
+            memberClass));
+      },
+      "object-class dimension lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getAvailableDimensionsForInteractionClass(
+            memberInteraction));
+      },
+      "interaction-class dimension lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getDimensionHandle(
+            options.fomDimensionName));
+      },
+      "dimension handle lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getOrderType(L"Receive"));
+      },
+      "order-type lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getOrderName(rti::RECEIVE));
+      },
+      "order-name lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getTransportationTypeHandle(
+            L"HLAreliable"));
+      },
+      "transportation-type lookup after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getTransportationTypeName(reliable));
+      },
+      "transportation-name lookup after resignation");
+
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().publishObjectClassAttributes(
+            memberClass,
+            memberAttributes);
+      },
+      "object-attribute publication after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().unpublishObjectClassAttributes(
+            memberClass,
+            memberAttributes);
+      },
+      "object-attribute unpublication after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().unpublishObjectClass(memberClass); },
+      "object-class unpublication after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().subscribeObjectClassAttributes(
+            memberClass,
+            memberAttributes,
+            true,
+            L"");
+      },
+      "object-attribute subscription after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().unsubscribeObjectClassAttributes(
+            memberClass,
+            memberAttributes);
+      },
+      "object-attribute unsubscription after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().unsubscribeObjectClass(memberClass); },
+      "object-class unsubscription after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().publishInteractionClass(memberInteraction); },
+      "interaction publication after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().unpublishInteractionClass(memberInteraction); },
+      "interaction unpublication after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().subscribeInteractionClass(memberInteraction); },
+      "interaction subscription after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().unsubscribeInteractionClass(memberInteraction); },
+      "interaction unsubscription after resignation");
+
+  auto const singleName = federation + L"-post-resignation-single";
+  requireNotMember(
+      [&] { member.rtiAmbassador().reserveObjectInstanceName(singleName); },
+      "object-name reservation after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().releaseObjectInstanceName(singleName); },
+      "object-name release after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().reserveMultipleObjectInstanceNames(reservedNames);
+      },
+      "multiple object-name reservation after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().releaseMultipleObjectInstanceNames(reservedNames);
+      },
+      "multiple object-name release after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().registerObjectInstance(memberClass));
+      },
+      "object registration after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().registerObjectInstance(
+            memberClass,
+            singleName));
+      },
+      "named object registration after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().updateAttributeValues(object, values, emptyTag);
+      },
+      "attribute update after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().requestAttributeValueUpdate(
+            object,
+            memberAttributes,
+            emptyTag);
+      },
+      "object attribute-value request after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().requestAttributeValueUpdate(
+            memberClass,
+            memberAttributes,
+            emptyTag);
+      },
+      "object-class attribute-value request after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().deleteObjectInstance(object, emptyTag); },
+      "object deletion after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().localDeleteObjectInstance(object); },
+      "local object deletion after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().sendInteraction(
+            memberInteraction,
+            parameters,
+            emptyTag);
+      },
+      "interaction send after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().sendDirectedInteraction(
+            memberInteraction,
+            object,
+            parameters,
+            emptyTag);
+      },
+      "directed interaction send after resignation");
+
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().queryAttributeOwnership(object, memberAttributes);
+      },
+      "attribute ownership query after resignation");
+  requireNotMember(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().isAttributeOwnedByFederate(
+            object,
+            memberAttribute));
+      },
+      "attribute ownership status after resignation");
+
+  requireNotMember(
+      [&] { member.rtiAmbassador().enableAsynchronousDelivery(); },
+      "asynchronous delivery enable after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().disableAsynchronousDelivery(); },
+      "asynchronous delivery disable after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().enableTimeConstrained(); },
+      "time-constrained enable after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().disableTimeConstrained(); },
+      "time-constrained disable after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().enableTimeRegulation(*time.zero); },
+      "time-regulation enable after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().disableTimeRegulation(); },
+      "time-regulation disable after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().modifyLookahead(*time.epsilon); },
+      "lookahead modification after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().queryLookahead(*lookahead); },
+      "lookahead query after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().queryLogicalTime(*logicalTime); },
+      "logical-time query after resignation");
+  requireNotMember(
+      [&] { static_cast<void>(member.rtiAmbassador().queryGALT(*galt)); },
+      "GALT query after resignation");
+  requireNotMember(
+      [&] { static_cast<void>(member.rtiAmbassador().queryLITS(*lits)); },
+      "LITS query after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().timeAdvanceRequest(*time.initial); },
+      "time advance request after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().timeAdvanceRequestAvailable(*time.initial);
+      },
+      "available time advance request after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().nextMessageRequest(*time.initial); },
+      "next-message request after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().nextMessageRequestAvailable(*time.initial);
+      },
+      "available next-message request after resignation");
+  requireNotMember(
+      [&] { member.rtiAmbassador().flushQueueRequest(*time.initial); },
+      "flush-queue request after resignation");
+
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().registerFederationSynchronizationPoint(
+            federation + L"-post-resignation-global",
+            emptyTag);
+      },
+      "global synchronization-point registration after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().registerFederationSynchronizationPoint(
+            federation + L"-post-resignation-explicit",
+            emptyTag,
+            synchronizationSet);
+      },
+      "explicit synchronization-point registration after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().synchronizationPointAchieved(
+            federation + L"-post-resignation-achieved");
+      },
+      "synchronization-point achievement after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().requestFederationSave(
+            federation + L"-post-resignation-save");
+      },
+      "federation save request after resignation");
+  requireNotMember(
+      [&] {
+        member.rtiAmbassador().requestFederationSave(
+            federation + L"-post-resignation-timestamped-save",
+            *time.initial);
+      },
+      "timestamped federation save request after resignation");
+
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+}
+
+void scenarioPostResignationServiceBoundariesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioPostResignationServiceBoundaries(options, model);
+}
+
 void scenarioUnnamedJoinOverload(Options const& options, rti::CallbackModel model) {
   Session owner(options, model, "unnamed-join-owner");
   Session member(options, model, "unnamed-join-member");
@@ -71826,6 +72264,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.composite-data-elements-contract",
       "cpp-tck.exception-hierarchy-contract",
       "cpp-tck.standard-exception-boundaries-contract",
+      "cpp-tck.post-resignation-service-boundaries",
+      "cpp-tck.post-resignation-service-boundaries-contract",
       "cpp-tck.enum-contract",
       "cpp-tck.handle-and-collection-contract",
       "cpp-tck.configuration-and-authorization-contract",
@@ -73045,6 +73485,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.standard-exception-boundaries-contract") {
     return scenarioStandardExceptionBoundariesContract;
   }
+  if (id == "cpp-tck.post-resignation-service-boundaries-contract") {
+    return scenarioPostResignationServiceBoundariesContract;
+  }
   if (id == "cpp-tck.enum-contract") {
     return scenarioEnumContract;
   }
@@ -73334,6 +73777,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.standard-exception-boundaries") {
     return scenarioStandardExceptionBoundaries;
+  }
+  if (id == "cpp-tck.post-resignation-service-boundaries") {
+    return scenarioPostResignationServiceBoundaries;
   }
   if (id == "java-tck.declaration-management") return scenarioDeclarations;
   if (id == "java-tck.object-management") return scenarioObjectManagement;

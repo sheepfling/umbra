@@ -12,7 +12,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::subscribeObjectClassDirectedInteractions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions",
+        "cpp/tests/directed_interaction_subscription_kind_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments"
       ]
     },
@@ -23,7 +23,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::subscribeObjectClassDirectedInteractions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions",
+        "cpp/tests/directed_interaction_subscription_kind_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments"
       ]
     },

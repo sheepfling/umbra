@@ -319,7 +319,9 @@ if(NOT _tck_test_scenarios)
          NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-unconditional-divestiture" AND
          NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract" AND
          NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-cancel-pending-acquisition" AND
-         NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract")
+         NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract" AND
+         NOT _tck_filtered_scenario STREQUAL "cpp-tck.automatic-resign-directive-delete-objects" AND
+         NOT _tck_filtered_scenario STREQUAL "cpp-tck.automatic-resign-directive-delete-objects-contract")
         set(_tck_connection_loss_only FALSE)
       elseif(NOT _tck_filtered_scenario IN_LIST HLA_RTI_TCK_ADAPTER_EXCLUDED_SCENARIOS)
         set(_tck_connection_loss_only FALSE)

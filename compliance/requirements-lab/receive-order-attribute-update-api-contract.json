@@ -25,7 +25,7 @@
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
         "cpp/tests/update_attribute_values_service_report_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments",
         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry"
       ]
@@ -43,7 +43,7 @@
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
         "cpp/tests/update_attribute_values_service_report_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments",
         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry"
       ]

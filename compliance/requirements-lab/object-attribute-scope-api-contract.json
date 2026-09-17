@@ -44,7 +44,7 @@
       "source_symbol": "UmbraRtiAmbassador::getAttributeScopeAdvisorySwitch",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset",
+        "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_scope_advisory_timing"
       ]
     },

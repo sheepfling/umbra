@@ -23,8 +23,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishObjectClassDirectedInteractions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions"
+        "cpp/tests/directed_interaction_known_target_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
+        "cpp/tests/directed_interaction_subscription_kind_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions"
       ]
     },
     {
@@ -44,7 +44,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassDirectedInteractions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+        "cpp/tests/directed_interaction_known_target_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
       ]
     },
     {
@@ -65,7 +65,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassDirectedInteractions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+        "cpp/tests/directed_interaction_known_target_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
       ]
     },
     {
@@ -86,8 +86,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassDirectedInteractions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions"
+        "cpp/tests/directed_interaction_known_target_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
+        "cpp/tests/directed_interaction_subscription_kind_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions"
       ]
     },
     {
@@ -107,7 +107,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassDirectedInteractions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+        "cpp/tests/directed_interaction_known_target_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
       ]
     },
     {
@@ -128,7 +128,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassDirectedInteractions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
+        "cpp/tests/directed_interaction_known_target_catch2.cpp::Embedded directed interactions route to known object-class subscribers"
       ]
     },
     {
@@ -151,8 +151,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendDirectedInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions",
+        "cpp/tests/directed_interaction_known_target_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
+        "cpp/tests/directed_interaction_subscription_kind_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Directed Interaction arguments"
       ]
     },
@@ -168,8 +168,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.receiveDirectedInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions",
+        "cpp/tests/directed_interaction_known_target_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
+        "cpp/tests/directed_interaction_subscription_kind_catch2.cpp::Embedded directed interactions distinguish ownership and universal subscriptions",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Directed Interaction arguments"
       ]
     }

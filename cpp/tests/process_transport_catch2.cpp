@@ -22,7 +22,7 @@ using umbra::detail::TransportFrameKind;
 
 TEST_CASE(
     "Private process transport exchanges framed data after endpoint handshake",
-    "[unit][foundation][transport][process-boundary][transport-contract]") {
+    "[unit][foundation][transport][process-boundary][transport-contract][2025]") {
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener != nullptr);
   REQUIRE(listener->address().port != 0U);

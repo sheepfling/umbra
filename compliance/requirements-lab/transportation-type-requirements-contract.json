@@ -13,8 +13,8 @@
       "source_symbol": "UmbraRtiAmbassador::getTransportationTypeHandle",
       "tests": [
         "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type lookup resolves a declared FOM transportation per execution"
+        "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
+        "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup resolves a declared FOM transportation per execution"
       ]
     },
     {
@@ -25,8 +25,8 @@
       "source_symbol": "UmbraRtiAmbassador::getTransportationTypeName",
       "tests": [
         "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transportation type lookup resolves a declared FOM transportation per execution"
+        "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
+        "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup resolves a declared FOM transportation per execution"
       ]
     }
   ]

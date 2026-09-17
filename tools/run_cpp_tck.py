@@ -865,6 +865,12 @@ CONNECTION_LOSS_SCENARIOS = (
     "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
     "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
     "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract",
+    "cpp-tck.automatic-resign-directive-delete-objects",
+    "cpp-tck.automatic-resign-directive-delete-objects-contract",
+)
+PUBLIC_HANDLE_DECODING_SCENARIOS = (
+    "cpp-tck.public-handle-decoding",
+    "cpp-tck.public-handle-decoding-contract",
 )
 CONNECTION_LOSS_ADAPTER = (
     ROOT / "packages" / "hla-rti-cpp-tck" / "adapters" / "current-process" /
@@ -874,6 +880,10 @@ CONNECTION_LOSS_ADAPTER = (
 
 def is_connection_loss_scenario(scenario_id: str) -> bool:
     return scenario_id in CONNECTION_LOSS_SCENARIOS
+
+
+def is_public_handle_decoding_scenario(scenario_id: str) -> bool:
+    return scenario_id in PUBLIC_HANDLE_DECODING_SCENARIOS
 
 
 def run_executable_direct(
@@ -1106,14 +1116,24 @@ def run_direct(
         for scenario in selected
         if is_connection_loss_scenario(scenario["id"])
     ]
-    if arguments.connection_loss_fixture and connection_loss_selected:
+    public_handle_decoding_selected = [
+        scenario
+        for scenario in selected
+        if is_public_handle_decoding_scenario(scenario["id"])
+    ]
+    managed_connection_loss_selected = (
+        connection_loss_selected if arguments.connection_loss_fixture else []
+    )
+    special_selected = public_handle_decoding_selected + managed_connection_loss_selected
+    if special_selected:
+        special_ids = {scenario["id"] for scenario in special_selected}
         direct_selected = [
             scenario
             for scenario in selected
-            if not is_connection_loss_scenario(scenario["id"])
+            if scenario["id"] not in special_ids
         ]
         with tempfile.TemporaryDirectory(
-            prefix="cpp-tck-connection-loss-",
+            prefix="cpp-tck-special-slices-",
             dir=inputs["build_directory"],
         ) as temporary_directory:
             temporary_root = Path(temporary_directory)
@@ -1127,6 +1147,23 @@ def run_direct(
                 if junit is not None and direct_selected
                 else None
             )
+            public_results_parts: list[Path] = []
+            public_junit_parts: list[Path] = []
+            for index, scenario in enumerate(public_handle_decoding_selected):
+                public_results = temporary_root / f"public-handle-decoding-{index}.json"
+                public_junit = temporary_root / f"public-handle-decoding-{index}.xml"
+                run_executable_direct(
+                    arguments,
+                    inputs,
+                    executable,
+                    [scenario],
+                    public_results if results is not None else None,
+                    public_junit if junit is not None else None,
+                )
+                if results is not None:
+                    public_results_parts.append(public_results)
+                if junit is not None:
+                    public_junit_parts.append(public_junit)
             loss_results_parts: list[Path] = []
             loss_junit_parts: list[Path] = []
             if direct_selected:
@@ -1138,7 +1175,7 @@ def run_direct(
                     base_results,
                     base_junit,
                 )
-            for index, scenario in enumerate(connection_loss_selected):
+            for index, scenario in enumerate(managed_connection_loss_selected):
                 loss_results = temporary_root / f"connection-loss-{index}.json"
                 loss_junit = temporary_root / f"connection-loss-{index}.xml"
                 run_connection_loss_adapter(
@@ -1154,12 +1191,12 @@ def run_direct(
             if results is not None:
                 json_parts = (
                     [base_results] if base_results is not None else []
-                ) + loss_results_parts
+                ) + public_results_parts + loss_results_parts
                 merge_json_evidence_parts(json_parts, results)
             if junit is not None:
                 junit_parts = (
                     [base_junit] if base_junit is not None else []
-                ) + loss_junit_parts
+                ) + public_junit_parts + loss_junit_parts
                 merge_junit_evidence_parts(junit_parts, junit)
     else:
         run_executable_direct(arguments, inputs, executable, selected, results, junit)

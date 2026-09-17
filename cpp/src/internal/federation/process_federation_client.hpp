@@ -7,6 +7,7 @@
 #include <chrono>
 #include <cstdint>
 #include <deque>
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -34,6 +35,8 @@ class ProcessFederationClientError final : public std::runtime_error {
 
 class ProcessFederationClient final {
  public:
+  using CallbackCompletionHandler =
+      ProcessFederationCallbackBridge::CallbackCompletionHandler;
   using FailureHandler = ProcessTransportConnection::FailureHandler;
   using ForcedResignationHandler =
       ProcessTransportConnection::ForcedResignationHandler;
@@ -50,23 +53,136 @@ class ProcessFederationClient final {
 
   ~ProcessFederationClient();
 
-  void createFederationExecution(std::wstring federationName);
+  void createFederationExecution(
+      std::wstring federationName,
+      std::vector<std::wstring> fomModules = {},
+      std::optional<std::wstring> mimModule = std::nullopt,
+      std::wstring logicalTimeImplementationName = {});
 
   [[nodiscard]] ProcessFederationJoinResult joinFederationExecution(
       std::wstring federationName,
       std::wstring federateType,
-      std::optional<std::wstring> requestedFederateName = std::nullopt);
+      std::optional<std::wstring> requestedFederateName = std::nullopt,
+      std::vector<std::wstring> additionalFomModules = {});
 
   void resignFederationExecution(
       std::wstring federationName,
       std::uint64_t federateId,
       rti1516_2025::ResignAction resignAction);
 
+  [[nodiscard]] rti1516_2025::ResignAction getAutomaticResignDirective(
+      std::wstring federationName,
+      std::uint64_t federateId);
+
+  void setAutomaticResignDirective(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      rti1516_2025::ResignAction resignAction);
+
+  // Read-only temporal baseline for the process endpoint.  Grant and role
+  // control are deliberately separate operations; this method only returns
+  // the current logical-time representation owned by the endpoint.
+  [[nodiscard]] ProcessFederationLogicalTime queryLogicalTime(
+      std::wstring federationName,
+      std::uint64_t federateId);
+
+  [[nodiscard]] ProcessFederationQueryLookaheadResult queryLookahead(
+      std::wstring federationName,
+      std::uint64_t federateId);
+
+  [[nodiscard]] ProcessFederationModifyLookaheadResult modifyLookahead(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      ProcessFederationLogicalTimeInterval lookahead);
+
+  // Query GALT and Query LITS from one endpoint-owned temporal snapshot.  The
+  // result keeps the two optional bounds independent, matching the official
+  // undefined-GALT/defined-LITS distinction.
+  [[nodiscard]] ProcessFederationQueryTimeBoundsResult queryTimeBounds(
+      std::wstring federationName,
+      std::uint64_t federateId);
+
+  [[nodiscard]] ProcessFederationEnableTimeRegulationResult
+  enableTimeRegulation(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      ProcessFederationLogicalTimeInterval lookahead);
+
+  [[nodiscard]] ProcessFederationEnableTimeConstrainedResult
+  enableTimeConstrained(
+      std::wstring federationName,
+      std::uint64_t federateId);
+
+  [[nodiscard]] ProcessFederationTimeDisableResult disableTimeRegulation(
+      std::wstring federationName,
+      std::uint64_t federateId);
+
+  [[nodiscard]] ProcessFederationTimeDisableResult disableTimeConstrained(
+      std::wstring federationName,
+      std::uint64_t federateId);
+
+  [[nodiscard]] ProcessFederationTimeAdvanceResult timeAdvanceRequest(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      ProcessFederationLogicalTime requestedTime);
+
+  [[nodiscard]] ProcessFederationTimeAdvanceResult
+  timeAdvanceRequestAvailable(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      ProcessFederationLogicalTime requestedTime);
+
+  [[nodiscard]] ProcessFederationTimeAdvanceResult nextMessageRequest(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      ProcessFederationLogicalTime requestedTime);
+
+  [[nodiscard]] ProcessFederationTimeAdvanceResult
+  nextMessageRequestAvailable(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      ProcessFederationLogicalTime requestedTime);
+
+  [[nodiscard]] ProcessFederationTimeAdvanceResult flushQueueRequest(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      ProcessFederationLogicalTime requestedTime);
+
   [[nodiscard]] std::optional<std::uint64_t>
   lookupInteractionClassHandle(
       std::wstring federationName,
       std::uint64_t federateId,
       std::wstring interactionClassName);
+
+  [[nodiscard]] std::optional<std::uint64_t> lookupFederateHandle(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::wstring federateName);
+
+  [[nodiscard]] std::optional<std::wstring> lookupFederateName(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t targetFederateId);
+
+  [[nodiscard]] std::optional<std::uint64_t> normalizeFederateHandle(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t handle);
+
+  [[nodiscard]] std::optional<std::uint64_t> normalizeObjectClassHandle(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t handle);
+
+  [[nodiscard]] std::optional<std::uint64_t> normalizeInteractionClassHandle(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t handle);
+
+  [[nodiscard]] std::optional<std::uint64_t> normalizeObjectInstanceHandle(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t handle);
 
   [[nodiscard]] std::optional<std::uint64_t>
   lookupObjectClassHandle(
@@ -86,6 +202,124 @@ class ProcessFederationClient final {
       std::uint64_t objectClassHandle,
       std::wstring attributeName);
 
+  [[nodiscard]] std::optional<std::uint64_t> lookupObjectInstanceHandle(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::wstring objectInstanceName);
+
+  [[nodiscard]] std::optional<std::wstring> lookupObjectInstanceName(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t objectInstanceHandle);
+
+  [[nodiscard]] std::optional<std::uint64_t>
+  lookupKnownObjectClassHandle(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t objectInstanceHandle);
+
+  [[nodiscard]] ProcessFederationAttributeOwnershipCheckResult
+  attributeOwnershipCheck(
+      std::wstring federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::uint64_t attributeHandle);
+
+  [[nodiscard]] ProcessFederationAttributeOwnershipQueryResult
+  queryAttributeOwnership(
+      std::wstring federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::vector<std::uint64_t> requestedAttributeHandles);
+
+  [[nodiscard]]
+  ProcessFederationAttributeOwnershipAcquisitionIfAvailableResult
+  attributeOwnershipAcquisitionIfAvailable(
+      std::wstring federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::vector<std::uint64_t> desiredAttributeHandles,
+      std::vector<std::uint8_t> userSuppliedTag);
+
+  [[nodiscard]] ProcessFederationAttributeOwnershipAcquisitionResult
+  attributeOwnershipAcquisition(
+      std::wstring federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::vector<std::uint64_t> desiredAttributeHandles,
+      std::vector<std::uint8_t> userSuppliedTag);
+
+  [[nodiscard]] ProcessFederationBooleanResult
+  unconditionalAttributeOwnershipDivestiture(
+      std::wstring federationName,
+      std::uint64_t divestingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::vector<std::uint64_t> attributeHandles,
+      std::vector<std::uint8_t> userSuppliedTag);
+
+  [[nodiscard]] ProcessFederationAttributeOwnershipReleaseDeniedResult
+  attributeOwnershipReleaseDenied(
+      std::wstring federationName,
+      std::uint64_t owningFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::vector<std::uint64_t> attributeHandles,
+      std::vector<std::uint8_t> userSuppliedTag);
+
+  [[nodiscard]]
+  ProcessFederationAttributeOwnershipAcquisitionCancellationResult
+  cancelAttributeOwnershipAcquisition(
+      std::wstring federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::vector<std::uint64_t> attributeHandles);
+
+  [[nodiscard]]
+  ProcessFederationCancelNegotiatedAttributeOwnershipDivestitureResult
+  cancelNegotiatedAttributeOwnershipDivestiture(
+      std::wstring federationName,
+      std::uint64_t divestingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::vector<std::uint64_t> attributeHandles);
+
+  [[nodiscard]]
+  ProcessFederationNegotiatedAttributeOwnershipDivestitureResult
+  negotiatedAttributeOwnershipDivestiture(
+      std::wstring federationName,
+      std::uint64_t divestingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::vector<std::uint64_t> attributeHandles,
+      std::vector<std::uint8_t> userSuppliedTag);
+
+  [[nodiscard]] ProcessFederationConfirmDivestitureResult
+  confirmDivestiture(
+      std::wstring federationName,
+      std::uint64_t divestingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::vector<std::uint64_t> attributeHandles,
+      std::vector<std::uint8_t> userSuppliedTag);
+
+  [[nodiscard]] std::optional<std::wstring> lookupObjectClassName(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t objectClassHandle);
+
+  [[nodiscard]] std::optional<std::wstring> lookupInteractionClassName(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t interactionClassHandle);
+
+  [[nodiscard]] std::optional<std::wstring> lookupAttributeName(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t objectClassHandle,
+      std::uint64_t attributeHandle);
+
+  [[nodiscard]] std::optional<std::wstring> lookupParameterName(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t interactionClassHandle,
+      std::uint64_t parameterHandle);
+
   void publishInteractionClass(
       std::wstring federationName,
       std::uint64_t federateId,
@@ -94,6 +328,46 @@ class ProcessFederationClient final {
       std::wstring federationName,
       std::uint64_t federateId,
       std::uint64_t interactionClassHandle);
+  [[nodiscard]] ProcessFederationInteractionOrderTypeChangeResult
+  changeInteractionOrderType(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t interactionClassHandle,
+      rti1516_2025::OrderType orderType);
+  [[nodiscard]] ProcessFederationAttributeOrderTypeChangeResult
+  changeAttributeOrderType(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t objectInstanceHandle,
+      std::set<std::uint64_t> attributeHandles,
+      rti1516_2025::OrderType orderType);
+  [[nodiscard]] ProcessFederationAttributeOrderTypeDefaultResult
+  changeDefaultAttributeOrderType(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t objectClassHandle,
+      std::set<std::uint64_t> attributeHandles,
+      rti1516_2025::OrderType orderType);
+  [[nodiscard]] ProcessFederationAttributeTransportationTypeDefaultResult
+  changeDefaultAttributeTransportationType(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t objectClassHandle,
+      std::set<std::uint64_t> attributeHandles,
+      std::uint64_t transportationTypeHandle);
+  [[nodiscard]] ProcessFederationAttributeTransportationTypeChangeResult
+  requestAttributeTransportationTypeChange(
+      std::wstring federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::set<std::uint64_t> attributeHandles,
+      std::uint64_t transportationTypeHandle);
+  [[nodiscard]] ProcessFederationAttributeTransportationTypeQueryResult
+  queryAttributeTransportationType(
+      std::wstring federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::uint64_t attributeHandle);
   void subscribeInteractionClass(
       std::wstring federationName,
       std::uint64_t federateId,
@@ -103,6 +377,17 @@ class ProcessFederationClient final {
       std::wstring federationName,
       std::uint64_t federateId,
       std::uint64_t interactionClassHandle);
+  void subscribeInteractionClassWithRegions(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t interactionClassHandle,
+      std::set<std::uint64_t> regionHandles,
+      bool active);
+  void unsubscribeInteractionClassWithRegions(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t interactionClassHandle,
+      std::set<std::uint64_t> regionHandles);
 
   void publishObjectClassDirectedInteractions(
       std::wstring federationName,
@@ -187,11 +472,33 @@ class ProcessFederationClient final {
       std::wstring federationName,
       std::uint64_t federateId,
       std::string dimensionName);
+  [[nodiscard]] std::optional<std::wstring> lookupDimensionName(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t dimensionHandle);
+  [[nodiscard]] std::optional<std::uint64_t> lookupTransportationTypeHandle(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::string transportationTypeName);
+  [[nodiscard]] std::optional<std::wstring> lookupTransportationTypeName(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t transportationTypeHandle);
   [[nodiscard]] ProcessFederationDimensionUpperBoundResult
   lookupDimensionUpperBound(
       std::wstring federationName,
       std::uint64_t federateId,
       std::uint64_t dimensionHandle);
+  [[nodiscard]] ProcessFederationAvailableDimensionsResult
+  availableDimensionsForObjectClass(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t objectClassHandle);
+  [[nodiscard]] ProcessFederationAvailableDimensionsResult
+  availableDimensionsForInteractionClass(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t interactionClassHandle);
   [[nodiscard]] ProcessFederationCreateRegionResult createRegion(
       std::wstring federationName,
       std::uint64_t federateId,
@@ -235,6 +542,13 @@ class ProcessFederationClient final {
       std::wstring federationName,
       std::uint64_t federateId,
       bool switchValue);
+  [[nodiscard]] bool getConveyRegionDesignatorSetsSwitch(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  void setConveyRegionDesignatorSetsSwitch(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      bool switchValue);
   [[nodiscard]] ProcessFederationRegisterObjectInstanceResult
   registerObjectInstanceWithRegions(
       std::wstring federationName,
@@ -264,6 +578,15 @@ class ProcessFederationClient final {
       std::vector<std::uint8_t> payload,
       std::optional<ProcessFederationLogicalTime> timestamp = std::nullopt);
 
+  [[nodiscard]] ProcessFederationSendInteractionResult sendInteractionWithRegions(
+      std::wstring federationName,
+      std::uint64_t producingFederateId,
+      std::uint64_t interactionClassHandle,
+      std::vector<std::uint64_t> sentParameterHandles,
+      std::set<std::uint64_t> sentRegionHandles,
+      std::vector<std::uint8_t> payload,
+      std::optional<ProcessFederationLogicalTime> timestamp = std::nullopt);
+
   [[nodiscard]] ProcessFederationSendInteractionResult sendDirectedInteraction(
       std::wstring federationName,
       std::uint64_t producingFederateId,
@@ -286,6 +609,31 @@ class ProcessFederationClient final {
       std::vector<ProcessFederationAttributeValue> attributeValues,
       std::vector<std::uint8_t> userSuppliedTag,
       std::optional<ProcessFederationLogicalTime> timestamp = std::nullopt);
+
+  [[nodiscard]] ProcessFederationRequestAttributeValueUpdateResult
+  requestAttributeValueUpdate(
+      std::wstring federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t objectInstanceHandle,
+      std::vector<std::uint64_t> requestedAttributeHandles,
+      std::vector<std::uint8_t> userSuppliedTag);
+
+  [[nodiscard]] ProcessFederationRequestAttributeValueUpdateResult
+  requestAttributeValueUpdateClass(
+      std::wstring federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t objectClassHandle,
+      std::vector<std::uint64_t> requestedAttributeHandles,
+      std::vector<std::uint8_t> userSuppliedTag);
+
+  [[nodiscard]] ProcessFederationRequestAttributeValueUpdateResult
+  requestAttributeValueUpdateClassWithRegions(
+      std::wstring federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t objectClassHandle,
+      std::vector<std::uint64_t> requestedAttributeHandles,
+      std::map<std::uint64_t, std::set<std::uint64_t>> requestRegionsByAttribute,
+      std::vector<std::uint8_t> userSuppliedTag);
 
   // Poll the private service queue.  A pushed event received while another
   // request is in flight is retained and returned before a new socket read.
@@ -311,6 +659,21 @@ class ProcessFederationClient final {
   void dispatchPushedReceiveOrder();
   void dispatchAttributeUpdate(ProcessFederationAttributeUpdateEvent event);
   void dispatchPushedAttributeUpdate();
+  void dispatchAttributeValueUpdateRequest(
+      ProcessFederationAttributeValueUpdateRequestEvent event);
+  void dispatchPushedAttributeValueUpdateRequest();
+  void dispatchAttributeOwnershipQuery(
+      ProcessFederationAttributeOwnershipQueryEvent event);
+  void dispatchPushedAttributeOwnershipQuery();
+  void dispatchAttributeOwnershipAcquisitionIfAvailable(
+      ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent event);
+  void dispatchPushedAttributeOwnershipAcquisitionIfAvailable();
+  void dispatchAttributeOwnershipAcquisition(
+      ProcessFederationAttributeOwnershipAcquisitionEvent event);
+  void dispatchPushedAttributeOwnershipAcquisition();
+  void dispatchAttributeOwnershipUnavailable(
+      ProcessFederationAttributeOwnershipUnavailableEvent event);
+  void dispatchPushedAttributeOwnershipUnavailable();
   void dispatchObjectInstanceDiscovery(
       ProcessFederationObjectInstanceDiscoveryEvent event);
   void dispatchPushedObjectInstanceDiscovery();
@@ -323,6 +686,25 @@ class ProcessFederationClient final {
   void dispatchAttributeRelevanceAdvisory(
       ProcessFederationAttributeRelevanceAdvisoryEvent event);
   void dispatchPushedAttributeRelevanceAdvisory();
+  void dispatchAttributeTransportationTypeChange(
+      ProcessFederationAttributeTransportationTypeChangeEvent event);
+  void dispatchPushedAttributeTransportationTypeChange();
+  void dispatchAttributeTransportationTypeQuery(
+      ProcessFederationAttributeTransportationTypeQueryEvent event);
+  void dispatchPushedAttributeTransportationTypeQuery();
+  // Queue the process endpoint's accepted role-enable consequence through the
+  // same official callback dispatcher used by all other process callbacks.
+  void dispatchTimeRegulationEnabled(ProcessFederationLogicalTime event);
+  void dispatchTimeConstrainedEnabled(ProcessFederationLogicalTime event);
+  void dispatchTimeAdvanceGrant(ProcessFederationLogicalTime event);
+  void dispatchPushedTimeAdvanceGrant();
+  void dispatchFlushQueueGrant(
+      ProcessFederationLogicalTime grantedTime,
+      ProcessFederationLogicalTime optimisticTime);
+  void dispatchPushedFlushQueueGrant();
+  void setTimeRoleEnableCompletionHandlers(
+      CallbackCompletionHandler regulation,
+      CallbackCompletionHandler constrained);
   // Dispatch all event frames captured while the most recent service request
   // was in flight.  This is used by the request path before it returns so an
   // HLA_IMMEDIATE callback is not stranded behind a later explicit Evoke.
@@ -333,6 +715,16 @@ class ProcessFederationClient final {
   // the socket and therefore keeps the focused process slice non-blocking.
   [[nodiscard]] std::size_t pendingPushedEventCount() const noexcept;
   [[nodiscard]] std::size_t pendingPushedAttributeUpdateCount() const noexcept;
+  [[nodiscard]] std::size_t
+  pendingPushedAttributeValueUpdateRequestCount() const noexcept;
+  [[nodiscard]] std::size_t pendingPushedAttributeOwnershipQueryCount()
+      const noexcept;
+  [[nodiscard]] std::size_t
+  pendingPushedAttributeOwnershipAcquisitionIfAvailableCount() const noexcept;
+  [[nodiscard]] std::size_t pendingPushedAttributeOwnershipAcquisitionCount()
+      const noexcept;
+  [[nodiscard]] std::size_t pendingPushedAttributeOwnershipUnavailableCount()
+      const noexcept;
   [[nodiscard]] std::size_t pendingPushedObjectInstanceDiscoveryCount()
       const noexcept;
   [[nodiscard]] std::size_t pendingPushedObjectInstanceRemovalCount()
@@ -340,6 +732,14 @@ class ProcessFederationClient final {
   [[nodiscard]] std::size_t pendingPushedObjectInstanceScopeChangeCount()
       const noexcept;
   [[nodiscard]] std::size_t pendingPushedAttributeRelevanceAdvisoryCount()
+      const noexcept;
+  [[nodiscard]] std::size_t
+  pendingPushedAttributeTransportationTypeChangeCount() const noexcept;
+  [[nodiscard]] std::size_t
+  pendingPushedAttributeTransportationTypeQueryCount() const noexcept;
+  [[nodiscard]] std::size_t pendingPushedTimeAdvanceGrantCount()
+      const noexcept;
+  [[nodiscard]] std::size_t pendingPushedFlushQueueGrantCount()
       const noexcept;
 
   // Attach the borrowed official ambassador once for the client's lifetime.
@@ -380,6 +780,19 @@ class ProcessFederationClient final {
   receivePushedObjectInstanceScopeChange();
   [[nodiscard]] ProcessFederationAttributeRelevanceAdvisoryEvent
   receivePushedAttributeRelevanceAdvisory();
+  [[nodiscard]] ProcessFederationAttributeTransportationTypeChangeEvent
+  receivePushedAttributeTransportationTypeChange();
+  [[nodiscard]] ProcessFederationAttributeTransportationTypeQueryEvent
+  receivePushedAttributeTransportationTypeQuery();
+  [[nodiscard]] ProcessFederationLogicalTime receivePushedTimeAdvanceGrant();
+  struct PendingFlushQueueGrant final {
+    ProcessFederationLogicalTime grantedTime;
+    ProcessFederationLogicalTime optimisticTime;
+  };
+  [[nodiscard]] PendingFlushQueueGrant receivePushedFlushQueueGrant();
+  void acknowledgeTsoDelivery(std::uint64_t messageId);
+  void deferTsoDeliveryAcknowledgement(std::uint64_t messageId);
+  void flushDeferredTsoDeliveryAcknowledgements();
   void requireCallbackBridge() const;
 
   std::shared_ptr<ProcessTransportConnection> connection_;
@@ -391,6 +804,16 @@ class ProcessFederationClient final {
   std::shared_ptr<std::atomic_bool> attributeRelevanceAdvisorySwitchState_;
   std::deque<ProcessFederationInteractionEvent> pendingEvents_;
   std::deque<ProcessFederationAttributeUpdateEvent> pendingAttributeUpdateEvents_;
+  std::deque<ProcessFederationAttributeValueUpdateRequestEvent>
+      pendingAttributeValueUpdateRequestEvents_;
+  std::deque<ProcessFederationAttributeOwnershipQueryEvent>
+      pendingAttributeOwnershipQueryEvents_;
+  std::deque<ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent>
+      pendingAttributeOwnershipAcquisitionIfAvailableEvents_;
+  std::deque<ProcessFederationAttributeOwnershipAcquisitionEvent>
+      pendingAttributeOwnershipAcquisitionEvents_;
+  std::deque<ProcessFederationAttributeOwnershipUnavailableEvent>
+      pendingAttributeOwnershipUnavailableEvents_;
   std::deque<ProcessFederationObjectInstanceDiscoveryEvent>
       pendingObjectInstanceDiscoveryEvents_;
   std::deque<ProcessFederationObjectInstanceRemovalEvent>
@@ -399,6 +822,27 @@ class ProcessFederationClient final {
       pendingObjectInstanceScopeChangeEvents_;
   std::deque<ProcessFederationAttributeRelevanceAdvisoryEvent>
       pendingAttributeRelevanceAdvisoryEvents_;
+  std::deque<ProcessFederationAttributeTransportationTypeChangeEvent>
+      pendingAttributeTransportationTypeChangeEvents_;
+  std::deque<ProcessFederationAttributeTransportationTypeQueryEvent>
+      pendingAttributeTransportationTypeQueryEvents_;
+  std::deque<ProcessFederationLogicalTime> pendingTimeAdvanceGrantEvents_;
+  std::deque<PendingFlushQueueGrant> pendingFlushQueueGrantEvents_;
+  // An unsolicited Request Retraction can arrive while a receive poll is
+  // still awaiting its response.  Queue its delivery acknowledgement until
+  // that outer response has been consumed so the single process stream never
+  // carries nested request/response identities.
+  std::deque<std::uint64_t> deferredTsoDeliveryAcknowledgements_;
+  // The process profile currently owns one joined-federate lifetime per
+  // client.  Retain its identity so callback completion can acknowledge the
+  // federation-owned TSO entry without exposing a second public handle.
+  std::optional<std::wstring> joinedFederationName_;
+  std::uint64_t joinedFederateId_ = 0U;
+  // A callback may complete while a service request is still consuming its
+  // response stream.  Keep delivery acknowledgements deferred until the
+  // outer request has received its response so the single process connection
+  // never carries a nested request/response pair.
+  std::size_t requestDepth_ = 0U;
   std::uint64_t nextRequestId_ = 0U;
 };
 

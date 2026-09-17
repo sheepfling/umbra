@@ -17,8 +17,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before TAR and NMR grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped object deletion at the save boundary",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded terminal timestamped deletion tombstone releases its object name",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
+        "cpp/tests/terminal_timestamped_deletion_tombstone_catch2.cpp::Embedded terminal timestamped deletion tombstone releases its object name",
+        "cpp/tests/local_delete_timestamped_object_removal_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
       ]
     },
     {
@@ -46,7 +46,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped object deletion at the save boundary",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
+        "cpp/tests/local_delete_timestamped_object_removal_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
       ]
     },
     {
@@ -71,8 +71,8 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before TAR and NMR grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped object deletion at the save boundary",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded terminal timestamped deletion tombstone releases its object name",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
+        "cpp/tests/terminal_timestamped_deletion_tombstone_catch2.cpp::Embedded terminal timestamped deletion tombstone releases its object name",
+        "cpp/tests/local_delete_timestamped_object_removal_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
       ]
     },
     {
@@ -89,7 +89,7 @@
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time"
         ,
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
+        "cpp/tests/local_delete_timestamped_object_removal_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
       ]
     },
     {
@@ -106,7 +106,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
+        "cpp/tests/local_delete_timestamped_object_removal_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
       ]
     },
     {
@@ -123,7 +123,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion through the lost federate's last-known time",
         "cpp/tests/connection_loss_object_deletion_tso_catch2.cpp::Embedded transport loss delivers timestamped object deletion before the lost federate's last-known time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
+        "cpp/tests/local_delete_timestamped_object_removal_catch2.cpp::Embedded local deletion isolates queued timestamped object removals per recipient"
       ]
     },
     {
@@ -177,7 +177,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retireTsoMessagePayloadsAtOrBefore",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded terminal timestamped deletion tombstone releases its object name"
+        "cpp/tests/terminal_timestamped_deletion_tombstone_catch2.cpp::Embedded terminal timestamped deletion tombstone releases its object name"
       ]
     },
     {
@@ -188,8 +188,8 @@
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance reconstitutes on retraction and removes before grant",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction reconstitutes a delivered timestamped object deletion",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction reconstitutes timestamped deletion without recipient fanout",
+        "cpp/tests/timestamped_object_deletion_retraction_catch2.cpp::Embedded Request Retraction reconstitutes a delivered timestamped object deletion",
+        "cpp/tests/request_retraction_timestamped_deletion_no_fanout_catch2.cpp::Embedded Request Retraction reconstitutes timestamped deletion without recipient fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped object deletion at the save boundary"
       ]
     },
@@ -200,8 +200,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction reconstitutes a delivered timestamped object deletion",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction reconstitutes timestamped deletion only for joined owners"
+        "cpp/tests/timestamped_object_deletion_retraction_catch2.cpp::Embedded Request Retraction reconstitutes a delivered timestamped object deletion",
+        "cpp/tests/timestamped_object_deletion_joined_owner_retraction_catch2.cpp::Embedded Request Retraction reconstitutes timestamped deletion only for joined owners"
       ]
     },
     {
@@ -244,7 +244,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::resignLocked",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient"
+        "cpp/tests/timestamped_object_deletion_source_resignation_fanout_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient"
       ],
       "notes": "This voluntary Unconditionally Divest Attributes case retains an accepted timestamped object deletion's typed payload and recipient ledger after its producing federate resigns. It is a bounded development-profile source/test relation; delete-object resignation actions, alternate advances, recovery, transport, and conformance remain separate."
     },
@@ -255,7 +255,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginTsoPayloadDelivery",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient"
+        "cpp/tests/timestamped_object_deletion_source_resignation_fanout_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient"
       ],
       "notes": "The two recipient-local temporal queues retain the same accepted deletion through source departure and deliver each Remove Object Instance callback before its own grant. The test does not claim a complete alternate-advance or resignation-action matrix."
     },

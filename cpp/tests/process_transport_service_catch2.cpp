@@ -24,7 +24,7 @@ using umbra::detail::TransportServiceStatus;
 
 TEST_CASE(
     "Private process service dispatch correlates federation operations over framed data",
-    "[unit][foundation][transport][process-boundary][service-dispatch][transport-contract]") {
+    "[unit][foundation][transport][process-boundary][service-dispatch][transport-contract][2025]") {
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener != nullptr);
 

@@ -37,7 +37,7 @@ std::string marker(std::filesystem::path const& path) {
 
 TEST_CASE(
     "Private registry-bound service exchanges federation traffic across independently launched processes",
-    "[integration][foundation][transport][process-boundary][service-dispatch][registry-binding][transport-contract][interaction-management]") {
+    "[integration][foundation][transport][process-boundary][service-dispatch][registry-binding][transport-contract][interaction-management][2025]") {
 #ifndef UMBRA_PROCESS_SERVICE_PROBE_PATH
   FAIL("The process service probe path was not configured by CMake.");
 #else

@@ -27,13 +27,13 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels the lost federate's pending ownership acquisition",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient",
+        "cpp/tests/timestamped_attribute_source_resignation_catch2.cpp::Embedded queued timestamped attribute update survives source resignation",
+        "cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
+        "cpp/tests/timestamped_directed_interaction_multi_recipient_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
+        "cpp/tests/timestamped_object_deletion_source_resignation_fanout_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives source resignation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
-        "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp:153"
+        "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
+        "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp::Embedded live regional timestamped attribute update survives source mutation and resignation after restore"
       ]
     },
     {
@@ -50,10 +50,10 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
-        "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp:153"
+        "cpp/tests/timestamped_attribute_source_resignation_catch2.cpp::Embedded queued timestamped attribute update survives source resignation",
+        "cpp/tests/timestamped_object_deletion_source_resignation_fanout_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient",
+        "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
+        "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp::Embedded live regional timestamped attribute update survives source mutation and resignation after restore"
       ]
     },
     {
@@ -63,7 +63,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::resignLocked",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation"
+        "cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation"
       ],
       "notes": "This development-profile companion isolates the voluntary source-resignation boundary for an accepted directed TSO payload. The target remains owned by a surviving federate, the source leaves with NO_ACTION, and the recipient's independent regulator releases one callback before its grant. The private retraction ledger records voluntary producer departure separately from the connection-loss cutoff marker; this is not a complete resignation-action or conformance matrix."
     },
@@ -88,7 +88,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action independently queues assumptions for each surviving federate",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry rejects resignation route gaps atomically",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation"
+        "cpp/tests/timestamped_attribute_source_resignation_catch2.cpp::Embedded queued timestamped attribute update survives source resignation"
       ]
     },
     {

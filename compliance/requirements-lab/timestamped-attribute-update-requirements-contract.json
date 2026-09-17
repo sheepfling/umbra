@@ -12,25 +12,23 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values honors available and next-message available grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/timestamped_attribute_update_available_advance_catch2.cpp::Embedded timestamped Update Attribute Values honors available and next-message available grants",
+        "cpp/tests/timestamped_attribute_update_flush_queue_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
+        "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_catch2.cpp::Embedded transport loss delivers timestamped attribute updates through the lost federate's last-known time",
         "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
+        "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
+        "cpp/tests/timestamped_attribute_update_no_fanout_catch2.cpp::Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout",
+        "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped attribute retraction classification",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
@@ -41,15 +39,13 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
+        "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/timestamped_attribute_update_flush_queue_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
+        "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped attribute retraction classification",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
@@ -60,10 +56,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "candidateReceiveOrderAttributeUpdateRecipient",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
+        "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients"
       ]
     },
@@ -74,23 +68,21 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
         "cpp/tests/restore_live_tso_attribute_update_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values honors available and next-message available grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/timestamped_attribute_update_available_advance_catch2.cpp::Embedded timestamped Update Attribute Values honors available and next-message available grants",
+        "cpp/tests/timestamped_attribute_update_flush_queue_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
+        "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_catch2.cpp::Embedded transport loss delivers timestamped attribute updates through the lost federate's last-known time",
         "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
+        "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
@@ -101,22 +93,20 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values honors available and next-message available grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/timestamped_attribute_update_available_advance_catch2.cpp::Embedded timestamped Update Attribute Values honors available and next-message available grants",
+        "cpp/tests/timestamped_attribute_update_flush_queue_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
+        "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_catch2.cpp::Embedded transport loss delivers timestamped attribute updates through the lost federate's last-known time",
         "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
+        "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
@@ -127,15 +117,13 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeMessageRetractionHandle",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values honors available and next-message available grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
+        "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/timestamped_attribute_update_available_advance_catch2.cpp::Embedded timestamped Update Attribute Values honors available and next-message available grants",
+        "cpp/tests/timestamped_attribute_update_flush_queue_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
         "cpp/tests/connection_loss_attribute_update_tso_catch2.cpp::Embedded transport loss delivers timestamped attribute updates through the lost federate's last-known time",
         "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
         "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the standard HLAvariableArray handle encoding",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
@@ -147,16 +135,14 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
         "cpp/tests/restore_live_tso_attribute_update_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values honors available and next-message available grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
+        "cpp/tests/timestamped_attribute_update_available_advance_catch2.cpp::Embedded timestamped Update Attribute Values honors available and next-message available grants",
+        "cpp/tests/timestamped_attribute_update_flush_queue_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
         "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
@@ -167,21 +153,19 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values honors available and next-message available grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/timestamped_attribute_update_available_advance_catch2.cpp::Embedded timestamped Update Attribute Values honors available and next-message available grants",
+        "cpp/tests/timestamped_attribute_update_flush_queue_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
+        "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_catch2.cpp::Embedded transport loss delivers timestamped attribute updates through the lost federate's last-known time",
         "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
@@ -192,20 +176,18 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
         "cpp/tests/restore_live_tso_attribute_update_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/timestamped_attribute_update_flush_queue_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
+        "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_catch2.cpp::Embedded transport loss delivers timestamped attribute updates through the lost federate's last-known time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
+        "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-instance Request Attribute Value Update supports a provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
+        "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
@@ -217,12 +199,12 @@
       "source_symbol": "EmbeddedFederationRegistry::connectionLossTsoDeliveryMayGrant",
       "tests": [
         "cpp/tests/connection_loss_attribute_update_tso_catch2.cpp::Embedded transport loss delivers timestamped attribute updates through the lost federate's last-known time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
+        "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates"
       ]
     },
@@ -233,11 +215,11 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginObjectInstanceRemoval",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
+        "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
+        "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
+        "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates"
       ]
     },
@@ -248,7 +230,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed"
+        "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed"
       ]
     },
     {
@@ -260,7 +242,7 @@
       "tests": [
         "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed"
+        "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed"
       ]
     },
     {
@@ -270,7 +252,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients"
       ]
@@ -282,11 +264,10 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a provider response",
+        "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/timestamped_attribute_update_no_fanout_catch2.cpp::Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout",
         "cpp/tests/restore_live_tso_attribute_update_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
+        "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
@@ -298,7 +279,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
+        "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
@@ -311,7 +292,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
         "cpp/tests/restore_live_tso_attribute_update_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
+        "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
@@ -346,7 +327,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation for each recipient"
+        "cpp/tests/timestamped_attribute_source_resignation_fanout_catch2.cpp::Embedded queued timestamped attribute update survives source resignation for each recipient"
       ],
       "notes": "This bounded four-member case accepts one timestamped Update Attribute Values passel for two constrained recipients, admits direct TAR(7) and NMR(10), then resigns the producing owner with UNCONDITIONALLY_DIVEST_ATTRIBUTES. The recipient-local ledgers remain independent after source cleanup; broader resignation actions, alternate advances, recovery, transport, and conformance remain open."
     },
@@ -379,8 +360,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve different-timestamp order for each constrained recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped attribute updates preserve ordering through available advances"
+        "cpp/tests/timestamped_attribute_order_cohort_catch2.cpp::Embedded timestamped attribute updates preserve different-timestamp order for each constrained recipient",
+        "cpp/tests/timestamped_attribute_update_alternate_advance_catch2.cpp::Embedded timestamped attribute updates preserve ordering through available advances"
       ],
       "notes": "The bounded TAR case and its alternate-advance companion submit timestamp 7 before timestamp 5 plus a second timestamp-5 Update Attribute Values passel. Independent constrained recipients are advanced at exact TAR or TARA/NMRA boundaries; each receives both equal-timestamp records before timestamp 7, with the equal-timestamp tie-break intentionally left unspecified, and each reflection precedes its matching grant. Cross-process transport-arrival ordering, other advance combinations, ownership/resignation, save/restore, and conformance remain open."
     },
@@ -391,7 +372,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeConstrained",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
+        "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
       ]
     },
     {
@@ -401,7 +382,7 @@
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::grantTimeConstrained",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
+        "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
       ]
     },
     {
@@ -411,7 +392,7 @@
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::disableTimeConstrained",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
+        "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
       ]
     },
     {

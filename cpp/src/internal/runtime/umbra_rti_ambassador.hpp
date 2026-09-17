@@ -724,6 +724,14 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
       bool selectNextQueuedMessage,
       std::wstring const& serviceName);
 
+  // Shared process-endpoint adapter for the four request/grant temporal
+  // forms. The endpoint owns queued-TSO selection for NMR/NMRA; this helper
+  // only translates the official logical-time value, status, and grant event.
+  void requestProcessTimeAdvance(
+      LogicalTime const& time,
+      umbra::detail::FederateTimeAdvanceMode mode,
+      std::wstring const& serviceName);
+
   void requireFederationServiceOperationAvailable(
       std::wstring const& operation) const;
 
@@ -848,12 +856,22 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   std::unique_ptr<umbra::detail::ProcessFederationClient>
       processFederationClient_;
   bool processEndpointActive_ = false;
+  // The process endpoint currently returns role-enable values eagerly, but
+  // the official callback remains callback-gated.  Keep these guards until
+  // the corresponding callback crosses the shared dispatcher so TAR and
+  // duplicate role-enable calls observe the normative pending exceptions.
+  bool processTimeRegulationCallbackPending_ = false;
+  bool processTimeConstrainedCallbackPending_ = false;
   std::unique_ptr<umbra::detail::ServiceReportStore>
       injectedServiceReportStoreForTesting_;
   bool activeServiceReportStoreIsTestOnly_ = false;
   std::optional<JoinedServiceReportState> joinedServiceReport_;
   std::optional<std::wstring> joinedFederationName_;
   std::optional<std::uint64_t> joinedFederateId_;
+  // Process joins do not install the remote FOM catalog in the local
+  // registry. Retain the server-selected time implementation returned by
+  // Join so getTimeFactory can still expose the official factory.
+  std::optional<std::wstring> processLogicalTimeImplementationName_;
   umbra::detail::FomStandardEdition fomStandardEdition_ =
       umbra::detail::FomStandardEdition::ieee1516_2025;
   std::shared_ptr<umbra::detail::FederateTimeState> federateTimeState_;

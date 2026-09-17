@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for standard RTIambassador services after a federate has resigned while its connection remains open. The adapter supplies the provider package, baseline FOM, endpoint, logical-time selection, and callback configuration. The scenario obtains valid handles and object identity while joined, then asserts FederateNotExecutionMember across standard lookup, declaration, object-management, interaction, time-management, synchronization, and save-request services. It does not assert provider diagnostics, registries, private headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "post-resignation-standard-service-boundaries",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador service calls with FederateNotExecutionMember outcomes after resignation",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador service declarations and exception specifications",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioPostResignationServiceBoundariesContract"
+      ]
+    }
+  ]
+}

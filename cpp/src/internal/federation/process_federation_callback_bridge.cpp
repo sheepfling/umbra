@@ -55,6 +55,37 @@ std::unique_ptr<rti1516_2025::LogicalTime> decodeEventTimestamp(
   return decoded;
 }
 
+std::unique_ptr<rti1516_2025::LogicalTime> decodeRoleEnableTime(
+    ProcessFederationLogicalTime const& value) {
+  if (value.implementationName.empty()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process role-enable callback requires a logical-time implementation name.");
+  }
+  auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+      value.implementationName);
+  if (!factory || factory->getName() != value.implementationName) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process role-enable callback uses an unavailable logical-time factory.");
+  }
+  rti1516_2025::VariableLengthData encoded;
+  if (!value.encoding.empty()) {
+    encoded.setData(value.encoding.data(), value.encoding.size());
+  }
+  std::unique_ptr<rti1516_2025::LogicalTime> decoded;
+  try {
+    decoded = factory->decodeLogicalTime(encoded);
+  } catch (rti1516_2025::Exception const&) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process role-enable callback could not decode its logical time.");
+  }
+  if (!decoded || decoded->implementationName() != value.implementationName ||
+      decoded->isFinal()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process role-enable callback does not contain a valid logical time.");
+  }
+  return decoded;
+}
+
 void deliverReceiveOrder(
     ProcessFederationInteractionEvent const& event,
     rti1516_2025::FederateAmbassador& recipient) {
@@ -119,6 +150,20 @@ void deliverReceiveOrder(
   auto producingFederate =
       rti1516_2025::umbra_binding_detail::makeFederateHandle(
           event.producingFederateId);
+  std::optional<rti1516_2025::RegionHandleSet> optionalSentRegions;
+  if (event.sentRegionHandles.has_value() || event.defaultRegionUsed) {
+    optionalSentRegions.emplace();
+    if (event.sentRegionHandles.has_value()) {
+      for (std::uint64_t const regionHandle : *event.sentRegionHandles) {
+        if (regionHandle == 0U) {
+          throw ProcessFederationCallbackBridgeError(
+              "A process interaction callback contains an invalid region identity.");
+        }
+        optionalSentRegions->insert(
+            rti1516_2025::umbra_binding_detail::makeRegionHandle(regionHandle));
+      }
+    }
+  }
   std::optional<rti1516_2025::MessageRetractionHandle> optionalRetraction;
   if (event.retractionMessageId) {
     optionalRetraction.emplace(
@@ -131,17 +176,20 @@ void deliverReceiveOrder(
             *event.objectInstanceHandle);
     if (event.timestamp) {
       auto timestamp = decodeEventTimestamp(*event.timestamp);
+      auto const sentOrderType = event.sentOrderType.value_or(rti1516_2025::RECEIVE);
+      auto const receivedOrderType =
+          event.receivedOrderType.value_or(rti1516_2025::RECEIVE);
       recipient.receiveDirectedInteraction(
           interactionClass,
           objectInstance,
           parameterValues,
           userSuppliedTag,
           transportationType,
-          producingFederate,
-          *timestamp,
-          rti1516_2025::RECEIVE,
-          rti1516_2025::RECEIVE,
-          optionalRetraction ? &*optionalRetraction : nullptr);
+           producingFederate,
+           *timestamp,
+           sentOrderType,
+           receivedOrderType,
+           optionalRetraction ? &*optionalRetraction : nullptr);
     } else {
       recipient.receiveDirectedInteraction(
           interactionClass,
@@ -155,22 +203,36 @@ void deliverReceiveOrder(
   }
   if (event.timestamp) {
     auto timestamp = decodeEventTimestamp(*event.timestamp);
-    // A process endpoint currently has no time-regulation service. The
-    // timestamp is nevertheless delivered through the official timestamped
-    // callback overload with receive-order classifications; when the private
-    // service retained a directed-message identity, the same identity is
-    // exposed through the optional retraction pointer above.
-    recipient.receiveInteraction(
-        interactionClass,
-        parameterValues,
-        userSuppliedTag,
-        transportationType,
-        producingFederate,
-        nullptr,
-        *timestamp,
-        rti1516_2025::RECEIVE,
-        rti1516_2025::RECEIVE,
-        nullptr);
+    // The legacy process timestamp probe has no time-management identity and
+    // intentionally retains RECEIVE classifications.  A queued timestamped
+    // interaction carries an execution-owned message id, however, and must
+    // surface the normative TIMESTAMP/TIMESTAMP callback shape with the same
+    // retraction designator returned to the producer.
+    if (event.retractionMessageId) {
+      recipient.receiveInteraction(
+          interactionClass,
+          parameterValues,
+          userSuppliedTag,
+          transportationType,
+          producingFederate,
+          optionalSentRegions ? &*optionalSentRegions : nullptr,
+          *timestamp,
+          rti1516_2025::TIMESTAMP,
+          rti1516_2025::TIMESTAMP,
+          &*optionalRetraction);
+    } else {
+      recipient.receiveInteraction(
+          interactionClass,
+          parameterValues,
+          userSuppliedTag,
+          transportationType,
+          producingFederate,
+          optionalSentRegions ? &*optionalSentRegions : nullptr,
+          *timestamp,
+          rti1516_2025::RECEIVE,
+          rti1516_2025::RECEIVE,
+          nullptr);
+    }
     return;
   }
   recipient.receiveInteraction(
@@ -179,7 +241,7 @@ void deliverReceiveOrder(
       userSuppliedTag,
       transportationType,
       producingFederate,
-      nullptr);
+      optionalSentRegions ? &*optionalSentRegions : nullptr);
 }
 
 void deliverRequestRetraction(
@@ -256,23 +318,41 @@ void deliverAttributeUpdate(
   auto const producingFederate =
       rti1516_2025::umbra_binding_detail::makeFederateHandle(
           event.producingFederateId);
+  std::optional<rti1516_2025::MessageRetractionHandle> optionalRetraction;
+  if (event.retractionMessageId) {
+    optionalRetraction.emplace(
+        rti1516_2025::umbra_binding_detail::makeMessageRetractionHandle(
+            *event.retractionMessageId));
+  }
   if (event.timestamp) {
     auto timestamp = decodeEventTimestamp(*event.timestamp);
-    // The process endpoint currently has no time-regulation/retraction
-    // protocol. Preserve the timestamp through the official callback while
-    // classifying this bounded remote projection as receive-order on both
-    // sides and exposing no fabricated retraction handle.
-    recipient.reflectAttributeValues(
-        objectInstance,
-        attributeValues,
-        userSuppliedTag,
-        transportationType,
-        producingFederate,
-        optionalSentRegions ? &*optionalSentRegions : nullptr,
-        *timestamp,
-        rti1516_2025::RECEIVE,
-        rti1516_2025::RECEIVE,
-        nullptr);
+    if (event.retractionMessageId) {
+      recipient.reflectAttributeValues(
+          objectInstance,
+          attributeValues,
+          userSuppliedTag,
+          transportationType,
+          producingFederate,
+          optionalSentRegions ? &*optionalSentRegions : nullptr,
+          *timestamp,
+          rti1516_2025::TIMESTAMP,
+          rti1516_2025::TIMESTAMP,
+          &*optionalRetraction);
+    } else {
+      // The legacy process timestamp probe has no time-management identity
+      // and intentionally retains RECEIVE classifications.
+      recipient.reflectAttributeValues(
+          objectInstance,
+          attributeValues,
+          userSuppliedTag,
+          transportationType,
+          producingFederate,
+          optionalSentRegions ? &*optionalSentRegions : nullptr,
+          *timestamp,
+          rti1516_2025::RECEIVE,
+          rti1516_2025::RECEIVE,
+          nullptr);
+    }
     return;
   }
   recipient.reflectAttributeValues(
@@ -282,6 +362,246 @@ void deliverAttributeUpdate(
       transportationType,
       producingFederate,
       optionalSentRegions ? &*optionalSentRegions : nullptr);
+}
+
+void deliverAttributeValueUpdateRequest(
+    ProcessFederationAttributeValueUpdateRequestEvent const& event,
+    rti1516_2025::FederateAmbassador& recipient) {
+  if (event.requestingFederateId == 0U ||
+      event.providingFederateId == 0U ||
+      event.objectInstanceHandle == 0U ||
+      event.requestedAttributeHandles.empty()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process attribute-value-update request callback requires requester, provider, object, and attributes.");
+  }
+  rti1516_2025::AttributeHandleSet attributes;
+  for (std::uint64_t const attributeHandle :
+       event.requestedAttributeHandles) {
+    if (attributeHandle == 0U) {
+      throw ProcessFederationCallbackBridgeError(
+          "A process attribute-value-update request callback contains an invalid attribute identity.");
+    }
+    attributes.insert(
+        rti1516_2025::umbra_binding_detail::makeAttributeHandle(
+            attributeHandle));
+  }
+  rti1516_2025::VariableLengthData userSuppliedTag;
+  if (!event.userSuppliedTag.empty()) {
+    userSuppliedTag.setData(
+        event.userSuppliedTag.data(), event.userSuppliedTag.size());
+  }
+  recipient.provideAttributeValueUpdate(
+      rti1516_2025::umbra_binding_detail::makeObjectInstanceHandle(
+          event.objectInstanceHandle),
+      attributes,
+      userSuppliedTag);
+}
+
+void deliverAttributeOwnershipQuery(
+    ProcessFederationAttributeOwnershipQueryEvent const& event,
+    rti1516_2025::FederateAmbassador& recipient) {
+  if (event.requestId == 0U || event.receivingFederateId == 0U ||
+      event.objectInstanceHandle == 0U || event.attributeHandles.empty()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process attribute-ownership query callback requires request, recipient, object, and attributes.");
+  }
+  if (event.reportKind == AttributeOwnershipQueryReportKind::federate) {
+    if (event.owningFederateId == 0U) {
+      throw ProcessFederationCallbackBridgeError(
+          "A federate-owned process attribute-ownership query callback requires an owner.");
+    }
+  } else if (event.owningFederateId != 0U) {
+    throw ProcessFederationCallbackBridgeError(
+        "A non-federate process attribute-ownership query callback cannot carry an owner.");
+  }
+  rti1516_2025::AttributeHandleSet attributes;
+  for (std::uint64_t const attributeHandle : event.attributeHandles) {
+    if (attributeHandle == 0U) {
+      throw ProcessFederationCallbackBridgeError(
+          "A process attribute-ownership query callback contains an invalid attribute identity.");
+    }
+    attributes.insert(
+        rti1516_2025::umbra_binding_detail::makeAttributeHandle(
+            attributeHandle));
+  }
+  auto const objectInstance =
+      rti1516_2025::umbra_binding_detail::makeObjectInstanceHandle(
+          event.objectInstanceHandle);
+  switch (event.reportKind) {
+    case AttributeOwnershipQueryReportKind::federate:
+      recipient.informAttributeOwnership(
+          objectInstance,
+          attributes,
+          rti1516_2025::umbra_binding_detail::makeFederateHandle(
+              event.owningFederateId));
+      return;
+    case AttributeOwnershipQueryReportKind::unowned:
+      recipient.attributeIsNotOwned(objectInstance, attributes);
+      return;
+    case AttributeOwnershipQueryReportKind::rti:
+      recipient.attributeIsOwnedByRTI(objectInstance, attributes);
+      return;
+  }
+  throw ProcessFederationCallbackBridgeError(
+      "A process attribute-ownership query callback has an unknown report kind.");
+}
+
+void deliverAttributeOwnershipAcquisitionIfAvailable(
+    ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent const& event,
+    rti1516_2025::FederateAmbassador& recipient) {
+  if (event.requestId == 0U || event.receivingFederateId == 0U ||
+      event.objectInstanceHandle == 0U ||
+      (event.securedAttributeHandles.empty() &&
+       event.unavailableAttributeHandles.empty())) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process attribute-ownership acquisition-if-available callback requires request, recipient, object, and delivery identities.");
+  }
+  rti1516_2025::AttributeHandleSet securedAttributes;
+  for (std::uint64_t const attributeHandle : event.securedAttributeHandles) {
+    if (attributeHandle == 0U) {
+      throw ProcessFederationCallbackBridgeError(
+          "A process attribute-ownership acquisition-if-available callback contains an invalid secured attribute identity.");
+    }
+    securedAttributes.insert(
+        rti1516_2025::umbra_binding_detail::makeAttributeHandle(
+            attributeHandle));
+  }
+  rti1516_2025::AttributeHandleSet unavailableAttributes;
+  for (std::uint64_t const attributeHandle : event.unavailableAttributeHandles) {
+    if (attributeHandle == 0U ||
+        event.securedAttributeHandles.contains(attributeHandle)) {
+      throw ProcessFederationCallbackBridgeError(
+          "A process attribute-ownership acquisition-if-available callback contains overlapping or invalid attribute identities.");
+    }
+    unavailableAttributes.insert(
+        rti1516_2025::umbra_binding_detail::makeAttributeHandle(
+            attributeHandle));
+  }
+  rti1516_2025::VariableLengthData userSuppliedTag;
+  if (!event.userSuppliedTag.empty()) {
+    userSuppliedTag.setData(
+        event.userSuppliedTag.data(), event.userSuppliedTag.size());
+  }
+  auto const objectInstance =
+      rti1516_2025::umbra_binding_detail::makeObjectInstanceHandle(
+          event.objectInstanceHandle);
+  if (!securedAttributes.empty()) {
+    recipient.attributeOwnershipAcquisitionNotification(
+        objectInstance, securedAttributes, userSuppliedTag);
+  }
+  if (!unavailableAttributes.empty()) {
+    recipient.attributeOwnershipUnavailable(
+        objectInstance, unavailableAttributes, userSuppliedTag);
+  }
+}
+
+void deliverAttributeOwnershipAcquisition(
+    ProcessFederationAttributeOwnershipAcquisitionEvent const& event,
+    rti1516_2025::FederateAmbassador& recipient) {
+  if ((event.kind != ProcessFederationAttributeOwnershipAcquisitionEventKind::
+                   ownership_assumption &&
+       event.requestId == 0U) ||
+      event.requestingFederateId == 0U ||
+      event.receivingFederateId == 0U || event.objectInstanceHandle == 0U ||
+      event.attributeHandles.empty()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process attribute-ownership acquisition callback requires request, requester, recipient, object, and attributes.");
+  }
+  rti1516_2025::AttributeHandleSet attributes;
+  for (std::uint64_t const attributeHandle : event.attributeHandles) {
+    if (attributeHandle == 0U) {
+      throw ProcessFederationCallbackBridgeError(
+          "A process attribute-ownership acquisition callback contains an invalid attribute identity.");
+    }
+    attributes.insert(
+        rti1516_2025::umbra_binding_detail::makeAttributeHandle(
+            attributeHandle));
+  }
+  rti1516_2025::VariableLengthData userSuppliedTag;
+  if (!event.userSuppliedTag.empty()) {
+    userSuppliedTag.setData(
+        event.userSuppliedTag.data(), event.userSuppliedTag.size());
+  }
+  auto const objectInstance =
+      rti1516_2025::umbra_binding_detail::makeObjectInstanceHandle(
+          event.objectInstanceHandle);
+  switch (event.kind) {
+    case ProcessFederationAttributeOwnershipAcquisitionEventKind::
+        acquisition_notification:
+      if (event.receivingFederateId != event.requestingFederateId) {
+        throw ProcessFederationCallbackBridgeError(
+            "A process acquisition notification must target its requesting federate.");
+      }
+      recipient.attributeOwnershipAcquisitionNotification(
+          objectInstance, attributes, userSuppliedTag);
+      return;
+    case ProcessFederationAttributeOwnershipAcquisitionEventKind::
+        request_release:
+      recipient.requestAttributeOwnershipRelease(
+          objectInstance, attributes, userSuppliedTag);
+      return;
+    case ProcessFederationAttributeOwnershipAcquisitionEventKind::
+        cancellation_confirmation:
+      if (event.receivingFederateId != event.requestingFederateId ||
+          !event.userSuppliedTag.empty()) {
+        throw ProcessFederationCallbackBridgeError(
+            "A process ownership-acquisition cancellation confirmation must target its requesting federate and cannot carry a tag.");
+      }
+      recipient.confirmAttributeOwnershipAcquisitionCancellation(
+          objectInstance, attributes);
+      return;
+    case ProcessFederationAttributeOwnershipAcquisitionEventKind::
+        request_divestiture_confirmation:
+      recipient.requestDivestitureConfirmation(
+          objectInstance, attributes, userSuppliedTag);
+      return;
+    case ProcessFederationAttributeOwnershipAcquisitionEventKind::
+        confirm_divestiture_notification:
+      if (event.receivingFederateId != event.requestingFederateId) {
+        throw ProcessFederationCallbackBridgeError(
+            "A process Confirm Divestiture notification must target its requesting federate.");
+      }
+      recipient.attributeOwnershipAcquisitionNotification(
+          objectInstance, attributes, userSuppliedTag);
+      return;
+    case ProcessFederationAttributeOwnershipAcquisitionEventKind::
+        ownership_assumption:
+      recipient.requestAttributeOwnershipAssumption(
+          objectInstance, attributes, userSuppliedTag);
+      return;
+  }
+  throw ProcessFederationCallbackBridgeError(
+      "A process attribute-ownership acquisition callback has an unknown kind.");
+}
+
+void deliverAttributeOwnershipUnavailable(
+    ProcessFederationAttributeOwnershipUnavailableEvent const& event,
+    rti1516_2025::FederateAmbassador& recipient) {
+  if (event.receivingFederateId == 0U ||
+      event.objectInstanceHandle == 0U || event.attributeHandles.empty()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process attribute-ownership unavailable callback requires recipient, object, and attributes.");
+  }
+  rti1516_2025::AttributeHandleSet attributes;
+  for (std::uint64_t const attributeHandle : event.attributeHandles) {
+    if (attributeHandle == 0U) {
+      throw ProcessFederationCallbackBridgeError(
+          "A process attribute-ownership unavailable callback contains an invalid attribute identity.");
+    }
+    attributes.insert(
+        rti1516_2025::umbra_binding_detail::makeAttributeHandle(
+            attributeHandle));
+  }
+  rti1516_2025::VariableLengthData userSuppliedTag;
+  if (!event.userSuppliedTag.empty()) {
+    userSuppliedTag.setData(
+        event.userSuppliedTag.data(), event.userSuppliedTag.size());
+  }
+  recipient.attributeOwnershipUnavailable(
+      rti1516_2025::umbra_binding_detail::makeObjectInstanceHandle(
+          event.objectInstanceHandle),
+      attributes,
+      userSuppliedTag);
 }
 
 void deliverObjectInstanceDiscovery(
@@ -416,6 +736,66 @@ void deliverAttributeRelevanceAdvisory(
   recipient.turnUpdatesOnForObjectInstance(objectInstance, attributes);
 }
 
+void deliverAttributeTransportationTypeChange(
+    ProcessFederationAttributeTransportationTypeChangeEvent const& event,
+    rti1516_2025::FederateAmbassador& recipient) {
+  if (event.requestId == 0U || event.receivingFederateId == 0U ||
+      event.objectInstanceHandle == 0U || event.attributeHandles.empty() ||
+      event.transportationName.empty()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process attribute transportation-type change callback requires request, recipient, object, attributes, and transportation.");
+  }
+  auto const transportationValue =
+      rti1516_2025::umbra_binding_detail::standardTransportationTypeValue(
+          std::wstring(event.transportationName.begin(),
+                       event.transportationName.end()));
+  if (!transportationValue) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process attribute transportation-type change callback has an unknown transportation type.");
+  }
+  rti1516_2025::AttributeHandleSet attributes;
+  for (std::uint64_t const attributeHandle : event.attributeHandles) {
+    if (attributeHandle == 0U) {
+      throw ProcessFederationCallbackBridgeError(
+          "A process attribute transportation-type change callback contains an invalid attribute identity.");
+    }
+    attributes.insert(
+        rti1516_2025::umbra_binding_detail::makeAttributeHandle(
+            attributeHandle));
+  }
+  recipient.confirmAttributeTransportationTypeChange(
+      rti1516_2025::umbra_binding_detail::makeObjectInstanceHandle(
+          event.objectInstanceHandle),
+      attributes,
+      rti1516_2025::umbra_binding_detail::makeTransportationTypeHandle(
+          *transportationValue));
+}
+
+void deliverAttributeTransportationTypeQuery(
+    ProcessFederationAttributeTransportationTypeQueryEvent const& event,
+    rti1516_2025::FederateAmbassador& recipient) {
+  if (event.receivingFederateId == 0U || event.objectInstanceHandle == 0U ||
+      event.attributeHandle == 0U || event.transportationName.empty()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process attribute transportation-type query callback requires recipient, object, attribute, and transportation.");
+  }
+  auto const transportationValue =
+      rti1516_2025::umbra_binding_detail::standardTransportationTypeValue(
+          std::wstring(event.transportationName.begin(),
+                       event.transportationName.end()));
+  if (!transportationValue) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process attribute transportation-type query callback has an unknown transportation type.");
+  }
+  recipient.reportAttributeTransportationType(
+      rti1516_2025::umbra_binding_detail::makeObjectInstanceHandle(
+          event.objectInstanceHandle),
+      rti1516_2025::umbra_binding_detail::makeAttributeHandle(
+          event.attributeHandle),
+      rti1516_2025::umbra_binding_detail::makeTransportationTypeHandle(
+          *transportationValue));
+}
+
 }  // namespace
 
 ProcessFederationCallbackBridge::ProcessFederationCallbackBridge(
@@ -455,22 +835,48 @@ void ProcessFederationCallbackBridge::submitReceiveOrder(
     std::scoped_lock lock(retractionMutex_);
     retractionStates_[*event.retractionMessageId] = retractionState;
   }
+  auto const tsoCompletion = tsoDeliveryCompletion_;
+  auto const tsoMessageId = event.retractionMessageId;
   dispatcher_->submit(
       [session,
        retractionState = std::move(retractionState),
+       tsoCompletion,
+       tsoMessageId,
        event = std::move(event)]() mutable {
+        bool acknowledgeSuppressed = false;
         if (retractionState) {
           std::scoped_lock lock(retractionState->mutex);
           if (retractionState->retractionRequested) {
-            return;
+            if (!retractionState->deliveryAcknowledged) {
+              retractionState->deliveryAcknowledged = true;
+              acknowledgeSuppressed = true;
+            }
+          } else {
+            retractionState->callbackStarted = true;
           }
-          retractionState->callbackStarted = true;
+        }
+        if (acknowledgeSuppressed) {
+          if (tsoCompletion && tsoMessageId) {
+            tsoCompletion(*tsoMessageId);
+          }
+          return;
         }
         session->invoke(
             [event = std::move(event)](
                 rti1516_2025::FederateAmbassador& recipient) mutable {
               deliverReceiveOrder(event, recipient);
             });
+        bool acknowledge = false;
+        if (retractionState) {
+          std::scoped_lock lock(retractionState->mutex);
+          if (!retractionState->deliveryAcknowledged) {
+            retractionState->deliveryAcknowledged = true;
+            acknowledge = true;
+          }
+        }
+        if (acknowledge && tsoCompletion && tsoMessageId) {
+          tsoCompletion(*tsoMessageId);
+        }
       });
 }
 
@@ -489,6 +895,8 @@ void ProcessFederationCallbackBridge::submitRequestRetraction(
 
   std::shared_ptr<RetractionState> retractionState;
   bool callbackMayDeliver = true;
+  bool acknowledgeSuppressed = false;
+  auto const tsoCompletion = tsoDeliveryCompletion_;
   {
     std::scoped_lock lock(retractionMutex_);
     auto const found = retractionStates_.find(messageId);
@@ -508,6 +916,9 @@ void ProcessFederationCallbackBridge::submitRequestRetraction(
     callbackMayDeliver = retractionState->callbackStarted;
     if (callbackMayDeliver) {
       retractionState->retractionCallbackQueued = true;
+    } else if (!retractionState->deliveryAcknowledged) {
+      retractionState->deliveryAcknowledged = true;
+      acknowledgeSuppressed = true;
     }
   } else {
     // Without a tracked timestamped interaction there is no callback that
@@ -517,6 +928,9 @@ void ProcessFederationCallbackBridge::submitRequestRetraction(
     return;
   }
   if (!callbackMayDeliver) {
+    if (acknowledgeSuppressed && tsoCompletion) {
+      tsoCompletion(messageId);
+    }
     return;
   }
   dispatcher->submit(
@@ -537,12 +951,138 @@ void ProcessFederationCallbackBridge::submitAttributeUpdate(
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
+  std::shared_ptr<RetractionState> retractionState;
+  if (event.retractionMessageId) {
+    retractionState = std::make_shared<RetractionState>();
+    std::scoped_lock lock(retractionMutex_);
+    retractionStates_[*event.retractionMessageId] = retractionState;
+  }
+  auto const tsoCompletion = tsoDeliveryCompletion_;
+  auto const tsoMessageId = event.retractionMessageId;
+  dispatcher_->submit(
+      [session,
+       retractionState = std::move(retractionState),
+       tsoCompletion,
+       tsoMessageId,
+       event = std::move(event)]() mutable {
+        bool acknowledgeSuppressed = false;
+        if (retractionState) {
+          std::scoped_lock lock(retractionState->mutex);
+          if (retractionState->retractionRequested) {
+            if (!retractionState->deliveryAcknowledged) {
+              retractionState->deliveryAcknowledged = true;
+              acknowledgeSuppressed = true;
+            }
+          } else {
+            retractionState->callbackStarted = true;
+          }
+        }
+        if (acknowledgeSuppressed) {
+          if (tsoCompletion && tsoMessageId) {
+            tsoCompletion(*tsoMessageId);
+          }
+          return;
+        }
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              deliverAttributeUpdate(event, recipient);
+            });
+        bool acknowledge = false;
+        if (retractionState) {
+          std::scoped_lock lock(retractionState->mutex);
+          if (!retractionState->deliveryAcknowledged) {
+            retractionState->deliveryAcknowledged = true;
+            acknowledge = true;
+          }
+        }
+        if (acknowledge && tsoCompletion && tsoMessageId) {
+          tsoCompletion(*tsoMessageId);
+        }
+      });
+}
+
+void ProcessFederationCallbackBridge::submitAttributeValueUpdateRequest(
+    ProcessFederationAttributeValueUpdateRequestEvent event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
   dispatcher_->submit(
       [session, event = std::move(event)]() mutable {
         session->invoke(
             [event = std::move(event)](
                 rti1516_2025::FederateAmbassador& recipient) mutable {
-              deliverAttributeUpdate(event, recipient);
+              deliverAttributeValueUpdateRequest(event, recipient);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitAttributeOwnershipQuery(
+    ProcessFederationAttributeOwnershipQueryEvent event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, event = std::move(event)]() mutable {
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              deliverAttributeOwnershipQuery(event, recipient);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitAttributeOwnershipAcquisitionIfAvailable(
+    ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, event = std::move(event)]() mutable {
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              deliverAttributeOwnershipAcquisitionIfAvailable(event, recipient);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitAttributeOwnershipAcquisition(
+    ProcessFederationAttributeOwnershipAcquisitionEvent event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, event = std::move(event)]() mutable {
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              deliverAttributeOwnershipAcquisition(event, recipient);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitAttributeOwnershipUnavailable(
+    ProcessFederationAttributeOwnershipUnavailableEvent event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, event = std::move(event)]() mutable {
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              deliverAttributeOwnershipUnavailable(event, recipient);
             });
       });
 }
@@ -635,6 +1175,137 @@ void ProcessFederationCallbackBridge::submitAttributeRelevanceAdvisory(
             [event = std::move(event)](
                 rti1516_2025::FederateAmbassador& recipient) mutable {
               deliverAttributeRelevanceAdvisory(event, recipient);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitAttributeTransportationTypeChange(
+    ProcessFederationAttributeTransportationTypeChangeEvent event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, event = std::move(event)]() mutable {
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              deliverAttributeTransportationTypeChange(event, recipient);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitAttributeTransportationTypeQuery(
+    ProcessFederationAttributeTransportationTypeQueryEvent event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, event = std::move(event)]() mutable {
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              deliverAttributeTransportationTypeQuery(event, recipient);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitTimeRegulationEnabled(
+    ProcessFederationLogicalTime event) {
+  auto const session = callbackSession_;
+  auto const completion = timeRegulationEnabledCompletion_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, completion, event = std::move(event)]() mutable {
+        session->invoke(
+            [completion, event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              auto enabledTime = decodeRoleEnableTime(event);
+              recipient.timeRegulationEnabled(*enabledTime);
+              if (completion) {
+                completion();
+              }
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitTimeConstrainedEnabled(
+    ProcessFederationLogicalTime event) {
+  auto const session = callbackSession_;
+  auto const completion = timeConstrainedEnabledCompletion_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, completion, event = std::move(event)]() mutable {
+        session->invoke(
+            [completion, event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              auto enabledTime = decodeRoleEnableTime(event);
+              recipient.timeConstrainedEnabled(*enabledTime);
+              if (completion) {
+                completion();
+              }
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::setTimeRoleEnableCompletionHandlers(
+    CallbackCompletionHandler regulation,
+    CallbackCompletionHandler constrained) {
+  timeRegulationEnabledCompletion_ = std::move(regulation);
+  timeConstrainedEnabledCompletion_ = std::move(constrained);
+}
+
+void ProcessFederationCallbackBridge::setTsoDeliveryCompletionHandler(
+    TsoDeliveryCompletionHandler handler) {
+  tsoDeliveryCompletion_ = std::move(handler);
+}
+
+void ProcessFederationCallbackBridge::submitTimeAdvanceGrant(
+    ProcessFederationLogicalTime event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, event = std::move(event)]() mutable {
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              auto grantedTime = decodeRoleEnableTime(event);
+              recipient.timeAdvanceGrant(*grantedTime);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitFlushQueueGrant(
+    ProcessFederationLogicalTime grantedTime,
+    ProcessFederationLogicalTime optimisticTime) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session,
+       grantedTime = std::move(grantedTime),
+       optimisticTime = std::move(optimisticTime)]() mutable {
+        session->invoke(
+            [grantedTime = std::move(grantedTime),
+             optimisticTime = std::move(optimisticTime)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              auto actual = decodeRoleEnableTime(grantedTime);
+              auto optimistic = decodeRoleEnableTime(optimisticTime);
+              recipient.flushQueueGrant(*actual, *optimistic);
             });
       });
 }

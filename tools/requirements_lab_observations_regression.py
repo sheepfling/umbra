@@ -35,13 +35,13 @@ def _with_appended_observation(
     body: str,
     identifier: str | None = None,
 ) -> str:
-    marker = "\n## Recording rules"
-    if marker not in text:
-        raise AssertionError("observation log has no recording-rules boundary")
     if identifier is None:
         identifier = requirements_lab._next_post_cutoff_identifier(text)
     section = f"\n### {identifier} — Synthetic recurrence guard\n\n{body.strip()}\n"
-    return text.replace(marker, section + marker, 1)
+    # The numbered ledger is append-only and may contain dated/local notes
+    # before or after the recording-rules prose.  Insert synthetic entries at
+    # EOF so the guard exercises the same ordering contract as a real entry.
+    return text.rstrip() + section
 
 
 def _check_text(text: str) -> tuple[str, ...]:

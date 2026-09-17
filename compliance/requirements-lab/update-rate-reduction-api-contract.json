@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "document_id": "hla-1516.1-2025",
   "status": "portable-tck-standard-contract",
   "notes": "This contract defines the portable C++ TCK boundary for timestamped attribute update-rate reduction. The case uses only official RTIambassador publication, active named/default subscription, update-rate query, timestamped update, time-advance, and retraction services plus the corresponding FederateAmbassador callbacks. FOM contents, logical-time implementation, endpoint, provider library, callback model, and declaration names are adapter inputs.",

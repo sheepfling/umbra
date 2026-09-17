@@ -442,6 +442,18 @@ struct FederationStateImageObject final {
   std::optional<std::uint64_t> pendingTimestampedDeletionMessageId;
 };
 
+// Route-free durable association for an update region requested by a
+// federate that does not currently own the object attribute.  The association
+// is promoted only when that federate acquires ownership; keeping it outside
+// the active attribute projection preserves the 2025 deferred-activation
+// semantics across a save/restore boundary.
+struct FederationStateImageDeferredUpdateRegionAssociation final {
+  std::uint64_t objectInstanceHandle = 0;
+  std::uint64_t federateId = 0;
+  std::uint64_t attributeHandle = 0;
+  std::vector<std::uint64_t> regionHandles;
+};
+
 struct FederationStateImageInteractionSubscription final {
   std::uint64_t interactionClassHandle = 0;
   bool active = false;
@@ -688,6 +700,9 @@ struct FederationStateImageSynchronizationPoint final {
   std::vector<std::uint64_t> synchronizationSet;
   std::vector<std::uint64_t> announcedFederates;
   std::vector<std::pair<std::uint64_t, bool>> achievedFederates;
+  // A point registered without the optional synchronization set expands to
+  // eligible late joiners; explicit-set registrations remain scoped.
+  bool lateJoinExpansionAllowed = true;
 };
 
 struct FederationStateImageObjectClassAttributeSubscription final {
@@ -754,6 +769,19 @@ struct FederationStateImage final {
   std::uint64_t normalizationSeed = 0;
   std::uint32_t federationSwitches = 0;
 
+  // Federation-scoped save conditionals are application-visible MOM state,
+  // not merely transient save-control bookkeeping. Keep the last completed
+  // save and the currently pending save together with their official logical
+  // time encodings so a filesystem-backed restore in a fresh registry does
+  // not silently reset HLAlastSave*/HLAnextSave* values. The presence marker
+  // keeps older v1 images readable; newly written images always emit this
+  // section.
+  std::wstring lastSaveName;
+  std::optional<std::string> lastSaveTimeEncoding;
+  std::wstring nextSaveName;
+  std::optional<std::string> nextSaveTimeEncoding;
+  bool saveHistoryPresent = false;
+
   // Counts are intentionally named rather than represented by one opaque
   // checksum.  They provide a compatibility fence for the next state-image
   // version and make incomplete v1 coverage visible in persisted artifacts.
@@ -785,6 +813,11 @@ struct FederationStateImage final {
   std::vector<std::pair<std::uint64_t, std::wstring>> federateNamesById;
   std::vector<FederationStateImageTimeState> timeStates;
   std::vector<FederationStateImageObject> objects;
+  std::vector<FederationStateImageDeferredUpdateRegionAssociation>
+      deferredUpdateRegionAssociations;
+  // Decoder-only compatibility marker: older v1 images have no deferred
+  // update-region association section.
+  bool deferredUpdateRegionAssociationsPresent = false;
   std::vector<FederationStateImagePendingAttributeOwnershipQuery>
       pendingAttributeOwnershipQueries;
   // Decoder-only compatibility marker: older v1 images have no typed query

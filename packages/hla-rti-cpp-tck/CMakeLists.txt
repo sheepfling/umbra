@@ -26,7 +26,7 @@ if(NOT HLA_RTI_TCK_API_INCLUDE_DIR)
     "HLA_RTI_TCK_API_INCLUDE_DIR must point at the official RTI headers")
 endif()
 
-add_executable(hla_rti_cpp_tck src/main.cpp)
+add_executable(hla_rti_cpp_tck src/portable_tck.cpp)
 target_compile_features(hla_rti_cpp_tck PRIVATE cxx_std_17)
 if(MSVC)
   target_compile_options(hla_rti_cpp_tck PRIVATE /bigobj)

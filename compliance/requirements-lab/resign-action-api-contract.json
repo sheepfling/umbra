@@ -37,13 +37,13 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded assumption search continues after a later eligible publication",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded assumption search continues after a later join and discovery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records the final Resign Federation Execution invocation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped attribute update survives source resignation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient",
+        "cpp/tests/timestamped_attribute_source_resignation_catch2.cpp::Embedded queued timestamped attribute update survives source resignation",
+        "cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
+        "cpp/tests/timestamped_directed_interaction_multi_recipient_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
+        "cpp/tests/timestamped_object_deletion_source_resignation_fanout_catch2.cpp::Embedded queued timestamped object deletion survives source resignation for each recipient",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives source resignation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
-        "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp:153"
+        "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
+        "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp::Embedded live regional timestamped attribute update survives source mutation and resignation after restore"
       ]
     }
   ]

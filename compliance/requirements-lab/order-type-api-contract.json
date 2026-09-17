@@ -21,7 +21,7 @@
       "source_symbol": "UmbraRtiAmbassador::getOrderType",
       "tests": [
         "cpp/tests/order_type_lookup_catch2.cpp::Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair",
+        "cpp/tests/order_type_lookup_catch2.cpp::Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers order and transportation lookup return arguments through MOM interaction"
       ]
     },
@@ -41,7 +41,7 @@
       "source_symbol": "UmbraRtiAmbassador::getOrderName",
       "tests": [
         "cpp/tests/order_type_lookup_catch2.cpp::Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair",
+        "cpp/tests/order_type_lookup_catch2.cpp::Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers order and transportation lookup return arguments through MOM interaction"
       ]
     }

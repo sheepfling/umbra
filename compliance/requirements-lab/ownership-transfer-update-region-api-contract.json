@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins the official C++ surfaces used by the bounded ownership-transfer/update-region scenario. It verifies only Requirements-Lab signatures, declared exception sets, adapter symbols, and a real Catch2 selector. The implementation-specific rule under test is that an explicit update-region association is cleared when ownership moves from the former owner and must be recreated by the new owner before regional reflection resumes. The contract does not claim complete ownership arbitration, all transfer forms, regional callback advisories, transport, packaging, protected evidence, or conformance.",
+  "notes": "This contract pins the official C++ surfaces used by the bounded ownership-transfer/update-region scenarios. It verifies only Requirements-Lab signatures, declared exception sets, adapter symbols, and real Catch2 selectors. The scenarios cover the ownership boundary where a former owner's active association is cleared and a non-owner's previously accepted association remains deferred until that federate acquires the attribute. The contract does not claim complete ownership arbitration, all transfer forms, regional callback advisories, transport, packaging, protected evidence, or conformance.",
   "api_surfaces": [
     {
       "id": "umbra-ownership-transfer-acquisition-if-available",
@@ -27,7 +27,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipAcquisitionIfAvailable",
       "tests": [
-        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
       ]
     },
     {
@@ -49,7 +51,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipDivestitureIfWanted",
       "tests": [
-        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
       ]
     },
     {
@@ -64,7 +68,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "requester.attributeOwnershipAcquisitionNotification",
       "tests": [
-        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
       ]
     },
     {
@@ -90,7 +96,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerObjectInstanceWithRegions",
       "tests": [
-        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
       ]
     },
     {
@@ -114,7 +122,32 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::associateRegionsForUpdates",
       "tests": [
-        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
+      ]
+    },
+    {
+      "id": "umbra-ownership-transfer-unassociate-regions-for-updates",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unassociateregionsforupdates.8380dd561821",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unassociateRegionsForUpdates( ObjectInstanceHandle const & objectInstance, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
+      "exception_types": [
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source_symbol": "UmbraRtiAmbassador::unassociateRegionsForUpdates",
+      "tests": [
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
       ]
     },
     {
@@ -138,7 +171,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributesWithRegions",
       "tests": [
-        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
       ]
     },
     {
@@ -160,7 +195,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
-        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
       ]
     },
     {
@@ -175,7 +212,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
-        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer activates a non-owner's deferred 2025 update-region association",
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
       ]
     }
   ]

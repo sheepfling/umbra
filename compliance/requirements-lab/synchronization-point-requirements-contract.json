@@ -12,9 +12,9 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerSynchronizationPoint",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/service_report_file_confirm_synchronization_point_registration_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores synchronization points in a fresh registry"
       ]
     },
@@ -25,9 +25,9 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerSynchronizationPoint",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/service_report_file_confirm_synchronization_point_registration_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores synchronization points in a fresh registry"
       ]
     },
@@ -38,8 +38,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerSynchronizationPoint",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores synchronization points in a fresh registry"
       ]
     },
@@ -50,9 +50,9 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitSynchronizationPointRegistration",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Confirm Synchronization Point Registration result forms"
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/service_report_file_confirm_synchronization_point_registration_catch2.cpp::Embedded service reporting records Confirm Synchronization Point Registration result forms"
       ]
     },
     {
@@ -62,10 +62,10 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitSynchronizationPointAnnouncements",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Announce Synchronization Point at recipient files"
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/service_report_file_confirm_synchronization_point_registration_catch2.cpp::Embedded service reporting preserves Register Federation Synchronization Point arguments",
+        "cpp/tests/service_report_file_announce_synchronization_point_catch2.cpp::Embedded service reporting records Announce Synchronization Point at recipient files"
       ]
     },
     {
@@ -75,8 +75,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::announcePendingSynchronizationPoints",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Synchronized after a synchronization-set resignation"
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp::Embedded service reporting records Federation Synchronized after a synchronization-set resignation"
       ]
     },
     {
@@ -86,11 +86,11 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::synchronizationPointAchieved",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Synchronization Point Achieved arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Synchronized at recipient files",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Synchronized after a synchronization-set resignation"
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/service_report_file_synchronization_point_achieved_catch2.cpp::Embedded service reporting preserves Synchronization Point Achieved arguments",
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/service_report_file_federation_synchronized_catch2.cpp::Embedded service reporting records Federation Synchronized at recipient files",
+        "cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp::Embedded service reporting records Federation Synchronized after a synchronization-set resignation"
       ]
     },
     {
@@ -100,10 +100,10 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::achieveSynchronizationPoint",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Synchronization Point Achieved arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Synchronized after a synchronization-set resignation"
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
+        "cpp/tests/service_report_file_synchronization_point_achieved_catch2.cpp::Embedded service reporting preserves Synchronization Point Achieved arguments",
+        "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
+        "cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp::Embedded service reporting records Federation Synchronized after a synchronization-set resignation"
       ]
     }
   ]
