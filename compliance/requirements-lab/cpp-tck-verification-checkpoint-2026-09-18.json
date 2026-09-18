@@ -2168,13 +2168,13 @@
         "cpp-tck.delay-subscription-evaluation-timestamped-attribute-update-contract"
       ],
       "cases": 1302,
-      "passed": 1286,
-      "skipped": 16,
+      "passed": 1302,
+      "skipped": 0,
       "failed": 0,
-      "verification": "Fresh installed-package direct runner over all 651 catalog IDs in both evoked and immediate callback models; CTest invoked all 1,302 callback-model cases; 16 connection-loss/automatic-resign cases were expected fixture-gated skips and there were zero failures.",
+      "verification": "Fresh installed-package direct runner over all 651 catalog IDs in both evoked and immediate callback models with the adapter-managed current-process connection-loss fixture; all 1,302 callback-model cases passed with zero skips and zero failures, and result IDs matched the catalog exactly.",
       "artifacts": [
-        ".build/cpp-tck-full-promoted-2026-09-18/all-promoted-direct-fixed.json",
-        ".build/cpp-tck-full-promoted-2026-09-18/all-promoted-direct-fixed.xml"
+        ".build/cpp-tck-full-promoted-2026-09-18/all-promoted-direct-with-loss-fixture.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/all-promoted-direct-with-loss-fixture.xml"
       ]
     }
   ],
