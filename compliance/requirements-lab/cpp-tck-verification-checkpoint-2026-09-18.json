@@ -619,6 +619,27 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-directed-edge-lifecycle"
       ]
+    },
+    {
+      "name": "lookup-order-and-handle-wire",
+      "scenario_ids": [
+        "cpp-tck.unnamed-join-overload",
+        "cpp-tck.unnamed-join-overload-contract",
+        "cpp-tck.standard-order-and-transportation-lookups",
+        "cpp-tck.standard-order-and-transportation-lookups-contract",
+        "java-tck.transport-order",
+        "cpp-tck.transport-order-contract",
+        "cpp-tck.update-rate-queries",
+        "cpp-tck.update-rate-queries-contract",
+        "cpp-tck.handle-wire-formats",
+        "cpp-tck.handle-wire-formats-contract"
+      ],
+      "cases": 20,
+      "passed": 20,
+      "verification": "CTest and direct runner; all five pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-lookups-order"
+      ]
     }
   ],
   "candidate_failures": [
