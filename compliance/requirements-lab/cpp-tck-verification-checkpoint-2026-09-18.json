@@ -570,6 +570,21 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-api-surface"
       ]
+    },
+    {
+      "name": "standard-data-elements-and-encoders",
+      "scenario_ids": [
+        "java-tck.encoder-round-trip",
+        "cpp-tck.data-element-contract",
+        "cpp-tck.basic-data-elements-contract",
+        "cpp-tck.composite-data-elements-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "CTest and direct runner; all three pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-data-elements"
+      ]
     }
   ],
   "candidate_failures": [
