@@ -138,6 +138,69 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-registration-declarations"
       ]
+    },
+    {
+      "name": "ordinary-ownership-core",
+      "scenario_ids": [
+        "java-tck.ownership",
+        "cpp-tck.ownership-management-contract",
+        "cpp-tck.partial-attribute-ownership-transfer",
+        "cpp-tck.partial-attribute-ownership-transfer-contract",
+        "cpp-tck.ownership-acquisition-publication-fence",
+        "cpp-tck.ownership-acquisition-publication-fence-contract",
+        "cpp-tck.ownership-query-partition-cleanup",
+        "cpp-tck.ownership-query-partition-cleanup-contract"
+      ],
+      "cases": 16,
+      "passed": 16,
+      "verification": "CTest and direct runner; the four pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-ownership-core"
+      ]
+    },
+    {
+      "name": "negotiated-ownership-and-divestiture-cancellation",
+      "scenario_ids": [
+        "cpp-tck.divestiture-if-wanted-mixed-acquirers",
+        "cpp-tck.divestiture-if-wanted-mixed-acquirers-contract",
+        "cpp-tck.ownership-acquisition-cancellation-transfer-race",
+        "cpp-tck.ownership-acquisition-cancellation-transfer-race-contract",
+        "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation",
+        "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation-contract",
+        "cpp-tck.negotiated-divestiture-cancellation",
+        "cpp-tck.negotiated-divestiture-cancellation-contract",
+        "cpp-tck.negotiated-divestiture-pre-delivery-cancellation",
+        "cpp-tck.negotiated-divestiture-pre-delivery-cancellation-contract",
+        "cpp-tck.negotiated-willing-to-acquire-continuation",
+        "cpp-tck.negotiated-willing-to-acquire-continuation-contract"
+      ],
+      "cases": 24,
+      "passed": 24,
+      "verification": "CTest and direct runner; all six pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-ownership-negotiated"
+      ]
+    },
+    {
+      "name": "resignation-time-ownership-cleanup",
+      "scenario_ids": [
+        "cpp-tck.resign-unconditional-divestiture",
+        "cpp-tck.resign-unconditional-divestiture-contract",
+        "cpp-tck.resign-pending-acquisition-rejection",
+        "cpp-tck.resign-pending-acquisition-rejection-contract",
+        "cpp-tck.resign-cancel-pending-acquisition",
+        "cpp-tck.resign-cancel-pending-acquisition-contract",
+        "cpp-tck.resign-cancel-if-available-pending",
+        "cpp-tck.resign-cancel-if-available-pending-contract",
+        "cpp-tck.resign-cancel-negotiated-pending",
+        "cpp-tck.resign-cancel-negotiated-pending-contract"
+      ],
+      "cases": 20,
+      "passed": 20,
+      "verification": "CTest and direct runner; all five pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-ownership-resignation"
+      ]
     }
   ],
   "candidate_failures": [
