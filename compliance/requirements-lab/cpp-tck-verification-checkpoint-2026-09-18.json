@@ -753,6 +753,33 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-receive-order-cancellation"
       ]
+    },
+    {
+      "name": "timestamped-source-resignation-and-ordering",
+      "scenario_ids": [
+        "cpp-tck.timestamped-interaction-source-resignation",
+        "cpp-tck.timestamped-interaction-source-resignation-contract",
+        "cpp-tck.timestamped-interaction-source-resignation-fanout",
+        "cpp-tck.timestamped-interaction-source-resignation-fanout-contract",
+        "cpp-tck.timestamped-interaction-tso-designator-terminalization",
+        "cpp-tck.timestamped-interaction-tso-designator-terminalization-contract",
+        "cpp-tck.timestamped-interaction-cross-producer-order",
+        "cpp-tck.timestamped-interaction-cross-producer-order-contract",
+        "cpp-tck.timestamped-attribute-update-ownership-transfer",
+        "cpp-tck.timestamped-attribute-update-ownership-transfer-contract",
+        "cpp-tck.timestamped-attribute-source-resignation",
+        "cpp-tck.timestamped-attribute-source-resignation-contract",
+        "cpp-tck.timestamped-attribute-order-cohort",
+        "cpp-tck.timestamped-attribute-order-cohort-contract",
+        "cpp-tck.timestamped-attribute-source-resignation-fanout",
+        "cpp-tck.timestamped-attribute-source-resignation-fanout-contract"
+      ],
+      "cases": 32,
+      "passed": 32,
+      "verification": "CTest and direct runner; all eight pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-timestamped-source-order"
+      ]
     }
   ],
   "candidate_failures": [
