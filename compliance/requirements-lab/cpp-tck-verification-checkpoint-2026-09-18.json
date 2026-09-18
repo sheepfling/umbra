@@ -602,6 +602,23 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-connection-boundaries"
       ]
+    },
+    {
+      "name": "directed-interaction-edge-lifecycle",
+      "scenario_ids": [
+        "cpp-tck.directed-interaction-publication-send-fence",
+        "cpp-tck.directed-interaction-publication-send-fence-contract",
+        "cpp-tck.directed-interaction-subscription-kind",
+        "cpp-tck.directed-interaction-subscription-kind-contract",
+        "cpp-tck.directed-interaction-target-lifecycle",
+        "cpp-tck.directed-interaction-target-lifecycle-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner; all three pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-directed-edge-lifecycle"
+      ]
     }
   ],
   "candidate_failures": [
