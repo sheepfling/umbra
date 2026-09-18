@@ -640,6 +640,22 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-lookups-order"
       ]
+    },
+    {
+      "name": "ordinary-edges-synchronization-and-relevance",
+      "scenario_ids": [
+        "java-tck.ordinary-edges",
+        "cpp-tck.ordinary-edges-contract",
+        "java-tck.synchronization",
+        "java-tck.relevance-advisories",
+        "cpp-tck.relevance-advisories-contract"
+      ],
+      "cases": 10,
+      "passed": 10,
+      "verification": "CTest and direct runner; both pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-ordinary-sync-relevance"
+      ]
     }
   ],
   "candidate_failures": [
