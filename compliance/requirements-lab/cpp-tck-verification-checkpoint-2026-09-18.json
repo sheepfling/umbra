@@ -723,6 +723,19 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-declaration-relevance"
       ]
+    },
+    {
+      "name": "regional-declaration-relevance",
+      "scenario_ids": [
+        "cpp-tck.regional-declaration-relevance-advisories",
+        "cpp-tck.regional-declaration-relevance-advisories-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "CTest and direct runner; the pure contract independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-regional-declaration-relevance"
+      ]
     }
   ],
   "candidate_failures": [
