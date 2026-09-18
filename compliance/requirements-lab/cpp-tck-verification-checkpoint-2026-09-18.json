@@ -328,6 +328,25 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-timestamped-attribute-edges"
       ]
+    },
+    {
+      "name": "timestamped-interaction-edge-cases",
+      "scenario_ids": [
+        "cpp-tck.timestamped-interaction-no-fanout",
+        "cpp-tck.timestamped-interaction-no-fanout-contract",
+        "cpp-tck.timestamped-interaction-retraction-fanout",
+        "cpp-tck.timestamped-interaction-retraction-fanout-contract",
+        "cpp-tck.timestamped-interaction-reenable",
+        "cpp-tck.timestamped-interaction-reenable-contract",
+        "cpp-tck.timestamped-interaction-regulation-reenable",
+        "cpp-tck.timestamped-interaction-regulation-reenable-contract"
+      ],
+      "cases": 16,
+      "passed": 16,
+      "verification": "CTest and direct runner; all four pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-timestamped-interaction-edges"
+      ]
     }
   ],
   "candidate_failures": [
