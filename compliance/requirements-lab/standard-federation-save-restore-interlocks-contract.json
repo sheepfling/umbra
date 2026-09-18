@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for standard SaveInProgress and RestoreInProgress service interlocks. The test uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback model, and logical-time implementation. It checks representative declaration, object, interaction, ownership, time, data-distribution, synchronization, and advisory services during an untimed federation save and restore. It does not assert a provider-specific save format, registry, transport, header, or persistence implementation.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-save-restore-interlocks-declarations",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador declaration, publication, subscription, object, interaction, and directed-interaction services rejected while federation save or restore is active",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador declaration and object-management service declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationSaveRestoreInterlocksContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-federation-save-restore-interlocks-ownership-time",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador ownership, time-management, logical-time query, lookahead, and advisory-switch services rejected while federation save or restore is active",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador ownership, time-management, and support-service declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationSaveRestoreInterlocksContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-federation-save-restore-interlocks-ddm-synchronization",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional object and interaction services plus synchronization-point services rejected while federation save or restore is active",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador data-distribution and federation-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationSaveRestoreInterlocksContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-federation-save-restore-interlocks-lifecycle",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador federation save and restore control services with FederateAmbassador save and restore lifecycle callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador save/restore declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationSaveRestoreInterlocksContract"
+      ]
+    }
+  ]
+}

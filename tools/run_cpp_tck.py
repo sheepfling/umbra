@@ -872,6 +872,42 @@ PUBLIC_HANDLE_DECODING_SCENARIOS = (
     "cpp-tck.public-handle-decoding",
     "cpp-tck.public-handle-decoding-contract",
 )
+CUSTOM_TRANSPORTATION_TIMESTAMPED_REGIONAL_INTERACTION_SCENARIOS = (
+    "cpp-tck.custom-transportation-timestamped-regional-interaction-delivery",
+    "cpp-tck.custom-transportation-timestamped-regional-interaction-delivery-contract",
+)
+CUSTOM_TRANSPORTATION_ATTRIBUTE_SCENARIOS = (
+    "cpp-tck.custom-transportation-attribute-delivery",
+    "cpp-tck.custom-transportation-attribute-delivery-contract",
+)
+CUSTOM_TRANSPORTATION_INTERACTION_SCENARIOS = (
+    "cpp-tck.custom-transportation-interaction-delivery",
+    "cpp-tck.custom-transportation-interaction-delivery-contract",
+)
+CUSTOM_TRANSPORTATION_TIMESTAMPED_DELIVERY_SCENARIOS = (
+    "cpp-tck.custom-transportation-timestamped-delivery",
+    "cpp-tck.custom-transportation-timestamped-delivery-contract",
+)
+CUSTOM_TRANSPORTATION_TIMESTAMPED_ATTRIBUTE_SCENARIOS = (
+    "cpp-tck.custom-transportation-timestamped-attribute-delivery",
+    "cpp-tck.custom-transportation-timestamped-attribute-delivery-contract",
+)
+CUSTOM_TRANSPORTATION_TIMESTAMPED_ATTRIBUTE_ALTERNATE_ADVANCES_SCENARIOS = (
+    "cpp-tck.custom-transportation-timestamped-attribute-alternate-advances",
+    "cpp-tck.custom-transportation-timestamped-attribute-alternate-advances-contract",
+)
+CUSTOM_TRANSPORTATION_TIMESTAMPED_INTERACTION_ALTERNATE_ADVANCES_SCENARIOS = (
+    "cpp-tck.custom-transportation-timestamped-interaction-alternate-advances",
+    "cpp-tck.custom-transportation-timestamped-interaction-alternate-advances-contract",
+)
+CUSTOM_TRANSPORTATION_TIMESTAMPED_DIRECTED_DELIVERY_SCENARIOS = (
+    "cpp-tck.custom-transportation-timestamped-directed-delivery",
+    "cpp-tck.custom-transportation-timestamped-directed-delivery-contract",
+)
+CUSTOM_TRANSPORTATION_TIMESTAMPED_DIRECTED_INTERACTION_ALTERNATE_ADVANCES_SCENARIOS = (
+    "cpp-tck.custom-transportation-timestamped-directed-interaction-alternate-advances",
+    "cpp-tck.custom-transportation-timestamped-directed-interaction-alternate-advances-contract",
+)
 CONNECTION_LOSS_ADAPTER = (
     ROOT / "packages" / "hla-rti-cpp-tck" / "adapters" / "current-process" /
     "run_connection_loss.py"
@@ -884,6 +920,52 @@ def is_connection_loss_scenario(scenario_id: str) -> bool:
 
 def is_public_handle_decoding_scenario(scenario_id: str) -> bool:
     return scenario_id in PUBLIC_HANDLE_DECODING_SCENARIOS
+
+
+def is_custom_transportation_timestamped_regional_interaction_scenario(
+    scenario_id: str,
+) -> bool:
+    return scenario_id in CUSTOM_TRANSPORTATION_TIMESTAMPED_REGIONAL_INTERACTION_SCENARIOS
+
+
+def is_custom_transportation_attribute_scenario(scenario_id: str) -> bool:
+    return scenario_id in CUSTOM_TRANSPORTATION_ATTRIBUTE_SCENARIOS
+
+
+def is_custom_transportation_interaction_scenario(scenario_id: str) -> bool:
+    return scenario_id in CUSTOM_TRANSPORTATION_INTERACTION_SCENARIOS
+
+
+def is_custom_transportation_timestamped_delivery_scenario(scenario_id: str) -> bool:
+    return scenario_id in CUSTOM_TRANSPORTATION_TIMESTAMPED_DELIVERY_SCENARIOS
+
+
+def is_custom_transportation_timestamped_attribute_scenario(scenario_id: str) -> bool:
+    return scenario_id in CUSTOM_TRANSPORTATION_TIMESTAMPED_ATTRIBUTE_SCENARIOS
+
+
+def is_custom_transportation_timestamped_attribute_alternate_advances_scenario(
+    scenario_id: str,
+) -> bool:
+    return scenario_id in CUSTOM_TRANSPORTATION_TIMESTAMPED_ATTRIBUTE_ALTERNATE_ADVANCES_SCENARIOS
+
+
+def is_custom_transportation_timestamped_interaction_alternate_advances_scenario(
+    scenario_id: str,
+) -> bool:
+    return scenario_id in CUSTOM_TRANSPORTATION_TIMESTAMPED_INTERACTION_ALTERNATE_ADVANCES_SCENARIOS
+
+
+def is_custom_transportation_timestamped_directed_delivery_scenario(
+    scenario_id: str,
+) -> bool:
+    return scenario_id in CUSTOM_TRANSPORTATION_TIMESTAMPED_DIRECTED_DELIVERY_SCENARIOS
+
+
+def is_custom_transportation_timestamped_directed_interaction_alternate_advances_scenario(
+    scenario_id: str,
+) -> bool:
+    return scenario_id in CUSTOM_TRANSPORTATION_TIMESTAMPED_DIRECTED_INTERACTION_ALTERNATE_ADVANCES_SCENARIOS
 
 
 def run_executable_direct(
@@ -1121,10 +1203,75 @@ def run_direct(
         for scenario in selected
         if is_public_handle_decoding_scenario(scenario["id"])
     ]
+    custom_transportation_timestamped_regional_interaction_selected = [
+        scenario
+        for scenario in selected
+        if is_custom_transportation_timestamped_regional_interaction_scenario(
+            scenario["id"]
+        )
+    ]
+    custom_transportation_attribute_selected = [
+        scenario
+        for scenario in selected
+        if is_custom_transportation_attribute_scenario(scenario["id"])
+    ]
+    custom_transportation_interaction_selected = [
+        scenario
+        for scenario in selected
+        if is_custom_transportation_interaction_scenario(scenario["id"])
+    ]
+    custom_transportation_timestamped_delivery_selected = [
+        scenario
+        for scenario in selected
+        if is_custom_transportation_timestamped_delivery_scenario(scenario["id"])
+    ]
+    custom_transportation_timestamped_attribute_selected = [
+        scenario
+        for scenario in selected
+        if is_custom_transportation_timestamped_attribute_scenario(scenario["id"])
+    ]
+    custom_transportation_timestamped_attribute_alternate_advances_selected = [
+        scenario
+        for scenario in selected
+        if is_custom_transportation_timestamped_attribute_alternate_advances_scenario(
+            scenario["id"]
+        )
+    ]
+    custom_transportation_timestamped_interaction_alternate_advances_selected = [
+        scenario
+        for scenario in selected
+        if is_custom_transportation_timestamped_interaction_alternate_advances_scenario(
+            scenario["id"]
+        )
+    ]
+    custom_transportation_timestamped_directed_delivery_selected = [
+        scenario
+        for scenario in selected
+        if is_custom_transportation_timestamped_directed_delivery_scenario(scenario["id"])
+    ]
+    custom_transportation_timestamped_directed_interaction_alternate_advances_selected = [
+        scenario
+        for scenario in selected
+        if is_custom_transportation_timestamped_directed_interaction_alternate_advances_scenario(
+            scenario["id"]
+        )
+    ]
     managed_connection_loss_selected = (
         connection_loss_selected if arguments.connection_loss_fixture else []
     )
-    special_selected = public_handle_decoding_selected + managed_connection_loss_selected
+    special_selected = (
+        public_handle_decoding_selected
+        + custom_transportation_attribute_selected
+        + custom_transportation_interaction_selected
+        + custom_transportation_timestamped_delivery_selected
+        + custom_transportation_timestamped_attribute_selected
+        + custom_transportation_timestamped_attribute_alternate_advances_selected
+        + custom_transportation_timestamped_interaction_alternate_advances_selected
+        + custom_transportation_timestamped_directed_delivery_selected
+        + custom_transportation_timestamped_directed_interaction_alternate_advances_selected
+        + custom_transportation_timestamped_regional_interaction_selected
+        + managed_connection_loss_selected
+    )
     if special_selected:
         special_ids = {scenario["id"] for scenario in special_selected}
         direct_selected = [
@@ -1164,6 +1311,229 @@ def run_direct(
                     public_results_parts.append(public_results)
                 if junit is not None:
                     public_junit_parts.append(public_junit)
+            custom_transportation_attribute_results_parts: list[Path] = []
+            custom_transportation_attribute_junit_parts: list[Path] = []
+            for index, scenario in enumerate(custom_transportation_attribute_selected):
+                custom_results = temporary_root / (
+                    f"custom-transportation-attribute-{index}.json"
+                )
+                custom_junit = temporary_root / (
+                    f"custom-transportation-attribute-{index}.xml"
+                )
+                run_executable_direct(
+                    arguments,
+                    inputs,
+                    executable,
+                    [scenario],
+                    custom_results if results is not None else None,
+                    custom_junit if junit is not None else None,
+                )
+                if results is not None:
+                    custom_transportation_attribute_results_parts.append(custom_results)
+                if junit is not None:
+                    custom_transportation_attribute_junit_parts.append(custom_junit)
+            custom_transportation_interaction_results_parts: list[Path] = []
+            custom_transportation_interaction_junit_parts: list[Path] = []
+            for index, scenario in enumerate(custom_transportation_interaction_selected):
+                custom_results = temporary_root / (
+                    f"custom-transportation-interaction-{index}.json"
+                )
+                custom_junit = temporary_root / (
+                    f"custom-transportation-interaction-{index}.xml"
+                )
+                run_executable_direct(
+                    arguments,
+                    inputs,
+                    executable,
+                    [scenario],
+                    custom_results if results is not None else None,
+                    custom_junit if junit is not None else None,
+                )
+                if results is not None:
+                    custom_transportation_interaction_results_parts.append(custom_results)
+                if junit is not None:
+                    custom_transportation_interaction_junit_parts.append(custom_junit)
+            custom_transportation_timestamped_delivery_results_parts: list[Path] = []
+            custom_transportation_timestamped_delivery_junit_parts: list[Path] = []
+            for index, scenario in enumerate(custom_transportation_timestamped_delivery_selected):
+                custom_results = temporary_root / (
+                    f"custom-transportation-timestamped-delivery-{index}.json"
+                )
+                custom_junit = temporary_root / (
+                    f"custom-transportation-timestamped-delivery-{index}.xml"
+                )
+                run_executable_direct(
+                    arguments,
+                    inputs,
+                    executable,
+                    [scenario],
+                    custom_results if results is not None else None,
+                    custom_junit if junit is not None else None,
+                )
+                if results is not None:
+                    custom_transportation_timestamped_delivery_results_parts.append(custom_results)
+                if junit is not None:
+                    custom_transportation_timestamped_delivery_junit_parts.append(custom_junit)
+            custom_transportation_timestamped_attribute_results_parts: list[Path] = []
+            custom_transportation_timestamped_attribute_junit_parts: list[Path] = []
+            for index, scenario in enumerate(
+                custom_transportation_timestamped_attribute_selected
+            ):
+                custom_results = temporary_root / (
+                    f"custom-transportation-timestamped-attribute-{index}.json"
+                )
+                custom_junit = temporary_root / (
+                    f"custom-transportation-timestamped-attribute-{index}.xml"
+                )
+                run_executable_direct(
+                    arguments,
+                    inputs,
+                    executable,
+                    [scenario],
+                    custom_results if results is not None else None,
+                    custom_junit if junit is not None else None,
+                )
+                if results is not None:
+                    custom_transportation_timestamped_attribute_results_parts.append(
+                        custom_results
+                    )
+                if junit is not None:
+                    custom_transportation_timestamped_attribute_junit_parts.append(
+                        custom_junit
+                    )
+            custom_transportation_timestamped_attribute_alternate_advances_results_parts: list[Path] = []
+            custom_transportation_timestamped_attribute_alternate_advances_junit_parts: list[Path] = []
+            for index, scenario in enumerate(
+                custom_transportation_timestamped_attribute_alternate_advances_selected
+            ):
+                custom_results = temporary_root / (
+                    f"custom-transportation-timestamped-attribute-alternate-advances-{index}.json"
+                )
+                custom_junit = temporary_root / (
+                    f"custom-transportation-timestamped-attribute-alternate-advances-{index}.xml"
+                )
+                run_executable_direct(
+                    arguments,
+                    inputs,
+                    executable,
+                    [scenario],
+                    custom_results if results is not None else None,
+                    custom_junit if junit is not None else None,
+                )
+                if results is not None:
+                    custom_transportation_timestamped_attribute_alternate_advances_results_parts.append(
+                        custom_results
+                    )
+                if junit is not None:
+                    custom_transportation_timestamped_attribute_alternate_advances_junit_parts.append(
+                        custom_junit
+                    )
+            custom_transportation_timestamped_interaction_alternate_advances_results_parts: list[Path] = []
+            custom_transportation_timestamped_interaction_alternate_advances_junit_parts: list[Path] = []
+            for index, scenario in enumerate(
+                custom_transportation_timestamped_interaction_alternate_advances_selected
+            ):
+                custom_results = temporary_root / (
+                    f"custom-transportation-timestamped-interaction-alternate-advances-{index}.json"
+                )
+                custom_junit = temporary_root / (
+                    f"custom-transportation-timestamped-interaction-alternate-advances-{index}.xml"
+                )
+                run_executable_direct(
+                    arguments,
+                    inputs,
+                    executable,
+                    [scenario],
+                    custom_results if results is not None else None,
+                    custom_junit if junit is not None else None,
+                )
+                if results is not None:
+                    custom_transportation_timestamped_interaction_alternate_advances_results_parts.append(
+                        custom_results
+                    )
+                if junit is not None:
+                    custom_transportation_timestamped_interaction_alternate_advances_junit_parts.append(
+                        custom_junit
+                    )
+            custom_transportation_timestamped_directed_delivery_results_parts: list[Path] = []
+            custom_transportation_timestamped_directed_delivery_junit_parts: list[Path] = []
+            for index, scenario in enumerate(custom_transportation_timestamped_directed_delivery_selected):
+                custom_results = temporary_root / (
+                    f"custom-transportation-timestamped-directed-delivery-{index}.json"
+                )
+                custom_junit = temporary_root / (
+                    f"custom-transportation-timestamped-directed-delivery-{index}.xml"
+                )
+                run_executable_direct(
+                    arguments,
+                    inputs,
+                    executable,
+                    [scenario],
+                    custom_results if results is not None else None,
+                    custom_junit if junit is not None else None,
+                )
+                if results is not None:
+                    custom_transportation_timestamped_directed_delivery_results_parts.append(
+                        custom_results
+                    )
+                if junit is not None:
+                    custom_transportation_timestamped_directed_delivery_junit_parts.append(
+                        custom_junit
+                    )
+            custom_transportation_timestamped_directed_interaction_alternate_advances_results_parts: list[Path] = []
+            custom_transportation_timestamped_directed_interaction_alternate_advances_junit_parts: list[Path] = []
+            for index, scenario in enumerate(
+                custom_transportation_timestamped_directed_interaction_alternate_advances_selected
+            ):
+                custom_results = temporary_root / (
+                    f"custom-transportation-timestamped-directed-interaction-alternate-advances-{index}.json"
+                )
+                custom_junit = temporary_root / (
+                    f"custom-transportation-timestamped-directed-interaction-alternate-advances-{index}.xml"
+                )
+                run_executable_direct(
+                    arguments,
+                    inputs,
+                    executable,
+                    [scenario],
+                    custom_results if results is not None else None,
+                    custom_junit if junit is not None else None,
+                )
+                if results is not None:
+                    custom_transportation_timestamped_directed_interaction_alternate_advances_results_parts.append(
+                        custom_results
+                    )
+                if junit is not None:
+                    custom_transportation_timestamped_directed_interaction_alternate_advances_junit_parts.append(
+                        custom_junit
+                    )
+            custom_transportation_timestamped_regional_interaction_results_parts: list[Path] = []
+            custom_transportation_timestamped_regional_interaction_junit_parts: list[Path] = []
+            for index, scenario in enumerate(
+                custom_transportation_timestamped_regional_interaction_selected
+            ):
+                custom_results = temporary_root / (
+                    f"custom-transportation-timestamped-regional-interaction-{index}.json"
+                )
+                custom_junit = temporary_root / (
+                    f"custom-transportation-timestamped-regional-interaction-{index}.xml"
+                )
+                run_executable_direct(
+                    arguments,
+                    inputs,
+                    executable,
+                    [scenario],
+                    custom_results if results is not None else None,
+                    custom_junit if junit is not None else None,
+                )
+                if results is not None:
+                    custom_transportation_timestamped_regional_interaction_results_parts.append(
+                        custom_results
+                    )
+                if junit is not None:
+                    custom_transportation_timestamped_regional_interaction_junit_parts.append(
+                        custom_junit
+                    )
             loss_results_parts: list[Path] = []
             loss_junit_parts: list[Path] = []
             if direct_selected:
@@ -1191,12 +1561,44 @@ def run_direct(
             if results is not None:
                 json_parts = (
                     [base_results] if base_results is not None else []
-                ) + public_results_parts + loss_results_parts
+                ) + public_results_parts + custom_transportation_attribute_results_parts + (
+                    custom_transportation_interaction_results_parts
+                ) + (
+                    custom_transportation_timestamped_delivery_results_parts
+                ) + (
+                    custom_transportation_timestamped_attribute_results_parts
+                ) + (
+                    custom_transportation_timestamped_attribute_alternate_advances_results_parts
+                ) + (
+                    custom_transportation_timestamped_interaction_alternate_advances_results_parts
+                ) + (
+                    custom_transportation_timestamped_directed_delivery_results_parts
+                ) + (
+                    custom_transportation_timestamped_directed_interaction_alternate_advances_results_parts
+                ) + (
+                    custom_transportation_timestamped_regional_interaction_results_parts
+                ) + loss_results_parts
                 merge_json_evidence_parts(json_parts, results)
             if junit is not None:
                 junit_parts = (
                     [base_junit] if base_junit is not None else []
-                ) + public_junit_parts + loss_junit_parts
+                ) + public_junit_parts + custom_transportation_attribute_junit_parts + (
+                    custom_transportation_interaction_junit_parts
+                ) + (
+                    custom_transportation_timestamped_delivery_junit_parts
+                ) + (
+                    custom_transportation_timestamped_attribute_junit_parts
+                ) + (
+                    custom_transportation_timestamped_attribute_alternate_advances_junit_parts
+                ) + (
+                    custom_transportation_timestamped_interaction_alternate_advances_junit_parts
+                ) + (
+                    custom_transportation_timestamped_directed_delivery_junit_parts
+                ) + (
+                    custom_transportation_timestamped_directed_interaction_alternate_advances_junit_parts
+                ) + (
+                    custom_transportation_timestamped_regional_interaction_junit_parts
+                ) + loss_junit_parts
                 merge_junit_evidence_parts(junit_parts, junit)
     else:
         run_executable_direct(arguments, inputs, executable, selected, results, junit)

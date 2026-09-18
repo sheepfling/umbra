@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for ordinary directed interaction delivery through an adapter-declared custom FOM transportation type. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, rich FOM, endpoint, callback model, and object, attribute, interaction, parameter, and transportation names. The test verifies standard handle and name lookups, directed publication and subscription, target registration and discovery, parameter and tag delivery, producer identity, no publisher loopback, and custom transportation identity without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-custom-transportation-directed-interaction-delivery",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador FOM lookup, transportation lookup, directed declaration, object registration, directed send, and lifecycle services with FederateAmbassador discovery and directed-interaction callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador ordinary directed-interaction delivery declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioCustomTransportationDirectedInteractionDeliveryContract"
+      ]
+    }
+  ]
+}

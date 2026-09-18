@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for standard MOM transportation-type change requests. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, the standard MIM request interactions, HLAattributeHandleList, HLAunicodeString, and the standard library; the adapter supplies the provider package, application FOM, standard MIM, endpoint, callback model, and application object/interaction/parameter configuration. It verifies request confirmation callbacks, ordinary attribute and interaction delivery, per-federate transportation isolation, service reporting, and cleanup without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-mom-transportation-type-change-request",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador standard MOM transportation-type change requests and FederateAmbassador confirmation callbacks with ordinary object and interaction delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador MOM, transportation, object-management, interaction, and data-element declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioMomTransportationTypeChangeRequestContract"
+      ]
+    }
+  ]
+}

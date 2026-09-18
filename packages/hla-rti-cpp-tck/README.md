@@ -373,8 +373,12 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.auto-provide` | Adapter-supplied Auto Provide FOM, switch verification, provider-owned object discovery, and grouped `provideAttributeValueUpdate` solicitation |
 | `cpp-tck.auto-provide-contract` | Standard adapter-backed Auto Provide switch and grouped solicitation contract |
 | `cpp-tck.allow-relaxed-ddm` | Adapter-supplied `Allow Relaxed DDM` switch composition, touching-region admission for ordinary regional object updates and interactions, strict positive-gap suppression, and conveyed source-region metadata |
+| `cpp-tck.allow-relaxed-ddm-contract` | Pure standard contract for Allow Relaxed DDM switch composition, touching-region admission, and strict positive-gap suppression |
 | `cpp-tck.regional-multi-attribute-update` | Adapter-supplied multi-attribute DDM FOM, independent per-attribute source regions, X-only/Y-only filtering, restoration, and conveyed source-region metadata |
+| `cpp-tck.regional-multi-attribute-update-contract` | Standard adapter-backed independent regional multi-attribute filtering contract |
 | `cpp-tck.regional-three-dimensional-overlap` | Adapter-supplied three-dimensional DDM FOM, complete-overlap discovery/reflection, one-dimension-at-a-time suppression, restoration, and conveyed source-region metadata |
+| `cpp-tck.regional-three-dimensional-overlap-contract` | Standard adapter-backed complete three-dimensional regional-overlap contract |
+| `cpp-tck.ownership-transfer-regional-update-contract` | Pure standard contract for ownership transfer and regional update association state |
 | `cpp-tck.attribute-scope-advisories` | Attribute In/Out Of Scope callbacks, regional source and subscription transitions, switch suppression, and stale evoked-callback handling |
 | `cpp-tck.attribute-scope-advisories-contract` | Standard adapter-backed attribute-scope switch, transition, and stale-callback contract |
 | `cpp-tck.regional-declaration-relevance-advisories` | Active and passive regional object and interaction subscriptions, with standard start/stop-registration and turn-interactions-on/off advisories |
@@ -410,6 +414,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-regional-interaction-tar-nmr` | Timestamped regional interactions are delivered before the matching ordinary TAR and NMR grants, with source-region metadata and independent recipient query times |
 | `cpp-tck.timestamped-regional-interaction-tar-nmr-contract` | Standard adapter-backed timestamped regional interaction TAR/NMR contract |
 | `cpp-tck.regional-boundaries` | Zero-dimensional and partial regions, wrong-context and foreign-region failures, and region-in-use cleanup boundaries |
+| `cpp-tck.regional-boundaries-contract` | Pure standard contract for incompatible, incomplete, foreign, and in-use regional DDM inputs |
 | `java-tck.synchronization` | Standard synchronization-point registration, announcement, late-join participation, achievement, completion metadata, and invalid-member/duplicate-label boundaries shared with the Java TCK |
 | `cpp-tck.synchronization-points` | Pre-connect and pre-join synchronization-service boundaries, global and explicit-set registration, late-join announcement, invalid-member failure, duplicate-label failure, achievement, and federation synchronization completion |
 | `cpp-tck.synchronization-point-contract` | Standard adapter-backed federation synchronization-point contract for global and explicit-set registration, announcement, achievement, completion, callback delivery, and lifecycle boundaries |
@@ -487,10 +492,15 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.federation-save-restore-contract` | Standard adapter-backed untimed federation save/restore contract for admission, lifecycle, status, completion/failure, abort, restore callbacks, handle rebinding, and lifecycle boundaries |
 | `java-tck.save-restore` | Java-parity view of standard federation save/restore admission, status, completion/failure, abort, restore callbacks, and handle rebinding |
 | `cpp-tck.federation-save-restore-interlocks` | Representative declaration, object, interaction, ownership, time, DDM, synchronization, and advisory services rejected with `SaveInProgress` and `RestoreInProgress` |
+| `cpp-tck.federation-save-restore-interlocks-contract` | Standard adapter-backed contract for representative declaration, object, interaction, ownership, time, DDM, synchronization, and advisory service interlocks during federation save and restore |
 | `cpp-tck.timed-federation-save-restore` | Timestamped federation save/restore, queued timestamped interaction recovery, Flush Queue delivery, and retraction |
+| `cpp-tck.timed-federation-save-restore-contract` | Standard adapter-backed contract for timestamped federation save/restore, queued interaction recovery, Flush Queue delivery, and retraction |
 | `cpp-tck.timed-regional-interaction-save-restore` | Timestamped save/restore of a queued regional interaction with source-region metadata and retraction state |
+| `cpp-tck.timed-regional-interaction-save-restore-contract` | Standard adapter-backed contract for timestamped regional interaction save/restore, conveyed-region metadata, Flush Queue delivery, and retraction |
 | `cpp-tck.timed-default-region-interaction-save-restore` | Timestamped save/restore of a queued default-region interaction, including empty source-region metadata and retraction state |
+| `cpp-tck.timed-default-region-interaction-save-restore-contract` | Standard adapter-backed contract for timestamped default-region interaction save/restore and empty source-region metadata |
 | `cpp-tck.timed-default-region-attribute-save-restore` | Timestamped save/restore of a queued default-region attribute update, including empty source-region metadata, Flush Queue delivery, and retraction state |
+| `cpp-tck.timed-default-region-attribute-save-restore-contract` | Standard adapter-backed contract for timestamped default-region attribute save/restore, reflection metadata, Flush Queue delivery, and retraction |
 | `java-tck.transport-order` | Receive/timestamp order controls, default and per-instance order and transport controls, request/confirmation boundaries, invalid class/object/attribute/transport boundaries, transport queries, and delivered transport identity |
 | `cpp-tck.transport-order-contract` | Standard adapter-backed ordinary order and transportation contract for default and per-instance controls, queries, invalid-handle boundaries, and delivered transport identity |
 | `java-tck.relevance-advisories` | Pre-connect and pre-join support-switch accessor boundaries, advisory/support-switch state, active/passive declaration relevance, registration and interaction turn-on/turn-off callbacks, named update-rate callbacks, and active per-attribute update-rate queries |
@@ -503,8 +513,14 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.delay-subscription-evaluation-directed-interaction` | Standard Delay Subscription Evaluation switch composition, directed interaction retention across a late target subscription, callback-boundary selector rechecking, and suppression after unsubscribe under both callback models |
 | `cpp-tck.delay-subscription-evaluation-attribute-update` | Standard Delay Subscription Evaluation switch composition, known-object attribute-update retention across a late declaration, callback-boundary subscription rechecking, and suppression after unsubscribe under both callback models |
 | `cpp-tck.delay-subscription-evaluation-timestamped-interaction` | Standard Delay Subscription Evaluation switch composition, timestamped interaction retention until a time-constrained grant, timestamp/order/retraction metadata, and suppression after unsubscribe at the next grant |
+| `cpp-tck.delay-subscription-evaluation-interaction-contract` | Pure standard C++ contract twin for ordinary interaction subscription re-evaluation at the callback boundary |
 | `cpp-tck.delay-subscription-evaluation-timestamped-directed-interaction` | Standard Delay Subscription Evaluation switch composition, timestamped directed-interaction retention until a time-constrained grant, target/order metadata, and suppression after unsubscribe at the next grant |
+| `cpp-tck.delay-subscription-evaluation-directed-interaction-contract` | Pure standard C++ contract twin for directed interaction subscription re-evaluation at the callback boundary |
 | `cpp-tck.delay-subscription-evaluation-timestamped-attribute-update` | Standard Delay Subscription Evaluation switch composition, timestamped attribute-update retention until a time-constrained grant, timestamp/order/retraction metadata, and suppression after unsubscribe at the next grant |
+| `cpp-tck.delay-subscription-evaluation-attribute-update-contract` | Pure standard C++ contract twin for ordinary attribute subscription re-evaluation at the callback boundary |
+| `cpp-tck.delay-subscription-evaluation-timestamped-interaction-contract` | Pure standard C++ contract twin for timestamped interaction subscription re-evaluation at the time-constrained grant boundary |
+| `cpp-tck.delay-subscription-evaluation-timestamped-directed-interaction-contract` | Pure standard C++ contract twin for timestamped directed interaction subscription re-evaluation at the time-constrained grant boundary |
+| `cpp-tck.delay-subscription-evaluation-timestamped-attribute-update-contract` | Pure standard C++ contract twin for timestamped attribute subscription re-evaluation at the time-constrained grant boundary |
 | `cpp-tck.update-rate-queries` | Named-rate lookup, active/passive/default subscription effects, unsubscribe reset, per-federate isolation, and invalid rate/object/attribute boundaries |
 | `cpp-tck.update-rate-queries-contract` | Standard adapter-backed update-rate query contract |
 | `cpp-tck.federation-teardown-isolation` | Two similarly named live executions keep independent named update-rate admission history when one execution is resigned and destroyed |
@@ -565,6 +581,16 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.fom-empty-module-validation-contract` | Standard adapter-backed empty-module validation contract for valid and invalid FOM module boundaries |
 | `cpp-tck.custom-transportation-interaction-delivery` | Adapter-declared custom transportation lookup, ordinary interaction publication/subscription/send delivery, received transportation identity, and standard transportation query reporting |
 | `cpp-tck.custom-transportation-interaction-delivery-contract` | Standard adapter-backed contract for custom FOM transportation lookup, ordinary interaction delivery, received transportation identity, and transportation query reporting |
+| `cpp-tck.custom-transportation-attribute-delivery` | Adapter-declared custom transportation with ordinary object publication/subscription, registration/discovery, attribute update/reflection, name round-trips, and transportation identity |
+| `cpp-tck.custom-transportation-attribute-delivery-contract` | Standard adapter-backed contract for ordinary custom FOM transportation attribute delivery and discovery/reflection metadata |
+| `cpp-tck.custom-transportation-timestamped-attribute-delivery` | Adapter-declared custom transportation with timestamped ordinary object publication/subscription, registration/discovery, Update/Reflect delivery, time/order/retraction metadata, and transportation identity |
+| `cpp-tck.custom-transportation-timestamped-attribute-delivery-contract` | Standard adapter-backed contract for timestamped custom FOM transportation attribute delivery, constrained grants, retraction, and reflection metadata |
+| `cpp-tck.custom-transportation-timestamped-attribute-alternate-advances` | Adapter-declared custom transportation through timestamped ordinary attribute delivery with Flush Queue, Time Advance Request Available, and Next Message Request Available |
+| `cpp-tck.custom-transportation-timestamped-attribute-alternate-advances-contract` | Standard adapter-backed contract for custom transportation through timestamped ordinary attribute alternate advances, grant boundaries, and retraction |
+| `cpp-tck.custom-transportation-timestamped-interaction-alternate-advances` | Adapter-declared custom transportation through timestamped ordinary interaction delivery with Flush Queue, Time Advance Request Available, and Next Message Request Available |
+| `cpp-tck.custom-transportation-timestamped-interaction-alternate-advances-contract` | Standard adapter-backed contract for custom transportation through timestamped ordinary interaction alternate advances, grant boundaries, and retraction |
+| `cpp-tck.custom-transportation-timestamped-directed-interaction-alternate-advances` | Adapter-declared custom transportation through timestamped directed-interaction delivery to a registered target with Flush Queue, Time Advance Request Available, and Next Message Request Available |
+| `cpp-tck.custom-transportation-timestamped-directed-interaction-alternate-advances-contract` | Standard adapter-backed contract for custom transportation through timestamped directed-interaction alternate advances, target identity, grant boundaries, and retraction |
 | `cpp-tck.custom-transportation-regional-attribute-delivery` | Adapter-declared custom transportation with ordinary regional attribute publication/subscription/update delivery, conveyed source-region metadata, overlap filtering, and both callback models |
 | `cpp-tck.custom-transportation-regional-attribute-delivery-contract` | Standard adapter-backed contract for custom FOM transportation regional attribute delivery, region metadata, overlap filtering, and value-update requests |
 | `cpp-tck.custom-transportation-regional-interaction-delivery` | Adapter-declared custom transportation with ordinary regional interaction publication/subscription/send delivery, conveyed source-region metadata, parameter delivery, and both callback models |
@@ -575,6 +601,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.custom-transportation-timestamped-directed-delivery-contract` | Standard adapter-backed contract for timestamped custom FOM transportation directed-interaction delivery, target discovery, constrained grants, retraction, and transportation metadata |
 | `cpp-tck.custom-transportation-timestamped-regional-attribute-delivery` | Adapter-declared custom transportation with timestamped regional attribute publication/subscription/update delivery, region metadata, retraction, DDM overlap, and both callback models |
 | `cpp-tck.custom-transportation-timestamped-regional-attribute-delivery-contract` | Standard adapter-backed contract for timestamped custom FOM transportation regional attribute delivery, region metadata, overlap filtering, retraction, and value-update requests |
+| `cpp-tck.custom-transportation-timestamped-regional-interaction-delivery` | Adapter-declared custom transportation with timestamped regional interaction publication/subscription/delivery, region metadata, retraction, DDM overlap, and both callback models |
+| `cpp-tck.custom-transportation-timestamped-regional-interaction-delivery-contract` | Standard adapter-backed contract for timestamped custom FOM transportation regional interaction delivery, region metadata, overlap filtering, retraction, and time-advance grants |
 | `cpp-tck.fom-module-composition` | Create-time FOM module composition and join-time module addition with shared declaration handles |
 | `cpp-tck.fom-module-composition-contract` | Standard adapter-backed FOM module-composition contract for create-time and join-time module addition with shared declaration handles |
 | `cpp-tck.fom-additional-module-join-atomicity` | Reject invalid additional FOM modules without mutating membership or declarations, then compose shared handles on a valid follow-up join |
@@ -621,8 +649,68 @@ The promoted `cpp-tck.public-handle-decoding` scenario and its contract twin
 exercise all nine official federation-scoped handle decoders, including
 timestamped message-retraction handles, lifecycle boundaries, and malformed
 encodings. The focused installed-package lane passed 4/4 callback-model cases;
-the merged verified installed-package gate passed all 620 scenario IDs and
-1,240 callback-model cases.
+the merged verified installed-package gate passed all 632 promoted scenario
+IDs and 1,264 callback-model cases, including the adapter-managed
+connection-loss lane.
+The promoted `cpp-tck.custom-transportation-attribute-delivery` scenario and
+its pure standard contract twin exercise the ordinary object
+publication/subscription, registration/discovery, and Update/Reflect route
+with an adapter-declared custom FOM transportation type. The source makes no
+explicit DDM or provider calls; the adapter supplies the rich FOM, provider,
+endpoint, and callback configuration. Its focused installed-package lane
+passed 4/4 callback-model cases, and the merged verified installed-package
+gate passed all 632 promoted scenario IDs (1,264 callback-model cases when
+both models are selected).
+The promoted `cpp-tck.custom-transportation-timestamped-attribute-delivery`
+scenario and its pure standard contract twin exercise timestamped ordinary
+object publication/subscription, registration/discovery, Update/Reflect
+delivery before and after a constrained time advance, logical-time and order
+metadata, retraction callbacks, and adapter-declared transportation identity.
+The source makes no explicit DDM or provider calls; the adapter supplies the
+rich FOM, logical-time implementation, provider, endpoint, and callback
+configuration. Its focused installed-package lane passed 4/4 callback-model
+cases, and the merged verified installed-package gate passed all 632 promoted
+scenario IDs (1,264 callback-model cases when both models are selected).
+The promoted `cpp-tck.custom-transportation-timestamped-attribute-alternate-advances`
+scenario and its pure standard contract twin reuse the verified alternate-time
+oracle for Flush Queue, Time Advance Request Available, and Next Message Request
+Available, then assert that the adapter-declared custom transportation identity
+survives each timestamped ordinary attribute reflection. The source makes no
+explicit DDM or provider calls; the adapter supplies the rich FOM, logical-time
+implementation, provider, endpoint, and callback configuration. Its focused
+installed-package lane passed 4/4 callback-model cases, and the merged verified
+installed-package gate passed all 632 promoted scenario IDs (1,264 callback-model
+cases when both models are selected).
+The promoted `cpp-tck.custom-transportation-timestamped-interaction-alternate-advances`
+scenario and its pure standard contract twin reuse the verified alternate-time
+oracle for Flush Queue, Time Advance Request Available, and Next Message Request
+Available, then assert that the adapter-declared custom transportation identity
+survives each timestamped ordinary interaction delivery. The source makes no
+explicit DDM or provider calls; the adapter supplies the rich FOM, logical-time
+implementation, provider, endpoint, and callback configuration. Its focused
+installed-package lane passed 4/4 callback-model cases, and the merged verified
+installed-package gate passed all 632 promoted scenario IDs (1,264 callback-model
+cases when both models are selected).
+The promoted `cpp-tck.custom-transportation-timestamped-directed-interaction-alternate-advances`
+scenario and its pure standard contract twin reuse the verified directed
+timestamped-delivery oracle for Flush Queue, Time Advance Request Available, and
+Next Message Request Available, then assert target identity, parameter/tag/time/
+order metadata, custom transportation identity, and retraction behavior. The
+source uses no DDM or provider-specific calls; the adapter supplies the rich FOM,
+logical-time implementation, provider, endpoint, and callback configuration. Its
+focused installed-package lane passed 4/4 callback-model cases, and the merged
+verified installed-package gate passed all 632 promoted scenario IDs (1,264
+callback-model cases when both models are selected).
+The promoted `cpp-tck.custom-transportation-timestamped-regional-interaction-delivery`
+scenario and its pure standard contract twin reuse the complete timestamped
+regional-interaction oracle, then verify the adapter-declared custom
+transportation on the same timestamped `sendInteractionWithRegions` path. The
+adapter supplies the rich FOM, logical-time implementation, DDM dimensions,
+endpoint, and callback configuration; the source uses only the official C++
+API and standard library. The focused installed-package lane passed all 4/4
+callback-model cases, and the merged verified installed-package gate passed
+all 632 promoted scenario IDs (1,264 callback-model cases when both models
+are selected). The catalog contains 632 promoted scenario IDs.
 The transport-change duplicate-request assertion is strict in evoked mode;
 immediate mode verifies the already-committed confirmation and delivery state,
 because an immediate callback may close the pending window before a second
@@ -645,9 +733,9 @@ under both evoked and immediate callback models against the installed package;
 the adapter supplies only the provider package, endpoint, and callback
 configuration.
 
-The automatic connection-loss ownership-cleanup scenarios remain catalog
-candidates until the process-loss adapter can complete their pre-loss object
-setup and route the standard automatic-resign directive through the endpoint.
+The automatic connection-loss ownership-cleanup scenarios are adapter-required
+and are covered by the same process-loss fixture contract; the portable TCK
+still observes only standard callbacks and services.
 
 The promoted `cpp-tck.federation-mom-content-reports` scenario and its pure
 standard contract twin request and decode the standard federation MOM
@@ -1490,8 +1578,8 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-  that is 620 scenario IDs and 1240 matrix cases. `--scenario-set all`
-  configures the same 620 available IDs (1240 cases); the catalog currently has
+  that is 632 scenario IDs and 1264 matrix cases. `--scenario-set all`
+  configures the same 632 available IDs (1264 cases); the catalog currently has
   no unpromoted scenarios. Candidate-inclusive figures later in this document
   are historical artifacts from the earlier 344-ID, 688-case
   catalog. The
@@ -1625,9 +1713,19 @@ its pure standard contract twin use the adapter-declared rich FOM to verify
 custom transportation handle/name round-trips, ordinary interaction
 publication/subscription/send delivery, received transportation identity, and
 the standard transportation-type query report. Their focused portable lane
-passed 4/4 callback-model cases, and the matching native oracle passed 42
-assertions; the reusable scenario source uses only the official C++ API and
-standard library.
+passed 4/4 callback-model cases; the catalog now routes this existing pair
+through the portable adapter entry point, and the reusable scenario source uses
+only the official C++ API and standard library.
+
+The promoted `cpp-tck.custom-transportation-directed-interaction-delivery`
+scenario and its pure standard contract twin use the same adapter-declared rich
+FOM to verify ordinary directed publication and subscription, target
+registration/discovery, parameter and tag preservation, producer identity,
+publisher loopback suppression, universal versus by-ownership delivery, and
+custom transportation identity. Their focused portable lane passed 4/4
+callback-model cases; the reusable scenario source uses only the official C++
+API and standard library, with provider, FOM, endpoint, and callback
+configuration remaining adapter inputs.
 
 The promoted `cpp-tck.custom-transportation-regional-attribute-delivery`
 scenario and its pure standard contract twin use the adapter-declared rich FOM
@@ -1652,9 +1750,9 @@ and its pure standard contract twin use the adapter-declared rich FOM to
 verify timestamped interaction publication/subscription/send delivery,
 constrained grant timing, payload/tag/producer/time/order/retraction metadata,
 and custom transportation identity without region metadata. Their focused
-portable lane passed 4/4 callback-model cases, and the matching native oracle
-passed 48 assertions; the reusable scenario source uses only the official C++
-API and standard library.
+portable lane passed 4/4 callback-model cases; the catalog now routes this
+existing pair through the portable adapter entry point, and the reusable
+scenario source uses only the official C++ API and standard library.
 
 The promoted `cpp-tck.custom-transportation-timestamped-directed-delivery`
 scenario and its pure standard contract twin use the adapter-declared rich FOM
@@ -1662,8 +1760,9 @@ to verify timestamped directed interaction publication/subscription/send
 delivery to a registered target, constrained grant timing,
 payload/tag/target/producer/time/order/retraction metadata, and custom
 transportation identity. Their focused portable lane passed 4/4 callback-model
-cases, and the matching native oracle passed 42 assertions; the reusable
-scenario source uses only the official C++ API and standard library.
+cases; the catalog now routes this existing pair through the portable adapter
+entry point, and the reusable scenario source uses only the official C++ API
+and standard library.
 
 The promoted `cpp-tck.custom-transportation-timestamped-regional-attribute-delivery`
 scenario and its pure standard contract twin reuse the standard regional
@@ -2090,6 +2189,12 @@ object reflection and interaction delivery under best effort, reliable
 per-federate transport isolation, and the RTI-originated service report. The
 request payloads use official standard encodings while the adapter supplies the
 FOM, MIM, endpoint, callback model, and logical-time implementation.
+
+The promoted `cpp-tck.mom-transportation-type-change-request-contract` runner
+exposes the same standard MIM transportation-change request, confirmation,
+delivery-isolation, service-reporting, and cleanup checks as an independently
+selectable pure standard C++ contract. Provider, FOM, MIM, endpoint, callback,
+and application configuration remain adapter inputs.
 
 The promoted `cpp-tck.timestamped-attribute-update-no-fanout` scenario proves
 that a time-regulating producer receives a valid retraction handle for a

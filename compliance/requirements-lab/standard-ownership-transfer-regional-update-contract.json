@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for standard ownership transfer with regional update association state. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard region services, and the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback model, and application configuration. It verifies regional registration and subscription, If Available acquisition, If Wanted divestiture, ownership queries, update-region association, source-region metadata, and cleanup without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-ownership-transfer-regional-update",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional object and ownership services with FederateAmbassador discovery, ownership, and reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador ownership, object-management, DDM, and attribute-update declarations with standard callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioOwnershipTransferRegionalUpdateContract"
+      ]
+    }
+  ]
+}

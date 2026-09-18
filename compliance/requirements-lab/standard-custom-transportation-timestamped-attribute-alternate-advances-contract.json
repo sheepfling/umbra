@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for an adapter-supplied rich FOM transportation type used by a timestamped ordinary attribute update delivered through Flush Queue Request, Time Advance Request Available, and Next Message Request Available. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, rich FOM, endpoint, callback model, logical-time implementation, and object, attribute, and transportation names. It reuses the standard alternate-advance oracle and adds custom transportation handle/name and callback-identity assertions without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-custom-transportation-timestamped-attribute-alternate-advances",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador FOM object, attribute, transportation, declaration, time-management, alternate-advance, timestamped update, retraction, and lifecycle services with FederateAmbassador discovery, reflection, retraction, and grant callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador alternate time-advance and timestamped ordinary object-management declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioCustomTransportationTimestampedAttributeAlternateAdvancesContract"
+      ]
+    }
+  ]
+}

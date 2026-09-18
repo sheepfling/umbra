@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK checks for ordinary and directed subscription re-evaluation. The scenarios use only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM modules, endpoint, callback model, and logical-time implementation. The checks cover ordinary and directed receive-order delivery at the callback boundary and timestamped delivery at the time-constrained grant boundary, including the standard Delay Subscription Evaluation switch and current-subscription filtering.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-delay-subscription-evaluation-interaction",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador Delay Subscription Evaluation, interaction declaration, send, and callback servicing services with FederateAmbassador receive-interaction callback",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador ordinary interaction subscription-evaluation declarations and FederateAmbassador callback",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDelaySubscriptionEvaluationInteractionContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-delay-subscription-evaluation-directed-interaction",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador Delay Subscription Evaluation, directed declaration, target registration, directed send, and callback servicing services with FederateAmbassador callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador directed interaction subscription-evaluation declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDelaySubscriptionEvaluationDirectedInteractionContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-delay-subscription-evaluation-attribute-update",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador Delay Subscription Evaluation, object declaration, registration, update, and callback servicing services with FederateAmbassador callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador ordinary attribute subscription-evaluation declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDelaySubscriptionEvaluationAttributeUpdateContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-delay-subscription-evaluation-timestamped-interaction",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped interaction subscription evaluation, time-role enablement, and time advance services with FederateAmbassador callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped interaction subscription-evaluation declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDelaySubscriptionEvaluationTimestampedInteractionContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-delay-subscription-evaluation-timestamped-directed-interaction",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped directed interaction subscription evaluation, time-role enablement, and time advance services with FederateAmbassador callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped directed interaction subscription-evaluation declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDelaySubscriptionEvaluationTimestampedDirectedInteractionContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-delay-subscription-evaluation-timestamped-attribute-update",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped attribute subscription evaluation, time-role enablement, and time advance services with FederateAmbassador callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped attribute subscription-evaluation declarations and FederateAmbassador callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDelaySubscriptionEvaluationTimestampedAttributeUpdateContract"
+      ]
+    }
+  ]
+}

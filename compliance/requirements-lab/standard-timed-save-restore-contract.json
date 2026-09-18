@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records portable C++ TCK checks for timestamped federation save and restore with queued delivery. The tests use only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback model, and logical-time implementation. The ordinary timestamped case covers queued interaction recovery, Flush Queue delivery, and retraction. The regional cases add standard region setup, conveyed-region metadata, and default-region delivery. No provider-specific save format, registry, transport, header, or persistence implementation is required.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timed-federation-save-restore",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped federation save/restore, time advance, Flush Queue, and retraction services with FederateAmbassador save/restore and timestamped delivery callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador timed save/restore declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioTimedFederationSaveRestoreContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-timed-regional-interaction-save-restore",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional interaction, timestamped save/restore, Flush Queue, and retraction services with conveyed-region and timestamped callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador regional interaction and timed save/restore declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioTimedRegionalInteractionSaveRestoreContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-timed-default-region-interaction-save-restore",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador default-region interaction, timestamped save/restore, Flush Queue, and retraction services with empty source-region metadata callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador default-region interaction and timed save/restore declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioTimedDefaultRegionInteractionSaveRestoreContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-timed-default-region-attribute-save-restore",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador default-region timestamped attribute update, save/restore, Flush Queue, and retraction services with discovery, reflection, and timestamped callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador default-region attribute and timed save/restore declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioTimedDefaultRegionAttributeSaveRestoreContract"
+      ]
+    }
+  ]
+}
