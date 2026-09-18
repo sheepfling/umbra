@@ -852,6 +852,25 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-regional-core"
       ]
+    },
+    {
+      "name": "regional-attribute-recheck-and-overlap",
+      "scenario_ids": [
+        "cpp-tck.regional-attribute-update-callback-ddm-recheck",
+        "cpp-tck.regional-attribute-update-callback-ddm-recheck-contract",
+        "cpp-tck.regional-attribute-value-update-response-recheck",
+        "cpp-tck.regional-attribute-value-update-response-recheck-contract",
+        "cpp-tck.regional-multi-attribute-update",
+        "cpp-tck.regional-multi-attribute-update-contract",
+        "cpp-tck.regional-three-dimensional-overlap",
+        "cpp-tck.regional-three-dimensional-overlap-contract"
+      ],
+      "cases": 16,
+      "passed": 16,
+      "verification": "CTest and direct runner; all four pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-regional-attribute-core"
+      ]
     }
   ],
   "candidate_failures": [
@@ -881,6 +900,15 @@
       "cases": 4,
       "passed": 2,
       "reason": "Evoked mode passed; immediate mode returned the wrong attribute set for the wanted-divestiture path."
+    },
+    {
+      "scenario_ids": [
+        "cpp-tck.regional-attribute-value-request-filtering",
+        "cpp-tck.regional-attribute-value-request-filtering-contract"
+      ],
+      "cases": 4,
+      "passed": 0,
+      "reason": "The installed package completed an incompatible regional value request without the expected InvalidRegionContext boundary in either callback model."
     }
   ],
   "adapter_gated_scenarios": [

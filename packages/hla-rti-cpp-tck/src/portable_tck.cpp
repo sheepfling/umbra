@@ -94,6 +94,18 @@ constexpr char regionalThreeDimensionalOverlapScenario[] =
     "cpp-tck.regional-three-dimensional-overlap";
 constexpr char regionalThreeDimensionalOverlapContractId[] =
     "cpp-tck.regional-three-dimensional-overlap-contract";
+constexpr char regionalAttributeUpdateCallbackDdmRecheckScenario[] =
+    "cpp-tck.regional-attribute-update-callback-ddm-recheck";
+constexpr char regionalAttributeUpdateCallbackDdmRecheckContractScenario[] =
+    "cpp-tck.regional-attribute-update-callback-ddm-recheck-contract";
+constexpr char regionalAttributeValueRequestFilteringScenario[] =
+    "cpp-tck.regional-attribute-value-request-filtering";
+constexpr char regionalAttributeValueRequestFilteringContractScenario[] =
+    "cpp-tck.regional-attribute-value-request-filtering-contract";
+constexpr char regionalAttributeValueUpdateResponseRecheckScenario[] =
+    "cpp-tck.regional-attribute-value-update-response-recheck";
+constexpr char regionalAttributeValueUpdateResponseRecheckContractScenario[] =
+    "cpp-tck.regional-attribute-value-update-response-recheck-contract";
 constexpr char regionalBoundariesScenario[] = "cpp-tck.regional-boundaries";
 constexpr char regionalBoundariesContractId[] =
     "cpp-tck.regional-boundaries-contract";
@@ -2673,6 +2685,24 @@ PortableScenario regionalDdmScenario(std::string const& id) {
   if (id == regionalThreeDimensionalOverlapContractId) {
     return scenarioRegionalThreeDimensionalOverlapContract;
   }
+  if (id == regionalAttributeUpdateCallbackDdmRecheckScenario) {
+    return scenarioRegionalAttributeUpdateCallbackDdmRecheck;
+  }
+  if (id == regionalAttributeUpdateCallbackDdmRecheckContractScenario) {
+    return scenarioRegionalAttributeUpdateCallbackDdmRecheckContract;
+  }
+  if (id == regionalAttributeValueRequestFilteringScenario) {
+    return scenarioRegionalAttributeValueRequestFiltering;
+  }
+  if (id == regionalAttributeValueRequestFilteringContractScenario) {
+    return scenarioRegionalAttributeValueRequestFilteringContract;
+  }
+  if (id == regionalAttributeValueUpdateResponseRecheckScenario) {
+    return scenarioRegionalAttributeValueUpdateResponseRecheck;
+  }
+  if (id == regionalAttributeValueUpdateResponseRecheckContractScenario) {
+    return scenarioRegionalAttributeValueUpdateResponseRecheckContract;
+  }
   if (id == allowRelaxedDdmScenario) {
     return scenarioAllowRelaxedDdm;
   }
@@ -2730,6 +2760,15 @@ int runRegionalDdmScenarios(int argc, char** argv) {
         result.status = "skipped";
         result.message =
             "requires an adapter-supplied three-dimensional DDM FOM";
+      } else if ((selected == regionalAttributeUpdateCallbackDdmRecheckScenario ||
+                  selected == regionalAttributeUpdateCallbackDdmRecheckContractScenario ||
+                  selected == regionalAttributeValueRequestFilteringScenario ||
+                  selected == regionalAttributeValueRequestFilteringContractScenario ||
+                  selected == regionalAttributeValueUpdateResponseRecheckScenario ||
+                  selected == regionalAttributeValueUpdateResponseRecheckContractScenario) &&
+                 options.ddmFom.empty()) {
+        result.status = "skipped";
+        result.message = "requires an adapter-supplied dimensional FOM";
       }
       if (result.status == "passed") {
         try {

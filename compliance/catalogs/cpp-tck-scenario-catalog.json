@@ -14178,7 +14178,7 @@
       "runner_id": "cpp-tck.regional-attribute-value-request-filtering",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
-      "promotion": "promoted"
+      "promotion": "candidate"
     },
     {
       "id": "cpp-tck.regional-attribute-value-request-filtering-contract",
@@ -14207,7 +14207,7 @@
       "runner_id": "cpp-tck.regional-attribute-value-request-filtering-contract",
       "parity": "cpp-tck.regional-attribute-value-request-filtering",
       "default_status": "adapter-required",
-      "promotion": "promoted"
+      "promotion": "candidate"
     },
     {
       "id": "cpp-tck.regional-attribute-value-update-response-recheck",
