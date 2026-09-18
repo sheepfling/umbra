@@ -1342,6 +1342,77 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-next-service-report-failures"
       ]
+    },
+    {
+      "name": "service-report-handle-lookups-and-failures",
+      "scenario_ids": [
+        "cpp-tck.service-report-federate-object-class-lookups",
+        "cpp-tck.service-report-federate-object-class-lookups-contract",
+        "cpp-tck.service-report-interaction-parameter-lookups",
+        "cpp-tck.service-report-interaction-parameter-lookups-contract",
+        "cpp-tck.service-report-object-attribute-update-rate-lookups",
+        "cpp-tck.service-report-object-attribute-update-rate-lookups-contract",
+        "cpp-tck.service-report-federate-object-class-lookup-failures",
+        "cpp-tck.service-report-federate-object-class-lookup-failures-contract",
+        "cpp-tck.service-report-interaction-parameter-lookup-failures",
+        "cpp-tck.service-report-interaction-parameter-lookup-failures-contract",
+        "cpp-tck.service-report-object-attribute-update-rate-lookup-failures",
+        "cpp-tck.service-report-object-attribute-update-rate-lookup-failures-contract"
+      ],
+      "cases": 24,
+      "passed": 24,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-service-report-lookups"
+      ]
+    },
+    {
+      "name": "deferred-regional-ownership-transfer",
+      "scenario_ids": [
+        "cpp-tck.ownership-transfer-deferred-regional-update",
+        "cpp-tck.ownership-transfer-deferred-regional-update-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-deferred-regional-ownership"
+      ]
+    },
+    {
+      "name": "joined-federate-mom-statistics-and-time-reports",
+      "scenario_ids": [
+        "cpp-tck.joined-federate-mom-federate-state-save-restore",
+        "cpp-tck.joined-federate-mom-federate-state-save-restore-contract",
+        "cpp-tck.joined-federate-mom-galt-lits-periodic",
+        "cpp-tck.joined-federate-mom-galt-lits-periodic-contract",
+        "cpp-tck.joined-federate-mom-tso-length-periodic",
+        "cpp-tck.joined-federate-mom-tso-length-periodic-contract",
+        "cpp-tck.joined-federate-mom-removed-object-count",
+        "cpp-tck.joined-federate-mom-removed-object-count-contract",
+        "cpp-tck.joined-federate-mom-updates-sent-counts",
+        "cpp-tck.joined-federate-mom-updates-sent-counts-contract",
+        "cpp-tck.joined-federate-mom-interactions-received-counts",
+        "cpp-tck.joined-federate-mom-interactions-received-counts-contract",
+        "cpp-tck.joined-federate-mom-directed-interactions-sent-counts",
+        "cpp-tck.joined-federate-mom-directed-interactions-sent-counts-contract",
+        "cpp-tck.joined-federate-mom-directed-interactions-received-counts",
+        "cpp-tck.joined-federate-mom-directed-interactions-received-counts-contract",
+        "cpp-tck.joined-federate-mom-interactions-sent-counts",
+        "cpp-tck.joined-federate-mom-interactions-sent-counts-contract",
+        "cpp-tck.joined-federate-mom-reflections-received-counts",
+        "cpp-tck.joined-federate-mom-reflections-received-counts-contract",
+        "cpp-tck.joined-federate-mom-reflection-counts",
+        "cpp-tck.joined-federate-mom-reflection-counts-contract",
+        "cpp-tck.joined-federate-mom-time-state-durations",
+        "cpp-tck.joined-federate-mom-time-state-durations-contract"
+      ],
+      "cases": 48,
+      "passed": 48,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-joined-federate-mom"
+      ]
     }
   ],
   "candidate_failures": [
