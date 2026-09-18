@@ -201,6 +201,23 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-ownership-resignation"
       ]
+    },
+    {
+      "name": "resignation-delete-and-final-cleanup",
+      "scenario_ids": [
+        "cpp-tck.resign-delete-objects",
+        "cpp-tck.resign-delete-objects-contract",
+        "cpp-tck.resign-delete-objects-multi-recipient-fifo",
+        "cpp-tck.resign-delete-objects-multi-recipient-fifo-contract",
+        "cpp-tck.final-federate-resignation-cleanup",
+        "cpp-tck.final-federate-resignation-cleanup-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner; all three pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-resignation-delete-ordinary"
+      ]
     }
   ],
   "candidate_failures": [
@@ -230,6 +247,17 @@
       "cases": 4,
       "passed": 2,
       "reason": "Evoked mode passed; immediate mode returned the wrong attribute set for the wanted-divestiture path."
+    }
+  ],
+  "adapter_gated_scenarios": [
+    {
+      "scenario_ids": [
+        "cpp-tck.automatic-resign-directive-delete-objects",
+        "cpp-tck.automatic-resign-directive-delete-objects-contract"
+      ],
+      "cases": 4,
+      "status": "skipped",
+      "reason": "The current installed-package adapter requires an adapter-managed connection-loss fixture for automatic resign-directive validation."
     }
   ],
   "regional_artifact": ".build/cpp-tck-package-smoke-regional-green",
