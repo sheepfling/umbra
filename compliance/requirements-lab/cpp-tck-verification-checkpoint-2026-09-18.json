@@ -457,6 +457,25 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-callback-controls-advisories"
       ]
+    },
+    {
+      "name": "callback-controls-ownership-requests",
+      "scenario_ids": [
+        "cpp-tck.callback-controls-attribute-value-request",
+        "cpp-tck.callback-controls-attribute-value-request-contract",
+        "cpp-tck.callback-controls-auto-provide",
+        "cpp-tck.callback-controls-auto-provide-contract",
+        "cpp-tck.callback-controls-ownership-assumption",
+        "cpp-tck.callback-controls-ownership-assumption-contract",
+        "cpp-tck.callback-controls-ownership-unavailable",
+        "cpp-tck.callback-controls-ownership-unavailable-contract"
+      ],
+      "cases": 16,
+      "passed": 16,
+      "verification": "CTest and direct runner; all four pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-callback-controls-ownership-requests"
+      ]
     }
   ],
   "candidate_failures": [
