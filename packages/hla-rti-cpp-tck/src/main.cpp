@@ -50606,10 +50606,20 @@ void scenarioOwnershipTransferRegionalUpdate(
 
   newOwner.recorder().clearOwnershipRecords();
   rti::AttributeHandleSet divestedAttributes;
-  newOwner.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
-      object,
-      newOwnerAttributes,
-      acquisitionTag);
+  // HLA_IMMEDIATE reports an unavailable If Available request inline. Use a
+  // regular pending acquisition in that model so this test reaches the same
+  // Divestiture If Wanted transfer boundary as evoked delivery.
+  if (model == rti::HLA_IMMEDIATE) {
+    newOwner.rtiAmbassador().attributeOwnershipAcquisition(
+        object,
+        newOwnerAttributes,
+        acquisitionTag);
+  } else {
+    newOwner.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+        object,
+        newOwnerAttributes,
+        acquisitionTag);
+  }
   require(
       !newOwner.recorder().ownershipAcquisition().has_value(),
       "If Available acquisition completed before the current owner divested");
