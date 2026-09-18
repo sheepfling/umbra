@@ -548,6 +548,28 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-callback-controls-attribute-scope"
       ]
+    },
+    {
+      "name": "provider-independent-api-surface",
+      "scenario_ids": [
+        "java-tck.factory-discovery",
+        "java-tck.api-surface-inventory",
+        "cpp-tck.variable-length-data-contract",
+        "cpp-tck.exception-hierarchy-contract",
+        "cpp-tck.enum-contract",
+        "cpp-tck.handle-and-collection-contract",
+        "cpp-tck.configuration-and-authorization-contract",
+        "cpp-tck.authorizer-factory-factory-contract",
+        "cpp-tck.runtime-identity-contract",
+        "cpp-tck.rti-ambassador-factory-contract",
+        "cpp-tck.null-federate-ambassador-contract"
+      ],
+      "cases": 22,
+      "passed": 22,
+      "verification": "CTest and direct runner; all nine pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-api-surface"
+      ]
     }
   ],
   "candidate_failures": [
