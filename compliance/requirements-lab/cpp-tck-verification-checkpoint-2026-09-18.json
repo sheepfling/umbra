@@ -309,6 +309,25 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-timestamped-deletion-edges"
       ]
+    },
+    {
+      "name": "timestamped-attribute-update-edge-cases",
+      "scenario_ids": [
+        "cpp-tck.timestamped-attribute-update-no-fanout",
+        "cpp-tck.timestamped-attribute-update-no-fanout-contract",
+        "cpp-tck.timestamped-attribute-update-queued-passel-retraction",
+        "cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract",
+        "cpp-tck.timestamped-attribute-update-reenable",
+        "cpp-tck.timestamped-attribute-update-reenable-contract",
+        "cpp-tck.timestamped-attribute-update-regulation-reenable",
+        "cpp-tck.timestamped-attribute-update-regulation-reenable-contract"
+      ],
+      "cases": 16,
+      "passed": 16,
+      "verification": "CTest and direct runner; all four pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-timestamped-attribute-edges"
+      ]
     }
   ],
   "candidate_failures": [
