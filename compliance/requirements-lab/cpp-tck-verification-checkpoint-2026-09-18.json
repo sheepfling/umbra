@@ -948,6 +948,63 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-next-update-rate"
       ]
+    },
+    {
+      "name": "federation-lifecycle-and-service-boundaries",
+      "scenario_ids": [
+        "cpp-tck.federation-list-services",
+        "cpp-tck.federation-list-services-contract",
+        "cpp-tck.federate-lookup-lifecycle",
+        "cpp-tck.federate-lookup-lifecycle-contract",
+        "cpp-tck.post-resignation-service-boundaries",
+        "cpp-tck.post-resignation-service-boundaries-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-lifecycle-boundaries"
+      ]
+    },
+    {
+      "name": "alternate-time-advances-and-bounds",
+      "scenario_ids": [
+        "cpp-tck.alternate-time-advances",
+        "cpp-tck.alternate-time-advances-contract",
+        "cpp-tck.available-time-advances-inclusive-galt",
+        "cpp-tck.available-time-advances-inclusive-galt-contract",
+        "cpp-tck.time-bounds-queries",
+        "cpp-tck.time-bounds-queries-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-time-queries"
+      ]
+    },
+    {
+      "name": "regional-interaction-routing-and-filtering",
+      "scenario_ids": [
+        "cpp-tck.regional-interaction-routing",
+        "cpp-tck.regional-interaction-routing-contract",
+        "cpp-tck.default-region-interaction-routing",
+        "cpp-tck.default-region-interaction-routing-contract",
+        "cpp-tck.zero-dimensional-regional-interaction",
+        "cpp-tck.zero-dimensional-regional-interaction-contract",
+        "cpp-tck.multi-region-interaction-routing",
+        "cpp-tck.multi-region-interaction-routing-contract",
+        "cpp-tck.regional-interaction-empty-subscription-sets",
+        "cpp-tck.regional-interaction-empty-subscription-sets-contract",
+        "cpp-tck.regional-interaction-source-region-snapshot",
+        "cpp-tck.regional-interaction-source-region-snapshot-contract"
+      ],
+      "cases": 24,
+      "passed": 24,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-regional-interaction-routing"
+      ]
     }
   ],
   "candidate_failures": [
