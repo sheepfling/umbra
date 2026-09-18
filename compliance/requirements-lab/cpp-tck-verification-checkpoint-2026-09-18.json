@@ -476,6 +476,29 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-callback-controls-ownership-requests"
       ]
+    },
+    {
+      "name": "callback-controls-ownership-transitions",
+      "scenario_ids": [
+        "cpp-tck.callback-controls-ownership-release-request",
+        "cpp-tck.callback-controls-ownership-release-request-contract",
+        "cpp-tck.callback-controls-ownership-acquisition-cancellation",
+        "cpp-tck.callback-controls-ownership-acquisition-cancellation-contract",
+        "cpp-tck.callback-controls-ownership-release-denied",
+        "cpp-tck.callback-controls-ownership-release-denied-contract",
+        "cpp-tck.callback-controls-ownership-acquisition-notification",
+        "cpp-tck.callback-controls-ownership-acquisition-notification-contract",
+        "cpp-tck.callback-controls-ownership-divestiture-confirmation",
+        "cpp-tck.callback-controls-ownership-divestiture-confirmation-contract",
+        "cpp-tck.callback-controls-ownership-query",
+        "cpp-tck.callback-controls-ownership-query-contract"
+      ],
+      "cases": 24,
+      "passed": 24,
+      "verification": "CTest and direct runner; all six pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-callback-controls-ownership-transitions"
+      ]
     }
   ],
   "candidate_failures": [
