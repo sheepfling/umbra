@@ -656,6 +656,31 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-ordinary-sync-relevance"
       ]
+    },
+    {
+      "name": "ordinary-attribute-request-response-and-projection",
+      "scenario_ids": [
+        "cpp-tck.attribute-value-update-request-baseline",
+        "cpp-tck.attribute-value-update-request-baseline-contract",
+        "cpp-tck.object-class-attribute-value-update-request-baseline",
+        "cpp-tck.object-class-attribute-value-update-request-baseline-contract",
+        "cpp-tck.attribute-value-update-response",
+        "cpp-tck.attribute-value-update-response-contract",
+        "cpp-tck.attribute-value-update-request-multi-requester",
+        "cpp-tck.attribute-value-update-request-multi-requester-contract",
+        "cpp-tck.attribute-multi-recipient-fifo",
+        "cpp-tck.attribute-multi-recipient-fifo-contract",
+        "cpp-tck.ordinary-multi-attribute-subscription-projection",
+        "cpp-tck.ordinary-multi-attribute-subscription-projection-contract",
+        "cpp-tck.ordinary-multi-attribute-value-update-request-response",
+        "cpp-tck.ordinary-multi-attribute-value-update-request-response-contract"
+      ],
+      "cases": 28,
+      "passed": 28,
+      "verification": "CTest and direct runner; all seven pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-ordinary-attribute-edges"
+      ]
     }
   ],
   "candidate_failures": [
