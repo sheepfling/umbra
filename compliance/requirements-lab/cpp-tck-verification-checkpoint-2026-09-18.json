@@ -347,6 +347,27 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-timestamped-interaction-edges"
       ]
+    },
+    {
+      "name": "timestamped-directed-interaction-edge-cases",
+      "scenario_ids": [
+        "cpp-tck.timestamped-directed-interaction-reenable",
+        "cpp-tck.timestamped-directed-interaction-reenable-contract",
+        "cpp-tck.timestamped-directed-interaction-regulation-reenable",
+        "cpp-tck.timestamped-directed-interaction-regulation-reenable-contract",
+        "cpp-tck.timestamped-directed-interaction-source-resignation",
+        "cpp-tck.timestamped-directed-interaction-source-resignation-contract",
+        "cpp-tck.timestamped-directed-interaction-source-resignation-fanout",
+        "cpp-tck.timestamped-directed-interaction-source-resignation-fanout-contract",
+        "cpp-tck.timestamped-directed-interaction-immediate-source-resignation",
+        "cpp-tck.timestamped-directed-interaction-immediate-source-resignation-contract"
+      ],
+      "cases": 20,
+      "passed": 20,
+      "verification": "CTest and direct runner; all five pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-timestamped-directed-edges"
+      ]
     }
   ],
   "candidate_failures": [
