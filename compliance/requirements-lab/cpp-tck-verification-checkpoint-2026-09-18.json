@@ -290,6 +290,25 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-callback-controls-timestamped"
       ]
+    },
+    {
+      "name": "timestamped-object-deletion-edge-cases",
+      "scenario_ids": [
+        "cpp-tck.timestamped-object-deletion-no-fanout",
+        "cpp-tck.timestamped-object-deletion-no-fanout-contract",
+        "cpp-tck.timestamped-object-deletion-tombstone",
+        "cpp-tck.timestamped-object-deletion-tombstone-contract",
+        "cpp-tck.timestamped-object-deletion-retraction-joined-owners",
+        "cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract",
+        "cpp-tck.timestamped-object-deletion-regulation-reenable",
+        "cpp-tck.timestamped-object-deletion-regulation-reenable-contract"
+      ],
+      "cases": 16,
+      "passed": 16,
+      "verification": "CTest and direct runner; all four pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-timestamped-deletion-edges"
+      ]
     }
   ],
   "candidate_failures": [
