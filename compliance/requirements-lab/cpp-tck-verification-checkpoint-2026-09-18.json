@@ -1108,6 +1108,72 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-next-custom-transportation"
       ]
+    },
+    {
+      "name": "timestamped-regional-attribute-and-default-region",
+      "scenario_ids": [
+        "cpp-tck.timestamped-regional-attribute-update",
+        "cpp-tck.timestamped-regional-attribute-update-contract",
+        "cpp-tck.timestamped-regional-attribute-alternate-advances",
+        "cpp-tck.timestamped-regional-attribute-alternate-advances-contract",
+        "cpp-tck.timestamped-regional-attribute-association-replacement",
+        "cpp-tck.timestamped-regional-attribute-association-replacement-contract",
+        "cpp-tck.timestamped-regional-attribute-regulation-reenable",
+        "cpp-tck.timestamped-regional-attribute-regulation-reenable-contract",
+        "cpp-tck.timestamped-regional-attribute-source-resignation",
+        "cpp-tck.timestamped-regional-attribute-source-resignation-contract",
+        "cpp-tck.timestamped-default-region-attribute-alternate-advances",
+        "cpp-tck.timestamped-default-region-attribute-alternate-advances-contract",
+        "cpp-tck.timestamped-default-region-attribute-reenable",
+        "cpp-tck.timestamped-default-region-attribute-reenable-contract",
+        "cpp-tck.timestamped-default-region-attribute-regulation-reenable",
+        "cpp-tck.timestamped-default-region-attribute-regulation-reenable-contract",
+        "cpp-tck.timestamped-default-region-attribute-mixed-fanout",
+        "cpp-tck.timestamped-default-region-attribute-mixed-fanout-contract"
+      ],
+      "cases": 36,
+      "passed": 36,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-timestamped-regional-attributes"
+      ]
+    },
+    {
+      "name": "timestamped-regional-interaction-and-default-region",
+      "scenario_ids": [
+        "cpp-tck.timestamped-default-region-interaction",
+        "cpp-tck.timestamped-default-region-interaction-contract",
+        "cpp-tck.timestamped-default-region-interaction-alternate-advances",
+        "cpp-tck.timestamped-default-region-interaction-alternate-advances-contract",
+        "cpp-tck.timestamped-default-region-interaction-mixed-fanout",
+        "cpp-tck.timestamped-default-region-interaction-mixed-fanout-contract",
+        "cpp-tck.timestamped-default-region-interaction-reenable",
+        "cpp-tck.timestamped-default-region-interaction-reenable-contract",
+        "cpp-tck.timestamped-default-region-interaction-regulation-reenable",
+        "cpp-tck.timestamped-default-region-interaction-regulation-reenable-contract",
+        "cpp-tck.timestamped-default-region-interaction-source-resignation",
+        "cpp-tck.timestamped-default-region-interaction-source-resignation-contract",
+        "cpp-tck.timestamped-regional-interaction",
+        "cpp-tck.timestamped-regional-interaction-contract",
+        "cpp-tck.timestamped-regional-interaction-alternate-advances",
+        "cpp-tck.timestamped-regional-interaction-alternate-advances-contract",
+        "cpp-tck.timestamped-regional-interaction-no-overlap",
+        "cpp-tck.timestamped-regional-interaction-no-overlap-contract",
+        "cpp-tck.timestamped-regional-interaction-regulation-reenable",
+        "cpp-tck.timestamped-regional-interaction-regulation-reenable-contract",
+        "cpp-tck.timestamped-regional-interaction-subscription-replacement",
+        "cpp-tck.timestamped-regional-interaction-subscription-replacement-contract",
+        "cpp-tck.timestamped-regional-interaction-source-resignation",
+        "cpp-tck.timestamped-regional-interaction-source-resignation-contract",
+        "cpp-tck.timestamped-regional-interaction-tar-nmr",
+        "cpp-tck.timestamped-regional-interaction-tar-nmr-contract"
+      ],
+      "cases": 52,
+      "passed": 52,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-timestamped-regional-interactions"
+      ]
     }
   ],
   "candidate_failures": [
