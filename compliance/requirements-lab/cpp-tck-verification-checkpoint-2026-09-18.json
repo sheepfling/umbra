@@ -871,6 +871,53 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-regional-attribute-core"
       ]
+    },
+    {
+      "name": "default-region-and-passive-object-routing",
+      "scenario_ids": [
+        "cpp-tck.default-region-object-routing",
+        "cpp-tck.default-region-object-routing-contract",
+        "cpp-tck.default-region-registration-names",
+        "cpp-tck.default-region-registration-names-contract",
+        "cpp-tck.passive-regional-subscription",
+        "cpp-tck.passive-regional-subscription-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-default-region"
+      ]
+    },
+    {
+      "name": "passive-regional-interaction-and-auto-provide",
+      "scenario_ids": [
+        "cpp-tck.passive-regional-interaction-transition",
+        "cpp-tck.passive-regional-interaction-transition-contract",
+        "cpp-tck.auto-provide",
+        "cpp-tck.auto-provide-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-regional-interaction-auto-provide"
+      ]
+    },
+    {
+      "name": "attribute-scope-and-inherited-projection",
+      "scenario_ids": [
+        "cpp-tck.attribute-scope-advisories",
+        "cpp-tck.attribute-scope-advisories-contract",
+        "cpp-tck.inherited-object-attribute-projection",
+        "cpp-tck.inherited-object-attribute-projection-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-scope-inheritance"
+      ]
     }
   ],
   "candidate_failures": [
