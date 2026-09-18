@@ -273,6 +273,23 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-timestamped-queue"
       ]
+    },
+    {
+      "name": "timestamped-callback-controls",
+      "scenario_ids": [
+        "cpp-tck.callback-controls-timestamped-attribute-update",
+        "cpp-tck.callback-controls-timestamped-attribute-update-contract",
+        "cpp-tck.callback-controls-timestamped-object-removal",
+        "cpp-tck.callback-controls-timestamped-object-removal-contract",
+        "cpp-tck.callback-controls-timestamped-retraction",
+        "cpp-tck.callback-controls-timestamped-retraction-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner; all three pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-callback-controls-timestamped"
+      ]
     }
   ],
   "candidate_failures": [
