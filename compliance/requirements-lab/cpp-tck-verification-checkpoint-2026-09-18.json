@@ -535,6 +535,19 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-callback-controls-regional-reports"
       ]
+    },
+    {
+      "name": "callback-controls-attribute-scope-advisories",
+      "scenario_ids": [
+        "cpp-tck.callback-controls-attribute-scope-advisories",
+        "cpp-tck.callback-controls-attribute-scope-advisories-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "CTest and direct runner; the pure contract independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-callback-controls-attribute-scope"
+      ]
     }
   ],
   "candidate_failures": [
