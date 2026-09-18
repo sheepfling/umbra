@@ -649,18 +649,19 @@ The promoted `cpp-tck.public-handle-decoding` scenario and its contract twin
 exercise all nine official federation-scoped handle decoders, including
 timestamped message-retraction handles, lifecycle boundaries, and malformed
 encodings. The focused installed-package lane passed 4/4 callback-model cases;
-the merged verified installed-package gate passed all 632 promoted scenario
-IDs and 1,264 callback-model cases, including the adapter-managed
-connection-loss lane.
+the earlier merged installed-package checkpoint recorded 632 promoted
+scenario IDs and 1,264 callback-model cases, including the adapter-managed
+connection-loss lane. The current checkpoint is recorded in
+`compliance/requirements-lab/cpp-tck-verification-checkpoint-2026-09-18.json`.
 The promoted `cpp-tck.custom-transportation-attribute-delivery` scenario and
 its pure standard contract twin exercise the ordinary object
 publication/subscription, registration/discovery, and Update/Reflect route
 with an adapter-declared custom FOM transportation type. The source makes no
 explicit DDM or provider calls; the adapter supplies the rich FOM, provider,
 endpoint, and callback configuration. Its focused installed-package lane
-passed 4/4 callback-model cases, and the merged verified installed-package
-gate passed all 632 promoted scenario IDs (1,264 callback-model cases when
-both models are selected).
+passed 4/4 callback-model cases; the earlier merged installed-package
+checkpoint recorded all 632 promoted scenario IDs (1,264 callback-model cases
+when both models were selected).
 The promoted `cpp-tck.custom-transportation-timestamped-attribute-delivery`
 scenario and its pure standard contract twin exercise timestamped ordinary
 object publication/subscription, registration/discovery, Update/Reflect
@@ -669,8 +670,9 @@ metadata, retraction callbacks, and adapter-declared transportation identity.
 The source makes no explicit DDM or provider calls; the adapter supplies the
 rich FOM, logical-time implementation, provider, endpoint, and callback
 configuration. Its focused installed-package lane passed 4/4 callback-model
-cases, and the merged verified installed-package gate passed all 632 promoted
-scenario IDs (1,264 callback-model cases when both models are selected).
+cases; the earlier merged installed-package checkpoint recorded all 632
+promoted scenario IDs (1,264 callback-model cases when both models were
+selected).
 The promoted `cpp-tck.custom-transportation-timestamped-attribute-alternate-advances`
 scenario and its pure standard contract twin reuse the verified alternate-time
 oracle for Flush Queue, Time Advance Request Available, and Next Message Request
@@ -678,9 +680,9 @@ Available, then assert that the adapter-declared custom transportation identity
 survives each timestamped ordinary attribute reflection. The source makes no
 explicit DDM or provider calls; the adapter supplies the rich FOM, logical-time
 implementation, provider, endpoint, and callback configuration. Its focused
-installed-package lane passed 4/4 callback-model cases, and the merged verified
-installed-package gate passed all 632 promoted scenario IDs (1,264 callback-model
-cases when both models are selected).
+installed-package lane passed 4/4 callback-model cases; the earlier verified
+installed-package checkpoint recorded all 632 promoted scenario IDs (1,264
+callback-model cases when both models were selected).
 The promoted `cpp-tck.custom-transportation-timestamped-interaction-alternate-advances`
 scenario and its pure standard contract twin reuse the verified alternate-time
 oracle for Flush Queue, Time Advance Request Available, and Next Message Request
@@ -688,9 +690,9 @@ Available, then assert that the adapter-declared custom transportation identity
 survives each timestamped ordinary interaction delivery. The source makes no
 explicit DDM or provider calls; the adapter supplies the rich FOM, logical-time
 implementation, provider, endpoint, and callback configuration. Its focused
-installed-package lane passed 4/4 callback-model cases, and the merged verified
-installed-package gate passed all 632 promoted scenario IDs (1,264 callback-model
-cases when both models are selected).
+installed-package lane passed 4/4 callback-model cases; the earlier verified
+installed-package checkpoint recorded all 632 promoted scenario IDs (1,264
+callback-model cases when both models were selected).
 The promoted `cpp-tck.custom-transportation-timestamped-directed-interaction-alternate-advances`
 scenario and its pure standard contract twin reuse the verified directed
 timestamped-delivery oracle for Flush Queue, Time Advance Request Available, and
@@ -698,9 +700,9 @@ Next Message Request Available, then assert target identity, parameter/tag/time/
 order metadata, custom transportation identity, and retraction behavior. The
 source uses no DDM or provider-specific calls; the adapter supplies the rich FOM,
 logical-time implementation, provider, endpoint, and callback configuration. Its
-focused installed-package lane passed 4/4 callback-model cases, and the merged
-verified installed-package gate passed all 632 promoted scenario IDs (1,264
-callback-model cases when both models are selected).
+focused installed-package lane passed 4/4 callback-model cases; the earlier
+verified installed-package checkpoint recorded all 632 promoted scenario IDs
+(1,264 callback-model cases when both models were selected).
 The promoted `cpp-tck.custom-transportation-timestamped-regional-interaction-delivery`
 scenario and its pure standard contract twin reuse the complete timestamped
 regional-interaction oracle, then verify the adapter-declared custom
@@ -710,7 +712,9 @@ endpoint, and callback configuration; the source uses only the official C++
 API and standard library. The focused installed-package lane passed all 4/4
 callback-model cases, and the merged verified installed-package gate passed
 all 632 promoted scenario IDs (1,264 callback-model cases when both models
-are selected). The catalog contains 632 promoted scenario IDs.
+were selected). The current catalog contains 648 promoted IDs, 3 candidates,
+and 651 inventory entries; current focused verification is recorded in
+`compliance/requirements-lab/cpp-tck-verification-checkpoint-2026-09-18.json`.
 The transport-change duplicate-request assertion is strict in evoked mode;
 immediate mode verifies the already-committed confirmation and delivery state,
 because an immediate callback may close the pending window before a second
@@ -1578,12 +1582,12 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-  that is 632 scenario IDs and 1264 matrix cases. `--scenario-set all`
-  configures the same 632 available IDs (1264 cases); the catalog currently has
-  no unpromoted scenarios. Candidate-inclusive figures later in this document
-  are historical artifacts from the earlier 344-ID, 688-case
-  catalog. The
-aggregate `hla_rti_cpp_tck_installed` CTest
+  that is 648 promoted scenario IDs and 1296 matrix cases. `--scenario-set all`
+  configures all 651 inventory IDs (1302 cases), including 3 candidates. The
+  current checkpoint has not rerun the full 648-ID promoted matrix; focused
+  green gates and candidate failures are recorded in
+  `compliance/requirements-lab/cpp-tck-verification-checkpoint-2026-09-18.json`.
+  The aggregate `hla_rti_cpp_tck_installed` CTest
 remains available for a single full-run check.
 
 The newly promoted `cpp-tck.zero-dimensional-regional-interaction` scenario

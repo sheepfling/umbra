@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "kind": "hla-rti-cpp-tck-verification-checkpoint",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "standard": "IEEE 1516.1-2025",
+  "checkpoint": "hla-standard-tck-2026-09-18-648-promoted-checkpoint",
+  "catalog": {
+    "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+    "promoted": 648,
+    "candidate": 3,
+    "inventory": 651,
+    "full_promoted_matrix_rerun": false
+  },
+  "adapter": {
+    "path": "packages/hla-rti-cpp-tck/adapters/current-package",
+    "package_prefix": ".build/package-smoke-install",
+    "callback_models": [
+      "evoked",
+      "immediate"
+    ],
+    "time_implementation": "HLAinteger64Time",
+    "source_boundary": "official IEEE C++ API headers plus the standard library"
+  },
+  "green_gates": [
+    {
+      "name": "synchronization-and-mom",
+      "scenario_ids": [
+        "cpp-tck.synchronization-points",
+        "cpp-tck.synchronization-point-contract",
+        "cpp-tck.mom-transportation-type-change-request",
+        "cpp-tck.mom-transportation-type-change-request-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "CTest and direct runner; contract-only direct reruns passed",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-synchronization",
+        ".build/cpp-tck-current-mom-rerun"
+      ]
+    },
+    {
+      "name": "asynchronous-delivery",
+      "scenario_ids": [
+        "cpp-tck.asynchronous-delivery",
+        "cpp-tck.asynchronous-delivery-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "CTest and direct runner; contract-only direct rerun passed",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-asynchronous"
+      ]
+    },
+    {
+      "name": "save-and-restore",
+      "scenario_ids": [
+        "cpp-tck.federation-save-restore",
+        "cpp-tck.federation-save-restore-contract",
+        "cpp-tck.timed-federation-save-restore"
+      ],
+      "cases": 6,
+      "passed": 6,
+      "verification": "CTest matrix plus separate direct ordinary, contract, and timed runs",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-save-restore"
+      ]
+    },
+    {
+      "name": "java-parity-core-delivery",
+      "scenario_ids": [
+        "java-tck.object-management",
+        "cpp-tck.object-management-contract",
+        "java-tck.attribute-interaction",
+        "cpp-tck.attribute-interaction-contract",
+        "java-tck.directed-interactions",
+        "cpp-tck.directed-interaction-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner; each pure contract twin independently rerun 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-core-delivery"
+      ]
+    },
+    {
+      "name": "java-parity-membership-support-declarations",
+      "scenario_ids": [
+        "java-tck.federation-membership",
+        "cpp-tck.federation-lifecycle-contract",
+        "java-tck.support-services",
+        "cpp-tck.support-services-contract",
+        "java-tck.declaration-management",
+        "cpp-tck.declaration-management-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner; each pure contract twin independently rerun 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-membership-support"
+      ]
+    },
+    {
+      "name": "logical-time-and-advances",
+      "scenario_ids": [
+        "java-tck.logical-time-factory",
+        "cpp-tck.logical-time-contract",
+        "cpp-tck.logical-time-factory-factory-contract",
+        "cpp-tck.logical-time-data-elements-contract",
+        "java-tck.time-advance",
+        "cpp-tck.time-advance-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner; all four pure logical-time/time-advance contracts independently rerun 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-time"
+      ]
+    },
+    {
+      "name": "ordinary-registration-and-declaration-lifecycle",
+      "scenario_ids": [
+        "cpp-tck.interaction-subscription-lifecycle",
+        "cpp-tck.interaction-subscription-lifecycle-contract",
+        "cpp-tck.interaction-publication-send-fence",
+        "cpp-tck.interaction-publication-send-fence-contract",
+        "cpp-tck.interaction-multi-recipient-fifo",
+        "cpp-tck.interaction-multi-recipient-fifo-contract",
+        "cpp-tck.object-registration-discovery-lifecycle",
+        "cpp-tck.object-registration-discovery-lifecycle-contract",
+        "cpp-tck.object-registration-discovery-multi-recipient",
+        "cpp-tck.object-registration-discovery-multi-recipient-contract",
+        "cpp-tck.named-registration",
+        "cpp-tck.named-registration-contract"
+      ],
+      "cases": 24,
+      "passed": 24,
+      "verification": "CTest and direct runner; all six pure contracts independently rerun 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-registration-declarations"
+      ]
+    }
+  ],
+  "candidate_failures": [
+    {
+      "scenario_ids": [
+        "cpp-tck.allow-relaxed-ddm",
+        "cpp-tck.allow-relaxed-ddm-contract"
+      ],
+      "cases": 4,
+      "passed": 0,
+      "reason": "The installed package did not produce the expected adapter switch-FOM object composition."
+    },
+    {
+      "scenario_ids": [
+        "cpp-tck.regional-boundaries",
+        "cpp-tck.regional-boundaries-contract"
+      ],
+      "cases": 4,
+      "passed": 0,
+      "reason": "The installed package completed an incompatible-region registration without the expected InvalidRegionContext boundary."
+    },
+    {
+      "scenario_ids": [
+        "cpp-tck.ownership-transfer-regional-update",
+        "cpp-tck.ownership-transfer-regional-update-contract"
+      ],
+      "cases": 4,
+      "passed": 2,
+      "reason": "Evoked mode passed; immediate mode returned the wrong attribute set for the wanted-divestiture path."
+    }
+  ],
+  "regional_artifact": ".build/cpp-tck-package-smoke-regional-green",
+  "promotion_policy": "Do not promote candidate scenarios until a fresh installed-package run is green in both callback models."
+}
