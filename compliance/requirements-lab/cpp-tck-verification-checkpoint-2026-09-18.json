@@ -256,6 +256,23 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-timestamped-advances"
       ]
+    },
+    {
+      "name": "timestamped-flush-queue-and-tar-nmr",
+      "scenario_ids": [
+        "cpp-tck.timestamped-attribute-update-flush-queue-future-input",
+        "cpp-tck.timestamped-attribute-update-flush-queue-future-input-contract",
+        "cpp-tck.timestamped-interaction-flush-queue-future-input",
+        "cpp-tck.timestamped-interaction-flush-queue-future-input-contract",
+        "cpp-tck.timestamped-directed-interaction-tar-nmr",
+        "cpp-tck.timestamped-directed-interaction-tar-nmr-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner; all three pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-timestamped-queue"
+      ]
     }
   ],
   "candidate_failures": [
