@@ -681,6 +681,33 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-ordinary-attribute-edges"
       ]
+    },
+    {
+      "name": "ordinary-object-lifecycle-and-removal",
+      "scenario_ids": [
+        "cpp-tck.object-name-reservation-lifecycle",
+        "cpp-tck.object-name-reservation-lifecycle-contract",
+        "cpp-tck.named-registration-multi-recipient",
+        "cpp-tck.named-registration-multi-recipient-contract",
+        "cpp-tck.object-attribute-subscription-lifecycle",
+        "cpp-tck.object-attribute-subscription-lifecycle-contract",
+        "cpp-tck.local-delete-object-instance",
+        "cpp-tck.local-delete-object-instance-contract",
+        "cpp-tck.object-publication-registration-fence",
+        "cpp-tck.object-publication-registration-fence-contract",
+        "cpp-tck.order-type-controls",
+        "cpp-tck.order-type-controls-contract",
+        "cpp-tck.object-removal-multi-recipient-fifo",
+        "cpp-tck.object-removal-multi-recipient-fifo-contract",
+        "cpp-tck.receive-order-object-removal-subscription-withdrawal",
+        "cpp-tck.receive-order-object-removal-subscription-withdrawal-contract"
+      ],
+      "cases": 32,
+      "passed": 32,
+      "verification": "CTest and direct runner; all eight pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-ordinary-object-lifecycle"
+      ]
     }
   ],
   "candidate_failures": [
