@@ -1209,6 +1209,48 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-next-timed-regional-ownership-save-restore"
       ]
+    },
+    {
+      "name": "standard-exception-and-federation-mom-baseline",
+      "scenario_ids": [
+        "cpp-tck.standard-exception-boundaries",
+        "cpp-tck.standard-exception-boundaries-contract",
+        "cpp-tck.federation-mom-current-fdd",
+        "cpp-tck.federation-mom-current-fdd-contract",
+        "cpp-tck.federation-mom-content-reports",
+        "cpp-tck.federation-mom-content-reports-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-mom-basics"
+      ]
+    },
+    {
+      "name": "federation-mom-save-and-service-report-queries",
+      "scenario_ids": [
+        "cpp-tck.federation-mom-save-conditionals",
+        "cpp-tck.federation-mom-save-conditionals-contract",
+        "cpp-tck.federation-mom-save-status",
+        "cpp-tck.federation-mom-save-status-contract",
+        "cpp-tck.service-report-synchronization",
+        "cpp-tck.service-report-synchronization-contract",
+        "cpp-tck.service-report-interlock",
+        "cpp-tck.service-report-interlock-contract",
+        "cpp-tck.federation-mom-synchronization-queries",
+        "cpp-tck.federation-mom-synchronization-queries-contract",
+        "cpp-tck.service-report-order-transportation-lookups",
+        "cpp-tck.service-report-order-transportation-lookups-contract",
+        "cpp-tck.service-report-order-transportation-lookup-failures",
+        "cpp-tck.service-report-order-transportation-lookup-failures-contract"
+      ],
+      "cases": 28,
+      "passed": 28,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-mom-service-reports"
+      ]
     }
   ],
   "candidate_failures": [
