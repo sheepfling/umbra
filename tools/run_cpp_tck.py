@@ -872,6 +872,34 @@ PUBLIC_HANDLE_DECODING_SCENARIOS = (
     "cpp-tck.public-handle-decoding",
     "cpp-tck.public-handle-decoding-contract",
 )
+PORTABLE_DISPATCH_EXACT_SCENARIOS = (
+    "cpp-tck.automatic-resign-directive-delete-objects",
+    "cpp-tck.automatic-resign-directive-delete-objects-contract",
+    "cpp-tck.mom-transportation-type-change-request",
+    "cpp-tck.mom-transportation-type-change-request-contract",
+    "cpp-tck.custom-transportation-directed-interaction-delivery",
+    "cpp-tck.custom-transportation-directed-interaction-delivery-contract",
+    "cpp-tck.federation-save-restore-interlocks",
+    "cpp-tck.federation-save-restore-interlocks-contract",
+    "cpp-tck.allow-relaxed-ddm",
+    "cpp-tck.allow-relaxed-ddm-contract",
+    "cpp-tck.ownership-transfer-regional-update",
+    "cpp-tck.ownership-transfer-regional-update-contract",
+)
+# portable_tck.cpp routes these families through a dedicated top-level handler;
+# keep them out of the ordinary multi-scenario command so that handler does
+# not discard the other IDs in that command.
+PORTABLE_DISPATCH_PREFIXES = (
+    "cpp-tck.delay-subscription-evaluation-",
+    "cpp-tck.timed-",
+    "cpp-tck.regional-",
+    "cpp-tck.timestamped-regional-",
+    "cpp-tck.default-region-",
+    "cpp-tck.passive-regional-",
+    "cpp-tck.multi-region-",
+    "cpp-tck.zero-dimensional-",
+    "cpp-tck.ownership-transfer-",
+)
 CUSTOM_TRANSPORTATION_TIMESTAMPED_REGIONAL_INTERACTION_SCENARIOS = (
     "cpp-tck.custom-transportation-timestamped-regional-interaction-delivery",
     "cpp-tck.custom-transportation-timestamped-regional-interaction-delivery-contract",
@@ -920,6 +948,12 @@ def is_connection_loss_scenario(scenario_id: str) -> bool:
 
 def is_public_handle_decoding_scenario(scenario_id: str) -> bool:
     return scenario_id in PUBLIC_HANDLE_DECODING_SCENARIOS
+
+
+def is_portable_dispatch_scenario(scenario_id: str) -> bool:
+    return scenario_id in PORTABLE_DISPATCH_EXACT_SCENARIOS or any(
+        scenario_id.startswith(prefix) for prefix in PORTABLE_DISPATCH_PREFIXES
+    )
 
 
 def is_custom_transportation_timestamped_regional_interaction_scenario(
@@ -1259,6 +1293,15 @@ def run_direct(
     managed_connection_loss_selected = (
         connection_loss_selected if arguments.connection_loss_fixture else []
     )
+    portable_dispatch_selected = [
+        scenario
+        for scenario in selected
+        if is_portable_dispatch_scenario(scenario["id"])
+        and not (
+            arguments.connection_loss_fixture
+            and is_connection_loss_scenario(scenario["id"])
+        )
+    ]
     special_selected = (
         public_handle_decoding_selected
         + custom_transportation_attribute_selected
@@ -1270,6 +1313,7 @@ def run_direct(
         + custom_transportation_timestamped_directed_delivery_selected
         + custom_transportation_timestamped_directed_interaction_alternate_advances_selected
         + custom_transportation_timestamped_regional_interaction_selected
+        + portable_dispatch_selected
         + managed_connection_loss_selected
     )
     if special_selected:
@@ -1534,6 +1578,23 @@ def run_direct(
                     custom_transportation_timestamped_regional_interaction_junit_parts.append(
                         custom_junit
                     )
+            portable_dispatch_results_parts: list[Path] = []
+            portable_dispatch_junit_parts: list[Path] = []
+            for index, scenario in enumerate(portable_dispatch_selected):
+                portable_results = temporary_root / f"portable-dispatch-{index}.json"
+                portable_junit = temporary_root / f"portable-dispatch-{index}.xml"
+                run_executable_direct(
+                    arguments,
+                    inputs,
+                    executable,
+                    [scenario],
+                    portable_results if results is not None else None,
+                    portable_junit if junit is not None else None,
+                )
+                if results is not None:
+                    portable_dispatch_results_parts.append(portable_results)
+                if junit is not None:
+                    portable_dispatch_junit_parts.append(portable_junit)
             loss_results_parts: list[Path] = []
             loss_junit_parts: list[Path] = []
             if direct_selected:
@@ -1577,7 +1638,7 @@ def run_direct(
                     custom_transportation_timestamped_directed_interaction_alternate_advances_results_parts
                 ) + (
                     custom_transportation_timestamped_regional_interaction_results_parts
-                ) + loss_results_parts
+                ) + portable_dispatch_results_parts + loss_results_parts
                 merge_json_evidence_parts(json_parts, results)
             if junit is not None:
                 junit_parts = (
@@ -1598,7 +1659,7 @@ def run_direct(
                     custom_transportation_timestamped_directed_interaction_alternate_advances_junit_parts
                 ) + (
                     custom_transportation_timestamped_regional_interaction_junit_parts
-                ) + loss_junit_parts
+                ) + portable_dispatch_junit_parts + loss_junit_parts
                 merge_junit_evidence_parts(junit_parts, junit)
     else:
         run_executable_direct(arguments, inputs, executable, selected, results, junit)

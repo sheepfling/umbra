@@ -712,8 +712,10 @@ endpoint, and callback configuration; the source uses only the official C++
 API and standard library. The focused installed-package lane passed all 4/4
 callback-model cases, and the merged verified installed-package gate passed
 all 632 promoted scenario IDs (1,264 callback-model cases when both models
-were selected). The current catalog contains 648 promoted IDs, 3 candidates,
-and 651 inventory entries; current focused verification is recorded in
+were selected). The current catalog contains 651 promoted IDs and 651 inventory
+entries. The fresh all-catalog installed-package matrix passed 1,286/1,302
+callback-model cases, with 16 expected adapter-managed connection-loss or
+automatic-resign fixture skips and zero failures. The evidence is recorded in
 `compliance/requirements-lab/cpp-tck-verification-checkpoint-2026-09-18.json`.
 The transport-change duplicate-request assertion is strict in evoked mode;
 immediate mode verifies the already-committed confirmation and delivery state,
@@ -1582,11 +1584,12 @@ the IEEE API.
 
 The installed-package adapter defaults to the verified scenario set: entries
   whose catalog promotion is `promoted`. With the default `--callback-model both`,
-  that is 648 promoted scenario IDs and 1296 matrix cases. `--scenario-set all`
-  configures all 651 inventory IDs (1302 cases), including 3 candidates. The
-  current checkpoint has not rerun the full 648-ID promoted matrix; focused
-  green gates and candidate failures are recorded in
-  `compliance/requirements-lab/cpp-tck-verification-checkpoint-2026-09-18.json`.
+  that is 651 promoted scenario IDs and 1302 matrix cases. `--scenario-set all`
+  selects the same 651 inventory IDs. The current checkpoint's fresh
+  installed-package matrix passed 1286/1302 cases; 16 connection-loss or
+  automatic-resign cases are expected skips because they require an
+  adapter-managed fixture, and there were zero failures. Evidence is recorded
+  in `compliance/requirements-lab/cpp-tck-verification-checkpoint-2026-09-18.json`.
   The aggregate `hla_rti_cpp_tck_installed` CTest
 remains available for a single full-run check.
 
