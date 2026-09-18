@@ -518,6 +518,23 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-callback-controls-sync-save"
       ]
+    },
+    {
+      "name": "callback-controls-regional-transport-and-federation-reports",
+      "scenario_ids": [
+        "cpp-tck.callback-controls-timestamped-regional-interaction",
+        "cpp-tck.callback-controls-timestamped-regional-interaction-contract",
+        "cpp-tck.callback-controls-transportation",
+        "cpp-tck.callback-controls-transportation-contract",
+        "cpp-tck.callback-controls-federation-reports",
+        "cpp-tck.callback-controls-federation-reports-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner; all three pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-callback-controls-regional-reports"
+      ]
     }
   ],
   "candidate_failures": [
