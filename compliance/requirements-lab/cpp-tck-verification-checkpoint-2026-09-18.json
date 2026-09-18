@@ -1016,9 +1016,36 @@
       ],
       "cases": 8,
       "passed": 8,
-      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "verification": "CTest and direct runner across evoked and immediate callback models; filtering pair independently reran after the adapter-owned unrelated-dimension fixture correction",
       "artifacts": [
-        ".build/cpp-tck-package-smoke-next-regional-interaction-edges"
+        ".build/cpp-tck-package-smoke-next-regional-interaction-edges",
+        ".build/cpp-tck-package-smoke-next-regional-interaction-filtering-current/regional-interaction-filtering-after-unrelated-dimension-fix.json"
+      ]
+    },
+    {
+      "name": "regional-boundary-invalid-context-and-region-use",
+      "scenario_ids": [
+        "cpp-tck.regional-boundaries",
+        "cpp-tck.regional-boundaries-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "CTest and direct runner across evoked and immediate callback models against the fresh installed package after the adapter-owned unrelated-dimension fixture correction",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-regional-boundaries-current3/regional-boundaries-after-unrelated-dimension-fix.json"
+      ]
+    },
+    {
+      "name": "regional-attribute-value-request-filtering",
+      "scenario_ids": [
+        "cpp-tck.regional-attribute-value-request-filtering",
+        "cpp-tck.regional-attribute-value-request-filtering-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "CTest and direct runner across evoked and immediate callback models against the fresh installed package after the adapter-owned unrelated-dimension fixture correction",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-regional-request-current/regional-request-after-unrelated-dimension-fix.json"
       ]
     },
     {
@@ -1487,24 +1514,6 @@
     }
   ],
   "candidate_failures": [
-    {
-      "scenario_ids": [
-        "cpp-tck.regional-boundaries",
-        "cpp-tck.regional-boundaries-contract"
-      ],
-      "cases": 4,
-      "passed": 0,
-      "reason": "The installed package completed an incompatible-region registration without the expected InvalidRegionContext boundary."
-    },
-    {
-      "scenario_ids": [
-        "cpp-tck.regional-attribute-value-request-filtering",
-        "cpp-tck.regional-attribute-value-request-filtering-contract"
-      ],
-      "cases": 4,
-      "passed": 0,
-      "reason": "The installed package completed an incompatible regional value request without the expected InvalidRegionContext boundary in either callback model."
-    }
   ],
   "adapter_gated_scenarios": [],
   "regional_artifact": ".build/cpp-tck-package-smoke-regional-green",

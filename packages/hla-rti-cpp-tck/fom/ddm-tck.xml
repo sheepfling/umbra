@@ -88,6 +88,17 @@
             <outputDataSemantics>Portable Y coordinate.</outputDataSemantics>
             <value>[0..10)</value>
         </dimension>
+        <dimension>
+            <name>TckUnrelatedDimension</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Portable unrelated dimension for negative DDM context tests.</inputDataDescription>
+            <upperBound>10</upperBound>
+            <normalization>Portable unrelated-dimension normalization.</normalization>
+            <outputDataSemantics>Portable unrelated dimension.</outputDataSemantics>
+            <value>[0..10)</value>
+        </dimension>
     </dimensions>
     <switches>
         <autoProvide isEnabled="false"/>

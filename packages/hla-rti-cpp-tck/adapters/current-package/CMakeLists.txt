@@ -83,6 +83,8 @@ set(HLA_RTI_TCK_ADAPTER_RATE_DESIGNATOR "TckSlow"
   CACHE STRING "Lower update-rate designator supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_DDM_DIMENSIONS "TckDimensionX;TckDimensionY"
   CACHE STRING "Semicolon-separated DDM dimensions supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_DDM_UNRELATED_DIMENSION "TckUnrelatedDimension"
+  CACHE STRING "Unrelated DDM dimension supplied for InvalidRegionContext cases")
 set(HLA_RTI_TCK_ADAPTER_THREE_DIMENSIONAL_DIMENSIONS
   "TckDimensionX;TckDimensionY;TckDimensionZ"
   CACHE STRING "Semicolon-separated three-dimensional DDM dimensions supplied by this adapter")
@@ -403,6 +405,8 @@ endforeach()
 foreach(_ddm_dimension IN LISTS HLA_RTI_TCK_ADAPTER_DDM_DIMENSIONS)
   list(APPEND _tck_common_arguments --ddm-dimension "${_ddm_dimension}")
 endforeach()
+list(APPEND _tck_common_arguments
+  --ddm-unrelated-dimension "${HLA_RTI_TCK_ADAPTER_DDM_UNRELATED_DIMENSION}")
 foreach(_three_dimensional_dimension IN LISTS HLA_RTI_TCK_ADAPTER_THREE_DIMENSIONAL_DIMENSIONS)
   list(APPEND _tck_common_arguments
     --three-dimensional-dimension "${_three_dimensional_dimension}")

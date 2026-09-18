@@ -540,6 +540,7 @@ struct Options {
       L"HLAobjectRoot.TckExtensionDimensionalObject";
   std::wstring fomAdditionalDimensionAttributeName = L"AdditionalValue";
   std::vector<std::wstring> ddmDimensionNames = {L"TckDimensionX", L"TckDimensionY"};
+  std::wstring ddmUnrelatedDimensionName = L"TckUnrelatedDimension";
   bool ddmDimensionsConfigured = false;
   std::vector<std::wstring> threeDimensionalDimensionNames = {
       L"TckDimensionX", L"TckDimensionY", L"TckDimensionZ"};
@@ -3052,6 +3053,17 @@ DdmHandles ddmHandles(Session& session, Options const& options) {
   require(result.firstDimension != result.secondDimension,
           "DDM adapter supplied duplicate dimension names");
   return result;
+}
+
+rti::DimensionHandle ddmUnrelatedDimensionHandle(
+    Session& session,
+    Options const& options) {
+  auto const dimension = session.rtiAmbassador().getDimensionHandle(
+      options.ddmUnrelatedDimensionName);
+  require(
+      dimension.isValid(),
+      "DDM adapter supplied an invalid unrelated dimension handle");
+  return dimension;
 }
 
 struct MultiAttributeDdmHandles {
@@ -52152,16 +52164,17 @@ void scenarioRegionalAttributeValueRequestFiltering(
       2UL,
       3UL);
 
-  // A committed region with only one of the object's dimensions is valid as
-  // a region, but is invalid as a request region for this object class.
+  // A committed region over a dimension outside the object's available set is
+  // valid as a region, but is invalid as a request region for this class.
+  auto const wrongContextDimension = ddmUnrelatedDimensionHandle(requester, options);
   auto const wrongContextRegion = requester.rtiAmbassador().createRegion(
-      rti::DimensionHandleSet{requesterHandles.firstDimension});
+      rti::DimensionHandleSet{wrongContextDimension});
   require(
       wrongContextRegion.isValid(),
       "incompatible request region creation returned an invalid handle");
   requester.rtiAmbassador().setRangeBounds(
       wrongContextRegion,
-      requesterHandles.firstDimension,
+      wrongContextDimension,
       rti::RangeBounds(0UL, 1UL));
   requester.rtiAmbassador().commitRegionModifications(
       rti::RegionHandleSet{wrongContextRegion});
@@ -55142,11 +55155,12 @@ void scenarioRegionalInteractionSubscriptionFiltering(
       L"InvalidRegion",
       "regional interaction subscription with an uncommitted region");
 
+  auto const wrongContextDimension = ddmUnrelatedDimensionHandle(subscriber, options);
   auto const wrongContextRegion = subscriber.rtiAmbassador().createRegion(
-      rti::DimensionHandleSet{subscriberHandles.firstDimension});
+      rti::DimensionHandleSet{wrongContextDimension});
   subscriber.rtiAmbassador().setRangeBounds(
       wrongContextRegion,
-      subscriberHandles.firstDimension,
+      wrongContextDimension,
       rti::RangeBounds(0UL, 1UL));
   subscriber.rtiAmbassador().commitRegionModifications(
       rti::RegionHandleSet{wrongContextRegion});
@@ -55160,11 +55174,13 @@ void scenarioRegionalInteractionSubscriptionFiltering(
       L"InvalidRegionContext",
       "regional interaction subscription with an incompatible region context");
 
+  auto const publisherWrongContextDimension =
+      ddmUnrelatedDimensionHandle(publisher, options);
   auto const publisherWrongContextRegion = publisher.rtiAmbassador().createRegion(
-      rti::DimensionHandleSet{publisherHandles.firstDimension});
+      rti::DimensionHandleSet{publisherWrongContextDimension});
   publisher.rtiAmbassador().setRangeBounds(
       publisherWrongContextRegion,
-      publisherHandles.firstDimension,
+      publisherWrongContextDimension,
       rti::RangeBounds(0UL, 1UL));
   publisher.rtiAmbassador().commitRegionModifications(
       rti::RegionHandleSet{publisherWrongContextRegion});
@@ -58115,11 +58131,12 @@ void scenarioRegionalBoundaries(Options const& options, rti::CallbackModel model
   owner.rtiAmbassador().commitRegionModifications(
       rti::RegionHandleSet{uncommittedRegion});
 
+  auto const wrongContextDimension = ddmUnrelatedDimensionHandle(owner, options);
   auto const wrongContextRegion = owner.rtiAmbassador().createRegion(
-      rti::DimensionHandleSet{ownerHandles.firstDimension});
+      rti::DimensionHandleSet{wrongContextDimension});
   owner.rtiAmbassador().setRangeBounds(
       wrongContextRegion,
-      ownerHandles.firstDimension,
+      wrongContextDimension,
       rti::RangeBounds(1UL, 5UL));
   owner.rtiAmbassador().commitRegionModifications(
       rti::RegionHandleSet{wrongContextRegion});
@@ -72911,6 +72928,8 @@ void printHelp() {
       "  --known-class-disabled-fom FILE\n"
       "                                Known-class-disabled advisory FOM supplied by the adapter\n"
       "  --ddm-dimension NAME          Repeat; DDM dimension lookup name\n"
+      "  --ddm-unrelated-dimension NAME\n"
+      "                                DDM dimension excluded from the tested class context\n"
       "  --three-dimensional-dimension NAME\n"
       "                                Repeat; three-dimensional DDM dimension name\n"
       "  --additional-fom FILE         Repeat; extension FOM module supplied by the adapter\n"
@@ -73051,6 +73070,9 @@ Options parseOptions(int argc, char** argv) {
         options.ddmDimensionsConfigured = true;
       }
       options.ddmDimensionNames.push_back(toWide(argv[++index]));
+    } else if (argument == "--ddm-unrelated-dimension") {
+      requireValue(index, argc, argv, argument);
+      options.ddmUnrelatedDimensionName = toWide(argv[++index]);
     } else if (argument == "--three-dimensional-dimension") {
       requireValue(index, argc, argv, argument);
       if (!options.threeDimensionalDimensionsConfigured) {
