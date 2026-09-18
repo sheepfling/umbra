@@ -736,6 +736,23 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-regional-declaration-relevance"
       ]
+    },
+    {
+      "name": "receive-order-callback-cancellation",
+      "scenario_ids": [
+        "cpp-tck.receive-order-attribute-update-callback-cancellation",
+        "cpp-tck.receive-order-attribute-update-callback-cancellation-contract",
+        "cpp-tck.receive-order-interaction-callback-cancellation",
+        "cpp-tck.receive-order-interaction-callback-cancellation-contract",
+        "cpp-tck.receive-order-multi-attribute-update-callback-cancellation",
+        "cpp-tck.receive-order-multi-attribute-update-callback-cancellation-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner; all three pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-receive-order-cancellation"
+      ]
     }
   ],
   "candidate_failures": [
