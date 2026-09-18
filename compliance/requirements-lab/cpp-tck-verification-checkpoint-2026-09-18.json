@@ -407,6 +407,33 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-fom-composition"
       ]
+    },
+    {
+      "name": "callback-controls-core",
+      "scenario_ids": [
+        "cpp-tck.callback-controls",
+        "cpp-tck.callback-controls-contract",
+        "cpp-tck.callback-controls-attribute-update",
+        "cpp-tck.callback-controls-attribute-update-contract",
+        "cpp-tck.callback-controls-object-discovery",
+        "cpp-tck.callback-controls-object-discovery-contract",
+        "cpp-tck.callback-controls-directed-interaction",
+        "cpp-tck.callback-controls-directed-interaction-contract",
+        "cpp-tck.callback-controls-time-advance",
+        "cpp-tck.callback-controls-time-advance-contract",
+        "cpp-tck.callback-controls-flush-queue-grant",
+        "cpp-tck.callback-controls-flush-queue-grant-contract",
+        "cpp-tck.callback-controls-available-time-advance-callbacks",
+        "cpp-tck.callback-controls-available-time-advance-callbacks-contract",
+        "cpp-tck.callback-controls-time-role-enablement",
+        "cpp-tck.callback-controls-time-role-enablement-contract"
+      ],
+      "cases": 32,
+      "passed": 32,
+      "verification": "CTest and direct runner; all eight pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-callback-controls-core"
+      ]
     }
   ],
   "candidate_failures": [
