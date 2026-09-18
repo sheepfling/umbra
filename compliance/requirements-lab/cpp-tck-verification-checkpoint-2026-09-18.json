@@ -1174,6 +1174,41 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-next-timestamped-regional-interactions"
       ]
+    },
+    {
+      "name": "timed-save-restore-regional-and-default-region-delivery",
+      "scenario_ids": [
+        "cpp-tck.timed-default-region-attribute-save-restore",
+        "cpp-tck.timed-default-region-attribute-save-restore-contract",
+        "cpp-tck.timed-default-region-interaction-save-restore",
+        "cpp-tck.timed-default-region-interaction-save-restore-contract",
+        "cpp-tck.timed-regional-interaction-save-restore",
+        "cpp-tck.timed-regional-interaction-save-restore-contract",
+        "cpp-tck.timed-federation-save-restore-contract"
+      ],
+      "cases": 14,
+      "passed": 14,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-timed-save-restore"
+      ]
+    },
+    {
+      "name": "timed-regional-attribute-save-restore-ownership-cancellation",
+      "scenario_ids": [
+        "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore",
+        "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore-contract",
+        "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore",
+        "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore-contract",
+        "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore",
+        "cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-timed-regional-ownership-save-restore"
+      ]
     }
   ],
   "candidate_failures": [
