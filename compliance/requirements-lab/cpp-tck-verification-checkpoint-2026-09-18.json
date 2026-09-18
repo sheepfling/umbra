@@ -1444,6 +1444,20 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-next-connection-loss-ownership/connection-loss-ownership.json"
       ]
+    },
+    {
+      "name": "java-id-parity-ddm-save-restore-mom",
+      "scenario_ids": [
+        "java-tck.ddm",
+        "java-tck.save-restore",
+        "java-tck.mom"
+      ],
+      "cases": 6,
+      "passed": 6,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-java-parity-tail/java-parity-tail.json"
+      ]
     }
   ],
   "candidate_failures": [
