@@ -1005,6 +1005,21 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-next-regional-interaction-routing"
       ]
+    },
+    {
+      "name": "regional-interaction-filtering-and-validation",
+      "scenario_ids": [
+        "cpp-tck.regional-interaction-subscription-filtering",
+        "cpp-tck.regional-interaction-subscription-filtering-contract",
+        "cpp-tck.regional-interaction-region-validation",
+        "cpp-tck.regional-interaction-region-validation-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-regional-interaction-edges"
+      ]
     }
   ],
   "candidate_failures": [
@@ -1054,6 +1069,19 @@
       "cases": 4,
       "status": "skipped",
       "reason": "The current installed-package adapter requires an adapter-managed connection-loss fixture for automatic resign-directive validation."
+    },
+    {
+      "scenario_ids": [
+        "cpp-tck.connection-loss-cleanup",
+        "cpp-tck.connection-loss-cleanup-contract",
+        "cpp-tck.connection-loss-automatic-unconditional-divestiture",
+        "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
+        "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
+        "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract"
+      ],
+      "cases": 12,
+      "status": "skipped",
+      "reason": "The current installed-package adapter requires an adapter-managed connection-loss fixture for cleanup and automatic ownership-cancellation validation."
     }
   ],
   "regional_artifact": ".build/cpp-tck-package-smoke-regional-green",
