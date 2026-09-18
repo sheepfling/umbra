@@ -1020,6 +1020,94 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-next-regional-interaction-edges"
       ]
+    },
+    {
+      "name": "federation-isolation-and-query-lits",
+      "scenario_ids": [
+        "cpp-tck.federation-teardown-isolation",
+        "cpp-tck.federation-teardown-isolation-contract",
+        "cpp-tck.query-lits-source-resignation",
+        "cpp-tck.query-lits-source-resignation-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-isolation-lits"
+      ]
+    },
+    {
+      "name": "federation-save-restore-interlocks",
+      "scenario_ids": [
+        "cpp-tck.federation-save-restore-interlocks",
+        "cpp-tck.federation-save-restore-interlocks-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-save-interlocks"
+      ]
+    },
+    {
+      "name": "delay-subscription-evaluation",
+      "scenario_ids": [
+        "cpp-tck.delay-subscription-evaluation-interaction",
+        "cpp-tck.delay-subscription-evaluation-directed-interaction",
+        "cpp-tck.delay-subscription-evaluation-attribute-update",
+        "cpp-tck.delay-subscription-evaluation-timestamped-interaction",
+        "cpp-tck.delay-subscription-evaluation-timestamped-directed-interaction",
+        "cpp-tck.delay-subscription-evaluation-timestamped-attribute-update",
+        "cpp-tck.delay-subscription-evaluation-interaction-contract",
+        "cpp-tck.delay-subscription-evaluation-directed-interaction-contract",
+        "cpp-tck.delay-subscription-evaluation-attribute-update-contract",
+        "cpp-tck.delay-subscription-evaluation-timestamped-interaction-contract",
+        "cpp-tck.delay-subscription-evaluation-timestamped-directed-interaction-contract",
+        "cpp-tck.delay-subscription-evaluation-timestamped-attribute-update-contract"
+      ],
+      "cases": 24,
+      "passed": 24,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-delay-subscription"
+      ]
+    },
+    {
+      "name": "custom-transportation-delivery",
+      "scenario_ids": [
+        "cpp-tck.custom-transportation-interaction-delivery",
+        "cpp-tck.custom-transportation-interaction-delivery-contract",
+        "cpp-tck.custom-transportation-directed-interaction-delivery",
+        "cpp-tck.custom-transportation-directed-interaction-delivery-contract",
+        "cpp-tck.custom-transportation-regional-attribute-delivery",
+        "cpp-tck.custom-transportation-regional-attribute-delivery-contract",
+        "cpp-tck.custom-transportation-regional-interaction-delivery",
+        "cpp-tck.custom-transportation-regional-interaction-delivery-contract",
+        "cpp-tck.custom-transportation-timestamped-delivery",
+        "cpp-tck.custom-transportation-timestamped-delivery-contract",
+        "cpp-tck.custom-transportation-timestamped-directed-delivery",
+        "cpp-tck.custom-transportation-timestamped-directed-delivery-contract",
+        "cpp-tck.custom-transportation-timestamped-regional-attribute-delivery",
+        "cpp-tck.custom-transportation-timestamped-regional-attribute-delivery-contract",
+        "cpp-tck.custom-transportation-timestamped-regional-interaction-delivery",
+        "cpp-tck.custom-transportation-timestamped-regional-interaction-delivery-contract",
+        "cpp-tck.custom-transportation-attribute-delivery",
+        "cpp-tck.custom-transportation-attribute-delivery-contract",
+        "cpp-tck.custom-transportation-timestamped-attribute-delivery",
+        "cpp-tck.custom-transportation-timestamped-attribute-delivery-contract",
+        "cpp-tck.custom-transportation-timestamped-attribute-alternate-advances",
+        "cpp-tck.custom-transportation-timestamped-attribute-alternate-advances-contract",
+        "cpp-tck.custom-transportation-timestamped-interaction-alternate-advances",
+        "cpp-tck.custom-transportation-timestamped-interaction-alternate-advances-contract",
+        "cpp-tck.custom-transportation-timestamped-directed-interaction-alternate-advances",
+        "cpp-tck.custom-transportation-timestamped-directed-interaction-alternate-advances-contract"
+      ],
+      "cases": 52,
+      "passed": 52,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-custom-transportation"
+      ]
     }
   ],
   "candidate_failures": [
