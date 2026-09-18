@@ -218,6 +218,25 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-resignation-delete-ordinary"
       ]
+    },
+    {
+      "name": "timestamped-ordinary-delivery",
+      "scenario_ids": [
+        "cpp-tck.timestamped-attribute-update",
+        "cpp-tck.timestamped-attribute-update-contract",
+        "cpp-tck.timestamped-interactions",
+        "cpp-tck.timestamped-interactions-contract",
+        "cpp-tck.timestamped-directed-interactions",
+        "cpp-tck.timestamped-directed-interactions-contract",
+        "cpp-tck.timestamped-object-deletion",
+        "cpp-tck.timestamped-object-deletion-contract"
+      ],
+      "cases": 16,
+      "passed": 16,
+      "verification": "CTest and direct runner; all four pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-timestamped-ordinary"
+      ]
     }
   ],
   "candidate_failures": [
