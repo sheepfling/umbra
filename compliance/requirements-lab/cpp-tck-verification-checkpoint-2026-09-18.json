@@ -585,6 +585,23 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-data-elements"
       ]
+    },
+    {
+      "name": "connection-and-input-boundaries",
+      "scenario_ids": [
+        "cpp-tck.connection-callback-contract",
+        "cpp-tck.callback-reentrancy",
+        "cpp-tck.callback-reentrancy-contract",
+        "java-tck.overloads-and-exceptions",
+        "java-tck.malformed-inputs",
+        "cpp-tck.malformed-inputs-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner; all three pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-connection-boundaries"
+      ]
     }
   ],
   "candidate_failures": [
