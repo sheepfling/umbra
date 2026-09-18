@@ -1251,6 +1251,97 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-next-mom-service-reports"
       ]
+    },
+    {
+      "name": "service-report-ordinary-delivery-and-declarations",
+      "scenario_ids": [
+        "cpp-tck.service-report-interaction",
+        "cpp-tck.service-report-interaction-contract",
+        "cpp-tck.service-report-receive-order-interaction",
+        "cpp-tck.service-report-receive-order-interaction-contract",
+        "cpp-tck.service-report-regional-interaction",
+        "cpp-tck.service-report-regional-interaction-contract",
+        "cpp-tck.service-report-regional-interaction-subscription",
+        "cpp-tck.service-report-regional-interaction-subscription-contract",
+        "cpp-tck.service-report-object-attribute-declaration",
+        "cpp-tck.service-report-object-attribute-declaration-contract",
+        "cpp-tck.service-report-directed-interaction-declaration",
+        "cpp-tck.service-report-directed-interaction-declaration-contract",
+        "cpp-tck.service-report-directed-interaction-publication",
+        "cpp-tck.service-report-directed-interaction-publication-contract",
+        "cpp-tck.service-report-interaction-publication",
+        "cpp-tck.service-report-interaction-publication-contract",
+        "cpp-tck.service-report-interaction-subscription",
+        "cpp-tck.service-report-interaction-subscription-contract",
+        "cpp-tck.service-report-attribute-update",
+        "cpp-tck.service-report-attribute-update-contract"
+      ],
+      "cases": 40,
+      "passed": 40,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-service-report-ordinary"
+      ]
+    },
+    {
+      "name": "service-report-timestamped-and-named-registration",
+      "scenario_ids": [
+        "cpp-tck.service-report-timestamped-directed-interaction",
+        "cpp-tck.service-report-timestamped-directed-interaction-contract",
+        "cpp-tck.service-report-timestamped-attribute-update",
+        "cpp-tck.service-report-timestamped-attribute-update-contract",
+        "cpp-tck.service-report-timestamped-delete-object-instance",
+        "cpp-tck.service-report-timestamped-delete-object-instance-contract",
+        "cpp-tck.service-report-timestamped-interaction",
+        "cpp-tck.service-report-timestamped-interaction-contract",
+        "cpp-tck.service-report-request-attribute-value-update",
+        "cpp-tck.service-report-request-attribute-value-update-contract",
+        "cpp-tck.service-report-register-object-instance",
+        "cpp-tck.service-report-register-object-instance-contract",
+        "cpp-tck.service-report-reserve-object-instance-name",
+        "cpp-tck.service-report-reserve-object-instance-name-contract",
+        "cpp-tck.service-report-release-object-instance-name",
+        "cpp-tck.service-report-release-object-instance-name-contract",
+        "cpp-tck.service-report-release-multiple-object-instance-names",
+        "cpp-tck.service-report-release-multiple-object-instance-names-contract"
+      ],
+      "cases": 36,
+      "passed": 36,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-service-report-timestamped-names"
+      ]
+    },
+    {
+      "name": "service-report-failure-and-delete-lifecycle",
+      "scenario_ids": [
+        "cpp-tck.service-report-interaction-failure",
+        "cpp-tck.service-report-interaction-failure-contract",
+        "cpp-tck.service-report-regional-interaction-failure",
+        "cpp-tck.service-report-regional-interaction-failure-contract",
+        "cpp-tck.service-report-attribute-update-failure",
+        "cpp-tck.service-report-attribute-update-failure-contract",
+        "cpp-tck.service-report-timestamped-attribute-update-failure",
+        "cpp-tck.service-report-timestamped-attribute-update-failure-contract",
+        "cpp-tck.service-report-timestamped-interaction-failure",
+        "cpp-tck.service-report-timestamped-interaction-failure-contract",
+        "cpp-tck.service-report-timestamped-delete-object-instance-failure",
+        "cpp-tck.service-report-timestamped-delete-object-instance-failure-contract",
+        "cpp-tck.service-report-local-delete-object-instance",
+        "cpp-tck.service-report-local-delete-object-instance-contract",
+        "cpp-tck.service-report-local-delete-object-instance-failure",
+        "cpp-tck.service-report-local-delete-object-instance-failure-contract",
+        "cpp-tck.service-report-delete-object-instance",
+        "cpp-tck.service-report-delete-object-instance-contract",
+        "cpp-tck.service-report-delete-object-instance-failure",
+        "cpp-tck.service-report-delete-object-instance-failure-contract"
+      ],
+      "cases": 40,
+      "passed": 40,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-service-report-failures"
+      ]
     }
   ],
   "candidate_failures": [
