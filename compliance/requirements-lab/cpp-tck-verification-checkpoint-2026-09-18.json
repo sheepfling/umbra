@@ -6,8 +6,8 @@
   "checkpoint": "hla-standard-tck-2026-09-18-648-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
-    "promoted": 648,
-    "candidate": 3,
+    "promoted": 646,
+    "candidate": 5,
     "inventory": 651,
     "full_promoted_matrix_rerun": false
   },
@@ -1413,6 +1413,37 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-next-joined-federate-mom"
       ]
+    },
+    {
+      "name": "connection-loss-cleanup-and-automatic-resign",
+      "scenario_ids": [
+        "cpp-tck.connection-loss-cleanup",
+        "cpp-tck.connection-loss-cleanup-contract",
+        "cpp-tck.automatic-resign-directive-delete-objects",
+        "cpp-tck.automatic-resign-directive-delete-objects-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "Direct adapter runner with the standard process-service fixture across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-connection-loss-cleanup/connection-loss-cleanup.json",
+        ".build/cpp-tck-package-smoke-next-automatic-resign-delete/automatic-resign-delete.json"
+      ]
+    },
+    {
+      "name": "connection-loss-automatic-ownership-cleanup",
+      "scenario_ids": [
+        "cpp-tck.connection-loss-automatic-unconditional-divestiture",
+        "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
+        "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
+        "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "Direct adapter runner with the standard process-service fixture across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-connection-loss-ownership/connection-loss-ownership.json"
+      ]
     }
   ],
   "candidate_failures": [
@@ -1453,30 +1484,7 @@
       "reason": "The installed package completed an incompatible regional value request without the expected InvalidRegionContext boundary in either callback model."
     }
   ],
-  "adapter_gated_scenarios": [
-    {
-      "scenario_ids": [
-        "cpp-tck.automatic-resign-directive-delete-objects",
-        "cpp-tck.automatic-resign-directive-delete-objects-contract"
-      ],
-      "cases": 4,
-      "status": "skipped",
-      "reason": "The current installed-package adapter requires an adapter-managed connection-loss fixture for automatic resign-directive validation."
-    },
-    {
-      "scenario_ids": [
-        "cpp-tck.connection-loss-cleanup",
-        "cpp-tck.connection-loss-cleanup-contract",
-        "cpp-tck.connection-loss-automatic-unconditional-divestiture",
-        "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
-        "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
-        "cpp-tck.connection-loss-automatic-cancel-pending-acquisition-contract"
-      ],
-      "cases": 12,
-      "status": "skipped",
-      "reason": "The current installed-package adapter requires an adapter-managed connection-loss fixture for cleanup and automatic ownership-cancellation validation."
-    }
-  ],
+  "adapter_gated_scenarios": [],
   "regional_artifact": ".build/cpp-tck-package-smoke-regional-green",
   "promotion_policy": "Do not promote candidate scenarios until a fresh installed-package run is green in both callback models."
 }
