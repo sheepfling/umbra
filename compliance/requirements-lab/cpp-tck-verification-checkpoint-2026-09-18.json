@@ -822,6 +822,19 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-handle-lookups"
       ]
+    },
+    {
+      "name": "public-handle-encoding-and-decoding",
+      "scenario_ids": [
+        "cpp-tck.public-handle-decoding",
+        "cpp-tck.public-handle-decoding-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "CTest and direct runner; the pure contract independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-public-handle-decoding"
+      ]
     }
   ],
   "candidate_failures": [
