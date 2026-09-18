@@ -780,6 +780,27 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-timestamped-source-order"
       ]
+    },
+    {
+      "name": "timestamped-terminal-queue-and-rate-reduction",
+      "scenario_ids": [
+        "cpp-tck.timestamped-local-delete-object",
+        "cpp-tck.timestamped-local-delete-object-contract",
+        "cpp-tck.timestamped-local-delete-attribute",
+        "cpp-tck.timestamped-local-delete-attribute-contract",
+        "cpp-tck.timestamped-object-deletion-source-resignation-fanout",
+        "cpp-tck.timestamped-object-deletion-source-resignation-fanout-contract",
+        "cpp-tck.next-message-request",
+        "cpp-tck.next-message-request-contract",
+        "cpp-tck.timestamped-attribute-update-rate-reduction",
+        "cpp-tck.timestamped-attribute-update-rate-reduction-contract"
+      ],
+      "cases": 20,
+      "passed": 20,
+      "verification": "CTest and direct runner; all five pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-timestamped-terminal-queue"
+      ]
     }
   ],
   "candidate_failures": [
