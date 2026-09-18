@@ -368,6 +368,45 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-timestamped-directed-edges"
       ]
+    },
+    {
+      "name": "fom-composition-and-validation",
+      "scenario_ids": [
+        "cpp-tck.explicit-mim-creation",
+        "cpp-tck.explicit-mim-creation-contract",
+        "cpp-tck.fom-model",
+        "cpp-tck.fom-model-contract",
+        "cpp-tck.fom-module-composition",
+        "cpp-tck.fom-module-composition-contract",
+        "cpp-tck.fom-additional-module-join-atomicity",
+        "cpp-tck.fom-additional-module-join-atomicity-contract",
+        "cpp-tck.fom-transportation-handle-stability",
+        "cpp-tck.fom-transportation-handle-stability-contract",
+        "cpp-tck.fom-dimension-handle-stability",
+        "cpp-tck.fom-dimension-handle-stability-contract",
+        "cpp-tck.fom-update-rate-value-stability",
+        "cpp-tck.fom-update-rate-value-stability-contract",
+        "cpp-tck.fom-invalid-create-atomicity",
+        "cpp-tck.fom-invalid-create-atomicity-contract",
+        "cpp-tck.fom-invalid-composite-join-atomicity",
+        "cpp-tck.fom-invalid-composite-join-atomicity-contract",
+        "cpp-tck.fom-invalid-mim-create-atomicity",
+        "cpp-tck.fom-invalid-mim-create-atomicity-contract",
+        "cpp-tck.fom-invalid-composite-mim-create-atomicity",
+        "cpp-tck.fom-invalid-composite-mim-create-atomicity-contract",
+        "cpp-tck.fom-empty-mim-create-atomicity",
+        "cpp-tck.fom-empty-mim-create-atomicity-contract",
+        "cpp-tck.fom-empty-module-validation",
+        "cpp-tck.fom-empty-module-validation-contract",
+        "cpp-tck.fom-standard-invalid-input-corpus",
+        "cpp-tck.fom-standard-invalid-input-corpus-contract"
+      ],
+      "cases": 56,
+      "passed": 56,
+      "verification": "CTest and direct runner; all fourteen pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-fom-composition"
+      ]
     }
   ],
   "candidate_failures": [
