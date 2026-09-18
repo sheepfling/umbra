@@ -835,6 +835,23 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-public-handle-decoding"
       ]
+    },
+    {
+      "name": "regional-lifecycle-and-object-core",
+      "scenario_ids": [
+        "cpp-tck.region-lifecycle",
+        "cpp-tck.region-lifecycle-contract",
+        "cpp-tck.regional-unpublish-region-release",
+        "cpp-tck.regional-unpublish-region-release-contract",
+        "cpp-tck.regional-object-update",
+        "cpp-tck.regional-object-update-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "CTest and direct runner; all three pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-regional-core"
+      ]
     }
   ],
   "candidate_failures": [
