@@ -708,6 +708,21 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-ordinary-object-lifecycle"
       ]
+    },
+    {
+      "name": "known-class-declaration-relevance",
+      "scenario_ids": [
+        "cpp-tck.attribute-relevance-known-class",
+        "cpp-tck.attribute-relevance-known-class-contract",
+        "cpp-tck.attribute-relevance-known-class-disabled",
+        "cpp-tck.attribute-relevance-known-class-disabled-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "CTest and direct runner; both pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-declaration-relevance"
+      ]
     }
   ],
   "candidate_failures": [
