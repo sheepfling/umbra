@@ -499,6 +499,25 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-callback-controls-ownership-transitions"
       ]
+    },
+    {
+      "name": "callback-controls-synchronization-and-save-restore",
+      "scenario_ids": [
+        "cpp-tck.callback-controls-synchronization",
+        "cpp-tck.callback-controls-synchronization-contract",
+        "cpp-tck.callback-controls-save-restore",
+        "cpp-tck.callback-controls-save-restore-contract",
+        "cpp-tck.callback-controls-save-restore-failures",
+        "cpp-tck.callback-controls-save-restore-failures-contract",
+        "cpp-tck.callback-controls-restore-request-failure",
+        "cpp-tck.callback-controls-restore-request-failure-contract"
+      ],
+      "cases": 16,
+      "passed": 16,
+      "verification": "CTest and direct runner; all four pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-callback-controls-sync-save"
+      ]
     }
   ],
   "candidate_failures": [
