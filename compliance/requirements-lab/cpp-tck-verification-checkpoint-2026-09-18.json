@@ -434,6 +434,29 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-callback-controls-core"
       ]
+    },
+    {
+      "name": "callback-controls-advisories-and-name-reservation",
+      "scenario_ids": [
+        "cpp-tck.callback-controls-object-removal",
+        "cpp-tck.callback-controls-object-removal-contract",
+        "cpp-tck.callback-controls-object-name-reservation",
+        "cpp-tck.callback-controls-object-name-reservation-contract",
+        "cpp-tck.callback-controls-object-name-reservation-failure",
+        "cpp-tck.callback-controls-object-name-reservation-failure-contract",
+        "cpp-tck.callback-controls-multiple-object-name-reservation",
+        "cpp-tck.callback-controls-multiple-object-name-reservation-contract",
+        "cpp-tck.callback-controls-declaration-advisories",
+        "cpp-tck.callback-controls-declaration-advisories-contract",
+        "cpp-tck.callback-controls-attribute-relevance-advisories",
+        "cpp-tck.callback-controls-attribute-relevance-advisories-contract"
+      ],
+      "cases": 24,
+      "passed": 24,
+      "verification": "CTest and direct runner; all six pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-callback-controls-advisories"
+      ]
     }
   ],
   "candidate_failures": [
