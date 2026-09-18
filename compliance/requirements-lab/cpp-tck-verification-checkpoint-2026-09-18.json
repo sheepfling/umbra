@@ -237,6 +237,25 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-timestamped-ordinary"
       ]
+    },
+    {
+      "name": "timestamped-alternate-advances",
+      "scenario_ids": [
+        "cpp-tck.timestamped-attribute-update-alternate-advances",
+        "cpp-tck.timestamped-attribute-update-alternate-advances-contract",
+        "cpp-tck.timestamped-interaction-mixed-advances",
+        "cpp-tck.timestamped-interaction-mixed-advances-contract",
+        "cpp-tck.timestamped-directed-alternate-advances",
+        "cpp-tck.timestamped-directed-alternate-advances-contract",
+        "cpp-tck.timestamped-object-deletion-mixed-advances",
+        "cpp-tck.timestamped-object-deletion-mixed-advances-contract"
+      ],
+      "cases": 16,
+      "passed": 16,
+      "verification": "CTest and direct runner; all four pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-timestamped-advances"
+      ]
     }
   ],
   "candidate_failures": [
