@@ -918,6 +918,36 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-next-scope-inheritance"
       ]
+    },
+    {
+      "name": "directed-interaction-fanout-and-fifo",
+      "scenario_ids": [
+        "cpp-tck.directed-interaction-mixed-subscription-fanout",
+        "cpp-tck.directed-interaction-mixed-subscription-fanout-contract",
+        "cpp-tck.directed-interaction-multi-recipient-fifo",
+        "cpp-tck.directed-interaction-multi-recipient-fifo-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-directed-fanout"
+      ]
+    },
+    {
+      "name": "ordinary-update-rate-and-reissue",
+      "scenario_ids": [
+        "cpp-tck.mixed-update-rate-subscriptions",
+        "cpp-tck.mixed-update-rate-subscriptions-contract",
+        "cpp-tck.attribute-relevance-rate-reissue",
+        "cpp-tck.attribute-relevance-rate-reissue-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-update-rate"
+      ]
     }
   ],
   "candidate_failures": [
