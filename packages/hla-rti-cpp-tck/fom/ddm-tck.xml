@@ -96,7 +96,6 @@
         <interactionRelevanceAdvisory isEnabled="false"/>
         <delaySubscriptionEvaluation isEnabled="false"/>
         <nonRegulatedGrant isEnabled="false"/>
-        <allowRelaxedDDM isEnabled="false"/>
         <advisoriesUseKnownClass isEnabled="false"/>
     </switches>
 </objectModel>

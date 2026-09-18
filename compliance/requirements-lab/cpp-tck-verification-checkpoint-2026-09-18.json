@@ -6,8 +6,8 @@
   "checkpoint": "hla-standard-tck-2026-09-18-648-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
-    "promoted": 646,
-    "candidate": 5,
+    "promoted": 647,
+    "candidate": 4,
     "inventory": 651,
     "full_promoted_matrix_rerun": false
   },
@@ -1458,18 +1458,22 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-next-java-parity-tail/java-parity-tail.json"
       ]
-    }
-  ],
-  "candidate_failures": [
+    },
     {
+      "name": "allow-relaxed-ddm-switch-and-touching-region",
       "scenario_ids": [
         "cpp-tck.allow-relaxed-ddm",
         "cpp-tck.allow-relaxed-ddm-contract"
       ],
-      "cases": 4,
-      "passed": 0,
-      "reason": "The installed package did not produce the expected adapter switch-FOM object composition."
-    },
+      "cases": 8,
+      "passed": 8,
+      "verification": "CTest and direct runner across evoked and immediate callback models after removing the duplicate disabled adapter switch",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-next-allow-relaxed-ddm-current/allow-relaxed-ddm-after-fixture-fix.json"
+      ]
+    }
+  ],
+  "candidate_failures": [
     {
       "scenario_ids": [
         "cpp-tck.regional-boundaries",

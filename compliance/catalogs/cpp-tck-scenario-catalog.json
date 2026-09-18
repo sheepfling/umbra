@@ -14714,7 +14714,7 @@
       "runner_id": "cpp-tck.allow-relaxed-ddm-contract",
       "parity": "cpp-tck.allow-relaxed-ddm",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.regional-multi-attribute-update",
