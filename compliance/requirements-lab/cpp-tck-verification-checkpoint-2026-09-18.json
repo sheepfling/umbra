@@ -801,6 +801,27 @@
       "artifacts": [
         ".build/cpp-tck-package-smoke-timestamped-terminal-queue"
       ]
+    },
+    {
+      "name": "handle-lookup-lifecycle",
+      "scenario_ids": [
+        "cpp-tck.interaction-class-lookup-lifecycle",
+        "cpp-tck.interaction-class-lookup-lifecycle-contract",
+        "cpp-tck.object-class-lookup-lifecycle",
+        "cpp-tck.object-class-lookup-lifecycle-contract",
+        "cpp-tck.attribute-lookup-lifecycle",
+        "cpp-tck.attribute-lookup-lifecycle-contract",
+        "cpp-tck.parameter-lookup-lifecycle",
+        "cpp-tck.parameter-lookup-lifecycle-contract",
+        "cpp-tck.dimension-lookup-lifecycle",
+        "cpp-tck.dimension-lookup-lifecycle-contract"
+      ],
+      "cases": 20,
+      "passed": 20,
+      "verification": "CTest and direct runner; all five pure contracts independently reran 2/2",
+      "artifacts": [
+        ".build/cpp-tck-package-smoke-handle-lookups"
+      ]
     }
   ],
   "candidate_failures": [
