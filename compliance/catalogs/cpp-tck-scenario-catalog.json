@@ -353,7 +353,7 @@
       "contract_refs": [
         "standard-federation-lifecycle-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFederationLifecycleContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioFederationLifecycleContractPortable",
       "runner_id": "cpp-tck.federation-lifecycle-contract",
       "parity": "java-tck.federation-membership",
       "default_status": "run",
@@ -869,7 +869,7 @@
         "federate-lookup-api-contract.json",
         "federate-lookup-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFederationLifecycle",
+      "cpp_test": "src/portable_tck.cpp#scenarioFederationLifecyclePortable",
       "runner_id": "java-tck.federation-membership",
       "default_status": "run",
       "promotion": "promoted"

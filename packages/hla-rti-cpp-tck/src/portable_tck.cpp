@@ -14,6 +14,9 @@ constexpr char logicalTimeContractScenario[] =
     "cpp-tck.logical-time-contract";
 constexpr char logicalTimeFactoryFactoryContractScenario[] =
     "cpp-tck.logical-time-factory-factory-contract";
+constexpr char federationLifecycleScenario[] = "java-tck.federation-membership";
+constexpr char federationLifecycleContractScenario[] =
+    "cpp-tck.federation-lifecycle-contract";
 constexpr char automaticResignDirectiveDeleteObjectsId[] =
     "cpp-tck.automatic-resign-directive-delete-objects";
 constexpr char automaticResignDirectiveDeleteObjectsContractId[] =
@@ -463,6 +466,17 @@ void scenarioLogicalTimeFactoryFactoryPortable(
   verifyStandardLogicalTimeFactoryFactoryContract();
 }
 
+void scenarioFederationLifecyclePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationLifecycle(options, model);
+}
+
+void scenarioFederationLifecycleContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationLifecycleContract(options, model);
+}
 void scenarioSynchronizationPointsPortable(
     Options const& options,
     rti::CallbackModel model) {
@@ -7403,6 +7417,15 @@ int runLogicalTimeFactoryFactoryScenarios(int argc, char** argv) {
       scenarioLogicalTimeFactoryFactoryPortable,
       scenarioLogicalTimeFactoryFactoryPortable);
 }
+int runFederationLifecycleScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationLifecycleScenario,
+      federationLifecycleContractScenario,
+      scenarioFederationLifecyclePortable,
+      scenarioFederationLifecycleContractPortable);
+}
 
 int runSynchronizationPointScenarios(int argc, char** argv) {
   auto const options = parseOptions(argc, argv);
@@ -8716,6 +8739,19 @@ bool hasLogicalTimeFactoryFactoryScenario(int argc, char** argv) {
   }
   return false;
 }
+bool hasFederationLifecycleScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationLifecycleScenario ||
+        scenario == federationLifecycleContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
 
 bool hasSynchronizationPointScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
@@ -9157,6 +9193,9 @@ int main(int argc, char** argv) {
     }
     if (hasLogicalTimeFactoryFactoryScenario(argc, argv)) {
       return runLogicalTimeFactoryFactoryScenarios(argc, argv);
+    }
+    if (hasFederationLifecycleScenario(argc, argv)) {
+      return runFederationLifecycleScenarios(argc, argv);
     }
     if (hasLogicalTimeScenario(argc, argv)) {
       return runLogicalTimeScenarios(argc, argv);

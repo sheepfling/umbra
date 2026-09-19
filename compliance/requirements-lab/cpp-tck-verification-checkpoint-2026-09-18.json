@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-logical-time-factory-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-federation-lifecycle-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2593,6 +2593,22 @@
         ".build/cpp-tck-full-promoted-2026-09-18/logical-time-factory-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-logical-time-factory.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-logical-time-factory.xml"
+      ]
+    },
+    {
+      "name": "federation-lifecycle-java-parity",
+      "scenario_ids": [
+        "java-tck.federation-membership",
+        "cpp-tck.federation-lifecycle-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused installed-package direct runner across evoked and immediate callback models; the Java-parity federation membership scenario and portable federation-lifecycle contract passed 4/4 and were included in the complete 702-scenario promoted evidence run.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/federation-lifecycle-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/federation-lifecycle-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.xml"
       ]
     }
   ],
