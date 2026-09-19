@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for standard order-type controls. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies prospective default attribute order, per-object attribute-order override, receive-order interaction control, timestamped attribute and interaction delivery, order metadata, retraction metadata, and callback servicing. It does not assert provider-specific names, registries, headers, MOM behavior, DDM, save/restore, or interoperability.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-order-type-change",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador order-type controls, publication, subscription, registration, logical-time roles, timestamped update/send services, and FederateAmbassador discovery, time-role, reflection, interaction, and grant callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador order-control and time-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioOrderTypeChange",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioOrderTypeChangeContract"
+      ]
+    }
+  ]
+}

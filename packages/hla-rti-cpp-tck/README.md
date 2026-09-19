@@ -224,7 +224,9 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.resign-delete-objects-multi-recipient-fifo` | Publisher resignation with `DELETE_OBJECTS` delivers two ordinary removals to both active subscribers in producer order, with empty resign tags and no owner loopback |
 | `cpp-tck.resign-delete-objects-multi-recipient-fifo-contract` | Standard adapter-backed resign-time object-removal fan-out and owner-exclusion contract across two active subscribers |
 | `cpp-tck.order-type-controls-contract` | Standard adapter-backed prospective attribute and interaction order-control contract with logical-time delivery and receive-order callbacks |
- | `cpp-tck.receive-order-attribute-update-callback-cancellation` | In evoked mode, cancel a queued receive-order attribute reflection by unsubscribing before callback servicing; in immediate mode, verify delivery before the subscription is removed |
+| `cpp-tck.order-type-change` | Portable standard order-type controls: prospective defaults, per-object override, receive-order interaction control, timestamped delivery, order metadata, and retraction identity |
+| `cpp-tck.order-type-change-contract` | Pure standard C++ contract for attribute and interaction order-type controls using only official API headers and the standard library |
+  | `cpp-tck.receive-order-attribute-update-callback-cancellation` | In evoked mode, cancel a queued receive-order attribute reflection by unsubscribing before callback servicing; in immediate mode, verify delivery before the subscription is removed |
  | `cpp-tck.receive-order-attribute-update-callback-cancellation-contract` | Standard adapter-backed receive-order attribute-reflection cancellation contract across evoked and immediate callback boundaries |
  | `cpp-tck.receive-order-attribute-update` | Deliver two consecutive ordinary receive-order attribute updates in producer order, preserving reflection metadata and excluding publisher loopback |
  | `cpp-tck.receive-order-attribute-update-contract` | Pure standard C++ contract for ordinary receive-order attribute publication, discovery, reflection ordering, metadata, and teardown |
@@ -1122,6 +1124,13 @@ transport metadata are checked through the standard callback.
 The promoted order-control contract isolates prospective default and per-instance
 attribute ordering plus interaction order control, timestamped delivery, and
 logical-time callback boundaries through the official C++ API.
+
+The promoted `cpp-tck.order-type-change` scenario and its pure contract twin
+make that order-control surface independently selectable from the portable
+source. They verify prospective default attributes, a per-object timestamp
+override, receive-order interaction delivery, timestamp/order metadata, and
+retraction identity while taking provider, FOM, endpoint, callback, and
+logical-time configuration from the adapter.
 
 The promoted interaction-subscription lifecycle case verifies the adjacent
 ordinary declaration transitions. A passive subscription suppresses an
@@ -2063,6 +2072,11 @@ changes as an independently selectable standard slice. They verify standard
 reliable/best-effort lookup, pending versus immediate confirmation boundaries,
 delivery before and after confirmation, and committed query reports while the
 provider package, FOM, endpoint, and callback model remain adapter inputs.
+The promoted `cpp-tck.order-type-change` scenario and its pure contract twin
+similarly expose the remaining ordinary order-control route as a separate
+portable standard slice, covering prospective defaults, per-object overrides,
+receive-order interaction control, timestamped delivery, and order/retraction
+metadata without adding provider-specific dependencies.
 The promoted `cpp-tck.fom-model-contract`,
 `cpp-tck.fom-module-composition-contract`,
 `cpp-tck.fom-additional-module-join-atomicity-contract`, and

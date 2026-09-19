@@ -905,6 +905,8 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "cpp-tck.modify-lookahead-contract",
     "cpp-tck.transportation-type-change",
     "cpp-tck.transportation-type-change-contract",
+    "cpp-tck.order-type-change",
+    "cpp-tck.order-type-change-contract",
     "cpp-tck.unconditional-attribute-ownership-divestiture",
     "cpp-tck.unconditional-attribute-ownership-divestiture-contract",
     "cpp-tck.auto-provide-disabled-discovery-only",

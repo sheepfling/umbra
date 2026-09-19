@@ -14540,6 +14540,101 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.order-type-change",
+      "category": "order-type-change",
+      "title": "Exercise prospective attribute-order defaults, per-object overrides, receive-order interaction control, and timestamped delivery",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.changeAttributeOrderType",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableAsynchronousDelivery",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.receiveInteraction(time)"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-order-type-control",
+        "cpp-1516.1-time-management",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-interaction-parameter-delivery",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-order-type-change-contract.json"
+      ],
+      "native_equivalent_runner_ids": [
+        "cpp-tck.order-type-controls"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioOrderTypeChange",
+      "runner_id": "cpp-tck.order-type-change",
+      "parity": "java-tck.transport-order",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.order-type-change-contract",
+      "category": "order-type-change",
+      "title": "Pure standard C++ contract for attribute and interaction order-type controls",
+      "api_methods": [
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.changeAttributeOrderType",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.enableAsynchronousDelivery",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.sendInteraction(time)",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.receiveInteraction(time)"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-order-type-control",
+        "cpp-1516.1-time-management",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-interaction-parameter-delivery"
+      ],
+      "contract_refs": [
+        "standard-order-type-change-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioOrderTypeChangeContract",
+      "runner_id": "cpp-tck.order-type-change-contract",
+      "parity": "cpp-tck.order-type-change",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-directed-interaction-retraction-fanout",
       "category": "timestamped-directed-interaction-retraction-fanout",
       "title": "Retract one queued timestamped directed interaction across multiple recipients before delivery",

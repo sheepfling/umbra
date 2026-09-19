@@ -172,6 +172,9 @@ constexpr char transportationTypeChangeScenario[] =
     "cpp-tck.transportation-type-change";
 constexpr char transportationTypeChangeContractId[] =
     "cpp-tck.transportation-type-change-contract";
+constexpr char orderTypeChangeScenario[] = "cpp-tck.order-type-change";
+constexpr char orderTypeChangeContractId[] =
+    "cpp-tck.order-type-change-contract";
 constexpr char unconditionalAttributeOwnershipDivestitureScenario[] =
     "cpp-tck.unconditional-attribute-ownership-divestiture";
 constexpr char unconditionalAttributeOwnershipDivestitureContractId[] =
@@ -5596,6 +5599,337 @@ void scenarioTransportationTypeChangeContract(
   scenarioTransportationTypeChange(options, model);
 }
 
+void scenarioOrderTypeChange(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Order-type change testing requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "order-type-change-publisher");
+  Session receiver(options, model, "order-type-change-receiver");
+  auto const federation = federationName(options, "order-type-change");
+  publisher.connect();
+  receiver.connect();
+  publisher.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  publisher.join(options.ownerFederateName, options.federateType, federation);
+  receiver.join(
+      options.memberFederateName + L"-order-type-change",
+      options.federateType,
+      federation);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverClass,
+      options.attributeName);
+  auto const publisherInteraction =
+      publisher.rtiAmbassador().getInteractionClassHandle(options.interactionClassName);
+  auto const receiverInteraction =
+      receiver.rtiAmbassador().getInteractionClassHandle(options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      publisherClass.isValid() && receiverClass.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid() &&
+          publisherInteraction.isValid() && receiverInteraction.isValid() &&
+          publisherParameter.isValid() && receiverParameter.isValid() &&
+          publisherClass == receiverClass && publisherAttribute == receiverAttribute &&
+          publisherInteraction == receiverInteraction && publisherParameter == receiverParameter,
+      "Order-type change lookup returned invalid or inconsistent adapter-supplied handles");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const receiverAttributes{receiverAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes,
+      true);
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
+
+  publisher.rtiAmbassador().changeDefaultAttributeOrderType(
+      publisherClass,
+      publisherAttributes,
+      rti::RECEIVE);
+  auto const receiveObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  require(receiveObject.isValid(), "Receive-order registration returned an invalid object");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(receiveObject); },
+      options,
+      "Receive-order object discovery");
+
+  publisher.rtiAmbassador().changeDefaultAttributeOrderType(
+      publisherClass,
+      publisherAttributes,
+      rti::TIMESTAMP);
+  auto const defaultTimestampObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      defaultTimestampObject.isValid(),
+      "Timestamp-order default registration returned an invalid object");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(defaultTimestampObject); },
+      options,
+      "Timestamp-order default object discovery");
+
+  publisher.rtiAmbassador().changeDefaultAttributeOrderType(
+      publisherClass,
+      publisherAttributes,
+      rti::RECEIVE);
+  auto const explicitTimestampObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      explicitTimestampObject.isValid(),
+      "Explicit timestamp-order registration returned an invalid object");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(explicitTimestampObject); },
+      options,
+      "Explicit timestamp-order object discovery");
+  publisher.rtiAmbassador().changeAttributeOrderType(
+      explicitTimestampObject,
+      publisherAttributes,
+      rti::TIMESTAMP);
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  require(
+      publisherTime.factory->getName() == receiverTime.factory->getName(),
+      "Order-type change members selected different logical-time factories");
+  auto const lookaheadTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto lookahead = publisherTime.factory->makeZero();
+  require(lookahead != nullptr, "Order-type change could not allocate lookahead");
+  lookahead->setToDifference(*lookaheadTime, *publisherTime.initial);
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() >= 1U; },
+      options,
+      "Order-type change time-constrained callback");
+  receiver.rtiAmbassador().enableAsynchronousDelivery();
+  publisher.rtiAmbassador().enableTimeRegulation(*lookahead);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() >= 1U; },
+      options,
+      "Order-type change time-regulation callback");
+
+  auto const timestamp = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  std::vector<std::uint8_t> const receiveBytes{0x11U};
+  std::vector<std::uint8_t> const defaultTimestampBytes{0x22U};
+  std::vector<std::uint8_t> const explicitTimestampBytes{0x33U};
+  std::vector<std::uint8_t> const attributeTagBytes{0x4FU, 0x52U, 0x44U};
+  rti::AttributeHandleValueMap receiveValues;
+  receiveValues.emplace(
+      publisherAttribute,
+      rti::VariableLengthData(receiveBytes.data(), receiveBytes.size()));
+  rti::AttributeHandleValueMap defaultTimestampValues;
+  defaultTimestampValues.emplace(
+      publisherAttribute,
+      rti::VariableLengthData(
+          defaultTimestampBytes.data(),
+          defaultTimestampBytes.size()));
+  rti::AttributeHandleValueMap explicitTimestampValues;
+  explicitTimestampValues.emplace(
+      publisherAttribute,
+      rti::VariableLengthData(
+          explicitTimestampBytes.data(),
+          explicitTimestampBytes.size()));
+  rti::VariableLengthData attributeTag(
+      attributeTagBytes.data(),
+      attributeTagBytes.size());
+
+  publisher.rtiAmbassador().updateAttributeValues(
+      receiveObject,
+      receiveValues,
+      attributeTag);
+  auto const defaultTimestampRetraction =
+      publisher.rtiAmbassador().updateAttributeValues(
+          defaultTimestampObject,
+          defaultTimestampValues,
+          attributeTag,
+          *timestamp);
+  auto const explicitTimestampRetraction =
+      publisher.rtiAmbassador().updateAttributeValues(
+          explicitTimestampObject,
+          explicitTimestampValues,
+          attributeTag,
+          *timestamp);
+  require(
+      defaultTimestampRetraction.isValid() &&
+          explicitTimestampRetraction.isValid(),
+      "Order-type change returned the wrong attribute retraction validity");
+
+  auto const receiverTarget = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      6U);
+  auto const publisherTarget = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  receiver.rtiAmbassador().timeAdvanceRequest(*receiverTarget);
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
+  waitForSessions(
+      {&publisher, &receiver},
+      [&] { return receiver.recorder().timedReflections().size() >= 2U; },
+      options,
+      "Order-type change timestamped attribute deliveries");
+  waitForSessions(
+      {&publisher, &receiver},
+      [&] { return receiver.recorder().reflections().size() >= 1U; },
+      options,
+      "Order-type change ordinary attribute delivery");
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() >= 1U; },
+      options,
+      "Order-type change publisher time advance grant");
+  require(
+      receiver.recorder().reflections().size() == 1U &&
+          receiver.recorder().timedReflections().size() == 2U,
+      "Order-type change delivered the wrong ordinary/timestamped split");
+
+  auto const ordinaryReflection = receiver.recorder().reflections().front();
+  require(
+      ordinaryReflection.object == receiveObject &&
+          ordinaryReflection.values.size() == 1U &&
+          ordinaryReflection.values.count(receiverAttribute) == 1U &&
+          copyBytes(ordinaryReflection.values.at(receiverAttribute)) == receiveBytes &&
+          ordinaryReflection.tag == attributeTagBytes,
+      "Receive-order attribute reflection did not preserve the object or payload");
+  auto const timedReflections = receiver.recorder().timedReflections();
+  for (auto const& reflection : timedReflections) {
+    require(
+        (reflection.object == defaultTimestampObject ||
+         reflection.object == explicitTimestampObject) &&
+            reflection.values.size() == 1U &&
+            reflection.values.count(receiverAttribute) == 1U &&
+            copyBytes(reflection.values.at(receiverAttribute)) != receiveBytes &&
+            reflection.tag == attributeTagBytes &&
+            reflection.time == encodeTime(*timestamp) &&
+            reflection.sentOrder == rti::TIMESTAMP &&
+            reflection.receivedOrder == rti::TIMESTAMP &&
+            reflection.retractionPresent && reflection.regions == std::nullopt,
+        "Timestamp-order attribute reflection returned the wrong metadata");
+  }
+  require(
+      timedReflections.at(0).object != timedReflections.at(1).object,
+      "Order-type change collapsed the two timestamped object instances");
+  auto const findTimedRetraction = [&](rti::ObjectInstanceHandle const& object) {
+    for (auto const& reflection : timedReflections) {
+      if (reflection.object == object) {
+        return reflection.retraction;
+      }
+    }
+    return std::vector<std::uint8_t>{};
+  };
+  require(
+      findTimedRetraction(defaultTimestampObject) ==
+          copyBytes(defaultTimestampRetraction.encode()) &&
+          findTimedRetraction(explicitTimestampObject) ==
+              copyBytes(explicitTimestampRetraction.encode()),
+      "Timestamp-order attribute reflection returned the wrong retraction handle");
+
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction,
+      rti::RECEIVE);
+  std::vector<std::uint8_t> const parameterBytes{0x49U, 0x4EU, 0x54U};
+  std::vector<std::uint8_t> const interactionTagBytes{0x49U, 0x4EU, 0x54U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(parameterBytes.data(), parameterBytes.size()));
+  rti::VariableLengthData interactionTag(
+      interactionTagBytes.data(),
+      interactionTagBytes.size());
+  auto const interactionTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      12U);
+  auto const interactionRetraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      parameters,
+      interactionTag,
+      *interactionTime);
+  require(
+      !interactionRetraction.isValid(),
+      "Receive-order interaction unexpectedly returned a retraction handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timedInteractions().size() >= 1U; },
+      options,
+      "Order-type change receive-order interaction");
+  require(
+      receiver.recorder().timedInteractions().size() == 1U &&
+          receiver.recorder().interactions().empty(),
+      "Receive-order interaction used the wrong callback overload");
+  auto const interaction = receiver.recorder().timedInteractions().front();
+  require(
+      interaction.interaction == receiverInteraction &&
+          interaction.parameters.size() == 1U &&
+          interaction.parameters.count(receiverParameter) == 1U &&
+          copyBytes(interaction.parameters.at(receiverParameter)) == parameterBytes &&
+          interaction.tag == interactionTagBytes &&
+          interaction.time == encodeTime(*interactionTime) &&
+          interaction.sentOrder == rti::RECEIVE &&
+          interaction.receivedOrder == rti::RECEIVE &&
+          !interaction.retractionPresent &&
+          interaction.regions == std::nullopt,
+      "Receive-order interaction did not preserve the adapter FOM payload");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioOrderTypeChangeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioOrderTypeChange(options, model);
+}
+
 void scenarioCustomTransportationTimestampedRegionalInteractionDelivery(
     Options const& options,
     rti::CallbackModel model) {
@@ -5968,6 +6302,16 @@ int runTransportationTypeChangeScenarios(int argc, char** argv) {
       transportationTypeChangeContractId,
       scenarioTransportationTypeChange,
       scenarioTransportationTypeChangeContract);
+}
+
+int runOrderTypeChangeScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      orderTypeChangeScenario,
+      orderTypeChangeContractId,
+      scenarioOrderTypeChange,
+      scenarioOrderTypeChangeContract);
 }
 
 int runMomTransportationTypeChangeRequestScenarios(int argc, char** argv) {
@@ -7122,6 +7466,20 @@ bool hasTransportationTypeChangeScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasOrderTypeChangeScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == orderTypeChangeScenario ||
+        scenario == orderTypeChangeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasUnconditionalAttributeOwnershipDivestitureScenario(
     int argc,
     char** argv) {
@@ -7526,6 +7884,9 @@ int main(int argc, char** argv) {
     }
     if (hasTransportationTypeChangeScenario(argc, argv)) {
       return runTransportationTypeChangeScenarios(argc, argv);
+    }
+    if (hasOrderTypeChangeScenario(argc, argv)) {
+      return runOrderTypeChangeScenarios(argc, argv);
     }
     if (hasUnconditionalAttributeOwnershipDivestitureScenario(argc, argv)) {
       return runUnconditionalAttributeOwnershipDivestitureScenarios(argc, argv);
