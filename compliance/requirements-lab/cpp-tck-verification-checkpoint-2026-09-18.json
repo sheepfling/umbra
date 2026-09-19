@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-transport-order-java-parity-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-factory-discovery-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2562,6 +2562,22 @@
         ".build/cpp-tck-full-promoted-2026-09-18/transport-order-parity-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-synchronization.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-synchronization.xml"
+      ]
+    },
+    {
+      "name": "factory-discovery",
+      "scenario_ids": [
+        "java-tck.factory-discovery",
+        "cpp-tck.rti-ambassador-factory-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused installed-package direct runner across evoked and immediate callback models; the Java-parity factory/encoder scenario and the portable RTIambassadorFactory contract passed 4/4 and were included in the complete 702-scenario promoted evidence run.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/factory-discovery-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/factory-discovery-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-factory.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-factory.xml"
       ]
     }
   ],

@@ -27,7 +27,7 @@
         "federation-management-preparation-requirements-contract.json",
         "basic-data-elements-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFactoryDiscovery",
+      "cpp_test": "src/portable_tck.cpp#scenarioFactoryDiscoveryPortable",
       "runner_id": "java-tck.factory-discovery",
       "default_status": "run",
       "promotion": "promoted"
@@ -81,7 +81,7 @@
         "api-baseline.json",
         "basic-data-elements-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioVariableLengthDataContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioVariableLengthDataPortable",
       "runner_id": "cpp-tck.variable-length-data-contract",
       "parity": "java-tck.api-surface-inventory",
       "default_status": "run",
@@ -112,7 +112,7 @@
         "get-time-factory-api-contract.json",
         "logical-time-encoding-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioLogicalTimeContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioLogicalTimePortable",
       "runner_id": "cpp-tck.logical-time-contract",
       "parity": "java-tck.logical-time-factory",
       "default_status": "run",
@@ -134,7 +134,7 @@
       "contract_refs": [
         "standard-logical-time-factory-factory-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioLogicalTimeFactoryFactoryContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioLogicalTimeFactoryFactoryPortable",
       "runner_id": "cpp-tck.logical-time-factory-factory-contract",
       "parity": "java-tck.logical-time-factory",
       "default_status": "run",
@@ -658,7 +658,7 @@
       "contract_refs": [
         "standard-rti-ambassador-factory-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioRTIambassadorFactoryContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioRTIambassadorFactoryPortableContract",
       "runner_id": "cpp-tck.rti-ambassador-factory-contract",
       "parity": "java-tck.factory-discovery",
       "default_status": "run",

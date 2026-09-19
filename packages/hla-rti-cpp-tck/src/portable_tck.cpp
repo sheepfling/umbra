@@ -4,6 +4,15 @@
 
 namespace {
 
+constexpr char factoryDiscoveryScenario[] = "java-tck.factory-discovery";
+constexpr char rtiAmbassadorFactoryContractScenario[] =
+    "cpp-tck.rti-ambassador-factory-contract";
+constexpr char variableLengthDataContractScenario[] =
+    "cpp-tck.variable-length-data-contract";
+constexpr char logicalTimeContractScenario[] =
+    "cpp-tck.logical-time-contract";
+constexpr char logicalTimeFactoryFactoryContractScenario[] =
+    "cpp-tck.logical-time-factory-factory-contract";
 constexpr char automaticResignDirectiveDeleteObjectsId[] =
     "cpp-tck.automatic-resign-directive-delete-objects";
 constexpr char automaticResignDirectiveDeleteObjectsContractId[] =
@@ -225,6 +234,57 @@ constexpr char ownershipServiceBoundariesScenario[] =
     "cpp-tck.ownership-service-boundaries";
 constexpr char ownershipServiceBoundariesContractId[] =
     "cpp-tck.ownership-service-boundaries-contract";
+
+void scenarioFactoryDiscoveryPortable(Options const&, rti::CallbackModel) {
+  rti::RTIambassadorFactory factory;
+  auto ambassador = factory.createRTIambassador();
+  require(
+      static_cast<bool>(ambassador),
+      "RTIambassadorFactory returned no standard RTIambassador");
+
+  rti::HLAinteger32BE value{0x1234abcd};
+  auto const encoded = value.encode();
+  require(
+      encoded.size() == 4U,
+      "The standard C++ encoder did not produce the expected four-octet value");
+  rti::HLAinteger32BE decoded;
+  decoded.decode(encoded);
+  require(
+      decoded.get() == 0x1234abcd,
+      "The standard C++ encoder did not round-trip through the discovered API");
+}
+
+void scenarioRTIambassadorFactoryPortableContract(
+    Options const&,
+    rti::CallbackModel) {
+  rti::RTIambassadorFactory firstFactory;
+  auto firstAmbassador = firstFactory.createRTIambassador();
+  require(
+      static_cast<bool>(firstAmbassador),
+      "RTIambassadorFactory did not create a standard RTIambassador");
+
+  rti::RTIambassadorFactory secondFactory;
+  auto secondAmbassador = secondFactory.createRTIambassador();
+  require(
+      static_cast<bool>(secondAmbassador),
+      "RTIambassadorFactory was not reusable for a second standard RTIambassador");
+}
+
+void scenarioVariableLengthDataPortable(
+    Options const&,
+    rti::CallbackModel) {
+  verifyVariableLengthDataContract();
+}
+
+void scenarioLogicalTimePortable(Options const&, rti::CallbackModel) {
+  verifyReferenceTimeTypes();
+}
+
+void scenarioLogicalTimeFactoryFactoryPortable(
+    Options const&,
+    rti::CallbackModel) {
+  verifyStandardLogicalTimeFactoryFactoryContract();
+}
 
 void scenarioSynchronizationPointsPortable(
     Options const& options,
@@ -7117,6 +7177,46 @@ int runStandardOrderAndTransportationLookupScenarios(int argc, char** argv) {
       scenarioStandardOrderAndTransportationLookupsPortableContract);
 }
 
+int runFactoryDiscoveryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      factoryDiscoveryScenario,
+      rtiAmbassadorFactoryContractScenario,
+      scenarioFactoryDiscoveryPortable,
+      scenarioRTIambassadorFactoryPortableContract);
+}
+
+int runVariableLengthDataScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      variableLengthDataContractScenario,
+      variableLengthDataContractScenario,
+      scenarioVariableLengthDataPortable,
+      scenarioVariableLengthDataPortable);
+}
+
+int runLogicalTimeScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      logicalTimeContractScenario,
+      logicalTimeContractScenario,
+      scenarioLogicalTimePortable,
+      scenarioLogicalTimePortable);
+}
+
+int runLogicalTimeFactoryFactoryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      logicalTimeFactoryFactoryContractScenario,
+      logicalTimeFactoryFactoryContractScenario,
+      scenarioLogicalTimeFactoryFactoryPortable,
+      scenarioLogicalTimeFactoryFactoryPortable);
+}
+
 int runSynchronizationPointScenarios(int argc, char** argv) {
   auto const options = parseOptions(argc, argv);
   std::vector<ScenarioResult> results;
@@ -8369,6 +8469,55 @@ bool hasStandardOrderAndTransportationLookupScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasFactoryDiscoveryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == factoryDiscoveryScenario ||
+        scenario == rtiAmbassadorFactoryContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasVariableLengthDataScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) == variableLengthDataContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasLogicalTimeScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == logicalTimeContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasLogicalTimeFactoryFactoryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    if (std::string(argv[index + 1]) == logicalTimeFactoryFactoryContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasSynchronizationPointScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -8797,6 +8946,18 @@ int main(int argc, char** argv) {
     }
     if (hasStandardOrderAndTransportationLookupScenario(argc, argv)) {
       return runStandardOrderAndTransportationLookupScenarios(argc, argv);
+    }
+    if (hasFactoryDiscoveryScenario(argc, argv)) {
+      return runFactoryDiscoveryScenarios(argc, argv);
+    }
+    if (hasVariableLengthDataScenario(argc, argv)) {
+      return runVariableLengthDataScenarios(argc, argv);
+    }
+    if (hasLogicalTimeFactoryFactoryScenario(argc, argv)) {
+      return runLogicalTimeFactoryFactoryScenarios(argc, argv);
+    }
+    if (hasLogicalTimeScenario(argc, argv)) {
+      return runLogicalTimeScenarios(argc, argv);
     }
     if (hasSynchronizationPointScenario(argc, argv)) {
       return runSynchronizationPointScenarios(argc, argv);

@@ -1937,6 +1937,9 @@ The promoted `cpp-tck.rti-ambassador-factory-contract` runner exposes the
 official C++ `RTIambassadorFactory` construction and repeatable ambassador
 creation contract as an independently selectable, provider- and FOM-independent
 slice; its parity anchor is `java-tck.factory-discovery`.
+The Java-parity `java-tck.factory-discovery` ID now dispatches through the same
+portable factory/encoder source, so both factory discovery and its C++ contract
+remain provider- and FOM-independent.
 The promoted `cpp-tck.logical-time-factory-factory-contract` runner exposes the
 official logical-time factory-factory default and integer selection, reference-
 factory forwarding, unknown-name rejection, and initial-value construction as an

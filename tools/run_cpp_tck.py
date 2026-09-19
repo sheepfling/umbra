@@ -873,6 +873,11 @@ PUBLIC_HANDLE_DECODING_SCENARIOS = (
     "cpp-tck.public-handle-decoding-contract",
 )
 PORTABLE_DISPATCH_EXACT_SCENARIOS = (
+    "java-tck.factory-discovery",
+    "cpp-tck.rti-ambassador-factory-contract",
+    "cpp-tck.variable-length-data-contract",
+    "cpp-tck.logical-time-contract",
+    "cpp-tck.logical-time-factory-factory-contract",
     "cpp-tck.automatic-resign-directive-delete-objects",
     "cpp-tck.automatic-resign-directive-delete-objects-contract",
     "cpp-tck.mom-transportation-type-change-request",
