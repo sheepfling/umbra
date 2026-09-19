@@ -579,6 +579,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.ownership-acquisition-publication-fence-contract` | Standard adapter-backed ownership-acquisition publication-fence contract using only the official API and adapter-supplied multi-attribute FOM |
 | `cpp-tck.ownership-acquisition-if-available` | Dedicated If Available ownership-acquisition unavailable callback and post-divestiture transfer boundary |
 | `cpp-tck.ownership-acquisition-if-available-contract` | Pure standard C++ contract for If Available acquisition, unavailable metadata, ownership transfer, and lifecycle cleanup |
+| `cpp-tck.attribute-ownership-acquisition-cancellation` | Cancel a pending ordinary attribute ownership acquisition without transferring ownership |
+| `cpp-tck.attribute-ownership-acquisition-cancellation-contract` | Pure standard C++ contract for ordinary attribute ownership-acquisition cancellation, confirmation metadata, and stable ownership |
 | `cpp-tck.unconditional-attribute-ownership-divestiture` | Standard unconditional divestiture with regular acquisition, initial If Available rejection, ownership-assumption eligibility, exact tags, and post-divestiture If Available retry |
 | `cpp-tck.unconditional-attribute-ownership-divestiture-contract` | Pure standard C++ contract for multi-recipient unconditional attribute ownership divestiture |
 | `cpp-tck.ownership-query-partition-cleanup` | Partition mixed owned/unowned attribute-query results, reject invalid query handles, and suppress stale query results after object removal |
@@ -823,6 +825,15 @@ post-divestiture acquisition callbacks. They verify exact object, attribute,
 and tag metadata, ownership-state transitions, repeat-acquisition rejection,
 and lifecycle cleanup under both callback models while taking provider, FOM,
 endpoint, and callback configuration from the adapter.
+
+The promoted `cpp-tck.attribute-ownership-acquisition-cancellation` scenario
+and its pure standard contract twin cover the ordinary cancellation boundary:
+pre-request and already-owned cancellation failures, a pending acquisition,
+`cancelAttributeOwnershipAcquisition`, exact confirmation metadata, suppressed
+acquisition delivery, unchanged ownership, and rejection of a repeated
+cancellation under both callback models. The portable source uses only the
+official IEEE C++ API and standard library; provider, model FOM, endpoint, and
+callback configuration remain adapter inputs.
 
 The promoted `cpp-tck.ownership-query-partition-cleanup` scenario and its
 contract twin isolate mixed owned/unowned `queryAttributeOwnership` results,

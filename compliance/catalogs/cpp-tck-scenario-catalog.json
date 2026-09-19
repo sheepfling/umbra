@@ -12251,6 +12251,75 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.attribute-ownership-acquisition-cancellation",
+      "category": "ownership-management",
+      "title": "Cancel a pending ordinary attribute ownership acquisition without transferring ownership",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-attribute-ownership-acquisition-cancellation-contract.json"
+      ],
+      "native_equivalent_runner_ids": [
+        "cpp-tck.attribute-ownership-acquisition-cancellation"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioAttributeOwnershipAcquisitionCancellation",
+      "runner_id": "cpp-tck.attribute-ownership-acquisition-cancellation",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.attribute-ownership-acquisition-cancellation-contract",
+      "category": "ownership-management",
+      "title": "Pure standard C++ contract for ordinary attribute ownership-acquisition cancellation",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.resignFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "standard-attribute-ownership-acquisition-cancellation-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioAttributeOwnershipAcquisitionCancellationContract",
+      "runner_id": "cpp-tck.attribute-ownership-acquisition-cancellation-contract",
+      "parity": "cpp-tck.attribute-ownership-acquisition-cancellation",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.unconditional-attribute-ownership-divestiture",
       "category": "ownership-management",
       "title": "Resolve regular acquisition and a post-divestiture If Available retry through one unconditional divestiture",

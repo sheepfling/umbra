@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for ordinary attribute ownership-acquisition cancellation. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, model FOM, endpoint, and callback configuration. It verifies the standard pre-request and already-owned exception boundaries, a regular acquisition followed by cancelAttributeOwnershipAcquisition, the confirmAttributeOwnershipAcquisitionCancellation callback and its object/attribute metadata, absence of an acquisition notification, stable ownership, and rejection of a repeated cancellation. It does not assert provider-specific callback timing, MOM reports, DDM, timestamped delivery, save/restore, or interoperability.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-attribute-ownership-acquisition-cancellation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador attributeOwnershipAcquisition and cancelAttributeOwnershipAcquisition with FederateAmbassador requestAttributeOwnershipRelease, confirmAttributeOwnershipAcquisitionCancellation, and attributeOwnershipAcquisitionNotification callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipAcquisitionCancellationContract"
+      ]
+    }
+  ]
+}

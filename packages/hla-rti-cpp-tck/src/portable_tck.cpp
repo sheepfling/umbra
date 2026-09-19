@@ -153,6 +153,10 @@ constexpr char ownershipAcquisitionIfAvailableScenario[] =
     "cpp-tck.ownership-acquisition-if-available";
 constexpr char ownershipAcquisitionIfAvailableContractId[] =
     "cpp-tck.ownership-acquisition-if-available-contract";
+constexpr char attributeOwnershipAcquisitionCancellationScenario[] =
+    "cpp-tck.attribute-ownership-acquisition-cancellation";
+constexpr char attributeOwnershipAcquisitionCancellationContractId[] =
+    "cpp-tck.attribute-ownership-acquisition-cancellation-contract";
 constexpr char unconditionalAttributeOwnershipDivestitureScenario[] =
     "cpp-tck.unconditional-attribute-ownership-divestiture";
 constexpr char unconditionalAttributeOwnershipDivestitureContractId[] =
@@ -2108,6 +2112,139 @@ void scenarioOwnershipAcquisitionIfAvailableContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioOwnershipAcquisitionIfAvailable(options, model);
+}
+
+void scenarioAttributeOwnershipAcquisitionCancellation(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Attribute ownership-acquisition cancellation testing requires an adapter-supplied model FOM");
+
+  Session owner(options, model, "acquisition-cancellation-owner");
+  Session requester(options, model, "acquisition-cancellation-requester");
+  auto const federation = federationName(
+      options,
+      "attribute-ownership-acquisition-cancellation");
+  connectAndJoin(owner, requester, options, federation, options.modelFom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.typedIdentityAttributeName);
+  auto const requesterAttribute = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.typedIdentityAttributeName);
+  require(
+      ownerClass.isValid() && requesterClass.isValid() &&
+          ownerAttribute.isValid() && requesterAttribute.isValid(),
+      "Attribute ownership-acquisition cancellation lookup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const requesterAttributes{requesterAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes,
+      true,
+      L"");
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "Attribute ownership-acquisition cancellation registration returned an invalid object handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(object); },
+      options,
+      "attribute ownership-acquisition cancellation discovery");
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+
+  owner.recorder().clearOwnershipRecords();
+  requester.recorder().clearOwnershipRecords();
+  std::vector<std::uint8_t> const acquisitionTagBytes{0xC0U, 0xDEU, 0x25U};
+  rti::VariableLengthData const acquisitionTag(
+      acquisitionTagBytes.data(),
+      acquisitionTagBytes.size());
+
+  requireException(
+      [&] {
+        requester.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+            object,
+            requesterAttributes);
+      },
+      L"AttributeAcquisitionWasNotRequested",
+      "canceling an ownership acquisition before requesting it");
+  requireException(
+      [&] {
+        owner.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+            object,
+            ownerAttributes);
+      },
+      L"AttributeAlreadyOwned",
+      "canceling an ownership acquisition for an owned attribute");
+
+  requester.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      requesterAttributes,
+      acquisitionTag);
+  requester.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+      object,
+      requesterAttributes);
+  waitFor(
+      requester,
+      [&] {
+        return requester.recorder().ownershipAcquisitionCancellation().has_value();
+      },
+      options,
+      "attribute ownership-acquisition cancellation confirmation");
+  auto const cancellation = requester.recorder().ownershipAcquisitionCancellation();
+  require(
+      cancellation->object == object &&
+          cancellation->attributes == requesterAttributes &&
+          cancellation->tag.empty(),
+      "attribute ownership-acquisition cancellation returned the wrong standard metadata");
+  require(
+      !requester.recorder().ownershipAcquisition().has_value() &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              ownerAttribute) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              requesterAttribute),
+      "attribute ownership-acquisition cancellation changed ownership or delivered acquisition");
+  requireException(
+      [&] {
+        requester.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+            object,
+            requesterAttributes);
+      },
+      L"AttributeAcquisitionWasNotRequested",
+      "repeating an ownership-acquisition cancellation after confirmation");
+
+  requester.rtiAmbassador().unpublishObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  requester.resign(rti::NO_ACTION);
+  owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioAttributeOwnershipAcquisitionCancellationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeOwnershipAcquisitionCancellation(options, model);
 }
 
 void scenarioUnconditionalAttributeOwnershipDivestiture(
@@ -4858,6 +4995,18 @@ int runOwnershipAcquisitionIfAvailableScenarios(int argc, char** argv) {
       scenarioOwnershipAcquisitionIfAvailableContract);
 }
 
+int runAttributeOwnershipAcquisitionCancellationScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      attributeOwnershipAcquisitionCancellationScenario,
+      attributeOwnershipAcquisitionCancellationContractId,
+      scenarioAttributeOwnershipAcquisitionCancellation,
+      scenarioAttributeOwnershipAcquisitionCancellationContract);
+}
+
 int runUnconditionalAttributeOwnershipDivestitureScenarios(
     int argc,
     char** argv) {
@@ -5792,6 +5941,22 @@ bool hasOwnershipAcquisitionIfAvailableScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasAttributeOwnershipAcquisitionCancellationScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == attributeOwnershipAcquisitionCancellationScenario ||
+        scenario == attributeOwnershipAcquisitionCancellationContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasUnconditionalAttributeOwnershipDivestitureScenario(
     int argc,
     char** argv) {
@@ -6181,6 +6346,9 @@ int main(int argc, char** argv) {
     }
     if (hasOwnershipAcquisitionIfAvailableScenario(argc, argv)) {
       return runOwnershipAcquisitionIfAvailableScenarios(argc, argv);
+    }
+    if (hasAttributeOwnershipAcquisitionCancellationScenario(argc, argv)) {
+      return runAttributeOwnershipAcquisitionCancellationScenarios(argc, argv);
     }
     if (hasUnconditionalAttributeOwnershipDivestitureScenario(argc, argv)) {
       return runUnconditionalAttributeOwnershipDivestitureScenarios(argc, argv);

@@ -895,6 +895,8 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "cpp-tck.federation-restore-work-item-ownership-assumption-contract",
     "cpp-tck.ownership-acquisition-if-available",
     "cpp-tck.ownership-acquisition-if-available-contract",
+    "cpp-tck.attribute-ownership-acquisition-cancellation",
+    "cpp-tck.attribute-ownership-acquisition-cancellation-contract",
     "cpp-tck.unconditional-attribute-ownership-divestiture",
     "cpp-tck.unconditional-attribute-ownership-divestiture-contract",
     "cpp-tck.auto-provide-disabled-discovery-only",
