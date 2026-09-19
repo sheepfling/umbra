@@ -962,7 +962,7 @@
         "federation-listing-requirements-contract.json",
         "federation-management-preparation-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFederationListServices",
+      "cpp_test": "src/portable_tck.cpp#scenarioFederationListServicesPortable",
       "runner_id": "cpp-tck.federation-list-services",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -991,7 +991,7 @@
       "contract_refs": [
         "standard-federation-listing-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFederationListServicesContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioFederationListServicesContractPortable",
       "runner_id": "cpp-tck.federation-list-services-contract",
       "parity": "cpp-tck.federation-list-services",
       "default_status": "adapter-required",
@@ -1020,7 +1020,7 @@
         "federation-execution-api-contract.json",
         "federation-management-preparation-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFederateLookupLifecycle",
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateLookupLifecyclePortable",
       "runner_id": "cpp-tck.federate-lookup-lifecycle",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -1046,7 +1046,7 @@
       "contract_refs": [
         "standard-federate-lookup-lifecycle-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFederateLookupLifecycleContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateLookupLifecycleContractPortable",
       "runner_id": "cpp-tck.federate-lookup-lifecycle-contract",
       "parity": "cpp-tck.federate-lookup-lifecycle",
       "default_status": "adapter-required",

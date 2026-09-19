@@ -21,6 +21,14 @@ constexpr char unnamedJoinOverloadScenario[] =
     "cpp-tck.unnamed-join-overload";
 constexpr char unnamedJoinOverloadContractScenario[] =
     "cpp-tck.unnamed-join-overload-contract";
+constexpr char federationListServicesScenario[] =
+    "cpp-tck.federation-list-services";
+constexpr char federationListServicesContractScenario[] =
+    "cpp-tck.federation-list-services-contract";
+constexpr char federateLookupLifecycleScenario[] =
+    "cpp-tck.federate-lookup-lifecycle";
+constexpr char federateLookupLifecycleContractScenario[] =
+    "cpp-tck.federate-lookup-lifecycle-contract";
 constexpr char automaticResignDirectiveDeleteObjectsId[] =
     "cpp-tck.automatic-resign-directive-delete-objects";
 constexpr char automaticResignDirectiveDeleteObjectsContractId[] =
@@ -491,6 +499,29 @@ void scenarioUnnamedJoinOverloadContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioUnnamedJoinOverloadContract(options, model);
+}
+void scenarioFederationListServicesPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationListServices(options, model);
+}
+
+void scenarioFederationListServicesContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationListServicesContract(options, model);
+}
+
+void scenarioFederateLookupLifecyclePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateLookupLifecycle(options, model);
+}
+
+void scenarioFederateLookupLifecycleContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateLookupLifecycleContract(options, model);
 }
 void scenarioSynchronizationPointsPortable(
     Options const& options,
@@ -7450,6 +7481,25 @@ int runUnnamedJoinOverloadScenarios(int argc, char** argv) {
       scenarioUnnamedJoinOverloadPortable,
       scenarioUnnamedJoinOverloadContractPortable);
 }
+int runFederationListServicesScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationListServicesScenario,
+      federationListServicesContractScenario,
+      scenarioFederationListServicesPortable,
+      scenarioFederationListServicesContractPortable);
+}
+
+int runFederateLookupLifecycleScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateLookupLifecycleScenario,
+      federateLookupLifecycleContractScenario,
+      scenarioFederateLookupLifecyclePortable,
+      scenarioFederateLookupLifecycleContractPortable);
+}
 
 int runSynchronizationPointScenarios(int argc, char** argv) {
   auto const options = parseOptions(argc, argv);
@@ -8790,6 +8840,33 @@ bool hasUnnamedJoinOverloadScenario(int argc, char** argv) {
   }
   return false;
 }
+bool hasFederationListServicesScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationListServicesScenario ||
+        scenario == federationListServicesContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateLookupLifecycleScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateLookupLifecycleScenario ||
+        scenario == federateLookupLifecycleContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
 bool hasSynchronizationPointScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -9236,6 +9313,12 @@ int main(int argc, char** argv) {
     }
     if (hasUnnamedJoinOverloadScenario(argc, argv)) {
       return runUnnamedJoinOverloadScenarios(argc, argv);
+    }
+    if (hasFederationListServicesScenario(argc, argv)) {
+      return runFederationListServicesScenarios(argc, argv);
+    }
+    if (hasFederateLookupLifecycleScenario(argc, argv)) {
+      return runFederateLookupLifecycleScenarios(argc, argv);
     }
     if (hasLogicalTimeScenario(argc, argv)) {
       return runLogicalTimeScenarios(argc, argv);
