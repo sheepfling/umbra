@@ -1367,7 +1367,8 @@ void validateTsoObjectDeletionMessageVector(
     if (message.messageId == 0U || message.messageId <= previousMessageId ||
         message.producingFederateId == 0U ||
         message.objectInstanceHandle == 0U ||
-        !message.timestampEncoding.has_value()) {
+        !message.timestampEncoding.has_value() ||
+        message.sentOrderType == 0U || message.sentOrderType > 2U) {
       throw std::runtime_error(
           "Invalid TSO object-deletion message identity in Umbra state image.");
     }
@@ -3330,6 +3331,8 @@ std::string FederationStateImageCodec::encode(FederationStateImage const& image)
     result += message.reconstitution
         ? std::to_string(message.reconstitution->object.attributeValues.size())
         : "0";
+    result += '|';
+    result += std::to_string(message.sentOrderType);
     result += '\n';
     for (auto const& recipient : message.recipients) {
       result += "tsoObjectDeletionRecipient=";
@@ -5264,7 +5267,7 @@ FederationStateImage FederationStateImageCodec::decode(std::string_view payload)
     image.tsoObjectDeletionMessages.reserve(objectDeletionCount);
     for (std::size_t index = 0U; index < objectDeletionCount; ++index) {
       auto const fields = split(cursor.valueFor("tsoObjectDeletionMessage"));
-      if (fields.size() != 9U && fields.size() != 10U) {
+      if (fields.size() != 9U && fields.size() != 10U && fields.size() != 11U) {
         throw std::runtime_error(
             "Malformed TSO object-deletion message in Umbra state image.");
       }
@@ -5285,10 +5288,14 @@ FederationStateImage FederationStateImageCodec::decode(std::string_view payload)
           fields[7], "TSO object-deletion invocation known classes");
       auto const reconstitutionAttributeCount = parseInteger<std::size_t>(
           fields[8], "TSO object-deletion invocation attributes");
-      auto const reconstitutionValueCount = fields.size() == 10U
+      auto const reconstitutionValueCount = fields.size() >= 10U
           ? parseInteger<std::size_t>(
                 fields[9], "TSO object-deletion invocation values")
           : 0U;
+      message.sentOrderType = fields.size() == 11U
+          ? parseInteger<std::uint32_t>(
+                fields[10], "TSO object-deletion sent order")
+          : 1U;
       if (!hasReconstitution &&
           (knownClassCount != 0U || reconstitutionAttributeCount != 0U ||
            reconstitutionValueCount != 0U)) {

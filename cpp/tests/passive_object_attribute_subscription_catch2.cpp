@@ -1,3 +1,4 @@
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include "internal/fom/hla_names.hpp"
@@ -178,6 +179,10 @@ TEST_CASE(
       flavorOnly,
       RegionHandleSet{subscriberRegion},
   }};
+  AttributeHandleSetRegionHandleSetPairVector const emptyRegionPair{{
+      flavorOnly,
+      RegionHandleSet{},
+  }};
 
   // Passive ordinary declarations are retained, but do not arrange instance
   // discovery. Replacing the same declaration with an active one does.
@@ -238,6 +243,14 @@ TEST_CASE(
       soda,
       subscriberPair,
       false));
+  // §9.8.4 makes an empty region set a no-op.  Supplying a different
+  // active/passive value or update-rate designator with no regions must not
+  // mutate the retained regional subscription triple.
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+      soda,
+      emptyRegionPair,
+      true,
+      L"High"));
   drainCallbacks(*subscriber);
 
   ObjectInstanceHandle passiveRegionalObject;
@@ -275,6 +288,38 @@ TEST_CASE(
   REQUIRE(subscriberReports.objectDiscoveryReports.size() == 2U);
   REQUIRE(subscriberReports.objectDiscoveryReports.back().objectInstance == passiveRegionalObject);
   REQUIRE(subscriber->getKnownObjectClassHandle(passiveRegionalObject) == soda);
+  // An unspecified regional update rate is the default rate.  An empty
+  // region-set invocation with an explicit rate still cannot change it.
+  REQUIRE(subscriber->getUpdateRateValueForAttribute(
+              passiveRegionalObject,
+              flavor) == Catch::Approx(0.0));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+      soda,
+      emptyRegionPair,
+      false,
+      L"High"));
+  REQUIRE(subscriber->getUpdateRateValueForAttribute(
+              passiveRegionalObject,
+              flavor) == Catch::Approx(0.0));
+
+  // A non-empty replacement applies the explicit maximum update rate.  A
+  // later empty set must not deactivate the pair or replace that rate.
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+      soda,
+      subscriberPair,
+      true,
+      L"High"));
+  REQUIRE(subscriber->getUpdateRateValueForAttribute(
+              passiveRegionalObject,
+              flavor) == Catch::Approx(30.0));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+      soda,
+      emptyRegionPair,
+      false,
+      L"Low"));
+  REQUIRE(subscriber->getUpdateRateValueForAttribute(
+              passiveRegionalObject,
+              flavor) == Catch::Approx(30.0));
   REQUIRE_NOTHROW(publisher->updateAttributeValues(
       objectInstance,
       activeRegionalValues,

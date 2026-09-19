@@ -200,6 +200,169 @@ receive callback per Evoke Callback, and sender exclusion. Immediate,
 callback-disable, timestamped/region/directed fanout, package/JUnit, review,
 validation, interoperability, and conformance remain separate lanes.
 
+The process synchronization explicit-set/failure slice is independently
+queryable and intentionally remains separate from the all-members success
+baseline:
+
+    python tools/query_rti_work.py case umbra-cpp-process-endpoint-synchronization-point-explicit-failure-integration --summary --compact
+    python tools/query_rti_work.py focus process-synchronization-point-explicit-failure --summary --compact
+    python tools/query_rti_work.py trace umbra-cpp-process-endpoint-synchronization-point-explicit-failure-integration --summary --compact
+    python tools/query_rti_work.py matrix process-synchronization-point-explicit-failure --summary --compact
+    python tools/query_rti_work.py check --lane process-synchronization-point-explicit-failure --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.RTIambassadors honor explicit synchronization sets and failure results through the configured process endpoint$" --output-on-failure
+
+The focused case at `ieee1516_2025_connection_catch2.cpp:666` records 27
+assertions under `HLA_EVOKED`, maps nine Requirements-Lab anchors to six
+canonical IEEE 1516.1-2025 subsections, and exercises seven official C++ API
+surfaces. It proves an explicit synchronization set excludes an unlisted
+federate, duplicate labels report the standard failure callback, an
+unannounced achievement is rejected, and an unsuccessful achievement carries
+the failed-federate set. Push-mode delivery, save/restore, package/JUnit,
+review, validation, interoperability, and conformance remain separate lanes.
+
+The pushed `HLA_IMMEDIATE` companion is its own executable lane rather than a
+second section of the EVOKED case:
+
+    python tools/query_rti_work.py case umbra-cpp-process-endpoint-synchronization-point-explicit-failure-immediate-integration --summary --compact
+    python tools/query_rti_work.py focus process-synchronization-point-explicit-failure-immediate --summary --compact
+    python tools/query_rti_work.py trace "RTIambassadors deliver explicit synchronization-set and failure callbacks through the pushed process endpoint" --summary --compact
+    python tools/query_rti_work.py matrix process-synchronization-point-explicit-failure-immediate --summary --compact
+    python tools/query_rti_work.py check --lane process-synchronization-point-explicit-failure-immediate --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.RTIambassadors deliver explicit synchronization-set and failure callbacks through the pushed process endpoint$" --output-on-failure
+
+The companion at `ieee1516_2025_connection_catch2.cpp:883` records 23
+assertions under `HLA_IMMEDIATE`, maps the same nine Lab anchors to six
+canonical sections, and verifies pushed announcement and Federation
+Synchronized frames through deterministic public lookup fences. It does not
+claim save/restore, package/JUnit, review, validation, interoperability, or
+conformance.
+
+The federation-save abort process slice is independently queryable and is
+kept separate from synchronization and restore evidence:
+
+    python tools/query_rti_work.py case umbra-cpp-process-endpoint-federation-save-abort-integration --summary --compact
+    python tools/query_rti_work.py focus process-federation-save-abort --summary --compact
+    python tools/query_rti_work.py trace umbra-cpp-process-endpoint-federation-save-abort-integration --summary --compact
+    python tools/query_rti_work.py matrix process-federation-save-abort --summary --compact
+    python tools/query_rti_work.py check --lane process-federation-save-abort --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.RTIambassadors carry federation save abort through the configured process endpoint$" --output-on-failure
+
+The focused case at `ieee1516_2025_connection_catch2.cpp:961` records 13
+assertions under `HLA_EVOKED`, maps three Requirements-Lab anchors to two
+canonical IEEE 1516.1-2025 subsections, and exercises five official C++ API
+surfaces. It proves Abort Federation Save and the `SAVE_ABORTED` Federation
+Not Saved callback across the process endpoint; timed save, not-complete failure,
+restore, push-mode, multi-federate, package/JUnit, review, validation,
+interoperability, and conformance remain separate lanes. The preceding untimed
+request/control and status baselines remain independently queryable as
+`process-federation-save-untimed` and `process-federation-save-status`.
+
+The evoked save/restore synchronization slice is independently queryable and
+keeps callback-model coverage separate from the process lanes:
+
+    python tools/query_rti_work.py case umbra-cpp-synchronization-point-save-restore-evoked-integration --summary --compact
+    python tools/query_rti_work.py focus evoked-synchronization-save-restore --summary --compact
+    python tools/query_rti_work.py trace "Embedded evoked federation restore reconstitutes a saved synchronization point" --summary --compact
+    python tools/query_rti_work.py matrix evoked-synchronization-save-restore --summary --compact
+    python tools/query_rti_work.py check --lane evoked-synchronization-save-restore --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded evoked federation restore reconstitutes a saved synchronization point$" --output-on-failure
+
+The focused case at `ieee1516_2025_federation_management_catch2.cpp:23944`
+records 39 assertions under `HLA_EVOKED`, maps eight Requirements-Lab anchors
+to eight canonical IEEE 1516.1-2025 subsections, and exercises 17 official C++
+API surfaces. It saves an announced-but-unachieved point, completes the live
+point after the save, restores the image, and proves a second achievement only
+after the evoked restore callbacks. The existing HLA_IMMEDIATE region-backed
+case, process/distributed restore, package/JUnit, review, validation,
+interoperability, and conformance remain separate lanes.
+
+The raw directed-interaction process transport slice is independently
+queryable. It has 22 assertions, 11 exact Requirements-Lab anchors, eight
+canonical 2025 subsections, and five official C++ API surfaces. It keeps the
+process protocol event path intentionally narrow: public handle lookup,
+directed publication, unnamed target registration, target discovery, and
+Receive Directed Interaction payload/tag verification. Official callback
+bridging, timestamped/retraction, regional/DDM, package/JUnit, review,
+validation, interoperability, and conformance remain separate lanes; the
+ordinary receive-order multi-recipient case is indexed immediately below:
+
+    python tools/query_rti_work.py focus process-directed-interaction-routing --summary --compact
+    python tools/query_rti_work.py trace "RTIambassador routes a directed interaction through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py matrix process-directed-interaction-routing --summary --compact
+    python tools/query_rti_work.py check --lane process-directed-interaction-routing --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador routes a directed interaction through a configured process endpoint$" --output-on-failure
+
+The focused two-recipient directed process slice is independently queryable as
+`process-directed-interaction-multi-recipient` at
+`ieee1516_2025_connection_catch2.cpp:2528`. It records 104 assertions under
+both callback models, maps 14 exact Requirements-Lab anchors to ten canonical
+2025 subsections, and exercises 12 official C++ API surfaces. One sender and
+two independently subscribed receivers share one registered target; each
+receiver proves discovery-before-delivery and exactly one official Receive
+Directed Interaction callback with target, producer, parameters, transportation,
+and tag preserved, while the sender receives none. It is receive-order private
+foundation evidence; timestamped/retraction, regional/DDM, callback-gating,
+object deletion, package/JUnit/protected-review, validation, interoperability,
+and conformance remain separate:
+
+    python tools/query_rti_work.py case umbra-cpp-process-directed-interaction-multi-recipient-integration --summary --compact
+    python tools/query_rti_work.py focus process-directed-interaction-multi-recipient --summary --compact
+    python tools/query_rti_work.py trace "RTIambassadors deliver one directed interaction to multiple subscribed recipients through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py matrix process-directed-interaction-multi-recipient --summary --compact
+    python tools/query_rti_work.py check --lane process-directed-interaction-multi-recipient --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors deliver one directed interaction to multiple subscribed recipients through a configured process endpoint$" --output-on-failure
+
+The directed interaction transportation process slice is independently
+queryable as `process-directed-interaction-transportation` at
+`ieee1516_2025_connection_catch2.cpp:28288`. It records 66 assertions under
+both callback models, maps 17 exact Requirements-Lab anchors to ten canonical
+2025 subsections, and exercises nine official C++ API surfaces. The sender's
+publisher-scoped `HLAbestEffort` change is confirmed and reaches the
+process-boundary directed receive event with target and achieved transport
+preserved. Keep query/report, timestamped/retraction, regional/DDM,
+multi-recipient transportation, package/JUnit, review, validation,
+interoperability, and conformance as separate lanes:
+
+    python tools/query_rti_work.py case umbra-cpp-process-endpoint-directed-interaction-transportation-integration --summary --compact
+    python tools/query_rti_work.py focus process-directed-interaction-transportation --summary --compact
+    python tools/query_rti_work.py trace "RTIambassadors preserve a directed interaction transportation override through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py matrix process-directed-interaction-transportation --summary --compact
+    python tools/query_rti_work.py check --lane process-directed-interaction-transportation --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors preserve a directed interaction transportation override through a configured process endpoint$" --output-on-failure
+
+The directed transportation query/report registry foundation is independently
+queryable as `directed-interaction-transportation-query` at
+`federation_registry_catch2.cpp:511`. It records 22 assertions, maps ten
+Requirements-Lab anchors to four canonical 2025 sections, and proves that a
+directed publication is a valid transportation-control boundary: the FOM
+default reports as `HLAreliable`, a publisher-scoped `HLAbestEffort` override
+commits, and Query Interaction Transportation Type reports that override.
+Process routing and callback delivery remain separate evidence lanes:
+
+    python tools/query_rti_work.py case umbra-cpp-directed-interaction-transportation-query-registry-unit --summary --compact
+    python tools/query_rti_work.py focus directed-interaction-transportation-query --summary --compact
+    python tools/query_rti_work.py trace "The embedded federation registry reports a directed interaction transportation override" --summary --compact
+    python tools/query_rti_work.py matrix directed-interaction-transportation-query --summary --compact
+    python tools/query_rti_work.py check --lane directed-interaction-transportation-query --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\\.federation_registry\\.catch2\\.The embedded federation registry reports a directed interaction transportation override$" --output-on-failure
+
+The process-boundary directed transportation query/report slice is
+independently queryable as `process-directed-interaction-transportation-query`
+at `ieee1516_2025_connection_catch2.cpp:27231`. It records 44 assertions
+under both callback models, maps 17 exact Requirements-Lab anchors to ten
+canonical 2025 subsections, and exercises ten official C++ API surfaces. The
+configured endpoint preserves the publisher-scoped `HLAbestEffort` override
+through the confirmation and Query Interaction Transportation Type/report
+callbacks; directed event delivery remains in the separate transportation
+slice:
+
+    python tools/query_rti_work.py case umbra-cpp-process-endpoint-directed-interaction-transportation-query --summary --compact
+    python tools/query_rti_work.py focus process-directed-interaction-transportation-query --summary --compact
+    python tools/query_rti_work.py trace "RTIambassador reports a directed interaction transportation override through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py matrix process-directed-interaction-transportation-query --summary --compact
+    python tools/query_rti_work.py check --lane process-directed-interaction-transportation-query --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports a directed interaction transportation override through a configured process endpoint$" --output-on-failure
+
 The newest process TSO/DDM slice is independently selectable:
 
     python tools/query_rti_work.py focus timestamped-process-regional-interaction --summary --compact
@@ -1389,6 +1552,10 @@ python tools/query_rti_work.py trace "Embedded attribute relevance advisories ho
 python tools/query_rti_work.py search known-class-enabled --summary --compact
 python tools/query_rti_work.py trace "Embedded update-rate lookup ignores passive regional subscriptions" --summary --compact
 python tools/query_rti_work.py focus update-rate-passive-regional-subscription --summary --compact
+python tools/query_rti_work.py trace "Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery" --summary --compact
+python tools/query_rti_work.py focus passive-regional-object-attribute-transition --summary --compact
+python tools/query_rti_work.py matrix passive-regional-object-attribute-transition --group-by section --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.passive_object_attribute_subscription\.catch2\.Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery$" --output-on-failure
 python tools/query_rti_work.py trace "Embedded mixed update-rate subscriptions gate each attribute independently" --summary --compact
 python tools/query_rti_work.py focus update-rate-mixed-attribute-gating --summary --compact
 python tools/query_rti_work.py trace "Embedded custom transportation handles remain stable across an additional FOM join" --summary --compact
@@ -1421,8 +1588,11 @@ as private foundation/API traceability rows. The strict 2025-mode rejection of
 an IEEE 1516-2010 module is now indexed as two-assertion compatibility-only
 evidence. The mixed-edition composer rejection is also indexed as a
 seven-assertion compatibility-only row. The ambiguous 202x edition-setting
-guard is indexed as a one-assertion explicit no-standalone-Lab-surface policy
-row. The RPR full-family object-registration and custom-payload compatibility
+guard now verifies Connect completion with `SETTINGS_FAILED_TO_PARSE` and is
+indexed as a five-assertion explicit no-standalone-Lab-surface compatibility
+row; the executable mapped §4.2.4 additional-settings evidence lives in the
+focused embedded connection lane. The RPR full-family object-registration and
+custom-payload compatibility
 slices are now indexed with explicit 2010 compatibility dispositions. The
 regional-unpublish update-region lifetime slice is indexed with 17 assertions
 and 18 requirement anchors. The receive-order deletion update-region lifetime

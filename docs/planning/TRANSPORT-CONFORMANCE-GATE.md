@@ -24,6 +24,20 @@ python tools/query_rti_work.py test "RTIambassador routes public Create, Join, a
 python tools/query_rti_work.py test "RTIambassador obtains the selected logical-time factory after a configured process join" --summary --compact
 python tools/query_rti_work.py test "RTIambassadors resolve federate handles and names through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes public Send Interaction through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py test "RTIambassador routes instance transportation type change and query through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py focus process-transportation-instance-control --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-transportation-instance-integration --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador routes instance transportation type change and query through a configured process endpoint$" --output-on-failure
+python tools/query_rti_work.py test "RTIambassador routes interaction transportation type change and query through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py focus process-transportation-interaction-control --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-transportation-interaction-integration --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador routes interaction transportation type change and query through a configured process endpoint$" --output-on-failure
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-transportation-timestamped-regional-interaction-integration --summary --compact
+python tools/query_rti_work.py focus process-transportation-timestamped-regional-interaction-control --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors preserve a timestamped regional interaction transportation override through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-transportation-timestamped-regional-interaction-integration --summary --compact
+python tools/query_rti_work.py check --lane process-transportation-timestamped-regional-interaction-control --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.RTIambassadors preserve a timestamped regional interaction transportation override through a configured process endpoint$" --output-on-failure
 python tools/query_rti_work.py test "RTIambassador resolves interaction and parameter handles through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador publishes object-class attributes and registers an object through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador reserves a name and registers a named object through a configured process endpoint" --summary --compact
@@ -62,23 +76,50 @@ python tools/query_rti_work.py test "RTIambassador selects a configured tcp proc
 python tools/query_rti_work.py test "RTIambassador rejects malformed tcp process addresses before connecting" --summary --compact
 cmake --build <build-dir> --config Debug --target umbra_test_installable_package
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-connection-loss --output-on-failure
+ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-connection-loss-delete-objects --output-on-failure
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-parameterized --output-on-failure
-ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-object-registration --output-on-failure
-ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-named-registration --output-on-failure
-ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-attribute-update --output-on-failure
-python tools/verify_process_package_lanes.py --ctest ctest --test-dir <build-dir>/package-smoke-consumer --index docs/planning/ROADMAP-INDEX.json --config Debug
+  ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-object-registration --output-on-failure
+  ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-named-registration --output-on-failure
+  ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-attribute-update --output-on-failure
+  ctest --test-dir <build-dir>/package-smoke-consumer -C Debug --output-junit <build-dir>/package-smoke-consumer/Testing/package-process.xml --output-on-failure
+  python tools/verify_process_package_lanes.py --ctest ctest --test-dir <build-dir>/package-smoke-consumer --index docs/planning/ROADMAP-INDEX.json --config Debug --junit <build-dir>/package-smoke-consumer/Testing/package-process.xml
 ```
 
-The current query baseline is 109 mapped `process-boundary` plan rows / 5,239
-indexed Catch2 assertions, all mapped and source-located. The stable label has
-108 registered CTest executions. The current merged JUnit report contains 4,132
-testcases with zero failures/errors (the older m108 snapshot contained 2,733).
+The installable process-package handoff is queryable from the indexed work
+card and emits the deterministic
+`<build-dir>/package-smoke-consumer/Testing/package-process.xml` artifact.
+`verify_process_package_lanes.py --junit` checks that every indexed process
+projection appears exactly once and that the CTest report has no failures or
+errors; the artifact is evidence for review, not a conformance claim.
+
+The current query baseline is 155 mapped `process-boundary` plan rows / 6,717
+indexed Catch2 assertions (6,869 assertions recorded on the individual plan
+rows), all mapped and source-located. The stable label has
+207 registered CTest executions; the JUnit target executes the 119
+independently buildable registrations. The current merged JUnit report contains
+214 emitted section-level testcases and 5,458 assertions with zero failures/errors.
+The aggregate umbrella registration remains CTest-only because its federation-
+management translation unit is not an evidence source.
+The newest HLA_IMMEDIATE restored ownership-assumption slice is independently
+queryable at
+`cpp/tests/attribute_ownership_acquisition_catch2.cpp:3437`: 52 assertions,
+nine direct Requirements-Lab anchors, seven canonical 2025 sections, and 11
+official C++ API surfaces. It retains the pending reservation while callbacks
+are disabled and uses a post-enable class lookup only as a receive-order fence;
+the already-pushed ownership-assumption companion remains a separate lane.
+The newest timestamped regional interaction-transportation slice contributes
+122 assertions, 27 direct Lab anchors, 15 canonical 2025 sections, and 21
+official C++ API surfaces; it is green under both callback models and remains
+private foundation evidence until the separate review, validation,
+interoperability, and conformance gates are satisfied.
 The local-delete codec
 adds 9 direct assertions, the private registry integration 44, and the public
 two-federate endpoint integration 18; receive-order Delete Object Instance adds
 a 25-assertion codec contract and a 25-assertion public endpoint/removal-
-callback integration; the timestamped public endpoint slice adds 64 assertions
-under HLA_EVOKED and HLA_IMMEDIATE; the timestamped regional Update Attribute
+callback integration; the timestamped public endpoint slice adds 131 assertions
+across regulated and non-regulated variants under HLA_EVOKED and HLA_IMMEDIATE
+and returns the valid public `MessageRetractionHandle` backed by the process
+execution identity only for the time-regulating producer; the timestamped regional Update Attribute
 Values endpoint adds 86 assertions under both models; the regional
 subscription-removal endpoint adds 112 assertions under both models; the disjoint
 regional-update endpoint adds 50, the remote regional subscription/update
@@ -156,7 +197,7 @@ package/JUnit, protected review, validation, interoperability, and
 conformance remain separate lanes.
 
 The regional callback-gating companion is now green at
-`cpp/tests/ieee1516_2025_connection_catch2.cpp:25321` with 69 `HLA_EVOKED`
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:26210` with 69 `HLA_EVOKED`
 assertions, 28 Lab anchors, 16 canonical 2025 sections, and 20 official C++
 API surfaces. It uses one sender/receiver regional overlap, disables the
 receiver callback gate before the timestamped send is admitted, proves that
@@ -467,10 +508,28 @@ the `package-process-connection-loss` label; it closes the receiver transport,
 verifies the official `connectionLost` callback through
 `EvokeMultipleCallbacks`, and proves the surviving sender can continue using
 the federation. The installed executable also runs
+`umbra_rti_package_process_connection_loss_delete_objects_consumer` under
+the `package-process-connection-loss-delete-objects` label; it configures
+`DELETE_OBJECTS`, closes the receiver transport, verifies the surviving
+sender receives exactly one official `removeObjectInstance` callback with the
+empty tag and lost producer, and verifies the deleted object name is no
+longer resolvable before a normal sender resign. The installed executable
+also runs
 `umbra_rti_package_process_parameterized_consumer` under the
 `package-process-parameterized` label; it resolves the server-owned
 `HLAobjectRoot.Customer` class and `TimelinessOk`, then checks the exact
 object/parameter handle/value envelope at the receiver.
+The connection-loss projections use an explicit `connection-loss-ready.ok`
+handshake from the public consumer before the fixture closes the receiver
+socket; this keeps the two processes from waiting on one another and makes
+the failure paths bounded. The exact package gate handles are indexed as
+`installable-package`, `package-process-connection-loss`, and
+`package-process-connection-loss-delete-objects` in
+`ROADMAP-INDEX.json`.
+That package handle reuses the mapped embedded C++ DELETE_OBJECTS companion's five
+Requirements-Lab ids and five canonical 2025 section keys; query the backing
+plan for assertion-level traceability and keep the package run as installed
+process foundation evidence.
 The installed executable also runs
 `umbra_rti_package_process_object_registration_consumer` under the
 `package-process-object-registration` label; it resolves the official object
@@ -497,10 +556,37 @@ interaction through the official callback, calls `Retract`, verifies one matchin
 post-delivery `requestRetraction` callback, and then verifies a second
 pre-delivery `Retract` suppresses the directed callback and any second
 retraction callback.
-Before those eight consumers execute,
+The installed executable also runs
+`umbra_rti_package_process_federation_save_restore_consumer` under
+`package-process-federation-save-restore`; it uses one installed public
+ambassador to drive Request Federation Save, the save callbacks, Request
+Federation Restore, and the ordered restore-success callback sequence through
+the process boundary before a normal Resign.
+The installed executable also runs
+`umbra_rti_package_process_federation_save_restore_failure_consumer` under
+`package-process-federation-save-restore-failure`; it repeats the same public
+save/restore setup and verifies `Federate Restore Not Complete` produces the
+official `Federation Not Restored` callback with
+`FEDERATE_REPORTED_FAILURE_DURING_RESTORE` before normal Resign.
+The installed executable also runs
+`umbra_rti_package_process_federation_save_restore_abort_consumer` under
+`package-process-federation-save-restore-abort`; it verifies the explicit
+`Abort Federation Restore` service and the terminal `RESTORE_ABORTED` callback
+reason through the installed public API.
+The installed executable also runs
+`umbra_rti_package_process_federation_save_restore_status_consumer` under
+`package-process-federation-save-restore-status`; it verifies
+`Query Federation Restore Status`, the in-progress `FEDERATE_RESTORING`
+status response, and the subsequent restore completion through the installed
+public API.
+Before those thirteen consumers execute,
 `verify_process_package_lanes.py` compares their exact names and labels with the
-eight `next_process_package_*` handles in `ROADMAP-INDEX.json`; a catalog mismatch
-fails the installable-package gate. `coverage --lane transport` reports
+thirteen `next_process_package_*` handles and matching `mapping.lane_handles` entries
+in `ROADMAP-INDEX.json`; a catalog mismatch
+fails the installable-package gate. The same run writes
+`<build-dir>/package-smoke-consumer/Testing/package-process.xml` with CTest's
+JUnit schema, and the verifier checks that all thirteen indexed process names occur
+exactly once with zero reported failures or errors. `coverage --lane transport` reports
 82 transport plan entries (76 mapped, 82 source-located, and no retained
 source-drift rows; 6 have no Lab requirement mapping); use the
 bounded query and lane check to select work without reopening the full catalog.

@@ -648,18 +648,22 @@ void deliverObjectInstanceRemoval(
   if (event.timestamp) {
     auto timestamp = decodeEventTimestamp(*event.timestamp);
     std::optional<rti1516_2025::MessageRetractionHandle> optionalRetraction;
-    if (event.retractionMessageId) {
+    if (event.retractionMessageId && event.provideRetraction) {
       optionalRetraction.emplace(
           rti1516_2025::umbra_binding_detail::makeMessageRetractionHandle(
               *event.retractionMessageId));
     }
+    auto const sentOrderType =
+        event.sentOrderType.value_or(rti1516_2025::RECEIVE);
+    auto const receivedOrderType =
+        event.receivedOrderType.value_or(rti1516_2025::RECEIVE);
     recipient.removeObjectInstance(
         objectInstance,
         userSuppliedTag,
         producingFederate,
         *timestamp,
-        rti1516_2025::RECEIVE,
-        rti1516_2025::RECEIVE,
+        sentOrderType,
+        receivedOrderType,
         optionalRetraction ? &*optionalRetraction : nullptr);
     return;
   }
@@ -796,6 +800,230 @@ void deliverAttributeTransportationTypeQuery(
           *transportationValue));
 }
 
+void deliverInteractionTransportationTypeChange(
+    ProcessFederationInteractionTransportationTypeChangeEvent const& event,
+    rti1516_2025::FederateAmbassador& recipient) {
+  if (event.receivingFederateId == 0U ||
+      event.interactionClassHandle == 0U ||
+      event.transportationName.empty()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process interaction transportation-type change callback requires recipient, interaction class, and transportation.");
+  }
+  auto const transportationValue =
+      rti1516_2025::umbra_binding_detail::standardTransportationTypeValue(
+          std::wstring(event.transportationName.begin(),
+                       event.transportationName.end()));
+  if (!transportationValue) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process interaction transportation-type change callback has an unknown transportation type.");
+  }
+  recipient.confirmInteractionTransportationTypeChange(
+      rti1516_2025::umbra_binding_detail::makeInteractionClassHandle(
+          event.interactionClassHandle),
+      rti1516_2025::umbra_binding_detail::makeTransportationTypeHandle(
+          *transportationValue));
+}
+
+void deliverInteractionTransportationTypeQuery(
+    ProcessFederationInteractionTransportationTypeQueryEvent const& event,
+    rti1516_2025::FederateAmbassador& recipient) {
+  if (event.receivingFederateId == 0U ||
+      event.queriedFederateId == 0U ||
+      event.interactionClassHandle == 0U ||
+      event.transportationName.empty()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process interaction transportation-type query callback requires recipient, queried federate, interaction class, and transportation.");
+  }
+  auto const transportationValue =
+      rti1516_2025::umbra_binding_detail::standardTransportationTypeValue(
+          std::wstring(event.transportationName.begin(),
+                       event.transportationName.end()));
+  if (!transportationValue) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process interaction transportation-type query callback has an unknown transportation type.");
+  }
+  recipient.reportInteractionTransportationType(
+      rti1516_2025::umbra_binding_detail::makeFederateHandle(
+          event.queriedFederateId),
+      rti1516_2025::umbra_binding_detail::makeInteractionClassHandle(
+          event.interactionClassHandle),
+      rti1516_2025::umbra_binding_detail::makeTransportationTypeHandle(
+          *transportationValue));
+}
+
+void deliverSynchronizationPointAnnouncement(
+    ProcessFederationSynchronizationPointAnnouncementEvent const& event,
+    rti1516_2025::FederateAmbassador& recipient) {
+  if (event.receivingFederateId == 0U || event.label.empty()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process synchronization-point announcement requires a recipient and label.");
+  }
+  rti1516_2025::VariableLengthData tag;
+  if (!event.userSuppliedTag.empty()) {
+    tag.setData(event.userSuppliedTag.data(), event.userSuppliedTag.size());
+  }
+  recipient.announceSynchronizationPoint(event.label, tag);
+}
+
+void deliverFederationSynchronized(
+    ProcessFederationFederationSynchronizedEvent const& event,
+    rti1516_2025::FederateAmbassador& recipient) {
+  if (event.receivingFederateId == 0U || event.label.empty()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process Federation Synchronized event requires a recipient and label.");
+  }
+  rti1516_2025::FederateHandleSet failedToSync;
+  for (std::uint64_t const federateId : event.failedToSyncFederateIds) {
+    if (federateId == 0U) {
+      throw ProcessFederationCallbackBridgeError(
+          "A process Federation Synchronized event contains an invalid federate identity.");
+    }
+    failedToSync.insert(
+        rti1516_2025::umbra_binding_detail::makeFederateHandle(federateId));
+  }
+  recipient.federationSynchronized(event.label, failedToSync);
+}
+
+void deliverFederationSave(
+    ProcessFederationSaveEvent const& event,
+    rti1516_2025::FederateAmbassador& recipient) {
+  if (event.receivingFederateId == 0U) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process federation-save callback requires a recipient.");
+  }
+  switch (event.kind) {
+    case FederationSaveNotificationKind::initiate:
+      if (event.label.empty() || !event.statuses.empty()) {
+        throw ProcessFederationCallbackBridgeError(
+            "A process initiate-federate-save callback requires a label and no status pairs.");
+      }
+      if (event.timestamp) {
+        auto const timestamp = decodeEventTimestamp(*event.timestamp);
+        recipient.initiateFederateSave(event.label, *timestamp);
+      } else {
+        recipient.initiateFederateSave(event.label);
+      }
+      return;
+    case FederationSaveNotificationKind::completed:
+      if (event.label.empty() || !event.statuses.empty() || event.timestamp) {
+        throw ProcessFederationCallbackBridgeError(
+            "A process federation-save completion callback requires a label and no status pairs.");
+      }
+      if (event.successful) {
+        recipient.federationSaved();
+      } else {
+        recipient.federationNotSaved(event.failureReason);
+      }
+      return;
+    case FederationSaveNotificationKind::status:
+      if (!event.label.empty() || event.statuses.empty() || event.timestamp) {
+        throw ProcessFederationCallbackBridgeError(
+            "A process federation-save status callback requires status pairs and no label.");
+      }
+      rti1516_2025::FederateHandleSaveStatusPairVector response;
+      response.reserve(event.statuses.size());
+      std::uint64_t previousFederateId = 0U;
+      for (auto const& [federateId, status] : event.statuses) {
+        if (federateId == 0U || federateId <= previousFederateId) {
+          throw ProcessFederationCallbackBridgeError(
+              "A process federation-save status callback requires sorted, unique federate identities.");
+        }
+        switch (status) {
+          case rti1516_2025::NO_SAVE_IN_PROGRESS:
+          case rti1516_2025::FEDERATE_INSTRUCTED_TO_SAVE:
+          case rti1516_2025::FEDERATE_SAVING:
+          case rti1516_2025::FEDERATE_WAITING_FOR_FEDERATION_TO_SAVE:
+            break;
+          default:
+            throw ProcessFederationCallbackBridgeError(
+                "A process federation-save status callback has an invalid SaveStatus.");
+        }
+        response.emplace_back(
+            rti1516_2025::umbra_binding_detail::makeFederateHandle(federateId),
+            status);
+        previousFederateId = federateId;
+      }
+      recipient.federationSaveStatusResponse(response);
+      return;
+  }
+  throw ProcessFederationCallbackBridgeError(
+      "A process federation-save callback has an unsupported notification kind.");
+}
+
+void deliverFederationRestore(
+    ProcessFederationRestoreEvent const& event,
+    rti1516_2025::FederateAmbassador& recipient) {
+  if (event.receivingFederateId == 0U) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process federation-restore callback requires a recipient.");
+  }
+  switch (event.kind) {
+    case FederationRestoreNotificationKind::request_succeeded:
+      if (event.label.empty()) {
+        throw ProcessFederationCallbackBridgeError(
+            "A process restore-success callback requires a label.");
+      }
+      recipient.requestFederationRestoreSucceeded(event.label);
+      return;
+    case FederationRestoreNotificationKind::request_failed:
+      if (event.label.empty()) {
+        throw ProcessFederationCallbackBridgeError(
+            "A process restore-failure callback requires a label.");
+      }
+      recipient.requestFederationRestoreFailed(event.label);
+      return;
+    case FederationRestoreNotificationKind::begin:
+      recipient.federationRestoreBegun();
+      return;
+    case FederationRestoreNotificationKind::initiate:
+      if (event.label.empty() || event.federateName.empty() ||
+          event.postRestoreFederateId == 0U) {
+        throw ProcessFederationCallbackBridgeError(
+            "A process initiate-federate-restore callback requires a label, federate name, and post-restore identity.");
+      }
+      recipient.initiateFederateRestore(
+          event.label,
+          event.federateName,
+          rti1516_2025::umbra_binding_detail::makeFederateHandle(
+              event.postRestoreFederateId));
+      return;
+    case FederationRestoreNotificationKind::completed:
+      if (event.successful) {
+        recipient.federationRestored();
+      } else {
+        recipient.federationNotRestored(event.failureReason);
+      }
+      return;
+    case FederationRestoreNotificationKind::status: {
+      if (event.statuses.empty()) {
+        throw ProcessFederationCallbackBridgeError(
+            "A process federation-restore status callback requires status records.");
+      }
+      rti1516_2025::FederateRestoreStatusVector response;
+      response.reserve(event.statuses.size());
+      std::uint64_t previousPreRestoreId = 0U;
+      for (auto const& status : event.statuses) {
+        if (status.preRestoreFederateId == 0U ||
+            status.preRestoreFederateId <= previousPreRestoreId) {
+          throw ProcessFederationCallbackBridgeError(
+              "A process federation-restore status callback requires sorted, unique pre-restore identities.");
+        }
+        response.emplace_back(
+            rti1516_2025::umbra_binding_detail::makeFederateHandle(
+                status.preRestoreFederateId),
+            rti1516_2025::umbra_binding_detail::makeFederateHandle(
+                status.postRestoreFederateId),
+            status.status);
+        previousPreRestoreId = status.preRestoreFederateId;
+      }
+      recipient.federationRestoreStatusResponse(response);
+      return;
+    }
+  }
+  throw ProcessFederationCallbackBridgeError(
+      "A process federation-restore callback has an unsupported notification kind.");
+}
+
 }  // namespace
 
 ProcessFederationCallbackBridge::ProcessFederationCallbackBridge(
@@ -836,7 +1064,15 @@ void ProcessFederationCallbackBridge::submitReceiveOrder(
     retractionStates_[*event.retractionMessageId] = retractionState;
   }
   auto const tsoCompletion = tsoDeliveryCompletion_;
-  auto const tsoMessageId = event.retractionMessageId;
+  // Immediate timestamped removals retain a private retraction identity so a
+  // producer can suppress a not-yet-started callback, but they have no TSO
+  // queue entry to acknowledge. Only a grant-boundary TIMESTAMP receive
+  // crosses the coordinator's in-transit completion fence.
+  auto const tsoMessageId =
+      event.receivedOrderType &&
+              *event.receivedOrderType == rti1516_2025::TIMESTAMP
+          ? event.retractionMessageId
+          : std::optional<std::uint64_t>{};
   dispatcher_->submit(
       [session,
        retractionState = std::move(retractionState),
@@ -1117,22 +1353,56 @@ void ProcessFederationCallbackBridge::submitObjectInstanceRemoval(
     std::scoped_lock lock(retractionMutex_);
     retractionStates_[*event.retractionMessageId] = retractionState;
   }
+  auto const tsoCompletion = tsoDeliveryCompletion_;
+  // Immediate timestamped removals retain a private retraction identity so a
+  // producer can suppress a not-yet-started callback, but they have no TSO
+  // queue entry to acknowledge. Only a grant-boundary TIMESTAMP receive
+  // crosses the coordinator's in-transit completion fence.
+  auto const tsoMessageId =
+      event.receivedOrderType &&
+              *event.receivedOrderType == rti1516_2025::TIMESTAMP
+          ? event.retractionMessageId
+          : std::optional<std::uint64_t>{};
   dispatcher_->submit(
       [session,
        retractionState = std::move(retractionState),
+       tsoCompletion,
+       tsoMessageId,
        event = std::move(event)]() mutable {
+        bool acknowledgeSuppressed = false;
         if (retractionState) {
           std::scoped_lock lock(retractionState->mutex);
           if (retractionState->retractionRequested) {
-            return;
+            if (!retractionState->deliveryAcknowledged) {
+              retractionState->deliveryAcknowledged = true;
+              acknowledgeSuppressed = true;
+            }
+          } else {
+            retractionState->callbackStarted = true;
           }
-          retractionState->callbackStarted = true;
+        }
+        if (acknowledgeSuppressed) {
+          if (tsoCompletion && tsoMessageId) {
+            tsoCompletion(*tsoMessageId);
+          }
+          return;
         }
         session->invoke(
             [event = std::move(event)](
                 rti1516_2025::FederateAmbassador& recipient) mutable {
               deliverObjectInstanceRemoval(event, recipient);
             });
+        bool acknowledge = false;
+        if (retractionState) {
+          std::scoped_lock lock(retractionState->mutex);
+          if (!retractionState->deliveryAcknowledged) {
+            retractionState->deliveryAcknowledged = true;
+            acknowledge = true;
+          }
+        }
+        if (acknowledge && tsoCompletion && tsoMessageId) {
+          tsoCompletion(*tsoMessageId);
+        }
       });
 }
 
@@ -1209,6 +1479,144 @@ void ProcessFederationCallbackBridge::submitAttributeTransportationTypeQuery(
             [event = std::move(event)](
                 rti1516_2025::FederateAmbassador& recipient) mutable {
               deliverAttributeTransportationTypeQuery(event, recipient);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitInteractionTransportationTypeChange(
+    ProcessFederationInteractionTransportationTypeChangeEvent event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, event = std::move(event)]() mutable {
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              deliverInteractionTransportationTypeChange(event, recipient);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitInteractionTransportationTypeQuery(
+    ProcessFederationInteractionTransportationTypeQueryEvent event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, event = std::move(event)]() mutable {
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              deliverInteractionTransportationTypeQuery(event, recipient);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitSynchronizationPointRegistrationSucceeded(
+    std::wstring label) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_ || label.empty()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process synchronization-point registration callback bridge is closed or has an invalid label.");
+  }
+  dispatcher_->submit(
+      [session, label = std::move(label)]() mutable {
+        session->invoke(
+            [label = std::move(label)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              recipient.synchronizationPointRegistrationSucceeded(label);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitSynchronizationPointRegistrationFailed(
+    std::wstring label,
+    rti1516_2025::SynchronizationPointFailureReason failureReason) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_ || label.empty()) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process synchronization-point registration callback bridge is closed or has an invalid label.");
+  }
+  dispatcher_->submit(
+      [session, label = std::move(label), failureReason]() mutable {
+        session->invoke(
+            [label = std::move(label), failureReason](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              recipient.synchronizationPointRegistrationFailed(
+                  label, failureReason);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitSynchronizationPointAnnouncement(
+    ProcessFederationSynchronizationPointAnnouncementEvent event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, event = std::move(event)]() mutable {
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              deliverSynchronizationPointAnnouncement(event, recipient);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitFederationSynchronized(
+    ProcessFederationFederationSynchronizedEvent event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, event = std::move(event)]() mutable {
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              deliverFederationSynchronized(event, recipient);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitFederationSave(
+    ProcessFederationSaveEvent event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, event = std::move(event)]() mutable {
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              deliverFederationSave(event, recipient);
+            });
+      });
+}
+
+void ProcessFederationCallbackBridge::submitFederationRestore(
+    ProcessFederationRestoreEvent event) {
+  auto const session = callbackSession_;
+  if (!session || !dispatcher_) {
+    throw ProcessFederationCallbackBridgeError(
+        "A process callback bridge is closed.");
+  }
+  dispatcher_->submit(
+      [session, event = std::move(event)]() mutable {
+        session->invoke(
+            [event = std::move(event)](
+                rti1516_2025::FederateAmbassador& recipient) mutable {
+              deliverFederationRestore(event, recipient);
             });
       });
 }

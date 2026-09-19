@@ -142,7 +142,7 @@ std::vector<unsigned char> bytes(VariableLengthData const& value) {
 TEST_CASE(
     "Embedded ownership transfer clears the former owner's 2025 update-region association",
     "[integration][development-profile][federation-management][object-management][ddm][ownership-management]"
-    "[ownership-transfer-update-region][ownership-transfer-update-region-association][callback-evoked]"
+    "[ownership-transfer-update-region][ownership-transfer-update-region-association][ownership-transfer-update-region-reacquisition][callback-evoked]"
     "[rti.service.register-object-instance-with-regions]"
     "[rti.service.subscribe-object-class-attributes-with-regions]"
     "[rti.service.attribute-ownership-acquisition-if-available]"
@@ -165,6 +165,8 @@ TEST_CASE(
   unsigned char const ownerValueBytes[] = {0x4F, 0x4C, 0x44, 0x25};
   unsigned char const defaultValueBytes[] = {0x44, 0x45, 0x46, 0x25};
   unsigned char const replacementValueBytes[] = {0x4E, 0x45, 0x57, 0x25};
+  unsigned char const reacquisitionTagBytes[] = {0x52, 0x41, 0x43, 0x25};
+  unsigned char const reacquiredValueBytes[] = {0x52, 0x45, 0x41, 0x25};
   VariableLengthData const acquisitionTag(
       acquisitionTagBytes,
       sizeof(acquisitionTagBytes));
@@ -377,6 +379,73 @@ TEST_CASE(
   REQUIRE(replacementReflection.sentRegionsSupplied);
   REQUIRE(replacementReflection.sentRegions == RegionHandleSet{newOwnerRegion});
 
+  // The original owner must be able to reacquire the attribute, but its lost
+  // association is not restored implicitly.  Recreating the association is
+  // an explicit operation on the new ownership lifetime.
+  receiverReports.reflections.clear();
+  VariableLengthData const reacquisitionTag(
+      reacquisitionTagBytes,
+      sizeof(reacquisitionTagBytes));
+  REQUIRE_NOTHROW(owner->attributeOwnershipAcquisitionIfAvailable(
+      objectInstance,
+      ownerAttributes,
+      reacquisitionTag));
+  REQUIRE(ownerReports.acquisitions.empty());
+  AttributeHandleSet reacquiredAttributes;
+  REQUIRE_NOTHROW(newOwner->attributeOwnershipDivestitureIfWanted(
+      objectInstance,
+      newOwnerAttributes,
+      reacquisitionTag,
+      reacquiredAttributes));
+  REQUIRE(reacquiredAttributes == newOwnerAttributes);
+  REQUIRE_FALSE(newOwner->isAttributeOwnedByFederate(objectInstance, newOwnerAttribute));
+  REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, ownerAttribute));
+  drain(*owner, *newOwner, *receiver);
+  REQUIRE(ownerReports.acquisitions.size() == 1U);
+  auto const& reacquisition = ownerReports.acquisitions.front();
+  REQUIRE(reacquisition.objectInstance == objectInstance);
+  REQUIRE(reacquisition.attributes == ownerAttributes);
+  REQUIRE(bytes(reacquisition.userSuppliedTag) ==
+          std::vector<unsigned char>(
+              reacquisitionTagBytes,
+              reacquisitionTagBytes + sizeof(reacquisitionTagBytes)));
+
+  AttributeHandleValueMap reacquiredValues;
+  reacquiredValues.emplace(
+      ownerAttribute,
+      VariableLengthData(reacquiredValueBytes, sizeof(reacquiredValueBytes)));
+  REQUIRE_NOTHROW(owner->updateAttributeValues(
+      objectInstance,
+      reacquiredValues,
+      reacquisitionTag));
+  drain(*owner, *newOwner, *receiver);
+  REQUIRE(receiverReports.reflections.size() == 1U);
+  auto const& reacquiredReflection = receiverReports.reflections.back();
+  REQUIRE(reacquiredReflection.objectInstance == objectInstance);
+  REQUIRE(reacquiredReflection.attributeValues.size() == 1U);
+  REQUIRE(reacquiredReflection.attributeValues.contains(receiverAttribute));
+  REQUIRE(bytes(reacquiredReflection.attributeValues.at(receiverAttribute)) ==
+          std::vector<unsigned char>(
+              reacquiredValueBytes,
+              reacquiredValueBytes + sizeof(reacquiredValueBytes)));
+  REQUIRE(reacquiredReflection.sentRegionsSupplied);
+  REQUIRE(reacquiredReflection.sentRegions.empty());
+  receiverReports.reflections.clear();
+
+  setRegionBounds(*owner, ownerRegion, ownerDimension, 0UL, 2UL);
+  REQUIRE_NOTHROW(owner->associateRegionsForUpdates(
+      objectInstance,
+      ownerPair));
+  REQUIRE_NOTHROW(owner->updateAttributeValues(
+      objectInstance,
+      reacquiredValues,
+      reacquisitionTag));
+  drain(*owner, *newOwner, *receiver);
+  REQUIRE(receiverReports.reflections.size() == 1U);
+  auto const& recreatedReflection = receiverReports.reflections.back();
+  REQUIRE(recreatedReflection.sentRegionsSupplied);
+  REQUIRE(recreatedReflection.sentRegions == RegionHandleSet{ownerRegion});
+
   REQUIRE_NOTHROW(receiver->unsubscribeObjectClassAttributesWithRegions(
       receiverObjectClass,
       receiverPair));
@@ -386,6 +455,9 @@ TEST_CASE(
   REQUIRE_NOTHROW(newOwner->unassociateRegionsForUpdates(
       objectInstance,
       newOwnerPair));
+  REQUIRE_NOTHROW(owner->unassociateRegionsForUpdates(
+      objectInstance,
+      ownerPair));
   REQUIRE_NOTHROW(newOwner->unpublishObjectClassAttributes(
       newOwnerObjectClass,
       newOwnerAttributes));

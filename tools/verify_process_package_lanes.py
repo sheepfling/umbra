@@ -15,6 +15,7 @@ import json
 import shutil
 import subprocess
 import sys
+import xml.etree.ElementTree as ElementTree
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
@@ -41,6 +42,10 @@ PACKAGE_LANE_FIELDS = (
         "next_process_package_connection_loss_ctest_filter",
     ),
     (
+        "next_process_package_connection_loss_delete_objects_test",
+        "next_process_package_connection_loss_delete_objects_ctest_filter",
+    ),
+    (
         "next_process_package_object_registration_test",
         "next_process_package_object_registration_ctest_filter",
     ),
@@ -55,6 +60,22 @@ PACKAGE_LANE_FIELDS = (
     (
         "next_process_package_directed_retraction_test",
         "next_process_package_directed_retraction_ctest_filter",
+    ),
+    (
+        "next_process_package_federation_save_restore_test",
+        "next_process_package_federation_save_restore_ctest_filter",
+    ),
+    (
+        "next_process_package_federation_save_restore_failure_test",
+        "next_process_package_federation_save_restore_failure_ctest_filter",
+    ),
+    (
+        "next_process_package_federation_save_restore_abort_test",
+        "next_process_package_federation_save_restore_abort_ctest_filter",
+    ),
+    (
+        "next_process_package_federation_save_restore_status_test",
+        "next_process_package_federation_save_restore_status_ctest_filter",
     ),
 )
 
@@ -86,6 +107,14 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--config",
         help="Optional CTest configuration for a multi-config consumer build.",
+    )
+    parser.add_argument(
+        "--junit",
+        type=Path,
+        help=(
+            "Optional CTest JUnit artifact to validate against the indexed "
+            "process-package lanes."
+        ),
     )
     return parser.parse_args()
 
@@ -181,6 +210,52 @@ def expected_lanes(index: dict[str, Any]) -> tuple[list[tuple[str, str]], list[s
     return lanes, errors
 
 
+def validate_junit(path: Path, lanes: list[tuple[str, str]]) -> list[str]:
+    """Validate the executed process-package names in a CTest JUnit file."""
+
+    if not path.is_file():
+        return [f"JUnit artifact does not exist: {path}"]
+    if path.stat().st_size == 0:
+        return [f"JUnit artifact is empty: {path}"]
+
+    try:
+        root = ElementTree.parse(path).getroot()
+    except (ElementTree.ParseError, OSError) as error:
+        return [f"JUnit artifact is not valid XML ({path}): {error}"]
+
+    if root.tag not in {"testsuite", "testsuites"}:
+        return [f"JUnit artifact has unexpected root element: {root.tag}"]
+
+    cases = root.findall(".//testcase")
+    if not cases:
+        return [f"JUnit artifact contains no testcase elements: {path}"]
+
+    violations: list[str] = []
+    names = [case.get("name", "") for case in cases]
+    name_counts = {name: names.count(name) for name in set(names) if name}
+    expected_names = [test_name for test_name, _ in lanes]
+    for test_name in expected_names:
+        count = name_counts.get(test_name, 0)
+        if count != 1:
+            violations.append(
+                f"JUnit artifact contains {count} entries for indexed package test {test_name}"
+            )
+
+    root_failures = root.get("failures", "0")
+    root_errors = root.get("errors", "0")
+    if root_failures not in {"", "0"}:
+        violations.append(f"JUnit artifact reports failures={root_failures}")
+    if root_errors not in {"", "0"}:
+        violations.append(f"JUnit artifact reports errors={root_errors}")
+    for case in cases:
+        name = case.get("name", "<unnamed>")
+        if case.find("failure") is not None:
+            violations.append(f"JUnit testcase failed: {name}")
+        if case.find("error") is not None:
+            violations.append(f"JUnit testcase errored: {name}")
+    return violations
+
+
 def main() -> int:
     arguments = parse_arguments()
     ctest_path = Path(arguments.ctest)
@@ -218,6 +293,43 @@ def main() -> int:
     }
     expected_names = {name for name, _ in lanes}
     expected_labels = {label for _, label in lanes}
+    mapping = index.get("mapping", {})
+    lane_handles = mapping.get("lane_handles", {}) if isinstance(mapping, dict) else {}
+    if not isinstance(lane_handles, dict):
+        lane_handles = {}
+    configured_package_labels = {
+        str(label)
+        for label in lane_handles
+        if isinstance(label, str) and label.startswith("package-process")
+    }
+    if configured_package_labels != expected_labels:
+        missing = sorted(expected_labels - configured_package_labels)
+        unexpected = sorted(configured_package_labels - expected_labels)
+        if missing:
+            violations.append(
+                "ROADMAP-INDEX lane_handles is missing package labels: "
+                + ", ".join(missing)
+            )
+        if unexpected:
+            violations.append(
+                "ROADMAP-INDEX lane_handles has unindexed package labels: "
+                + ", ".join(unexpected)
+            )
+    for test_name, label in lanes:
+        handle = lane_handles.get(label)
+        if not isinstance(handle, dict):
+            violations.append(
+                f"ROADMAP-INDEX lane_handles has no entry for package label {label}"
+            )
+            continue
+        if handle.get("consumer_test") != test_name:
+            violations.append(
+                f"ROADMAP-INDEX lane_handles[{label}] consumer_test does not match {test_name}"
+            )
+        if handle.get("ctest_label") != label:
+            violations.append(
+                f"ROADMAP-INDEX lane_handles[{label}] ctest_label does not match {label}"
+            )
     actual_labels = {
         label
         for test in package_tests.values()
@@ -238,6 +350,9 @@ def main() -> int:
             violations.append(f"CTest catalog is missing package labels: {', '.join(missing)}")
         if unexpected:
             violations.append(f"CTest catalog has unindexed package labels: {', '.join(unexpected)}")
+
+    if arguments.junit is not None:
+        violations.extend(validate_junit(arguments.junit, lanes))
 
     summaries: list[str] = []
     for test_name, label in lanes:
@@ -261,6 +376,8 @@ def main() -> int:
 
     print("Verified installed-profile process package catalog against ROADMAP-INDEX.json:")
     print("\n".join(summaries))
+    if arguments.junit is not None:
+        print(f"Verified process-package JUnit artifact: {arguments.junit}")
     return 0
 
 

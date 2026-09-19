@@ -43,6 +43,108 @@ for diagnostics. Descriptive family prose in both cards is bounded; use the
 emitted `work`, `focus`, `trace`, or `matrix` handle for the full bounded view.
 Neither command reopens the Requirements Lab or prints the whole roadmap.
 
+## Current bounded handoff
+
+The latest completed slice is the 52-assertion, nine-requirement,
+seven-subsection, 11-API `HLA_IMMEDIATE` process-boundary restored
+ownership-assumption case. It is now a direct mapped row rather than a pending
+active handoff; use these exact handles rather than searching the full source
+tree:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors deliver restored ownership-assumption work under HLA_IMMEDIATE through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration --group-by requirement --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration --group-by section --summary --compact
+python tools/query_rti_work.py focus process-federation-restore-work-item-ownership-assumption-immediate --summary --compact
+python tools/query_rti_work.py check --lane process-federation-restore-work-item-ownership-assumption-immediate --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.attribute_ownership_acquisition\.catch2\.RTIambassadors deliver restored ownership-assumption work under HLA_IMMEDIATE through a configured process endpoint$" --output-on-failure
+```
+
+The case keeps the completed HLA_EVOKED public restore-work-item row as a
+mapping seed, but its callback-gate behavior and direct requirement/subsection
+pairs are independent. It does not claim Evoke Callback behavior, the
+already-pushed work-item lane, other restore work-item families, or package,
+review, validation, interoperability, or conformance evidence.
+
+The configuration-fallback slice is independently queryable and demonstrates
+the intended case-to-standard crosswalk: one Catch2 case, eight assertions,
+the exact `requirement-candidate-content-clauses-04-federation-management-page-051-l18-3`
+configuration-fallback requirement plus
+`requirement-candidate-content-clauses-04-federation-management-page-051-l23-4`
+for the no-`RtiAddress` default embedded path, and canonical subsection
+`hla-1516.1-2025:clause-4.2.4`. Its matrix therefore exposes two direct
+requirement/subsection pairs:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-connect-configuration-fallback-integration --summary --compact
+python tools/query_rti_work.py focus configuration-fallback --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-connect-configuration-fallback-integration --summary --compact
+python tools/query_rti_work.py check --lane configuration-fallback --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.Embedded Connect falls back to its default configuration for absent and unknown names$" --output-on-failure
+```
+
+This remains development-profile evidence; it does not claim named external
+configuration catalogs, package/JUnit/protected-review, validation,
+interoperability, or conformance.
+
+The companion additional-settings parse-failure slice keeps the §4.2.4 rule
+executable and separately addressable. It maps five Catch2 assertions to
+`requirement-candidate-content-clauses-04-federation-management-page-051-l28-5`
+and reports `SETTINGS_FAILED_TO_PARSE` while Connect completes:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-connect-additional-settings-parse-failure-integration --summary --compact
+python tools/query_rti_work.py focus configuration-additional-settings --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-connect-additional-settings-parse-failure-integration --summary --compact
+python tools/query_rti_work.py check --lane configuration-additional-settings --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.Embedded Connect completes when an optional additional setting cannot be parsed$" --output-on-failure
+```
+
+Keep this parse-failure boundary separate from named-configuration fallback,
+service-report-directory validation, process endpoint selection, credentials,
+and aggregate Connect overload traceability.
+
+The current bounded DDM slices cover the §9.8 ordinary/regional subscription
+independence and passive-indicator/advisory boundaries. The independence case
+is a 40-assertion development-profile regression mapped directly to lines 57
+and 63. The regional declaration-advisory case is a 61-assertion regression
+mapped to lines 90, 102, and 120, proving no-Start for passive subscriptions,
+active-to-passive Stop behavior, and per-region triple-basis state. The
+registered-object companion is a 54-assertion regression that proves the same
+passive/active triples gate object discovery and Turn Updates On/Off without a
+second discovery on re-enable. Together they cover all 20 requirements
+currently filtered for §9.8 in the object-DDM family; timestamped/retraction
+paths remain a separate implementation slice:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-regional-object-attribute-subscription-isolation-integration --summary --compact
+python tools/query_rti_work.py focus regional-object-attribute-subscription-isolation --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-regional-object-attribute-subscription-isolation-integration --group-by requirement --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-regional-object-attribute-subscription-isolation-integration --group-by section --summary --compact
+python tools/query_rti_work.py check --lane regional-object-attribute-subscription-isolation --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.regional_object_attribute_routing\.catch2\.Embedded regional object-attribute subscriptions remain independent from ordinary declarations$" --output-on-failure
+python tools/query_rti_work.py case umbra-cpp-regional-passive-subscription-turn-updates-integration --summary --compact
+python tools/query_rti_work.py focus regional-passive-subscription-turn-updates --summary --compact
+python tools/query_rti_work.py matrix regional-passive-subscription-turn-updates --summary --compact
+python tools/query_rti_work.py check --lane regional-passive-subscription-turn-updates --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.regional_declaration_relevance_advisory\.catch2\.Embedded regional passive subscription changes gate registered-object turn updates per region$" --output-on-failure
+python tools/query_rti_work.py gaps --family object-ddm-ownership --clause clause-9.8 --summary --compact --limit 8
+```
+
+`work <family-id> --summary --compact` is the bounded family handoff when a
+new case is needed. Its `work_mapping` line is derived from the live distinct
+Catch2 rows (not stale pointer metadata) and includes case/mapped/assertion,
+requirement, canonical-subsection, and direct-pair totals. The same card emits
+`work_matrix_requirement` and `work_matrix_section` commands for the exact
+family crosswalks.
+
+The card also includes `latest_verified_restore_slice`, a bounded ledger for
+implementation fixes that reuse existing mapped cases (for example, the
+negotiated-ownership fresh-registry restore fix). Its plan IDs, direct-query
+handles, and focused CTest selectors are kept beside the roadmap index so a
+regression can be resumed without rediscovering the slice.
+
 `requirement <id-or-text>` and `section <document:clause>` are valid reverse
 lookups even before a C++ case is mapped. If no Catch2 row exists, they return
 the bounded uncovered pinned-2025 records and normative source statement so a
@@ -52,10 +154,40 @@ as `matrix`: each row keeps the source/assertion counts and direct
 `requirement -> standard subsection` pairs without repeating full contract
 provenance. Use `test <query>` or `case <exact-handle>` when the full row is
 needed.
+For standards review, `matrix --group-by requirement` emits one aggregate row
+per Requirements-Lab id, while `matrix --group-by section` emits one row per
+canonical 2025 subsection. Each row keeps direct pair/test/assertion counts and
+a bounded exact case preview, so a reviewer can pivot the crosswalk without
+opening the full plan. Passing an exact requirement or subsection query keeps
+only that direct key; pass a family or lane for the full bounded slice.
 
 ```powershell
 python tools/query_rti_work.py section 8.18.1 --summary --compact --limit 8
 python tools/query_rti_work.py requirement requirement-candidate-content-clauses-08-time-management-page-206-l149-37 --summary --compact --limit 8
+```
+
+The ownership/DDM transfer slice is a useful exact crosswalk example: its
+same-federate reacquisition assertions cover the §9.6 non-restoration rule,
+while the lane command runs only the three ownership-transfer cases:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-ownership-transfer-update-region-integration --summary --compact
+python tools/query_rti_work.py matrix requirement-candidate-content-clauses-09-data-distribution-management-page-230-l178-55 --group-by requirement --summary --compact
+python tools/query_rti_work.py focus ownership-transfer-update-region --summary --compact
+python tools/query_rti_work.py check --lane ownership-transfer-update-region --summary --compact
+ctest --test-dir .build -C Debug -L "ownership-transfer-update-region" --output-on-failure
+```
+
+The multi-acquirer Release Denied case is indexed as its own focused lane, so
+its callback-drain regression can be resumed without searching the ownership
+catalog. Its case card exposes the four direct Lab-to-2025-subsection pairs,
+the three canonical sections, 53 Catch2 assertions, and the exact CTest filter:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-attribute-ownership-release-denied-multi-acquirer-integration --summary --compact
+python tools/query_rti_work.py focus attribute-ownership-release-denied-multi-acquirer --summary --compact
+python tools/query_rti_work.py check --lane attribute-ownership-release-denied-multi-acquirer --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers$" --output-on-failure
 ```
 
 `lab-issues` is the cheap reverse path for Requirements Lab complaints and
@@ -90,10 +222,12 @@ task. They show a bounded family selector instead, with mapping counts. Pick
 one family with the printed `ready --family <id>`, `next --family <id>`, or
 `work <id>` handle; the family-scoped response then includes
 requirement/canonical 2025-section previews and direct requirement-to-section
-pairs, plus an exact `gaps --family <id>` command when a new case is needed. Use
-`focus`/`matrix` only after that bounded choice. The text dashboard prints the
-first family as a recommendation; JSON consumers can read
-`next.recommended_family_id` without parsing prose.
+pairs, plus exact `matrix --group-by requirement` and
+`matrix --group-by section` commands (and `gaps --family <id>` when a new case
+is needed). Use `focus`/`matrix` only after that bounded choice. The text
+dashboard prints the first family as a recommendation; JSON consumers can read
+`next.recommended_family_id`, `next.selection_required`, and
+`next.family_choice_command` without parsing prose.
 
 The index can promote one deliberate `active_handoff` above that family
 fallback. This is the preferred way to queue the next implementation slice
@@ -162,10 +296,11 @@ For a broad family without a single `next_lane`, `work <family-id>` also emits
 bounded `lanes --family ...` and `ready --family ...` commands, keeping new-case
 selection local to the indexed family.
 
-An exact Catch2 lane tag can also be entered directly in `roadmap`. The result
-includes a `lane_match` with its representative source/test mapping, `trace`,
-`focus`, and CTest handles, so lane ownership is resolved without a second
-family or plan search:
+An exact lane handle (normally a Catch2 lane tag; the plan's
+`primary_lane`/`focus_lane` aliases are accepted too) can also be entered
+directly in `roadmap`. The result includes a `lane_match` with its
+representative source/test mapping, `trace`, `focus`, and CTest handles, so
+lane ownership is resolved without a second family or plan search:
 
 ```powershell
 python tools/query_rti_work.py roadmap joined-federate-mom-deleted-object-count-periodic --summary --compact
@@ -180,28 +315,247 @@ listing also exposes the smaller `plan_row_assertions` sum when legacy rows do
 not carry individual assertion counts, so the difference is visible and not a
 hidden search trap.
 
-The indexed snapshot is 1,226 Catch2 cases (1,162 mapped), including 109
-process-boundary cases and 5,239 indexed assertions. The live check leaves 64
+The indexed snapshot is 1,285 Catch2 cases (1,221 mapped), including 155
+process-boundary cases and 6,717 indexed assertions (6,869 assertions recorded
+on the individual process-boundary plan rows). The live check leaves 64
 intentional explicit-disposition rows and zero unclassified mappings.
 
-The latest completed slice is the configured-process directed TSO callback-
-gating lane at `cpp/tests/ieee1516_2025_connection_catch2.cpp:15757`. It carries
-62 assertions, maps 21 Lab requirements to 16 canonical 2025 sections and 18
-official C++ API surfaces, and proves that a timestamped directed interaction
-and its matching grant remain queued while the receiver callback gate is
-disabled, then arrive exactly once in directed-interaction-before-grant order
-after re-enable with TIMESTAMP/TIMESTAMP metadata. It remains private
-foundation evidence, not a conformance claim. The preceding multi-recipient
-fanout, multiple-message FIFO, changed-lookahead interaction, and filesystem
+The latest completed slice is the HLA_IMMEDIATE restored ownership-assumption
+companion in `cpp/tests/attribute_ownership_acquisition_catch2.cpp`; its nine
+requirements, seven canonical 2025 sections, and 11 official C++ API surfaces
+remain separate from the completed restore-abort, successful/failed lifecycle,
+restore-request-failure, restore-status, and already-pushed work-item slices:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration --summary --compact
+python tools/query_rti_work.py focus process-federation-restore-work-item-ownership-assumption-immediate --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors deliver restored ownership-assumption work under HLA_IMMEDIATE through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration --group-by requirement --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration --group-by section --summary --compact
+python tools/query_rti_work.py check --lane process-federation-restore-work-item-ownership-assumption-immediate --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.attribute_ownership_acquisition\.catch2\.RTIambassadors deliver restored ownership-assumption work under HLA_IMMEDIATE through a configured process endpoint$" --output-on-failure
+```
+
+The restore-status, restore-abort, already-pushed work-item, connection-loss,
+and cancellation lanes remain separately indexed rather than being folded into
+this restore family.
+
+The preceding mixed cancel-delete-divest companion remains separately queryable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-connection-lost-automatic-cancel-delete-divest-immediate --summary --compact
+python tools/query_rti_work.py focus connection-lost-automatic-cancel-delete-divest-immediate --summary --compact
+python tools/query_rti_work.py check --lane connection-lost-automatic-cancel-delete-divest-immediate --summary --compact
+```
+
+The earlier final-federate directive-two companion remains separately queryable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-connection-lost-final-federate-immediate --summary --compact
+python tools/query_rti_work.py focus connection-lost-final-federate-immediate --summary --compact
+python tools/query_rti_work.py check --lane connection-lost-final-federate-immediate --summary --compact
+```
+
+The earlier bounded NoAction companion remains separately queryable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-connection-lost-automatic-no-action-immediate --summary --compact
+python tools/query_rti_work.py focus connection-lost-automatic-no-action-immediate --summary --compact
+python tools/query_rti_work.py check --lane connection-lost-automatic-no-action-immediate --summary --compact
+```
+
+The pending-acquisition cancellation companion remains separately
+queryable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-connection-lost-automatic-cancel-pending-acquisition-immediate --summary --compact
+python tools/query_rti_work.py focus connection-lost-automatic-cancel-pending-acquisition-immediate --summary --compact
+python tools/query_rti_work.py trace umbra-cpp-connection-lost-automatic-cancel-pending-acquisition-immediate --summary --compact
+python tools/query_rti_work.py matrix connection-lost-automatic-cancel-pending-acquisition-immediate --summary --compact
+python tools/query_rti_work.py check --lane connection-lost-automatic-cancel-pending-acquisition-immediate --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.connection_loss_automatic_cancel_pending_acquisition\.catch2\.Immediate callbacks cancel a lost federate's pending ownership acquisition synchronously$" --output-on-failure
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-pushed-ownership-assumption-evoked-integration --summary --compact
+python tools/query_rti_work.py focus process-pushed-ownership-assumption-evoked --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors deliver an unconsumed pushed ownership-assumption callback through HLA_EVOKED" --summary --compact
+python tools/query_rti_work.py matrix process-pushed-ownership-assumption-evoked --summary --compact
+python tools/query_rti_work.py check --lane process-pushed-ownership-assumption-evoked --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.attribute_ownership_acquisition\.catch2\.RTIambassadors deliver an unconsumed pushed ownership-assumption callback through HLA_EVOKED$" --output-on-failure
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-push-integration --summary --compact
+python tools/query_rti_work.py focus process-federation-restore-work-item-ownership-assumption-push --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors preserve pushed ownership-assumption delivery across save and restore" --summary --compact
+python tools/query_rti_work.py matrix process-federation-restore-work-item-ownership-assumption-push --summary --compact
+python tools/query_rti_work.py check --lane process-federation-restore-work-item-ownership-assumption-push --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.attribute_ownership_acquisition\.catch2\.RTIambassadors preserve pushed ownership-assumption delivery across save and restore$" --output-on-failure
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-integration --summary --compact
+python tools/query_rti_work.py case umbra-cpp-federation-save-commit-process-local-ownership-assumption-work-unit --summary --compact
+```
+
+The embedded ownership-assumption search is split into three exact cards so
+the later-join, callback-return, and fresh-epoch boundaries can be run without
+opening the entire federation-management test file:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-resign-action-assumption-discovery-continuation-integration --summary --compact
+python tools/query_rti_work.py focus resign-action-assumption-discovery-continuation --summary --compact
+python tools/query_rti_work.py matrix resign-action-assumption-discovery-continuation --summary --compact
+python tools/query_rti_work.py check --lane resign-action-assumption-discovery-continuation --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded assumption search continues after a later join and discovery$" --output-on-failure
+
+python tools/query_rti_work.py case umbra-cpp-ownership-assumption-search-continuation-integration --summary --compact
+python tools/query_rti_work.py focus ownership-assumption-search-continuation --summary --compact
+python tools/query_rti_work.py matrix ownership-assumption-search-continuation --summary --compact
+python tools/query_rti_work.py check --lane ownership-assumption-search-continuation --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded ownership assumption search advances after a declined callback$" --output-on-failure
+
+python tools/query_rti_work.py case umbra-cpp-ownership-assumption-search-epoch-integration --summary --compact
+python tools/query_rti_work.py focus ownership-assumption-search-epoch --summary --compact
+python tools/query_rti_work.py matrix ownership-assumption-search-epoch --summary --compact
+python tools/query_rti_work.py check --lane ownership-assumption-search-epoch --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded ownership assumption search starts a fresh epoch after transfer$" --output-on-failure
+```
+
+These are 26, 36, and 39 assertion HLA_EVOKED cases, mapped respectively to
+§4.12/§4.12.4, §7/§7.2, and §7/§7.2. They remain development-profile
+traceability evidence only.
+
+The RTI-owned MOM query is separately addressable and deliberately does not
+inherit the process endpoint's still-open MOM-establishment/report-file work:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-rti-owned-mom-ownership-query-integration --summary --compact
+python tools/query_rti_work.py focus rti-owned-mom-ownership-query --summary --compact
+python tools/query_rti_work.py matrix rti-owned-mom-ownership-query --summary --compact
+python tools/query_rti_work.py check --lane rti-owned-mom-ownership-query --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded RTI-owned MOM attributes participate in ownership queries$" --output-on-failure
+```
+
+An earlier bounded runtime correction is the timestamped process Delete Object
+Instance baseline at `cpp/tests/ieee1516_2025_connection_catch2.cpp:9166`.
+Its regulated and non-regulated variants preserve the process queue identity
+while projecting a public `MessageRetractionHandle` only for the
+time-regulating producer; the exact case carries 283 assertions, maps 14 Lab
+requirements to eight canonical 2025 sections, and exercises seven official
+C++ API surfaces, including queued constrained-recipient and preferred
+receive-order variants under both callback models. Query it without scanning the full plan:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-timestamped-delete-object-instance-integration --summary --compact
+python tools/query_rti_work.py trace "RTIambassador routes timestamped Delete Object Instance and removal callback through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py check --lane process-boundary --summary --compact
+```
+
+An earlier completed slice is the process federation-save abort case at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:961`. It carries 13 assertions
+under `HLA_EVOKED`, maps three Lab requirements to two canonical 2025 sections,
+and exercises five official C++ API surfaces. It carries Abort Federation Save
+and the `Federation Not Saved(SAVE_ABORTED)` callback through the configured
+process endpoint. Query it directly:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-federation-save-abort-integration --summary --compact
+python tools/query_rti_work.py focus process-federation-save-abort --summary --compact
+python tools/query_rti_work.py trace umbra-cpp-process-endpoint-federation-save-abort-integration --summary --compact
+python tools/query_rti_work.py matrix process-federation-save-abort --summary --compact
+python tools/query_rti_work.py check --lane process-federation-save-abort --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.RTIambassadors carry federation save abort through the configured process endpoint$" --output-on-failure
+```
+
+Timed save, not-complete failure, restore, push-mode, multi-federate save,
+package/JUnit, review, validation, interoperability, and conformance remain
+separate lanes. The preceding untimed and status process save baselines remain
+separately queryable as `process-federation-save-untimed` and
+`process-federation-save-status`. The earlier embedded
+evoked synchronization save/restore case remains separately queryable as
+`evoked-synchronization-save-restore`.
+
+The preceding process-boundary delivery slice remains separately queryable as
+`process-directed-interaction-transportation` and continues to carry 66
+assertions under both callback models.
+
+The timestamped process Delete Object Instance baseline is independently
+queryable through `process-boundary` at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:9166`. It carries 283
+assertions, 14 direct Lab requirements, eight canonical 2025 sections, and
+seven official C++ API surfaces; the public return value is a valid
+`MessageRetractionHandle` only for the regulated producer, while the
+non-regulated variant verifies the required absent designator. Use the exact
+case and trace handles below; broader retraction and regional/DDM remain
+separate:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-timestamped-delete-object-instance-integration --summary --compact
+python tools/query_rti_work.py trace "RTIambassador routes timestamped Delete Object Instance and removal callback through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-timestamped-delete-object-instance-integration --summary --compact
+python tools/query_rti_work.py check --lane process-boundary --summary --compact
+```
+
+The preceding two-recipient directed interaction lane remains separately
+queryable as `process-directed-interaction-multi-recipient`; it carries 104
+assertions and the broader Receive Directed Interaction callback fan-out
+evidence. Keep that lane separate from transportation override behavior.
+
+The preceding completed slice is the timestamped regional configured-process
+transportation lane at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:27745`. It carries 122
+assertions, maps 27 Lab requirements to 15 canonical 2025 sections and 21
+official C++ API surfaces, and proves that a publisher's
+confirmed `HLAbestEffort` override survives a timestamped regional send with
+TIMESTAMP classifications, retraction identity, callback-before-grant ordering,
+and source-region metadata under both callback models. It remains private
+foundation evidence, not a conformance claim. The preceding interaction
+transportation lane at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:27030` carries 40 assertions,
+ten Lab requirements, four canonical sections, and 9 official API surfaces.
+The preceding instance transportation lane at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:26822` carries 30 assertions,
+five Lab requirements, four canonical sections, and 10 official API surfaces.
+The preceding directed TSO callback-gating, multi-recipient fanout,
+multiple-message FIFO, changed-lookahead interaction, and filesystem
 restore-baseline lanes remain independently queryable:
 
 ```powershell
-python tools/query_rti_work.py case umbra-cpp-process-tso-directed-interaction-callback-gating --summary --compact
-python tools/query_rti_work.py focus process-tso-directed-interaction-callback-gating --summary --compact
-python tools/query_rti_work.py trace "RTIambassadors retain a timestamped directed interaction while callbacks are disabled" --summary --compact
-python tools/query_rti_work.py matrix umbra-cpp-process-tso-directed-interaction-callback-gating --summary --compact
-python tools/query_rti_work.py check --lane process-tso-directed-interaction-callback-gating --summary --compact
-ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassadors retain a timestamped directed interaction while callbacks are disabled$" --output-on-failure
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-transportation-instance-integration --summary --compact
+python tools/query_rti_work.py focus process-transportation-instance-control --summary --compact
+python tools/query_rti_work.py trace "RTIambassador routes instance transportation type change and query through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-transportation-instance-integration --summary --compact
+python tools/query_rti_work.py check --lane process-transportation-instance-control --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador routes instance transportation type change and query through a configured process endpoint$" --output-on-failure
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-transportation-interaction-integration --summary --compact
+python tools/query_rti_work.py focus process-transportation-interaction-control --summary --compact
+python tools/query_rti_work.py trace "RTIambassador routes interaction transportation type change and query through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-transportation-interaction-integration --summary --compact
+python tools/query_rti_work.py check --lane process-transportation-interaction-control --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador routes interaction transportation type change and query through a configured process endpoint$" --output-on-failure
+```
+
+The newest timestamped regional companion is independently addressable as
+`process-transportation-timestamped-regional-interaction-control`:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-transportation-timestamped-regional-interaction-integration --summary --compact
+python tools/query_rti_work.py focus process-transportation-timestamped-regional-interaction-control --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors preserve a timestamped regional interaction transportation override through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-transportation-timestamped-regional-interaction-integration --summary --compact
+python tools/query_rti_work.py check --lane process-transportation-timestamped-regional-interaction-control --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.RTIambassadors preserve a timestamped regional interaction transportation override through a configured process endpoint$" --output-on-failure
+```
+
+The preceding regional companion is independently addressable as
+`process-transportation-regional-interaction-control` at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:27247`. It carries 84
+assertions, 23 direct Lab requirements, 11 canonical 2025 sections, and 17
+official C++ API surfaces. It proves that a publisher's confirmed
+`HLAbestEffort` interaction transportation override survives a regional send
+and that the receiver retains the source-region metadata under both callback
+models:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-transportation-regional-interaction-integration --summary --compact
+python tools/query_rti_work.py focus process-transportation-regional-interaction-control --summary --compact
+python tools/query_rti_work.py trace "RTIambassadors preserve a regional interaction transportation override through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-transportation-regional-interaction-integration --summary --compact
+python tools/query_rti_work.py check --lane process-transportation-regional-interaction-control --summary --compact
+ctest --test-dir .build -C Debug -R "^umbra\.ieee1516_2025\.catch2\.RTIambassadors preserve a regional interaction transportation override through a configured process endpoint$" --output-on-failure
 ```
 
 The preceding configured-process multi-recipient fanout lane remains
@@ -220,7 +574,7 @@ python tools/query_rti_work.py trace "RTIambassadors retain a timestamped region
 ```
 
 The regional TSO callback-gating companion is now complete at
-`cpp/tests/ieee1516_2025_connection_catch2.cpp:25321` with 69 assertions. It
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:26210` with 69 assertions. It
 maps 28 Requirements-Lab IDs to 16 canonical 2025 sections and 20 official
 C++ API surfaces, and proves that a timestamped regional interaction and its
 matching grant remain queued while callbacks are disabled, then arrive exactly
@@ -638,6 +992,7 @@ the global source queue is exhausted.
 
 ```powershell
 python tools/query_rti_work.py lanes --family <family-id> --summary --compact --limit 12
+python tools/query_rti_work.py lanes --family <family-id> --focused --summary --compact --limit 12
 python tools/query_rti_work.py focus <exact-catch2-lane> --summary --compact
 python tools/query_rti_work.py check --lane <exact-catch2-lane> --summary --compact
 ```
@@ -652,6 +1007,9 @@ counts, and copyable `focus`/CTest handles. Add
 `--disposition unclassified` to keep only lanes with a missing mapping
 decision, or `--disposition explicit` to review intentional
 no-standalone-surface dispositions; plain `--unmapped` keeps both visible.
+The default inventory includes every broad cross-cutting tag. Use `--focused`
+to restrict the result to the owning family's explicit `focused_lane_tags`
+aliases; this is the preferred small selector for normal slice work.
 In the plain inventory, `next` is reserved for an actionable source-located
 candidate or mapping/source-drift handoff. If a lane contains only explicit
 no-standalone-surface rows, it reports `review_only` plus `review_trace`
@@ -680,24 +1038,82 @@ ctest --test-dir <build-dir> -C Debug -L process-boundary --output-on-failure
 ```
 
 Its JUnit artifact is
-`compliance/process-boundary/process-boundary.xml`, merged from
-`umbra_process_boundary_private_catch2` and
-`umbra_ieee1516_2025_connection_catch2` by
-`tools/merge_junit_reports.py`. The live query card currently reports 109 mapped
-plan rows and 5,239 indexed Catch2 assertions; the captured evidence baseline
-registers 108 CTest executions and is selected by the stable label. The current
-merged JUnit aggregate contains 4,132 testcases with zero failures/errors (the
-older m108 snapshot contained 2,733); these remain distinct traceability,
-assertion, execution, and report metrics.
+`compliance/process-boundary/process-boundary.xml`, merged from the five
+independently buildable process-boundary targets by
+`tools/merge_junit_reports.py`. The live query card currently reports 155 mapped
+process-boundary cases and 6,717 indexed Catch2 assertions (6,869 assertions
+recorded by plan rows); the stable CTest label selects
+209 registrations. The JUnit target executes the 119 independently buildable
+registrations and its merged aggregate contains 214 emitted section-level
+testcases and 5,458 assertions, with zero failures/errors; the
+aggregate umbrella registration remains CTest-only because its federation-
+management translation unit is not an evidence source. These remain distinct
+traceability, assertion, execution, and report metrics.
 
 The installed-profile child build is a separate bounded check. Verify its
-indexed catalog first, then emit a local JUnit report from the eight package
-process lanes:
+indexed catalog first, then emit the deterministic JUnit report from the
+thirteen independently addressable package-process lanes:
 
 ```powershell
-python tools/verify_process_package_lanes.py --ctest ctest --test-dir <build-dir>/package-smoke-consumer --config Debug
-ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L "^package-process" --output-on-failure --output-junit package-process.xml
+ctest --test-dir <build-dir>/package-smoke-consumer -C Debug --output-on-failure --output-junit <build-dir>/package-smoke-consumer/Testing/package-process.xml
+python tools/verify_process_package_lanes.py --ctest ctest --test-dir <build-dir>/package-smoke-consumer --config Debug --junit <build-dir>/package-smoke-consumer/Testing/package-process.xml
 ```
+
+The verifier joins the report back to the thirteen `next_process_package_*`
+handles in `ROADMAP-INDEX.json`; a missing/duplicated process name or any
+JUnit failure/error fails the handoff.
+
+The focused DELETE_OBJECTS connection-loss lane is selected without a catalog
+search:
+
+```powershell
+python tools/query_rti_work.py lane package-process-connection-loss-delete-objects --summary --compact
+ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-connection-loss-delete-objects --output-on-failure
+```
+The indexed handle points back to
+`umbra-cpp-connection-lost-automatic-delete-integration` for its five
+Requirements-Lab ids and five canonical 2025 section keys; the package lane
+is installed-process foundation evidence, not a conformance promotion.
+
+The focused federation save/restore process lane is selected without a catalog
+search:
+
+```powershell
+python tools/query_rti_work.py lane package-process-federation-save-restore --summary --compact
+ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore --output-on-failure
+```
+Its indexed handle points to the native process restore-success case and its six
+Requirements-Lab requirement/section mappings; it remains installed-process
+foundation evidence.
+
+The focused federation restore-failure process lane is selected without a
+catalog search:
+
+```powershell
+python tools/query_rti_work.py lane package-process-federation-save-restore-failure --summary --compact
+ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore-failure --output-on-failure
+```
+It is mapped to the native restore-failure case and verifies the official
+`FEDERATE_REPORTED_FAILURE_DURING_RESTORE` reason.
+
+The focused federation restore-abort process lane is selected without a catalog
+search:
+
+```powershell
+python tools/query_rti_work.py lane package-process-federation-save-restore-abort --summary --compact
+ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore-abort --output-on-failure
+```
+It is mapped to the native restore-abort case and verifies `RESTORE_ABORTED`.
+
+The focused federation restore-status process lane is selected without a
+catalog search:
+
+```powershell
+python tools/query_rti_work.py lane package-process-federation-save-restore-status --summary --compact
+ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore-status --output-on-failure
+```
+It is mapped to the native restore-status case and verifies the in-progress
+`FEDERATE_RESTORING` status response before restore completion.
 
 The federation-listing Support Services boundary is also independently
 runnable:
@@ -1492,8 +1908,25 @@ python tools/query_rti_work.py matrix "Embedded regional declaration relevance a
 ```
 
 It maps the region-scoped declaration services and four RTI-initiated callbacks
-to 10 exact 2025 Lab candidates in the same six declaration-management clauses.
-Complete regional DDM routing remains separate.
+to 13 exact 2025 Lab candidates across the six declaration-management clauses
+and §9.8. Complete regional DDM routing remains separate.
+
+The registered-object regional passive-triple slice is independently runnable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-regional-passive-subscription-turn-updates-integration --summary --compact
+python tools/query_rti_work.py focus regional-passive-subscription-turn-updates --summary --compact
+python tools/query_rti_work.py trace "Embedded regional passive subscription changes gate registered-object turn updates per region" --summary --compact
+python tools/query_rti_work.py matrix regional-passive-subscription-turn-updates --summary --compact
+python tools/query_rti_work.py check --lane regional-passive-subscription-turn-updates --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.regional_declaration_relevance_advisory\.catch2\.Embedded regional passive subscription changes gate registered-object turn updates per region$" --output-on-failure
+```
+
+It adds 54 HLA_EVOKED assertions for §9.8 lines 90, 102, and 120, proving
+object discovery and Turn Updates On/Off gating for one overlapping triple
+while an independent disjoint triple remains active. Timestamped/retraction,
+broader regional overlap, package/JUnit/protected-review, validation, and
+conformance remain separate.
 
 The declaration-relevance service-report boundary is independently runnable:
 

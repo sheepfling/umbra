@@ -509,6 +509,54 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "The embedded federation registry reports a directed interaction transportation override",
+    "[unit][kernel][federation-registry][interaction-management][declaration-management]"
+    "[directed-interaction][directed-routing][interaction-transportation-type-change]"
+    "[transportation-management][rti.service.publish-object-class-directed-interactions]"
+    "[rti.service.request-interaction-transportation-type-change]"
+    "[rti.service.query-interaction-transportation-type]") {
+  EmbeddedFederationRegistry registry;
+  REQUIRE(registry.create(
+                        L"exercise",
+                        composedDirectedInteractionDefinition())
+              .status == FederationRegistryStatus::applied);
+  auto joined = registry.join(
+      L"exercise", L"directed-publisher", L"directed-publisher", noOpCallbackRoute());
+  REQUIRE(joined.status == FederationRegistryStatus::applied);
+  REQUIRE(joined.membership.has_value());
+  auto const federateId = joined.membership->id;
+
+  auto const objectClass = registry.objectClassHandleFor(
+      L"exercise", "HLAobjectRoot.UmbraDirectedFixtureObject");
+  auto const interactionClass = registry.interactionClassHandleFor(
+      L"exercise", "HLAinteractionRoot.UmbraDirectedFixtureInteraction");
+  REQUIRE(objectClass.has_value());
+  REQUIRE(interactionClass.has_value());
+  REQUIRE(registry.publishObjectClassDirectedInteractions(
+               L"exercise", federateId, *objectClass, {*interactionClass}) ==
+      umbra::detail::DirectedInteractionDeclarationStatus::applied);
+
+  auto defaultQuery = registry.interactionTransportationTypeQueryFor(
+      L"exercise", federateId, federateId, *interactionClass);
+  REQUIRE(defaultQuery.has_value());
+  REQUIRE(defaultQuery->transportationName == "HLAreliable");
+
+  auto change = registry.planInteractionTransportationTypeChange(
+      L"exercise", federateId, *interactionClass, "HLAbestEffort");
+  REQUIRE(change.status ==
+      umbra::detail::InteractionTransportationTypeChangeStatus::applied);
+  auto committed = registry.beginInteractionTransportationTypeChange(
+      L"exercise", federateId, *interactionClass);
+  REQUIRE(committed.has_value());
+  REQUIRE(*committed == "HLAbestEffort");
+
+  auto overrideQuery = registry.interactionTransportationTypeQueryFor(
+      L"exercise", federateId, federateId, *interactionClass);
+  REQUIRE(overrideQuery.has_value());
+  REQUIRE(overrideQuery->transportationName == "HLAbestEffort");
+}
+
+TEST_CASE(
     "Filesystem fresh-registry restore rebinds a pending object-instance Request Attribute Value Update",
     "[unit][kernel][federation-registry][save-restore][durable-save][filesystem][restore]"
     "[process-restart][process-restart-pending-attribute-value-update][pending-application-request-state][attribute-value-update]"
@@ -1253,7 +1301,7 @@ TEST_CASE(
       directory);
 
   EmbeddedFederationRegistry source({}, store);
-  REQUIRE(source.create(L"exercise", composedRestaurantDefinition()).status ==
+  REQUIRE(source.create(L"exercise", composedDirectedInteractionDefinition()).status ==
       FederationRegistryStatus::applied);
   auto publisher = source.join(
       L"exercise", L"publisher", L"publisher", noOpCallbackRoute());
@@ -1554,7 +1602,7 @@ TEST_CASE(
       directory);
 
   EmbeddedFederationRegistry source({}, store);
-  REQUIRE(source.create(L"exercise", composedRestaurantDefinition()).status ==
+  REQUIRE(source.create(L"exercise", composedDirectedInteractionDefinition()).status ==
       FederationRegistryStatus::applied);
   auto publisher = source.join(
       L"exercise", L"publisher", L"publisher", noOpCallbackRoute());
@@ -2960,6 +3008,7 @@ TEST_CASE(
   objectDeletion.userSuppliedTag = std::string{"delete\0", 7U};
   objectDeletion.recipients = {{8U, 19U}};
   objectDeletion.timestampEncoding = std::string{"\x0e\x0f", 2U};
+  objectDeletion.sentOrderType = 2U;
   umbra::detail::FederationStateImageTsoObjectDeletionReconstitution reconstitution;
   reconstitution.object = {
       19U,
@@ -3268,7 +3317,8 @@ TEST_CASE(
   REQUIRE(decoded.tsoDirectedInteractionMessages.front().recipients.front()
               .receivedParameterHandles == std::vector<std::uint64_t>{32U});
   REQUIRE(decoded.tsoObjectDeletionMessages.size() == 1U);
-  REQUIRE(decoded.tsoObjectDeletionMessages.front().messageId == 88U);
+  REQUIRE((decoded.tsoObjectDeletionMessages.front().messageId == 88U &&
+      decoded.tsoObjectDeletionMessages.front().sentOrderType == 2U));
   REQUIRE(decoded.tsoObjectDeletionMessages.front().userSuppliedTag ==
       std::string{"delete\0", 7U});
   REQUIRE(decoded.tsoObjectDeletionMessages.front().recipients.front()
@@ -5433,6 +5483,7 @@ TEST_CASE(
       tagBytes.data(), tagBytes.size());
   deletion.timestamp =
       std::make_shared<rti1516_2025::HLAinteger64Time>(5);
+  deletion.sentOrderType = rti1516_2025::TIMESTAMP;
   auto const enqueued = source.enqueueTsoObjectDeletion(
       L"exercise",
       producer.membership->id,
@@ -5498,7 +5549,9 @@ TEST_CASE(
   REQUIRE(savedObject.attributeValues.front().value == valueBytes);
   REQUIRE(image.tsoObjectDeletionMessages.size() == 1U);
   auto const& savedDeletion = image.tsoObjectDeletionMessages.front();
-  REQUIRE(savedDeletion.messageId == enqueued.messageId);
+  REQUIRE((savedDeletion.messageId == enqueued.messageId &&
+      savedDeletion.sentOrderType ==
+          static_cast<std::uint32_t>(rti1516_2025::TIMESTAMP)));
   REQUIRE(savedDeletion.objectInstanceHandle == registered.objectInstanceHandle);
   REQUIRE(savedDeletion.userSuppliedTag == tagBytes);
   REQUIRE(savedDeletion.recipients.size() == 2U);
@@ -5583,7 +5636,8 @@ TEST_CASE(
       std::get_if<umbra::detail::TsoObjectDeletionDelivery>(
           &restored.deliveries.front());
   REQUIRE(restoredDeletion != nullptr);
-  REQUIRE(restoredDeletion->message.messageId == enqueued.messageId);
+  REQUIRE((restoredDeletion->message.messageId == enqueued.messageId &&
+      restoredDeletion->message.sentOrderType == rti1516_2025::TIMESTAMP));
   REQUIRE(restoredDeletion->message.objectInstanceHandle ==
       registered.objectInstanceHandle);
   REQUIRE(restoredDeletion->message.userSuppliedTag.size() == tagBytes.size());
@@ -6660,6 +6714,108 @@ TEST_CASE(
       registered.objectInstanceHandle);
   REQUIRE(continuation.front().attributeHandles == efficiencyOnly);
   REQUIRE(continuation.front().userSuppliedTag == divestitureTag);
+
+  std::filesystem::remove_all(directory, ignored);
+}
+
+TEST_CASE(
+    "Process-local restore returns route-free ownership-assumption work for the process endpoint",
+    "[unit][kernel][federation-registry][save-restore][ownership-management]"
+    "[process-boundary][process-local-restore][ownership-assumption]"
+    "[2025]") {
+  auto const directory = temporarySaveCommitDirectory();
+  std::error_code ignored;
+  std::filesystem::remove_all(directory, ignored);
+  auto store = std::make_shared<umbra::detail::FilesystemFederationSaveCommitStore>(
+      directory);
+
+  EmbeddedFederationRegistry registry({}, store);
+  REQUIRE(registry.create(L"exercise", composedRestaurantDefinition()).status ==
+      FederationRegistryStatus::applied);
+  auto owner = registry.join(
+      L"exercise", L"publisher", L"owner", noOpCallbackRoute());
+  auto candidate = registry.join(
+      L"exercise", L"candidate", L"candidate", noOpCallbackRoute());
+  REQUIRE(owner.membership);
+  REQUIRE(candidate.membership);
+
+  auto const server = registry.objectClassHandleFor(
+      L"exercise", "HLAobjectRoot.Employee.Server");
+  auto const efficiency = registry.attributeHandleFor(
+      L"exercise", "HLAobjectRoot.Employee.Server", "Efficiency");
+  REQUIRE(server.has_value());
+  REQUIRE(efficiency.has_value());
+  std::set<std::uint64_t> const efficiencyOnly{*efficiency};
+  REQUIRE(registry.setObjectClassAttributePublication(
+      L"exercise", owner.membership->id, *server, efficiencyOnly, true) ==
+      umbra::detail::ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(registry.setObjectClassAttributePublication(
+      L"exercise", candidate.membership->id, *server, efficiencyOnly, true) ==
+      umbra::detail::ObjectClassAttributeDeclarationStatus::applied);
+  REQUIRE(registry.setObjectClassAttributeSubscription(
+      L"exercise", candidate.membership->id, *server, efficiencyOnly, true) ==
+      umbra::detail::ObjectClassAttributeDeclarationStatus::applied);
+
+  auto registered = registry.registerObjectInstance(
+      L"exercise", owner.membership->id, *server);
+  REQUIRE(registered.status ==
+      umbra::detail::ObjectInstanceRegistrationStatus::applied);
+  auto discoveries = registry.planObjectInstanceDiscoveriesForInstance(
+      L"exercise", registered.objectInstanceHandle);
+  REQUIRE(discoveries.size() == 1U);
+  REQUIRE(registry.beginObjectInstanceDiscovery(
+      L"exercise",
+      candidate.membership->id,
+      registered.objectInstanceHandle)
+      .has_value());
+
+  std::vector<unsigned char> const divestitureTag{'p', 'r', 'c'};
+  auto divestiture = registry.planUnconditionalAttributeOwnershipDivestiture(
+      L"exercise",
+      owner.membership->id,
+      registered.objectInstanceHandle,
+      efficiencyOnly,
+      divestitureTag);
+  REQUIRE(divestiture.status ==
+      umbra::detail::UnconditionalAttributeOwnershipDivestitureStatus::applied);
+  REQUIRE(divestiture.assumptionRecipients.size() == 1U);
+
+  std::wstring const saveLabel = L"process-local-assumption-work";
+  REQUIRE(registry.requestFederationSave(
+      L"exercise", owner.membership->id, saveLabel).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE(registry.federateSaveBegun(
+      L"exercise", owner.membership->id).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE(registry.federateSaveBegun(
+      L"exercise", candidate.membership->id).status ==
+      umbra::detail::FederationSaveControlStatus::applied);
+  REQUIRE_FALSE(registry.federateSaveComplete(
+      L"exercise", owner.membership->id).saveCompletedSuccessfully);
+  REQUIRE(registry.federateSaveComplete(
+      L"exercise", candidate.membership->id).saveCompletedSuccessfully);
+  auto committed = store->load(L"exercise", saveLabel);
+  REQUIRE(committed.has_value());
+  auto image = umbra::detail::FederationStateImageCodec::decode(
+      committed->stateImage);
+  REQUIRE(image.pendingAttributeOwnershipAssumptions.size() == 1U);
+
+  REQUIRE(registry.requestFederationRestore(
+      L"exercise", owner.membership->id, saveLabel).status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+  REQUIRE(registry.federateRestoreComplete(
+      L"exercise", owner.membership->id).status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+  auto restored = registry.federateRestoreComplete(
+      L"exercise", candidate.membership->id);
+  REQUIRE(restored.status ==
+      umbra::detail::FederationRestoreControlStatus::applied);
+  REQUIRE(restored.attributeOwnershipAssumptionWorkItems.size() == 1U);
+  auto const& work = restored.attributeOwnershipAssumptionWorkItems.front();
+  REQUIRE(work.receivingFederateId == candidate.membership->id);
+  REQUIRE(work.objectInstanceHandle == registered.objectInstanceHandle);
+  REQUIRE(work.attributeHandles == efficiencyOnly);
+  REQUIRE(work.userSuppliedTag == divestitureTag);
 
   std::filesystem::remove_all(directory, ignored);
 }

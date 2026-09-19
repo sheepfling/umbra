@@ -12010,13 +12010,11 @@ if(BUILD_TESTING)
       AND Python3_Interpreter_FOUND
     )
       # The indexed process-boundary lane contains independently buildable
-      # private service/transport and public endpoint cases. Keep both targets
-      # separate and merge their valid XML reports; the damaged aggregate
-      # federation-management translation unit must not be the hidden source
-      # of JUnit evidence.
-      add_custom_target(umbra_process_boundary_junit
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-          "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary"
+      # private service/transport, public endpoint, and ownership/query cases.
+      # Keep every source target separate and merge only its valid XML report;
+      # the damaged aggregate federation-management translation unit must not
+      # be the hidden source of JUnit evidence.
+      set(_umbra_process_boundary_junit_commands
         COMMAND $<TARGET_FILE:umbra_process_boundary_private_catch2>
           "[process-boundary]"
           --allow-running-no-tests
@@ -12027,15 +12025,75 @@ if(BUILD_TESTING)
           --allow-running-no-tests
           --reporter junit
           --out "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-public.xml"
+      )
+      set(_umbra_process_boundary_junit_inputs
+        "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-private.xml"
+        "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-public.xml"
+      )
+      set(_umbra_process_boundary_junit_dependencies
+        umbra_process_boundary_private_catch2
+        ${_umbra_process_boundary_public_target}
+      )
+      # These dedicated ownership/query targets are also registered with the
+      # process-boundary CTest label. Include them when present so the JUnit
+      # artifact covers every independently buildable source target; the
+      # aggregate umbrella registration remains intentionally CTest-only.
+      if(TARGET umbra_attribute_ownership_query_catch2)
+        list(APPEND _umbra_process_boundary_junit_commands
+          COMMAND $<TARGET_FILE:umbra_attribute_ownership_query_catch2>
+            "[process-boundary]"
+            --allow-running-no-tests
+            --reporter junit
+            --out "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-ownership-query.xml"
+        )
+        list(APPEND _umbra_process_boundary_junit_inputs
+          "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-ownership-query.xml"
+        )
+        list(APPEND _umbra_process_boundary_junit_dependencies
+          umbra_attribute_ownership_query_catch2
+        )
+      endif()
+      if(TARGET umbra_attribute_ownership_acquisition_if_available_catch2)
+        list(APPEND _umbra_process_boundary_junit_commands
+          COMMAND $<TARGET_FILE:umbra_attribute_ownership_acquisition_if_available_catch2>
+            "[process-boundary]"
+            --allow-running-no-tests
+            --reporter junit
+            --out "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-ownership-acquisition-if-available.xml"
+        )
+        list(APPEND _umbra_process_boundary_junit_inputs
+          "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-ownership-acquisition-if-available.xml"
+        )
+        list(APPEND _umbra_process_boundary_junit_dependencies
+          umbra_attribute_ownership_acquisition_if_available_catch2
+        )
+      endif()
+      if(TARGET umbra_attribute_ownership_acquisition_catch2)
+        list(APPEND _umbra_process_boundary_junit_commands
+          COMMAND $<TARGET_FILE:umbra_attribute_ownership_acquisition_catch2>
+            "[process-boundary]"
+            --allow-running-no-tests
+            --reporter junit
+            --out "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-ownership-acquisition.xml"
+        )
+        list(APPEND _umbra_process_boundary_junit_inputs
+          "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-ownership-acquisition.xml"
+        )
+        list(APPEND _umbra_process_boundary_junit_dependencies
+          umbra_attribute_ownership_acquisition_catch2
+        )
+      endif()
+      add_custom_target(umbra_process_boundary_junit
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+          "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary"
+        ${_umbra_process_boundary_junit_commands}
         COMMAND ${Python3_EXECUTABLE}
           "${CMAKE_CURRENT_SOURCE_DIR}/tools/merge_junit_reports.py"
           --output
           "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary.xml"
-          "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-private.xml"
-          "${UMBRA_COMPLIANCE_ARTIFACT_DIRECTORY}/process-boundary/process-boundary-public.xml"
+          ${_umbra_process_boundary_junit_inputs}
         DEPENDS
-          umbra_process_boundary_private_catch2
-          ${_umbra_process_boundary_public_target}
+          ${_umbra_process_boundary_junit_dependencies}
         COMMENT "Writing complete process-boundary Catch2 JUnit artifact"
         VERBATIM
       )

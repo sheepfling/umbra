@@ -130,6 +130,12 @@ namespace {
       return "receive-object-instance-discovery";
     case TransportServiceOperation::reserve_object_instance_name:
       return "reserve-object-instance-name";
+    case TransportServiceOperation::release_object_instance_name:
+      return "release-object-instance-name";
+    case TransportServiceOperation::reserve_multiple_object_instance_names:
+      return "reserve-multiple-object-instance-names";
+    case TransportServiceOperation::release_multiple_object_instance_names:
+      return "release-multiple-object-instance-names";
     case TransportServiceOperation::get_dimension_handle:
       return "get-dimension-handle";
     case TransportServiceOperation::get_dimension_upper_bound:
@@ -233,6 +239,36 @@ namespace {
       return "request-attribute-transportation-type-change";
     case TransportServiceOperation::query_attribute_transportation_type:
       return "query-attribute-transportation-type";
+    case TransportServiceOperation::request_interaction_transportation_type_change:
+      return "request-interaction-transportation-type-change";
+    case TransportServiceOperation::query_interaction_transportation_type:
+      return "query-interaction-transportation-type";
+    case TransportServiceOperation::register_federation_synchronization_point:
+      return "register-federation-synchronization-point";
+    case TransportServiceOperation::synchronization_point_achieved:
+      return "synchronization-point-achieved";
+    case TransportServiceOperation::request_federation_save:
+      return "request-federation-save";
+    case TransportServiceOperation::federate_save_begun:
+      return "federate-save-begun";
+    case TransportServiceOperation::federate_save_complete:
+      return "federate-save-complete";
+    case TransportServiceOperation::federate_save_not_complete:
+      return "federate-save-not-complete";
+    case TransportServiceOperation::query_federation_save_status:
+      return "query-federation-save-status";
+    case TransportServiceOperation::abort_federation_save:
+      return "abort-federation-save";
+    case TransportServiceOperation::request_federation_restore:
+      return "request-federation-restore";
+    case TransportServiceOperation::federate_restore_complete:
+      return "federate-restore-complete";
+    case TransportServiceOperation::federate_restore_not_complete:
+      return "federate-restore-not-complete";
+    case TransportServiceOperation::abort_federation_restore:
+      return "abort-federation-restore";
+    case TransportServiceOperation::query_federation_restore_status:
+      return "query-federation-restore-status";
   }
   return "unknown";
 }
@@ -333,6 +369,236 @@ void ProcessFederationClient::resignFederationExecution(
     joinedFederationName_.reset();
     joinedFederateId_ = 0U;
   }
+}
+
+ProcessFederationRegisterSynchronizationPointResult
+ProcessFederationClient::registerFederationSynchronizationPoint(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    std::wstring label,
+    std::vector<std::uint8_t> userSuppliedTag,
+    std::vector<std::uint64_t> synchronizationSet,
+    bool synchronizationSetWasSupplied) {
+  auto response = request(
+      TransportServiceOperation::register_federation_synchronization_point,
+      encodeProcessFederationRegisterSynchronizationPointRequest(
+          ProcessFederationRegisterSynchronizationPointRequest{
+              std::move(federationName),
+              federateId,
+              std::move(label),
+              std::move(userSuppliedTag),
+              std::move(synchronizationSet),
+              synchronizationSetWasSupplied}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationRegisterSynchronizationPointResult(
+      response.payload);
+}
+
+ProcessFederationSynchronizationPointAchievedResult
+ProcessFederationClient::synchronizationPointAchieved(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    std::wstring label,
+    bool successfully) {
+  auto response = request(
+      TransportServiceOperation::synchronization_point_achieved,
+      encodeProcessFederationSynchronizationPointAchievedRequest(
+          ProcessFederationSynchronizationPointAchievedRequest{
+              std::move(federationName), federateId, std::move(label), successfully}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationSynchronizationPointAchievedResult(
+      response.payload);
+}
+
+ProcessFederationSaveControlResult ProcessFederationClient::requestFederationSave(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    std::wstring label) {
+  return requestFederationSave(
+      std::move(federationName),
+      federateId,
+      std::move(label),
+      std::nullopt);
+}
+
+ProcessFederationSaveControlResult ProcessFederationClient::requestFederationSave(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    std::wstring label,
+    std::optional<ProcessFederationLogicalTime> timestamp) {
+  auto response = request(
+      TransportServiceOperation::request_federation_save,
+      encodeProcessFederationSaveRequest(
+          ProcessFederationSaveRequest{
+              std::move(federationName),
+              federateId,
+              std::move(label),
+              std::move(timestamp)}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationSaveControlResult(response.payload);
+}
+
+ProcessFederationSaveControlResult ProcessFederationClient::federateSaveBegun(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::federate_save_begun,
+      encodeProcessFederationSaveRequest(
+          ProcessFederationSaveRequest{std::move(federationName), federateId, {}}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationSaveControlResult(response.payload);
+}
+
+ProcessFederationSaveControlResult ProcessFederationClient::federateSaveComplete(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::federate_save_complete,
+      encodeProcessFederationSaveRequest(
+          ProcessFederationSaveRequest{std::move(federationName), federateId, {}}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationSaveControlResult(response.payload);
+}
+
+ProcessFederationSaveControlResult
+ProcessFederationClient::federateSaveNotComplete(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::federate_save_not_complete,
+      encodeProcessFederationSaveRequest(
+          ProcessFederationSaveRequest{std::move(federationName), federateId, {}}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationSaveControlResult(response.payload);
+}
+
+ProcessFederationSaveControlResult
+ProcessFederationClient::queryFederationSaveStatus(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::query_federation_save_status,
+      encodeProcessFederationSaveRequest(
+          ProcessFederationSaveRequest{std::move(federationName), federateId, {}}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationSaveControlResult(response.payload);
+}
+
+ProcessFederationSaveControlResult ProcessFederationClient::abortFederationSave(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::abort_federation_save,
+      encodeProcessFederationSaveRequest(
+          ProcessFederationSaveRequest{std::move(federationName), federateId, {}}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationSaveControlResult(response.payload);
+}
+
+ProcessFederationRestoreControlResult
+ProcessFederationClient::requestFederationRestore(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    std::wstring label) {
+  auto response = request(
+      TransportServiceOperation::request_federation_restore,
+      encodeProcessFederationRestoreRequest(
+          ProcessFederationRestoreRequest{
+              std::move(federationName), federateId, std::move(label)}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationRestoreControlResult(response.payload);
+}
+
+ProcessFederationRestoreControlResult
+ProcessFederationClient::federateRestoreComplete(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    bool callbacksEnabled) {
+  auto response = request(
+      TransportServiceOperation::federate_restore_complete,
+      encodeProcessFederationRestoreRequest(
+          ProcessFederationRestoreRequest{
+              std::move(federationName), federateId, {}, callbacksEnabled}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationRestoreControlResult(response.payload);
+}
+
+ProcessFederationRestoreControlResult
+ProcessFederationClient::federateRestoreNotComplete(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::federate_restore_not_complete,
+      encodeProcessFederationRestoreRequest(
+          ProcessFederationRestoreRequest{
+              std::move(federationName), federateId, {}}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationRestoreControlResult(response.payload);
+}
+
+ProcessFederationRestoreControlResult
+ProcessFederationClient::abortFederationRestore(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::abort_federation_restore,
+      encodeProcessFederationRestoreRequest(
+          ProcessFederationRestoreRequest{
+              std::move(federationName), federateId, {}}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationRestoreControlResult(response.payload);
+}
+
+ProcessFederationRestoreControlResult
+ProcessFederationClient::queryFederationRestoreStatus(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::query_federation_restore_status,
+      encodeProcessFederationRestoreRequest(
+          ProcessFederationRestoreRequest{
+              std::move(federationName), federateId, {}}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationRestoreControlResult(response.payload);
 }
 
 rti1516_2025::ResignAction ProcessFederationClient::getAutomaticResignDirective(
@@ -722,14 +988,16 @@ std::optional<std::uint64_t>
 ProcessFederationClient::lookupObjectClassHandle(
     std::wstring federationName,
     std::uint64_t federateId,
-    std::wstring objectClassName) {
+    std::wstring objectClassName,
+    bool callbacksEnabled) {
   auto response = request(
       TransportServiceOperation::get_object_class_handle,
       encodeProcessFederationGetObjectClassHandleRequest(
           ProcessFederationGetObjectClassHandleRequest{
               std::move(federationName),
               federateId,
-              std::move(objectClassName)}));
+              std::move(objectClassName),
+              callbacksEnabled}));
   if (response.status == TransportServiceStatus::rejected) {
     return std::nullopt;
   }
@@ -945,7 +1213,8 @@ ProcessFederationClient::unconditionalAttributeOwnershipDivestiture(
     std::uint64_t divestingFederateId,
     std::uint64_t objectInstanceHandle,
     std::vector<std::uint64_t> attributeHandles,
-    std::vector<std::uint8_t> userSuppliedTag) {
+    std::vector<std::uint8_t> userSuppliedTag,
+    bool callbacksEnabled) {
   auto response = request(
       TransportServiceOperation::unconditional_attribute_ownership_divestiture,
       encodeProcessFederationAttributeOwnershipAcquisitionRequest(
@@ -954,7 +1223,8 @@ ProcessFederationClient::unconditionalAttributeOwnershipDivestiture(
               divestingFederateId,
               objectInstanceHandle,
               std::move(attributeHandles),
-              std::move(userSuppliedTag)}));
+              std::move(userSuppliedTag),
+              callbacksEnabled}));
   if (response.status != TransportServiceStatus::ok) {
     throw ProcessFederationClientError(
         requestFailure(response.operation, response.status));
@@ -1331,6 +1601,50 @@ ProcessFederationClient::queryAttributeTransportationType(
       response.payload);
 }
 
+ProcessFederationInteractionTransportationTypeChangeResult
+ProcessFederationClient::requestInteractionTransportationTypeChange(
+    std::wstring federationName,
+    std::uint64_t requestingFederateId,
+    std::uint64_t interactionClassHandle,
+    std::uint64_t transportationTypeHandle) {
+  auto response = request(
+      TransportServiceOperation::request_interaction_transportation_type_change,
+      encodeProcessFederationRequestInteractionTransportationTypeChangeRequest(
+          ProcessFederationRequestInteractionTransportationTypeChangeRequest{
+              std::move(federationName),
+              requestingFederateId,
+              interactionClassHandle,
+              transportationTypeHandle}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationInteractionTransportationTypeChangeResult(
+      response.payload);
+}
+
+ProcessFederationInteractionTransportationTypeQueryResult
+ProcessFederationClient::queryInteractionTransportationType(
+    std::wstring federationName,
+    std::uint64_t requestingFederateId,
+    std::uint64_t queriedFederateId,
+    std::uint64_t interactionClassHandle) {
+  auto response = request(
+      TransportServiceOperation::query_interaction_transportation_type,
+      encodeProcessFederationQueryInteractionTransportationTypeRequest(
+          ProcessFederationQueryInteractionTransportationTypeRequest{
+              std::move(federationName),
+              requestingFederateId,
+              queriedFederateId,
+              interactionClassHandle}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationInteractionTransportationTypeQueryResult(
+      response.payload);
+}
+
 void ProcessFederationClient::subscribeInteractionClass(
     std::wstring federationName,
     std::uint64_t federateId,
@@ -1670,6 +1984,66 @@ ProcessFederationClient::reserveObjectInstanceName(
         requestFailure(response.operation, response.status));
   }
   return decodeProcessFederationReserveObjectInstanceNameResult(response.payload);
+}
+
+ProcessFederationObjectInstanceNameReleaseResult
+ProcessFederationClient::releaseObjectInstanceName(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    std::wstring objectInstanceName) {
+  auto response = request(
+      TransportServiceOperation::release_object_instance_name,
+      encodeProcessFederationReserveObjectInstanceNameRequest(
+          ProcessFederationReserveObjectInstanceNameRequest{
+              std::move(federationName),
+              federateId,
+              std::move(objectInstanceName)}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationObjectInstanceNameReleaseResult(
+      response.payload);
+}
+
+ProcessFederationReserveMultipleObjectInstanceNamesResult
+ProcessFederationClient::reserveMultipleObjectInstanceNames(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    std::set<std::wstring> objectInstanceNames) {
+  auto response = request(
+      TransportServiceOperation::reserve_multiple_object_instance_names,
+      encodeProcessFederationReserveMultipleObjectInstanceNamesRequest(
+          ProcessFederationReserveMultipleObjectInstanceNamesRequest{
+              std::move(federationName),
+              federateId,
+              std::move(objectInstanceNames)}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationReserveMultipleObjectInstanceNamesResult(
+      response.payload);
+}
+
+ProcessFederationReleaseMultipleObjectInstanceNamesResult
+ProcessFederationClient::releaseMultipleObjectInstanceNames(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    std::set<std::wstring> objectInstanceNames) {
+  auto response = request(
+      TransportServiceOperation::release_multiple_object_instance_names,
+      encodeProcessFederationReserveMultipleObjectInstanceNamesRequest(
+          ProcessFederationReserveMultipleObjectInstanceNamesRequest{
+              std::move(federationName),
+              federateId,
+              std::move(objectInstanceNames)}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationReleaseMultipleObjectInstanceNamesResult(
+      response.payload);
 }
 
 std::optional<std::uint64_t> ProcessFederationClient::lookupDimensionHandle(
@@ -2340,6 +2714,28 @@ ProcessFederationClient::receiveInteraction(
     pendingAttributeTransportationTypeQueryEvents_.push_back(
         std::move(*result.attributeTransportationTypeQueryEvent));
   }
+  if (result.interactionTransportationTypeChangeEvent) {
+    pendingInteractionTransportationTypeChangeEvents_.push_back(
+        std::move(*result.interactionTransportationTypeChangeEvent));
+  }
+  if (result.interactionTransportationTypeQueryEvent) {
+    pendingInteractionTransportationTypeQueryEvents_.push_back(
+        std::move(*result.interactionTransportationTypeQueryEvent));
+  }
+  if (result.synchronizationPointAnnouncementEvent) {
+    pendingSynchronizationPointAnnouncementEvents_.push_back(
+        std::move(*result.synchronizationPointAnnouncementEvent));
+  }
+  if (result.federationSynchronizedEvent) {
+    pendingFederationSynchronizedEvents_.push_back(
+        std::move(*result.federationSynchronizedEvent));
+  }
+  if (result.saveEvent) {
+    pendingFederationSaveEvents_.push_back(std::move(*result.saveEvent));
+  }
+  if (result.restoreEvent) {
+    pendingFederationRestoreEvents_.push_back(std::move(*result.restoreEvent));
+  }
   return std::move(result.event);
 }
 
@@ -2554,6 +2950,96 @@ void ProcessFederationClient::dispatchPushedAttributeTransportationTypeQuery() {
   dispatchAttributeTransportationTypeQuery(std::move(event));
 }
 
+void ProcessFederationClient::dispatchInteractionTransportationTypeChange(
+    ProcessFederationInteractionTransportationTypeChangeEvent event) {
+  requireCallbackBridge();
+  callbackBridge_->submitInteractionTransportationTypeChange(std::move(event));
+}
+
+void ProcessFederationClient::dispatchPushedInteractionTransportationTypeChange() {
+  if (pendingInteractionTransportationTypeChangeEvents_.empty()) {
+    throw ProcessFederationClientError(
+        "Process federation client has no queued interaction transportation-type change event.");
+  }
+  auto event = std::move(
+      pendingInteractionTransportationTypeChangeEvents_.front());
+  pendingInteractionTransportationTypeChangeEvents_.pop_front();
+  dispatchInteractionTransportationTypeChange(std::move(event));
+}
+
+void ProcessFederationClient::dispatchInteractionTransportationTypeQuery(
+    ProcessFederationInteractionTransportationTypeQueryEvent event) {
+  requireCallbackBridge();
+  callbackBridge_->submitInteractionTransportationTypeQuery(std::move(event));
+}
+
+void ProcessFederationClient::dispatchPushedInteractionTransportationTypeQuery() {
+  if (pendingInteractionTransportationTypeQueryEvents_.empty()) {
+    throw ProcessFederationClientError(
+        "Process federation client has no queued interaction transportation-type query event.");
+  }
+  auto event = std::move(
+      pendingInteractionTransportationTypeQueryEvents_.front());
+  pendingInteractionTransportationTypeQueryEvents_.pop_front();
+  dispatchInteractionTransportationTypeQuery(std::move(event));
+}
+
+void ProcessFederationClient::dispatchSynchronizationPointRegistrationSucceeded(
+    std::wstring label) {
+  requireCallbackBridge();
+  callbackBridge_->submitSynchronizationPointRegistrationSucceeded(
+      std::move(label));
+}
+
+void ProcessFederationClient::dispatchSynchronizationPointRegistrationFailed(
+    std::wstring label,
+    rti1516_2025::SynchronizationPointFailureReason failureReason) {
+  requireCallbackBridge();
+  callbackBridge_->submitSynchronizationPointRegistrationFailed(
+      std::move(label), failureReason);
+}
+
+void ProcessFederationClient::dispatchSynchronizationPointAnnouncement(
+    ProcessFederationSynchronizationPointAnnouncementEvent event) {
+  requireCallbackBridge();
+  callbackBridge_->submitSynchronizationPointAnnouncement(std::move(event));
+}
+
+void ProcessFederationClient::dispatchPushedSynchronizationPointAnnouncement() {
+  dispatchSynchronizationPointAnnouncement(
+      receivePushedSynchronizationPointAnnouncement());
+}
+
+void ProcessFederationClient::dispatchFederationSynchronized(
+    ProcessFederationFederationSynchronizedEvent event) {
+  requireCallbackBridge();
+  callbackBridge_->submitFederationSynchronized(std::move(event));
+}
+
+void ProcessFederationClient::dispatchPushedFederationSynchronized() {
+  dispatchFederationSynchronized(receivePushedFederationSynchronized());
+}
+
+void ProcessFederationClient::dispatchFederationSave(
+    ProcessFederationSaveEvent event) {
+  requireCallbackBridge();
+  callbackBridge_->submitFederationSave(std::move(event));
+}
+
+void ProcessFederationClient::dispatchPushedFederationSave() {
+  dispatchFederationSave(receivePushedFederationSave());
+}
+
+void ProcessFederationClient::dispatchFederationRestore(
+    ProcessFederationRestoreEvent event) {
+  requireCallbackBridge();
+  callbackBridge_->submitFederationRestore(std::move(event));
+}
+
+void ProcessFederationClient::dispatchPushedFederationRestore() {
+  dispatchFederationRestore(receivePushedFederationRestore());
+}
+
 void ProcessFederationClient::dispatchTimeRegulationEnabled(
     ProcessFederationLogicalTime event) {
   requireCallbackBridge();
@@ -2623,6 +3109,12 @@ void ProcessFederationClient::dispatchPendingPushedEvents() {
   while (!pendingAttributeTransportationTypeQueryEvents_.empty()) {
     dispatchPushedAttributeTransportationTypeQuery();
   }
+  while (!pendingInteractionTransportationTypeChangeEvents_.empty()) {
+    dispatchPushedInteractionTransportationTypeChange();
+  }
+  while (!pendingInteractionTransportationTypeQueryEvents_.empty()) {
+    dispatchPushedInteractionTransportationTypeQuery();
+  }
   while (!pendingAttributeUpdateEvents_.empty()) {
     dispatchPushedAttributeUpdate();
   }
@@ -2640,6 +3132,18 @@ void ProcessFederationClient::dispatchPendingPushedEvents() {
   }
   while (!pendingAttributeOwnershipUnavailableEvents_.empty()) {
     dispatchPushedAttributeOwnershipUnavailable();
+  }
+  while (!pendingSynchronizationPointAnnouncementEvents_.empty()) {
+    dispatchPushedSynchronizationPointAnnouncement();
+  }
+  while (!pendingFederationSynchronizedEvents_.empty()) {
+    dispatchPushedFederationSynchronized();
+  }
+  while (!pendingFederationSaveEvents_.empty()) {
+    dispatchPushedFederationSave();
+  }
+  while (!pendingFederationRestoreEvents_.empty()) {
+    dispatchPushedFederationRestore();
   }
   while (!pendingTimeAdvanceGrantEvents_.empty()) {
     dispatchPushedTimeAdvanceGrant();
@@ -2715,6 +3219,39 @@ std::size_t
 ProcessFederationClient::pendingPushedAttributeTransportationTypeQueryCount()
     const noexcept {
   return pendingAttributeTransportationTypeQueryEvents_.size();
+}
+
+std::size_t
+ProcessFederationClient::pendingPushedInteractionTransportationTypeChangeCount()
+    const noexcept {
+  return pendingInteractionTransportationTypeChangeEvents_.size();
+}
+
+std::size_t
+ProcessFederationClient::pendingPushedInteractionTransportationTypeQueryCount()
+    const noexcept {
+  return pendingInteractionTransportationTypeQueryEvents_.size();
+}
+
+std::size_t
+ProcessFederationClient::pendingPushedSynchronizationPointAnnouncementCount()
+    const noexcept {
+  return pendingSynchronizationPointAnnouncementEvents_.size();
+}
+
+std::size_t ProcessFederationClient::pendingPushedFederationSynchronizedCount()
+    const noexcept {
+  return pendingFederationSynchronizedEvents_.size();
+}
+
+std::size_t ProcessFederationClient::pendingPushedFederationSaveCount()
+    const noexcept {
+  return pendingFederationSaveEvents_.size();
+}
+
+std::size_t ProcessFederationClient::pendingPushedFederationRestoreCount()
+    const noexcept {
+  return pendingFederationRestoreEvents_.size();
 }
 
 std::size_t ProcessFederationClient::pendingPushedTimeAdvanceGrantCount()
@@ -2798,11 +3335,17 @@ void ProcessFederationClient::close() noexcept {
   pendingAttributeRelevanceAdvisoryEvents_.clear();
   pendingAttributeTransportationTypeChangeEvents_.clear();
   pendingAttributeTransportationTypeQueryEvents_.clear();
+  pendingInteractionTransportationTypeChangeEvents_.clear();
+  pendingInteractionTransportationTypeQueryEvents_.clear();
   pendingAttributeValueUpdateRequestEvents_.clear();
   pendingAttributeOwnershipQueryEvents_.clear();
   pendingAttributeOwnershipAcquisitionIfAvailableEvents_.clear();
   pendingAttributeOwnershipAcquisitionEvents_.clear();
   pendingAttributeOwnershipUnavailableEvents_.clear();
+  pendingSynchronizationPointAnnouncementEvents_.clear();
+  pendingFederationSynchronizedEvents_.clear();
+  pendingFederationSaveEvents_.clear();
+  pendingFederationRestoreEvents_.clear();
   pendingTimeAdvanceGrantEvents_.clear();
   pendingFlushQueueGrantEvents_.clear();
   deferredTsoDeliveryAcknowledgements_.clear();
@@ -2920,7 +3463,13 @@ TransportServiceMessage ProcessFederationClient::request(
             !event.attributeOwnershipAcquisitionEvent &&
             !event.attributeOwnershipUnavailableEvent &&
             !event.attributeTransportationTypeChangeEvent &&
-            !event.attributeTransportationTypeQueryEvent) {
+            !event.attributeTransportationTypeQueryEvent &&
+            !event.interactionTransportationTypeChangeEvent &&
+            !event.interactionTransportationTypeQueryEvent &&
+            !event.synchronizationPointAnnouncementEvent &&
+            !event.federationSynchronizedEvent &&
+            !event.saveEvent &&
+            !event.restoreEvent) {
           throw ProcessFederationClientError(
               "Process federation client received an empty unsolicited event.");
         }
@@ -2966,6 +3515,29 @@ TransportServiceMessage ProcessFederationClient::request(
         if (event.attributeTransportationTypeQueryEvent) {
           pendingAttributeTransportationTypeQueryEvents_.push_back(
               std::move(*event.attributeTransportationTypeQueryEvent));
+        }
+        if (event.interactionTransportationTypeChangeEvent) {
+          pendingInteractionTransportationTypeChangeEvents_.push_back(
+              std::move(*event.interactionTransportationTypeChangeEvent));
+        }
+        if (event.interactionTransportationTypeQueryEvent) {
+          pendingInteractionTransportationTypeQueryEvents_.push_back(
+              std::move(*event.interactionTransportationTypeQueryEvent));
+        }
+        if (event.synchronizationPointAnnouncementEvent) {
+          pendingSynchronizationPointAnnouncementEvents_.push_back(
+              std::move(*event.synchronizationPointAnnouncementEvent));
+        }
+        if (event.federationSynchronizedEvent) {
+          pendingFederationSynchronizedEvents_.push_back(
+              std::move(*event.federationSynchronizedEvent));
+        }
+        if (event.saveEvent) {
+          pendingFederationSaveEvents_.push_back(std::move(*event.saveEvent));
+        }
+        if (event.restoreEvent) {
+          pendingFederationRestoreEvents_.push_back(
+              std::move(*event.restoreEvent));
         }
         } else if (response.operation ==
                    TransportServiceOperation::receive_attribute_update) {
@@ -3179,7 +3751,9 @@ ProcessFederationInteractionEvent ProcessFederationClient::receivePushedEvent() 
         !result.attributeOwnershipAcquisitionEvent &&
         !result.attributeOwnershipUnavailableEvent &&
         !result.attributeTransportationTypeChangeEvent &&
-        !result.attributeTransportationTypeQueryEvent) {
+        !result.attributeTransportationTypeQueryEvent &&
+        !result.interactionTransportationTypeChangeEvent &&
+        !result.interactionTransportationTypeQueryEvent) {
       throw ProcessFederationClientError(
           "Process federation client received an empty pushed event.");
     }
@@ -3229,6 +3803,14 @@ ProcessFederationInteractionEvent ProcessFederationClient::receivePushedEvent() 
     if (result.attributeTransportationTypeQueryEvent) {
       pendingAttributeTransportationTypeQueryEvents_.push_back(
           std::move(*result.attributeTransportationTypeQueryEvent));
+    }
+    if (result.interactionTransportationTypeChangeEvent) {
+      pendingInteractionTransportationTypeChangeEvents_.push_back(
+          std::move(*result.interactionTransportationTypeChangeEvent));
+    }
+    if (result.interactionTransportationTypeQueryEvent) {
+      pendingInteractionTransportationTypeQueryEvents_.push_back(
+          std::move(*result.interactionTransportationTypeQueryEvent));
     }
     if (result.event) {
       return std::move(*result.event);
@@ -3387,6 +3969,14 @@ ProcessFederationClient::receivePushedObjectInstanceRemoval() {
     if (result.attributeTransportationTypeQueryEvent) {
       pendingAttributeTransportationTypeQueryEvents_.push_back(
           std::move(*result.attributeTransportationTypeQueryEvent));
+    }
+    if (result.interactionTransportationTypeChangeEvent) {
+      pendingInteractionTransportationTypeChangeEvents_.push_back(
+          std::move(*result.interactionTransportationTypeChangeEvent));
+    }
+    if (result.interactionTransportationTypeQueryEvent) {
+      pendingInteractionTransportationTypeQueryEvents_.push_back(
+          std::move(*result.interactionTransportationTypeQueryEvent));
     }
   }
 }
@@ -3692,6 +4282,74 @@ ProcessFederationClient::receivePushedAttributeTransportationTypeQuery() {
   }
   auto event = std::move(pendingAttributeTransportationTypeQueryEvents_.front());
   pendingAttributeTransportationTypeQueryEvents_.pop_front();
+  return event;
+}
+
+ProcessFederationInteractionTransportationTypeChangeEvent
+ProcessFederationClient::receivePushedInteractionTransportationTypeChange() {
+  if (pendingInteractionTransportationTypeChangeEvents_.empty()) {
+    throw ProcessFederationClientError(
+        "Process federation client has no queued interaction transportation-type change event.");
+  }
+  auto event = std::move(
+      pendingInteractionTransportationTypeChangeEvents_.front());
+  pendingInteractionTransportationTypeChangeEvents_.pop_front();
+  return event;
+}
+
+ProcessFederationInteractionTransportationTypeQueryEvent
+ProcessFederationClient::receivePushedInteractionTransportationTypeQuery() {
+  if (pendingInteractionTransportationTypeQueryEvents_.empty()) {
+    throw ProcessFederationClientError(
+        "Process federation client has no queued interaction transportation-type query event.");
+  }
+  auto event = std::move(
+      pendingInteractionTransportationTypeQueryEvents_.front());
+  pendingInteractionTransportationTypeQueryEvents_.pop_front();
+  return event;
+}
+
+ProcessFederationSynchronizationPointAnnouncementEvent
+ProcessFederationClient::receivePushedSynchronizationPointAnnouncement() {
+  if (pendingSynchronizationPointAnnouncementEvents_.empty()) {
+    throw ProcessFederationClientError(
+        "Process federation client has no queued synchronization-point announcement event.");
+  }
+  auto event = std::move(
+      pendingSynchronizationPointAnnouncementEvents_.front());
+  pendingSynchronizationPointAnnouncementEvents_.pop_front();
+  return event;
+}
+
+ProcessFederationFederationSynchronizedEvent
+ProcessFederationClient::receivePushedFederationSynchronized() {
+  if (pendingFederationSynchronizedEvents_.empty()) {
+    throw ProcessFederationClientError(
+        "Process federation client has no queued Federation Synchronized event.");
+  }
+  auto event = std::move(pendingFederationSynchronizedEvents_.front());
+  pendingFederationSynchronizedEvents_.pop_front();
+  return event;
+}
+
+ProcessFederationSaveEvent ProcessFederationClient::receivePushedFederationSave() {
+  if (pendingFederationSaveEvents_.empty()) {
+    throw ProcessFederationClientError(
+        "Process federation client has no queued federation-save event.");
+  }
+  auto event = std::move(pendingFederationSaveEvents_.front());
+  pendingFederationSaveEvents_.pop_front();
+  return event;
+}
+
+ProcessFederationRestoreEvent
+ProcessFederationClient::receivePushedFederationRestore() {
+  if (pendingFederationRestoreEvents_.empty()) {
+    throw ProcessFederationClientError(
+        "Process federation client has no queued federation-restore event.");
+  }
+  auto event = std::move(pendingFederationRestoreEvents_.front());
+  pendingFederationRestoreEvents_.pop_front();
   return event;
 }
 

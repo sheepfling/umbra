@@ -1090,6 +1090,315 @@ ProcessFederationResignRequest decodeProcessFederationResignRequest(
 }
 
 std::vector<std::uint8_t>
+encodeProcessFederationRegisterSynchronizationPointRequest(
+    ProcessFederationRegisterSynchronizationPointRequest const& request) {
+  if (request.federationName.empty() || request.label.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process synchronization-point registration requires execution and label names.");
+  }
+  requireNonzero(
+      request.federateId,
+      "A process synchronization-point registration requires a federate identity.");
+  validateHandleVector(
+      request.synchronizationSet,
+      "A process synchronization-point registration requires sorted, unique federate handles.");
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  writer.unsigned64(request.federateId);
+  writer.wideString(request.label);
+  writer.bytes(request.userSuppliedTag);
+  writer.unsigned8(request.synchronizationSetWasSupplied ? 1U : 0U);
+  writer.unsigned64Vector(request.synchronizationSet);
+  return std::move(writer).finish();
+}
+
+ProcessFederationRegisterSynchronizationPointRequest
+decodeProcessFederationRegisterSynchronizationPointRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationRegisterSynchronizationPointRequest result;
+  result.federationName = reader.wideString();
+  result.federateId = reader.unsigned64();
+  result.label = reader.wideString();
+  result.userSuppliedTag = reader.bytes();
+  auto const supplied = reader.unsigned8();
+  if (supplied > 1U) {
+    throw ProcessFederationServiceProtocolError(
+        "A process synchronization-point registration has an invalid set marker.");
+  }
+  result.synchronizationSetWasSupplied = supplied != 0U;
+  result.synchronizationSet = reader.unsigned64Vector();
+  reader.finish();
+  if (result.federationName.empty() || result.label.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process synchronization-point registration requires execution and label names.");
+  }
+  requireNonzero(
+      result.federateId,
+      "A process synchronization-point registration requires a federate identity.");
+  validateHandleVector(
+      result.synchronizationSet,
+      "A process synchronization-point registration requires sorted, unique federate handles.");
+  if (!result.synchronizationSetWasSupplied &&
+      !result.synchronizationSet.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A default process synchronization-point registration cannot carry a federate set.");
+  }
+  return result;
+}
+
+std::vector<std::uint8_t>
+encodeProcessFederationSynchronizationPointAchievedRequest(
+    ProcessFederationSynchronizationPointAchievedRequest const& request) {
+  if (request.federationName.empty() || request.label.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process synchronization-point achievement requires execution and label names.");
+  }
+  requireNonzero(
+      request.federateId,
+      "A process synchronization-point achievement requires a federate identity.");
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  writer.unsigned64(request.federateId);
+  writer.wideString(request.label);
+  writer.unsigned8(request.successfully ? 1U : 0U);
+  return std::move(writer).finish();
+}
+
+ProcessFederationSynchronizationPointAchievedRequest
+decodeProcessFederationSynchronizationPointAchievedRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationSynchronizationPointAchievedRequest result;
+  result.federationName = reader.wideString();
+  result.federateId = reader.unsigned64();
+  result.label = reader.wideString();
+  auto const successfully = reader.unsigned8();
+  if (successfully > 1U) {
+    throw ProcessFederationServiceProtocolError(
+        "A process synchronization-point achievement has an invalid success marker.");
+  }
+  result.successfully = successfully != 0U;
+  reader.finish();
+  if (result.federationName.empty() || result.label.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process synchronization-point achievement requires execution and label names.");
+  }
+  requireNonzero(
+      result.federateId,
+      "A process synchronization-point achievement requires a federate identity.");
+  return result;
+}
+
+std::vector<std::uint8_t>
+encodeProcessFederationRegisterSynchronizationPointResult(
+    ProcessFederationRegisterSynchronizationPointResult const& result) {
+  auto const status = static_cast<std::uint8_t>(result.status);
+  if (status > static_cast<std::uint8_t>(
+                   ProcessFederationSynchronizationPointRegistrationStatus::
+                       callback_route_missing)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process synchronization-point registration result has an invalid status.");
+  }
+  auto const failureReason = static_cast<std::uint8_t>(result.failureReason);
+  if (failureReason > static_cast<std::uint8_t>(
+                          rti1516_2025::SYNCHRONIZATION_SET_MEMBER_NOT_JOINED)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process synchronization-point registration result has an invalid failure reason.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(status);
+  writer.unsigned8(result.succeeded ? 1U : 0U);
+  writer.unsigned8(failureReason);
+  return std::move(writer).finish();
+}
+
+ProcessFederationRegisterSynchronizationPointResult
+decodeProcessFederationRegisterSynchronizationPointResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationRegisterSynchronizationPointResult result;
+  auto const status = reader.unsigned8();
+  auto const succeeded = reader.unsigned8();
+  auto const failureReason = reader.unsigned8();
+  reader.finish();
+  if (status > static_cast<std::uint8_t>(
+                   ProcessFederationSynchronizationPointRegistrationStatus::
+                       callback_route_missing) ||
+      succeeded > 1U ||
+      failureReason > static_cast<std::uint8_t>(
+                          rti1516_2025::SYNCHRONIZATION_SET_MEMBER_NOT_JOINED)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process synchronization-point registration result is invalid.");
+  }
+  result.status = static_cast<
+      ProcessFederationSynchronizationPointRegistrationStatus>(status);
+  result.succeeded = succeeded != 0U;
+  result.failureReason = static_cast<rti1516_2025::SynchronizationPointFailureReason>(
+      failureReason);
+  return result;
+}
+
+std::vector<std::uint8_t>
+encodeProcessFederationSynchronizationPointAchievedResult(
+    ProcessFederationSynchronizationPointAchievedResult const& result) {
+  auto const status = static_cast<std::uint8_t>(result.status);
+  if (status > static_cast<std::uint8_t>(
+                   ProcessFederationSynchronizationPointAchievedStatus::
+                       synchronization_point_label_not_announced)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process synchronization-point achievement result has an invalid status.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(status);
+  return std::move(writer).finish();
+}
+
+ProcessFederationSynchronizationPointAchievedResult
+decodeProcessFederationSynchronizationPointAchievedResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  auto const status = reader.unsigned8();
+  reader.finish();
+  if (status > static_cast<std::uint8_t>(
+                   ProcessFederationSynchronizationPointAchievedStatus::
+                       synchronization_point_label_not_announced)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process synchronization-point achievement result has an invalid status.");
+  }
+  return ProcessFederationSynchronizationPointAchievedResult{
+      static_cast<ProcessFederationSynchronizationPointAchievedStatus>(status)};
+}
+
+std::vector<std::uint8_t> encodeProcessFederationSaveRequest(
+    ProcessFederationSaveRequest const& request) {
+  if (request.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation-save request requires a federation name.");
+  }
+  requireNonzero(
+      request.federateId,
+      "A process federation-save request requires a federate identity.");
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  writer.unsigned64(request.federateId);
+  writer.wideString(request.label);
+  writeOptionalLogicalTime(writer, request.timestamp);
+  return std::move(writer).finish();
+}
+
+ProcessFederationSaveRequest decodeProcessFederationSaveRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationSaveRequest result;
+  result.federationName = reader.wideString();
+  result.federateId = reader.unsigned64();
+  result.label = reader.wideString();
+  result.timestamp = readOptionalLogicalTime(reader);
+  reader.finish();
+  if (result.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation-save request requires a federation name.");
+  }
+  requireNonzero(
+      result.federateId,
+      "A process federation-save request requires a federate identity.");
+  return result;
+}
+
+std::vector<std::uint8_t> encodeProcessFederationSaveControlResult(
+    ProcessFederationSaveControlResult const& result) {
+  auto const status = static_cast<std::uint8_t>(result.status);
+  if (status > static_cast<std::uint8_t>(
+                   FederationSaveControlStatus::inconsistent_temporal_state)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation-save result has an invalid status.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(status);
+  return std::move(writer).finish();
+}
+
+ProcessFederationSaveControlResult decodeProcessFederationSaveControlResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  auto const status = reader.unsigned8();
+  reader.finish();
+  if (status > static_cast<std::uint8_t>(
+                   FederationSaveControlStatus::inconsistent_temporal_state)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation-save result has an invalid status.");
+  }
+  return ProcessFederationSaveControlResult{
+      static_cast<FederationSaveControlStatus>(status)};
+}
+
+std::vector<std::uint8_t> encodeProcessFederationRestoreRequest(
+    ProcessFederationRestoreRequest const& request) {
+  if (request.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation-restore request requires a federation name.");
+  }
+  requireNonzero(
+      request.federateId,
+      "A process federation-restore request requires a federate identity.");
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  writer.unsigned64(request.federateId);
+  writer.wideString(request.label);
+  writer.unsigned8(request.callbacksEnabled ? 1U : 0U);
+  return std::move(writer).finish();
+}
+
+ProcessFederationRestoreRequest decodeProcessFederationRestoreRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationRestoreRequest result;
+  result.federationName = reader.wideString();
+  result.federateId = reader.unsigned64();
+  result.label = reader.wideString();
+  if (reader.remaining() != 0U) {
+    result.callbacksEnabled = reader.unsigned8() != 0U;
+  }
+  reader.finish();
+  if (result.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation-restore request requires a federation name.");
+  }
+  requireNonzero(
+      result.federateId,
+      "A process federation-restore request requires a federate identity.");
+  return result;
+}
+
+std::vector<std::uint8_t> encodeProcessFederationRestoreControlResult(
+    ProcessFederationRestoreControlResult const& result) {
+  auto const status = static_cast<std::uint8_t>(result.status);
+  if (status > static_cast<std::uint8_t>(
+                   FederationRestoreControlStatus::callback_route_missing)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation-restore result has an invalid status.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(status);
+  return std::move(writer).finish();
+}
+
+ProcessFederationRestoreControlResult decodeProcessFederationRestoreControlResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  auto const status = reader.unsigned8();
+  reader.finish();
+  if (status > static_cast<std::uint8_t>(
+                   FederationRestoreControlStatus::callback_route_missing)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation-restore result has an invalid status.");
+  }
+  return ProcessFederationRestoreControlResult{
+      static_cast<FederationRestoreControlStatus>(status)};
+}
+
+std::vector<std::uint8_t>
 encodeProcessFederationChangeInteractionOrderTypeRequest(
     ProcessFederationChangeInteractionOrderTypeRequest const& request) {
   if (request.federationName.empty()) {
@@ -1443,6 +1752,106 @@ decodeProcessFederationQueryAttributeTransportationTypeRequest(
   requireNonzero(
       result.attributeHandle,
       "A process attribute transportation-type query requires an attribute.");
+  return result;
+}
+
+std::vector<std::uint8_t>
+encodeProcessFederationRequestInteractionTransportationTypeChangeRequest(
+    ProcessFederationRequestInteractionTransportationTypeChangeRequest const& request) {
+  if (request.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process interaction transportation-type change requires a federation name.");
+  }
+  requireNonzero(
+      request.requestingFederateId,
+      "A process interaction transportation-type change requires a federate identity.");
+  requireNonzero(
+      request.interactionClassHandle,
+      "A process interaction transportation-type change requires an interaction class.");
+  requireNonzero(
+      request.transportationTypeHandle,
+      "A process interaction transportation-type change requires a transportation type.");
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  writer.unsigned64(request.requestingFederateId);
+  writer.unsigned64(request.interactionClassHandle);
+  writer.unsigned64(request.transportationTypeHandle);
+  return std::move(writer).finish();
+}
+
+ProcessFederationRequestInteractionTransportationTypeChangeRequest
+decodeProcessFederationRequestInteractionTransportationTypeChangeRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationRequestInteractionTransportationTypeChangeRequest result;
+  result.federationName = reader.wideString();
+  result.requestingFederateId = reader.unsigned64();
+  result.interactionClassHandle = reader.unsigned64();
+  result.transportationTypeHandle = reader.unsigned64();
+  reader.finish();
+  if (result.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process interaction transportation-type change requires a federation name.");
+  }
+  requireNonzero(
+      result.requestingFederateId,
+      "A process interaction transportation-type change requires a federate identity.");
+  requireNonzero(
+      result.interactionClassHandle,
+      "A process interaction transportation-type change requires an interaction class.");
+  requireNonzero(
+      result.transportationTypeHandle,
+      "A process interaction transportation-type change requires a transportation type.");
+  return result;
+}
+
+std::vector<std::uint8_t>
+encodeProcessFederationQueryInteractionTransportationTypeRequest(
+    ProcessFederationQueryInteractionTransportationTypeRequest const& request) {
+  if (request.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process interaction transportation-type query requires a federation name.");
+  }
+  requireNonzero(
+      request.requestingFederateId,
+      "A process interaction transportation-type query requires a requester identity.");
+  requireNonzero(
+      request.queriedFederateId,
+      "A process interaction transportation-type query requires a queried federate identity.");
+  requireNonzero(
+      request.interactionClassHandle,
+      "A process interaction transportation-type query requires an interaction class.");
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  writer.unsigned64(request.requestingFederateId);
+  writer.unsigned64(request.queriedFederateId);
+  writer.unsigned64(request.interactionClassHandle);
+  return std::move(writer).finish();
+}
+
+ProcessFederationQueryInteractionTransportationTypeRequest
+decodeProcessFederationQueryInteractionTransportationTypeRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationQueryInteractionTransportationTypeRequest result;
+  result.federationName = reader.wideString();
+  result.requestingFederateId = reader.unsigned64();
+  result.queriedFederateId = reader.unsigned64();
+  result.interactionClassHandle = reader.unsigned64();
+  reader.finish();
+  if (result.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process interaction transportation-type query requires a federation name.");
+  }
+  requireNonzero(
+      result.requestingFederateId,
+      "A process interaction transportation-type query requires a requester identity.");
+  requireNonzero(
+      result.queriedFederateId,
+      "A process interaction transportation-type query requires a queried federate identity.");
+  requireNonzero(
+      result.interactionClassHandle,
+      "A process interaction transportation-type query requires an interaction class.");
   return result;
 }
 
@@ -2509,6 +2918,7 @@ encodeProcessFederationAttributeOwnershipAcquisitionRequest(
     writer.unsigned64(attributeHandle);
   }
   writer.bytes(request.userSuppliedTag);
+  writer.unsigned8(request.callbacksEnabled ? 1U : 0U);
   return std::move(writer).finish();
 }
 
@@ -2535,6 +2945,9 @@ decodeProcessFederationAttributeOwnershipAcquisitionRequest(
     result.desiredAttributeHandles.push_back(attributeHandle);
   }
   result.userSuppliedTag = reader.bytes();
+  if (reader.remaining() != 0U) {
+    result.callbacksEnabled = reader.unsigned8() != 0U;
+  }
   reader.finish();
   if (result.federationName.empty()) {
     throw ProcessFederationServiceProtocolError(
@@ -3099,6 +3512,7 @@ encodeProcessFederationGetObjectClassHandleRequest(
   writer.wideString(request.federationName);
   writer.unsigned64(request.federateId);
   writer.wideString(request.objectClassName);
+  writer.unsigned8(request.callbacksEnabled ? 1U : 0U);
   return std::move(writer).finish();
 }
 
@@ -3110,6 +3524,9 @@ decodeProcessFederationGetObjectClassHandleRequest(
   result.federationName = reader.wideString();
   result.federateId = reader.unsigned64();
   result.objectClassName = reader.wideString();
+  if (reader.remaining() != 0U) {
+    result.callbacksEnabled = reader.unsigned8() != 0U;
+  }
   reader.finish();
   if (result.federationName.empty() || result.objectClassName.empty()) {
     throw ProcessFederationServiceProtocolError(
@@ -4019,6 +4436,50 @@ decodeProcessFederationReserveObjectInstanceNameRequest(
   requireNonzero(
       result.federateId,
       "A process object-instance name reservation requires a federate identity.");
+  return result;
+}
+
+std::vector<std::uint8_t>
+encodeProcessFederationReserveMultipleObjectInstanceNamesRequest(
+    ProcessFederationReserveMultipleObjectInstanceNamesRequest const& request) {
+  if (request.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process multiple object-instance name reservation requires a federation name.");
+  }
+  requireNonzero(
+      request.federateId,
+      "A process multiple object-instance name reservation requires a federate identity.");
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  writer.unsigned64(request.federateId);
+  writer.wideStringVector(
+      std::vector<std::wstring>(request.objectInstanceNames.begin(),
+                                request.objectInstanceNames.end()));
+  return std::move(writer).finish();
+}
+
+ProcessFederationReserveMultipleObjectInstanceNamesRequest
+decodeProcessFederationReserveMultipleObjectInstanceNamesRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationReserveMultipleObjectInstanceNamesRequest result;
+  result.federationName = reader.wideString();
+  result.federateId = reader.unsigned64();
+  auto const names = reader.wideStringVector();
+  reader.finish();
+  if (result.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process multiple object-instance name reservation requires a federation name.");
+  }
+  requireNonzero(
+      result.federateId,
+      "A process multiple object-instance name reservation requires a federate identity.");
+  for (auto const& name : names) {
+    if (!result.objectInstanceNames.insert(name).second) {
+      throw ProcessFederationServiceProtocolError(
+          "A process multiple object-instance name request contains a duplicate name.");
+    }
+  }
   return result;
 }
 
@@ -5307,6 +5768,115 @@ decodeProcessFederationReserveObjectInstanceNameResult(
   return result;
 }
 
+std::vector<std::uint8_t>
+encodeProcessFederationObjectInstanceNameReleaseResult(
+    ProcessFederationObjectInstanceNameReleaseResult const& result) {
+  auto const status = static_cast<std::uint8_t>(result.status);
+  if (status > static_cast<std::uint8_t>(
+                   ObjectInstanceNameReservationStatus::callback_route_missing)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process object-instance name release result has an invalid status.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(status);
+  return std::move(writer).finish();
+}
+
+ProcessFederationObjectInstanceNameReleaseResult
+decodeProcessFederationObjectInstanceNameReleaseResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  auto const status = reader.unsigned8();
+  reader.finish();
+  if (status > static_cast<std::uint8_t>(
+                   ObjectInstanceNameReservationStatus::callback_route_missing)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process object-instance name release result has an invalid status.");
+  }
+  return ProcessFederationObjectInstanceNameReleaseResult{
+      static_cast<ObjectInstanceNameReservationStatus>(status)};
+}
+
+std::vector<std::uint8_t>
+encodeProcessFederationReserveMultipleObjectInstanceNamesResult(
+    ProcessFederationReserveMultipleObjectInstanceNamesResult const& result) {
+  auto const status = static_cast<std::uint8_t>(result.status);
+  if (status > static_cast<std::uint8_t>(
+                   ObjectInstanceNameReservationStatus::callback_route_missing)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process multiple object-instance name reservation result has an invalid status.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(status);
+  writer.wideStringVector(
+      std::vector<std::wstring>(result.succeededNames.begin(),
+                                result.succeededNames.end()));
+  writer.wideStringVector(
+      std::vector<std::wstring>(result.failedNames.begin(),
+                                result.failedNames.end()));
+  return std::move(writer).finish();
+}
+
+ProcessFederationReserveMultipleObjectInstanceNamesResult
+decodeProcessFederationReserveMultipleObjectInstanceNamesResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationReserveMultipleObjectInstanceNamesResult result;
+  auto const status = reader.unsigned8();
+  auto const succeededNames = reader.wideStringVector();
+  auto const failedNames = reader.wideStringVector();
+  reader.finish();
+  if (status > static_cast<std::uint8_t>(
+                   ObjectInstanceNameReservationStatus::callback_route_missing)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process multiple object-instance name reservation result has an invalid status.");
+  }
+  result.status = static_cast<ObjectInstanceNameReservationStatus>(status);
+  for (auto const& name : succeededNames) {
+    if (!result.succeededNames.insert(name).second) {
+      throw ProcessFederationServiceProtocolError(
+          "A process multiple object-instance name reservation result contains a duplicate success name.");
+    }
+  }
+  for (auto const& name : failedNames) {
+    if (!result.failedNames.insert(name).second ||
+        result.succeededNames.contains(name)) {
+      throw ProcessFederationServiceProtocolError(
+          "A process multiple object-instance name reservation result contains overlapping names.");
+    }
+  }
+  return result;
+}
+
+std::vector<std::uint8_t>
+encodeProcessFederationReleaseMultipleObjectInstanceNamesResult(
+    ProcessFederationReleaseMultipleObjectInstanceNamesResult const& result) {
+  auto const status = static_cast<std::uint8_t>(result.status);
+  if (status > static_cast<std::uint8_t>(
+                   ObjectInstanceNameReservationStatus::callback_route_missing)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process multiple object-instance name release result has an invalid status.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(status);
+  return std::move(writer).finish();
+}
+
+ProcessFederationReleaseMultipleObjectInstanceNamesResult
+decodeProcessFederationReleaseMultipleObjectInstanceNamesResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  auto const status = reader.unsigned8();
+  reader.finish();
+  if (status > static_cast<std::uint8_t>(
+                   ObjectInstanceNameReservationStatus::callback_route_missing)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process multiple object-instance name release result has an invalid status.");
+  }
+  return ProcessFederationReleaseMultipleObjectInstanceNamesResult{
+      static_cast<ObjectInstanceNameReservationStatus>(status)};
+}
+
 std::vector<std::uint8_t> encodeProcessFederationRegionStatusResult(
     ProcessFederationRegionStatusResult const& result) {
   PayloadWriter writer;
@@ -5631,6 +6201,62 @@ decodeProcessFederationAttributeTransportationTypeQueryResult(
         "A process attribute transportation-type query result has an invalid status.");
   }
   return {static_cast<AttributeTransportationTypeQueryStatus>(status)};
+}
+
+std::vector<std::uint8_t>
+encodeProcessFederationInteractionTransportationTypeChangeResult(
+    ProcessFederationInteractionTransportationTypeChangeResult const& result) {
+  auto const encoded = static_cast<std::uint8_t>(result.status);
+  if (encoded > static_cast<std::uint8_t>(
+                    InteractionTransportationTypeChangeStatus::inconsistent_catalog)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process interaction transportation-type change result has an invalid status.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(encoded);
+  return std::move(writer).finish();
+}
+
+ProcessFederationInteractionTransportationTypeChangeResult
+decodeProcessFederationInteractionTransportationTypeChangeResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  auto const status = reader.unsigned8();
+  reader.finish();
+  if (status > static_cast<std::uint8_t>(
+                   InteractionTransportationTypeChangeStatus::inconsistent_catalog)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process interaction transportation-type change result has an invalid status.");
+  }
+  return {static_cast<InteractionTransportationTypeChangeStatus>(status)};
+}
+
+std::vector<std::uint8_t>
+encodeProcessFederationInteractionTransportationTypeQueryResult(
+    ProcessFederationInteractionTransportationTypeQueryResult const& result) {
+  auto const encoded = static_cast<std::uint8_t>(result.status);
+  if (encoded > static_cast<std::uint8_t>(
+                    InteractionTransportationTypeQueryStatus::inconsistent_catalog)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process interaction transportation-type query result has an invalid status.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(encoded);
+  return std::move(writer).finish();
+}
+
+ProcessFederationInteractionTransportationTypeQueryResult
+decodeProcessFederationInteractionTransportationTypeQueryResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  auto const status = reader.unsigned8();
+  reader.finish();
+  if (status > static_cast<std::uint8_t>(
+                   InteractionTransportationTypeQueryStatus::inconsistent_catalog)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process interaction transportation-type query result has an invalid status.");
+  }
+  return {static_cast<InteractionTransportationTypeQueryStatus>(status)};
 }
 
 std::vector<std::uint8_t>
@@ -6198,7 +6824,19 @@ std::vector<std::uint8_t> encodeProcessFederationReceiveInteractionResult(
       eventCountWithOwnershipUnavailable + static_cast<unsigned>(
           result.attributeTransportationTypeChangeEvent.has_value()) +
       static_cast<unsigned>(result.attributeTransportationTypeQueryEvent.has_value());
-  if (eventCountWithTransportation > 1U) {
+  const auto eventCountWithInteractionTransportation =
+      eventCountWithTransportation + static_cast<unsigned>(
+          result.interactionTransportationTypeChangeEvent.has_value()) +
+      static_cast<unsigned>(result.interactionTransportationTypeQueryEvent.has_value());
+  const auto eventCountWithSynchronization =
+      eventCountWithInteractionTransportation +
+      static_cast<unsigned>(result.synchronizationPointAnnouncementEvent.has_value()) +
+      static_cast<unsigned>(result.federationSynchronizedEvent.has_value());
+  const auto eventCountWithSave = eventCountWithSynchronization +
+      static_cast<unsigned>(result.saveEvent.has_value());
+  const auto eventCountWithRestore = eventCountWithSave +
+      static_cast<unsigned>(result.restoreEvent.has_value());
+  if (eventCountWithRestore > 1U) {
     throw ProcessFederationServiceProtocolError(
         "A process federation receive result cannot contain multiple events.");
   }
@@ -6230,6 +6868,18 @@ std::vector<std::uint8_t> encodeProcessFederationReceiveInteractionResult(
     eventKind = 12U;
   } else if (result.attributeTransportationTypeQueryEvent) {
     eventKind = 13U;
+  } else if (result.interactionTransportationTypeChangeEvent) {
+    eventKind = 14U;
+  } else if (result.interactionTransportationTypeQueryEvent) {
+    eventKind = 15U;
+  } else if (result.synchronizationPointAnnouncementEvent) {
+    eventKind = 16U;
+  } else if (result.federationSynchronizedEvent) {
+    eventKind = 17U;
+  } else if (result.saveEvent) {
+    eventKind = 18U;
+  } else if (result.restoreEvent) {
+    eventKind = 19U;
   }
   writer.unsigned8(eventKind);
   if (result.event.has_value()) {
@@ -6381,6 +7031,31 @@ std::vector<std::uint8_t> encodeProcessFederationReceiveInteractionResult(
     writeOptionalMessageId(
         writer,
         event.retractionMessageId.value_or(0U));
+    // The private message identity remains present for timestamped queue
+    // bookkeeping even when the public API must not expose a retraction
+    // designator.  Append the projection bit so older payloads (which always
+    // exposed the id) remain decodable by defaulting to true when absent.
+    if (event.retractionMessageId) {
+      writer.unsigned8(event.provideRetraction ? 1U : 0U);
+    }
+    if (event.timestamp) {
+      if (!event.sentOrderType || !event.receivedOrderType) {
+        throw ProcessFederationServiceProtocolError(
+            "A timestamped process object removal event must carry both order classifications when present.");
+      }
+      auto const validOrder = [](rti1516_2025::OrderType order) {
+        return order == rti1516_2025::RECEIVE ||
+            order == rti1516_2025::TIMESTAMP;
+      };
+      if (!validOrder(*event.sentOrderType) ||
+          !validOrder(*event.receivedOrderType)) {
+        throw ProcessFederationServiceProtocolError(
+            "A timestamped process object removal event has an invalid order classification.");
+      }
+      writer.unsigned8(1U);
+      writer.unsigned8(static_cast<std::uint8_t>(*event.sentOrderType));
+      writer.unsigned8(static_cast<std::uint8_t>(*event.receivedOrderType));
+    }
   } else if (result.attributeRelevanceAdvisoryEvent.has_value()) {
     auto const& event = *result.attributeRelevanceAdvisoryEvent;
     requireNonzero(
@@ -6651,6 +7326,210 @@ std::vector<std::uint8_t> encodeProcessFederationReceiveInteractionResult(
     writer.unsigned64(event.objectInstanceHandle);
     writer.unsigned64(event.attributeHandle);
     writer.string(event.transportationName);
+  } else if (result.interactionTransportationTypeChangeEvent.has_value()) {
+    auto const& event = *result.interactionTransportationTypeChangeEvent;
+    requireNonzero(
+        event.receivingFederateId,
+        "A process interaction transportation-type change event requires a recipient identity.");
+    requireNonzero(
+        event.interactionClassHandle,
+        "A process interaction transportation-type change event requires an interaction class.");
+    if (event.transportationName.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process interaction transportation-type change event requires transportation.");
+    }
+    writer.unsigned64(event.receivingFederateId);
+    writer.unsigned64(event.interactionClassHandle);
+    writer.string(event.transportationName);
+  } else if (result.interactionTransportationTypeQueryEvent.has_value()) {
+    auto const& event = *result.interactionTransportationTypeQueryEvent;
+    requireNonzero(
+        event.receivingFederateId,
+        "A process interaction transportation-type query event requires a recipient identity.");
+    requireNonzero(
+        event.queriedFederateId,
+        "A process interaction transportation-type query event requires a queried federate identity.");
+    requireNonzero(
+        event.interactionClassHandle,
+        "A process interaction transportation-type query event requires an interaction class.");
+    if (event.transportationName.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process interaction transportation-type query event requires transportation.");
+    }
+    writer.unsigned64(event.receivingFederateId);
+    writer.unsigned64(event.queriedFederateId);
+    writer.unsigned64(event.interactionClassHandle);
+    writer.string(event.transportationName);
+  } else if (result.synchronizationPointAnnouncementEvent.has_value()) {
+    auto const& event = *result.synchronizationPointAnnouncementEvent;
+    requireNonzero(
+        event.receivingFederateId,
+        "A process synchronization-point announcement requires a recipient identity.");
+    if (event.label.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process synchronization-point announcement requires a label.");
+    }
+    writer.unsigned64(event.receivingFederateId);
+    writer.wideString(event.label);
+    writer.bytes(event.userSuppliedTag);
+  } else if (result.federationSynchronizedEvent.has_value()) {
+    auto const& event = *result.federationSynchronizedEvent;
+    requireNonzero(
+        event.receivingFederateId,
+        "A process Federation Synchronized event requires a recipient identity.");
+    if (event.label.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process Federation Synchronized event requires a label.");
+    }
+    auto const failedToSyncFederateIds =
+        parameterVector(event.failedToSyncFederateIds);
+    validateHandleVector(
+        failedToSyncFederateIds,
+        "A process Federation Synchronized event requires sorted, unique federate handles.");
+    writer.unsigned64(event.receivingFederateId);
+    writer.wideString(event.label);
+    writer.unsigned64Vector(failedToSyncFederateIds);
+  } else if (result.saveEvent.has_value()) {
+    auto const& event = *result.saveEvent;
+    requireNonzero(
+        event.receivingFederateId,
+        "A process federation-save event requires a recipient identity.");
+    if (event.kind != FederationSaveNotificationKind::status &&
+        event.label.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-save event requires a label.");
+    }
+    if (event.kind == FederationSaveNotificationKind::status &&
+        !event.label.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-save status event cannot carry a label.");
+    }
+    if (event.kind != FederationSaveNotificationKind::initiate &&
+        event.kind != FederationSaveNotificationKind::completed &&
+        event.kind != FederationSaveNotificationKind::status) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-save event has an unsupported notification kind.");
+    }
+    if (event.kind != FederationSaveNotificationKind::status &&
+        !event.statuses.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A non-status federation-save event cannot carry status pairs.");
+    }
+    if (event.kind == FederationSaveNotificationKind::status &&
+        event.statuses.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A federation-save status event requires status pairs.");
+    }
+    if (event.kind != FederationSaveNotificationKind::initiate &&
+        event.timestamp) {
+      throw ProcessFederationServiceProtocolError(
+          "Only an initiate federation-save event may carry a timestamp.");
+    }
+    if (event.statuses.size() > std::numeric_limits<std::uint32_t>::max()) {
+      throw ProcessFederationServiceProtocolError(
+          "A federation-save status event has too many status pairs.");
+    }
+    auto const failureReason = static_cast<std::uint8_t>(event.failureReason);
+    if (failureReason > static_cast<std::uint8_t>(rti1516_2025::SAVE_ABORTED)) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-save event has an invalid failure reason.");
+    }
+    writer.unsigned8(static_cast<std::uint8_t>(event.kind));
+    writer.unsigned64(event.receivingFederateId);
+    writer.wideString(event.label);
+    writer.unsigned8(event.successful ? 1U : 0U);
+    writer.unsigned8(failureReason);
+    writer.unsigned32(static_cast<std::uint32_t>(event.statuses.size()));
+    std::uint64_t previousFederateId = 0U;
+    for (auto const& [federateId, status] : event.statuses) {
+      requireNonzero(
+          federateId,
+          "A federation-save status event requires federate identities.");
+      if (federateId <= previousFederateId) {
+        throw ProcessFederationServiceProtocolError(
+            "A federation-save status event requires sorted, unique federate identities.");
+      }
+      switch (status) {
+        case rti1516_2025::NO_SAVE_IN_PROGRESS:
+        case rti1516_2025::FEDERATE_INSTRUCTED_TO_SAVE:
+        case rti1516_2025::FEDERATE_SAVING:
+        case rti1516_2025::FEDERATE_WAITING_FOR_FEDERATION_TO_SAVE:
+          break;
+        default:
+          throw ProcessFederationServiceProtocolError(
+              "A federation-save status event has an invalid SaveStatus.");
+      }
+      writer.unsigned64(federateId);
+      writer.unsigned8(static_cast<std::uint8_t>(status));
+      previousFederateId = federateId;
+    }
+    writeOptionalLogicalTime(writer, event.timestamp);
+  } else if (result.restoreEvent.has_value()) {
+    auto const& event = *result.restoreEvent;
+    requireNonzero(
+        event.receivingFederateId,
+        "A process federation-restore event requires a recipient identity.");
+    if (event.label.empty() &&
+        event.kind != FederationRestoreNotificationKind::begin &&
+        event.kind != FederationRestoreNotificationKind::status) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-restore event requires a label.");
+    }
+    auto const encodedKind = static_cast<std::uint8_t>(event.kind);
+    if (encodedKind > static_cast<std::uint8_t>(
+                          FederationRestoreNotificationKind::status)) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-restore event has an invalid notification kind.");
+    }
+    auto const failureReason = static_cast<std::uint8_t>(event.failureReason);
+    if (failureReason > static_cast<std::uint8_t>(
+                             rti1516_2025::RESTORE_ABORTED)) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-restore event has an invalid failure reason.");
+    }
+    if (event.statuses.size() > std::numeric_limits<std::uint32_t>::max()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-restore event has too many status records.");
+    }
+    writer.unsigned8(encodedKind);
+    writer.unsigned64(event.receivingFederateId);
+    writer.wideString(event.label);
+    writer.wideString(event.federateName);
+    writer.unsigned64(event.preRestoreFederateId);
+    writer.unsigned64(event.postRestoreFederateId);
+    writer.unsigned8(event.successful ? 1U : 0U);
+    writer.unsigned8(failureReason);
+    writer.unsigned32(static_cast<std::uint32_t>(event.statuses.size()));
+    std::uint64_t previousPreRestoreId = 0U;
+    for (auto const& status : event.statuses) {
+      requireNonzero(
+          status.preRestoreFederateId,
+          "A federation-restore status event requires pre-restore federate identities.");
+      if (status.preRestoreFederateId <= previousPreRestoreId) {
+        throw ProcessFederationServiceProtocolError(
+            "A federation-restore status event requires sorted, unique pre-restore federate identities.");
+      }
+      auto const encodedStatus = static_cast<std::uint8_t>(status.status);
+      if (encodedStatus > static_cast<std::uint8_t>(
+              rti1516_2025::FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE)) {
+        throw ProcessFederationServiceProtocolError(
+            "A federation-restore status event has an invalid RestoreStatus.");
+      }
+      if (status.status == rti1516_2025::NO_RESTORE_IN_PROGRESS) {
+        if (status.postRestoreFederateId != 0U) {
+          throw ProcessFederationServiceProtocolError(
+              "A no-restore-in-progress status event requires an invalid post-restore federate identity.");
+        }
+      } else {
+        requireNonzero(
+            status.postRestoreFederateId,
+            "A federation-restore status event requires post-restore federate identities.");
+      }
+      writer.unsigned64(status.preRestoreFederateId);
+      writer.unsigned64(status.postRestoreFederateId);
+      writer.unsigned8(encodedStatus);
+      previousPreRestoreId = status.preRestoreFederateId;
+    }
   }
   return std::move(writer).finish();
 }
@@ -6660,7 +7539,7 @@ decodeProcessFederationReceiveInteractionResult(
     std::span<std::uint8_t const> encoded) {
   PayloadReader reader(encoded);
   auto const eventKind = reader.unsigned8();
-  if (eventKind > 13U) {
+  if (eventKind > 19U) {
     throw ProcessFederationServiceProtocolError(
         "A process federation receive result has an invalid event marker.");
   }
@@ -6821,6 +7700,40 @@ decodeProcessFederationReceiveInteractionResult(
     auto const retractionMessageId = readOptionalMessageId(reader);
     if (retractionMessageId != 0U) {
       event.retractionMessageId = retractionMessageId;
+      if (reader.remaining() != 0U) {
+        auto const provideRetraction = reader.unsigned8();
+        if (provideRetraction > 1U) {
+          throw ProcessFederationServiceProtocolError(
+              "A process object removal event has an invalid retraction projection marker.");
+        }
+        event.provideRetraction = provideRetraction != 0U;
+      } else {
+        // Legacy process payloads had no projection marker and therefore
+        // treated a present message id as publicly retraction-capable.
+        event.provideRetraction = true;
+      }
+    }
+    if (event.timestamp && reader.remaining() != 0U) {
+      auto const orderMarker = reader.unsigned8();
+      if (orderMarker > 1U) {
+        throw ProcessFederationServiceProtocolError(
+            "A process object removal event has an invalid order metadata marker.");
+      }
+      if (orderMarker != 0U) {
+        auto decodeOrder = [](std::uint8_t encoded, char const* description) {
+          if (encoded != static_cast<std::uint8_t>(rti1516_2025::RECEIVE) &&
+              encoded != static_cast<std::uint8_t>(rti1516_2025::TIMESTAMP)) {
+            throw ProcessFederationServiceProtocolError(description);
+          }
+          return static_cast<rti1516_2025::OrderType>(encoded);
+        };
+        event.sentOrderType = decodeOrder(
+            reader.unsigned8(),
+            "A process object removal event has an invalid sent order classification.");
+        event.receivedOrderType = decodeOrder(
+            reader.unsigned8(),
+            "A process object removal event has an invalid received order classification.");
+      }
     }
     requireNonzero(
         event.receivingFederateId,
@@ -7133,6 +8046,225 @@ decodeProcessFederationReceiveInteractionResult(
           "A process attribute transportation-type query event requires transportation.");
     }
     result.attributeTransportationTypeQueryEvent = std::move(event);
+  } else if (eventKind == 14U) {
+    ProcessFederationInteractionTransportationTypeChangeEvent event;
+    event.receivingFederateId = reader.unsigned64();
+    event.interactionClassHandle = reader.unsigned64();
+    event.transportationName = reader.string();
+    requireNonzero(
+        event.receivingFederateId,
+        "A process interaction transportation-type change event requires a recipient identity.");
+    requireNonzero(
+        event.interactionClassHandle,
+        "A process interaction transportation-type change event requires an interaction class.");
+    if (event.transportationName.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process interaction transportation-type change event requires transportation.");
+    }
+    result.interactionTransportationTypeChangeEvent = std::move(event);
+  } else if (eventKind == 15U) {
+    ProcessFederationInteractionTransportationTypeQueryEvent event;
+    event.receivingFederateId = reader.unsigned64();
+    event.queriedFederateId = reader.unsigned64();
+    event.interactionClassHandle = reader.unsigned64();
+    event.transportationName = reader.string();
+    requireNonzero(
+        event.receivingFederateId,
+        "A process interaction transportation-type query event requires a recipient identity.");
+    requireNonzero(
+        event.queriedFederateId,
+        "A process interaction transportation-type query event requires a queried federate identity.");
+    requireNonzero(
+        event.interactionClassHandle,
+        "A process interaction transportation-type query event requires an interaction class.");
+    if (event.transportationName.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process interaction transportation-type query event requires transportation.");
+    }
+    result.interactionTransportationTypeQueryEvent = std::move(event);
+  } else if (eventKind == 16U) {
+    ProcessFederationSynchronizationPointAnnouncementEvent event;
+    event.receivingFederateId = reader.unsigned64();
+    event.label = reader.wideString();
+    event.userSuppliedTag = reader.bytes();
+    requireNonzero(
+        event.receivingFederateId,
+        "A process synchronization-point announcement requires a recipient identity.");
+    if (event.label.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process synchronization-point announcement requires a label.");
+    }
+    result.synchronizationPointAnnouncementEvent = std::move(event);
+  } else if (eventKind == 17U) {
+    ProcessFederationFederationSynchronizedEvent event;
+    event.receivingFederateId = reader.unsigned64();
+    event.label = reader.wideString();
+    auto const failed = reader.unsigned64Vector();
+    validateHandleVector(
+        failed,
+        "A process Federation Synchronized event requires sorted, unique federate handles.");
+    event.failedToSyncFederateIds.insert(failed.begin(), failed.end());
+    requireNonzero(
+        event.receivingFederateId,
+        "A process Federation Synchronized event requires a recipient identity.");
+    if (event.label.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process Federation Synchronized event requires a label.");
+    }
+    result.federationSynchronizedEvent = std::move(event);
+  } else if (eventKind == 18U) {
+    ProcessFederationSaveEvent event;
+    auto const encodedKind = reader.unsigned8();
+    if (encodedKind > static_cast<std::uint8_t>(
+                          FederationSaveNotificationKind::status)) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-save event has an invalid notification kind.");
+    }
+    event.kind = static_cast<FederationSaveNotificationKind>(encodedKind);
+    event.receivingFederateId = reader.unsigned64();
+    event.label = reader.wideString();
+    auto const successful = reader.unsigned8();
+    if (successful > 1U) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-save event has an invalid success marker.");
+    }
+    event.successful = successful != 0U;
+    auto const failureReason = reader.unsigned8();
+    if (failureReason > static_cast<std::uint8_t>(rti1516_2025::SAVE_ABORTED)) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-save event has an invalid failure reason.");
+    }
+    event.failureReason =
+        static_cast<rti1516_2025::SaveFailureReason>(failureReason);
+    auto const statusCount = reader.unsigned32();
+    event.statuses.reserve(statusCount);
+    std::uint64_t previousFederateId = 0U;
+    for (std::uint32_t index = 0U; index < statusCount; ++index) {
+      auto const federateId = reader.unsigned64();
+      requireNonzero(
+          federateId,
+          "A federation-save status event requires federate identities.");
+      if (federateId <= previousFederateId) {
+        throw ProcessFederationServiceProtocolError(
+            "A federation-save status event requires sorted, unique federate identities.");
+      }
+      auto const encodedStatus = reader.unsigned8();
+      if (encodedStatus > static_cast<std::uint8_t>(
+                              rti1516_2025::FEDERATE_WAITING_FOR_FEDERATION_TO_SAVE)) {
+        throw ProcessFederationServiceProtocolError(
+            "A federation-save status event has an invalid SaveStatus.");
+      }
+      auto const status = static_cast<rti1516_2025::SaveStatus>(encodedStatus);
+      switch (status) {
+        case rti1516_2025::NO_SAVE_IN_PROGRESS:
+        case rti1516_2025::FEDERATE_INSTRUCTED_TO_SAVE:
+        case rti1516_2025::FEDERATE_SAVING:
+        case rti1516_2025::FEDERATE_WAITING_FOR_FEDERATION_TO_SAVE:
+          break;
+        default:
+          throw ProcessFederationServiceProtocolError(
+              "A federation-save status event has an invalid SaveStatus.");
+      }
+      event.statuses.emplace_back(federateId, status);
+      previousFederateId = federateId;
+    }
+    event.timestamp = readOptionalLogicalTime(reader);
+    requireNonzero(
+        event.receivingFederateId,
+        "A process federation-save event requires a recipient identity.");
+    if (event.kind != FederationSaveNotificationKind::status &&
+        event.label.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-save event requires a label.");
+    }
+    if (event.kind == FederationSaveNotificationKind::status &&
+        (!event.label.empty() || event.statuses.empty())) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-save status event requires status pairs and no label.");
+    }
+    if (event.kind != FederationSaveNotificationKind::status &&
+        !event.statuses.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A non-status federation-save event cannot carry status pairs.");
+    }
+    if (event.kind != FederationSaveNotificationKind::initiate &&
+        event.timestamp) {
+      throw ProcessFederationServiceProtocolError(
+          "Only an initiate federation-save event may carry a timestamp.");
+    }
+    result.saveEvent = std::move(event);
+  } else if (eventKind == 19U) {
+    ProcessFederationRestoreEvent event;
+    auto const encodedKind = reader.unsigned8();
+    if (encodedKind > static_cast<std::uint8_t>(
+                          FederationRestoreNotificationKind::status)) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-restore event has an invalid notification kind.");
+    }
+    event.kind = static_cast<FederationRestoreNotificationKind>(encodedKind);
+    event.receivingFederateId = reader.unsigned64();
+    event.label = reader.wideString();
+    event.federateName = reader.wideString();
+    event.preRestoreFederateId = reader.unsigned64();
+    event.postRestoreFederateId = reader.unsigned64();
+    auto const successful = reader.unsigned8();
+    if (successful > 1U) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-restore event has an invalid success marker.");
+    }
+    event.successful = successful != 0U;
+    auto const failureReason = reader.unsigned8();
+    if (failureReason > static_cast<std::uint8_t>(
+                             rti1516_2025::RESTORE_ABORTED)) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-restore event has an invalid failure reason.");
+    }
+    event.failureReason =
+        static_cast<rti1516_2025::RestoreFailureReason>(failureReason);
+    auto const statusCount = reader.unsigned32();
+    event.statuses.reserve(statusCount);
+    std::uint64_t previousPreRestoreId = 0U;
+    for (std::uint32_t index = 0U; index < statusCount; ++index) {
+      ProcessFederationRestoreEvent::StatusRecord status;
+      status.preRestoreFederateId = reader.unsigned64();
+      status.postRestoreFederateId = reader.unsigned64();
+      requireNonzero(
+          status.preRestoreFederateId,
+          "A federation-restore status event requires pre-restore federate identities.");
+      if (status.preRestoreFederateId <= previousPreRestoreId) {
+        throw ProcessFederationServiceProtocolError(
+            "A federation-restore status event requires sorted, unique pre-restore federate identities.");
+      }
+      auto const encodedStatus = reader.unsigned8();
+      if (encodedStatus > static_cast<std::uint8_t>(
+                              rti1516_2025::FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE)) {
+        throw ProcessFederationServiceProtocolError(
+            "A federation-restore status event has an invalid RestoreStatus.");
+      }
+      status.status = static_cast<rti1516_2025::RestoreStatus>(encodedStatus);
+      if (status.status == rti1516_2025::NO_RESTORE_IN_PROGRESS) {
+        if (status.postRestoreFederateId != 0U) {
+          throw ProcessFederationServiceProtocolError(
+              "A no-restore-in-progress status event requires an invalid post-restore federate identity.");
+        }
+      } else {
+        requireNonzero(
+            status.postRestoreFederateId,
+            "A federation-restore status event requires post-restore federate identities.");
+      }
+      event.statuses.push_back(status);
+      previousPreRestoreId = status.preRestoreFederateId;
+    }
+    requireNonzero(
+        event.receivingFederateId,
+        "A process federation-restore event requires a recipient identity.");
+    if (event.label.empty() &&
+        event.kind != FederationRestoreNotificationKind::begin &&
+        event.kind != FederationRestoreNotificationKind::status) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation-restore event requires a label.");
+    }
+    result.restoreEvent = std::move(event);
   }
   reader.finish();
   return result;
@@ -7478,6 +8610,12 @@ bool ProcessFederationService::dispatchConnectionLossResult(
       return false;
     }
   }
+  if (!result.synchronizationNotifications.empty() &&
+      !enqueueFederationSynchronizedNotifications(
+          federationName,
+          std::move(result.synchronizationNotifications))) {
+    return false;
+  }
   return true;
 }
 
@@ -7492,6 +8630,30 @@ TransportServiceMessage ProcessFederationService::handle(
         return handleJoin(session, request);
       case TransportServiceOperation::resign_federation_execution:
         return handleResign(session, request);
+      case TransportServiceOperation::register_federation_synchronization_point:
+        return handleRegisterFederationSynchronizationPoint(session, request);
+      case TransportServiceOperation::synchronization_point_achieved:
+        return handleSynchronizationPointAchieved(session, request);
+      case TransportServiceOperation::request_federation_save:
+        return handleRequestFederationSave(session, request);
+      case TransportServiceOperation::federate_save_begun:
+      case TransportServiceOperation::federate_save_complete:
+      case TransportServiceOperation::federate_save_not_complete:
+        return handleFederateSaveControl(session, request, request.operation);
+      case TransportServiceOperation::query_federation_save_status:
+        return handleQueryFederationSaveStatus(session, request);
+      case TransportServiceOperation::abort_federation_save:
+        return handleAbortFederationSave(session, request);
+      case TransportServiceOperation::request_federation_restore:
+        return handleRequestFederationRestore(session, request);
+      case TransportServiceOperation::federate_restore_complete:
+        return handleFederateRestoreComplete(session, request);
+      case TransportServiceOperation::federate_restore_not_complete:
+        return handleFederateRestoreNotComplete(session, request);
+      case TransportServiceOperation::abort_federation_restore:
+        return handleAbortFederationRestore(session, request);
+      case TransportServiceOperation::query_federation_restore_status:
+        return handleQueryFederationRestoreStatus(session, request);
       case TransportServiceOperation::send_interaction:
         return handleSendInteraction(session, request);
       case TransportServiceOperation::send_interaction_with_regions:
@@ -7595,6 +8757,12 @@ TransportServiceMessage ProcessFederationService::handle(
         return handleDeleteObjectInstance(session, request);
       case TransportServiceOperation::reserve_object_instance_name:
         return handleReserveObjectInstanceName(session, request);
+      case TransportServiceOperation::release_object_instance_name:
+        return handleReleaseObjectInstanceName(session, request);
+      case TransportServiceOperation::reserve_multiple_object_instance_names:
+        return handleReserveMultipleObjectInstanceNames(session, request);
+      case TransportServiceOperation::release_multiple_object_instance_names:
+        return handleReleaseMultipleObjectInstanceNames(session, request);
       case TransportServiceOperation::get_dimension_handle:
         return handleGetDimensionHandle(session, request);
       case TransportServiceOperation::get_dimension_name:
@@ -7680,6 +8848,10 @@ TransportServiceMessage ProcessFederationService::handle(
         return handleRequestAttributeTransportationTypeChange(session, request);
       case TransportServiceOperation::query_attribute_transportation_type:
         return handleQueryAttributeTransportationType(session, request);
+      case TransportServiceOperation::request_interaction_transportation_type_change:
+        return handleRequestInteractionTransportationTypeChange(session, request);
+      case TransportServiceOperation::query_interaction_transportation_type:
+        return handleQueryInteractionTransportationType(session, request);
       case TransportServiceOperation::subscribe_interaction_class_with_regions:
       case TransportServiceOperation::unsubscribe_interaction_class_with_regions:
         return handleInteractionClassRegionalSubscription(session, request);
@@ -7865,13 +9037,515 @@ TransportServiceMessage ProcessFederationService::handleResign(
       state->second.attributeRelevanceAdvisoryEvents.clear();
       state->second.attributeTransportationTypeChangeEvents.clear();
       state->second.attributeTransportationTypeQueryEvents.clear();
+      state->second.interactionTransportationTypeChangeEvents.clear();
+      state->second.interactionTransportationTypeQueryEvents.clear();
       state->second.attributeOwnershipQueryEvents.clear();
       state->second.attributeOwnershipAcquisitionIfAvailableEvents.clear();
       state->second.attributeOwnershipAcquisitionEvents.clear();
       state->second.attributeOwnershipUnavailableEvents.clear();
+      state->second.synchronizationPointAnnouncementEvents.clear();
+      state->second.federationSynchronizedEvents.clear();
+      state->second.saveEvents.clear();
+      state->second.restoreEvents.clear();
     }
   }
   return responseFor(request, TransportServiceStatus::ok);
+}
+
+TransportServiceMessage
+ProcessFederationService::handleRegisterFederationSynchronizationPoint(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const registration =
+      decodeProcessFederationRegisterSynchronizationPointRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != registration.federationName ||
+        state->second.federateId != registration.federateId ||
+        !registry_.memberById(
+            registration.federationName, registration.federateId)) {
+      return rejected(request);
+    }
+  }
+
+  std::set<std::uint64_t> synchronizationSet(
+      registration.synchronizationSet.begin(),
+      registration.synchronizationSet.end());
+  auto plan = registry_.registerSynchronizationPoint(
+      registration.federationName,
+      registration.federateId,
+      registration.label,
+      registration.userSuppliedTag,
+      synchronizationSet,
+      registration.synchronizationSetWasSupplied);
+  ProcessFederationRegisterSynchronizationPointResult result;
+  switch (plan.status) {
+    case SynchronizationPointRegistrationStatus::applied:
+      result.status =
+          ProcessFederationSynchronizationPointRegistrationStatus::applied;
+      break;
+    case SynchronizationPointRegistrationStatus::federation_does_not_exist:
+      result.status = ProcessFederationSynchronizationPointRegistrationStatus::
+          federation_does_not_exist;
+      break;
+    case SynchronizationPointRegistrationStatus::federate_not_member:
+      result.status =
+          ProcessFederationSynchronizationPointRegistrationStatus::federate_not_member;
+      break;
+    case SynchronizationPointRegistrationStatus::callback_route_missing:
+      result.status = ProcessFederationSynchronizationPointRegistrationStatus::
+          callback_route_missing;
+      break;
+  }
+  result.succeeded = plan.succeeded;
+  result.failureReason = plan.failureReason;
+  if (plan.status == SynchronizationPointRegistrationStatus::applied &&
+      !plan.announcements.empty() &&
+      !enqueueSynchronizationPointAnnouncements(
+          registration.federationName,
+          std::move(plan.announcements))) {
+    return internalError(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationRegisterSynchronizationPointResult(result));
+}
+
+TransportServiceMessage ProcessFederationService::handleSynchronizationPointAchieved(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const achievement =
+      decodeProcessFederationSynchronizationPointAchievedRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != achievement.federationName ||
+        state->second.federateId != achievement.federateId ||
+        !registry_.memberById(
+            achievement.federationName, achievement.federateId)) {
+      return rejected(request);
+    }
+  }
+
+  auto plan = registry_.achieveSynchronizationPoint(
+      achievement.federationName,
+      achievement.federateId,
+      achievement.label,
+      achievement.successfully);
+  ProcessFederationSynchronizationPointAchievedResult result;
+  switch (plan.status) {
+    case SynchronizationPointAchievedStatus::applied:
+      result.status =
+          ProcessFederationSynchronizationPointAchievedStatus::applied;
+      break;
+    case SynchronizationPointAchievedStatus::federation_does_not_exist:
+      result.status = ProcessFederationSynchronizationPointAchievedStatus::
+          federation_does_not_exist;
+      break;
+    case SynchronizationPointAchievedStatus::federate_not_member:
+      result.status =
+          ProcessFederationSynchronizationPointAchievedStatus::federate_not_member;
+      break;
+    case SynchronizationPointAchievedStatus::
+        synchronization_point_label_not_announced:
+      result.status = ProcessFederationSynchronizationPointAchievedStatus::
+          synchronization_point_label_not_announced;
+      break;
+  }
+  if (plan.status == SynchronizationPointAchievedStatus::applied &&
+      !plan.synchronizationNotifications.empty() &&
+      !enqueueFederationSynchronizedNotifications(
+          achievement.federationName,
+          std::move(plan.synchronizationNotifications))) {
+    return internalError(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationSynchronizationPointAchievedResult(result));
+}
+
+TransportServiceMessage ProcessFederationService::handleRequestFederationSave(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const saveRequest = decodeProcessFederationSaveRequest(request.payload);
+  if (saveRequest.label.empty()) {
+    return rejected(request);
+  }
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != saveRequest.federationName ||
+        state->second.federateId != saveRequest.federateId ||
+        !registry_.memberById(
+            saveRequest.federationName, saveRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  std::shared_ptr<rti1516_2025::LogicalTime const> timestamp;
+  if (saveRequest.timestamp) {
+    auto const definition = registry_.definitionFor(saveRequest.federationName);
+    if (!definition) {
+      return responseFor(
+          request,
+          TransportServiceStatus::ok,
+          encodeProcessFederationSaveControlResult(
+              ProcessFederationSaveControlResult{
+                  FederationSaveControlStatus::invalid_timed_save}));
+    }
+    timestamp = decodeProcessLogicalTime(
+        *saveRequest.timestamp,
+        definition->logicalTimeImplementationName);
+  }
+  auto result = timestamp
+      ? registry_.requestFederationSave(
+            saveRequest.federationName,
+            saveRequest.federateId,
+            saveRequest.label,
+            std::move(timestamp))
+      : registry_.requestFederationSave(
+            saveRequest.federationName,
+            saveRequest.federateId,
+            saveRequest.label);
+  if (result.status == FederationSaveControlStatus::applied &&
+      !result.notifications.empty() &&
+      !enqueueFederationSaveNotifications(
+          saveRequest.federationName,
+          std::move(result.notifications))) {
+    return internalError(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationSaveControlResult(
+          ProcessFederationSaveControlResult{result.status}));
+}
+
+TransportServiceMessage ProcessFederationService::handleFederateSaveControl(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request,
+    TransportServiceOperation operation) {
+  auto const saveRequest = decodeProcessFederationSaveRequest(request.payload);
+  if (!saveRequest.label.empty()) {
+    return rejected(request);
+  }
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != saveRequest.federationName ||
+        state->second.federateId != saveRequest.federateId ||
+        !registry_.memberById(
+            saveRequest.federationName, saveRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  FederationSaveControlResult result;
+  if (operation == TransportServiceOperation::federate_save_begun) {
+    result = registry_.federateSaveBegun(
+        saveRequest.federationName, saveRequest.federateId);
+  } else if (operation == TransportServiceOperation::federate_save_complete) {
+    result = registry_.federateSaveComplete(
+        saveRequest.federationName, saveRequest.federateId);
+  } else {
+    result = registry_.federateSaveNotComplete(
+        saveRequest.federationName, saveRequest.federateId);
+  }
+  if (result.status == FederationSaveControlStatus::applied &&
+      !result.notifications.empty() &&
+      !enqueueFederationSaveNotifications(
+          saveRequest.federationName,
+          std::move(result.notifications))) {
+    return internalError(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationSaveControlResult(
+          ProcessFederationSaveControlResult{result.status}));
+}
+
+TransportServiceMessage ProcessFederationService::handleQueryFederationSaveStatus(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const saveRequest = decodeProcessFederationSaveRequest(request.payload);
+  if (!saveRequest.label.empty()) {
+    return rejected(request);
+  }
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != saveRequest.federationName ||
+        state->second.federateId != saveRequest.federateId ||
+        !registry_.memberById(
+            saveRequest.federationName, saveRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  auto result = registry_.queryFederationSaveStatus(
+      saveRequest.federationName, saveRequest.federateId);
+  if (result.status == FederationSaveControlStatus::applied &&
+      !result.notifications.empty() &&
+      !enqueueFederationSaveNotifications(
+          saveRequest.federationName,
+          std::move(result.notifications))) {
+    return internalError(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationSaveControlResult(
+          ProcessFederationSaveControlResult{result.status}));
+}
+
+TransportServiceMessage ProcessFederationService::handleAbortFederationSave(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const saveRequest = decodeProcessFederationSaveRequest(request.payload);
+  if (!saveRequest.label.empty()) {
+    return rejected(request);
+  }
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != saveRequest.federationName ||
+        state->second.federateId != saveRequest.federateId ||
+        !registry_.memberById(
+            saveRequest.federationName, saveRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  auto result = registry_.abortFederationSave(
+      saveRequest.federationName, saveRequest.federateId);
+  if (result.status == FederationSaveControlStatus::applied &&
+      !result.notifications.empty() &&
+      !enqueueFederationSaveNotifications(
+          saveRequest.federationName,
+          std::move(result.notifications))) {
+    return internalError(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationSaveControlResult(
+          ProcessFederationSaveControlResult{result.status}));
+}
+
+TransportServiceMessage ProcessFederationService::handleRequestFederationRestore(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const restoreRequest =
+      decodeProcessFederationRestoreRequest(request.payload);
+  if (restoreRequest.label.empty()) {
+    return rejected(request);
+  }
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != restoreRequest.federationName ||
+        state->second.federateId != restoreRequest.federateId ||
+        !registry_.memberById(
+            restoreRequest.federationName, restoreRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+
+  auto result = registry_.requestFederationRestore(
+      restoreRequest.federationName,
+      restoreRequest.federateId,
+      restoreRequest.label);
+  if (!result.notifications.empty() &&
+      !enqueueFederationRestoreNotifications(
+          restoreRequest.federationName,
+          std::move(result.notifications))) {
+    return internalError(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationRestoreControlResult(
+          ProcessFederationRestoreControlResult{result.status}));
+}
+
+TransportServiceMessage ProcessFederationService::handleFederateRestoreComplete(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const restoreRequest =
+      decodeProcessFederationRestoreRequest(request.payload);
+  if (!restoreRequest.label.empty()) {
+    return rejected(request);
+  }
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != restoreRequest.federationName ||
+        state->second.federateId != restoreRequest.federateId ||
+        !registry_.memberById(
+            restoreRequest.federationName, restoreRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+
+  auto result = registry_.federateRestoreComplete(
+      restoreRequest.federationName,
+      restoreRequest.federateId);
+  if (!result.notifications.empty() &&
+      !enqueueFederationRestoreNotifications(
+          restoreRequest.federationName,
+          std::move(result.notifications))) {
+    return internalError(request);
+  }
+  // Restore completion is the callback-order boundary.  The registry returns
+  // value-only ownership-assumption work for the current process sessions;
+  // enqueue it only after the lifecycle notifications so the existing
+  // receive fence delivers Federation Restored before the assumption offer.
+  // Other restore work-item families remain separate slices and are not
+  // silently projected through this path.
+  if (!result.attributeOwnershipAssumptionWorkItems.empty() &&
+      !enqueueAttributeOwnershipAssumptionRecipients(
+          restoreRequest.federationName,
+          std::move(result.attributeOwnershipAssumptionWorkItems),
+          !restoreRequest.callbacksEnabled)) {
+    return internalError(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationRestoreControlResult(
+          ProcessFederationRestoreControlResult{result.status}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleFederateRestoreNotComplete(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const restoreRequest =
+      decodeProcessFederationRestoreRequest(request.payload);
+  if (!restoreRequest.label.empty()) {
+    return rejected(request);
+  }
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != restoreRequest.federationName ||
+        state->second.federateId != restoreRequest.federateId ||
+        !registry_.memberById(
+            restoreRequest.federationName, restoreRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+
+  auto result = registry_.federateRestoreNotComplete(
+      restoreRequest.federationName,
+      restoreRequest.federateId);
+  if (!result.notifications.empty() &&
+      !enqueueFederationRestoreNotifications(
+          restoreRequest.federationName,
+          std::move(result.notifications))) {
+    return internalError(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationRestoreControlResult(
+          ProcessFederationRestoreControlResult{result.status}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleAbortFederationRestore(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const restoreRequest =
+      decodeProcessFederationRestoreRequest(request.payload);
+  if (!restoreRequest.label.empty()) {
+    return rejected(request);
+  }
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != restoreRequest.federationName ||
+        state->second.federateId != restoreRequest.federateId ||
+        !registry_.memberById(
+            restoreRequest.federationName, restoreRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+
+  auto result = registry_.abortFederationRestore(
+      restoreRequest.federationName,
+      restoreRequest.federateId);
+  if (!result.notifications.empty() &&
+      !enqueueFederationRestoreNotifications(
+          restoreRequest.federationName,
+          std::move(result.notifications))) {
+    return internalError(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationRestoreControlResult(
+          ProcessFederationRestoreControlResult{result.status}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleQueryFederationRestoreStatus(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const restoreRequest =
+      decodeProcessFederationRestoreRequest(request.payload);
+  if (!restoreRequest.label.empty()) {
+    return rejected(request);
+  }
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != restoreRequest.federationName ||
+        state->second.federateId != restoreRequest.federateId ||
+        !registry_.memberById(
+            restoreRequest.federationName, restoreRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+
+  auto result = registry_.queryFederationRestoreStatus(
+      restoreRequest.federationName,
+      restoreRequest.federateId);
+  if (!result.notifications.empty() &&
+      !enqueueFederationRestoreNotifications(
+          restoreRequest.federationName,
+          std::move(result.notifications))) {
+    return internalError(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationRestoreControlResult(
+          ProcessFederationRestoreControlResult{result.status}));
 }
 
 TransportServiceMessage ProcessFederationService::handleCreate(
@@ -8096,6 +9770,56 @@ TransportServiceMessage ProcessFederationService::handleJoin(
           federateId,
           *pendingSnapshot.requestedTime);
 
+      // A timestamped federation save has the same pre-grant boundary as the
+      // embedded adapter: the constrained recipient must observe Initiate
+      // Federate Save while it is still Time Advancing, before this grant is
+      // published.  The registry owns eligibility and cross-federate ordering;
+      // this process seam only projects the resulting callback event.
+      auto const saveAdmission =
+          registry_.admitTimedFederationSaveAtTimeAdvanceBoundary(
+              federationName,
+              federateId);
+      if (saveAdmission.status != FederationSaveControlStatus::applied) {
+        throw std::runtime_error(
+            "The process federation could not admit a timestamped save at the time-advance boundary.");
+      }
+      if (saveAdmission.currentFederateLabel) {
+        if (!saveAdmission.currentFederateTimestamp) {
+          throw std::runtime_error(
+              "The process federation admitted a timestamped save without its requested time.");
+        }
+        ProcessFederationSaveEvent saveEvent;
+        saveEvent.kind = FederationSaveNotificationKind::initiate;
+        saveEvent.receivingFederateId = federateId;
+        saveEvent.label = *saveAdmission.currentFederateLabel;
+        saveEvent.successful = true;
+        saveEvent.timestamp = encodeProcessLogicalTime(
+            saveAdmission.currentFederateTimestamp);
+        if (!saveEvent.timestamp) {
+          throw std::runtime_error(
+              "The process federation could not encode the timestamped save boundary.");
+        }
+        ProcessFederationReceiveInteractionResult saveResult;
+        saveResult.saveEvent = std::move(saveEvent);
+        ProcessTransportSession eventSession(processConnection);
+        if (!eventSession.send(TransportServiceMessage{
+                TransportServiceMessageKind::event,
+                TransportServiceOperation::receive_interaction,
+                TransportServiceStatus::ok,
+                0U,
+                encodeProcessFederationReceiveInteractionResult(saveResult)})) {
+          throw std::runtime_error(
+              "The process federation could not deliver the timestamped save initiation event.");
+        }
+      }
+      if (!saveAdmission.notifications.empty() &&
+          !enqueueFederationSaveNotifications(
+              federationName,
+              std::move(saveAdmission.notifications))) {
+        throw std::runtime_error(
+            "The process federation could not enqueue the remaining timestamped save notifications.");
+      }
+
       auto const grantedTime = timeState->grant(generation);
       auto encodedGrant = encodeProcessLogicalTime(grantedTime);
       if (!encodedGrant) {
@@ -8148,6 +9872,17 @@ TransportServiceMessage ProcessFederationService::handleJoin(
     state.federateId = result.membership->id;
     state.timeState = std::move(timeState);
     sessionsByFederateId_[state.federateId] = &session;
+  }
+  auto pendingAnnouncements = registry_.announcePendingSynchronizationPoints(
+      joinRequest.federationName,
+      result.membership->id);
+  if (pendingAnnouncements.status !=
+          SynchronizationPointAnnouncementStatus::applied ||
+      (!pendingAnnouncements.announcements.empty() &&
+       !enqueueSynchronizationPointAnnouncements(
+           joinRequest.federationName,
+           std::move(pendingAnnouncements.announcements)))) {
+    return internalError(request);
   }
   return responseFor(
       request,
@@ -8955,6 +10690,13 @@ TransportServiceMessage ProcessFederationService::handleGetObjectClassHandle(
   if (!handle) {
     return rejected(request);
   }
+  if (lookupRequest.callbacksEnabled &&
+      !flushDeferredAttributeOwnershipAssumptionEvents(
+          session,
+          lookupRequest.federationName,
+          lookupRequest.federateId)) {
+    return internalError(request);
+  }
   return responseFor(
       request,
       TransportServiceStatus::ok,
@@ -9636,7 +11378,163 @@ ProcessFederationService::handleQueryAttributeTransportationType(
       request,
       TransportServiceStatus::ok,
       encodeProcessFederationAttributeTransportationTypeQueryResult(
-          ProcessFederationAttributeTransportationTypeQueryResult{
+      ProcessFederationAttributeTransportationTypeQueryResult{
+              plan.status}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleRequestInteractionTransportationTypeChange(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const changeRequest =
+      decodeProcessFederationRequestInteractionTransportationTypeChangeRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != changeRequest.federationName ||
+        state->second.federateId != changeRequest.requestingFederateId ||
+        !registry_.memberById(
+            changeRequest.federationName, changeRequest.requestingFederateId)) {
+      return rejected(request);
+    }
+  }
+  auto const transportationName = registry_.transportationTypeNameFor(
+      changeRequest.federationName,
+      changeRequest.transportationTypeHandle);
+  auto plan = transportationName
+                  ? registry_.planInteractionTransportationTypeChange(
+                        changeRequest.federationName,
+                        changeRequest.requestingFederateId,
+                        changeRequest.interactionClassHandle,
+                        *transportationName)
+                  : InteractionTransportationTypeChangePlan{
+                        InteractionTransportationTypeChangeStatus::
+                            invalid_transportation_type};
+  if (plan.status == InteractionTransportationTypeChangeStatus::applied) {
+    ProcessFederationInteractionTransportationTypeChangeEvent event{
+        changeRequest.requestingFederateId,
+        plan.interactionClassHandle,
+        std::move(plan.transportationName)};
+    if (options_.pushReceiveOrderEvents) {
+      if (!session.send(TransportServiceMessage{
+              TransportServiceMessageKind::event,
+              TransportServiceOperation::receive_interaction,
+              TransportServiceStatus::ok,
+              0U,
+              encodeProcessFederationReceiveInteractionResult(
+                  ProcessFederationReceiveInteractionResult{
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::move(event),
+                      std::nullopt})})) {
+        return internalError(request);
+      }
+    } else {
+      std::scoped_lock lock(mutex_);
+      auto const state = sessions_.find(&session);
+      if (state == sessions_.end()) {
+        registry_.cancelInteractionTransportationTypeChange(
+            changeRequest.federationName,
+            changeRequest.requestingFederateId,
+            plan.interactionClassHandle);
+        return internalError(request);
+      }
+      state->second.interactionTransportationTypeChangeEvents.push_back(
+          std::move(event));
+    }
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationInteractionTransportationTypeChangeResult(
+          ProcessFederationInteractionTransportationTypeChangeResult{
+              plan.status}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleQueryInteractionTransportationType(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const queryRequest =
+      decodeProcessFederationQueryInteractionTransportationTypeRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != queryRequest.federationName ||
+        state->second.federateId != queryRequest.requestingFederateId ||
+        !registry_.memberById(
+            queryRequest.federationName, queryRequest.requestingFederateId)) {
+      return rejected(request);
+    }
+  }
+  auto const plan = registry_.planInteractionTransportationTypeQuery(
+      queryRequest.federationName,
+      queryRequest.requestingFederateId,
+      queryRequest.queriedFederateId,
+      queryRequest.interactionClassHandle);
+  if (plan.status == InteractionTransportationTypeQueryStatus::applied) {
+    ProcessFederationInteractionTransportationTypeQueryEvent event{
+        queryRequest.requestingFederateId,
+        plan.queriedFederateId,
+        plan.interactionClassHandle,
+        plan.transportationName};
+    if (options_.pushReceiveOrderEvents) {
+      if (!session.send(TransportServiceMessage{
+              TransportServiceMessageKind::event,
+              TransportServiceOperation::receive_interaction,
+              TransportServiceStatus::ok,
+              0U,
+              encodeProcessFederationReceiveInteractionResult(
+                  ProcessFederationReceiveInteractionResult{
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::nullopt,
+                      std::move(event)})})) {
+        return internalError(request);
+      }
+    } else {
+      std::scoped_lock lock(mutex_);
+      auto const state = sessions_.find(&session);
+      if (state == sessions_.end()) {
+        return internalError(request);
+      }
+      state->second.interactionTransportationTypeQueryEvents.push_back(
+          std::move(event));
+    }
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationInteractionTransportationTypeQueryResult(
+          ProcessFederationInteractionTransportationTypeQueryResult{
               plan.status}));
 }
 
@@ -9843,9 +11741,19 @@ ProcessFederationService::handleObjectClassAttributeSubscription(
     // A subscription can make already-registered instances newly visible.
     // Keep that discovery projection on the same process event boundary as
     // registration rather than requiring a fixture to mutate the registry.
+    // RTI-owned MOM objects use a separate registry ledger because they are
+    // not federate-created instances, but the public subscription still has
+    // to expose both projections through the same official discovery route.
     auto discoveries = registry_.planObjectInstanceDiscoveriesForFederate(
         subscriptionRequest.federationName,
         subscriptionRequest.federateId);
+    auto momDiscoveries = registry_.planJoinedFederateMomObjectDiscoveriesForFederate(
+        subscriptionRequest.federationName,
+        subscriptionRequest.federateId);
+    discoveries.insert(
+        discoveries.end(),
+        std::make_move_iterator(momDiscoveries.begin()),
+        std::make_move_iterator(momDiscoveries.end()));
     if (!enqueueObjectInstanceDiscoveries(
             subscriptionRequest.federationName,
             std::move(discoveries))) {
@@ -9911,10 +11819,19 @@ ProcessFederationService::handleObjectClassAttributeRegionalSubscription(
   if (request.operation ==
       TransportServiceOperation::subscribe_object_class_attributes_with_regions) {
     // A regional subscription can make already-registered instances newly
-    // visible. Discovery remains ordered before any scope transition.
+    // visible. Discovery remains ordered before any scope transition. Include
+    // RTI-owned MOM objects here as well; their immutable HLAfederate point is
+    // evaluated by the registry's MOM discovery planner.
     auto discoveries = registry_.planObjectInstanceDiscoveriesForFederate(
         subscriptionRequest.federationName,
         subscriptionRequest.federateId);
+    auto momDiscoveries = registry_.planJoinedFederateMomObjectDiscoveriesForFederate(
+        subscriptionRequest.federationName,
+        subscriptionRequest.federateId);
+    discoveries.insert(
+        discoveries.end(),
+        std::make_move_iterator(momDiscoveries.begin()),
+        std::make_move_iterator(momDiscoveries.end()));
     if (!enqueueObjectInstanceDiscoveries(
             subscriptionRequest.federationName,
             std::move(discoveries))) {
@@ -10025,6 +11942,98 @@ TransportServiceMessage ProcessFederationService::handleReserveObjectInstanceNam
               result.status}));
 }
 
+TransportServiceMessage ProcessFederationService::handleReleaseObjectInstanceName(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const releaseRequest =
+      decodeProcessFederationReserveObjectInstanceNameRequest(request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != releaseRequest.federationName ||
+        state->second.federateId != releaseRequest.federateId ||
+        !registry_.memberById(
+            releaseRequest.federationName, releaseRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+
+  auto const status = registry_.releaseObjectInstanceName(
+      releaseRequest.federationName,
+      releaseRequest.federateId,
+      releaseRequest.objectInstanceName);
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationObjectInstanceNameReleaseResult(
+          ProcessFederationObjectInstanceNameReleaseResult{status}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleReserveMultipleObjectInstanceNames(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const reservationRequest =
+      decodeProcessFederationReserveMultipleObjectInstanceNamesRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != reservationRequest.federationName ||
+        state->second.federateId != reservationRequest.federateId ||
+        !registry_.memberById(
+            reservationRequest.federationName, reservationRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+
+  auto const result = registry_.reserveMultipleObjectInstanceNames(
+      reservationRequest.federationName,
+      reservationRequest.federateId,
+      reservationRequest.objectInstanceNames);
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationReserveMultipleObjectInstanceNamesResult(
+          ProcessFederationReserveMultipleObjectInstanceNamesResult{
+              result.status, result.succeededNames, result.failedNames}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleReleaseMultipleObjectInstanceNames(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const releaseRequest =
+      decodeProcessFederationReserveMultipleObjectInstanceNamesRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != releaseRequest.federationName ||
+        state->second.federateId != releaseRequest.federateId ||
+        !registry_.memberById(
+            releaseRequest.federationName, releaseRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+
+  auto const status = registry_.releaseMultipleObjectInstanceNames(
+      releaseRequest.federationName,
+      releaseRequest.federateId,
+      releaseRequest.objectInstanceNames);
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationReleaseMultipleObjectInstanceNamesResult(
+          ProcessFederationReleaseMultipleObjectInstanceNamesResult{status}));
+}
+
 TransportServiceMessage ProcessFederationService::handleLocalDeleteObjectInstance(
     ProcessTransportSession& session,
     TransportServiceMessage const& request) {
@@ -10059,6 +12068,7 @@ TransportServiceMessage ProcessFederationService::handleDeleteObjectInstance(
     TransportServiceMessage const& request) {
   auto const deletionRequest =
       decodeProcessFederationDeleteObjectInstanceRequest(request.payload);
+  std::shared_ptr<FederateTimeState> producingTimeState;
   {
     std::scoped_lock lock(mutex_);
     auto const state = sessions_.find(&session);
@@ -10070,14 +12080,16 @@ TransportServiceMessage ProcessFederationService::handleDeleteObjectInstance(
             deletionRequest.federationName, deletionRequest.federateId)) {
       return rejected(request);
     }
+    producingTimeState = state->second.timeState;
   }
 
   if (deletionRequest.timestamp) {
     // The process endpoint carries the official logical-time value across the
     // boundary and retains the registry's timestamped deletion ledger so the
     // callback carries the same immutable recipient snapshot and message
-    // identity as the embedded path. Public return-handle projection for this
-    // legacy object-deletion branch remains a separate follow-up slice.
+    // identity as the embedded path.  The public retraction designator is
+    // projected only when the producer is time-regulating and the effective
+    // HLAprivilegeToDeleteObject order is timestamp-ordered.
     auto const timestamp = decodeProcessLogicalTime(
         *deletionRequest.timestamp,
         federationDefinition_->logicalTimeImplementationName);
@@ -10092,6 +12104,33 @@ TransportServiceMessage ProcessFederationService::handleDeleteObjectInstance(
           encodeProcessFederationDeleteObjectInstanceResult(
               ProcessFederationDeleteObjectInstanceResult{plan.status, 0U, 0U}));
     }
+    auto const producingTimeSnapshot = producingTimeState
+        ? producingTimeState->snapshot()
+        : FederateTimeSnapshot{};
+    bool const provideRetraction =
+        producingTimeSnapshot.timeRegulating &&
+        plan.preferredOrderType == rti1516_2025::TIMESTAMP;
+    bool const queueTimestampedDeletion = provideRetraction;
+    std::vector<std::uint64_t> queuedRecipientFederateIds;
+    if (queueTimestampedDeletion && !plan.recipients.empty()) {
+      auto const execution = registry_.timeSnapshotFor(
+          deletionRequest.federationName);
+      if (!execution) {
+        return internalError(request);
+      }
+      std::set<std::uint64_t> timeConstrainedRecipients;
+      for (auto const& federate : execution->federates) {
+        if (federate.time.timeConstrained) {
+          timeConstrainedRecipients.insert(federate.membership.id);
+        }
+      }
+      queuedRecipientFederateIds.reserve(plan.recipients.size());
+      for (auto const& recipient : plan.recipients) {
+        if (timeConstrainedRecipients.contains(recipient.receivingFederateId)) {
+          queuedRecipientFederateIds.push_back(recipient.receivingFederateId);
+        }
+      }
+    }
 
     TsoObjectDeletionMessage message;
     message.producingFederateId = deletionRequest.federateId;
@@ -10102,6 +12141,7 @@ TransportServiceMessage ProcessFederationService::handleDeleteObjectInstance(
           deletionRequest.userSuppliedTag.size());
     }
     message.timestamp = timestamp;
+    message.sentOrderType = plan.preferredOrderType;
     message.recipients.reserve(plan.recipients.size());
     for (auto const& recipient : plan.recipients) {
       message.recipients.push_back({
@@ -10116,7 +12156,7 @@ TransportServiceMessage ProcessFederationService::handleDeleteObjectInstance(
         deletionRequest.federateId,
         deletionRequest.objectInstanceHandle,
         std::move(message),
-        {});
+        queuedRecipientFederateIds);
     if (enqueueResult.status != FederationTsoRegistryStatus::applied ||
         enqueueResult.queueStatus != TsoMessageQueueStatus::applied ||
         enqueueResult.messageId == 0U) {
@@ -10129,20 +12169,28 @@ TransportServiceMessage ProcessFederationService::handleDeleteObjectInstance(
 
     std::vector<ObjectInstanceRemovalRecipient> removals;
     removals.reserve(enqueueResult.recipients.size());
+    std::set<std::uint64_t> queuedRecipients(
+        queuedRecipientFederateIds.begin(), queuedRecipientFederateIds.end());
     for (auto const& recipient : enqueueResult.recipients) {
+      if (queuedRecipients.contains(recipient.receivingFederateId)) {
+        continue;
+      }
       removals.push_back({
           recipient.receivingFederateId,
           recipient.objectInstanceHandle,
           recipient.callbackRoute,
           recipient.serviceReportRoute,
-          false});
+          false,
+          plan.preferredOrderType,
+          rti1516_2025::RECEIVE});
     }
     if (!enqueueObjectInstanceRemovals(
             deletionRequest.federationName,
             std::move(removals),
             deletionRequest.userSuppliedTag,
             deletionRequest.timestamp,
-            enqueueResult.messageId)) {
+            enqueueResult.messageId,
+            provideRetraction)) {
       return internalError(request);
     }
     {
@@ -10158,7 +12206,7 @@ TransportServiceMessage ProcessFederationService::handleDeleteObjectInstance(
             ProcessFederationDeleteObjectInstanceResult{
                 ObjectInstanceDeletionStatus::applied,
                 static_cast<std::uint32_t>(enqueueResult.recipients.size()),
-                enqueueResult.messageId}));
+                provideRetraction ? enqueueResult.messageId : 0U}));
   }
 
   auto deletion = registry_.deleteObjectInstance(
@@ -11291,6 +13339,137 @@ void ProcessFederationService::dispatchTsoInteractionPayloads(
       continue;
     }
 
+    if (auto const* deletion =
+            std::get_if<TsoObjectDeletionDelivery>(&typedDelivery)) {
+      auto const& message = deletion->message;
+      if (!message.timestamp) {
+        static_cast<void>(registry_.finishTsoRecipientCallbackSuppressed(
+            federationName,
+            receivingFederateId,
+            message.messageId));
+        throw std::runtime_error(
+            "The process federation encountered a timestamped object deletion without a timestamp.");
+      }
+
+      ProcessTransportSession* receivingSession = nullptr;
+      {
+        std::scoped_lock lock(mutex_);
+        auto const session = sessionsByFederateId_.find(receivingFederateId);
+        if (session != sessionsByFederateId_.end()) {
+          auto const state = sessions_.find(session->second);
+          if (state != sessions_.end() && state->second.federationName.has_value() &&
+              *state->second.federationName == federationName &&
+              state->second.federateId == receivingFederateId) {
+            receivingSession = session->second;
+          }
+        }
+      }
+
+      auto completeDelivery = [&] {
+        auto const completed = registry_.completeTsoDelivery(
+            federationName,
+            deletion->queuedMessage);
+        if (completed.status != FederationTsoRegistryStatus::applied ||
+            (completed.delivery.status != FederationTsoDeliveryStatus::applied &&
+             completed.delivery.status !=
+                 FederationTsoDeliveryStatus::message_already_completed)) {
+          throw std::runtime_error(
+              "The process federation could not complete timestamped object-deletion delivery.");
+        }
+      };
+
+      if (receivingSession == nullptr) {
+        static_cast<void>(registry_.finishTsoRecipientCallbackSuppressed(
+            federationName,
+            receivingFederateId,
+            message.messageId));
+        completeDelivery();
+        continue;
+      }
+
+      auto const target = std::find_if(
+          message.recipients.begin(),
+          message.recipients.end(),
+          [receivingFederateId](TsoObjectDeletionRecipient const& candidate) {
+            return candidate.receivingFederateId == receivingFederateId;
+          });
+      if (target == message.recipients.end()) {
+        static_cast<void>(registry_.finishTsoRecipientCallbackSuppressed(
+            federationName,
+            receivingFederateId,
+            message.messageId));
+        completeDelivery();
+        continue;
+      }
+
+      std::optional<RemovedObjectInstanceSnapshot> removal;
+      {
+        std::scoped_lock lock(mutex_);
+        removal = registry_.beginTsoObjectInstanceRemoval(
+            federationName,
+            receivingFederateId,
+            message.objectInstanceHandle,
+            message.messageId);
+      }
+      if (!removal) {
+        static_cast<void>(registry_.finishTsoRecipientCallbackSuppressed(
+            federationName,
+            receivingFederateId,
+            message.messageId));
+        completeDelivery();
+        continue;
+      }
+
+      ProcessFederationObjectInstanceRemovalEvent event{
+          receivingFederateId,
+          removal->objectInstanceHandle,
+          removal->producingFederateId,
+          {},
+          encodeProcessLogicalTime(message.timestamp),
+          message.messageId,
+          true,
+          message.sentOrderType,
+          rti1516_2025::TIMESTAMP};
+      event.userSuppliedTag.resize(message.userSuppliedTag.size());
+      if (!event.userSuppliedTag.empty()) {
+        auto const* data = static_cast<std::uint8_t const*>(
+            message.userSuppliedTag.data());
+        if (data == nullptr) {
+          throw std::runtime_error(
+              "The process federation could not copy a timestamped deletion tag.");
+        }
+        std::copy(
+            data,
+            data + message.userSuppliedTag.size(),
+            event.userSuppliedTag.begin());
+      }
+      if (!event.timestamp) {
+        throw std::runtime_error(
+            "The process federation could not encode a timestamped object-deletion time.");
+      }
+
+      ProcessFederationReceiveInteractionResult result;
+      result.removalEvent = std::move(event);
+      if (!receivingSession->send(TransportServiceMessage{
+              TransportServiceMessageKind::event,
+              TransportServiceOperation::receive_interaction,
+              TransportServiceStatus::ok,
+              0U,
+              encodeProcessFederationReceiveInteractionResult(
+                  std::move(result))})) {
+        throw std::runtime_error(
+            "The process federation could not deliver a timestamped object-deletion event.");
+      }
+      {
+        std::scoped_lock lock(mutex_);
+        pendingPushedRetractionRecipients_[message.messageId].push_back(
+            receivingSession);
+      }
+      // Keep the coordinator entry in-transit until the process receiver has
+      // crossed its callback boundary and sends acknowledge_tso_delivery.
+      continue;
+    }
+
     auto const* interaction = std::get_if<TsoInteractionDelivery>(&typedDelivery);
     if (interaction == nullptr) {
       // The process profile currently reconstructs regular and directed
@@ -11405,6 +13584,8 @@ void ProcessFederationService::dispatchTsoInteractionPayloads(
         std::move(timestamp),
         std::nullopt,
         message.messageId};
+    event.sentOrderType = rti1516_2025::TIMESTAMP;
+    event.receivedOrderType = rti1516_2025::TIMESTAMP;
     event.defaultRegionUsed =
         projection->conveyRegionDesignatorSets && message.defaultRegionUsed;
     if (projection->conveyRegionDesignatorSets &&
@@ -11463,10 +13644,17 @@ bool ProcessFederationService::enqueueObjectInstanceDiscoveries(
       // The registry reservation was made before the session lookup. Release
       // it when a detached process can no longer receive the event so a later
       // declaration change can retry the discovery.
-      registry_.cancelObjectInstanceDiscovery(
-          federationName,
-          planned.receivingFederateId,
-          planned.objectInstanceHandle);
+      if (planned.rtiOwnedMomObject) {
+        registry_.cancelJoinedFederateMomObjectDiscovery(
+            federationName,
+            planned.receivingFederateId,
+            planned.objectInstanceHandle);
+      } else {
+        registry_.cancelObjectInstanceDiscovery(
+            federationName,
+            planned.receivingFederateId,
+            planned.objectInstanceHandle);
+      }
       continue;
     }
 
@@ -11475,10 +13663,15 @@ bool ProcessFederationService::enqueueObjectInstanceDiscoveries(
     // no user callback route of its own, so this registry transition is the
     // process-boundary delivery commit; the client then projects the exact
     // snapshot through the official callback bridge.
-    auto const snapshot = registry_.beginObjectInstanceDiscovery(
-        federationName,
-        planned.receivingFederateId,
-        planned.objectInstanceHandle);
+    auto const snapshot = planned.rtiOwnedMomObject
+        ? registry_.beginJoinedFederateMomObjectDiscovery(
+              federationName,
+              planned.receivingFederateId,
+              planned.objectInstanceHandle)
+        : registry_.beginObjectInstanceDiscovery(
+              federationName,
+              planned.receivingFederateId,
+              planned.objectInstanceHandle);
     if (!snapshot) {
       continue;
     }
@@ -11542,7 +13735,8 @@ bool ProcessFederationService::enqueueObjectInstanceRemovals(
     std::vector<ObjectInstanceRemovalRecipient> removals,
     std::vector<std::uint8_t> userSuppliedTag,
     std::optional<ProcessFederationLogicalTime> timestamp,
-    std::uint64_t retractionMessageId) {
+    std::uint64_t retractionMessageId,
+    bool provideRetraction) {
   std::vector<std::pair<ProcessTransportSession*,
                         ProcessFederationObjectInstanceRemovalEvent>>
       pushedEvents;
@@ -11585,6 +13779,9 @@ bool ProcessFederationService::enqueueObjectInstanceRemovals(
     event.timestamp = timestamp;
     if (retractionMessageId != 0U) {
       event.retractionMessageId = retractionMessageId;
+      event.provideRetraction = provideRetraction;
+      event.sentOrderType = planned.sentOrderType;
+      event.receivedOrderType = planned.receivedOrderType;
     }
     if (options_.pushReceiveOrderEvents) {
       auto const snapshot = retractionMessageId == 0U
@@ -11730,6 +13927,260 @@ bool ProcessFederationService::enqueueObjectInstanceScopeChanges(
                 TransportServiceStatus::ok,
                 0U,
                 encodeProcessFederationReceiveInteractionResult(result)})) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool ProcessFederationService::enqueueSynchronizationPointAnnouncements(
+    std::wstring const& federationName,
+    std::vector<SynchronizationPointAnnouncement> announcements) {
+  std::vector<std::pair<ProcessTransportSession*,
+                        ProcessFederationSynchronizationPointAnnouncementEvent>>
+      pushedEvents;
+  for (auto& planned : announcements) {
+    ProcessTransportSession* receivingSession = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      auto const session = sessionsByFederateId_.find(planned.receivingFederateId);
+      if (session != sessionsByFederateId_.end()) {
+        auto const state = sessions_.find(session->second);
+        if (state != sessions_.end() && state->second.federationName.has_value() &&
+            *state->second.federationName == federationName &&
+            state->second.federateId == planned.receivingFederateId) {
+          receivingSession = session->second;
+        }
+      }
+    }
+    if (receivingSession == nullptr) {
+      continue;
+    }
+    ProcessFederationSynchronizationPointAnnouncementEvent event{
+        planned.receivingFederateId,
+        planned.label,
+        std::vector<std::uint8_t>(
+            planned.userSuppliedTag.begin(), planned.userSuppliedTag.end())};
+    if (options_.pushReceiveOrderEvents) {
+      pushedEvents.emplace_back(receivingSession, std::move(event));
+      continue;
+    }
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(receivingSession);
+    if (state != sessions_.end() && state->second.federationName.has_value() &&
+        *state->second.federationName == federationName &&
+        state->second.federateId == planned.receivingFederateId) {
+      state->second.synchronizationPointAnnouncementEvents.push_back(
+          std::move(event));
+    }
+  }
+  if (!options_.pushReceiveOrderEvents) {
+    return true;
+  }
+  for (auto& pushedEvent : pushedEvents) {
+    ProcessFederationReceiveInteractionResult result;
+    result.synchronizationPointAnnouncementEvent = std::move(pushedEvent.second);
+    if (pushedEvent.first == nullptr ||
+        !pushedEvent.first->send(TransportServiceMessage{
+            TransportServiceMessageKind::event,
+            TransportServiceOperation::receive_interaction,
+            TransportServiceStatus::ok,
+            0U,
+            encodeProcessFederationReceiveInteractionResult(result)})) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool ProcessFederationService::enqueueFederationSynchronizedNotifications(
+    std::wstring const& federationName,
+    std::vector<FederationSynchronizedNotification> notifications) {
+  std::vector<std::pair<ProcessTransportSession*,
+                        ProcessFederationFederationSynchronizedEvent>>
+      pushedEvents;
+  for (auto& planned : notifications) {
+    if (planned.receivingFederateId == 0U) {
+      continue;
+    }
+    ProcessTransportSession* receivingSession = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      auto const session = sessionsByFederateId_.find(planned.receivingFederateId);
+      if (session != sessionsByFederateId_.end()) {
+        auto const state = sessions_.find(session->second);
+        if (state != sessions_.end() && state->second.federationName.has_value() &&
+            *state->second.federationName == federationName &&
+            state->second.federateId == planned.receivingFederateId) {
+          receivingSession = session->second;
+        }
+      }
+    }
+    if (receivingSession == nullptr) {
+      continue;
+    }
+    ProcessFederationFederationSynchronizedEvent event{
+        planned.receivingFederateId,
+        planned.label,
+        planned.failedToSyncFederateIds};
+    if (options_.pushReceiveOrderEvents) {
+      pushedEvents.emplace_back(receivingSession, std::move(event));
+      continue;
+    }
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(receivingSession);
+    if (state != sessions_.end() && state->second.federationName.has_value() &&
+        *state->second.federationName == federationName &&
+        state->second.federateId == planned.receivingFederateId) {
+      state->second.federationSynchronizedEvents.push_back(std::move(event));
+    }
+  }
+  if (!options_.pushReceiveOrderEvents) {
+    return true;
+  }
+  for (auto& pushedEvent : pushedEvents) {
+    ProcessFederationReceiveInteractionResult result;
+    result.federationSynchronizedEvent = std::move(pushedEvent.second);
+    if (pushedEvent.first == nullptr ||
+        !pushedEvent.first->send(TransportServiceMessage{
+            TransportServiceMessageKind::event,
+            TransportServiceOperation::receive_interaction,
+            TransportServiceStatus::ok,
+            0U,
+            encodeProcessFederationReceiveInteractionResult(result)})) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool ProcessFederationService::enqueueFederationSaveNotifications(
+    std::wstring const& federationName,
+    std::vector<FederationSaveNotification> notifications) {
+  std::vector<std::pair<ProcessTransportSession*, ProcessFederationSaveEvent>>
+      pushedEvents;
+  for (auto& planned : notifications) {
+    ProcessTransportSession* receivingSession = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      auto const session = sessionsByFederateId_.find(planned.receivingFederateId);
+      if (session != sessionsByFederateId_.end()) {
+        auto const state = sessions_.find(session->second);
+        if (state != sessions_.end() && state->second.federationName.has_value() &&
+            *state->second.federationName == federationName &&
+            state->second.federateId == planned.receivingFederateId) {
+          receivingSession = session->second;
+        }
+      }
+    }
+    if (receivingSession == nullptr) {
+      continue;
+    }
+    ProcessFederationSaveEvent event{
+        planned.kind,
+        planned.receivingFederateId,
+        planned.label,
+        planned.successful,
+        planned.failureReason,
+        std::move(planned.statuses)};
+    event.timestamp = encodeProcessLogicalTime(planned.timestamp);
+    if (planned.timestamp && !event.timestamp) {
+      return false;
+    }
+    if (options_.pushReceiveOrderEvents) {
+      pushedEvents.emplace_back(receivingSession, std::move(event));
+      continue;
+    }
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(receivingSession);
+    if (state != sessions_.end() && state->second.federationName.has_value() &&
+        *state->second.federationName == federationName &&
+        state->second.federateId == planned.receivingFederateId) {
+      state->second.saveEvents.push_back(std::move(event));
+    }
+  }
+  if (!options_.pushReceiveOrderEvents) {
+    return true;
+  }
+  for (auto& pushedEvent : pushedEvents) {
+    ProcessFederationReceiveInteractionResult result;
+    result.saveEvent = std::move(pushedEvent.second);
+    if (pushedEvent.first == nullptr ||
+        !pushedEvent.first->send(TransportServiceMessage{
+            TransportServiceMessageKind::event,
+            TransportServiceOperation::receive_interaction,
+            TransportServiceStatus::ok,
+            0U,
+            encodeProcessFederationReceiveInteractionResult(result)})) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool ProcessFederationService::enqueueFederationRestoreNotifications(
+    std::wstring const& federationName,
+    std::vector<FederationRestoreNotification> notifications) {
+  std::vector<std::pair<ProcessTransportSession*, ProcessFederationRestoreEvent>>
+      pushedEvents;
+  for (auto& planned : notifications) {
+    ProcessTransportSession* receivingSession = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      auto const session = sessionsByFederateId_.find(planned.receivingFederateId);
+      if (session != sessionsByFederateId_.end()) {
+        auto const state = sessions_.find(session->second);
+        if (state != sessions_.end() && state->second.federationName.has_value() &&
+            *state->second.federationName == federationName &&
+            state->second.federateId == planned.receivingFederateId) {
+          receivingSession = session->second;
+        }
+      }
+    }
+    if (receivingSession == nullptr) {
+      continue;
+    }
+    ProcessFederationRestoreEvent event;
+    event.kind = planned.kind;
+    event.receivingFederateId = planned.receivingFederateId;
+    event.label = planned.label;
+    event.federateName = planned.federateName;
+    event.preRestoreFederateId = planned.preRestoreFederateId;
+    event.postRestoreFederateId = planned.postRestoreFederateId;
+    event.successful = planned.successful;
+    event.failureReason = planned.failureReason;
+    event.statuses.reserve(planned.statuses.size());
+    for (auto const& status : planned.statuses) {
+      event.statuses.push_back(ProcessFederationRestoreEvent::StatusRecord{
+          status.preRestoreFederateId,
+          status.postRestoreFederateId,
+          status.status});
+    }
+    if (options_.pushReceiveOrderEvents) {
+      pushedEvents.emplace_back(receivingSession, std::move(event));
+      continue;
+    }
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(receivingSession);
+    if (state != sessions_.end() && state->second.federationName.has_value() &&
+        *state->second.federationName == federationName &&
+        state->second.federateId == planned.receivingFederateId) {
+      state->second.restoreEvents.push_back(std::move(event));
+    }
+  }
+  if (!options_.pushReceiveOrderEvents) {
+    return true;
+  }
+  for (auto& pushedEvent : pushedEvents) {
+    ProcessFederationReceiveInteractionResult result;
+    result.restoreEvent = std::move(pushedEvent.second);
+    if (pushedEvent.first == nullptr ||
+        !pushedEvent.first->send(TransportServiceMessage{
+            TransportServiceMessageKind::event,
+            TransportServiceOperation::receive_interaction,
+            TransportServiceStatus::ok,
+            0U,
+            encodeProcessFederationReceiveInteractionResult(result)})) {
       return false;
     }
   }
@@ -11993,7 +14444,8 @@ bool ProcessFederationService::enqueueAttributeOwnershipAcquisitionWorkItems(
 
 bool ProcessFederationService::enqueueAttributeOwnershipAssumptionRecipients(
     std::wstring const& federationName,
-    std::vector<AttributeOwnershipAssumptionRecipient> recipients) {
+    std::vector<AttributeOwnershipAssumptionRecipient> recipients,
+    bool deferUntilCallbackEnabled) {
   for (auto& recipient : recipients) {
     if (recipient.receivingFederateId == 0U ||
         recipient.objectInstanceHandle == 0U ||
@@ -12032,6 +14484,32 @@ bool ProcessFederationService::enqueueAttributeOwnershipAssumptionRecipients(
         recipient.userSuppliedTag,
         false};
     if (options_.pushReceiveOrderEvents) {
+      if (deferUntilCallbackEnabled) {
+        std::scoped_lock lock(mutex_);
+        auto const state = sessions_.find(receivingSession);
+        if (state == sessions_.end() || !state->second.federationName ||
+            *state->second.federationName != federationName ||
+            state->second.federateId != recipient.receivingFederateId) {
+          return false;
+        }
+        auto const duplicate = std::any_of(
+            state->second.attributeOwnershipAcquisitionEvents.begin(),
+            state->second.attributeOwnershipAcquisitionEvents.end(),
+            [&event](ProcessFederationAttributeOwnershipAcquisitionEvent const& queued) {
+              return queued.kind ==
+                         ProcessFederationAttributeOwnershipAcquisitionEventKind::
+                             ownership_assumption &&
+                  queued.receivingFederateId == event.receivingFederateId &&
+                  queued.objectInstanceHandle == event.objectInstanceHandle &&
+                  queued.attributeHandles == event.attributeHandles &&
+                  queued.userSuppliedTag == event.userSuppliedTag;
+            });
+        if (!duplicate) {
+          state->second.attributeOwnershipAcquisitionEvents.push_back(
+              std::move(event));
+        }
+        continue;
+      }
       auto const delivery = registry_.attributeOwnershipAssumptionDeliveryFor(
           federationName,
           recipient.receivingFederateId,
@@ -12061,6 +14539,58 @@ bool ProcessFederationService::enqueueAttributeOwnershipAssumptionRecipients(
       return false;
     }
     state->second.attributeOwnershipAcquisitionEvents.push_back(std::move(event));
+  }
+  return true;
+}
+
+bool ProcessFederationService::
+    flushDeferredAttributeOwnershipAssumptionEvents(
+        ProcessTransportSession& session,
+        std::wstring const& federationName,
+        std::uint64_t receivingFederateId) {
+  std::vector<ProcessFederationAttributeOwnershipAcquisitionEvent> deferred;
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() || !state->second.federationName ||
+        *state->second.federationName != federationName ||
+        state->second.federateId != receivingFederateId) {
+      return false;
+    }
+    auto& queued = state->second.attributeOwnershipAcquisitionEvents;
+    for (auto iterator = queued.begin(); iterator != queued.end();) {
+      if (iterator->kind !=
+              ProcessFederationAttributeOwnershipAcquisitionEventKind::
+                  ownership_assumption ||
+          iterator->receivingFederateId != receivingFederateId) {
+        ++iterator;
+        continue;
+      }
+      deferred.push_back(std::move(*iterator));
+      iterator = queued.erase(iterator);
+    }
+  }
+
+  for (auto& event : deferred) {
+    auto const delivery = registry_.attributeOwnershipAssumptionDeliveryFor(
+        federationName,
+        receivingFederateId,
+        event.objectInstanceHandle,
+        event.attributeHandles);
+    if (!delivery || delivery->attributeHandles.empty()) {
+      continue;
+    }
+    event.attributeHandles = delivery->attributeHandles;
+    ProcessFederationReceiveInteractionResult pushedResult;
+    pushedResult.attributeOwnershipAcquisitionEvent = std::move(event);
+    if (!session.send(TransportServiceMessage{
+            TransportServiceMessageKind::event,
+            TransportServiceOperation::receive_interaction,
+            TransportServiceStatus::ok,
+            0U,
+            encodeProcessFederationReceiveInteractionResult(pushedResult)})) {
+      return false;
+    }
   }
   return true;
 }
@@ -13653,7 +16183,8 @@ ProcessFederationService::handleUnconditionalAttributeOwnershipDivestiture(
   if (!plan.assumptionRecipients.empty() &&
       !enqueueAttributeOwnershipAssumptionRecipients(
           divestitureRequest.federationName,
-          std::move(plan.assumptionRecipients))) {
+          std::move(plan.assumptionRecipients),
+          !divestitureRequest.callbacksEnabled)) {
     return internalError(request);
   }
   return responseFor(
@@ -14377,7 +16908,21 @@ TransportServiceMessage ProcessFederationService::handleReceiveInteraction(
             receiveRequest.receivingFederateId)) {
       return rejected(request);
     }
-    if (!state->second.interactionEvents.empty()) {
+    if (!state->second.synchronizationPointAnnouncementEvents.empty()) {
+      result.synchronizationPointAnnouncementEvent = std::move(
+          state->second.synchronizationPointAnnouncementEvents.front());
+      state->second.synchronizationPointAnnouncementEvents.pop_front();
+    } else if (!state->second.federationSynchronizedEvents.empty()) {
+      result.federationSynchronizedEvent = std::move(
+          state->second.federationSynchronizedEvents.front());
+      state->second.federationSynchronizedEvents.pop_front();
+    } else if (!state->second.saveEvents.empty()) {
+      result.saveEvent = std::move(state->second.saveEvents.front());
+      state->second.saveEvents.pop_front();
+    } else if (!state->second.restoreEvents.empty()) {
+      result.restoreEvent = std::move(state->second.restoreEvents.front());
+      state->second.restoreEvents.pop_front();
+    } else if (!state->second.interactionEvents.empty()) {
       result.event = std::move(state->second.interactionEvents.front());
       state->second.interactionEvents.pop_front();
     } else if (!state->second.objectInstanceDiscoveryEvents.empty()) {
@@ -14561,6 +17106,54 @@ TransportServiceMessage ProcessFederationService::handleReceiveInteraction(
             continue;
           }
           result.attributeOwnershipQueryEvent = std::move(event);
+          break;
+        }
+      }
+      if (!result.scopeChangeEvent &&
+          !result.attributeRelevanceAdvisoryEvent &&
+          !result.attributeValueUpdateRequestEvent &&
+          !result.attributeEvent &&
+          !result.attributeTransportationTypeChangeEvent &&
+          !result.attributeTransportationTypeQueryEvent) {
+        while (!state->second.interactionTransportationTypeChangeEvents.empty()) {
+          auto event = std::move(
+              state->second.interactionTransportationTypeChangeEvents.front());
+          state->second.interactionTransportationTypeChangeEvents.pop_front();
+          auto const transportationName =
+              registry_.beginInteractionTransportationTypeChange(
+                  receiveRequest.federationName,
+                  event.receivingFederateId,
+                  event.interactionClassHandle);
+          if (!transportationName || transportationName->empty()) {
+            continue;
+          }
+          event.transportationName = std::move(*transportationName);
+          result.interactionTransportationTypeChangeEvent = std::move(event);
+          break;
+        }
+      }
+      if (!result.scopeChangeEvent &&
+          !result.attributeRelevanceAdvisoryEvent &&
+          !result.attributeValueUpdateRequestEvent &&
+          !result.attributeEvent &&
+          !result.attributeTransportationTypeChangeEvent &&
+          !result.attributeTransportationTypeQueryEvent &&
+          !result.interactionTransportationTypeChangeEvent) {
+        while (!state->second.interactionTransportationTypeQueryEvents.empty()) {
+          auto event = std::move(
+              state->second.interactionTransportationTypeQueryEvents.front());
+          state->second.interactionTransportationTypeQueryEvents.pop_front();
+          auto const projection = registry_.interactionTransportationTypeQueryFor(
+              receiveRequest.federationName,
+              event.receivingFederateId,
+              event.queriedFederateId,
+              event.interactionClassHandle);
+          if (!projection || projection->transportationName.empty()) {
+            continue;
+          }
+          event.interactionClassHandle = projection->interactionClassHandle;
+          event.transportationName = projection->transportationName;
+          result.interactionTransportationTypeQueryEvent = std::move(event);
           break;
         }
       }

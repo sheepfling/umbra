@@ -26,6 +26,7 @@ using rti1516_2025::AttributeHandle;
 using rti1516_2025::AttributeHandleSet;
 using rti1516_2025::FederateHandle;
 using rti1516_2025::HLA_EVOKED;
+using rti1516_2025::HLA_IMMEDIATE;
 using rti1516_2025::ObjectClassHandle;
 using rti1516_2025::ObjectInstanceHandle;
 using rti1516_2025::RTIambassador;
@@ -216,6 +217,113 @@ TEST_CASE(
   REQUIRE_NOTHROW(owner->resignFederationExecution(rti1516_2025::DELETE_OBJECTS));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->disconnect());
+  REQUIRE_NOTHROW(survivor->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Immediate callbacks cancel a lost federate's pending ownership acquisition synchronously",
+    "[integration][development-profile][federation-management][transport]"
+    "[ownership-management][connection-lost-automatic-cancel-pending-acquisition-immediate]"
+    "[standalone][2025][callback-model][immediate]"
+    "[rti.service.connection-lost]"
+    "[rti.service.get-automatic-resign-directive]"
+    "[rti.service.set-automatic-resign-directive]"
+    "[rti.service.attribute-ownership-acquisition]"
+    "[federate.callback.connection-lost]"
+    "[federate.callback.request-attribute-ownership-assumption]"
+    "[federate.callback.request-attribute-ownership-release]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador lostReports;
+  ReportingFederateAmbassador survivorReports;
+  auto owner = makeRti();
+  auto lost = makeRti();
+  auto survivor = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  // Keep the current owner evoked so the acquisition release is genuinely
+  // pending when the immediate lost member fails. The lost and survivor
+  // members exercise the synchronous callback boundary under test.
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(survivor->connect(survivorReports, HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      fomModule,
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"automatic-cancel-immediate-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(lost->joinFederationExecution(
+      L"automatic-cancel-immediate-lost", L"candidate", federationName));
+  REQUIRE_NOTHROW(survivor->joinFederationExecution(
+      L"automatic-cancel-immediate-survivor", L"candidate", federationName));
+
+  auto const server = owner->getObjectClassHandle(fixture_hla::fom::employee_server);
+  auto const efficiency = owner->getAttributeHandle(
+      server, fixture_hla::fixture::efficiency);
+  AttributeHandleSet const efficiencyOnly{efficiency};
+  REQUIRE(server.isValid());
+  REQUIRE(efficiency.isValid());
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(lost->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(lost->subscribeObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(survivor->publishObjectClassAttributes(server, efficiencyOnly));
+  REQUIRE_NOTHROW(survivor->subscribeObjectClassAttributes(server, efficiencyOnly));
+
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(server));
+  REQUIRE(objectInstance.isValid());
+  REQUIRE(lostReports.discoveries.size() == 1U);
+  REQUIRE(survivorReports.discoveries.size() == 1U);
+  REQUIRE(lostReports.discoveries.front().objectInstance == objectInstance);
+  REQUIRE(survivorReports.discoveries.front().objectInstance == objectInstance);
+
+  unsigned char const acquisitionTagBytes[] = {0xD8, 0x25};
+  VariableLengthData const acquisitionTag(
+      acquisitionTagBytes, sizeof(acquisitionTagBytes));
+  REQUIRE_NOTHROW(lost->attributeOwnershipAcquisition(
+      objectInstance, efficiencyOnly, acquisitionTag));
+  REQUIRE(ownerReports.releaseRequests.empty());
+  REQUIRE_NOTHROW(lost->setAutomaticResignDirective(
+      rti1516_2025::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS));
+  REQUIRE(
+      lost->getAutomaticResignDirective() ==
+      rti1516_2025::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS);
+
+  std::wstring const faultDescription =
+      L"automatic pending-acquisition immediate transport fault";
+  REQUIRE(umbra::detail::failEmbeddedTransportConnectionForTesting(
+      *lost, faultDescription));
+
+  // HLA_IMMEDIATE dispatches the lost member's Connection Lost callback at
+  // the fault return. The queued owner release must be gone before the owner
+  // gets a chance to service its evoked callback queue.
+  REQUIRE(lostReports.faultDescriptions ==
+          std::vector<std::wstring>{faultDescription});
+  REQUIRE(ownerReports.releaseRequests.empty());
+  while (owner->evokeCallback(0.0)) {
+  }
+  REQUIRE(ownerReports.releaseRequests.empty());
+
+  unsigned char const divestitureTagBytes[] = {0xD9, 0x25};
+  VariableLengthData const divestitureTag(
+      divestitureTagBytes, sizeof(divestitureTagBytes));
+  REQUIRE_NOTHROW(owner->unconditionalAttributeOwnershipDivestiture(
+      objectInstance, efficiencyOnly, divestitureTag));
+  REQUIRE(survivorReports.ownershipAssumptionReports.size() == 1U);
+  auto const& assumption = survivorReports.ownershipAssumptionReports.front();
+  REQUIRE(assumption.objectInstance == objectInstance);
+  REQUIRE(assumption.attributes == efficiencyOnly);
+  REQUIRE(assumption.userSuppliedTag.size() == sizeof(divestitureTagBytes));
+  REQUIRE_FALSE(survivor->isAttributeOwnedByFederate(objectInstance, efficiency));
+
+  REQUIRE_NOTHROW(survivor->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(rti1516_2025::DELETE_OBJECTS));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_IMMEDIATE));
   REQUIRE_NOTHROW(lost->disconnect());
   REQUIRE_NOTHROW(survivor->disconnect());
   REQUIRE_NOTHROW(owner->disconnect());

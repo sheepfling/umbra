@@ -617,6 +617,10 @@ struct FederationStateImageTsoObjectDeletionMessage final {
   std::string userSuppliedTag;
   std::vector<FederationStateImageTsoObjectDeletionRecipient> recipients;
   std::optional<std::string> timestampEncoding;
+  // 1=RECEIVE, 2=TIMESTAMP.  The order is captured at invocation time so a
+  // restore cannot reinterpret a queued Delete Object Instance after the
+  // live HLAprivilegeToDeleteObject declaration changes.
+  std::uint32_t sentOrderType = 0;
   std::optional<FederationStateImageTsoObjectDeletionReconstitution>
       reconstitution;
 };

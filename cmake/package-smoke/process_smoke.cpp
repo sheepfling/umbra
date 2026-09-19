@@ -28,6 +28,7 @@ using rti1516_2025::NullFederateAmbassador;
 using rti1516_2025::AttributeHandleValueMap;
 using rti1516_2025::IllegalName;
 using rti1516_2025::ObjectInstanceNameInUse;
+using rti1516_2025::ObjectInstanceNotKnown;
 using rti1516_2025::ParameterHandleValueMap;
 using rti1516_2025::RTIambassador;
 using rti1516_2025::RTIambassadorFactory;
@@ -73,6 +74,80 @@ class ReceiverFederateAmbassador final : public NullFederateAmbassador {
   void connectionLost(std::wstring const& faultDescription) override {
     connectionLostCalled = true;
     connectionLostDescription = faultDescription;
+  }
+
+  void initiateFederateSave(std::wstring const& label) override {
+    ++saveInitiateCount;
+    saveLabel = label;
+  }
+
+  void federationSaved() override { ++saveCompleteCount; }
+
+  void federationNotSaved(rti1516_2025::SaveFailureReason reason) override {
+    ++saveNotCompleteCount;
+    saveFailureReason = reason;
+  }
+
+  void requestFederationRestoreSucceeded(
+      std::wstring const& label) override {
+    ++restoreSucceededCount;
+    restoreLabel = label;
+    callbackOrder.push_back("restore-request-succeeded");
+  }
+
+  void requestFederationRestoreFailed(std::wstring const& label) override {
+    ++restoreFailedCount;
+    restoreLabel = label;
+    callbackOrder.push_back("restore-request-failed");
+  }
+
+  void federationRestoreBegun() override {
+    ++restoreBegunCount;
+    callbackOrder.push_back("restore-begun");
+  }
+
+  void initiateFederateRestore(
+      std::wstring const& label,
+      std::wstring const& federateName,
+      rti1516_2025::FederateHandle const& postRestoreFederateHandle) override {
+    ++restoreInitiateCount;
+    restoreLabel = label;
+    restoreFederateName = federateName;
+    restorePostFederateHandle = postRestoreFederateHandle;
+    callbackOrder.push_back("restore-initiate");
+  }
+
+  void federationRestored() override {
+    ++restoreCompleteCount;
+    callbackOrder.push_back("restore-complete");
+  }
+
+  void federationNotRestored(
+      rti1516_2025::RestoreFailureReason reason) override {
+    ++restoreNotCompleteCount;
+    restoreFailureReason = reason;
+    callbackOrder.push_back("restore-failed");
+  }
+
+  void federationRestoreStatusResponse(
+      rti1516_2025::FederateRestoreStatusVector const& response) override {
+    federationRestoreStatusReports.push_back(response);
+    callbackOrder.push_back("restore-status");
+  }
+
+  void removeObjectInstance(
+      rti1516_2025::ObjectInstanceHandle const& objectInstance,
+      VariableLengthData const& userSuppliedTag,
+      rti1516_2025::FederateHandle const& producingFederate) override {
+    ++objectRemovalCount;
+    objectRemovalInstance = objectInstance;
+    objectRemovalProducer = producingFederate;
+    objectRemovalTag.clear();
+    if (userSuppliedTag.size() != 0U) {
+      auto const* first =
+          static_cast<std::uint8_t const*>(userSuppliedTag.data());
+      objectRemovalTag.assign(first, first + userSuppliedTag.size());
+    }
   }
 
   void receiveInteraction(
@@ -263,6 +338,30 @@ class ReceiverFederateAmbassador final : public NullFederateAmbassador {
   rti1516_2025::MessageRetractionHandle requestRetractionHandle;
   bool connectionLostCalled = false;
   std::wstring connectionLostDescription;
+  std::size_t saveInitiateCount = 0U;
+  std::wstring saveLabel;
+  std::size_t saveCompleteCount = 0U;
+  std::size_t saveNotCompleteCount = 0U;
+  rti1516_2025::SaveFailureReason saveFailureReason =
+      rti1516_2025::SAVE_ABORTED;
+  std::size_t restoreSucceededCount = 0U;
+  std::size_t restoreFailedCount = 0U;
+  std::size_t restoreBegunCount = 0U;
+  std::size_t restoreInitiateCount = 0U;
+  std::size_t restoreCompleteCount = 0U;
+  std::size_t restoreNotCompleteCount = 0U;
+  std::wstring restoreLabel;
+  std::wstring restoreFederateName;
+  rti1516_2025::FederateHandle restorePostFederateHandle;
+  rti1516_2025::RestoreFailureReason restoreFailureReason =
+      rti1516_2025::RESTORE_ABORTED;
+  std::vector<rti1516_2025::FederateRestoreStatusVector>
+      federationRestoreStatusReports;
+  std::vector<std::string> callbackOrder;
+  std::size_t objectRemovalCount = 0U;
+  rti1516_2025::ObjectInstanceHandle objectRemovalInstance;
+  rti1516_2025::FederateHandle objectRemovalProducer;
+  std::vector<std::uint8_t> objectRemovalTag;
   bool reflected = false;
   bool discovered = false;
   rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
@@ -350,14 +449,22 @@ void writeText(std::filesystem::path const& path, std::string const& text) {
 int run(
     bool timestamped,
     bool connectionLoss,
+    bool automaticDeleteObjects,
     bool parameterized,
     bool objectRegistration,
     bool namedRegistration,
     bool attributeUpdate,
-    bool directedRetraction) {
+    bool directedRetraction,
+    bool federationSaveRestore,
+    bool federationSaveRestoreFailure,
+    bool federationSaveRestoreAbort,
+    bool federationSaveRestoreStatus) {
 #ifndef UMBRA_PROCESS_SERVICE_PROBE_PATH
   throw std::runtime_error("The package process smoke probe path is not configured.");
 #else
+  bool const saveRestore =
+      federationSaveRestore || federationSaveRestoreFailure ||
+      federationSaveRestoreAbort || federationSaveRestoreStatus;
   auto const directory = temporaryDirectory();
   std::error_code ignored;
   std::filesystem::remove_all(directory, ignored);
@@ -368,6 +475,10 @@ int run(
   std::filesystem::path const probe = UMBRA_PROCESS_SERVICE_PROBE_PATH;
   if (!std::filesystem::is_regular_file(probe)) {
     throw std::runtime_error("The package process smoke probe is not a regular file.");
+  }
+
+  if (automaticDeleteObjects) {
+    writeText(directory / "automatic-delete-objects.mode", "enabled\n");
   }
 
   auto const launch = [&](std::string const& role) {
@@ -382,18 +493,29 @@ int run(
         [command] { return std::system(command.c_str()); });
   };
 
-  auto server = launch(
-      directedRetraction
-          ? "public-server-directed-retraction"
-          : (namedRegistration
-          ? "public-server-named-registration"
-          : (objectRegistration
-          ? "public-server-object-registration"
-          : (connectionLoss
-          ? "public-server-loss"
-          : (attributeUpdate
-          ? "public-server-attribute-update"
-          : (parameterized ? "public-server-parameterized" : "public-server"))))));
+  std::string const serverRole =
+      saveRestore
+          ? (federationSaveRestoreStatus
+                 ? "public-server-save-restore-status"
+                 : (federationSaveRestoreFailure
+                        ? "public-server-save-restore-failure"
+                        : (federationSaveRestoreAbort
+                               ? "public-server-save-restore-abort"
+                               : "public-server-save-restore")))
+          : (directedRetraction
+                 ? "public-server-directed-retraction"
+                 : (namedRegistration
+                        ? "public-server-named-registration"
+                        : (objectRegistration
+                               ? "public-server-object-registration"
+                               : (connectionLoss
+                                      ? "public-server-loss"
+                                      : (attributeUpdate
+                                             ? "public-server-attribute-update"
+                                             : (parameterized
+                                                    ? "public-server-parameterized"
+                                                    : "public-server"))))));
+  auto server = launch(serverRole);
   std::unique_ptr<RTIambassador> sender;
   std::unique_ptr<RTIambassador> receiver;
   ReceiverFederateAmbassador senderAmbassador;
@@ -413,9 +535,12 @@ int run(
 
     RTIambassadorFactory factory;
     sender = factory.createRTIambassador();
-    receiver = factory.createRTIambassador();
-    if (!sender || !receiver) {
-      throw std::runtime_error("The package process smoke could not create both ambassadors.");
+    if (!saveRestore) {
+      receiver = factory.createRTIambassador();
+    }
+    if (!sender || (!saveRestore && !receiver)) {
+      throw std::runtime_error(
+          "The package process smoke could not create the required ambassadors.");
     }
 
     auto const senderConnection =
@@ -423,10 +548,13 @@ int run(
     if (!senderConnection.addressUsed) {
       throw std::runtime_error("The installed sender did not select the process endpoint.");
     }
-    auto receiverConnection =
-        receiver->connect(receiverAmbassador, HLA_EVOKED, receiverConfiguration);
-    if (!receiverConnection.addressUsed) {
-      throw std::runtime_error("The installed receiver did not select the process endpoint.");
+    if (!saveRestore) {
+      auto receiverConnection =
+          receiver->connect(receiverAmbassador, HLA_EVOKED, receiverConfiguration);
+      if (!receiverConnection.addressUsed) {
+        throw std::runtime_error(
+            "The installed receiver did not select the process endpoint.");
+      }
     }
 
     sender->createFederationExecution(kFederationName, L"server-owned-fom.xml");
@@ -435,16 +563,158 @@ int run(
         L"package-process-type",
         kFederationName));
     senderJoined = true;
-    auto const receiverHandle = receiver->joinFederationExecution(
-        L"package-process-receiver",
-        L"package-process-type",
-        kFederationName);
-    if (!receiverHandle.isValid()) {
-      throw std::runtime_error("The installed receiver Join returned an invalid handle.");
+    if (!saveRestore) {
+      auto const receiverHandle = receiver->joinFederationExecution(
+          L"package-process-receiver",
+          L"package-process-type",
+          kFederationName);
+      if (!receiverHandle.isValid()) {
+        throw std::runtime_error(
+            "The installed receiver Join returned an invalid handle.");
+      }
+      receiverJoined = true;
     }
-    receiverJoined = true;
 
-    if (directedRetraction) {
+    if (saveRestore) {
+      constexpr wchar_t const* saveLabel = L"package-process-save-restore";
+      sender->requestFederationSave(saveLabel);
+      if (senderAmbassador.saveInitiateCount != 0U) {
+        throw std::runtime_error(
+            "The installed save/restore process smoke delivered save initiation too early.");
+      }
+      static_cast<void>(sender->evokeCallback(0.0));
+      if (senderAmbassador.saveInitiateCount != 1U ||
+          senderAmbassador.saveLabel != saveLabel ||
+          senderAmbassador.saveNotCompleteCount != 0U) {
+        throw std::runtime_error(
+            "The installed save/restore process smoke did not preserve save initiation.");
+      }
+      sender->federateSaveBegun();
+      sender->federateSaveComplete();
+      static_cast<void>(sender->evokeCallback(0.0));
+      if (senderAmbassador.saveCompleteCount != 1U ||
+          senderAmbassador.saveNotCompleteCount != 0U) {
+        throw std::runtime_error(
+            "The installed save/restore process smoke did not preserve save completion.");
+      }
+
+      sender->requestFederationRestore(saveLabel);
+      if (senderAmbassador.restoreSucceededCount != 0U) {
+        throw std::runtime_error(
+            "The installed save/restore process smoke delivered restore success too early.");
+      }
+      static_cast<void>(sender->evokeCallback(0.0));
+      static_cast<void>(sender->evokeCallback(0.0));
+      static_cast<void>(sender->evokeCallback(0.0));
+      if (senderAmbassador.restoreSucceededCount != 1U ||
+          senderAmbassador.restoreFailedCount != 0U ||
+          senderAmbassador.restoreBegunCount != 1U ||
+          senderAmbassador.restoreInitiateCount != 1U ||
+          senderAmbassador.restoreLabel != saveLabel ||
+          senderAmbassador.restoreFederateName.empty() ||
+          !senderAmbassador.restorePostFederateHandle.isValid() ||
+          senderAmbassador.callbackOrder !=
+              std::vector<std::string>{
+                  "restore-request-succeeded",
+                  "restore-begun",
+                  "restore-initiate"}) {
+        throw std::runtime_error(
+            "The installed save/restore process smoke did not preserve restore initiation.");
+      }
+      if (federationSaveRestoreStatus) {
+        sender->queryFederationRestoreStatus();
+        if (!senderAmbassador.federationRestoreStatusReports.empty()) {
+          throw std::runtime_error(
+              "The installed restore-status process smoke delivered status too early.");
+        }
+        static_cast<void>(sender->evokeCallback(0.0));
+        if (senderAmbassador.federationRestoreStatusReports.size() != 1U ||
+            senderAmbassador.federationRestoreStatusReports.front().size() != 1U ||
+            !senderAmbassador.federationRestoreStatusReports.front().front()
+                 .preRestoreHandle
+                 .isValid() ||
+            !senderAmbassador.federationRestoreStatusReports.front().front()
+                 .postRestoreHandle
+                 .isValid() ||
+            senderAmbassador.federationRestoreStatusReports.front().front().status !=
+                rti1516_2025::FEDERATE_RESTORING ||
+            senderAmbassador.callbackOrder !=
+                std::vector<std::string>{
+                    "restore-request-succeeded",
+                    "restore-begun",
+                    "restore-initiate",
+                    "restore-status"}) {
+          throw std::runtime_error(
+              "The installed restore-status process smoke did not preserve the in-progress status.");
+        }
+        sender->federateRestoreComplete();
+        if (senderAmbassador.restoreCompleteCount != 0U) {
+          throw std::runtime_error(
+              "The installed restore-status process smoke delivered restore completion too early.");
+        }
+        static_cast<void>(sender->evokeCallback(0.0));
+        if (senderAmbassador.restoreCompleteCount != 1U ||
+            senderAmbassador.callbackOrder !=
+                std::vector<std::string>{
+                    "restore-request-succeeded",
+                    "restore-begun",
+                    "restore-initiate",
+                    "restore-status",
+                    "restore-complete"}) {
+          throw std::runtime_error(
+              "The installed restore-status process smoke did not preserve restore completion.");
+        }
+      } else if (federationSaveRestoreFailure || federationSaveRestoreAbort) {
+        bool const restoreAbort = federationSaveRestoreAbort;
+        if (restoreAbort) {
+          sender->abortFederationRestore();
+        } else {
+          sender->federateRestoreNotComplete();
+        }
+        if (senderAmbassador.restoreNotCompleteCount != 0U) {
+          throw std::runtime_error(
+              "The installed save/restore-control process smoke delivered restore failure too early.");
+        }
+        static_cast<void>(sender->evokeCallback(0.0));
+        if (senderAmbassador.restoreCompleteCount != 0U ||
+            senderAmbassador.restoreNotCompleteCount != 1U ||
+            senderAmbassador.restoreFailureReason !=
+                (restoreAbort
+                     ? rti1516_2025::RESTORE_ABORTED
+                     : rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_RESTORE) ||
+            senderAmbassador.callbackOrder !=
+                std::vector<std::string>{
+                    "restore-request-succeeded",
+                    "restore-begun",
+                    "restore-initiate",
+                    "restore-failed"}) {
+          throw std::runtime_error(
+              "The installed save/restore-control process smoke did not preserve restore failure.");
+        }
+      } else {
+        sender->federateRestoreComplete();
+        if (senderAmbassador.restoreCompleteCount != 0U) {
+          throw std::runtime_error(
+              "The installed save/restore process smoke delivered restore completion too early.");
+        }
+        static_cast<void>(sender->evokeCallback(0.0));
+        if (senderAmbassador.restoreCompleteCount != 1U ||
+            senderAmbassador.restoreNotCompleteCount != 0U ||
+            senderAmbassador.callbackOrder !=
+                std::vector<std::string>{
+                    "restore-request-succeeded",
+                    "restore-begun",
+                    "restore-initiate",
+                    "restore-complete"}) {
+          throw std::runtime_error(
+              "The installed save/restore process smoke did not preserve restore completion.");
+        }
+      }
+      writeText(directory / "send.ok", "ok\n");
+      sender->resignFederationExecution(NO_ACTION);
+      senderJoined = false;
+      sender->disconnect();
+    } else if (directedRetraction) {
       // Keep this consumer on the installed public surface: the fixture owns
       // only the private process service, while every lookup, declaration,
       // registration, timestamped directed send, and Retract crosses the
@@ -495,12 +765,6 @@ int run(
       receiver->subscribeObjectClassDirectedInteractions(
           receiverObjectClass, subscribedInteractions, true);
 
-      // Timestamped Retract is only legal while the producer is time
-      // regulating. Establish that role through the official public surface
-      // before exercising the positive and negative retraction paths.
-      sender->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1));
-      static_cast<void>(sender->evokeCallback(0.0));
-
       // The attribute subscription makes the already-registered target
       // discoverable.  Consume that callback before entering the directed
       // interaction slice so the next Evoke is reserved for the directed
@@ -513,6 +777,12 @@ int run(
         throw std::runtime_error(
             "The installed receiver did not discover the directed target before delivery.");
       }
+
+      // Timestamped Retract is only legal while the producer is time
+      // regulating. Establish that role after discovery has crossed its
+      // HLA_EVOKED callback boundary.
+      sender->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1));
+      static_cast<void>(sender->evokeCallback(0.0));
 
       auto timeFactory =
           rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
@@ -772,13 +1042,119 @@ int run(
       receiverJoined = false;
       receiver->disconnect();
       sender->disconnect();
-    } else if (!objectRegistration && !namedRegistration &&
-               !directedRetraction) {
-    if (connectionLoss) {
+    } else if (!saveRestore && !objectRegistration &&
+               !namedRegistration && !directedRetraction) {
+    if (automaticDeleteObjects) {
+      auto const lostObjectClass =
+          receiver->getObjectClassHandle(kObjectClassName);
+      auto const survivingObjectClass =
+          sender->getObjectClassHandle(kObjectClassName);
+      auto const lostAttribute = receiver->getAttributeHandle(
+          lostObjectClass, L"HLAprivilegeToDeleteObject");
+      auto const survivingAttribute = sender->getAttributeHandle(
+          survivingObjectClass, L"HLAprivilegeToDeleteObject");
+      if (!lostObjectClass.isValid() || !survivingObjectClass.isValid() ||
+          !lostAttribute.isValid() || !survivingAttribute.isValid()) {
+        throw std::runtime_error(
+            "The installed automatic-delete-objects process smoke returned invalid handles.");
+      }
+      rti1516_2025::AttributeHandleSet lostAttributes;
+      lostAttributes.insert(lostAttribute);
+      receiver->publishObjectClassAttributes(lostObjectClass, lostAttributes);
+      rti1516_2025::AttributeHandleSet survivingAttributes;
+      survivingAttributes.insert(survivingAttribute);
+      sender->subscribeObjectClassAttributes(
+          survivingObjectClass, survivingAttributes, true, L"");
+
+      auto const deletedObject = receiver->registerObjectInstance(lostObjectClass);
+      if (!deletedObject.isValid()) {
+        throw std::runtime_error(
+            "The installed automatic-delete-objects process smoke returned an invalid object.");
+      }
+      auto const deletedObjectName = receiver->getObjectInstanceName(deletedObject);
+      static_cast<void>(sender->evokeCallback(0.0));
+      if (!senderAmbassador.discovered ||
+          senderAmbassador.discoveredObjectInstance != deletedObject ||
+          senderAmbassador.discoveredObjectClass != survivingObjectClass ||
+          senderAmbassador.discoveredObjectInstanceName != deletedObjectName) {
+        throw std::runtime_error(
+            "The installed automatic-delete-objects process smoke did not deliver discovery.");
+      }
+
+      receiver->setAutomaticResignDirective(DELETE_OBJECTS);
+      if (receiver->getAutomaticResignDirective() != DELETE_OBJECTS) {
+        throw std::runtime_error(
+            "The installed automatic-delete-objects process smoke did not preserve DELETE_OBJECTS.");
+      }
+      if (sender->getObjectInstanceHandle(deletedObjectName) != deletedObject) {
+        throw std::runtime_error(
+            "The installed automatic-delete-objects process smoke did not preserve object-name lookup.");
+      }
+
+      writeText(directory / "connection-loss-ready.ok", "ready\n");
+      try {
+        static_cast<void>(receiver->evokeMultipleCallbacks(0.0, 0.05));
+      } catch (rti1516_2025::Exception const&) {
+        // The transport failure is surfaced on the operation that detects it;
+        // the official Connection Lost callback is delivered by the next drain.
+      }
+      auto const lossDeadline = std::chrono::steady_clock::now() +
+          std::chrono::seconds(30);
+      while (!receiverAmbassador.connectionLostCalled &&
+             std::chrono::steady_clock::now() < lossDeadline) {
+        try {
+          static_cast<void>(receiver->evokeMultipleCallbacks(0.0, 0.05));
+        } catch (rti1516_2025::Exception const&) {
+        }
+        if (!receiverAmbassador.connectionLostCalled) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+      }
+      if (!receiverAmbassador.connectionLostCalled ||
+          receiverAmbassador.connectionLostDescription.empty()) {
+        throw std::runtime_error(
+            "The installed automatic-delete-objects process smoke did not receive Connection Lost.");
+      }
+      receiverJoined = false;
+      writeText(directory / "receiver-loss.ok", "callback-ok\n");
+
+      auto const removalDeadline = std::chrono::steady_clock::now() +
+          std::chrono::seconds(30);
+      while (senderAmbassador.objectRemovalCount == 0U &&
+             std::chrono::steady_clock::now() < removalDeadline) {
+        static_cast<void>(sender->evokeMultipleCallbacks(0.0, 0.05));
+        if (senderAmbassador.objectRemovalCount == 0U) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+      }
+      if (senderAmbassador.objectRemovalCount != 1U ||
+          senderAmbassador.objectRemovalInstance != deletedObject ||
+          !senderAmbassador.objectRemovalProducer.isValid() ||
+          !senderAmbassador.objectRemovalTag.empty()) {
+        throw std::runtime_error(
+            "The installed automatic-delete-objects process smoke did not preserve the removal callback.");
+      }
+      try {
+        static_cast<void>(sender->getObjectInstanceHandle(deletedObjectName));
+        throw std::runtime_error(
+            "The installed automatic-delete-objects process smoke retained the deleted object name.");
+      } catch (ObjectInstanceNotKnown const&) {
+      }
+      writeText(directory / "send.ok", "ok\n");
+      sender->resignFederationExecution(NO_ACTION);
+      senderJoined = false;
+      sender->disconnect();
+    } else if (connectionLoss) {
       // The server has closed this federate's socket and removed its remote
       // membership.  The first Evoke observes EOF and schedules Connection
       // Lost; the next Evoke drains that official callback from the shared
       // dispatcher.
+      // Tell the fixture that both public clients have completed their
+      // pre-loss setup.  The fixture waits for this handshake before it
+      // applies Connection Lost; without it, the client and fixture would
+      // wait on one another and the package smoke could only terminate via
+      // its timeout path.
+      writeText(directory / "connection-loss-ready.ok", "ready\n");
       try {
         static_cast<void>(receiver->evokeMultipleCallbacks(0.0, 0.05));
       } catch (rti1516_2025::Exception const&) {
@@ -808,6 +1184,7 @@ int run(
       writeText(directory / "receiver-loss.ok", "callback-ok\n");
     }
 
+    if (!automaticDeleteObjects) {
     auto const interactionClass =
         sender->getInteractionClassHandle(kInteractionClassName);
     if (!interactionClass.isValid()) {
@@ -922,6 +1299,7 @@ int run(
     }
     sender->disconnect();
     }
+    }
   } catch (...) {
     clientError = std::current_exception();
     if (senderJoined && sender) {
@@ -971,11 +1349,16 @@ int run(
 int main(int argc, char** argv) {
   bool timestamped = false;
   bool connectionLoss = false;
+  bool automaticDeleteObjects = false;
   bool parameterized = false;
   bool objectRegistration = false;
   bool namedRegistration = false;
   bool attributeUpdate = false;
   bool directedRetraction = false;
+  bool federationSaveRestore = false;
+  bool federationSaveRestoreFailure = false;
+  bool federationSaveRestoreAbort = false;
+  bool federationSaveRestoreStatus = false;
   if (argc > 2) {
     return 2;
   }
@@ -985,6 +1368,9 @@ int main(int argc, char** argv) {
       timestamped = true;
     } else if (mode == "connection-loss") {
       connectionLoss = true;
+    } else if (mode == "connection-loss-delete-objects") {
+      connectionLoss = true;
+      automaticDeleteObjects = true;
     } else if (mode == "parameterized") {
       parameterized = true;
     } else if (mode == "object-registration") {
@@ -995,6 +1381,14 @@ int main(int argc, char** argv) {
       attributeUpdate = true;
     } else if (mode == "directed-retraction") {
       directedRetraction = true;
+    } else if (mode == "federation-save-restore") {
+      federationSaveRestore = true;
+    } else if (mode == "federation-save-restore-failure") {
+      federationSaveRestoreFailure = true;
+    } else if (mode == "federation-save-restore-abort") {
+      federationSaveRestoreAbort = true;
+    } else if (mode == "federation-save-restore-status") {
+      federationSaveRestoreStatus = true;
     } else {
       return 2;
     }
@@ -1003,11 +1397,16 @@ int main(int argc, char** argv) {
     return run(
         timestamped,
         connectionLoss,
+        automaticDeleteObjects,
         parameterized,
         objectRegistration,
         namedRegistration,
         attributeUpdate,
-        directedRetraction);
+        directedRetraction,
+        federationSaveRestore,
+        federationSaveRestoreFailure,
+        federationSaveRestoreAbort,
+        federationSaveRestoreStatus);
   } catch (std::exception const& error) {
     std::cerr << error.what() << '\n';
     return 1;

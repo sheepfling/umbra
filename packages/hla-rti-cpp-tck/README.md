@@ -43,6 +43,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.basic-data-elements-contract` | Provider- and FOM-independent scalar `BasicDataElements` contract: exact standard wire encodings and decode/validation boundaries for integer, Boolean, octet/byte, floating-point, ASCII/Unicode, opaque-data, and octet-pair types |
 | `cpp-tck.composite-data-elements-contract` | Provider- and FOM-independent composite `DataElement` contract: fixed/variable arrays, aligned fixed records, nested record arrays, mapped and unknown variant alternatives, extendable variants, typed forms, and malformed padding/length boundaries |
 | `cpp-tck.connection-callback-contract` | Standard adapter-backed connection and callback-control contract: all four `connect` overloads, callback-model rejection, pre-connect boundaries, duplicate-connect handling, callback enable/disable and servicing, disconnect, and reconnect |
+| `cpp-tck.connection-service-boundaries` | Standard connect overloads, callback-model validation, pre-connect service boundaries, callback controls, disconnect, and reconnect |
+| `cpp-tck.connection-service-boundaries-contract` | Pure standard C++ contract for connection and callback-service boundaries |
 | `cpp-tck.federation-lifecycle-contract` | Standard adapter-backed federation lifecycle contract: create/join/resign/destroy, automatic-resign directives, federation/member reports, federate handle lookups, duplicate-membership failures, and missing-federation boundaries |
 | `cpp-tck.automatic-resign-directive-delete-objects` | Promoted standard automatic-resign contract after a joined federate is lost: `DELETE_OBJECTS`, `connectionLost`, ordinary object removal, and object-name lookup cleanup |
 | `cpp-tck.automatic-resign-directive-delete-objects-contract` | Promoted adapter-backed contract for automatic resignation on connection loss using only standard callbacks, lookups, and lifecycle calls |
@@ -89,7 +91,13 @@ The executable covers these ordinary public-API workflows, under both
  | `cpp-tck.joined-federate-mom-galt-lits-periodic-contract` | Pure standard C++ contract for joined-federate MOM `HLAGALT`/`HLALITS` direct and periodic reporting, active-regulator values, and undefined-value cleanup |
  | `cpp-tck.joined-federate-mom-tso-length-periodic-contract` | Pure standard C++ contract for joined-federate MOM `HLATSOlength` reporting around queued timestamped delivery, periodic reporting, and post-grant cleanup |
  | `cpp-tck.joined-federate-mom-removed-object-count-contract` | Pure standard C++ contract for RTI-owned joined-federate `HLAobjectInstancesRemoved` counts, object-removal callbacks, and service-report cleanup |
- | `cpp-tck.joined-federate-mom-updates-sent-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestUpdatesSent`/`HLAreportUpdatesSent` buckets, nested counts, and transportation-change confirmation |
+ | `cpp-tck.joined-federate-mom-registered-object-count` | Standard joined-federate MOM `HLAobjectInstancesRegistered` count at zero, one, and two successful adapter-supplied object registrations |
+ | `cpp-tck.joined-federate-mom-registered-object-count-contract` | Pure standard C++ contract for joined-federate MOM registration counts, direct reliable reflections, and standard teardown |
+  | `cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report` | Standard joined-federate MOM request/report for deletable object-instance counts grouped by object class, verified at two, one, and zero live instances |
+  | `cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report-contract` | Pure standard C++ contract for the joined-federate MOM deletable-object report, including public data-element decoding and standard teardown |
+  | `cpp-tck.joined-federate-mom-deletable-object-count` | Standard joined-federate MOM `HLAobjectInstancesThatCanBeDeleted` request/reflection count at zero, one, and two live objects and after deletion |
+  | `cpp-tck.joined-federate-mom-deletable-object-count-contract` | Pure standard C++ contract for the joined-federate MOM deletable-object attribute, typed integer decoding, reflection metadata, and teardown |
+  | `cpp-tck.joined-federate-mom-updates-sent-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestUpdatesSent`/`HLAreportUpdatesSent` buckets, nested counts, and transportation-change confirmation |
  | `cpp-tck.joined-federate-mom-interactions-received-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestInteractionsReceived`/`HLAreportInteractionsReceived` buckets, nested counts, and transportation-change confirmation |
  | `cpp-tck.joined-federate-mom-directed-interactions-received-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestDirectedInteractionsReceived`/`HLAreportDirectedInteractionsReceived` buckets, directed-versus-ordinary filtering, nested counts, and transportation-change confirmation |
  | `cpp-tck.joined-federate-mom-directed-interactions-sent-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestDirectedInteractionsSent`/`HLAreportDirectedInteractionsSent` buckets, directed-versus-ordinary filtering, nested counts, and transportation-change confirmation |
@@ -186,6 +194,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.final-federate-resignation-cleanup-contract` | Standard adapter-backed final-federate resignation cleanup contract for name release, rejoin, and named-registration reuse |
 | `cpp-tck.object-registration-discovery-lifecycle` | Rich-FOM hierarchy-aware registration/discovery, exact and superclass subscription identity, evoked callback cancellation, late subscription discovery, stable identity lookup, and duplicate-discovery suppression |
 | `cpp-tck.object-registration-discovery-lifecycle-contract` | Standard adapter-backed object registration/discovery contract for declaration, registration, discovery, class/name/instance lookups, callback servicing, and lifecycle boundaries |
+| `cpp-tck.object-registration-service-boundaries` | Object-registration pre-connect and pre-join failures, standard discovery identity, local deletion, and post-deletion lookup boundaries |
+| `cpp-tck.object-registration-service-boundaries-contract` | Pure standard C++ contract for object-registration service boundaries, discovery identity, local deletion, and lookup cleanup |
 | `cpp-tck.object-registration-discovery-multi-recipient` | Two active subscribers discover two ordinary registered objects, preserve object name/handle/class identity, and exclude the registering owner from discovery callbacks |
 | `cpp-tck.object-registration-discovery-multi-recipient-contract` | Standard adapter-backed ordinary object registration/discovery fan-out contract across two active subscribers with owner loopback suppression |
 | `cpp-tck.named-registration` | Standard object-name reservation/release, multiple-name reservation, named registration, discovery and identity lookup, reservation contention, failed-registration reuse, and callback-model parity |
@@ -212,9 +222,25 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.resign-delete-objects-multi-recipient-fifo` | Publisher resignation with `DELETE_OBJECTS` delivers two ordinary removals to both active subscribers in producer order, with empty resign tags and no owner loopback |
 | `cpp-tck.resign-delete-objects-multi-recipient-fifo-contract` | Standard adapter-backed resign-time object-removal fan-out and owner-exclusion contract across two active subscribers |
 | `cpp-tck.order-type-controls-contract` | Standard adapter-backed prospective attribute and interaction order-control contract with logical-time delivery and receive-order callbacks |
-| `cpp-tck.receive-order-attribute-update-callback-cancellation` | In evoked mode, cancel a queued receive-order attribute reflection by unsubscribing before callback servicing; in immediate mode, verify delivery before the subscription is removed |
-| `cpp-tck.receive-order-attribute-update-callback-cancellation-contract` | Standard adapter-backed receive-order attribute-reflection cancellation contract across evoked and immediate callback boundaries |
-| `cpp-tck.receive-order-interaction-callback-cancellation` | In evoked mode, cancel a queued receive-order interaction by unsubscribing before callback servicing; in immediate mode, verify delivery before the subscription is removed |
+ | `cpp-tck.receive-order-attribute-update-callback-cancellation` | In evoked mode, cancel a queued receive-order attribute reflection by unsubscribing before callback servicing; in immediate mode, verify delivery before the subscription is removed |
+ | `cpp-tck.receive-order-attribute-update-callback-cancellation-contract` | Standard adapter-backed receive-order attribute-reflection cancellation contract across evoked and immediate callback boundaries |
+ | `cpp-tck.receive-order-attribute-update` | Deliver two consecutive ordinary receive-order attribute updates in producer order, preserving reflection metadata and excluding publisher loopback |
+ | `cpp-tck.receive-order-attribute-update-contract` | Pure standard C++ contract for ordinary receive-order attribute publication, discovery, reflection ordering, metadata, and teardown |
+ | `cpp-tck.receive-order-interaction` | Deliver two consecutive ordinary receive-order interactions in producer order, preserving parameter, tag, producer, and transportation metadata without sender loopback |
+ | `cpp-tck.receive-order-interaction-contract` | Pure standard C++ contract for ordinary receive-order interaction publication, subscription, delivery ordering, metadata, and teardown |
+| `cpp-tck.receive-order-object-removal` | Deliver an ordinary object removal after discovery, preserving removal tag and producer metadata without publisher loopback |
+| `cpp-tck.receive-order-object-removal-contract` | Pure standard C++ contract for ordinary object registration/discovery, deletion, removal metadata, and teardown |
+| `cpp-tck.object-deletion-service-boundaries` | Object-deletion pre-connect and pre-join failures, unknown-object rejection, local deletion, remote removal metadata, resign-time deletion, and lookup cleanup |
+| `cpp-tck.object-deletion-service-boundaries-contract` | Pure standard C++ contract for object-deletion service boundaries, removal metadata, and resignation cleanup |
+| `cpp-tck.object-registration-service-boundaries` | Object-registration pre-connect and pre-join failures, publication/subscription boundaries, discovery, stable handle lookups, and standard cleanup |
+| `cpp-tck.object-registration-service-boundaries-contract` | Pure standard C++ contract for object-registration service boundaries, discovery, handle lookups, and lifecycle cleanup |
+| `cpp-tck.attribute-update-service-boundaries` | Ordinary active/passive attribute Update/Reflect, payload/tag/producer/transport metadata, and standard cleanup |
+| `cpp-tck.attribute-update-service-boundaries-contract` | Pure standard C++ contract for ordinary attribute Update/Reflect service boundaries |
+| `cpp-tck.interaction-service-boundaries` | Ordinary active/passive interaction Send/Receive, invalid-class rejection, payload/tag/producer/transport metadata, and standard cleanup |
+| `cpp-tck.interaction-service-boundaries-contract` | Pure standard C++ contract for ordinary interaction Send/Receive service boundaries |
+| `cpp-tck.attribute-value-request-service-boundaries` | Object-instance and object-class Request Attribute Value Update overloads, invalid handles, request tags, provider callbacks, responses, and reflection |
+| `cpp-tck.attribute-value-request-service-boundaries-contract` | Pure standard C++ contract for Request Attribute Value Update service boundaries |
+ | `cpp-tck.receive-order-interaction-callback-cancellation` | In evoked mode, cancel a queued receive-order interaction by unsubscribing before callback servicing; in immediate mode, verify delivery before the subscription is removed |
 | `cpp-tck.receive-order-interaction-callback-cancellation-contract` | Standard adapter-backed receive-order interaction cancellation contract across evoked and immediate callback boundaries |
 | `cpp-tck.interaction-subscription-lifecycle` | Passive ordinary interaction subscriptions suppress delivery, active replacement enables it without replay, downgrade suppresses later messages, and unsubscribe removes the declaration |
 | `cpp-tck.interaction-subscription-lifecycle-contract` | Standard adapter-backed ordinary interaction subscription lifecycle contract for passive/active declarations, downgrade, reactivation, delivery, and unsubscription |
@@ -372,6 +398,10 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.passive-regional-interaction-transition-contract` | Standard adapter-backed passive regional interaction transition contract |
 | `cpp-tck.auto-provide` | Adapter-supplied Auto Provide FOM, switch verification, provider-owned object discovery, and grouped `provideAttributeValueUpdate` solicitation |
 | `cpp-tck.auto-provide-contract` | Standard adapter-backed Auto Provide switch and grouped solicitation contract |
+| `cpp-tck.auto-provide-disabled-discovery-only` | Standard switch-disabled Auto Provide boundary: discovery remains visible while provider solicitation remains absent |
+| `cpp-tck.auto-provide-disabled-discovery-only-contract` | Pure standard C++ contract for disabled Auto Provide discovery and callback suppression |
+| `cpp-tck.auto-provide-disabled-explicit-request` | Standard object-instance and object-class `requestAttributeValueUpdate` overloads still solicit the provider when Auto Provide is disabled |
+| `cpp-tck.auto-provide-disabled-explicit-request-contract` | Pure standard C++ contract for explicit attribute-value requests with Auto Provide disabled |
 | `cpp-tck.allow-relaxed-ddm` | Adapter-supplied `Allow Relaxed DDM` switch composition, touching-region admission for ordinary regional object updates and interactions, strict positive-gap suppression, and conveyed source-region metadata |
 | `cpp-tck.allow-relaxed-ddm-contract` | Pure standard contract for Allow Relaxed DDM switch composition, touching-region admission, and strict positive-gap suppression |
 | `cpp-tck.regional-multi-attribute-update` | Adapter-supplied multi-attribute DDM FOM, independent per-attribute source regions, X-only/Y-only filtering, restoration, and conveyed source-region metadata |
@@ -490,6 +520,10 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.asynchronous-delivery-contract` | Standard adapter-backed asynchronous-delivery and callback-servicing contract for enable/disable, callback gating, explicit servicing, and time-advance release |
 | `cpp-tck.federation-save-restore` | Pre-connect and pre-join save/restore-service boundaries, including timestamped save request, untimed federation save/restore lifecycle, status responses, completion and failure boundaries, abort, and post-restore handle rebinding |
 | `cpp-tck.federation-save-restore-contract` | Standard adapter-backed untimed federation save/restore contract for admission, lifecycle, status, completion/failure, abort, restore callbacks, handle rebinding, and lifecycle boundaries |
+| `cpp-tck.federation-restore-abort` | Start a standard federation restore, abort it, and verify `RESTORE_ABORTED` callbacks and terminal status under both callback models |
+| `cpp-tck.federation-restore-abort-contract` | Pure standard C++ contract for the save prerequisite, restore initiation, abort service, terminal failure callbacks, status, and cleanup |
+| `cpp-tck.federation-restore-work-item-ownership-assumption` | Preserve a pending standard ownership-assumption work item across federation save/restore under both callback models |
+| `cpp-tck.federation-restore-work-item-ownership-assumption-contract` | Pure standard C++ contract for restored ownership-assumption delivery, callback gating, metadata, and non-premature ownership transfer |
 | `java-tck.save-restore` | Java-parity view of standard federation save/restore admission, status, completion/failure, abort, restore callbacks, and handle rebinding |
 | `cpp-tck.federation-save-restore-interlocks` | Representative declaration, object, interaction, ownership, time, DDM, synchronization, and advisory services rejected with `SaveInProgress` and `RestoreInProgress` |
 | `cpp-tck.federation-save-restore-interlocks-contract` | Standard adapter-backed contract for representative declaration, object, interaction, ownership, time, DDM, synchronization, and advisory service interlocks during federation save and restore |
@@ -541,6 +575,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.partial-attribute-ownership-transfer-contract` | Standard adapter-backed partial attribute ownership-transfer contract for acquisition cancellation, Divestiture If Wanted, ownership callbacks, and lifecycle cleanup |
 | `cpp-tck.ownership-acquisition-publication-fence` | Publication, pending-state, and partial-result boundaries for regular and If Available ownership acquisition, including direct acquisition of an unowned attribute, release denial, and callback metadata |
 | `cpp-tck.ownership-acquisition-publication-fence-contract` | Standard adapter-backed ownership-acquisition publication-fence contract using only the official API and adapter-supplied multi-attribute FOM |
+| `cpp-tck.ownership-acquisition-if-available` | Dedicated If Available ownership-acquisition unavailable callback and post-divestiture transfer boundary |
+| `cpp-tck.ownership-acquisition-if-available-contract` | Pure standard C++ contract for If Available acquisition, unavailable metadata, ownership transfer, and lifecycle cleanup |
 | `cpp-tck.ownership-query-partition-cleanup` | Partition mixed owned/unowned attribute-query results, reject invalid query handles, and suppress stale query results after object removal |
 | `cpp-tck.ownership-query-partition-cleanup-contract` | Standard adapter-backed ownership-query partition and cleanup contract using only the official API and adapter-supplied multi-attribute FOM |
 | `cpp-tck.divestiture-if-wanted-mixed-acquirers` | Transfers independently pending attributes to mixed regular and If Available acquirers with Divestiture If Wanted; immediate mode uses regular pending acquisition to preserve the standard pending boundary |
@@ -776,6 +812,13 @@ the complete verified matrix passed 828/830 cases, with only the two
 adapter-required connection-loss cases skipped and zero failures. The portable
 source uses only the official IEEE C++ API and standard library; provider, FOM,
 endpoint, and callback configuration remain adapter inputs.
+
+The promoted `cpp-tck.ownership-acquisition-if-available` scenario and its
+pure standard contract twin isolate the standard If Available unavailable and
+post-divestiture acquisition callbacks. They verify exact object, attribute,
+and tag metadata, ownership-state transitions, repeat-acquisition rejection,
+and lifecycle cleanup under both callback models while taking provider, FOM,
+endpoint, and callback configuration from the adapter.
 
 The promoted `cpp-tck.ownership-query-partition-cleanup` scenario and its
 contract twin isolate mixed owned/unowned `queryAttributeOwnership` results,
@@ -1886,6 +1929,17 @@ The promoted `cpp-tck.ownership-management-contract`,
 standard ownership, synchronization-point, and save/restore slices; they use
 only the official C++ API and standard library while taking provider, FOM,
 endpoint, callback, and logical-time configuration from the adapter.
+The promoted `cpp-tck.federation-restore-abort` and
+`cpp-tck.federation-restore-abort-contract` runners add the successful restore-
+start followed by `abortFederationRestore` lifecycle as an independently
+selectable standard slice. Both use only the official C++ API and standard
+library; the adapter supplies the provider package, FOM, endpoint, callback
+model, and logical-time configuration.
+The promoted `cpp-tck.federation-restore-work-item-ownership-assumption` and
+`cpp-tck.federation-restore-work-item-ownership-assumption-contract` runners
+extend that boundary to standard ownership-assumption work surviving a
+save/restore boundary; provider, FOM, endpoint, callback, and logical-time
+configuration remain adapter inputs.
 The promoted `cpp-tck.asynchronous-delivery-contract`,
 `cpp-tck.timestamped-attribute-update-contract`,
 `cpp-tck.timestamped-object-deletion-contract`,
@@ -2032,6 +2086,21 @@ independently selectable pure standard C++ contract. It keeps the
 receive-order removal callback, standard service report, and cleanup while
 taking the provider, FOM, MIM, endpoint, callback, and logical-time
 configuration from the adapter.
+
+The promoted `cpp-tck.joined-federate-mom-registered-object-count` scenario uses
+the standard joined-federate MOM object to request
+`HLAobjectInstancesRegistered` directly. It verifies the `HLAinteger32BE`
+count at zero before registration, one after the first successful adapter-supplied
+object registration, and two after the second, along with standard handle/name
+lookups, reliable RTI-originated reflection metadata, and provider-neutral
+cleanup in both callback models.
+
+The promoted `cpp-tck.joined-federate-mom-registered-object-count-contract`
+runner exposes that direct MOM registration-count route as an independently
+selectable pure standard C++ contract. It takes the provider, FOM, standard MIM,
+endpoint, callback, logical-time, and application object configuration from the
+adapter and has no periodic timer, wall-clock, private header, registry, or
+diagnostic dependency.
 
 The promoted `cpp-tck.joined-federate-mom-time-state-durations` scenario uses
 the standard joined-federate MOM object to observe `HLAtimeGrantedTime` and
@@ -2647,6 +2716,53 @@ runner exposes the by-ownership and universal directed-interaction
 subscription boundary as an independently selectable pure standard C++
 contract. It uses only official API headers and the standard library while
 taking provider, FOM, endpoint, and callback configuration from the adapter.
+
+The promoted `cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report`
+scenario exercises the standard joined-federate MOM request/report route for
+`HLArequestObjectInstancesThatCanBeDeleted` and
+`HLAreportObjectInstancesThatCanBeDeleted`. It registers two adapter-supplied
+objects, verifies the public standard `HLAobjectClassBasedCounts` decoding at
+two, one, and zero deletable instances, and checks reliable report metadata and
+ordinary deletion cleanup under both callback models. Its contract twin uses
+only official `RTIambassador`/`FederateAmbassador` APIs, standard MIM names and
+data elements, the C++ standard library, and adapter-supplied provider, FOM,
+endpoint, callback, and logical-time configuration.
+
+The promoted `cpp-tck.joined-federate-mom-deletable-object-count` scenario
+exercises the standard joined-federate MOM
+`HLAobjectInstancesThatCanBeDeleted` attribute through
+`requestAttributeValueUpdate`. It verifies typed reliable reflections for
+zero, one, and two live objects, then one and zero after ordinary deletion.
+Its contract twin uses only official `RTIambassador`/`FederateAmbassador`
+APIs, standard MIM names and data elements, the C++ standard library, and
+adapter-supplied provider, FOM, endpoint, callback, and logical-time
+configuration.
+
+The promoted `cpp-tck.receive-order-attribute-update` scenario exercises the
+ordinary public attribute-update path with two consecutive updates from an
+adapter-supplied publisher to an active subscriber. It verifies FIFO reflection
+ordering, object/attribute/value/tag/producer/transportation metadata, no
+publisher loopback, and standard cleanup in both callback models. Its contract
+twin uses only official `RTIambassador`/`FederateAmbassador` APIs and the
+standard library; provider, FOM, endpoint, and callback configuration remain
+adapter inputs.
+
+The promoted `cpp-tck.receive-order-interaction` scenario exercises the
+ordinary public interaction path with two consecutive sends from an
+adapter-supplied publisher to an active subscriber. It verifies FIFO delivery,
+class/parameter/value/tag/producer/transportation metadata, no sender
+loopback, and standard cleanup in both callback models. Its contract twin uses
+only official `RTIambassador`/`FederateAmbassador` APIs and the standard
+library; provider, FOM, endpoint, and callback configuration remain adapter
+inputs.
+
+The promoted `cpp-tck.receive-order-object-removal` scenario exercises the
+ordinary public object-removal path after adapter-supplied registration and
+discovery. It verifies the removed object identity, removal tag, producer
+metadata, no publisher loopback, and standard cleanup in both callback models.
+Its contract twin uses only official `RTIambassador`/`FederateAmbassador` APIs
+and the standard library; provider, FOM, endpoint, and callback configuration
+remain adapter inputs.
 
 The adapter also registers each selected catalog scenario as a separate CTest
 for each selected callback model. The Python runner invokes that matrix with

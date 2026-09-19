@@ -574,6 +574,163 @@ std::size_t pendingOwnershipAssumptionCallbackCount(
       }));
 }
 
+// A negotiated divestiture keeps the current owner in place while its
+// ownership-assumption search remains active.  The search ledgers therefore
+// legitimately coexist with the negotiated acquisition/divestiture records;
+// they are not the standalone unowned-object assumption form below.  Keep the
+// route-free validation shared by every negotiated restore predicate so the
+// pending-operation fence accounts for the two per-attribute ledgers and any
+// queued callback tuples as well.
+bool isRouteFreeNegotiatedOwnershipAssumptionLedger(
+    FederationStateImageObject const& object,
+    FederationStateImage const& image) {
+  auto const callbackCount = pendingOwnershipAssumptionCallbackCount(
+      image, object.handle);
+  if (object.pendingNegotiatedAttributeOwnershipDivestitures.empty()) {
+    return object.ownershipAssumptionRecipientsByAttribute.empty() &&
+        object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() &&
+        callbackCount == 0U;
+  }
+
+  std::set<std::uint64_t> knownAttributeHandles;
+  for (auto const& attribute : object.attributes) {
+    if (attribute.handle == 0U ||
+        !knownAttributeHandles.insert(attribute.handle).second) {
+      return false;
+    }
+  }
+  auto const negotiatedFor = [&](std::uint64_t attributeHandle) {
+    return std::find_if(
+        object.pendingNegotiatedAttributeOwnershipDivestitures.begin(),
+        object.pendingNegotiatedAttributeOwnershipDivestitures.end(),
+        [attributeHandle](
+            FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& divestiture) {
+          return divestiture.attributeHandle == attributeHandle;
+        });
+  };
+  auto const ownerFor = [&](std::uint64_t attributeHandle) {
+    return std::find_if(
+        object.attributes.begin(),
+        object.attributes.end(),
+        [attributeHandle](FederationStateImageObjectAttribute const& attribute) {
+          return attribute.handle == attributeHandle;
+        });
+  };
+
+  std::set<std::uint64_t> recipientAttributes;
+  std::uint64_t previousRecipientAttribute = 0U;
+  for (auto const& assumption : object.ownershipAssumptionRecipientsByAttribute) {
+    if (assumption.attributeHandle == 0U ||
+        assumption.attributeHandle <= previousRecipientAttribute ||
+        !knownAttributeHandles.contains(assumption.attributeHandle) ||
+        !std::is_sorted(
+            assumption.recipientFederateIds.begin(),
+            assumption.recipientFederateIds.end()) ||
+        std::adjacent_find(
+            assumption.recipientFederateIds.begin(),
+            assumption.recipientFederateIds.end()) !=
+            assumption.recipientFederateIds.end() ||
+        std::any_of(
+            assumption.recipientFederateIds.begin(),
+            assumption.recipientFederateIds.end(),
+            [](std::uint64_t federateId) { return federateId == 0U; })) {
+      return false;
+    }
+    auto const negotiated = negotiatedFor(assumption.attributeHandle);
+    auto const owner = ownerFor(assumption.attributeHandle);
+    if (negotiated == object.pendingNegotiatedAttributeOwnershipDivestitures.end() ||
+        owner == object.attributes.end() ||
+        owner->ownerFederateId != negotiated->divestingFederateId ||
+        std::ranges::find(
+            assumption.recipientFederateIds,
+            negotiated->divestingFederateId) !=
+            assumption.recipientFederateIds.end()) {
+      return false;
+    }
+    previousRecipientAttribute = assumption.attributeHandle;
+    recipientAttributes.insert(assumption.attributeHandle);
+  }
+
+  std::set<std::uint64_t> tagAttributes;
+  std::uint64_t previousTagAttribute = 0U;
+  for (auto const& tag : object.ownershipAssumptionUserSuppliedTagsByAttribute) {
+    if (tag.attributeHandle == 0U ||
+        tag.attributeHandle <= previousTagAttribute ||
+        !knownAttributeHandles.contains(tag.attributeHandle) ||
+        negotiatedFor(tag.attributeHandle) ==
+            object.pendingNegotiatedAttributeOwnershipDivestitures.end()) {
+      return false;
+    }
+    previousTagAttribute = tag.attributeHandle;
+    tagAttributes.insert(tag.attributeHandle);
+  }
+  if (recipientAttributes != tagAttributes) {
+    return false;
+  }
+
+  // The implementation seeds one assumption record for every negotiated
+  // attribute.  Permit legacy images that predate that extension (both maps
+  // empty), but reject a partial map that could detach a restored search.
+  if (!recipientAttributes.empty()) {
+    std::set<std::uint64_t> negotiatedAttributes;
+    for (auto const& divestiture :
+         object.pendingNegotiatedAttributeOwnershipDivestitures) {
+      if (divestiture.attributeHandle == 0U ||
+          !knownAttributeHandles.contains(divestiture.attributeHandle)) {
+        return false;
+      }
+      negotiatedAttributes.insert(divestiture.attributeHandle);
+    }
+    if (recipientAttributes != negotiatedAttributes) {
+      return false;
+    }
+  } else if (callbackCount != 0U) {
+    return false;
+  }
+
+  for (auto const& callback : image.pendingAttributeOwnershipAssumptions) {
+    if (callback.objectInstanceHandle != object.handle) {
+      continue;
+    }
+    if (callback.receivingFederateId == 0U ||
+        callback.attributeHandles.empty() ||
+        !std::is_sorted(
+            callback.attributeHandles.begin(),
+            callback.attributeHandles.end()) ||
+        std::adjacent_find(
+            callback.attributeHandles.begin(),
+            callback.attributeHandles.end()) !=
+            callback.attributeHandles.end()) {
+      return false;
+    }
+    for (auto const attributeHandle : callback.attributeHandles) {
+      auto const recipients = std::ranges::find_if(
+          object.ownershipAssumptionRecipientsByAttribute.begin(),
+          object.ownershipAssumptionRecipientsByAttribute.end(),
+          [attributeHandle](
+              FederationStateImageOwnershipAssumptionRecipients const& assumption) {
+            return assumption.attributeHandle == attributeHandle;
+          });
+      auto const tag = std::ranges::find_if(
+          object.ownershipAssumptionUserSuppliedTagsByAttribute.begin(),
+          object.ownershipAssumptionUserSuppliedTagsByAttribute.end(),
+          [attributeHandle](FederationStateImageOwnershipAssumptionTag const& assumption) {
+            return assumption.attributeHandle == attributeHandle;
+          });
+      if (recipients == object.ownershipAssumptionRecipientsByAttribute.end() ||
+          std::ranges::find(
+              recipients->recipientFederateIds,
+              callback.receivingFederateId) ==
+              recipients->recipientFederateIds.end() ||
+          tag == object.ownershipAssumptionUserSuppliedTagsByAttribute.end() ||
+          callback.userSuppliedTag != tag->userSuppliedTag) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 bool isRouteFreePendingOwnershipAssumptionObject(
     FederationStateImageObject const& object,
     FederationStateImage const& image) {
@@ -777,7 +934,8 @@ bool isRouteFreePendingIfAvailableOwnershipObject(
 // deliberately limited to the regular-candidate form until the corresponding
 // If Available/continuation combinations have their own restart evidence.
 bool isRouteFreePendingNegotiatedOwnershipObject(
-    FederationStateImageObject const& object) {
+    FederationStateImageObject const& object,
+    FederationStateImage const& image) {
   if (!object.attributeValuesPresent || object.attributeValues.empty() ||
       object.deleteAccepted ||
       object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
@@ -785,19 +943,23 @@ bool isRouteFreePendingNegotiatedOwnershipObject(
       object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
       object.pendingOperationCount !=
           object.pendingAttributeOwnershipAcquisitionRequests.size() +
-              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() +
+              object.ownershipAssumptionRecipientsByAttribute.size() +
+              object.ownershipAssumptionUserSuppliedTagsByAttribute.size() +
+              pendingOwnershipAssumptionCallbackCount(image, object.handle) ||
       !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
       !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
       !object.pendingConfirmDivestitureNotifications.empty() ||
       !object.pendingAttributeTransportationTypeChanges.empty() ||
-      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
-      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
       !object.pendingDiscoveryFederateIds.empty() ||
       !object.pendingRemovalFederateIds.empty() ||
       !object.connectionLossAutomaticRemovalFederateIds.empty() ||
       !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
       !object.pendingTimestampedRemovalFederateIds.empty() ||
       object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (!isRouteFreeNegotiatedOwnershipAssumptionLedger(object, image)) {
     return false;
   }
   if (std::any_of(
@@ -842,7 +1004,8 @@ bool isRouteFreePendingNegotiatedOwnershipObject(
 // mixed image.  The pending If Available request remains durable while the
 // owner-confirmation callback flags are rebuilt against live routes.
 bool isRouteFreePendingNegotiatedIfAvailableOwnershipObject(
-    FederationStateImageObject const& object) {
+    FederationStateImageObject const& object,
+    FederationStateImage const& image) {
   if (!object.attributeValuesPresent || object.attributeValues.empty() ||
       object.deleteAccepted ||
       object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
@@ -850,19 +1013,23 @@ bool isRouteFreePendingNegotiatedIfAvailableOwnershipObject(
       object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
       object.pendingOperationCount !=
           object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() +
-              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() +
+              object.ownershipAssumptionRecipientsByAttribute.size() +
+              object.ownershipAssumptionUserSuppliedTagsByAttribute.size() +
+              pendingOwnershipAssumptionCallbackCount(image, object.handle) ||
       !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
       !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
       !object.pendingConfirmDivestitureNotifications.empty() ||
       !object.pendingAttributeTransportationTypeChanges.empty() ||
-      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
-      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
       !object.pendingDiscoveryFederateIds.empty() ||
       !object.pendingRemovalFederateIds.empty() ||
       !object.connectionLossAutomaticRemovalFederateIds.empty() ||
       !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
       !object.pendingTimestampedRemovalFederateIds.empty() ||
       object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (!isRouteFreeNegotiatedOwnershipAssumptionLedger(object, image)) {
     return false;
   }
   if (std::any_of(
@@ -926,7 +1093,8 @@ bool isRouteFreePendingNegotiatedIfAvailableOwnershipObject(
 // requested attribute must be represented by the matching candidate ledger so
 // restore cannot suppress an ordinary callback for an unrelated remainder.
 bool isRouteFreePendingMixedNegotiatedOwnershipObject(
-    FederationStateImageObject const& object) {
+    FederationStateImageObject const& object,
+    FederationStateImage const& image) {
   if (!object.attributeValuesPresent || object.attributeValues.empty() ||
       object.deleteAccepted ||
       object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
@@ -935,19 +1103,23 @@ bool isRouteFreePendingMixedNegotiatedOwnershipObject(
       object.pendingOperationCount !=
           object.pendingAttributeOwnershipAcquisitionRequests.size() +
               object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() +
-              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() +
+              object.ownershipAssumptionRecipientsByAttribute.size() +
+              object.ownershipAssumptionUserSuppliedTagsByAttribute.size() +
+              pendingOwnershipAssumptionCallbackCount(image, object.handle) ||
       !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
       !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
       !object.pendingConfirmDivestitureNotifications.empty() ||
       !object.pendingAttributeTransportationTypeChanges.empty() ||
-      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
-      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
       !object.pendingDiscoveryFederateIds.empty() ||
       !object.pendingRemovalFederateIds.empty() ||
       !object.connectionLossAutomaticRemovalFederateIds.empty() ||
       !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
       !object.pendingTimestampedRemovalFederateIds.empty() ||
       object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (!isRouteFreeNegotiatedOwnershipAssumptionLedger(object, image)) {
     return false;
   }
   if (std::any_of(
@@ -1065,7 +1237,8 @@ bool isRouteFreePendingMixedNegotiatedOwnershipObject(
 // Keep the candidate set complete and route-free so a partially delivered or
 // mixed callback image cannot be mistaken for this lifecycle.
 bool isRouteFreePendingNegotiatedConfirmationDeliveredOwnershipObject(
-    FederationStateImageObject const& object) {
+    FederationStateImageObject const& object,
+    FederationStateImage const& image) {
   if (!object.attributeValuesPresent || object.attributeValues.empty() ||
       object.deleteAccepted ||
       object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
@@ -1073,19 +1246,23 @@ bool isRouteFreePendingNegotiatedConfirmationDeliveredOwnershipObject(
       object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
       object.pendingOperationCount !=
           object.pendingAttributeOwnershipAcquisitionRequests.size() +
-              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() +
+              object.ownershipAssumptionRecipientsByAttribute.size() +
+              object.ownershipAssumptionUserSuppliedTagsByAttribute.size() +
+              pendingOwnershipAssumptionCallbackCount(image, object.handle) ||
       !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
       !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
       !object.pendingConfirmDivestitureNotifications.empty() ||
       !object.pendingAttributeTransportationTypeChanges.empty() ||
-      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
-      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
       !object.pendingDiscoveryFederateIds.empty() ||
       !object.pendingRemovalFederateIds.empty() ||
       !object.connectionLossAutomaticRemovalFederateIds.empty() ||
       !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
       !object.pendingTimestampedRemovalFederateIds.empty() ||
       object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (!isRouteFreeNegotiatedOwnershipAssumptionLedger(object, image)) {
     return false;
   }
   if (std::any_of(
@@ -1156,7 +1333,8 @@ bool isRouteFreePendingNegotiatedConfirmationDeliveredOwnershipObject(
 // If Available callback is replayed after restore; the owner may proceed
 // directly to Confirm Divestiture.
 bool isRouteFreePendingNegotiatedIfAvailableConfirmationDeliveredOwnershipObject(
-    FederationStateImageObject const& object) {
+    FederationStateImageObject const& object,
+    FederationStateImage const& image) {
   if (!object.attributeValuesPresent || object.attributeValues.empty() ||
       object.deleteAccepted ||
       object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.empty() ||
@@ -1164,19 +1342,23 @@ bool isRouteFreePendingNegotiatedIfAvailableConfirmationDeliveredOwnershipObject
       object.pendingNegotiatedAttributeOwnershipDivestitures.empty() ||
       object.pendingOperationCount !=
           object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() +
-              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() +
+              object.ownershipAssumptionRecipientsByAttribute.size() +
+              object.ownershipAssumptionUserSuppliedTagsByAttribute.size() +
+              pendingOwnershipAssumptionCallbackCount(image, object.handle) ||
       !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
       !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
       !object.pendingConfirmDivestitureNotifications.empty() ||
       !object.pendingAttributeTransportationTypeChanges.empty() ||
-      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
-      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
       !object.pendingDiscoveryFederateIds.empty() ||
       !object.pendingRemovalFederateIds.empty() ||
       !object.connectionLossAutomaticRemovalFederateIds.empty() ||
       !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
       !object.pendingTimestampedRemovalFederateIds.empty() ||
       object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (!isRouteFreeNegotiatedOwnershipAssumptionLedger(object, image)) {
     return false;
   }
   if (std::any_of(
@@ -1246,7 +1428,8 @@ bool isRouteFreePendingNegotiatedIfAvailableConfirmationDeliveredOwnershipObject
 // fresh registry does not replay either callback or accidentally admit an
 // unrelated remainder from one of the two acquisition ledgers.
 bool isRouteFreePendingMixedNegotiatedConfirmationDeliveredOwnershipObject(
-    FederationStateImageObject const& object) {
+    FederationStateImageObject const& object,
+    FederationStateImage const& image) {
   if (!object.attributeValuesPresent || object.attributeValues.empty() ||
       object.deleteAccepted ||
       object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
@@ -1255,19 +1438,23 @@ bool isRouteFreePendingMixedNegotiatedConfirmationDeliveredOwnershipObject(
       object.pendingOperationCount !=
           object.pendingAttributeOwnershipAcquisitionRequests.size() +
               object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() +
-              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() +
+              object.ownershipAssumptionRecipientsByAttribute.size() +
+              object.ownershipAssumptionUserSuppliedTagsByAttribute.size() +
+              pendingOwnershipAssumptionCallbackCount(image, object.handle) ||
       !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
       !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
       !object.pendingConfirmDivestitureNotifications.empty() ||
       !object.pendingAttributeTransportationTypeChanges.empty() ||
-      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
-      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
       !object.pendingDiscoveryFederateIds.empty() ||
       !object.pendingRemovalFederateIds.empty() ||
       !object.connectionLossAutomaticRemovalFederateIds.empty() ||
       !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
       !object.pendingTimestampedRemovalFederateIds.empty() ||
       object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (!isRouteFreeNegotiatedOwnershipAssumptionLedger(object, image)) {
     return false;
   }
   if (std::any_of(
@@ -1384,7 +1571,8 @@ bool isRouteFreePendingMixedNegotiatedConfirmationDeliveredOwnershipObject(
 // at least one record on each side of that boundary so a single-candidate
 // image cannot enter this mixed admission path accidentally.
 bool isRouteFreePendingMixedNegotiatedConfirmationAsymmetricOwnershipObject(
-    FederationStateImageObject const& object) {
+    FederationStateImageObject const& object,
+    FederationStateImage const& image) {
   if (!object.attributeValuesPresent || object.attributeValues.empty() ||
       object.deleteAccepted ||
       object.pendingAttributeOwnershipAcquisitionRequests.empty() ||
@@ -1393,19 +1581,23 @@ bool isRouteFreePendingMixedNegotiatedConfirmationAsymmetricOwnershipObject(
       object.pendingOperationCount !=
           object.pendingAttributeOwnershipAcquisitionRequests.size() +
               object.pendingAttributeOwnershipAcquisitionIfAvailableRequests.size() +
-              object.pendingNegotiatedAttributeOwnershipDivestitures.size() ||
+              object.pendingNegotiatedAttributeOwnershipDivestitures.size() +
+              object.ownershipAssumptionRecipientsByAttribute.size() +
+              object.ownershipAssumptionUserSuppliedTagsByAttribute.size() +
+              pendingOwnershipAssumptionCallbackCount(image, object.handle) ||
       !object.pendingAttributeOwnershipAcquisitionCancellations.empty() ||
       !object.pendingAttributeOwnershipDivestitureIfWantedNotifications.empty() ||
       !object.pendingConfirmDivestitureNotifications.empty() ||
       !object.pendingAttributeTransportationTypeChanges.empty() ||
-      !object.ownershipAssumptionRecipientsByAttribute.empty() ||
-      !object.ownershipAssumptionUserSuppliedTagsByAttribute.empty() ||
       !object.pendingDiscoveryFederateIds.empty() ||
       !object.pendingRemovalFederateIds.empty() ||
       !object.connectionLossAutomaticRemovalFederateIds.empty() ||
       !object.deferredConnectionLossTsoRemovalFederateIds.empty() ||
       !object.pendingTimestampedRemovalFederateIds.empty() ||
       object.pendingTimestampedDeletionMessageId.has_value()) {
+    return false;
+  }
+  if (!isRouteFreeNegotiatedOwnershipAssumptionLedger(object, image)) {
     return false;
   }
   if (std::any_of(
@@ -3994,6 +4186,7 @@ SynchronizationPointAchievedPlan EmbeddedFederationRegistry::achieveSynchronizat
         publicReportRoute == federation->second.publicServiceReportRoutes.end()
             ? FederatePublicServiceReportRoute{}
             : publicReportRoute->second,
+        federateId,
     });
   }
   federation->second.synchronizationPoints.erase(point);
@@ -4624,7 +4817,14 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
                objectInstance.pendingNegotiatedAttributeOwnershipDivestitures.begin();
            pending != objectInstance.pendingNegotiatedAttributeOwnershipDivestitures.end();) {
         if (pending->second.acquiringFederateId == federateId) {
+          auto const attributeHandle = pending->first;
           pending = objectInstance.pendingNegotiatedAttributeOwnershipDivestitures.erase(pending);
+          // The negotiated candidate owned the assumption-search interval for
+          // this still-owned attribute.  Once that candidate resigns, keep
+          // the owner in place but remove the stale search/tag ledger so a
+          // later save/restore cannot replay a transfer that no longer has a
+          // negotiated recipient.
+          clearOwnershipAssumptionSearch(objectInstance, attributeHandle);
         } else {
           ++pending;
         }
@@ -5069,6 +5269,7 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
             publicReportRoute == federation->second.publicServiceReportRoutes.end()
                 ? FederatePublicServiceReportRoute{}
                 : publicReportRoute->second,
+            synchronizationFederateId,
         });
       }
       point = federation->second.synchronizationPoints.erase(point);
@@ -5873,6 +6074,7 @@ FederationStateImage EmbeddedFederationRegistry::stateImageFor(
     savedMessage.producingFederateId = message.producingFederateId;
     savedMessage.objectInstanceHandle = message.objectInstanceHandle;
     savedMessage.userSuppliedTag = bytesFromVariableLengthData(message.userSuppliedTag);
+    savedMessage.sentOrderType = static_cast<std::uint32_t>(message.sentOrderType);
     savedMessage.recipients.reserve(message.recipients.size());
     for (auto const& recipient : message.recipients) {
       savedMessage.recipients.push_back({
@@ -6158,6 +6360,16 @@ FederationStateImage EmbeddedFederationRegistry::stateImageFor(
     }
     for (auto const& [attributeHandle, value] : object.attributeValues) {
       static_cast<void>(value);
+      attributeHandles.insert(attributeHandle);
+    }
+    for (auto const& [attributeHandle, recipients] :
+         object.ownershipAssumptionRecipientsByAttribute) {
+      static_cast<void>(recipients);
+      attributeHandles.insert(attributeHandle);
+    }
+    for (auto const& [attributeHandle, tag] :
+         object.ownershipAssumptionUserSuppliedTagsByAttribute) {
+      static_cast<void>(tag);
       attributeHandles.insert(attributeHandle);
     }
     savedObject.attributes.reserve(attributeHandles.size());
@@ -7562,13 +7774,13 @@ void EmbeddedFederationRegistry::restoreObjectOwnershipLedgersFromStateImage(
     } else if (!materializeProcessRestartObjects ||
                (!isRouteFreePendingRegularOwnershipObject(savedObject) &&
                 !isRouteFreePendingIfAvailableOwnershipObject(savedObject) &&
-                !isRouteFreePendingNegotiatedOwnershipObject(savedObject) &&
-                !isRouteFreePendingNegotiatedIfAvailableOwnershipObject(savedObject) &&
-                !isRouteFreePendingMixedNegotiatedOwnershipObject(savedObject) &&
-                !isRouteFreePendingNegotiatedConfirmationDeliveredOwnershipObject(savedObject) &&
-                !isRouteFreePendingNegotiatedIfAvailableConfirmationDeliveredOwnershipObject(savedObject) &&
-                !isRouteFreePendingMixedNegotiatedConfirmationDeliveredOwnershipObject(savedObject) &&
-                !isRouteFreePendingMixedNegotiatedConfirmationAsymmetricOwnershipObject(savedObject) &&
+                !isRouteFreePendingNegotiatedOwnershipObject(savedObject, image) &&
+                !isRouteFreePendingNegotiatedIfAvailableOwnershipObject(savedObject, image) &&
+                !isRouteFreePendingMixedNegotiatedOwnershipObject(savedObject, image) &&
+                !isRouteFreePendingNegotiatedConfirmationDeliveredOwnershipObject(savedObject, image) &&
+                !isRouteFreePendingNegotiatedIfAvailableConfirmationDeliveredOwnershipObject(savedObject, image) &&
+                !isRouteFreePendingMixedNegotiatedConfirmationDeliveredOwnershipObject(savedObject, image) &&
+                !isRouteFreePendingMixedNegotiatedConfirmationAsymmetricOwnershipObject(savedObject, image) &&
                 !isRouteFreePendingAttributeValueUpdateObject(savedObject) &&
                 !isRouteFreePendingAttributeValueUpdateClassObject(savedObject) &&
                !isRouteFreePendingAttributeValueUpdateRegionalObject(savedObject) &&
@@ -8452,12 +8664,28 @@ void EmbeddedFederationRegistry::restoreObjectOwnershipLedgersFromStateImage(
       }
     }
 
+    auto const isNegotiatedAssumptionAttribute =
+        [&savedObject, &restoredObject](std::uint64_t attributeHandle) {
+          auto const divestiture = std::ranges::find_if(
+              savedObject.pendingNegotiatedAttributeOwnershipDivestitures,
+              [attributeHandle](
+                  FederationStateImagePendingNegotiatedAttributeOwnershipDivestiture const& candidate) {
+                return candidate.attributeHandle == attributeHandle;
+              });
+          auto const owner = restoredObject.attributeOwnersByHandle.find(attributeHandle);
+          return divestiture !=
+                  savedObject.pendingNegotiatedAttributeOwnershipDivestitures.end() &&
+              owner != restoredObject.attributeOwnersByHandle.end() &&
+              owner->second == divestiture->divestingFederateId;
+        };
+
     for (auto const& savedAssumption :
          savedObject.ownershipAssumptionRecipientsByAttribute) {
       if (savedAssumption.attributeHandle == 0U ||
           !knownAttributeHandles.contains(savedAssumption.attributeHandle) ||
-          restoredObject.attributeOwnersByHandle.contains(
-              savedAssumption.attributeHandle)) {
+          (restoredObject.attributeOwnersByHandle.contains(
+               savedAssumption.attributeHandle) &&
+           !isNegotiatedAssumptionAttribute(savedAssumption.attributeHandle))) {
         throw std::logic_error(
             "The saved ownership-assumption recipient ledger has an invalid attribute.");
       }
@@ -8490,8 +8718,9 @@ void EmbeddedFederationRegistry::restoreObjectOwnershipLedgersFromStateImage(
          savedObject.ownershipAssumptionUserSuppliedTagsByAttribute) {
       if (savedAssumption.attributeHandle == 0U ||
           !knownAttributeHandles.contains(savedAssumption.attributeHandle) ||
-          restoredObject.attributeOwnersByHandle.contains(
-              savedAssumption.attributeHandle)) {
+          (restoredObject.attributeOwnersByHandle.contains(
+               savedAssumption.attributeHandle) &&
+           !isNegotiatedAssumptionAttribute(savedAssumption.attributeHandle))) {
         throw std::logic_error(
             "The saved ownership-assumption tag ledger has an invalid attribute.");
       }
@@ -8552,7 +8781,8 @@ void EmbeddedFederationRegistry::restoreObjectOwnershipLedgersFromStateImage(
                   restoredObject.ownershipAssumptionRecipientsByAttribute.end() ||
               !recipients->second.contains(callback.receivingFederateId) ||
               tag == restoredObject.ownershipAssumptionUserSuppliedTagsByAttribute.end() ||
-              restoredObject.attributeOwnersByHandle.contains(attributeHandle)) {
+              (restoredObject.attributeOwnersByHandle.contains(attributeHandle) &&
+               !isNegotiatedAssumptionAttribute(attributeHandle))) {
             throw std::logic_error(
                 "The saved ownership-assumption callback is detached from its search ledger.");
           }
@@ -9060,6 +9290,11 @@ void EmbeddedFederationRegistry::restoreTsoPayloadsFromStateImage(
       throw std::logic_error(
           "The saved TSO object-deletion payload has an invalid timestamp.");
     }
+    auto const sentOrder = decodeSavedOrderType(savedMessage.sentOrderType);
+    if (!sentOrder) {
+      throw std::logic_error(
+          "The saved TSO object-deletion payload has an invalid order type.");
+    }
 
     TsoObjectDeletionMessage message;
     message.messageId = savedMessage.messageId;
@@ -9068,6 +9303,7 @@ void EmbeddedFederationRegistry::restoreTsoPayloadsFromStateImage(
     message.userSuppliedTag =
         variableLengthDataFromBytes(savedMessage.userSuppliedTag);
     message.timestamp = std::move(sentTimestamp);
+    message.sentOrderType = *sentOrder;
 
     std::set<std::uint64_t> recipientIds;
     message.recipients.reserve(savedMessage.recipients.size());
@@ -11240,13 +11476,13 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
                             isRouteFreeObjectDeletionInvocation(object) ||
                             isRouteFreePendingRegularOwnershipObject(object) ||
                             isRouteFreePendingIfAvailableOwnershipObject(object) ||
-                            isRouteFreePendingNegotiatedOwnershipObject(object) ||
-                            isRouteFreePendingNegotiatedIfAvailableOwnershipObject(object) ||
-                            isRouteFreePendingMixedNegotiatedOwnershipObject(object) ||
-                            isRouteFreePendingNegotiatedConfirmationDeliveredOwnershipObject(object) ||
-                            isRouteFreePendingNegotiatedIfAvailableConfirmationDeliveredOwnershipObject(object) ||
-                            isRouteFreePendingMixedNegotiatedConfirmationDeliveredOwnershipObject(object) ||
-                            isRouteFreePendingMixedNegotiatedConfirmationAsymmetricOwnershipObject(object) ||
+                            isRouteFreePendingNegotiatedOwnershipObject(object, image) ||
+                            isRouteFreePendingNegotiatedIfAvailableOwnershipObject(object, image) ||
+                            isRouteFreePendingMixedNegotiatedOwnershipObject(object, image) ||
+                            isRouteFreePendingNegotiatedConfirmationDeliveredOwnershipObject(object, image) ||
+                            isRouteFreePendingNegotiatedIfAvailableConfirmationDeliveredOwnershipObject(object, image) ||
+                            isRouteFreePendingMixedNegotiatedConfirmationDeliveredOwnershipObject(object, image) ||
+                            isRouteFreePendingMixedNegotiatedConfirmationAsymmetricOwnershipObject(object, image) ||
                             isRouteFreePendingDivestitureIfWantedNotificationObject(object) ||
                             isRouteFreePendingConfirmDivestitureNotificationObject(object) ||
                             isRouteFreePendingConfirmDivestitureWithOwnershipAssumptionObject(
@@ -11852,6 +12088,34 @@ FederationRestoreControlResult EmbeddedFederationRegistry::federateRestoreComple
         work.attributeHandles = request.requestedAttributeHandles;
         work.callbackRoute = callbackRoute->second;
         result.attributeOwnershipQueryWorkItems.push_back(std::move(work));
+      }
+    }
+    if (processLocalSnapshot) {
+      // A process-local save keeps the complete private snapshot, but the
+      // process endpoint still needs value-only ownership work so it can
+      // route the callback to the current session rather than reviving a
+      // saved callback closure.  Keep this family aligned with the
+      // fresh-registry rebind above; the process service projects it after
+      // Federation Restored through its existing ownership event queue.
+      for (auto const& [objectInstanceHandle, objectInstance] :
+           saved->second.objectInstances) {
+        for (auto const& pending :
+             objectInstance.pendingAttributeOwnershipAssumptionCallbacks) {
+          auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+              pending.receivingFederateId);
+          if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+              !callbackRoute->second) {
+            throw std::logic_error(
+                "A process-local restored ownership-assumption callback has no live recipient route.");
+          }
+          result.attributeOwnershipAssumptionWorkItems.push_back({
+              pending.receivingFederateId,
+              objectInstanceHandle,
+              pending.attributeHandles,
+              callbackRoute->second,
+              pending.userSuppliedTag,
+          });
+        }
       }
     }
     // restoreFederationFromSnapshot clears the operation after the callback
@@ -13494,7 +13758,14 @@ ObjectInstanceDeletionPlan EmbeddedFederationRegistry::planTsoObjectInstanceDele
     return {ObjectInstanceDeletionStatus::delete_privilege_not_held};
   }
 
+  auto const preferredOrderType = effectiveAttributeOrderType(
+      federation->second, instance->second, *privilegeToDelete);
+  if (!preferredOrderType) {
+    return {ObjectInstanceDeletionStatus::inconsistent_catalog};
+  }
+
   ObjectInstanceDeletionPlan result;
+  result.preferredOrderType = *preferredOrderType;
   result.recipients.reserve(instance->second.knownObjectClassHandlesByFederate.size());
   for (auto const& [receivingFederateId, knownObjectClassHandle] :
        instance->second.knownObjectClassHandlesByFederate) {
@@ -16597,7 +16868,7 @@ EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
           auto const ordinarySubscription = candidatePerClass->second.subscribedAttributes.find(
               ownedAttributeHandle);
           if (ordinarySubscription != candidatePerClass->second.subscribedAttributes.end() &&
-              ordinarySubscription->second && !hasExplicitSubscriptionRegion) {
+              ordinarySubscription->second) {
             if (!hasExplicitUpdateRegion) {
               activeSubscriptionEstablished = true;
               break;
@@ -16713,16 +16984,13 @@ EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
             associated != updateRegions.end() &&
             !associated->second.empty();
 
-        // Ordinary declaration state uses the invisible default region only
-        // while no non-default regional subscription exists for this class
-        // attribute. The state remains independently retained, but §9.1.3
-        // makes its effective default-region realization mutually exclusive
-        // with an explicit regional realization.
+        // Ordinary and regional declarations are independent §9.8 routes.
+        // Keep the ordinary default-region realization effective even when a
+        // separate regional declaration exists for the same class/attribute.
         auto const ordinarySubscription = perClass->second.subscribedAttributes.find(
             ownedAttributeHandle);
         if (ordinarySubscription != perClass->second.subscribedAttributes.end() &&
-            (ordinarySubscription->second || activeSubscriptionEstablished) &&
-            !hasExplicitSubscriptionRegion) {
+            (ordinarySubscription->second || activeSubscriptionEstablished)) {
           if (!hasExplicitUpdateRegion) {
             return currentClassHandle;
           }
@@ -17503,9 +17771,15 @@ bool EmbeddedFederationRegistry::objectAttributeInScope(
       auto const ordinarySubscription = perClass->second.subscribedAttributes.find(
           attributeHandle);
       if (ordinarySubscription != perClass->second.subscribedAttributes.end() &&
-          ordinarySubscription->second && !hasExplicitSubscriptionRegion &&
-          !hasExplicitUpdateRegion) {
-        return true;
+          ordinarySubscription->second) {
+        if (!hasExplicitUpdateRegion) {
+          return true;
+        }
+        for (std::uint64_t const associatedRegionHandle : associated->second) {
+          if (regionOverlapsDefault(federation, associatedRegionHandle, overrides)) {
+            return true;
+          }
+        }
       }
       if (hasExplicitSubscriptionRegion) {
         for (auto const& [subscribedRegionHandle, active] : regional->second) {
@@ -17624,9 +17898,15 @@ bool EmbeddedFederationRegistry::objectAttributeRelevantForAdvisory(
       auto const ordinarySubscription = perClass->second.subscribedAttributes.find(
           attributeHandle);
       if (ordinarySubscription != perClass->second.subscribedAttributes.end() &&
-          ordinarySubscription->second && !hasExplicitSubscriptionRegion &&
-          !hasExplicitUpdateRegion) {
-        return true;
+          ordinarySubscription->second) {
+        if (!hasExplicitUpdateRegion) {
+          return true;
+        }
+        for (std::uint64_t const associatedRegionHandle : associated->second) {
+          if (regionOverlapsDefault(federation, associatedRegionHandle, overrides)) {
+            return true;
+          }
+        }
       }
 
       if (hasExplicitSubscriptionRegion) {
@@ -17837,22 +18117,29 @@ EmbeddedFederationRegistry::subscribedUpdateRateDesignatorForAttribute(
       bool const hasExplicitUpdateRegion =
           associated != updateRegions.end() && !associated->second.empty();
 
-      // An explicit regional declaration at this class shadows its ordinary
-      // declaration, matching objectAttributeInScope.  Only active entries
-      // contribute to the maximum.
-      if (!hasExplicitSubscriptionRegion && !hasExplicitUpdateRegion) {
-        auto const ordinary = perClass->second.subscribedAttributes.find(
+      // Ordinary and regional declarations are independent.  Include the
+      // ordinary default-region rate whenever that declaration is active, and
+      // then include any active overlapping regional rates.
+      auto const ordinary = perClass->second.subscribedAttributes.find(
+          attributeHandle);
+      if (ordinary != perClass->second.subscribedAttributes.end() &&
+          ordinary->second &&
+          (!hasExplicitUpdateRegion || [&] {
+            for (std::uint64_t const associatedRegionHandle : associated->second) {
+              if (regionOverlapsDefault(federation, associatedRegionHandle, regionOverrides)) {
+                return true;
+              }
+            }
+            return false;
+          }())) {
+        auto const designator = perClass->second.subscribedUpdateRateDesignators.find(
             attributeHandle);
-        if (ordinary != perClass->second.subscribedAttributes.end() &&
-            ordinary->second) {
-          auto const designator = perClass->second.subscribedUpdateRateDesignators.find(
-              attributeHandle);
-          considerDesignator(
-              designator == perClass->second.subscribedUpdateRateDesignators.end()
-                  ? std::string{}
-                  : designator->second);
-        }
-      } else {
+        considerDesignator(
+            designator == perClass->second.subscribedUpdateRateDesignators.end()
+                ? std::string{}
+                : designator->second);
+      }
+      if (hasExplicitSubscriptionRegion) {
         auto const regionalDesignators =
             perClass->second.regionalSubscribedUpdateRateDesignators.find(
                 attributeHandle);
@@ -18493,10 +18780,41 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
           auto const ordinarySubscription = candidatePerClass->second.subscribedAttributes.find(
               attributeHandle);
           if (ordinarySubscription != candidatePerClass->second.subscribedAttributes.end() &&
-              ordinarySubscription->second && !hasExplicitSubscriptionRegion &&
+              ordinarySubscription->second &&
               !hasExplicitUpdateRegion) {
             established = true;
             break;
+          }
+          if (ordinarySubscription != candidatePerClass->second.subscribedAttributes.end() &&
+              ordinarySubscription->second &&
+              hasExplicitUpdateRegion) {
+            // An ordinary subscription uses the RTI-owned default region.
+            // An explicit source association remains eligible when its
+            // committed realization overlaps that default region.
+            if (sentRegionHandles != nullptr && !sentRegionHandles->empty()) {
+              for (std::uint64_t const sentRegionHandle : *sentRegionHandles) {
+                if (regionOverlapsDefault(
+                        federation,
+                        sentRegionHandle,
+                        regionOverrides)) {
+                  established = true;
+                  break;
+                }
+              }
+            } else if (associated != instance->second.updateRegionsByAttribute.end()) {
+              for (std::uint64_t const associatedRegionHandle : associated->second) {
+                if (regionOverlapsDefault(
+                        federation,
+                        associatedRegionHandle,
+                        regionOverrides)) {
+                  established = true;
+                  break;
+                }
+              }
+            }
+            if (established) {
+              break;
+            }
           }
           if (hasExplicitSubscriptionRegion) {
             std::set<std::uint64_t> currentSentRegions;
@@ -18592,9 +18910,31 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
     bool const activeSubscriptionEstablished =
         activeSubscriptionEstablishedForAttribute(attributeHandle);
     bool subscribed = ordinarySubscription != perClass->second.subscribedAttributes.end() &&
-        (ordinarySubscription->second || activeSubscriptionEstablished) &&
-        !hasExplicitSubscriptionRegion &&
-        !hasExplicitUpdateRegion;
+        (ordinarySubscription->second || activeSubscriptionEstablished);
+    if (subscribed && hasExplicitUpdateRegion) {
+      subscribed = false;
+      if (sentRegionHandles != nullptr && !sentRegionHandles->empty()) {
+        for (std::uint64_t const sentRegionHandle : *sentRegionHandles) {
+          if (regionOverlapsDefault(
+                  federation,
+                  sentRegionHandle,
+                  regionOverrides)) {
+            subscribed = true;
+            break;
+          }
+        }
+      } else if (associatedUpdateRegions != instance->second.updateRegionsByAttribute.end()) {
+        for (std::uint64_t const associatedRegionHandle : associatedUpdateRegions->second) {
+          if (regionOverlapsDefault(
+                  federation,
+                  associatedRegionHandle,
+                  regionOverrides)) {
+            subscribed = true;
+            break;
+          }
+        }
+      }
+    }
     if (!subscribed && hasExplicitSubscriptionRegion) {
       // A voluntary source resignation removes the producer from the live
       // membership/region ledgers before a queued callback is reconstructed.
@@ -18653,9 +18993,8 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
       // Regional subscriptions carry their own rate per subscribed region.
       // Select only active regions that overlap this passel's source region;
       // an active omitted/default declaration means no reduction for the
-      // projected attribute, even when another overlapping declaration names
-      // an explicit slower rate.  An ordinary declaration is considered only
-      // when no explicit regional declaration shadows it at this class.
+      // projected attribute.  Ordinary and regional declarations remain
+      // independent, so their eligible rates are considered together.
       bool hasUnspecifiedDefault = false;
       std::optional<std::pair<double, std::string>> maximumExplicitRate;
       auto considerDesignator = [&](std::string const& candidate) {
@@ -18677,14 +19016,26 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
         }
       };
 
-      if (!hasExplicitSubscriptionRegion) {
+      auto const ordinary = perClass->second.subscribedAttributes.find(
+          attributeHandle);
+      if (ordinary != perClass->second.subscribedAttributes.end() &&
+          ordinary->second &&
+          (!hasExplicitUpdateRegion || [&] {
+            for (std::uint64_t const associatedRegionHandle : associatedUpdateRegions->second) {
+              if (regionOverlapsDefault(federation, associatedRegionHandle, regionOverrides)) {
+                return true;
+              }
+            }
+            return false;
+          }())) {
         auto const rate = perClass->second.subscribedUpdateRateDesignators.find(
             attributeHandle);
         considerDesignator(
             rate == perClass->second.subscribedUpdateRateDesignators.end()
                 ? std::string{}
                 : rate->second);
-      } else {
+      }
+      if (hasExplicitSubscriptionRegion) {
         auto const regionalDesignators =
             perClass->second.regionalSubscribedUpdateRateDesignators.find(
                 attributeHandle);
@@ -31664,13 +32015,29 @@ EmbeddedFederationRegistry::planInteractionTransportationTypeChange(
     return {InteractionTransportationTypeChangeStatus::interaction_class_not_defined};
   }
   if (!isSupportedTransportationName(
-          federation->second.definition.catalog.get(),
-          transportationName)) {
+      federation->second.definition.catalog.get(),
+      transportationName)) {
     return {InteractionTransportationTypeChangeStatus::invalid_transportation_type};
   }
   auto declarations = federation->second.interactionDeclarations.find(requestingFederateId);
-  if (declarations == federation->second.interactionDeclarations.end() ||
-      !declarations->second.publishedInteractionClasses.contains(interactionClassHandle)) {
+  bool published =
+      declarations != federation->second.interactionDeclarations.end() &&
+      declarations->second.publishedInteractionClasses.contains(interactionClassHandle);
+  if (!published && declarations != federation->second.interactionDeclarations.end()) {
+    // Directed interactions are published on an object-class/interaction-class
+    // pair.  They still use the interaction-class transportation control
+    // service, so an active directed publication is a valid publication
+    // boundary for this request as well.
+    for (auto const& [objectClassHandle, directedClasses] :
+         declarations->second.publishedObjectClassDirectedInteractions) {
+      static_cast<void>(objectClassHandle);
+      if (directedClasses.contains(interactionClassHandle)) {
+        published = true;
+        break;
+      }
+    }
+  }
+  if (!published) {
     return {InteractionTransportationTypeChangeStatus::interaction_class_not_published};
   }
   if (declarations->second.pendingInteractionTransportationTypeChanges.contains(
@@ -31760,8 +32127,19 @@ EmbeddedFederationRegistry::beginInteractionTransportationTypeChange(
   }
   auto transportationName = std::move(pending->second);
   declarations->second.pendingInteractionTransportationTypeChanges.erase(pending);
-  if (!federation->second.members.contains(requestingFederateId) ||
-      !declarations->second.publishedInteractionClasses.contains(interactionClassHandle)) {
+  bool published = declarations->second.publishedInteractionClasses.contains(
+      interactionClassHandle);
+  if (!published) {
+    for (auto const& [objectClassHandle, directedClasses] :
+         declarations->second.publishedObjectClassDirectedInteractions) {
+      static_cast<void>(objectClassHandle);
+      if (directedClasses.contains(interactionClassHandle)) {
+        published = true;
+        break;
+      }
+    }
+  }
+  if (!federation->second.members.contains(requestingFederateId) || !published) {
     return std::nullopt;
   }
   declarations->second.interactionTransportationTypes.insert_or_assign(
@@ -31815,8 +32193,20 @@ EmbeddedFederationRegistry::planInteractionTransportationTypeQuery(
   }
   std::string transportationName = interactionClass->transportation;
   auto declarations = federation->second.interactionDeclarations.find(queriedFederateId);
-  if (declarations != federation->second.interactionDeclarations.end() &&
-      declarations->second.publishedInteractionClasses.contains(interactionClassHandle)) {
+  bool published =
+      declarations != federation->second.interactionDeclarations.end() &&
+      declarations->second.publishedInteractionClasses.contains(interactionClassHandle);
+  if (!published && declarations != federation->second.interactionDeclarations.end()) {
+    for (auto const& [objectClassHandle, directedClasses] :
+         declarations->second.publishedObjectClassDirectedInteractions) {
+      static_cast<void>(objectClassHandle);
+      if (directedClasses.contains(interactionClassHandle)) {
+        published = true;
+        break;
+      }
+    }
+  }
+  if (published) {
     auto const overrideType = declarations->second.interactionTransportationTypes.find(
         interactionClassHandle);
     if (overrideType != declarations->second.interactionTransportationTypes.end()) {
@@ -31919,7 +32309,14 @@ EmbeddedFederationRegistry::planReceiveOrderDirectedInteraction(
   }
 
   ReceiveOrderDirectedInteractionPlan result;
-  result.transportationName = sentClass->transportation;
+  auto const effectiveTransportation = effectiveInteractionTransportationName(
+      federation->second,
+      producingFederateId,
+      sentInteractionClassHandle);
+  if (!effectiveTransportation || effectiveTransportation->empty()) {
+    return {ReceiveOrderDirectedInteractionStatus::inconsistent_catalog};
+  }
+  result.transportationName = *effectiveTransportation;
   auto const preferredOrderType = interactionOrderType(
       federation->second,
       producingFederateId,

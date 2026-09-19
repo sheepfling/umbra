@@ -341,6 +341,149 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Embedded regional object-attribute subscriptions remain independent from ordinary declarations",
+    "[integration][development-profile][federation-management][object-management][ddm]"
+    "[regional-object-attribute-subscription-isolation]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.unsubscribe-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.unsubscribe-object-class-attributes-with-regions]"
+    "[rti.service.register-object-instance-with-regions]"
+    "[rti.service.associate-regions-for-updates]"
+    "[rti.service.update-attribute-values]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.reflect-attribute-values]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador subscriberReports;
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"regional-object-isolation-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"regional-object-isolation-subscriber", L"subscriber", federationName));
+
+  auto const soda = publisher->getObjectClassHandle(L"HLAobjectRoot.Food.Drink.Soda");
+  auto const flavor = publisher->getAttributeHandle(soda, L"Flavor");
+  auto const sodaFlavor = publisher->getDimensionHandle(L"SodaFlavor");
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+  REQUIRE(sodaFlavor.isValid());
+  AttributeHandleSet const flavorOnly{flavor};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(soda, flavorOnly));
+
+  auto const publisherRegion = publisher->createRegion(DimensionHandleSet{sodaFlavor});
+  auto const subscriberRegion = subscriber->createRegion(DimensionHandleSet{sodaFlavor});
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      publisherRegion, sodaFlavor, RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{publisherRegion}));
+  REQUIRE_NOTHROW(subscriber->setRangeBounds(
+      subscriberRegion, sodaFlavor, RangeBounds(2UL, 3UL)));
+  REQUIRE_NOTHROW(subscriber->commitRegionModifications(RegionHandleSet{subscriberRegion}));
+
+  AttributeHandleSetRegionHandleSetPairVector const regionalPair{{
+      flavorOnly,
+      RegionHandleSet{subscriberRegion},
+  }};
+  ObjectInstanceHandle objectInstance;
+
+  // Establish the ordinary declaration first.  Its default-region route must
+  // remain effective after a separate regional declaration is added below.
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(soda, flavorOnly));
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstanceWithRegions(
+      soda,
+      AttributeHandleSetRegionHandleSetPairVector{{
+          flavorOnly,
+          RegionHandleSet{publisherRegion},
+      }}));
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.objectDiscoveryReports.size() == 1U);
+
+  unsigned char const firstValueBytes[] = {0x10, 0x01};
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      AttributeHandleValueMap{{
+          flavor,
+          VariableLengthData(firstValueBytes, sizeof(firstValueBytes)),
+      }},
+      VariableLengthData{}));
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 1U);
+
+  // §9.8: adding a regional declaration must not alter the ordinary
+  // declaration, even while the explicit subscriber region is disjoint.
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+      soda,
+      regionalPair));
+  unsigned char const secondValueBytes[] = {0x20, 0x02};
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      AttributeHandleValueMap{{
+          flavor,
+          VariableLengthData(secondValueBytes, sizeof(secondValueBytes)),
+      }},
+      VariableLengthData{}));
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 2U);
+
+  // §9.8 in the other direction: removing the ordinary declaration must not
+  // remove the regional declaration.  Move that region into overlap before
+  // retiring the ordinary route so the next update is regional-only.
+  REQUIRE_NOTHROW(subscriber->setRangeBounds(
+      subscriberRegion, sodaFlavor, RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(subscriber->commitRegionModifications(RegionHandleSet{subscriberRegion}));
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(soda, flavorOnly));
+  unsigned char const thirdValueBytes[] = {0x30, 0x03};
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      AttributeHandleValueMap{{
+          flavor,
+          VariableLengthData(thirdValueBytes, sizeof(thirdValueBytes)),
+      }},
+      VariableLengthData{}));
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 3U);
+
+  // The regional declaration remains independent after the ordinary route is
+  // gone: moving it out of overlap suppresses only the regional delivery.
+  REQUIRE_NOTHROW(subscriber->setRangeBounds(
+      subscriberRegion, sodaFlavor, RangeBounds(2UL, 3UL)));
+  REQUIRE_NOTHROW(subscriber->commitRegionModifications(RegionHandleSet{subscriberRegion}));
+  unsigned char const fourthValueBytes[] = {0x40, 0x04};
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      AttributeHandleValueMap{{
+          flavor,
+          VariableLengthData(fourthValueBytes, sizeof(fourthValueBytes)),
+      }},
+      VariableLengthData{}));
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 3U);
+
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributesWithRegions(soda, regionalPair));
+  REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(
+      objectInstance,
+      AttributeHandleSetRegionHandleSetPairVector{{
+          flavorOnly,
+          RegionHandleSet{publisherRegion},
+      }}));
+  REQUIRE_NOTHROW(publisher->deleteObjectInstance(objectInstance, VariableLengthData{}));
+  REQUIRE_NOTHROW(publisher->deleteRegion(publisherRegion));
+  REQUIRE_NOTHROW(subscriber->deleteRegion(subscriberRegion));
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(publisher->disconnect());
+  REQUIRE_NOTHROW(subscriber->disconnect());
+}
+
+TEST_CASE(
     "Embedded regional object attributes with no common dimensions never overlap",
     "[integration][development-profile][federation-management][object-management][ddm]"
     "[regional-object-attribute-routing][no-common-dimension]"

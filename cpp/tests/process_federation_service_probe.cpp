@@ -461,19 +461,15 @@ int runPublicServer(
           }
         }
       };
-  // A timestamped process event may arrive as an unsolicited push before the
-  // receiver enters Evoke, or the receiver may cross the polling fence first
-  // and receive the event in that response.  In both cases the callback
-  // bridge acknowledges the delivery on the receiver session before the
-  // producer can legally continue.  Keep the fixture tolerant of either
-  // transport ordering while still validating the acknowledgement boundary.
-  auto serveReceiverDeliveryAndAcknowledgement = [&] {
-    bool polled = false;
+  // The package probe runs its public clients against a push-mode service. A
+  // normal receive-order callback needs one receiver poll; a pre-delivery
+  // timestamped retraction additionally causes the client to acknowledge the
+  // suppressed TSO reservation after that poll.
+  auto serveReceiverDelivery = [&](bool expectAcknowledgement) {
     if (!ProcessTransportServiceDispatcher::serveOne(
             *receiver,
             [&](TransportServiceMessage const& request) {
               if (request.operation == TransportServiceOperation::receive_interaction) {
-                polled = true;
                 return receiverHandler(request);
               }
               if (request.operation ==
@@ -485,7 +481,7 @@ int runPublicServer(
             })) {
       return false;
     }
-    if (polled) {
+    if (expectAcknowledgement) {
       return ProcessTransportServiceDispatcher::serveOne(
           *receiver,
           [&](TransportServiceMessage const& request) {
@@ -683,6 +679,11 @@ int runPublicServer(
       throw std::runtime_error(
           "The installable directed-retraction server lost a lookup, declaration, or registration request.");
     }
+    // The public package consumer drains any queued discovery callback before
+    // enabling the sender's time-regulating role.  In push mode that callback
+    // may already have been captured while the receiver's lookup/declaration
+    // requests were in flight, so the server continues with the sender request
+    // sequence here.
     if (!serveExpectedSender(TransportServiceOperation::enable_time_regulation)) {
       throw std::runtime_error(
           "The installable directed-retraction server lost Enable Time Regulation.");
@@ -699,7 +700,7 @@ int runPublicServer(
           std::string("The installable directed-retraction server lost ") + directedStage + ".");
     }
     directedStage = "receiver Evoke (positive directed callback)";
-    if (!serveReceiverDeliveryAndAcknowledgement()) {
+    if (!serveReceiverDelivery(false)) {
       throw std::runtime_error(
           std::string("The installable directed-retraction server lost ") + directedStage + ".");
     }
@@ -724,7 +725,7 @@ int runPublicServer(
           std::string("The installable directed-retraction server lost ") + directedStage + ".");
     }
     directedStage = "receiver Evoke (suppressed callback)";
-    if (!serveReceiverDeliveryAndAcknowledgement()) {
+    if (!serveReceiverDelivery(true)) {
       throw std::runtime_error(
           std::string("The installable directed-retraction server lost ") + directedStage + ".");
     }
@@ -1081,6 +1082,136 @@ int runPublicServer(
   return 0;
 }
 
+// The save/restore package lane deliberately uses one installed public
+// RTIambassador and one process endpoint.  Keeping this choreography separate
+// from the two-federate interaction lanes makes its callback ordering and
+// service-operation contract directly queryable without introducing a second
+// client whose lifecycle could mask a save/restore defect.
+int runPublicSaveRestoreServer(
+    std::filesystem::path const& directory,
+    bool restoreFailure,
+    bool restoreAbort,
+    bool restoreStatus) {
+  EmbeddedFederationRegistry registry;
+  ProcessFomPreparationContext fomContext;
+  auto serviceOptions = makeProcessServiceOptions(fomContext);
+  // Keep the save/restore choreography on the deterministic pull boundary;
+  // each callback drain below must correspond to an explicit
+  // receive_interaction request, matching the native process lifecycle case.
+  serviceOptions.pushReceiveOrderEvents = false;
+  ProcessFederationService service(
+      registry, composedRestaurantDefinition(), serviceOptions);
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  if (!listener) {
+    throw std::runtime_error(
+        "The installable save/restore profile server could not open its listener.");
+  }
+  writeText(directory / "port.txt", std::to_string(listener->address().port));
+
+  auto connection = listener->accept(
+      nullptr,
+      {"package-process-save-restore-server", 0x94U},
+      [](std::wstring) {},
+      [](std::wstring) { return false; });
+  if (!connection || connection->peerIdentity().endpointId !=
+                         "package-process-sender") {
+    throw std::runtime_error(
+        "The installable save/restore profile server received an unexpected endpoint.");
+  }
+  ProcessTransportSession session(connection);
+  auto handler = service.handlerFor(session);
+  auto serveExpected = [&](TransportServiceOperation operation,
+                           char const* description) {
+    if (!ProcessTransportServiceDispatcher::serveOne(
+            session,
+            [&](TransportServiceMessage const& request) {
+              if (request.operation != operation) {
+                throw std::runtime_error(
+                    std::string(description) +
+                    " received an unexpected process operation.");
+              }
+              return handler(request);
+            })) {
+      throw std::runtime_error(description);
+    }
+  };
+
+  serveExpected(
+      TransportServiceOperation::create_federation_execution,
+      "The installable save/restore profile server lost Create.");
+  serveExpected(
+      TransportServiceOperation::join_federation_execution,
+      "The installable save/restore profile server lost Join.");
+  serveExpected(
+      TransportServiceOperation::request_federation_save,
+      "The installable save/restore profile server lost Request Federation Save.");
+  serveExpected(
+      TransportServiceOperation::receive_interaction,
+      "The installable save/restore profile server lost save-initiation polling.");
+  serveExpected(
+      TransportServiceOperation::federate_save_begun,
+      "The installable save/restore profile server lost Federate Save Begun.");
+  serveExpected(
+      TransportServiceOperation::federate_save_complete,
+      "The installable save/restore profile server lost Federate Save Complete.");
+  serveExpected(
+      TransportServiceOperation::receive_interaction,
+      "The installable save/restore profile server lost save-completion polling.");
+  serveExpected(
+      TransportServiceOperation::request_federation_restore,
+      "The installable save/restore profile server lost Request Federation Restore.");
+  serveExpected(
+      TransportServiceOperation::receive_interaction,
+      "The installable save/restore profile server lost restore-request polling.");
+  serveExpected(
+      TransportServiceOperation::receive_interaction,
+      "The installable save/restore profile server lost restore-begin polling.");
+  serveExpected(
+      TransportServiceOperation::receive_interaction,
+      "The installable save/restore profile server lost restore-initiation polling.");
+  if (restoreStatus) {
+    serveExpected(
+        TransportServiceOperation::query_federation_restore_status,
+        "The installable save/restore-status profile server lost Query Federation Restore Status.");
+    serveExpected(
+        TransportServiceOperation::receive_interaction,
+        "The installable save/restore-status profile server lost restore-status polling.");
+    serveExpected(
+        TransportServiceOperation::federate_restore_complete,
+        "The installable save/restore-status profile server lost Federate Restore Complete.");
+    serveExpected(
+        TransportServiceOperation::receive_interaction,
+        "The installable save/restore-status profile server lost restore-completion polling.");
+  } else {
+    serveExpected(
+        restoreAbort
+            ? TransportServiceOperation::abort_federation_restore
+            : (restoreFailure
+                   ? TransportServiceOperation::federate_restore_not_complete
+                   : TransportServiceOperation::federate_restore_complete),
+        restoreAbort
+            ? "The installable save/restore-abort profile server lost Abort Federation Restore."
+            : (restoreFailure
+                   ? "The installable save/restore-failure profile server lost Federate Restore Not Complete."
+                   : "The installable save/restore profile server lost Federate Restore Complete."));
+    serveExpected(
+        TransportServiceOperation::receive_interaction,
+        restoreAbort
+            ? "The installable save/restore-abort profile server lost restore-abort polling."
+            : (restoreFailure
+                   ? "The installable save/restore-failure profile server lost restore-failure polling."
+                   : "The installable save/restore profile server lost restore-completion polling."));
+  }
+  serveExpected(
+      TransportServiceOperation::resign_federation_execution,
+      "The installable save/restore profile server lost Resign.");
+
+  service.detach(session);
+  session.connection()->close();
+  writeText(directory / "server.ok", "ok\n");
+  return 0;
+}
+
 int runSender(std::filesystem::path const& directory) {
   auto const port = readPort(directory / "port.txt");
   ProcessFederationClient client(
@@ -1183,6 +1314,18 @@ int main(int argc, char** argv) {
     }
     if (std::string(argv[1]) == "public-server-directed-retraction") {
       return runPublicServer(directory, false, false, false, false, false, true);
+    }
+    if (std::string(argv[1]) == "public-server-save-restore") {
+      return runPublicSaveRestoreServer(directory, false, false, false);
+    }
+    if (std::string(argv[1]) == "public-server-save-restore-failure") {
+      return runPublicSaveRestoreServer(directory, true, false, false);
+    }
+    if (std::string(argv[1]) == "public-server-save-restore-abort") {
+      return runPublicSaveRestoreServer(directory, false, true, false);
+    }
+    if (std::string(argv[1]) == "public-server-save-restore-status") {
+      return runPublicSaveRestoreServer(directory, false, false, true);
     }
     if (std::string(argv[1]) == "sender") {
       return runSender(directory);

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for an ordinary federation restore that is started and then aborted. The source uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time selection when needed. It verifies a completed save prerequisite, restore request success, restore-begun and initiate-federate-restore callbacks, Abort Federation Restore, RESTORE_ABORTED terminal callbacks, terminal restore status, and standard federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-restore-abort",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador federation save, restore, abort, status, resignation, destruction, and disconnect services with FederateAmbassador save/restore lifecycle callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador save/restore declarations and FederateAmbassador restore callback declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationRestoreAbortContract"
+      ]
+    }
+  ]
+}

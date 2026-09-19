@@ -63,6 +63,13 @@ if(BUILD_TESTING)
       PROPERTIES LABELS package-process-connection-loss
     )
     add_test(
+      NAME umbra_rti_package_process_connection_loss_delete_objects_consumer
+      COMMAND umbra_rti_package_process_smoke connection-loss-delete-objects
+    )
+    set_tests_properties(umbra_rti_package_process_connection_loss_delete_objects_consumer
+      PROPERTIES LABELS package-process-connection-loss-delete-objects
+    )
+    add_test(
       NAME umbra_rti_package_process_object_registration_consumer
       COMMAND umbra_rti_package_process_smoke object-registration
     )
@@ -89,6 +96,34 @@ if(BUILD_TESTING)
     )
     set_tests_properties(umbra_rti_package_process_directed_retraction_consumer
       PROPERTIES LABELS package-process-directed-retraction
+    )
+    add_test(
+      NAME umbra_rti_package_process_federation_save_restore_consumer
+      COMMAND umbra_rti_package_process_smoke federation-save-restore
+    )
+    set_tests_properties(umbra_rti_package_process_federation_save_restore_consumer
+      PROPERTIES LABELS package-process-federation-save-restore
+    )
+    add_test(
+      NAME umbra_rti_package_process_federation_save_restore_failure_consumer
+      COMMAND umbra_rti_package_process_smoke federation-save-restore-failure
+    )
+    set_tests_properties(umbra_rti_package_process_federation_save_restore_failure_consumer
+      PROPERTIES LABELS package-process-federation-save-restore-failure
+    )
+    add_test(
+      NAME umbra_rti_package_process_federation_save_restore_abort_consumer
+      COMMAND umbra_rti_package_process_smoke federation-save-restore-abort
+    )
+    set_tests_properties(umbra_rti_package_process_federation_save_restore_abort_consumer
+      PROPERTIES LABELS package-process-federation-save-restore-abort
+    )
+    add_test(
+      NAME umbra_rti_package_process_federation_save_restore_status_consumer
+      COMMAND umbra_rti_package_process_smoke federation-save-restore-status
+    )
+    set_tests_properties(umbra_rti_package_process_federation_save_restore_status_consumer
+      PROPERTIES LABELS package-process-federation-save-restore-status
     )
   endif()
 endif()

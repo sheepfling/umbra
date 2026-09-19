@@ -55,6 +55,7 @@ using rti1516_2025::RTIambassadorFactory;
 using rti1516_2025::RTIinternalError;
 using rti1516_2025::RtiConfiguration;
 using rti1516_2025::SETTINGS_APPLIED;
+using rti1516_2025::SETTINGS_FAILED_TO_PARSE;
 using rti1516_2025::SETTINGS_IGNORED;
 using rti1516_2025::Unauthorized;
 using rti1516_2025::VariableLengthData;
@@ -112,6 +113,184 @@ class ProcessTimeFederateAmbassador final : public NullFederateAmbassador {
   std::wstring flushQueueGrantOptimisticImplementation;
   std::int64_t flushQueueGrantValue = -1;
   std::int64_t flushQueueGrantOptimisticValue = -1;
+};
+
+class ProcessSynchronizationFederateAmbassador final
+    : public NullFederateAmbassador {
+ public:
+  void synchronizationPointRegistrationSucceeded(
+      std::wstring const& label) override {
+    ++registrationSucceededCount;
+    registrationLabel = label;
+  }
+
+  void synchronizationPointRegistrationFailed(
+      std::wstring const& label,
+      rti1516_2025::SynchronizationPointFailureReason reason) override {
+    ++registrationFailedCount;
+    registrationLabel = label;
+    registrationFailureReason = reason;
+  }
+
+  void announceSynchronizationPoint(
+      std::wstring const& label,
+      VariableLengthData const& tag) override {
+    ++announcementCount;
+    announcementLabel = label;
+    announcementTag.clear();
+    if (tag.size() != 0U) {
+      auto const* data = static_cast<std::uint8_t const*>(tag.data());
+      announcementTag.assign(data, data + tag.size());
+    }
+  }
+
+  void federationSynchronized(
+      std::wstring const& label,
+      rti1516_2025::FederateHandleSet const& failedToSyncSet) override {
+    ++synchronizedCount;
+    synchronizedLabel = label;
+    failedToSyncCount = failedToSyncSet.size();
+  }
+
+  std::size_t registrationSucceededCount = 0U;
+  std::size_t registrationFailedCount = 0U;
+  std::wstring registrationLabel;
+  rti1516_2025::SynchronizationPointFailureReason registrationFailureReason =
+      rti1516_2025::SYNCHRONIZATION_POINT_LABEL_NOT_UNIQUE;
+  std::size_t announcementCount = 0U;
+  std::wstring announcementLabel;
+  std::vector<std::uint8_t> announcementTag;
+  std::size_t synchronizedCount = 0U;
+  std::wstring synchronizedLabel;
+  std::size_t failedToSyncCount = 0U;
+};
+
+class ProcessSaveFederateAmbassador final : public NullFederateAmbassador {
+ public:
+  void timeRegulationEnabled(
+      rti1516_2025::LogicalTime const&) override {
+    ++timeRegulationEnabledCount;
+  }
+
+  void initiateFederateSave(std::wstring const& label) override {
+    ++initiateCount;
+    initiateLabel = label;
+  }
+
+  void initiateFederateSave(
+      std::wstring const& label,
+      rti1516_2025::LogicalTime const& time) override {
+    ++timedInitiateCount;
+    timedInitiateLabel = label;
+    timedInitiateImplementation = time.implementationName();
+    timedInitiateValue = time.toString();
+  }
+
+  void federationSaved() override { ++savedCount; }
+
+  void federationNotSaved(rti1516_2025::SaveFailureReason reason) override {
+    ++notSavedCount;
+    notSavedReason = reason;
+  }
+
+  void federationSaveStatusResponse(
+      rti1516_2025::FederateHandleSaveStatusPairVector const& response) override {
+    federationSaveStatusReports.push_back(response);
+  }
+
+  std::size_t initiateCount = 0U;
+  std::wstring initiateLabel;
+  std::size_t timeRegulationEnabledCount = 0U;
+  std::size_t timedInitiateCount = 0U;
+  std::wstring timedInitiateLabel;
+  std::wstring timedInitiateImplementation;
+  std::wstring timedInitiateValue;
+  std::size_t savedCount = 0U;
+  std::size_t notSavedCount = 0U;
+  rti1516_2025::SaveFailureReason notSavedReason = rti1516_2025::SAVE_ABORTED;
+  std::vector<rti1516_2025::FederateHandleSaveStatusPairVector>
+      federationSaveStatusReports;
+};
+
+class ProcessRestoreFederateAmbassador final : public NullFederateAmbassador {
+ public:
+  void requestFederationRestoreSucceeded(std::wstring const& label) override {
+    ++restoreSucceededCount;
+    restoreLabel = label;
+    callbackOrder.push_back("restore-request-succeeded");
+  }
+
+  void requestFederationRestoreFailed(std::wstring const& label) override {
+    ++restoreFailedCount;
+    restoreLabel = label;
+    callbackOrder.push_back("restore-request-failed");
+  }
+
+  void initiateFederateSave(std::wstring const& label) override {
+    ++saveInitiateCount;
+    saveLabel = label;
+  }
+
+  void federationSaved() override { ++saveCompleteCount; }
+
+  void federationNotSaved(rti1516_2025::SaveFailureReason reason) override {
+    ++saveNotCompleteCount;
+    saveFailureReason = reason;
+  }
+
+  void federationRestoreBegun() override {
+    ++restoreBegunCount;
+    callbackOrder.push_back("restore-begun");
+  }
+
+  void initiateFederateRestore(
+      std::wstring const& label,
+      std::wstring const& federateName,
+      rti1516_2025::FederateHandle const& postRestoreFederateHandle) override {
+    ++restoreInitiateCount;
+    restoreLabel = label;
+    restoreFederateName = federateName;
+    restorePostFederateHandle = postRestoreFederateHandle;
+    callbackOrder.push_back("restore-initiate");
+  }
+
+  void federationRestored() override {
+    ++restoreCompleteCount;
+    callbackOrder.push_back("restore-complete");
+  }
+
+  void federationNotRestored(rti1516_2025::RestoreFailureReason reason) override {
+    ++restoreNotCompleteCount;
+    restoreFailureReason = reason;
+    callbackOrder.push_back("restore-failed");
+  }
+
+  void federationRestoreStatusResponse(
+      rti1516_2025::FederateRestoreStatusVector const& response) override {
+    federationRestoreStatusReports.push_back(response);
+    callbackOrder.push_back("restore-status");
+  }
+
+  std::size_t restoreSucceededCount = 0U;
+  std::size_t restoreFailedCount = 0U;
+  std::size_t restoreBegunCount = 0U;
+  std::size_t restoreInitiateCount = 0U;
+  std::size_t restoreCompleteCount = 0U;
+  std::size_t restoreNotCompleteCount = 0U;
+  std::size_t saveInitiateCount = 0U;
+  std::size_t saveCompleteCount = 0U;
+  std::size_t saveNotCompleteCount = 0U;
+  std::wstring restoreLabel;
+  std::wstring saveLabel;
+  std::wstring restoreFederateName;
+  rti1516_2025::FederateHandle restorePostFederateHandle;
+  rti1516_2025::SaveFailureReason saveFailureReason =
+      rti1516_2025::SAVE_ABORTED;
+  rti1516_2025::RestoreFailureReason restoreFailureReason =
+      rti1516_2025::RTI_UNABLE_TO_RESTORE;
+  std::vector<rti1516_2025::FederateRestoreStatusVector>
+      federationRestoreStatusReports;
+  std::vector<std::string> callbackOrder;
 };
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
@@ -406,6 +585,4089 @@ TEST_CASE(
   REQUIRE(connectionResult->addressUsed);
   REQUIRE(joinedHandle.has_value());
   REQUIRE(joinedHandle->isValid());
+}
+
+TEST_CASE(
+    "RTIambassadors carry federation synchronization points through the configured process endpoint",
+    "[integration][foundation][federation-management][synchronization-point][transport][process-boundary][public-endpoint][multi-federate][2025]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-synchronization-point-execution";
+  constexpr wchar_t const* synchronizationLabel =
+      L"process-synchronization-point";
+  constexpr wchar_t const* federateType = L"process-synchronization-type";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto senderConnection = listener->accept(
+          nullptr,
+          {"process-synchronization-server", 0x9231U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession sender(senderConnection);
+      auto senderHandler = service.handlerFor(sender);
+      auto serveExpected = [](
+                                ProcessTransportSession& session,
+                                auto const& handler,
+                                TransportServiceOperation operation,
+                                char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The process synchronization server lost Create.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The process synchronization server lost sender Join.");
+      auto receiverConnection = listener->accept(
+          nullptr,
+          {"process-synchronization-server", 0x9232U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession receiver(receiverConnection);
+      auto receiverHandler = service.handlerFor(receiver);
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The process synchronization server lost receiver Join.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::register_federation_synchronization_point,
+          "The process synchronization server lost synchronization registration.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::receive_interaction,
+          "The process synchronization server lost sender announcement polling.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The process synchronization server lost receiver announcement polling.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::synchronization_point_achieved,
+          "The process synchronization server lost sender achievement.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::synchronization_point_achieved,
+          "The process synchronization server lost receiver achievement.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::receive_interaction,
+          "The process synchronization server lost sender synchronized polling.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The process synchronization server lost receiver synchronized polling.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The process synchronization server lost sender Resign.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The process synchronization server lost receiver Resign.");
+      service.detach(sender);
+      service.detach(receiver);
+      senderConnection->close();
+      receiverConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSynchronizationFederateAmbassador senderFederate;
+  ProcessSynchronizationFederateAmbassador receiverFederate;
+  auto senderRti = makeRti();
+  auto receiverRti = makeRti();
+  auto senderConfiguration = RtiConfiguration::createConfiguration()
+                                 .withConfigurationName(
+                                     L"process-synchronization-sender-client")
+                                 .withRtiAddress(
+                                     L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto receiverConfiguration = RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(
+                                       L"process-synchronization-receiver-client")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(senderRti->connect(
+                senderFederate, HLA_EVOKED, senderConfiguration)
+                .addressUsed);
+    senderRti->createFederationExecution(
+        federationName, L"server-owned-process-synchronization-fom.xml");
+    REQUIRE(senderRti->joinFederationExecution(federateType, federationName)
+                .isValid());
+
+    REQUIRE(receiverRti->connect(
+                receiverFederate, HLA_EVOKED, receiverConfiguration)
+                .addressUsed);
+    REQUIRE(receiverRti->joinFederationExecution(federateType, federationName)
+                .isValid());
+
+    std::array<std::uint8_t, 3U> tagBytes{0x11U, 0x22U, 0x33U};
+    VariableLengthData tag;
+    tag.setData(tagBytes.data(), tagBytes.size());
+    senderRti->registerFederationSynchronizationPoint(
+        synchronizationLabel, tag);
+    REQUIRE(senderFederate.registrationSucceededCount == 0U);
+    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    REQUIRE(senderFederate.registrationSucceededCount == 1U);
+    REQUIRE(senderFederate.registrationLabel == synchronizationLabel);
+    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    REQUIRE(senderFederate.announcementCount == 1U);
+    REQUIRE(senderFederate.announcementLabel == synchronizationLabel);
+    REQUIRE(senderFederate.announcementTag ==
+            std::vector<std::uint8_t>(tagBytes.begin(), tagBytes.end()));
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.announcementCount == 1U);
+    REQUIRE(receiverFederate.announcementLabel == synchronizationLabel);
+    REQUIRE(receiverFederate.announcementTag ==
+            std::vector<std::uint8_t>(tagBytes.begin(), tagBytes.end()));
+
+    senderRti->synchronizationPointAchieved(synchronizationLabel);
+    receiverRti->synchronizationPointAchieved(synchronizationLabel);
+    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    REQUIRE(senderFederate.synchronizedCount == 1U);
+    REQUIRE(senderFederate.synchronizedLabel == synchronizationLabel);
+    REQUIRE(senderFederate.failedToSyncCount == 0U);
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.synchronizedCount == 1U);
+    REQUIRE(receiverFederate.synchronizedLabel == synchronizationLabel);
+    REQUIRE(receiverFederate.failedToSyncCount == 0U);
+
+    senderRti->resignFederationExecution(NO_ACTION);
+    receiverRti->resignFederationExecution(NO_ACTION);
+    senderRti->disconnect();
+    receiverRti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors carry federation restore request failures through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][rti.service.request-federation-restore][federate.callback.request-federation-restore-failed]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-request-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-restore-request-type";
+  constexpr wchar_t const* restoreLabel =
+      L"process-federation-restore-missing-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-restore-request-server", 0x9264U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The process federation-restore server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The process federation-restore server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_restore,
+          "The process federation-restore server lost Request Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore server lost restore-failure polling.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The process federation-restore server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessRestoreFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-restore-request-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-request-fom.xml");
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->requestFederationRestore(restoreLabel));
+    REQUIRE(federate.restoreFailedCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreSucceededCount == 0U);
+    REQUIRE(federate.restoreFailedCount == 1U);
+    REQUIRE(federate.restoreLabel == restoreLabel);
+
+    rti->resignFederationExecution(NO_ACTION);
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors carry successful federation restore lifecycle through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][rti.service.request-federation-restore][rti.service.federate-restore-complete][federate.callback.request-federation-restore-succeeded][federate.callback.federation-restore-begun][federate.callback.initiate-federate-restore][federate.callback.federation-restored]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-success-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-restore-success-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-restore-success-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-restore-success-server", 0x9265U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The process federation-restore-success server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The process federation-restore-success server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The process federation-restore-success server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-success server lost save-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The process federation-restore-success server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_complete,
+          "The process federation-restore-success server lost Federate Save Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-success server lost save-completion polling.");
+      serveExpected(
+          TransportServiceOperation::request_federation_restore,
+          "The process federation-restore-success server lost Request Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-success server lost restore-request polling.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-success server lost restore-begin polling.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-success server lost restore-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::federate_restore_complete,
+          "The process federation-restore-success server lost Federate Restore Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-success server lost restore-completion polling.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The process federation-restore-success server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessRestoreFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-restore-success-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-success-fom.xml");
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.saveInitiateCount == 1U);
+    REQUIRE(federate.saveLabel == saveLabel);
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveComplete());
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.saveCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+    REQUIRE(federate.restoreSucceededCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreSucceededCount == 1U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreBegunCount == 1U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreInitiateCount == 1U);
+    REQUIRE(federate.restoreLabel == saveLabel);
+    REQUIRE_FALSE(federate.restoreFederateName.empty());
+    REQUIRE(federate.restorePostFederateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->federateRestoreComplete());
+    REQUIRE(federate.restoreCompleteCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreCompleteCount == 1U);
+    REQUIRE(federate.restoreNotCompleteCount == 0U);
+    REQUIRE(federate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-request-succeeded",
+                "restore-begun",
+                "restore-initiate",
+                "restore-complete"});
+
+    rti->resignFederationExecution(NO_ACTION);
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors carry federation restore failure lifecycle through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][rti.service.request-federation-restore][rti.service.federate-restore-not-complete][federate.callback.request-federation-restore-succeeded][federate.callback.federation-restore-begun][federate.callback.initiate-federate-restore][federate.callback.federation-not-restored]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-failure-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-restore-failure-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-restore-failure-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-restore-failure-server", 0x9266U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The process federation-restore-failure server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The process federation-restore-failure server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The process federation-restore-failure server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-failure server lost save-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The process federation-restore-failure server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_complete,
+          "The process federation-restore-failure server lost Federate Save Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-failure server lost save-completion polling.");
+      serveExpected(
+          TransportServiceOperation::request_federation_restore,
+          "The process federation-restore-failure server lost Request Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-failure server lost restore-request polling.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-failure server lost restore-begin polling.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-failure server lost restore-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::federate_restore_not_complete,
+          "The process federation-restore-failure server lost Federate Restore Not Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-failure server lost restore-failure polling.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The process federation-restore-failure server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessRestoreFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-restore-failure-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-failure-fom.xml");
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.saveInitiateCount == 1U);
+    REQUIRE(federate.saveLabel == saveLabel);
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveComplete());
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.saveCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreSucceededCount == 1U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreBegunCount == 1U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreInitiateCount == 1U);
+    REQUIRE(federate.restoreLabel == saveLabel);
+    REQUIRE_FALSE(federate.restoreFederateName.empty());
+    REQUIRE(federate.restorePostFederateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->federateRestoreNotComplete());
+    REQUIRE(federate.restoreNotCompleteCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreNotCompleteCount == 1U);
+    REQUIRE(federate.restoreCompleteCount == 0U);
+    REQUIRE(federate.restoreFailureReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_RESTORE);
+    REQUIRE(federate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-request-succeeded",
+                "restore-begun",
+                "restore-initiate",
+                "restore-failed"});
+
+    rti->resignFederationExecution(NO_ACTION);
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors carry federation restore abort through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][rti.service.request-federation-restore][rti.service.abort-federation-restore][federate.callback.request-federation-restore-succeeded][federate.callback.federation-restore-begun][federate.callback.initiate-federate-restore][federate.callback.federation-not-restored]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-abort-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-restore-abort-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-restore-abort-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-restore-abort-server", 0x9267U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The process federation-restore-abort server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The process federation-restore-abort server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The process federation-restore-abort server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-abort server lost save-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The process federation-restore-abort server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_complete,
+          "The process federation-restore-abort server lost Federate Save Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-abort server lost save-completion polling.");
+      serveExpected(
+          TransportServiceOperation::request_federation_restore,
+          "The process federation-restore-abort server lost Request Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-abort server lost restore-request polling.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-abort server lost restore-begin polling.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-abort server lost restore-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::abort_federation_restore,
+          "The process federation-restore-abort server lost Abort Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-abort server lost restore-abort polling.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The process federation-restore-abort server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessRestoreFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-restore-abort-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-abort-fom.xml");
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.saveInitiateCount == 1U);
+    REQUIRE(federate.saveLabel == saveLabel);
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveComplete());
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.saveCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreSucceededCount == 1U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreBegunCount == 1U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreInitiateCount == 1U);
+    REQUIRE(federate.restoreLabel == saveLabel);
+    REQUIRE_FALSE(federate.restoreFederateName.empty());
+    REQUIRE(federate.restorePostFederateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->abortFederationRestore());
+    REQUIRE(federate.restoreNotCompleteCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreNotCompleteCount == 1U);
+    REQUIRE(federate.restoreCompleteCount == 0U);
+    REQUIRE(federate.restoreFailureReason == rti1516_2025::RESTORE_ABORTED);
+    REQUIRE(federate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-request-succeeded",
+                "restore-begun",
+                "restore-initiate",
+                "restore-failed"});
+
+    rti->resignFederationExecution(NO_ACTION);
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors carry federation restore status through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][rti.service.request-federation-restore][rti.service.query-federation-restore-status][rti.service.federate-restore-complete][federate.callback.request-federation-restore-succeeded][federate.callback.federation-restore-begun][federate.callback.initiate-federate-restore][federate.callback.federation-restore-status-response][federate.callback.federation-restored]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-status-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-restore-status-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-restore-status-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-restore-status-server", 0x9268U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The process federation-restore-status server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The process federation-restore-status server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The process federation-restore-status server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status server lost save-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The process federation-restore-status server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_complete,
+          "The process federation-restore-status server lost Federate Save Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status server lost save-completion polling.");
+      serveExpected(
+          TransportServiceOperation::request_federation_restore,
+          "The process federation-restore-status server lost Request Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status server lost restore-request polling.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status server lost restore-begin polling.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status server lost restore-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::query_federation_restore_status,
+          "The process federation-restore-status server lost Query Federation Restore Status.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status server lost restore-status polling.");
+      serveExpected(
+          TransportServiceOperation::federate_restore_complete,
+          "The process federation-restore-status server lost Federate Restore Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status server lost restore-completion polling.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The process federation-restore-status server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessRestoreFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-restore-status-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-status-fom.xml");
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.saveInitiateCount == 1U);
+    REQUIRE(federate.saveLabel == saveLabel);
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveComplete());
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.saveCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreSucceededCount == 1U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreBegunCount == 1U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreInitiateCount == 1U);
+    REQUIRE(federate.restorePostFederateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->queryFederationRestoreStatus());
+    REQUIRE(federate.federationRestoreStatusReports.empty());
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.federationRestoreStatusReports.size() == 1U);
+    auto const& statuses = federate.federationRestoreStatusReports.back();
+    REQUIRE(statuses.size() == 1U);
+    REQUIRE(statuses.front().preRestoreHandle.isValid());
+    REQUIRE(statuses.front().postRestoreHandle.isValid());
+    REQUIRE(statuses.front().status == rti1516_2025::FEDERATE_RESTORING);
+
+    REQUIRE_NOTHROW(rti->federateRestoreComplete());
+    REQUIRE(federate.restoreCompleteCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreCompleteCount == 1U);
+    REQUIRE(federate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-request-succeeded",
+                "restore-begun",
+                "restore-initiate",
+                "restore-status",
+                "restore-complete"});
+
+    rti->resignFederationExecution(NO_ACTION);
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors preserve idle and terminal federation restore status through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][rti.service.query-federation-restore-status][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][rti.service.request-federation-restore][rti.service.federate-restore-complete][federate.callback.federation-restore-status-response][federate.callback.request-federation-restore-succeeded][federate.callback.federation-restore-begun][federate.callback.initiate-federate-restore][federate.callback.federation-restored]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-status-boundaries-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-restore-status-boundaries-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-restore-status-boundaries-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-restore-status-boundaries-server", 0x9269U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The process federation-restore-status-boundaries server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The process federation-restore-status-boundaries server lost Join.");
+      serveExpected(
+          TransportServiceOperation::query_federation_restore_status,
+          "The process federation-restore-status-boundaries server lost idle Query Federation Restore Status.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status-boundaries server lost idle-status polling.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The process federation-restore-status-boundaries server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status-boundaries server lost save-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The process federation-restore-status-boundaries server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_complete,
+          "The process federation-restore-status-boundaries server lost Federate Save Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status-boundaries server lost save-completion polling.");
+      serveExpected(
+          TransportServiceOperation::request_federation_restore,
+          "The process federation-restore-status-boundaries server lost Request Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status-boundaries server lost restore-request polling.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status-boundaries server lost restore-begin polling.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status-boundaries server lost restore-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::query_federation_restore_status,
+          "The process federation-restore-status-boundaries server lost in-progress Query Federation Restore Status.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status-boundaries server lost in-progress-status polling.");
+      serveExpected(
+          TransportServiceOperation::federate_restore_complete,
+          "The process federation-restore-status-boundaries server lost Federate Restore Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status-boundaries server lost restore-completion polling.");
+      serveExpected(
+          TransportServiceOperation::query_federation_restore_status,
+          "The process federation-restore-status-boundaries server lost terminal Query Federation Restore Status.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-restore-status-boundaries server lost terminal-status polling.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The process federation-restore-status-boundaries server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessRestoreFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-restore-status-boundaries-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-status-boundaries-fom.xml");
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->queryFederationRestoreStatus());
+    REQUIRE(federate.federationRestoreStatusReports.empty());
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.federationRestoreStatusReports.size() == 1U);
+    auto const& idleStatuses = federate.federationRestoreStatusReports.back();
+    REQUIRE(idleStatuses.size() == 1U);
+    REQUIRE(idleStatuses.front().preRestoreHandle.isValid());
+    REQUIRE_FALSE(idleStatuses.front().postRestoreHandle.isValid());
+    REQUIRE(idleStatuses.front().status == rti1516_2025::NO_RESTORE_IN_PROGRESS);
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.saveInitiateCount == 1U);
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveComplete());
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.saveCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreSucceededCount == 1U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreBegunCount == 1U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreInitiateCount == 1U);
+
+    REQUIRE_NOTHROW(rti->queryFederationRestoreStatus());
+    REQUIRE(federate.federationRestoreStatusReports.size() == 1U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.federationRestoreStatusReports.size() == 2U);
+    auto const& restoringStatuses = federate.federationRestoreStatusReports.back();
+    REQUIRE(restoringStatuses.size() == 1U);
+    REQUIRE(restoringStatuses.front().preRestoreHandle.isValid());
+    REQUIRE(restoringStatuses.front().postRestoreHandle.isValid());
+    REQUIRE(restoringStatuses.front().status == rti1516_2025::FEDERATE_RESTORING);
+
+    REQUIRE_NOTHROW(rti->federateRestoreComplete());
+    REQUIRE(federate.restoreCompleteCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.restoreCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(rti->queryFederationRestoreStatus());
+    REQUIRE(federate.federationRestoreStatusReports.size() == 2U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.federationRestoreStatusReports.size() == 3U);
+    auto const& terminalStatuses = federate.federationRestoreStatusReports.back();
+    REQUIRE(terminalStatuses.size() == 1U);
+    REQUIRE(terminalStatuses.front().preRestoreHandle.isValid());
+    REQUIRE_FALSE(terminalStatuses.front().postRestoreHandle.isValid());
+    REQUIRE(terminalStatuses.front().status == rti1516_2025::NO_RESTORE_IN_PROGRESS);
+    REQUIRE(federate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-status",
+                "restore-request-succeeded",
+                "restore-begun",
+                "restore-initiate",
+                "restore-status",
+                "restore-complete",
+                "restore-status"});
+
+    rti->resignFederationExecution(NO_ACTION);
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors preserve multi-federate federation restore status projections through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][multi-federate][2025][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][rti.service.request-federation-restore][rti.service.query-federation-restore-status][rti.service.federate-restore-complete][federate.callback.request-federation-restore-succeeded][federate.callback.federation-restore-begun][federate.callback.initiate-federate-restore][federate.callback.federation-restore-status-response][federate.callback.federation-restored]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-status-multi-federate-execution";
+  constexpr wchar_t const* firstFederateType =
+      L"process-federation-restore-status-multi-federate-first-type";
+  constexpr wchar_t const* secondFederateType =
+      L"process-federation-restore-status-multi-federate-second-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-restore-status-multi-federate-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto firstConnection = listener->accept(
+          nullptr,
+          {"process-federation-restore-status-multi-federate-server", 0x926AU},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession first(firstConnection);
+      auto firstHandler = service.handlerFor(first);
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The multi-federate restore-status server lost Create.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The multi-federate restore-status server lost first Join.");
+
+      auto secondConnection = listener->accept(
+          nullptr,
+          {"process-federation-restore-status-multi-federate-server", 0x926BU},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession second(secondConnection);
+      auto secondHandler = service.handlerFor(second);
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The multi-federate restore-status server lost second Join.");
+
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::request_federation_save,
+          "The multi-federate restore-status server lost Request Federation Save.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost first save initiation polling.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost second save initiation polling.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The multi-federate restore-status server lost first Federate Save Begun.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The multi-federate restore-status server lost second Federate Save Begun.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The multi-federate restore-status server lost first Federate Save Complete.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The multi-federate restore-status server lost second Federate Save Complete.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost first save completion polling.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost second save completion polling.");
+
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::request_federation_restore,
+          "The multi-federate restore-status server lost Request Federation Restore.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost first restore success polling.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost first restore-begun polling.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost first restore-initiation polling.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost second restore-begun polling.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost second restore-initiation polling.");
+
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::query_federation_restore_status,
+          "The multi-federate restore-status server lost first in-progress Query Federation Restore Status.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost first in-progress status polling.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::query_federation_restore_status,
+          "The multi-federate restore-status server lost second in-progress Query Federation Restore Status.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost second in-progress status polling.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::federate_restore_complete,
+          "The multi-federate restore-status server lost first Federate Restore Complete.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::query_federation_restore_status,
+          "The multi-federate restore-status server lost waiting Query Federation Restore Status.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost waiting status polling.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::query_federation_restore_status,
+          "The multi-federate restore-status server lost second waiting Query Federation Restore Status.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost second waiting status polling.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::federate_restore_complete,
+          "The multi-federate restore-status server lost second Federate Restore Complete.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost first restore completion polling.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost second restore completion polling.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::query_federation_restore_status,
+          "The multi-federate restore-status server lost terminal Query Federation Restore Status.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate restore-status server lost terminal status polling.");
+
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The multi-federate restore-status server lost second Resign.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The multi-federate restore-status server lost first Resign.");
+      service.detach(second);
+      service.detach(first);
+      secondConnection->close();
+      firstConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  auto firstRti = makeRti();
+  auto secondRti = makeRti();
+  ProcessRestoreFederateAmbassador firstFederate;
+  ProcessRestoreFederateAmbassador secondFederate;
+  auto firstConfiguration = RtiConfiguration::createConfiguration()
+                                .withConfigurationName(
+                                    L"process-federation-restore-status-multi-federate-first")
+                                .withRtiAddress(
+                                    L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto secondConfiguration = RtiConfiguration::createConfiguration()
+                                 .withConfigurationName(
+                                     L"process-federation-restore-status-multi-federate-second")
+                                 .withRtiAddress(
+                                     L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool firstJoined = false;
+  bool secondJoined = false;
+  try {
+    REQUIRE(firstRti->connect(firstFederate, HLA_EVOKED, firstConfiguration)
+                .addressUsed);
+    REQUIRE_NOTHROW(firstRti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-status-fom.xml"));
+    auto const firstHandle = firstRti->joinFederationExecution(
+        firstFederateType,
+        federationName);
+    REQUIRE(firstHandle.isValid());
+    firstJoined = true;
+
+    REQUIRE(secondRti->connect(secondFederate, HLA_EVOKED, secondConfiguration)
+                .addressUsed);
+    auto const secondHandle = secondRti->joinFederationExecution(
+        secondFederateType,
+        federationName);
+    REQUIRE(secondHandle.isValid());
+    REQUIRE(firstHandle != secondHandle);
+    secondJoined = true;
+
+    REQUIRE_NOTHROW(firstRti->requestFederationSave(saveLabel));
+    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.saveInitiateCount == 1U);
+    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.saveInitiateCount == 1U);
+    REQUIRE_NOTHROW(firstRti->federateSaveBegun());
+    REQUIRE_NOTHROW(secondRti->federateSaveBegun());
+    REQUIRE_NOTHROW(firstRti->federateSaveComplete());
+    REQUIRE_NOTHROW(secondRti->federateSaveComplete());
+    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.saveCompleteCount == 1U);
+    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.saveCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(firstRti->requestFederationRestore(saveLabel));
+    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.restoreSucceededCount == 1U);
+    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.restoreBegunCount == 1U);
+    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.restoreInitiateCount == 1U);
+    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.restoreBegunCount == 1U);
+    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.restoreInitiateCount == 1U);
+
+    auto requireStatus = [](auto const& statuses,
+                            auto const& handle,
+                            rti1516_2025::RestoreStatus expectedStatus,
+                            bool expectedPostHandleValidity) {
+      auto const status = std::find_if(
+          statuses.begin(),
+          statuses.end(),
+          [&handle](auto const& candidate) {
+            return candidate.preRestoreHandle == handle;
+          });
+      REQUIRE(status != statuses.end());
+      if (status == statuses.end()) {
+        return;
+      }
+      REQUIRE(status->status == expectedStatus);
+      REQUIRE(status->postRestoreHandle.isValid() == expectedPostHandleValidity);
+      if (expectedPostHandleValidity) {
+        REQUIRE(status->postRestoreHandle == handle);
+      }
+    };
+
+    REQUIRE_NOTHROW(firstRti->queryFederationRestoreStatus());
+    REQUIRE(firstFederate.federationRestoreStatusReports.empty());
+    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.federationRestoreStatusReports.size() == 1U);
+    auto const& firstRestoringStatuses =
+        firstFederate.federationRestoreStatusReports.back();
+    REQUIRE(firstRestoringStatuses.size() == 2U);
+    requireStatus(
+        firstRestoringStatuses,
+        firstHandle,
+        rti1516_2025::FEDERATE_RESTORING,
+        true);
+    requireStatus(
+        firstRestoringStatuses,
+        secondHandle,
+        rti1516_2025::FEDERATE_RESTORING,
+        true);
+
+    REQUIRE_NOTHROW(secondRti->queryFederationRestoreStatus());
+    REQUIRE(secondFederate.federationRestoreStatusReports.empty());
+    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.federationRestoreStatusReports.size() == 1U);
+    auto const& secondRestoringStatuses =
+        secondFederate.federationRestoreStatusReports.back();
+    REQUIRE(secondRestoringStatuses.size() == 2U);
+    requireStatus(
+        secondRestoringStatuses,
+        firstHandle,
+        rti1516_2025::FEDERATE_RESTORING,
+        true);
+    requireStatus(
+        secondRestoringStatuses,
+        secondHandle,
+        rti1516_2025::FEDERATE_RESTORING,
+        true);
+
+    REQUIRE_NOTHROW(firstRti->federateRestoreComplete());
+    REQUIRE(firstFederate.restoreCompleteCount == 0U);
+    REQUIRE_NOTHROW(firstRti->queryFederationRestoreStatus());
+    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.federationRestoreStatusReports.size() == 2U);
+    auto const& firstWaitingStatuses =
+        firstFederate.federationRestoreStatusReports.back();
+    REQUIRE(firstWaitingStatuses.size() == 2U);
+    requireStatus(
+        firstWaitingStatuses,
+        firstHandle,
+        rti1516_2025::FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE,
+        true);
+    requireStatus(
+        firstWaitingStatuses,
+        secondHandle,
+        rti1516_2025::FEDERATE_RESTORING,
+        true);
+
+    REQUIRE_NOTHROW(secondRti->queryFederationRestoreStatus());
+    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.federationRestoreStatusReports.size() == 2U);
+    auto const& secondWaitingStatuses =
+        secondFederate.federationRestoreStatusReports.back();
+    REQUIRE(secondWaitingStatuses.size() == 2U);
+    requireStatus(
+        secondWaitingStatuses,
+        firstHandle,
+        rti1516_2025::FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE,
+        true);
+    requireStatus(
+        secondWaitingStatuses,
+        secondHandle,
+        rti1516_2025::FEDERATE_RESTORING,
+        true);
+
+    REQUIRE_NOTHROW(secondRti->federateRestoreComplete());
+    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.restoreCompleteCount == 1U);
+    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.restoreCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(firstRti->queryFederationRestoreStatus());
+    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.federationRestoreStatusReports.size() == 3U);
+    auto const& firstTerminalStatuses =
+        firstFederate.federationRestoreStatusReports.back();
+    REQUIRE(firstTerminalStatuses.size() == 2U);
+    requireStatus(
+        firstTerminalStatuses,
+        firstHandle,
+        rti1516_2025::NO_RESTORE_IN_PROGRESS,
+        false);
+    requireStatus(
+        firstTerminalStatuses,
+        secondHandle,
+        rti1516_2025::NO_RESTORE_IN_PROGRESS,
+        false);
+    REQUIRE(firstFederate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-request-succeeded",
+                "restore-begun",
+                "restore-initiate",
+                "restore-status",
+                "restore-status",
+                "restore-complete",
+                "restore-status"});
+    REQUIRE(secondFederate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-begun",
+                "restore-initiate",
+                "restore-status",
+                "restore-status",
+                "restore-complete"});
+
+    REQUIRE_NOTHROW(secondRti->resignFederationExecution(NO_ACTION));
+    secondJoined = false;
+    REQUIRE_NOTHROW(secondRti->disconnect());
+    REQUIRE_NOTHROW(firstRti->resignFederationExecution(NO_ACTION));
+    firstJoined = false;
+    REQUIRE_NOTHROW(firstRti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (secondJoined) {
+      try {
+        secondRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (firstJoined) {
+      try {
+        firstRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      secondRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      firstRti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors carry untimed federation save callbacks through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-save-execution";
+  constexpr wchar_t const* federateType = L"process-federation-save-type";
+  constexpr wchar_t const* saveLabel = L"process-federation-save-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-save-server", 0x9261U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The process federation-save server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The process federation-save server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The process federation-save server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-save server lost save-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The process federation-save server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_complete,
+          "The process federation-save server lost Federate Save Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-save server lost save-completion polling.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The process federation-save server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSaveFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-save-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName, L"server-owned-process-federation-save-fom.xml");
+    REQUIRE(rti->joinFederationExecution(federateType, federationName)
+                .isValid());
+
+    rti->requestFederationSave(saveLabel);
+    REQUIRE(federate.initiateCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.initiateCount == 1U);
+    REQUIRE(federate.initiateLabel == saveLabel);
+
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveComplete());
+    REQUIRE(federate.savedCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.savedCount == 1U);
+    REQUIRE(federate.notSavedCount == 0U);
+
+    rti->resignFederationExecution(NO_ACTION);
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors carry timestamped federation save callbacks through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][time-management][transport][process-boundary][public-endpoint][2025][rti.service.enable-time-regulation][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.time-regulation-enabled][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-timestamped-federation-save-execution";
+  constexpr wchar_t const* federateType =
+      L"process-timestamped-federation-save-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-timestamped-federation-save-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-timestamped-federation-save-server", 0x9263U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The process timestamped-save server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The process timestamped-save server lost Join.");
+      serveExpected(
+          TransportServiceOperation::enable_time_regulation,
+          "The process timestamped-save server lost Enable Time Regulation.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The process timestamped-save server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process timestamped-save server lost save-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The process timestamped-save server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_complete,
+          "The process timestamped-save server lost Federate Save Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process timestamped-save server lost save-completion polling.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The process timestamped-save server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSaveFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-timestamped-federation-save-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName, L"server-owned-process-federation-save-fom.xml");
+    REQUIRE(rti->joinFederationExecution(federateType, federationName)
+                .isValid());
+
+    REQUIRE_NOTHROW(
+        rti->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.timeRegulationEnabledCount == 1U);
+
+    rti1516_2025::HLAinteger64Time saveTime(5);
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel, saveTime));
+    REQUIRE(federate.timedInitiateCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.timedInitiateCount == 1U);
+    REQUIRE(federate.timedInitiateLabel == saveLabel);
+    REQUIRE(federate.timedInitiateImplementation == L"HLAinteger64Time");
+    REQUIRE(federate.timedInitiateValue == saveTime.toString());
+
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveComplete());
+    REQUIRE(federate.savedCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.savedCount == 1U);
+    REQUIRE(federate.notSavedCount == 0U);
+
+    rti->resignFederationExecution(NO_ACTION);
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors coordinate timestamped federation save boundaries through a configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][time-management][transport][process-boundary][public-endpoint][multi-federate][2025][timed-save][multi-federate-callback-ordering][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.request-federation-save][rti.service.time-advance-request][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
+  class MixedTimedSaveFederateAmbassador final : public NullFederateAmbassador {
+   public:
+    void timeRegulationEnabled(
+        rti1516_2025::LogicalTime const& time) override {
+      ++timeRegulationEnabledCount;
+      timeRegulationEnabledImplementation = time.implementationName();
+    }
+
+    void timeConstrainedEnabled(
+        rti1516_2025::LogicalTime const& time) override {
+      ++timeConstrainedEnabledCount;
+      timeConstrainedEnabledImplementation = time.implementationName();
+    }
+
+    void timeAdvanceGrant(
+        rti1516_2025::LogicalTime const& time) override {
+      ++timeAdvanceGrantCount;
+      timeAdvanceGrantImplementation = time.implementationName();
+      timeAdvanceGrantValue = time.toString();
+      callbackOrder.push_back("grant");
+    }
+
+    void initiateFederateSave(std::wstring const& label) override {
+      ++untimedInitiateCount;
+      untimedInitiateLabel = label;
+      callbackOrder.push_back("save-initiate");
+    }
+
+    void initiateFederateSave(
+        std::wstring const& label,
+        rti1516_2025::LogicalTime const& time) override {
+      ++timedInitiateCount;
+      timedInitiateLabel = label;
+      timedInitiateImplementation = time.implementationName();
+      timedInitiateValue = time.toString();
+      callbackOrder.push_back("save-initiate-timed");
+    }
+
+    void federationSaved() override {
+      ++savedCount;
+      callbackOrder.push_back("saved");
+    }
+
+    std::size_t timeRegulationEnabledCount = 0U;
+    std::wstring timeRegulationEnabledImplementation;
+    std::size_t timeConstrainedEnabledCount = 0U;
+    std::wstring timeConstrainedEnabledImplementation;
+    std::size_t timeAdvanceGrantCount = 0U;
+    std::wstring timeAdvanceGrantImplementation;
+    std::wstring timeAdvanceGrantValue;
+    std::size_t untimedInitiateCount = 0U;
+    std::wstring untimedInitiateLabel;
+    std::size_t timedInitiateCount = 0U;
+    std::wstring timedInitiateLabel;
+    std::wstring timedInitiateImplementation;
+    std::wstring timedInitiateValue;
+    std::size_t savedCount = 0U;
+    std::vector<std::string> callbackOrder;
+  };
+
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-timed-federation-save-boundary-execution";
+  constexpr wchar_t const* ownerType =
+      L"process-timed-federation-save-owner-type";
+  constexpr wchar_t const* receiverType =
+      L"process-timed-federation-save-receiver-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-timed-federation-save-boundary-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto ownerConnection = listener->accept(
+          nullptr,
+          {"process-timed-federation-save-boundary-server", 0x9264U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession ownerSession(ownerConnection);
+      auto ownerHandler = service.handlerFor(ownerSession);
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The timed process-save server lost Create.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The timed process-save server lost owner Join.");
+
+      auto receiverConnection = listener->accept(
+          nullptr,
+          {"process-timed-federation-save-boundary-server", 0x9265U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession receiverSession(receiverConnection);
+      auto receiverHandler = service.handlerFor(receiverSession);
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The timed process-save server lost receiver Join.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::enable_time_regulation,
+          "The timed process-save server lost owner Enable Time Regulation.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::enable_time_constrained,
+          "The timed process-save server lost receiver Enable Time Constrained.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::request_federation_save,
+          "The timed process-save server lost Request Federation Save.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::time_advance_request,
+          "The timed process-save server lost owner TAR.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::time_advance_request,
+          "The timed process-save server lost receiver TAR.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The timed process-save server lost owner save polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The timed process-save server lost owner Federate Save Begun.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The timed process-save server lost receiver Federate Save Begun.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The timed process-save server lost owner Federate Save Complete.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The timed process-save server lost receiver Federate Save Complete.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The timed process-save server lost owner completion polling.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The timed process-save server lost receiver completion polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The timed process-save server lost owner Resign.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The timed process-save server lost receiver Resign.");
+      service.detach(receiverSession);
+      service.detach(ownerSession);
+      receiverConnection->close();
+      ownerConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  MixedTimedSaveFederateAmbassador ownerFederate;
+  MixedTimedSaveFederateAmbassador receiverFederate;
+  auto ownerRti = makeRti();
+  auto receiverRti = makeRti();
+  auto ownerConfiguration = RtiConfiguration::createConfiguration()
+                                .withConfigurationName(
+                                    L"process-timed-federation-save-owner-client")
+                                .withRtiAddress(
+                                    L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto receiverConfiguration = RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(
+                                       L"process-timed-federation-save-receiver-client")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool ownerJoined = false;
+  bool receiverJoined = false;
+  try {
+    REQUIRE(ownerRti->connect(ownerFederate, HLA_EVOKED, ownerConfiguration)
+                .addressUsed);
+    REQUIRE_NOTHROW(ownerRti->createFederationExecution(
+        federationName,
+        L"server-owned-process-timed-federation-save-fom.xml"));
+    REQUIRE(ownerRti->joinFederationExecution(ownerType, federationName)
+                .isValid());
+    ownerJoined = true;
+
+    REQUIRE(receiverRti->connect(
+                receiverFederate,
+                HLA_EVOKED,
+                receiverConfiguration)
+                .addressUsed);
+    REQUIRE(receiverRti->joinFederationExecution(receiverType, federationName)
+                .isValid());
+    receiverJoined = true;
+
+    REQUIRE_NOTHROW(ownerRti->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timeRegulationEnabledCount == 1U);
+    REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
+
+    rti1516_2025::HLAinteger64Time saveTime(5);
+    REQUIRE_NOTHROW(ownerRti->requestFederationSave(saveLabel, saveTime));
+    REQUIRE(ownerFederate.timedInitiateCount == 0U);
+    REQUIRE(receiverFederate.timedInitiateCount == 0U);
+
+    REQUIRE_NOTHROW(ownerRti->timeAdvanceRequest(saveTime));
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timeAdvanceGrantCount == 1U);
+    REQUIRE(ownerFederate.timedInitiateCount == 0U);
+
+    REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(saveTime));
+    static_cast<void>(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.timedInitiateCount == 1U);
+    REQUIRE(receiverFederate.timedInitiateLabel == saveLabel);
+    REQUIRE(receiverFederate.timedInitiateImplementation == L"HLAinteger64Time");
+    REQUIRE(receiverFederate.timedInitiateValue == saveTime.toString());
+    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+    static_cast<void>(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+    REQUIRE(ownerFederate.timedInitiateCount == 0U);
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timedInitiateCount == 1U);
+    REQUIRE(ownerFederate.timedInitiateLabel == saveLabel);
+    REQUIRE(ownerFederate.timedInitiateImplementation == L"HLAinteger64Time");
+    REQUIRE(ownerFederate.timedInitiateValue == saveTime.toString());
+
+    REQUIRE_NOTHROW(ownerRti->federateSaveBegun());
+    REQUIRE_NOTHROW(receiverRti->federateSaveBegun());
+    REQUIRE_NOTHROW(ownerRti->federateSaveComplete());
+    REQUIRE_NOTHROW(receiverRti->federateSaveComplete());
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.savedCount == 1U);
+    REQUIRE(receiverFederate.savedCount == 1U);
+
+    REQUIRE_NOTHROW(ownerRti->resignFederationExecution(NO_ACTION));
+    ownerJoined = false;
+    REQUIRE_NOTHROW(receiverRti->resignFederationExecution(NO_ACTION));
+    receiverJoined = false;
+    REQUIRE_NOTHROW(ownerRti->disconnect());
+    REQUIRE_NOTHROW(receiverRti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (receiverJoined) {
+      try {
+        receiverRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (ownerJoined) {
+      try {
+        ownerRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      receiverRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      ownerRti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors admit timestamped federation saves to multiple constrained recipients through a configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][time-management][transport][process-boundary][public-endpoint][multi-federate][multiple-constrained][2025][timed-save][multi-federate-callback-ordering][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.request-federation-save][rti.service.time-advance-request][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
+  class MultipleConstrainedTimedSaveFederateAmbassador final : public NullFederateAmbassador {
+   public:
+    void timeRegulationEnabled(
+        rti1516_2025::LogicalTime const& time) override {
+      ++timeRegulationEnabledCount;
+      timeRegulationEnabledImplementation = time.implementationName();
+    }
+
+    void timeConstrainedEnabled(
+        rti1516_2025::LogicalTime const& time) override {
+      ++timeConstrainedEnabledCount;
+      timeConstrainedEnabledImplementation = time.implementationName();
+    }
+
+    void timeAdvanceGrant(
+        rti1516_2025::LogicalTime const& time) override {
+      ++timeAdvanceGrantCount;
+      timeAdvanceGrantImplementation = time.implementationName();
+      timeAdvanceGrantValue = time.toString();
+      callbackOrder.push_back("grant");
+    }
+
+    void initiateFederateSave(
+        std::wstring const& label,
+        rti1516_2025::LogicalTime const& time) override {
+      ++timedInitiateCount;
+      timedInitiateLabel = label;
+      timedInitiateImplementation = time.implementationName();
+      timedInitiateValue = time.toString();
+      callbackOrder.push_back("save-initiate-timed");
+    }
+
+    void federationSaved() override {
+      ++savedCount;
+      callbackOrder.push_back("saved");
+    }
+
+    std::size_t timeRegulationEnabledCount = 0U;
+    std::wstring timeRegulationEnabledImplementation;
+    std::size_t timeConstrainedEnabledCount = 0U;
+    std::wstring timeConstrainedEnabledImplementation;
+    std::size_t timeAdvanceGrantCount = 0U;
+    std::wstring timeAdvanceGrantImplementation;
+    std::wstring timeAdvanceGrantValue;
+    std::size_t timedInitiateCount = 0U;
+    std::wstring timedInitiateLabel;
+    std::wstring timedInitiateImplementation;
+    std::wstring timedInitiateValue;
+    std::size_t savedCount = 0U;
+    std::vector<std::string> callbackOrder;
+  };
+
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-timed-federation-save-multiple-constrained-execution";
+  constexpr wchar_t const* ownerType =
+      L"process-timed-federation-save-multiple-owner-type";
+  constexpr wchar_t const* firstType =
+      L"process-timed-federation-save-multiple-first-type";
+  constexpr wchar_t const* secondType =
+      L"process-timed-federation-save-multiple-second-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-timed-federation-save-multiple-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto ownerConnection = listener->accept(
+          nullptr,
+          {"process-timed-federation-save-multiple-server", 0x9266U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession ownerSession(ownerConnection);
+      auto ownerHandler = service.handlerFor(ownerSession);
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The multi-constrained timed process-save server lost Create.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The multi-constrained timed process-save server lost owner Join.");
+
+      auto firstConnection = listener->accept(
+          nullptr,
+          {"process-timed-federation-save-multiple-server", 0x9267U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession firstSession(firstConnection);
+      auto firstHandler = service.handlerFor(firstSession);
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The multi-constrained timed process-save server lost first Join.");
+
+      auto secondConnection = listener->accept(
+          nullptr,
+          {"process-timed-federation-save-multiple-server", 0x9268U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession secondSession(secondConnection);
+      auto secondHandler = service.handlerFor(secondSession);
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The multi-constrained timed process-save server lost second Join.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::enable_time_constrained,
+          "The multi-constrained timed process-save server lost first Enable Time Constrained.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::enable_time_constrained,
+          "The multi-constrained timed process-save server lost second Enable Time Constrained.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::enable_time_regulation,
+          "The multi-constrained timed process-save server lost owner Enable Time Regulation.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::request_federation_save,
+          "The multi-constrained timed process-save server lost Request Federation Save.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::time_advance_request,
+          "The multi-constrained timed process-save server lost first TAR.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::time_advance_request,
+          "The multi-constrained timed process-save server lost second TAR.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::time_advance_request,
+          "The multi-constrained timed process-save server lost owner TAR.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-constrained timed process-save server lost owner save polling.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-constrained timed process-save server lost first save polling.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-constrained timed process-save server lost second save polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The multi-constrained timed process-save server lost owner Federate Save Begun.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The multi-constrained timed process-save server lost first Federate Save Begun.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The multi-constrained timed process-save server lost second Federate Save Begun.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The multi-constrained timed process-save server lost owner Federate Save Complete.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The multi-constrained timed process-save server lost first Federate Save Complete.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The multi-constrained timed process-save server lost second Federate Save Complete.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-constrained timed process-save server lost owner completion polling.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-constrained timed process-save server lost first completion polling.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-constrained timed process-save server lost second completion polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The multi-constrained timed process-save server lost owner Resign.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The multi-constrained timed process-save server lost first Resign.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The multi-constrained timed process-save server lost second Resign.");
+      service.detach(secondSession);
+      service.detach(firstSession);
+      service.detach(ownerSession);
+      secondConnection->close();
+      firstConnection->close();
+      ownerConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  MultipleConstrainedTimedSaveFederateAmbassador ownerFederate;
+  MultipleConstrainedTimedSaveFederateAmbassador firstFederate;
+  MultipleConstrainedTimedSaveFederateAmbassador secondFederate;
+  auto ownerRti = makeRti();
+  auto firstRti = makeRti();
+  auto secondRti = makeRti();
+  auto makeConfiguration = [&](wchar_t const* name) {
+    return RtiConfiguration::createConfiguration()
+        .withConfigurationName(name)
+        .withRtiAddress(L"tcp://127.0.0.1:" + std::to_wstring(port));
+  };
+  auto ownerConfiguration = makeConfiguration(
+      L"process-timed-federation-save-multiple-owner-client");
+  auto firstConfiguration = makeConfiguration(
+      L"process-timed-federation-save-multiple-first-client");
+  auto secondConfiguration = makeConfiguration(
+      L"process-timed-federation-save-multiple-second-client");
+  std::exception_ptr clientError;
+  bool ownerJoined = false;
+  bool firstJoined = false;
+  bool secondJoined = false;
+  try {
+    REQUIRE(ownerRti->connect(ownerFederate, HLA_EVOKED, ownerConfiguration)
+                .addressUsed);
+    REQUIRE_NOTHROW(ownerRti->createFederationExecution(
+        federationName,
+        L"server-owned-process-timed-federation-save-fom.xml"));
+    REQUIRE(ownerRti->joinFederationExecution(ownerType, federationName)
+                .isValid());
+    ownerJoined = true;
+
+    REQUIRE(firstRti->connect(firstFederate, HLA_EVOKED, firstConfiguration)
+                .addressUsed);
+    REQUIRE(firstRti->joinFederationExecution(firstType, federationName)
+                .isValid());
+    firstJoined = true;
+
+    REQUIRE(secondRti->connect(secondFederate, HLA_EVOKED, secondConfiguration)
+                .addressUsed);
+    REQUIRE(secondRti->joinFederationExecution(secondType, federationName)
+                .isValid());
+    secondJoined = true;
+
+    REQUIRE_NOTHROW(firstRti->enableTimeConstrained());
+    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.timeConstrainedEnabledCount == 1U);
+    REQUIRE_NOTHROW(secondRti->enableTimeConstrained());
+    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.timeConstrainedEnabledCount == 1U);
+    REQUIRE_NOTHROW(ownerRti->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timeRegulationEnabledCount == 1U);
+
+    rti1516_2025::HLAinteger64Time saveTime(5);
+    REQUIRE_NOTHROW(ownerRti->requestFederationSave(saveLabel, saveTime));
+    REQUIRE(ownerFederate.timedInitiateCount == 0U);
+    REQUIRE(firstFederate.timedInitiateCount == 0U);
+    REQUIRE(secondFederate.timedInitiateCount == 0U);
+
+    REQUIRE_NOTHROW(firstRti->timeAdvanceRequest(saveTime));
+    REQUIRE_NOTHROW(secondRti->timeAdvanceRequest(saveTime));
+    REQUIRE_NOTHROW(ownerRti->timeAdvanceRequest(saveTime));
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timeAdvanceGrantCount == 1U);
+    REQUIRE(ownerFederate.timedInitiateCount == 0U);
+
+    static_cast<void>(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timedInitiateCount == 1U);
+    REQUIRE(ownerFederate.timedInitiateLabel == saveLabel);
+    REQUIRE(ownerFederate.timedInitiateImplementation == L"HLAinteger64Time");
+    REQUIRE(ownerFederate.timedInitiateValue == saveTime.toString());
+    REQUIRE(ownerFederate.callbackOrder ==
+            std::vector<std::string>{"grant", "save-initiate-timed"});
+
+    static_cast<void>(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.timedInitiateCount == 1U);
+    REQUIRE(firstFederate.timedInitiateLabel == saveLabel);
+    REQUIRE(firstFederate.timedInitiateImplementation == L"HLAinteger64Time");
+    REQUIRE(firstFederate.timedInitiateValue == saveTime.toString());
+    REQUIRE(firstFederate.timeAdvanceGrantCount == 0U);
+    static_cast<void>(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.timeAdvanceGrantCount == 1U);
+    REQUIRE(firstFederate.callbackOrder ==
+            std::vector<std::string>{"save-initiate-timed", "grant"});
+
+    static_cast<void>(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.timedInitiateCount == 1U);
+    REQUIRE(secondFederate.timedInitiateLabel == saveLabel);
+    REQUIRE(secondFederate.timedInitiateImplementation == L"HLAinteger64Time");
+    REQUIRE(secondFederate.timedInitiateValue == saveTime.toString());
+    REQUIRE(secondFederate.timeAdvanceGrantCount == 0U);
+    static_cast<void>(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.timeAdvanceGrantCount == 1U);
+    REQUIRE(secondFederate.callbackOrder ==
+            std::vector<std::string>{"save-initiate-timed", "grant"});
+
+    REQUIRE_NOTHROW(ownerRti->federateSaveBegun());
+    REQUIRE_NOTHROW(firstRti->federateSaveBegun());
+    REQUIRE_NOTHROW(secondRti->federateSaveBegun());
+    REQUIRE_NOTHROW(ownerRti->federateSaveComplete());
+    REQUIRE_NOTHROW(firstRti->federateSaveComplete());
+    REQUIRE_NOTHROW(secondRti->federateSaveComplete());
+    static_cast<void>(ownerRti->evokeCallback(0.0));
+    static_cast<void>(firstRti->evokeCallback(0.0));
+    static_cast<void>(secondRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.savedCount == 1U);
+    REQUIRE(firstFederate.savedCount == 1U);
+    REQUIRE(secondFederate.savedCount == 1U);
+
+    REQUIRE_NOTHROW(ownerRti->resignFederationExecution(NO_ACTION));
+    ownerJoined = false;
+    REQUIRE_NOTHROW(firstRti->resignFederationExecution(NO_ACTION));
+    firstJoined = false;
+    REQUIRE_NOTHROW(secondRti->resignFederationExecution(NO_ACTION));
+    secondJoined = false;
+    REQUIRE_NOTHROW(ownerRti->disconnect());
+    REQUIRE_NOTHROW(firstRti->disconnect());
+    REQUIRE_NOTHROW(secondRti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (secondJoined) {
+      try {
+        secondRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (firstJoined) {
+      try {
+        firstRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (ownerJoined) {
+      try {
+        ownerRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      secondRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      firstRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      ownerRti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors admit a timestamped federation save while queued TSO delivery remains pending for multiple constrained recipients through a configured process endpoint",
+    "[integration][foundation][federation-management][interaction-management][save-restore][time-management][time-advance][transport][process-boundary][public-endpoint][multi-federate][multiple-constrained][queued-tso][2025][timed-save][multi-federate-callback-ordering][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.send-interaction][rti.service.request-federation-save][rti.service.time-advance-request][rti.service.query-galt][rti.service.query-lits][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.receive-interaction][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
+  class QueuedTsoTimedSaveFederateAmbassador final : public NullFederateAmbassador {
+   public:
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const* optionalSentRegions,
+        rti1516_2025::LogicalTime const& time,
+        rti1516_2025::OrderType sentOrder,
+        rti1516_2025::OrderType receivedOrder,
+        rti1516_2025::MessageRetractionHandle const* optionalRetraction) override {
+      ++receivedInteractionCount;
+      callbackOrder.push_back("interaction");
+      receivedInteractionClass = interactionClass;
+      receivedTransportationType = transportationType;
+      receivedProducingFederate = producingFederate;
+      receivedParameterCount = parameterValues.size();
+      hasOptionalSentRegions = optionalSentRegions != nullptr;
+      hasOptionalRetraction = optionalRetraction != nullptr;
+      if (optionalRetraction != nullptr) {
+        retractionIsValid = optionalRetraction->isValid();
+      }
+      sentOrderType = sentOrder;
+      receivedOrderType = receivedOrder;
+      receivedTimestampImplementation = time.implementationName();
+      receivedTimestampValue = -1;
+      if (auto const* integerTime =
+              dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+        receivedTimestampValue = integerTime->getTime();
+      }
+      receivedTag.clear();
+      if (userSuppliedTag.size() != 0U) {
+        auto const* data =
+            static_cast<std::uint8_t const*>(userSuppliedTag.data());
+        receivedTag.assign(data, data + userSuppliedTag.size());
+      }
+    }
+
+    void timeRegulationEnabled(
+        rti1516_2025::LogicalTime const& time) override {
+      ++timeRegulationEnabledCount;
+      timeRegulationEnabledImplementation = time.implementationName();
+    }
+
+    void timeConstrainedEnabled(
+        rti1516_2025::LogicalTime const& time) override {
+      ++timeConstrainedEnabledCount;
+      timeConstrainedEnabledImplementation = time.implementationName();
+    }
+
+    void timeAdvanceGrant(
+        rti1516_2025::LogicalTime const& time) override {
+      ++timeAdvanceGrantCount;
+      timeAdvanceGrantImplementation = time.implementationName();
+      timeAdvanceGrantValue = time.toString();
+      callbackOrder.push_back("grant");
+    }
+
+    void initiateFederateSave(
+        std::wstring const& label,
+        rti1516_2025::LogicalTime const& time) override {
+      ++timedInitiateCount;
+      timedInitiateLabel = label;
+      timedInitiateImplementation = time.implementationName();
+      timedInitiateValue = time.toString();
+      callbackOrder.push_back("save-initiate-timed");
+    }
+
+    void federationSaved() override {
+      ++savedCount;
+      callbackOrder.push_back("saved");
+    }
+
+    std::size_t receivedInteractionCount = 0U;
+    rti1516_2025::InteractionClassHandle receivedInteractionClass;
+    rti1516_2025::TransportationTypeHandle receivedTransportationType;
+    rti1516_2025::FederateHandle receivedProducingFederate;
+    std::size_t receivedParameterCount = 0U;
+    bool hasOptionalSentRegions = false;
+    bool hasOptionalRetraction = false;
+    bool retractionIsValid = false;
+    rti1516_2025::OrderType sentOrderType = rti1516_2025::RECEIVE;
+    rti1516_2025::OrderType receivedOrderType = rti1516_2025::RECEIVE;
+    std::wstring receivedTimestampImplementation;
+    std::int64_t receivedTimestampValue = -1;
+    std::vector<std::uint8_t> receivedTag;
+    std::size_t timeRegulationEnabledCount = 0U;
+    std::wstring timeRegulationEnabledImplementation;
+    std::size_t timeConstrainedEnabledCount = 0U;
+    std::wstring timeConstrainedEnabledImplementation;
+    std::size_t timeAdvanceGrantCount = 0U;
+    std::wstring timeAdvanceGrantImplementation;
+    std::wstring timeAdvanceGrantValue;
+    std::size_t timedInitiateCount = 0U;
+    std::wstring timedInitiateLabel;
+    std::wstring timedInitiateImplementation;
+    std::wstring timedInitiateValue;
+    std::size_t savedCount = 0U;
+    std::vector<std::string> callbackOrder;
+  };
+
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-timed-federation-save-queued-tso-execution";
+  constexpr wchar_t const* ownerType =
+      L"process-timed-federation-save-queued-tso-owner-type";
+  constexpr wchar_t const* firstType =
+      L"process-timed-federation-save-queued-tso-first-type";
+  constexpr wchar_t const* secondType =
+      L"process-timed-federation-save-queued-tso-second-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-timed-federation-save-queued-tso-label";
+  constexpr char const* interactionName =
+      "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+  constexpr wchar_t const* interactionNameWide =
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+  constexpr char const* parameterName = "TimelinessOk";
+  constexpr wchar_t const* parameterNameWide = L"TimelinessOk";
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::atomic_uint64_t expectedInteractionClass{0U};
+  std::atomic_uint64_t expectedParameter{0U};
+  std::atomic_uint64_t sendRecipientCount{0U};
+  std::atomic_uint64_t sendMessageId{0U};
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto ownerConnection = listener->accept(
+          nullptr,
+          {"process-timed-federation-save-queued-tso-server", 0x9269U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession ownerSession(ownerConnection);
+      auto ownerHandler = service.handlerFor(ownerSession);
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  auto response = handler(request);
+                  if (operation == TransportServiceOperation::send_interaction &&
+                      response.status == TransportServiceStatus::ok) {
+                    auto const result =
+                        umbra::detail::decodeProcessFederationSendInteractionResult(
+                            response.payload);
+                    sendRecipientCount.store(
+                        result.recipientCount, std::memory_order_release);
+                    sendMessageId.store(
+                        result.messageId, std::memory_order_release);
+                  }
+                  return response;
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The queued-TSO timed-save server lost Create.");
+      auto const interactionClass = registry.interactionClassHandleFor(
+          federationName, interactionName);
+      auto const parameter = registry.parameterHandleFor(
+          federationName, interactionName, parameterName);
+      if (!interactionClass || !parameter) {
+        throw std::runtime_error(
+            "The queued-TSO timed-save server could not resolve its FOM handles.");
+      }
+      expectedInteractionClass.store(*interactionClass, std::memory_order_release);
+      expectedParameter.store(*parameter, std::memory_order_release);
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The queued-TSO timed-save server lost owner Join.");
+
+      auto firstConnection = listener->accept(
+          nullptr,
+          {"process-timed-federation-save-queued-tso-server", 0x926AU},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession firstSession(firstConnection);
+      auto firstHandler = service.handlerFor(firstSession);
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The queued-TSO timed-save server lost first Join.");
+
+      auto secondConnection = listener->accept(
+          nullptr,
+          {"process-timed-federation-save-queued-tso-server", 0x926BU},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession secondSession(secondConnection);
+      auto secondHandler = service.handlerFor(secondSession);
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The queued-TSO timed-save server lost second Join.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::get_interaction_class_handle,
+          "The queued-TSO timed-save server lost owner interaction lookup.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::get_interaction_class_handle,
+          "The queued-TSO timed-save server lost first interaction lookup.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::get_interaction_class_handle,
+          "The queued-TSO timed-save server lost second interaction lookup.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::get_parameter_handle,
+          "The queued-TSO timed-save server lost owner parameter lookup.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::publish_interaction_class,
+          "The queued-TSO timed-save server lost Publish.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::subscribe_interaction_class,
+          "The queued-TSO timed-save server lost first Subscribe.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::subscribe_interaction_class,
+          "The queued-TSO timed-save server lost second Subscribe.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::enable_time_constrained,
+          "The queued-TSO timed-save server lost first Enable Time Constrained.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::enable_time_constrained,
+          "The queued-TSO timed-save server lost second Enable Time Constrained.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::enable_time_regulation,
+          "The queued-TSO timed-save server lost owner Enable Time Regulation.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::send_interaction,
+          "The queued-TSO timed-save server lost timestamped Send Interaction.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::request_federation_save,
+          "The queued-TSO timed-save server lost Request Federation Save.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::time_advance_request,
+          "The queued-TSO timed-save server lost first TAR(5).");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::time_advance_request,
+          "The queued-TSO timed-save server lost second TAR(5).");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::time_advance_request,
+          "The queued-TSO timed-save server lost owner TAR(5).");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The queued-TSO timed-save server lost owner save polling.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::receive_interaction,
+          "The queued-TSO timed-save server lost first save polling.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::receive_interaction,
+          "The queued-TSO timed-save server lost second save polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The queued-TSO timed-save server lost owner Federate Save Begun.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The queued-TSO timed-save server lost first Federate Save Begun.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The queued-TSO timed-save server lost second Federate Save Begun.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The queued-TSO timed-save server lost owner Federate Save Complete.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The queued-TSO timed-save server lost first Federate Save Complete.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The queued-TSO timed-save server lost second Federate Save Complete.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The queued-TSO timed-save server lost owner completion polling.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::receive_interaction,
+          "The queued-TSO timed-save server lost first completion polling.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::receive_interaction,
+          "The queued-TSO timed-save server lost second completion polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::time_advance_request,
+          "The queued-TSO timed-save server lost owner TAR(6).");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::time_advance_request,
+          "The queued-TSO timed-save server lost first TAR(6).");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::query_time_bounds,
+          "The queued-TSO timed-save server lost first Query GALT.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::query_time_bounds,
+          "The queued-TSO timed-save server lost first Query LITS.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::acknowledge_tso_delivery,
+          "The queued-TSO timed-save server lost first TSO acknowledgement.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::time_advance_request,
+          "The queued-TSO timed-save server lost second TAR(6).");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::query_time_bounds,
+          "The queued-TSO timed-save server lost second Query GALT.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::query_time_bounds,
+          "The queued-TSO timed-save server lost second Query LITS.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::acknowledge_tso_delivery,
+          "The queued-TSO timed-save server lost second TSO acknowledgement.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The queued-TSO timed-save server lost owner Resign.");
+      serveExpected(
+          firstSession,
+          firstHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The queued-TSO timed-save server lost first Resign.");
+      serveExpected(
+          secondSession,
+          secondHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The queued-TSO timed-save server lost second Resign.");
+      service.detach(secondSession);
+      service.detach(firstSession);
+      service.detach(ownerSession);
+      secondConnection->close();
+      firstConnection->close();
+      ownerConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  QueuedTsoTimedSaveFederateAmbassador ownerFederate;
+  QueuedTsoTimedSaveFederateAmbassador firstFederate;
+  QueuedTsoTimedSaveFederateAmbassador secondFederate;
+  auto ownerRti = makeRti();
+  auto firstRti = makeRti();
+  auto secondRti = makeRti();
+  auto makeConfiguration = [&](wchar_t const* name) {
+    return RtiConfiguration::createConfiguration()
+        .withConfigurationName(name)
+        .withRtiAddress(L"tcp://127.0.0.1:" + std::to_wstring(port));
+  };
+  auto ownerConfiguration = makeConfiguration(
+      L"process-timed-federation-save-queued-tso-owner-client");
+  auto firstConfiguration = makeConfiguration(
+      L"process-timed-federation-save-queued-tso-first-client");
+  auto secondConfiguration = makeConfiguration(
+      L"process-timed-federation-save-queued-tso-second-client");
+  std::exception_ptr clientError;
+  bool ownerJoined = false;
+  bool firstJoined = false;
+  bool secondJoined = false;
+  try {
+    REQUIRE(ownerRti->connect(ownerFederate, HLA_EVOKED, ownerConfiguration)
+                .addressUsed);
+    REQUIRE_NOTHROW(ownerRti->createFederationExecution(
+        federationName,
+        L"server-owned-process-timed-federation-save-fom.xml"));
+    REQUIRE(ownerRti->joinFederationExecution(ownerType, federationName)
+                .isValid());
+    ownerJoined = true;
+
+    REQUIRE(firstRti->connect(firstFederate, HLA_EVOKED, firstConfiguration)
+                .addressUsed);
+    REQUIRE(firstRti->joinFederationExecution(firstType, federationName)
+                .isValid());
+    firstJoined = true;
+
+    REQUIRE(secondRti->connect(secondFederate, HLA_EVOKED, secondConfiguration)
+                .addressUsed);
+    REQUIRE(secondRti->joinFederationExecution(secondType, federationName)
+                .isValid());
+    secondJoined = true;
+
+    auto const ownerInteraction =
+        ownerRti->getInteractionClassHandle(interactionNameWide);
+    auto const firstInteraction =
+        firstRti->getInteractionClassHandle(interactionNameWide);
+    auto const secondInteraction =
+        secondRti->getInteractionClassHandle(interactionNameWide);
+    auto const expectedClass =
+        rti1516_2025::umbra_binding_detail::makeInteractionClassHandle(
+            expectedInteractionClass.load(std::memory_order_acquire));
+    REQUIRE(ownerInteraction == expectedClass);
+    REQUIRE(firstInteraction == expectedClass);
+    REQUIRE(secondInteraction == expectedClass);
+    auto const parameter = ownerRti->getParameterHandle(
+        ownerInteraction, parameterNameWide);
+    REQUIRE(parameter ==
+            rti1516_2025::umbra_binding_detail::makeParameterHandle(
+                expectedParameter.load(std::memory_order_acquire)));
+    REQUIRE_NOTHROW(ownerRti->publishInteractionClass(ownerInteraction));
+    REQUIRE_NOTHROW(firstRti->subscribeInteractionClass(firstInteraction, true));
+    REQUIRE_NOTHROW(
+        secondRti->subscribeInteractionClass(secondInteraction, true));
+
+    REQUIRE_NOTHROW(firstRti->enableTimeConstrained());
+    REQUIRE_FALSE(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.timeConstrainedEnabledCount == 1U);
+    REQUIRE_NOTHROW(secondRti->enableTimeConstrained());
+    REQUIRE_FALSE(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.timeConstrainedEnabledCount == 1U);
+    REQUIRE_NOTHROW(ownerRti->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timeRegulationEnabledCount == 1U);
+
+    rti1516_2025::HLAinteger64Time queuedTsoTime(6);
+    rti1516_2025::HLAinteger64Time saveTime(5);
+    std::array<std::uint8_t, 2U> encodedParameter{0x01U, 0x00U};
+    ParameterHandleValueMap parameterValues;
+    parameterValues.emplace(
+        parameter,
+        VariableLengthData(encodedParameter.data(), encodedParameter.size()));
+    std::array<std::uint8_t, 3U> encodedTag{0x51U, 0x54U, 0x53U};
+    VariableLengthData userSuppliedTag(encodedTag.data(), encodedTag.size());
+    auto const retraction = ownerRti->sendInteraction(
+        ownerInteraction,
+        parameterValues,
+        userSuppliedTag,
+        queuedTsoTime);
+    REQUIRE(retraction.isValid());
+    REQUIRE(sendMessageId.load(std::memory_order_acquire) != 0U);
+    REQUIRE(sendRecipientCount.load(std::memory_order_acquire) == 2U);
+
+    REQUIRE_NOTHROW(ownerRti->requestFederationSave(saveLabel, saveTime));
+    REQUIRE(ownerFederate.timedInitiateCount == 0U);
+    REQUIRE(firstFederate.timedInitiateCount == 0U);
+    REQUIRE(secondFederate.timedInitiateCount == 0U);
+
+    REQUIRE_NOTHROW(firstRti->timeAdvanceRequest(saveTime));
+    REQUIRE_NOTHROW(secondRti->timeAdvanceRequest(saveTime));
+    REQUIRE_NOTHROW(ownerRti->timeAdvanceRequest(saveTime));
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timeAdvanceGrantCount == 1U);
+    REQUIRE(ownerFederate.timedInitiateCount == 0U);
+
+    static_cast<void>(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timedInitiateCount == 1U);
+    REQUIRE(ownerFederate.timedInitiateLabel == saveLabel);
+    REQUIRE(ownerFederate.timedInitiateImplementation == L"HLAinteger64Time");
+    REQUIRE(ownerFederate.timedInitiateValue == saveTime.toString());
+    REQUIRE(ownerFederate.receivedInteractionCount == 0U);
+    REQUIRE(ownerFederate.callbackOrder ==
+            std::vector<std::string>{"grant", "save-initiate-timed"});
+
+    static_cast<void>(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.timedInitiateCount == 1U);
+    REQUIRE(firstFederate.timedInitiateLabel == saveLabel);
+    REQUIRE(firstFederate.timedInitiateImplementation == L"HLAinteger64Time");
+    REQUIRE(firstFederate.timedInitiateValue == saveTime.toString());
+    REQUIRE(firstFederate.receivedInteractionCount == 0U);
+    REQUIRE(firstFederate.timeAdvanceGrantCount == 0U);
+    static_cast<void>(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.timeAdvanceGrantCount == 1U);
+    REQUIRE(firstFederate.receivedInteractionCount == 0U);
+    REQUIRE(firstFederate.callbackOrder ==
+            std::vector<std::string>{"save-initiate-timed", "grant"});
+
+    static_cast<void>(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.timedInitiateCount == 1U);
+    REQUIRE(secondFederate.timedInitiateLabel == saveLabel);
+    REQUIRE(secondFederate.timedInitiateImplementation == L"HLAinteger64Time");
+    REQUIRE(secondFederate.timedInitiateValue == saveTime.toString());
+    REQUIRE(secondFederate.receivedInteractionCount == 0U);
+    REQUIRE(secondFederate.timeAdvanceGrantCount == 0U);
+    static_cast<void>(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.timeAdvanceGrantCount == 1U);
+    REQUIRE(secondFederate.receivedInteractionCount == 0U);
+    REQUIRE(secondFederate.callbackOrder ==
+            std::vector<std::string>{"save-initiate-timed", "grant"});
+
+    REQUIRE_NOTHROW(ownerRti->federateSaveBegun());
+    REQUIRE_NOTHROW(firstRti->federateSaveBegun());
+    REQUIRE_NOTHROW(secondRti->federateSaveBegun());
+    REQUIRE_NOTHROW(ownerRti->federateSaveComplete());
+    REQUIRE_NOTHROW(firstRti->federateSaveComplete());
+    REQUIRE_NOTHROW(secondRti->federateSaveComplete());
+    static_cast<void>(ownerRti->evokeCallback(0.0));
+    static_cast<void>(firstRti->evokeCallback(0.0));
+    static_cast<void>(secondRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.savedCount == 1U);
+    REQUIRE(firstFederate.savedCount == 1U);
+    REQUIRE(secondFederate.savedCount == 1U);
+    REQUIRE(ownerFederate.receivedInteractionCount == 0U);
+    REQUIRE(firstFederate.receivedInteractionCount == 0U);
+    REQUIRE(secondFederate.receivedInteractionCount == 0U);
+
+    REQUIRE_NOTHROW(ownerRti->timeAdvanceRequest(queuedTsoTime));
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timeAdvanceGrantCount == 2U);
+
+    REQUIRE_NOTHROW(firstRti->timeAdvanceRequest(queuedTsoTime));
+    rti1516_2025::HLAinteger64Time firstGalt(99);
+    REQUIRE(firstRti->queryGALT(firstGalt));
+    REQUIRE(firstGalt.getTime() == 6);
+    rti1516_2025::HLAinteger64Time firstLits(99);
+    REQUIRE(firstRti->queryLITS(firstLits));
+    REQUIRE(firstLits.getTime() == 6);
+    static_cast<void>(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.receivedInteractionCount == 1U);
+    REQUIRE(firstFederate.timeAdvanceGrantCount == 1U);
+    static_cast<void>(firstRti->evokeCallback(0.0));
+    REQUIRE(firstFederate.timeAdvanceGrantCount == 2U);
+    REQUIRE(firstFederate.receivedInteractionClass == expectedClass);
+    REQUIRE(firstFederate.receivedProducingFederate.isValid());
+    REQUIRE(firstFederate.receivedParameterCount == 1U);
+    REQUIRE_FALSE(firstFederate.hasOptionalSentRegions);
+    REQUIRE(firstFederate.hasOptionalRetraction);
+    REQUIRE(firstFederate.retractionIsValid);
+    REQUIRE(firstFederate.receivedTimestampImplementation ==
+            L"HLAinteger64Time");
+    REQUIRE(firstFederate.receivedTimestampValue == 6);
+    REQUIRE(firstFederate.receivedTag ==
+            std::vector<std::uint8_t>{0x51U, 0x54U, 0x53U});
+    REQUIRE(firstFederate.sentOrderType == rti1516_2025::TIMESTAMP);
+    REQUIRE(firstFederate.receivedOrderType == rti1516_2025::TIMESTAMP);
+
+    REQUIRE_NOTHROW(secondRti->timeAdvanceRequest(queuedTsoTime));
+    rti1516_2025::HLAinteger64Time secondGalt(99);
+    REQUIRE(secondRti->queryGALT(secondGalt));
+    REQUIRE(secondGalt.getTime() == 6);
+    rti1516_2025::HLAinteger64Time secondLits(99);
+    REQUIRE(secondRti->queryLITS(secondLits));
+    REQUIRE(secondLits.getTime() == 6);
+    static_cast<void>(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.receivedInteractionCount == 1U);
+    REQUIRE(secondFederate.timeAdvanceGrantCount == 1U);
+    static_cast<void>(secondRti->evokeCallback(0.0));
+    REQUIRE(secondFederate.timeAdvanceGrantCount == 2U);
+    REQUIRE(secondFederate.receivedInteractionClass == expectedClass);
+    REQUIRE(secondFederate.receivedProducingFederate.isValid());
+    REQUIRE(secondFederate.receivedParameterCount == 1U);
+    REQUIRE_FALSE(secondFederate.hasOptionalSentRegions);
+    REQUIRE(secondFederate.hasOptionalRetraction);
+    REQUIRE(secondFederate.retractionIsValid);
+    REQUIRE(secondFederate.receivedTimestampImplementation ==
+            L"HLAinteger64Time");
+    REQUIRE(secondFederate.receivedTimestampValue == 6);
+    REQUIRE(secondFederate.receivedTag ==
+            std::vector<std::uint8_t>{0x51U, 0x54U, 0x53U});
+    REQUIRE(secondFederate.sentOrderType == rti1516_2025::TIMESTAMP);
+    REQUIRE(secondFederate.receivedOrderType == rti1516_2025::TIMESTAMP);
+
+    REQUIRE(ownerFederate.callbackOrder ==
+            std::vector<std::string>{
+                "grant", "save-initiate-timed", "saved", "grant"});
+    REQUIRE(firstFederate.callbackOrder ==
+            std::vector<std::string>{
+                "save-initiate-timed", "grant", "saved", "interaction", "grant"});
+    REQUIRE(secondFederate.callbackOrder ==
+            std::vector<std::string>{
+                "save-initiate-timed", "grant", "saved", "interaction", "grant"});
+
+    REQUIRE_NOTHROW(ownerRti->resignFederationExecution(NO_ACTION));
+    ownerJoined = false;
+    REQUIRE_NOTHROW(firstRti->resignFederationExecution(NO_ACTION));
+    firstJoined = false;
+    REQUIRE_NOTHROW(secondRti->resignFederationExecution(NO_ACTION));
+    secondJoined = false;
+    REQUIRE_NOTHROW(ownerRti->disconnect());
+    REQUIRE_NOTHROW(firstRti->disconnect());
+    REQUIRE_NOTHROW(secondRti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (secondJoined) {
+      try {
+        secondRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (firstJoined) {
+      try {
+        firstRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (ownerJoined) {
+      try {
+        ownerRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      secondRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      firstRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      ownerRti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE(sendRecipientCount.load(std::memory_order_acquire) == 2U);
+  REQUIRE(sendMessageId.load(std::memory_order_acquire) != 0U);
+  REQUIRE_FALSE(ownerJoined);
+  REQUIRE_FALSE(firstJoined);
+  REQUIRE_FALSE(secondJoined);
+}
+
+TEST_CASE(
+    "RTIambassadors carry federation save status responses through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][rti.service.request-federation-save][rti.service.query-federation-save-status][rti.service.federate-save-begun][rti.service.federate-save-not-complete][federate.callback.initiate-federate-save][federate.callback.federation-save-status-response][federate.callback.federation-not-saved]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-save-status-execution";
+  constexpr wchar_t const* federateType = L"process-federation-save-status-type";
+  constexpr wchar_t const* saveLabel = L"process-federation-save-status-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-save-status-server", 0x9262U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The process federation-save-status server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The process federation-save-status server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The process federation-save-status server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-save-status server lost save initiation polling.");
+      serveExpected(
+          TransportServiceOperation::query_federation_save_status,
+          "The process federation-save-status server lost the first save-status query.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-save-status server lost the first status polling.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The process federation-save-status server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::query_federation_save_status,
+          "The process federation-save-status server lost the second save-status query.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-save-status server lost the second status polling.");
+      serveExpected(
+          TransportServiceOperation::federate_save_not_complete,
+          "The process federation-save-status server lost Federate Save Not Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-save-status server lost save-completion polling.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The process federation-save-status server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSaveFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-save-status-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName, L"server-owned-process-federation-save-status-fom.xml");
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    rti->requestFederationSave(saveLabel);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.initiateCount == 1U);
+    REQUIRE(federate.initiateLabel == saveLabel);
+
+    rti->queryFederationSaveStatus();
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.federationSaveStatusReports.size() == 1U);
+    REQUIRE(federate.federationSaveStatusReports.back().size() == 1U);
+    REQUIRE(federate.federationSaveStatusReports.back()[0].first ==
+            federateHandle);
+    REQUIRE(federate.federationSaveStatusReports.back()[0].second ==
+            rti1516_2025::FEDERATE_INSTRUCTED_TO_SAVE);
+
+    rti->federateSaveBegun();
+    rti->queryFederationSaveStatus();
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.federationSaveStatusReports.size() == 2U);
+    REQUIRE(federate.federationSaveStatusReports.back()[0].second ==
+            rti1516_2025::FEDERATE_SAVING);
+
+    rti->federateSaveNotComplete();
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.notSavedCount == 1U);
+    REQUIRE(federate.notSavedReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+
+    rti->resignFederationExecution(NO_ACTION);
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors carry federation save abort through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][rti.service.request-federation-save][rti.service.abort-federation-save][federate.callback.initiate-federate-save][federate.callback.federation-not-saved]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-save-abort-execution";
+  constexpr wchar_t const* federateType = L"process-federation-save-abort-type";
+  constexpr wchar_t const* saveLabel = L"process-federation-save-abort-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-save-abort-server", 0x9263U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The process federation-save-abort server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The process federation-save-abort server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The process federation-save-abort server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-save-abort server lost save initiation polling.");
+      serveExpected(
+          TransportServiceOperation::abort_federation_save,
+          "The process federation-save-abort server lost Abort Federation Save.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process federation-save-abort server lost save-abort polling.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The process federation-save-abort server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSaveFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-save-abort-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName, L"server-owned-process-federation-save-abort-fom.xml");
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    rti->requestFederationSave(saveLabel);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.initiateCount == 1U);
+    REQUIRE(federate.initiateLabel == saveLabel);
+
+    REQUIRE_NOTHROW(rti->abortFederationSave());
+    REQUIRE(federate.notSavedCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.notSavedCount == 1U);
+    REQUIRE(federate.notSavedReason == rti1516_2025::SAVE_ABORTED);
+
+    rti->resignFederationExecution(NO_ACTION);
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors honor explicit synchronization sets and failure results through the configured process endpoint",
+    "[integration][foundation][federation-management][synchronization-point][explicit-synchronization-set][failure-result][transport][process-boundary][public-endpoint][multi-federate][2025]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-synchronization-point-explicit-execution";
+  constexpr wchar_t const* synchronizationLabel =
+      L"process-synchronization-point-explicit";
+  constexpr wchar_t const* federateType = L"process-synchronization-explicit-type";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto senderConnection = listener->accept(
+          nullptr,
+          {"process-synchronization-explicit-server", 0x9241U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession sender(senderConnection);
+      auto senderHandler = service.handlerFor(sender);
+      auto serveExpected = [](
+                                ProcessTransportSession& session,
+                                auto const& handler,
+                                TransportServiceOperation operation,
+                                char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The explicit synchronization server lost Create.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The explicit synchronization server lost sender Join.");
+      auto receiverConnection = listener->accept(
+          nullptr,
+          {"process-synchronization-explicit-server", 0x9242U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession receiver(receiverConnection);
+      auto receiverHandler = service.handlerFor(receiver);
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The explicit synchronization server lost receiver Join.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::register_federation_synchronization_point,
+          "The explicit synchronization server lost scoped registration.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::receive_interaction,
+          "The explicit synchronization server lost sender scoped polling.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The explicit synchronization server lost receiver announcement polling.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::register_federation_synchronization_point,
+          "The explicit synchronization server lost duplicate registration.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::synchronization_point_achieved,
+          "The explicit synchronization server lost sender rejection.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::synchronization_point_achieved,
+          "The explicit synchronization server lost receiver failure achievement.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The explicit synchronization server lost receiver synchronized polling.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The explicit synchronization server lost sender Resign.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The explicit synchronization server lost receiver Resign.");
+      service.detach(sender);
+      service.detach(receiver);
+      senderConnection->close();
+      receiverConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSynchronizationFederateAmbassador senderFederate;
+  ProcessSynchronizationFederateAmbassador receiverFederate;
+  auto senderRti = makeRti();
+  auto receiverRti = makeRti();
+  auto senderConfiguration = RtiConfiguration::createConfiguration()
+                                 .withConfigurationName(
+                                     L"process-synchronization-explicit-sender")
+                                 .withRtiAddress(
+                                     L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto receiverConfiguration = RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(
+                                       L"process-synchronization-explicit-receiver")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(senderRti->connect(
+                senderFederate, HLA_EVOKED, senderConfiguration)
+                .addressUsed);
+    senderRti->createFederationExecution(
+        federationName, L"server-owned-process-synchronization-fom.xml");
+    REQUIRE(senderRti->joinFederationExecution(federateType, federationName)
+                .isValid());
+
+    REQUIRE(receiverRti->connect(
+                receiverFederate, HLA_EVOKED, receiverConfiguration)
+                .addressUsed);
+    auto const receiverHandle =
+        receiverRti->joinFederationExecution(federateType, federationName);
+    REQUIRE(receiverHandle.isValid());
+
+    std::array<std::uint8_t, 2U> tagBytes{0x44U, 0x55U};
+    VariableLengthData tag;
+    tag.setData(tagBytes.data(), tagBytes.size());
+    rti1516_2025::FederateHandleSet synchronizationSet;
+    synchronizationSet.insert(receiverHandle);
+    senderRti->registerFederationSynchronizationPoint(
+        synchronizationLabel,
+        tag,
+        synchronizationSet);
+    REQUIRE(senderFederate.registrationSucceededCount == 0U);
+    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    REQUIRE(senderFederate.registrationSucceededCount == 1U);
+    REQUIRE(senderFederate.registrationLabel == synchronizationLabel);
+    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    REQUIRE(senderFederate.announcementCount == 0U);
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.announcementCount == 1U);
+    REQUIRE(receiverFederate.announcementLabel == synchronizationLabel);
+    REQUIRE(receiverFederate.announcementTag ==
+            std::vector<std::uint8_t>(tagBytes.begin(), tagBytes.end()));
+
+    senderRti->registerFederationSynchronizationPoint(
+        synchronizationLabel,
+        tag,
+        synchronizationSet);
+    REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+    REQUIRE(senderFederate.registrationFailedCount == 1U);
+    REQUIRE(senderFederate.registrationLabel == synchronizationLabel);
+    REQUIRE(senderFederate.registrationFailureReason ==
+            rti1516_2025::SYNCHRONIZATION_POINT_LABEL_NOT_UNIQUE);
+
+    REQUIRE_THROWS_AS(
+        senderRti->synchronizationPointAchieved(synchronizationLabel),
+        rti1516_2025::SynchronizationPointLabelNotAnnounced);
+    receiverRti->synchronizationPointAchieved(synchronizationLabel, false);
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.synchronizedCount == 1U);
+    REQUIRE(receiverFederate.synchronizedLabel == synchronizationLabel);
+    REQUIRE(receiverFederate.failedToSyncCount == 1U);
+    REQUIRE(senderFederate.synchronizedCount == 0U);
+
+    senderRti->resignFederationExecution(NO_ACTION);
+    receiverRti->resignFederationExecution(NO_ACTION);
+    senderRti->disconnect();
+    receiverRti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors deliver explicit synchronization-set and failure callbacks through the pushed process endpoint",
+    "[integration][foundation][federation-management][synchronization-point][explicit-synchronization-set][failure-result][callback-immediate][transport][process-boundary][public-endpoint][multi-federate][2025]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-synchronization-point-explicit-immediate-execution";
+  constexpr wchar_t const* synchronizationLabel =
+      L"process-synchronization-point-explicit-immediate";
+  constexpr wchar_t const* federateType =
+      L"process-synchronization-explicit-immediate-type";
+  constexpr wchar_t const* interactionName =
+      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto senderConnection = listener->accept(
+          nullptr,
+          {"process-synchronization-explicit-immediate-server", 0x9251U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession sender(senderConnection);
+      auto senderHandler = service.handlerFor(sender);
+      auto serveExpected = [](
+                                ProcessTransportSession& session,
+                                auto const& handler,
+                                TransportServiceOperation operation,
+                                char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The immediate synchronization server lost Create.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The immediate synchronization server lost sender Join.");
+
+      auto receiverConnection = listener->accept(
+          nullptr,
+          {"process-synchronization-explicit-immediate-server", 0x9252U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession receiver(receiverConnection);
+      auto receiverHandler = service.handlerFor(receiver);
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The immediate synchronization server lost receiver Join.");
+      // The first lookup is a deterministic public fence before the server
+      // sends the registration-triggered announcement to the receiver.
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::get_interaction_class_handle,
+          "The immediate synchronization server lost the initial receiver fence.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::register_federation_synchronization_point,
+          "The immediate synchronization server lost scoped registration.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::get_interaction_class_handle,
+          "The immediate synchronization server lost the announcement fence.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::register_federation_synchronization_point,
+          "The immediate synchronization server lost duplicate registration.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::synchronization_point_achieved,
+          "The immediate synchronization server lost sender rejection.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::synchronization_point_achieved,
+          "The immediate synchronization server lost receiver failure achievement.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::get_interaction_class_handle,
+          "The immediate synchronization server lost the synchronized fence.");
+      serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The immediate synchronization server lost sender Resign.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The immediate synchronization server lost receiver Resign.");
+      service.detach(sender);
+      service.detach(receiver);
+      senderConnection->close();
+      receiverConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSynchronizationFederateAmbassador senderFederate;
+  ProcessSynchronizationFederateAmbassador receiverFederate;
+  auto senderRti = makeRti();
+  auto receiverRti = makeRti();
+  auto senderConfiguration = RtiConfiguration::createConfiguration()
+                                 .withConfigurationName(
+                                     L"process-synchronization-explicit-immediate-sender")
+                                 .withRtiAddress(
+                                     L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto receiverConfiguration = RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(
+                                       L"process-synchronization-explicit-immediate-receiver")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(senderRti->connect(
+                senderFederate, HLA_IMMEDIATE, senderConfiguration)
+                .addressUsed);
+    senderRti->createFederationExecution(
+        federationName, L"server-owned-process-synchronization-fom.xml");
+    REQUIRE(senderRti->joinFederationExecution(federateType, federationName)
+                .isValid());
+
+    REQUIRE(receiverRti->connect(
+                receiverFederate, HLA_IMMEDIATE, receiverConfiguration)
+                .addressUsed);
+    auto const receiverHandle =
+        receiverRti->joinFederationExecution(federateType, federationName);
+    REQUIRE(receiverHandle.isValid());
+    REQUIRE(receiverRti->getInteractionClassHandle(interactionName).isValid());
+
+    std::array<std::uint8_t, 2U> tagBytes{0x64U, 0x75U};
+    VariableLengthData tag;
+    tag.setData(tagBytes.data(), tagBytes.size());
+    rti1516_2025::FederateHandleSet synchronizationSet;
+    synchronizationSet.insert(receiverHandle);
+    senderRti->registerFederationSynchronizationPoint(
+        synchronizationLabel,
+        tag,
+        synchronizationSet);
+    REQUIRE(senderFederate.registrationSucceededCount == 1U);
+    REQUIRE(senderFederate.registrationLabel == synchronizationLabel);
+    REQUIRE(senderFederate.announcementCount == 0U);
+    REQUIRE(receiverRti->getInteractionClassHandle(interactionName).isValid());
+    REQUIRE(receiverFederate.announcementCount == 1U);
+    REQUIRE(receiverFederate.announcementLabel == synchronizationLabel);
+    REQUIRE(receiverFederate.announcementTag ==
+            std::vector<std::uint8_t>(tagBytes.begin(), tagBytes.end()));
+
+    senderRti->registerFederationSynchronizationPoint(
+        synchronizationLabel,
+        tag,
+        synchronizationSet);
+    REQUIRE(senderFederate.registrationFailedCount == 1U);
+    REQUIRE(senderFederate.registrationFailureReason ==
+            rti1516_2025::SYNCHRONIZATION_POINT_LABEL_NOT_UNIQUE);
+    REQUIRE_THROWS_AS(
+        senderRti->synchronizationPointAchieved(synchronizationLabel),
+        rti1516_2025::SynchronizationPointLabelNotAnnounced);
+
+    receiverRti->synchronizationPointAchieved(synchronizationLabel, false);
+    REQUIRE(receiverRti->getInteractionClassHandle(interactionName).isValid());
+    REQUIRE(receiverFederate.synchronizedCount == 1U);
+    REQUIRE(receiverFederate.synchronizedLabel == synchronizationLabel);
+    REQUIRE(receiverFederate.failedToSyncCount == 1U);
+    REQUIRE(senderFederate.synchronizedCount == 0U);
+
+    senderRti->resignFederationExecution(NO_ACTION);
+    receiverRti->resignFederationExecution(NO_ACTION);
+    senderRti->disconnect();
+    receiverRti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
 }
 
 TEST_CASE(
@@ -1364,8 +5626,8 @@ TEST_CASE(
   REQUIRE_FALSE(receiverJoined);
 }
 TEST_CASE(
-    "RTIambassador reserves a name and registers a named object through a configured process endpoint",
-    "[integration][foundation][declaration-management][object-management][callbacks][callback-controls][transport][process-boundary][public-endpoint][rti.service.reserve-object-instance-name][rti.service.register-object-instance][federate.callback.object-instance-name-reservation-succeeded]") {
+    "RTIambassador reserves and releases a name and registers a named object through a configured process endpoint",
+    "[integration][foundation][declaration-management][object-management][callbacks][callback-controls][transport][process-boundary][process-object-instance-name-reservation][public-endpoint][rti.service.reserve-object-instance-name][rti.service.release-object-instance-name][rti.service.register-object-instance][rti.service.reserve-multiple-object-instance-names][rti.service.release-multiple-object-instance-names][federate.callback.object-instance-name-reservation-succeeded][federate.callback.multiple-object-instance-name-reservation-succeeded][federate.callback.multiple-object-instance-name-reservation-failed]") {
   auto runScenario = [](CallbackModel callbackModel) {
   class RecordingFederateAmbassador final : public NullFederateAmbassador {
    public:
@@ -1375,8 +5637,20 @@ TEST_CASE(
       name = objectInstanceName;
     }
 
+    void multipleObjectInstanceNameReservationSucceeded(
+        std::set<std::wstring> const& objectInstanceNames) override {
+      multipleSucceeded.push_back(objectInstanceNames);
+    }
+
+    void multipleObjectInstanceNameReservationFailed(
+        std::set<std::wstring> const& objectInstanceNames) override {
+      multipleFailed.push_back(objectInstanceNames);
+    }
+
     bool succeeded = false;
     std::wstring name;
+    std::vector<std::set<std::wstring>> multipleSucceeded;
+    std::vector<std::set<std::wstring>> multipleFailed;
   } federate;
 
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
@@ -1387,6 +5661,17 @@ TEST_CASE(
   constexpr wchar_t const* federationName =
       L"public-process-named-registration-execution";
   constexpr wchar_t const* requestedName = L"process-named-object";
+  constexpr wchar_t const* releaseName = L"process-release-object";
+  std::set<std::wstring> const multipleNames{
+      L"process-multiple-a", L"process-multiple-b"};
+  std::set<std::wstring> const partialMultipleNames{
+      L"process-multiple-b", L"process-multiple-c"};
+  std::set<std::wstring> const allMultipleNames{
+      L"process-multiple-a", L"process-multiple-b", L"process-multiple-c"};
+  std::set<std::wstring> const partialMultipleSuccess{
+      L"process-multiple-c"};
+  std::set<std::wstring> const partialMultipleFailure{
+      L"process-multiple-b"};
   constexpr char const* objectName = "HLAobjectRoot.Customer";
   constexpr char const* attributeName = "HLAprivilegeToDeleteObject";
   std::atomic_uint64_t expectedObjectClass{0U};
@@ -1395,6 +5680,12 @@ TEST_CASE(
   std::atomic_bool duplicateRegistrationRejected{false};
   std::atomic_bool illegalReservationRejected{false};
   std::atomic_bool reservationAccepted{false};
+  std::atomic_bool releaseReservationAccepted{false};
+  std::atomic_bool releaseReservationRejected{false};
+  std::atomic_bool multipleReservationAccepted{false};
+  std::atomic_bool multipleReservationPartial{false};
+  std::atomic_bool multipleReleaseAccepted{false};
+  std::atomic_bool multipleReleaseRejected{false};
   std::exception_ptr serverError;
   std::thread server([&] {
     try {
@@ -1412,6 +5703,9 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       std::size_t registrationCount = 0U;
       std::size_t reservationCount = 0U;
+      std::size_t releaseCount = 0U;
+      std::size_t multipleReservationCount = 0U;
+      std::size_t multipleReleaseCount = 0U;
       auto serveExpected = [&](TransportServiceOperation operation) {
         return ProcessTransportServiceDispatcher::serveOne(
             session,
@@ -1431,14 +5725,21 @@ TEST_CASE(
                   reservationAccepted.store(
                       result.succeeded &&
                           result.status ==
-                              umbra::detail::ObjectInstanceNameReservationStatus::applied &&
+                          umbra::detail::ObjectInstanceNameReservationStatus::applied &&
                           result.objectInstanceName == requestedName,
                       std::memory_order_release);
-                } else if (
+                } else if (reservationCount == 2U &&
                     result.status ==
                     umbra::detail::ObjectInstanceNameReservationStatus::illegal_name) {
                   illegalReservationRejected.store(
                       true, std::memory_order_release);
+                } else if (reservationCount == 3U) {
+                  releaseReservationAccepted.store(
+                      result.succeeded &&
+                          result.status ==
+                              umbra::detail::ObjectInstanceNameReservationStatus::applied &&
+                          result.objectInstanceName == releaseName,
+                      std::memory_order_release);
                 } else {
                   throw std::runtime_error(
                       "The process service did not report illegal reservation input.");
@@ -1469,6 +5770,78 @@ TEST_CASE(
                       "The process service did not report duplicate named registration as in use.");
                 }
               }
+              if (operation == TransportServiceOperation::release_object_instance_name &&
+                  response.status == TransportServiceStatus::ok) {
+                auto const result =
+                    umbra::detail::decodeProcessFederationObjectInstanceNameReleaseResult(
+                        response.payload);
+                ++releaseCount;
+                if (releaseCount == 1U) {
+                  if (result.status !=
+                      umbra::detail::ObjectInstanceNameReservationStatus::applied) {
+                    throw std::runtime_error(
+                        "The process service did not apply the reserved-name release.");
+                  }
+                } else if (
+                    releaseCount == 2U &&
+                    result.status ==
+                        umbra::detail::ObjectInstanceNameReservationStatus::object_instance_name_not_reserved) {
+                  releaseReservationRejected.store(true, std::memory_order_release);
+                } else {
+                  throw std::runtime_error(
+                      "The process service did not report the second release as unreserved.");
+                }
+              }
+              if (operation ==
+                      TransportServiceOperation::reserve_multiple_object_instance_names &&
+                  response.status == TransportServiceStatus::ok) {
+                auto const result =
+                    umbra::detail::decodeProcessFederationReserveMultipleObjectInstanceNamesResult(
+                        response.payload);
+                ++multipleReservationCount;
+                if (multipleReservationCount == 1U) {
+                  multipleReservationAccepted.store(
+                      result.status ==
+                              umbra::detail::ObjectInstanceNameReservationStatus::applied &&
+                          result.succeededNames == multipleNames &&
+                          result.failedNames.empty(),
+                      std::memory_order_release);
+                } else if (multipleReservationCount == 2U) {
+                  multipleReservationPartial.store(
+                      result.status ==
+                              umbra::detail::ObjectInstanceNameReservationStatus::applied &&
+                          result.succeededNames == partialMultipleSuccess &&
+                          result.failedNames == partialMultipleFailure,
+                      std::memory_order_release);
+                } else {
+                  throw std::runtime_error(
+                      "The process service received an unexpected multiple reservation.");
+                }
+              }
+              if (operation ==
+                      TransportServiceOperation::release_multiple_object_instance_names &&
+                  response.status == TransportServiceStatus::ok) {
+                auto const result =
+                    umbra::detail::decodeProcessFederationReleaseMultipleObjectInstanceNamesResult(
+                        response.payload);
+                ++multipleReleaseCount;
+                if (multipleReleaseCount == 1U) {
+                  if (result.status !=
+                      umbra::detail::ObjectInstanceNameReservationStatus::applied) {
+                    throw std::runtime_error(
+                        "The process service did not apply the multiple reserved-name release.");
+                  }
+                  multipleReleaseAccepted.store(true, std::memory_order_release);
+                } else if (
+                    multipleReleaseCount == 2U &&
+                    result.status ==
+                        umbra::detail::ObjectInstanceNameReservationStatus::object_instance_name_not_reserved) {
+                  multipleReleaseRejected.store(true, std::memory_order_release);
+                } else {
+                  throw std::runtime_error(
+                      "The process service did not report the repeated multiple release as unreserved.");
+                }
+              }
               return response;
             });
       };
@@ -1496,6 +5869,23 @@ TEST_CASE(
           !serveExpected(TransportServiceOperation::register_object_instance) ||
           !serveExpected(TransportServiceOperation::register_object_instance) ||
           !serveExpected(TransportServiceOperation::reserve_object_instance_name) ||
+          !serveExpected(TransportServiceOperation::reserve_object_instance_name) ||
+          (callbackModel == HLA_IMMEDIATE &&
+           !serveExpected(TransportServiceOperation::get_object_class_handle)) ||
+          !serveExpected(TransportServiceOperation::release_object_instance_name) ||
+          !serveExpected(TransportServiceOperation::release_object_instance_name) ||
+          !serveExpected(
+              TransportServiceOperation::reserve_multiple_object_instance_names) ||
+          (callbackModel == HLA_IMMEDIATE &&
+           !serveExpected(TransportServiceOperation::get_object_class_handle)) ||
+          !serveExpected(
+              TransportServiceOperation::reserve_multiple_object_instance_names) ||
+          (callbackModel == HLA_IMMEDIATE &&
+           !serveExpected(TransportServiceOperation::get_object_class_handle)) ||
+          !serveExpected(
+              TransportServiceOperation::release_multiple_object_instance_names) ||
+          !serveExpected(
+              TransportServiceOperation::release_multiple_object_instance_names) ||
           !serveExpected(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(
             "The public process named-registration server lost a required operation.");
@@ -1558,6 +5948,50 @@ TEST_CASE(
     REQUIRE_THROWS_AS(
         rti->reserveObjectInstanceName(L"HLA.illegal-process-name"),
         rti1516_2025::IllegalName);
+    rti->reserveObjectInstanceName(releaseName);
+    if (callbackModel == HLA_IMMEDIATE) {
+      static_cast<void>(rti->getObjectClassHandle(L"HLAobjectRoot.Customer"));
+    } else {
+      static_cast<void>(rti->evokeCallback(0.0));
+    }
+    REQUIRE(federate.succeeded);
+    REQUIRE(federate.name == releaseName);
+    REQUIRE_NOTHROW(rti->releaseObjectInstanceName(releaseName));
+    REQUIRE_THROWS_AS(
+        rti->releaseObjectInstanceName(releaseName),
+        rti1516_2025::ObjectInstanceNameNotReserved);
+
+    REQUIRE_NOTHROW(rti->reserveMultipleObjectInstanceNames(multipleNames));
+    if (callbackModel == HLA_IMMEDIATE) {
+      static_cast<void>(rti->getObjectClassHandle(L"HLAobjectRoot.Customer"));
+    } else {
+      static_cast<void>(rti->evokeCallback(0.0));
+    }
+    REQUIRE(federate.multipleSucceeded.size() == 1U);
+    REQUIRE(federate.multipleSucceeded.front() == multipleNames);
+    REQUIRE(federate.multipleFailed.empty());
+
+    REQUIRE_NOTHROW(rti->reserveMultipleObjectInstanceNames(partialMultipleNames));
+    if (callbackModel == HLA_IMMEDIATE) {
+      static_cast<void>(rti->getObjectClassHandle(L"HLAobjectRoot.Customer"));
+    } else {
+      for (std::size_t callbackCount = 0U;
+           callbackCount < 2U &&
+           (federate.multipleSucceeded.size() < 2U ||
+            federate.multipleFailed.empty());
+           ++callbackCount) {
+        static_cast<void>(rti->evokeCallback(0.0));
+      }
+    }
+    REQUIRE(federate.multipleSucceeded.size() == 2U);
+    REQUIRE(federate.multipleSucceeded.back() == partialMultipleSuccess);
+    REQUIRE(federate.multipleFailed.size() == 1U);
+    REQUIRE(federate.multipleFailed.front() == partialMultipleFailure);
+
+    REQUIRE_NOTHROW(rti->releaseMultipleObjectInstanceNames(allMultipleNames));
+    REQUIRE_THROWS_AS(
+        rti->releaseMultipleObjectInstanceNames(allMultipleNames),
+        rti1516_2025::ObjectInstanceNameNotReserved);
     rti->resignFederationExecution(NO_ACTION);
     clientJoined = false;
     rti->disconnect();
@@ -1585,9 +6019,15 @@ TEST_CASE(
   }
   REQUIRE_FALSE(serverError);
   REQUIRE(reservationAccepted.load(std::memory_order_acquire));
+  REQUIRE(releaseReservationAccepted.load(std::memory_order_acquire));
   REQUIRE(expectedObjectInstance.load(std::memory_order_acquire) != 0U);
   REQUIRE(duplicateRegistrationRejected.load(std::memory_order_acquire));
   REQUIRE(illegalReservationRejected.load(std::memory_order_acquire));
+  REQUIRE(releaseReservationRejected.load(std::memory_order_acquire));
+  REQUIRE(multipleReservationAccepted.load(std::memory_order_acquire));
+  REQUIRE(multipleReservationPartial.load(std::memory_order_acquire));
+  REQUIRE(multipleReleaseAccepted.load(std::memory_order_acquire));
+  REQUIRE(multipleReleaseRejected.load(std::memory_order_acquire));
   REQUIRE_FALSE(clientJoined);
   };
 
@@ -1989,7 +6429,8 @@ TEST_CASE(
 TEST_CASE(
     "RTIambassador routes a directed interaction through a configured process endpoint",
     "[integration][foundation][federation-management][interaction-management][object-management]"
-    "[directed-interaction][directed-routing][transport][process-boundary][public-endpoint]"
+    "[directed-interaction][directed-routing][process-directed-interaction-routing][2025]"
+    "[transport][process-boundary][public-endpoint]"
     "[process-event.receive-object-instance-discovery][process-event.receive-directed-interaction]") {
   constexpr wchar_t const* federationName =
       L"public-process-directed-interaction-execution";
@@ -2344,6 +6785,538 @@ TEST_CASE(
   REQUIRE(senderJoined->isValid());
   REQUIRE(receiverJoined.has_value());
   REQUIRE(receiverJoined->isValid());
+}
+
+TEST_CASE(
+    "RTIambassadors deliver one directed interaction to multiple subscribed recipients through a configured process endpoint",
+    "[integration][foundation][federation-management][interaction-management][object-management]"
+    "[directed-interaction][directed-routing][process-directed-interaction-multi-recipient][callbacks][callback-immediate][transport][process-boundary][public-endpoint][multi-federate][2025]"
+    "[process-event.receive-object-instance-discovery][process-event.receive-directed-interaction][federate.callback.receive-directed-interaction]") {
+  auto runScenario = [](CallbackModel callbackModel) {
+    class RecordingFederateAmbassador final : public NullFederateAmbassador {
+     public:
+      void discoverObjectInstance(
+          rti1516_2025::ObjectInstanceHandle const& objectInstance,
+          rti1516_2025::ObjectClassHandle const& objectClass,
+          std::wstring const& objectInstanceName,
+          rti1516_2025::FederateHandle const& producingFederate) override {
+        ++discoveryCount;
+        discoveredObjectInstance = objectInstance;
+        discoveredObjectClass = objectClass;
+        discoveredObjectInstanceName = objectInstanceName;
+        discoveredProducingFederate = producingFederate;
+      }
+
+      void receiveDirectedInteraction(
+          rti1516_2025::InteractionClassHandle const& interactionClass,
+          rti1516_2025::ObjectInstanceHandle const& objectInstance,
+          rti1516_2025::ParameterHandleValueMap const& parameterValues,
+          rti1516_2025::VariableLengthData const& userSuppliedTag,
+          rti1516_2025::TransportationTypeHandle const& transportationType,
+          rti1516_2025::FederateHandle const& producingFederate) override {
+        ++receiveCount;
+        receivedInteractionClass = interactionClass;
+        receivedObjectInstance = objectInstance;
+        receivedParameterCount = parameterValues.size();
+        receivedTransportationType = transportationType;
+        receivedProducingFederate = producingFederate;
+        receivedTag.clear();
+        if (userSuppliedTag.size() != 0U) {
+          auto const* first =
+              static_cast<std::uint8_t const*>(userSuppliedTag.data());
+          receivedTag.assign(first, first + userSuppliedTag.size());
+        }
+      }
+
+      std::size_t discoveryCount = 0U;
+      rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
+      rti1516_2025::ObjectClassHandle discoveredObjectClass;
+      std::wstring discoveredObjectInstanceName;
+      rti1516_2025::FederateHandle discoveredProducingFederate;
+      std::size_t receiveCount = 0U;
+      rti1516_2025::InteractionClassHandle receivedInteractionClass;
+      rti1516_2025::ObjectInstanceHandle receivedObjectInstance;
+      std::size_t receivedParameterCount = 0U;
+      rti1516_2025::TransportationTypeHandle receivedTransportationType;
+      rti1516_2025::FederateHandle receivedProducingFederate;
+      std::vector<std::uint8_t> receivedTag;
+    };
+
+    constexpr wchar_t const* federationName =
+        L"public-process-directed-multi-recipient-execution";
+    constexpr wchar_t const* senderName =
+        L"public-process-directed-multi-recipient-sender";
+    constexpr wchar_t const* receiverOneName =
+        L"public-process-directed-multi-recipient-receiver-one";
+    constexpr wchar_t const* receiverTwoName =
+        L"public-process-directed-multi-recipient-receiver-two";
+    constexpr wchar_t const* objectClassName =
+        L"HLAobjectRoot.UmbraDirectedFixtureObject";
+    constexpr wchar_t const* attributeName = L"DirectedTargetMarker";
+    constexpr wchar_t const* interactionClassName =
+        L"HLAinteractionRoot.UmbraDirectedFixtureInteraction";
+
+    auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+    REQUIRE(listener);
+    auto const port = listener->address().port;
+    REQUIRE(port != 0U);
+
+    std::atomic_uint64_t expectedObjectClass{0U};
+    std::atomic_uint64_t expectedAttribute{0U};
+    std::atomic_uint64_t expectedInteractionClass{0U};
+    std::exception_ptr serverError;
+    std::thread server([&] {
+      try {
+        EmbeddedFederationRegistry registry;
+        ProcessFederationService service(
+            registry,
+            composedDirectedProcessDefinition(),
+            ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
+
+        auto serveExpected = [&](ProcessTransportSession& session,
+                                 auto const& handler,
+                                 TransportServiceOperation operation,
+                                 char const* description) {
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  session,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          std::string(description) + " expected operation " +
+                          std::to_string(static_cast<unsigned>(operation)) +
+                          " but received " +
+                          std::to_string(static_cast<unsigned>(request.operation)));
+                    }
+                    auto response = handler(request);
+                    if (response.status != TransportServiceStatus::ok) {
+                      throw std::runtime_error(
+                          std::string(description) + " handler status " +
+                          std::to_string(static_cast<unsigned>(response.status)));
+                    }
+                    return response;
+                  })) {
+            throw std::runtime_error(description);
+          }
+        };
+
+        auto senderConnection = listener->accept(
+            nullptr,
+            {"public-process-directed-multi-recipient-server", 0x9721U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession sender(senderConnection);
+        auto senderHandler = service.handlerFor(sender);
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::create_federation_execution,
+            "The directed multi-recipient server lost Create.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::join_federation_execution,
+            "The directed multi-recipient server lost sender Join.");
+
+        auto const objectClass =
+            registry.objectClassHandleFor(federationName, "HLAobjectRoot.UmbraDirectedFixtureObject");
+        auto const attribute = registry.attributeHandleFor(
+            federationName,
+            "HLAobjectRoot.UmbraDirectedFixtureObject",
+            "DirectedTargetMarker");
+        auto const interactionClass = registry.interactionClassHandleFor(
+            federationName,
+            "HLAinteractionRoot.UmbraDirectedFixtureInteraction");
+        if (!objectClass || !attribute || !interactionClass) {
+          throw std::runtime_error(
+              "The directed multi-recipient server could not resolve its FOM handles.");
+        }
+        expectedObjectClass.store(*objectClass, std::memory_order_release);
+        expectedAttribute.store(*attribute, std::memory_order_release);
+        expectedInteractionClass.store(*interactionClass, std::memory_order_release);
+
+        auto receiverOneConnection = listener->accept(
+            nullptr,
+            {"public-process-directed-multi-recipient-server", 0x9722U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession receiverOne(receiverOneConnection);
+        auto receiverOneHandler = service.handlerFor(receiverOne);
+        serveExpected(
+            receiverOne,
+            receiverOneHandler,
+            TransportServiceOperation::join_federation_execution,
+            "The directed multi-recipient server lost receiver-one Join.");
+
+        auto receiverTwoConnection = listener->accept(
+            nullptr,
+            {"public-process-directed-multi-recipient-server", 0x9723U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession receiverTwo(receiverTwoConnection);
+        auto receiverTwoHandler = service.handlerFor(receiverTwo);
+        serveExpected(
+            receiverTwo,
+            receiverTwoHandler,
+            TransportServiceOperation::join_federation_execution,
+            "The directed multi-recipient server lost receiver-two Join.");
+
+        auto serveLookups = [&](ProcessTransportSession& session,
+                                auto const& handler,
+                                char const* description) {
+          serveExpected(
+              session,
+              handler,
+              TransportServiceOperation::get_object_class_handle,
+              description);
+          serveExpected(
+              session,
+              handler,
+              TransportServiceOperation::get_attribute_handle,
+              description);
+          serveExpected(
+              session,
+              handler,
+              TransportServiceOperation::get_interaction_class_handle,
+              description);
+        };
+        serveLookups(
+            sender,
+            senderHandler,
+            "The directed multi-recipient server lost sender lookup.");
+        serveLookups(
+            receiverOne,
+            receiverOneHandler,
+            "The directed multi-recipient server lost receiver-one lookup.");
+        serveLookups(
+            receiverTwo,
+            receiverTwoHandler,
+            "The directed multi-recipient server lost receiver-two lookup.");
+
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::publish_object_class_attributes,
+            "The directed multi-recipient server lost target publication.");
+        serveExpected(
+            receiverOne,
+            receiverOneHandler,
+            TransportServiceOperation::subscribe_object_class_attributes,
+            "The directed multi-recipient server lost receiver-one target subscription.");
+        serveExpected(
+            receiverTwo,
+            receiverTwoHandler,
+            TransportServiceOperation::subscribe_object_class_attributes,
+            "The directed multi-recipient server lost receiver-two target subscription.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::publish_object_class_directed_interactions,
+            "The directed multi-recipient server lost directed publication.");
+        serveExpected(
+            receiverOne,
+            receiverOneHandler,
+            TransportServiceOperation::subscribe_object_class_directed_interactions,
+            "The directed multi-recipient server lost receiver-one directed subscription.");
+        serveExpected(
+            receiverTwo,
+            receiverTwoHandler,
+            TransportServiceOperation::subscribe_object_class_directed_interactions,
+            "The directed multi-recipient server lost receiver-two directed subscription.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::register_object_instance,
+            "The directed multi-recipient server lost target registration.");
+
+        auto serveReceiverEvent = [&](ProcessTransportSession& session,
+                                      auto const& handler,
+                                      char const* description) {
+          serveExpected(
+              session,
+              handler,
+              callbackModel == HLA_IMMEDIATE
+                  ? TransportServiceOperation::get_object_class_handle
+                  : TransportServiceOperation::receive_interaction,
+              description);
+        };
+        serveReceiverEvent(
+            receiverOne,
+            receiverOneHandler,
+            "The directed multi-recipient server lost receiver-one discovery polling.");
+        serveReceiverEvent(
+            receiverTwo,
+            receiverTwoHandler,
+            "The directed multi-recipient server lost receiver-two discovery polling.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::send_directed_interaction,
+            "The directed multi-recipient server lost directed Send.");
+        serveReceiverEvent(
+            receiverOne,
+            receiverOneHandler,
+            "The directed multi-recipient server lost receiver-one directed polling.");
+        serveReceiverEvent(
+            receiverTwo,
+            receiverTwoHandler,
+            "The directed multi-recipient server lost receiver-two directed polling.");
+
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The directed multi-recipient server lost sender Resign.");
+        serveExpected(
+            receiverOne,
+            receiverOneHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The directed multi-recipient server lost receiver-one Resign.");
+        serveExpected(
+            receiverTwo,
+            receiverTwoHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The directed multi-recipient server lost receiver-two Resign.");
+
+        service.detach(sender);
+        service.detach(receiverOne);
+        service.detach(receiverTwo);
+        senderConnection->close();
+        receiverOneConnection->close();
+        receiverTwoConnection->close();
+      } catch (...) {
+        serverError = std::current_exception();
+      }
+    });
+
+    RecordingFederateAmbassador senderFederate;
+    RecordingFederateAmbassador receiverOneFederate;
+    RecordingFederateAmbassador receiverTwoFederate;
+    auto senderRti = makeRti();
+    auto receiverOneRti = makeRti();
+    auto receiverTwoRti = makeRti();
+    auto senderConfiguration = RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(
+                                       L"public-process-directed-multi-recipient-sender-client")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
+    auto receiverOneConfiguration = RtiConfiguration::createConfiguration()
+                                        .withConfigurationName(
+                                            L"public-process-directed-multi-recipient-receiver-one-client")
+                                        .withRtiAddress(
+                                            L"tcp://127.0.0.1:" + std::to_wstring(port));
+    auto receiverTwoConfiguration = RtiConfiguration::createConfiguration()
+                                        .withConfigurationName(
+                                            L"public-process-directed-multi-recipient-receiver-two-client")
+                                        .withRtiAddress(
+                                            L"tcp://127.0.0.1:" + std::to_wstring(port));
+    std::exception_ptr clientError;
+    bool senderJoined = false;
+    bool receiverOneJoined = false;
+    bool receiverTwoJoined = false;
+    try {
+      REQUIRE(senderRti->connect(
+                  senderFederate, callbackModel, senderConfiguration)
+                  .addressUsed);
+      senderRti->createFederationExecution(
+          federationName, L"server-owned-directed-multi-recipient-fom.xml");
+      auto const senderHandle = senderRti->joinFederationExecution(
+          senderName,
+          L"public-process-directed-multi-recipient-type",
+          federationName);
+      REQUIRE(senderHandle.isValid());
+      senderJoined = true;
+
+      REQUIRE(receiverOneRti->connect(
+                  receiverOneFederate, callbackModel, receiverOneConfiguration)
+                  .addressUsed);
+      auto const receiverOneHandle = receiverOneRti->joinFederationExecution(
+          receiverOneName,
+          L"public-process-directed-multi-recipient-type",
+          federationName);
+      REQUIRE(receiverOneHandle.isValid());
+      receiverOneJoined = true;
+
+      REQUIRE(receiverTwoRti->connect(
+                  receiverTwoFederate, callbackModel, receiverTwoConfiguration)
+                  .addressUsed);
+      auto const receiverTwoHandle = receiverTwoRti->joinFederationExecution(
+          receiverTwoName,
+          L"public-process-directed-multi-recipient-type",
+          federationName);
+      REQUIRE(receiverTwoHandle.isValid());
+      receiverTwoJoined = true;
+
+      auto const senderObjectClass = senderRti->getObjectClassHandle(objectClassName);
+      auto const senderAttribute =
+          senderRti->getAttributeHandle(senderObjectClass, attributeName);
+      auto const senderInteraction =
+          senderRti->getInteractionClassHandle(interactionClassName);
+      auto const receiverOneObjectClass =
+          receiverOneRti->getObjectClassHandle(objectClassName);
+      auto const receiverOneAttribute = receiverOneRti->getAttributeHandle(
+          receiverOneObjectClass, attributeName);
+      auto const receiverOneInteraction =
+          receiverOneRti->getInteractionClassHandle(interactionClassName);
+      auto const receiverTwoObjectClass =
+          receiverTwoRti->getObjectClassHandle(objectClassName);
+      auto const receiverTwoAttribute = receiverTwoRti->getAttributeHandle(
+          receiverTwoObjectClass, attributeName);
+      auto const receiverTwoInteraction =
+          receiverTwoRti->getInteractionClassHandle(interactionClassName);
+      REQUIRE(senderObjectClass == receiverOneObjectClass);
+      REQUIRE(senderObjectClass == receiverTwoObjectClass);
+      REQUIRE(senderAttribute == receiverOneAttribute);
+      REQUIRE(senderAttribute == receiverTwoAttribute);
+      REQUIRE(senderInteraction == receiverOneInteraction);
+      REQUIRE(senderInteraction == receiverTwoInteraction);
+      REQUIRE(senderObjectClass ==
+              rti1516_2025::umbra_binding_detail::makeObjectClassHandle(
+                  expectedObjectClass.load(std::memory_order_acquire)));
+      REQUIRE(senderAttribute ==
+              rti1516_2025::umbra_binding_detail::makeAttributeHandle(
+                  expectedAttribute.load(std::memory_order_acquire)));
+      REQUIRE(senderInteraction ==
+              rti1516_2025::umbra_binding_detail::makeInteractionClassHandle(
+                  expectedInteractionClass.load(std::memory_order_acquire)));
+
+      REQUIRE_NOTHROW(senderRti->publishObjectClassAttributes(
+          senderObjectClass,
+          rti1516_2025::AttributeHandleSet{senderAttribute}));
+      REQUIRE_NOTHROW(receiverOneRti->subscribeObjectClassAttributes(
+          receiverOneObjectClass,
+          rti1516_2025::AttributeHandleSet{receiverOneAttribute},
+          true));
+      REQUIRE_NOTHROW(receiverTwoRti->subscribeObjectClassAttributes(
+          receiverTwoObjectClass,
+          rti1516_2025::AttributeHandleSet{receiverTwoAttribute},
+          true));
+      REQUIRE_NOTHROW(senderRti->publishObjectClassDirectedInteractions(
+          senderObjectClass,
+          rti1516_2025::InteractionClassHandleSet{senderInteraction}));
+      REQUIRE_NOTHROW(receiverOneRti->subscribeObjectClassDirectedInteractions(
+          receiverOneObjectClass,
+          rti1516_2025::InteractionClassHandleSet{receiverOneInteraction},
+          true));
+      REQUIRE_NOTHROW(receiverTwoRti->subscribeObjectClassDirectedInteractions(
+          receiverTwoObjectClass,
+          rti1516_2025::InteractionClassHandleSet{receiverTwoInteraction},
+          true));
+
+      auto const objectInstance =
+          senderRti->registerObjectInstance(senderObjectClass);
+      REQUIRE(objectInstance.isValid());
+      if (callbackModel == HLA_IMMEDIATE) {
+        static_cast<void>(receiverOneRti->getObjectClassHandle(objectClassName));
+        static_cast<void>(receiverTwoRti->getObjectClassHandle(objectClassName));
+      } else {
+        static_cast<void>(receiverOneRti->evokeCallback(0.0));
+        static_cast<void>(receiverTwoRti->evokeCallback(0.0));
+      }
+      for (auto const* receiver : {&receiverOneFederate, &receiverTwoFederate}) {
+        REQUIRE(receiver->discoveryCount == 1U);
+        REQUIRE(receiver->discoveredObjectInstance == objectInstance);
+        REQUIRE(receiver->discoveredObjectClass == senderObjectClass);
+        REQUIRE_FALSE(receiver->discoveredObjectInstanceName.empty());
+        REQUIRE(receiver->discoveredProducingFederate == senderHandle);
+      }
+
+      std::array<std::uint8_t, 3U> encodedTag{0x4DU, 0x52U, 0x32U};
+      VariableLengthData userSuppliedTag(encodedTag.data(), encodedTag.size());
+      REQUIRE_NOTHROW(senderRti->sendDirectedInteraction(
+          senderInteraction,
+          objectInstance,
+          rti1516_2025::ParameterHandleValueMap{},
+          userSuppliedTag));
+      if (callbackModel == HLA_IMMEDIATE) {
+        static_cast<void>(receiverOneRti->getObjectClassHandle(objectClassName));
+        static_cast<void>(receiverTwoRti->getObjectClassHandle(objectClassName));
+      } else {
+        static_cast<void>(receiverOneRti->evokeCallback(0.0));
+        static_cast<void>(receiverTwoRti->evokeCallback(0.0));
+      }
+      auto const expectedTag = std::vector<std::uint8_t>{0x4DU, 0x52U, 0x32U};
+      for (auto const* receiver : {&receiverOneFederate, &receiverTwoFederate}) {
+        REQUIRE(receiver->receiveCount == 1U);
+        REQUIRE(receiver->receivedInteractionClass == senderInteraction);
+        REQUIRE(receiver->receivedObjectInstance == objectInstance);
+        REQUIRE(receiver->receivedParameterCount == 0U);
+        REQUIRE(receiver->receivedProducingFederate == senderHandle);
+        REQUIRE(receiver->receivedTag == expectedTag);
+        REQUIRE(receiver->receivedTransportationType.isValid());
+      }
+      REQUIRE(senderFederate.discoveryCount == 0U);
+      REQUIRE(senderFederate.receiveCount == 0U);
+
+      // The registered target still owns its attributes.  Divest them on
+      // sender resignation so the directed-routing fixture can leave the
+      // object known to both recipients without introducing a deletion
+      // callback into this focused lane.
+      senderRti->resignFederationExecution(
+          rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+      senderJoined = false;
+      receiverOneRti->resignFederationExecution(NO_ACTION);
+      receiverOneJoined = false;
+      receiverTwoRti->resignFederationExecution(NO_ACTION);
+      receiverTwoJoined = false;
+      senderRti->disconnect();
+      receiverOneRti->disconnect();
+      receiverTwoRti->disconnect();
+    } catch (...) {
+      clientError = std::current_exception();
+      if (senderJoined) {
+        try {
+          senderRti->resignFederationExecution(
+              rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+        } catch (...) {
+        }
+      }
+      if (receiverOneJoined) {
+        try {
+          receiverOneRti->resignFederationExecution(NO_ACTION);
+        } catch (...) {
+        }
+      }
+      if (receiverTwoJoined) {
+        try {
+          receiverTwoRti->resignFederationExecution(NO_ACTION);
+        } catch (...) {
+        }
+      }
+      try {
+        senderRti->disconnect();
+      } catch (...) {
+      }
+      try {
+        receiverOneRti->disconnect();
+      } catch (...) {
+      }
+      try {
+        receiverTwoRti->disconnect();
+      } catch (...) {
+      }
+    }
+    listener.reset();
+    if (server.joinable()) {
+      server.join();
+    }
+    if (clientError) {
+      if (serverError) {
+        std::rethrow_exception(serverError);
+      }
+      std::rethrow_exception(clientError);
+    }
+    REQUIRE_FALSE(serverError);
+    REQUIRE_FALSE(senderJoined);
+    REQUIRE_FALSE(receiverOneJoined);
+    REQUIRE_FALSE(receiverTwoJoined);
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
 }
 
 TEST_CASE(
@@ -6053,7 +11026,8 @@ TEST_CASE(
                     }
                     return handler(request);
                   })) {
-            throw std::runtime_error(description);
+            throw std::runtime_error(std::string(description) +
+                                     " connection closed before request");
           }
         };
 
@@ -7283,7 +12257,11 @@ TEST_CASE(
     REQUIRE(senderFederate.timeAdvanceGrantCount == 0U);
     REQUIRE_FALSE(senderRti->evokeCallback(0.0));
     REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
-    REQUIRE(senderFederate.timeAdvanceGrantValue == 5);
+    // The sender requested 6, so its own grant is 6.  The timestamp-5
+    // reflection is delivered to the constrained receiver before that
+    // receiver's separate grant at 5; it does not lower the sender's TAR
+    // target.
+    REQUIRE(senderFederate.timeAdvanceGrantValue == 6);
 
     // The attribute event has crossed transport but remains in the
     // coordinator's inTransit phase until the public reflection callback
@@ -8450,7 +13428,10 @@ TEST_CASE(
 TEST_CASE(
     "RTIambassador routes timestamped Delete Object Instance and removal callback through a configured process endpoint",
     "[integration][foundation][object-management][time-management][transport][process-boundary][public-endpoint][timestamped-delete-object-instance][rti.service.delete-object-instance][federate.callback.remove-object-instance]") {
-  auto runScenario = [](CallbackModel callbackModel) {
+  auto runScenario = [](CallbackModel callbackModel,
+                        bool regulateSender,
+                        bool constrainReceiver = false,
+                        bool preferReceiveOrder = false) {
   class RecordingFederateAmbassador final : public NullFederateAmbassador {
    public:
     void discoverObjectInstance(
@@ -8521,6 +13502,8 @@ TEST_CASE(
   constexpr wchar_t const* objectClassNameWide = L"HLAobjectRoot.Employee";
   constexpr char const* attributeName = "Name";
   constexpr wchar_t const* attributeNameWide = L"Name";
+  constexpr wchar_t const* deletePrivilegeAttributeNameWide =
+      L"HLAprivilegeToDeleteObject";
   std::atomic_uint64_t expectedObjectClass{0U};
   std::atomic_uint64_t expectedAttribute{0U};
   std::atomic_uint64_t expectedSenderFederate{0U};
@@ -8642,6 +13625,13 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::get_attribute_handle,
           "The public timestamped process delete server lost sender attribute lookup.");
+      if (preferReceiveOrder) {
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::get_attribute_handle,
+            "The public timestamped process delete server lost sender delete-privilege lookup.");
+      }
       serveExpected(
           receiver,
           receiverHandler,
@@ -8680,11 +13670,46 @@ TEST_CASE(
             TransportServiceOperation::receive_interaction,
             "The public timestamped process delete server lost receiver discovery poll.");
       }
+      if (preferReceiveOrder) {
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::change_attribute_order_type,
+            "The public timestamped process delete server lost preferred receive-order change.");
+      }
+      if (regulateSender) {
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::enable_time_regulation,
+            "The public timestamped process delete server lost sender time-regulation enable.");
+      }
+      if (constrainReceiver) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::enable_time_constrained,
+            "The public timestamped process delete server lost receiver time-constrained enable.");
+      }
+      if (constrainReceiver) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::time_advance_request,
+            "The public timestamped process delete server lost receiver TAR.");
+      }
       serveExpected(
           sender,
           senderHandler,
           TransportServiceOperation::delete_object_instance,
           "The public timestamped process delete server lost sender Delete.");
+      if (constrainReceiver) {
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::time_advance_request,
+            "The public timestamped process delete server lost sender TAR.");
+      }
       if (callbackModel == HLA_IMMEDIATE) {
         serveExpected(
             receiver,
@@ -8697,6 +13722,13 @@ TEST_CASE(
             receiverHandler,
             TransportServiceOperation::receive_interaction,
             "The public timestamped process delete server lost receiver removal poll.");
+      }
+      if (constrainReceiver) {
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::acknowledge_tso_delivery,
+            "The public timestamped process delete server lost receiver TSO acknowledgement.");
       }
 
       auto const receiverMember = registry.memberByName(
@@ -8773,6 +13805,12 @@ TEST_CASE(
         senderRti->getObjectClassHandle(objectClassNameWide);
     auto const senderAttribute =
         senderRti->getAttributeHandle(senderObjectClass, attributeNameWide);
+    rti1516_2025::AttributeHandle senderDeletePrivilegeAttribute;
+    if (preferReceiveOrder) {
+      senderDeletePrivilegeAttribute = senderRti->getAttributeHandle(
+          senderObjectClass, deletePrivilegeAttributeNameWide);
+      REQUIRE(senderDeletePrivilegeAttribute.isValid());
+    }
     REQUIRE(senderObjectClass.toString() ==
             L"ObjectClassHandle(" +
                 std::to_wstring(expectedObjectClass.load(std::memory_order_acquire)) +
@@ -8805,6 +13843,33 @@ TEST_CASE(
     REQUIRE(receiverFederate.discovered);
     REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
 
+    if (preferReceiveOrder) {
+      REQUIRE_NOTHROW(senderRti->changeAttributeOrderType(
+          objectInstance,
+          rti1516_2025::AttributeHandleSet{senderDeletePrivilegeAttribute},
+          rti1516_2025::RECEIVE));
+    }
+
+    // A timestamped Delete Object Instance exposes a public retraction
+    // designator only when the producer has established the time-regulating
+    // role.  Run both sides of that boundary in this focused process slice.
+    if (regulateSender) {
+      REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
+          rti1516_2025::HLAinteger64Interval(1)));
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+      }
+    }
+
+    if (constrainReceiver) {
+      REQUIRE(regulateSender);
+      REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
+      REQUIRE_FALSE(receiverFederate.removed);
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+      }
+    }
+
     auto factory = rti1516_2025::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
         L"HLAinteger64Time");
     auto* integerFactory =
@@ -8814,11 +13879,26 @@ TEST_CASE(
     REQUIRE(timestamp);
     auto const expectedTimestampEncoding = timestamp->encode();
     std::vector<std::uint8_t> const expectedTag{0x54U, 0x44U, 0x4FU};
+    if (constrainReceiver) {
+      REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(5)));
+      REQUIRE_FALSE(receiverFederate.removed);
+    }
     auto const retraction = senderRti->deleteObjectInstance(
         objectInstance,
         VariableLengthData(expectedTag.data(), expectedTag.size()),
         *timestamp);
-    REQUIRE_FALSE(retraction.isValid());
+    // The process service owns the private queue identity used by its Retract
+    // operation.  The public adapter projects it only for the standards case
+    // where the producer is time-regulating.
+    REQUIRE(retraction.isValid() == (regulateSender && !preferReceiveOrder));
+    if (constrainReceiver) {
+      REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(6)));
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE_FALSE(senderRti->evokeCallback(0.0));
+      }
+    }
     if (callbackModel == HLA_IMMEDIATE) {
       static_cast<void>(receiverRti->getObjectClassHandle(objectClassNameWide));
     } else {
@@ -8842,9 +13922,14 @@ TEST_CASE(
           first, first + expectedTimestampEncoding.size());
     }
     REQUIRE(receiverFederate.timestampEncoding == expectedTimestampBytes);
-    REQUIRE(receiverFederate.removedSentOrder == rti1516_2025::RECEIVE);
-    REQUIRE(receiverFederate.removedReceivedOrder == rti1516_2025::RECEIVE);
-    REQUIRE(receiverFederate.hasOptionalRetraction);
+    REQUIRE(receiverFederate.removedSentOrder ==
+            (preferReceiveOrder ? rti1516_2025::RECEIVE
+                                 : rti1516_2025::TIMESTAMP));
+    REQUIRE(receiverFederate.removedReceivedOrder ==
+            (constrainReceiver ? rti1516_2025::TIMESTAMP
+                               : rti1516_2025::RECEIVE));
+    REQUIRE(receiverFederate.hasOptionalRetraction ==
+            (regulateSender && !preferReceiveOrder));
     REQUIRE_FALSE(senderFederate.removed);
 
     senderRti->resignFederationExecution(DELETE_OBJECTS);
@@ -8887,7 +13972,8 @@ TEST_CASE(
   }
   REQUIRE_FALSE(serverError);
   REQUIRE(deleteRecipientCount.load(std::memory_order_acquire) == 1U);
-  REQUIRE(deleteMessageId.load(std::memory_order_acquire) != 0U);
+  REQUIRE((deleteMessageId.load(std::memory_order_acquire) != 0U) ==
+          (regulateSender && !preferReceiveOrder));
   REQUIRE(producerKnowledgeCleared.load(std::memory_order_acquire));
   REQUIRE(receiverKnowledgeCleared.load(std::memory_order_acquire));
   REQUIRE(expectedSenderFederate.load(std::memory_order_acquire) != 0U);
@@ -8898,10 +13984,28 @@ TEST_CASE(
   };
 
   SECTION("HLA_EVOKED") {
-    runScenario(HLA_EVOKED);
+    runScenario(HLA_EVOKED, true);
   }
   SECTION("HLA_IMMEDIATE") {
-    runScenario(HLA_IMMEDIATE);
+    runScenario(HLA_IMMEDIATE, true);
+  }
+  SECTION("HLA_EVOKED without time regulation") {
+    runScenario(HLA_EVOKED, false);
+  }
+  SECTION("HLA_IMMEDIATE without time regulation") {
+    runScenario(HLA_IMMEDIATE, false);
+  }
+  SECTION("HLA_EVOKED queued time-constrained recipient") {
+    runScenario(HLA_EVOKED, true, true);
+  }
+  SECTION("HLA_IMMEDIATE queued time-constrained recipient") {
+    runScenario(HLA_IMMEDIATE, true, true);
+  }
+  SECTION("HLA_EVOKED preferred receive-order timestamped deletion") {
+    runScenario(HLA_EVOKED, true, false, true);
+  }
+  SECTION("HLA_IMMEDIATE preferred receive-order timestamped deletion") {
+    runScenario(HLA_IMMEDIATE, true, false, true);
   }
 }
 #endif
@@ -18667,6 +23771,597 @@ TEST_CASE(
   }
   REQUIRE_FALSE(serverError);
 }
+
+TEST_CASE(
+    "RTIambassadors preserve failed federation restore request callbacks under HLA_IMMEDIATE through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][callbacks][transport][process-boundary][public-endpoint][2025][callback-model-hla-immediate][process-federation-restore-request-failure-immediate][rti.service.request-federation-restore][federate.callback.request-federation-restore-failed]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-request-failure-immediate-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-restore-request-failure-immediate-type";
+  constexpr wchar_t const* restoreLabel =
+      L"process-federation-restore-request-failure-immediate-missing-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-restore-request-failure-immediate-server",
+           0x9765U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The immediate restore-failure server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The immediate restore-failure server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_restore,
+          "The immediate restore-failure server lost Request Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The immediate restore-failure server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessRestoreFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-restore-request-failure-immediate-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_IMMEDIATE, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-request-fom.xml");
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->requestFederationRestore(restoreLabel));
+    REQUIRE(federate.restoreSucceededCount == 0U);
+    REQUIRE(federate.restoreFailedCount == 1U);
+    REQUIRE(federate.restoreLabel == restoreLabel);
+    REQUIRE(federate.callbackOrder ==
+            std::vector<std::string>{"restore-request-failed"});
+
+    rti->resignFederationExecution(NO_ACTION);
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors preserve federation restore failure lifecycle under HLA_IMMEDIATE through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][callbacks][transport][process-boundary][public-endpoint][2025][callback-model-hla-immediate][process-federation-restore-failure-lifecycle-immediate][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][rti.service.request-federation-restore][rti.service.federate-restore-not-complete][federate.callback.request-federation-restore-succeeded][federate.callback.federation-restore-begun][federate.callback.initiate-federate-restore][federate.callback.federation-not-restored]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-failure-lifecycle-immediate-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-restore-failure-lifecycle-immediate-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-restore-failure-lifecycle-immediate-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-restore-failure-lifecycle-immediate-server",
+           0x9766U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The immediate restore-failure-lifecycle server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The immediate restore-failure-lifecycle server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The immediate restore-failure-lifecycle server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The immediate restore-failure-lifecycle server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_complete,
+          "The immediate restore-failure-lifecycle server lost Federate Save Complete.");
+      serveExpected(
+          TransportServiceOperation::request_federation_restore,
+          "The immediate restore-failure-lifecycle server lost Request Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::federate_restore_not_complete,
+          "The immediate restore-failure-lifecycle server lost Federate Restore Not Complete.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The immediate restore-failure-lifecycle server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessRestoreFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-restore-failure-lifecycle-immediate-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_IMMEDIATE, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-failure-fom.xml");
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE(federate.saveInitiateCount == 1U);
+    REQUIRE(federate.saveLabel == saveLabel);
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveComplete());
+    REQUIRE(federate.saveCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+    REQUIRE(federate.restoreSucceededCount == 1U);
+    REQUIRE(federate.restoreBegunCount == 1U);
+    REQUIRE(federate.restoreInitiateCount == 1U);
+    REQUIRE(federate.restoreLabel == saveLabel);
+    REQUIRE_FALSE(federate.restoreFederateName.empty());
+    REQUIRE(federate.restorePostFederateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->federateRestoreNotComplete());
+    REQUIRE(federate.restoreNotCompleteCount == 1U);
+    REQUIRE(federate.restoreCompleteCount == 0U);
+    REQUIRE(federate.restoreFailureReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_RESTORE);
+    REQUIRE(federate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-request-succeeded",
+                "restore-begun",
+                "restore-initiate",
+                "restore-failed"});
+
+    REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(rti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    try {
+      rti->resignFederationExecution(NO_ACTION);
+    } catch (...) {
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors preserve successful federation restore lifecycle under HLA_IMMEDIATE through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][callbacks][transport][process-boundary][public-endpoint][2025][callback-model-hla-immediate][process-federation-restore-success-lifecycle-immediate][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][rti.service.request-federation-restore][rti.service.federate-restore-complete][federate.callback.request-federation-restore-succeeded][federate.callback.federation-restore-begun][federate.callback.initiate-federate-restore][federate.callback.federation-restored]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-success-lifecycle-immediate-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-restore-success-lifecycle-immediate-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-restore-success-lifecycle-immediate-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-restore-success-lifecycle-immediate-server",
+           0x9767U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The immediate restore-success-lifecycle server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The immediate restore-success-lifecycle server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The immediate restore-success-lifecycle server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The immediate restore-success-lifecycle server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_complete,
+          "The immediate restore-success-lifecycle server lost Federate Save Complete.");
+      serveExpected(
+          TransportServiceOperation::request_federation_restore,
+          "The immediate restore-success-lifecycle server lost Request Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::federate_restore_complete,
+          "The immediate restore-success-lifecycle server lost Federate Restore Complete.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The immediate restore-success-lifecycle server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessRestoreFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-restore-success-lifecycle-immediate-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_IMMEDIATE, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-success-fom.xml");
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE(federate.saveInitiateCount == 1U);
+    REQUIRE(federate.saveLabel == saveLabel);
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveComplete());
+    REQUIRE(federate.saveCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+    REQUIRE(federate.restoreSucceededCount == 1U);
+    REQUIRE(federate.restoreBegunCount == 1U);
+    REQUIRE(federate.restoreInitiateCount == 1U);
+    REQUIRE(federate.restoreLabel == saveLabel);
+    REQUIRE_FALSE(federate.restoreFederateName.empty());
+    REQUIRE(federate.restorePostFederateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->federateRestoreComplete());
+    REQUIRE(federate.restoreCompleteCount == 1U);
+    REQUIRE(federate.restoreNotCompleteCount == 0U);
+    REQUIRE(federate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-request-succeeded",
+                "restore-begun",
+                "restore-initiate",
+                "restore-complete"});
+
+    REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(rti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    try {
+      rti->resignFederationExecution(NO_ACTION);
+    } catch (...) {
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "RTIambassadors preserve federation restore abort under HLA_IMMEDIATE through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][callbacks][transport][process-boundary][public-endpoint][2025][callback-model-hla-immediate][process-federation-restore-abort-immediate][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][rti.service.request-federation-restore][rti.service.abort-federation-restore][federate.callback.request-federation-restore-succeeded][federate.callback.federation-restore-begun][federate.callback.initiate-federate-restore][federate.callback.federation-not-restored]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-abort-immediate-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-restore-abort-immediate-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-restore-abort-immediate-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-restore-abort-immediate-server", 0x9768U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The immediate restore-abort server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The immediate restore-abort server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The immediate restore-abort server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The immediate restore-abort server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_complete,
+          "The immediate restore-abort server lost Federate Save Complete.");
+      serveExpected(
+          TransportServiceOperation::request_federation_restore,
+          "The immediate restore-abort server lost Request Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::abort_federation_restore,
+          "The immediate restore-abort server lost Abort Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The immediate restore-abort server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessRestoreFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-restore-abort-immediate-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_IMMEDIATE, configuration).addressUsed);
+    rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-abort-fom.xml");
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE(federate.saveInitiateCount == 1U);
+    REQUIRE(federate.saveLabel == saveLabel);
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveComplete());
+    REQUIRE(federate.saveCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+    REQUIRE(federate.restoreSucceededCount == 1U);
+    REQUIRE(federate.restoreBegunCount == 1U);
+    REQUIRE(federate.restoreInitiateCount == 1U);
+    REQUIRE(federate.restoreLabel == saveLabel);
+    REQUIRE_FALSE(federate.restoreFederateName.empty());
+    REQUIRE(federate.restorePostFederateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->abortFederationRestore());
+    REQUIRE(federate.restoreNotCompleteCount == 1U);
+    REQUIRE(federate.restoreCompleteCount == 0U);
+    REQUIRE(federate.restoreFailureReason == rti1516_2025::RESTORE_ABORTED);
+    REQUIRE(federate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-request-succeeded",
+                "restore-begun",
+                "restore-initiate",
+                "restore-failed"});
+
+    REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(rti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    try {
+      rti->resignFederationExecution(NO_ACTION);
+    } catch (...) {
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+
+TEST_CASE(
+    "Embedded Connect falls back to its default configuration for absent and unknown names",
+    "[integration][connection][configuration][federation-management]") {
+  auto exercise = [](std::wstring configurationName) {
+    TestFederateAmbassador federate;
+    auto configuration =
+        RtiConfiguration::createConfiguration().withConfigurationName(
+            std::move(configurationName));
+    auto rti = makeRti();
+
+    auto const result = rti->connect(federate, HLA_EVOKED, configuration);
+    REQUIRE_FALSE(result.configurationUsed);
+    REQUIRE_FALSE(result.addressUsed);
+    REQUIRE(result.additionalSettingsResult == SETTINGS_IGNORED);
+    REQUIRE_NOTHROW(rti->disconnect());
+  };
+
+  SECTION("no configuration name") {
+    exercise(L"");
+  }
+  SECTION("unknown configuration name") {
+    exercise(L"umbra-configuration-that-does-not-exist");
+  }
+}
+
+TEST_CASE(
+    "Embedded Connect completes when an optional additional setting cannot be parsed",
+    "[integration][connection][configuration][federation-management]") {
+  auto exercise = [](std::wstring additionalSettings) {
+    TestFederateAmbassador federate;
+    auto configuration = RtiConfiguration::createConfiguration()
+                             .withAdditionalSettings(additionalSettings);
+    auto rti = makeRti();
+
+    auto const result = rti->connect(federate, HLA_EVOKED, configuration);
+    REQUIRE_FALSE(result.configurationUsed);
+    REQUIRE_FALSE(result.addressUsed);
+    REQUIRE(result.additionalSettingsResult == SETTINGS_FAILED_TO_PARSE);
+    REQUIRE_FALSE(result.message.empty());
+    REQUIRE_NOTHROW(rti->disconnect());
+  };
+
+  SECTION("unparseable FOM edition") {
+    exercise(L"fomEdition=202x");
+  }
+}
 #endif
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
@@ -20901,12 +26596,12 @@ TEST_CASE(
         VariableLengthData(tagBytes.data(), tagBytes.size()),
         rti1516_2025::HLAinteger64Time(5));
     REQUIRE(retraction.isValid());
-    // Advance the producer to an intermediate frontier before retracting.
-    // This keeps the receiver's request pending while the payload remains
-    // queued, matching the standard retract-before-callback boundary without
-    // depending on initial scheduler admission ordering.
+    // Advance the producer only to an intermediate frontier before retracting.
+    // Keeping the request below the update timestamp leaves the payload queued
+    // while the receiver's request remains pending, matching the standard
+    // retract-before-callback boundary without depending on scheduler order.
     REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
-        rti1516_2025::HLAinteger64Time(5)));
+        rti1516_2025::HLAinteger64Time(2)));
     REQUIRE(senderFederate.timeAdvanceGrantCount == 0U);
     REQUIRE_FALSE(senderRti->evokeCallback(0.0));
     REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
@@ -21396,7 +27091,10 @@ TEST_CASE(
     REQUIRE(senderFederate.timeAdvanceGrantCount == 0U);
     REQUIRE_FALSE(senderRti->evokeCallback(0.0));
     REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
-    REQUIRE(senderFederate.timeAdvanceGrantValue == 2);
+    // The sender requested time 5, so its own grant is 5.  The constrained
+    // receiver reaches the same timestamp independently; the retracted
+    // middle update does not lower the sender's TAR target.
+    REQUIRE(senderFederate.timeAdvanceGrantValue == 5);
     REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
         rti1516_2025::HLAinteger64Time(5)));
     REQUIRE(senderFederate.timeAdvanceGrantCount == 1U);
@@ -23866,6 +29564,7 @@ TEST_CASE(
   }
   REQUIRE_FALSE(serverError);
 }
+
 #endif
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
@@ -26063,5 +31762,4643 @@ TEST_CASE(
   REQUIRE_FALSE(serverError);
   REQUIRE_FALSE(senderJoined);
   REQUIRE_FALSE(receiverJoined);
+}
+
+#endif
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+class TransportationTypeFederateAmbassador final : public NullFederateAmbassador {
+ public:
+  void confirmAttributeTransportationTypeChange(
+      rti1516_2025::ObjectInstanceHandle const& objectInstance,
+      rti1516_2025::AttributeHandleSet const& attributes,
+      rti1516_2025::TransportationTypeHandle const& transportationType) override {
+    ++changeCount;
+    changedObjectInstance = objectInstance;
+    changedAttributes = attributes;
+    changedTransportationType = transportationType;
+  }
+
+  void reportAttributeTransportationType(
+      rti1516_2025::ObjectInstanceHandle const& objectInstance,
+      rti1516_2025::AttributeHandle const& attribute,
+      rti1516_2025::TransportationTypeHandle const& transportationType) override {
+    ++queryCount;
+    queriedObjectInstance = objectInstance;
+    queriedAttribute = attribute;
+    queriedTransportationType = transportationType;
+  }
+
+  std::size_t changeCount = 0U;
+  rti1516_2025::ObjectInstanceHandle changedObjectInstance;
+  rti1516_2025::AttributeHandleSet changedAttributes;
+  rti1516_2025::TransportationTypeHandle changedTransportationType;
+  std::size_t queryCount = 0U;
+  rti1516_2025::ObjectInstanceHandle queriedObjectInstance;
+  rti1516_2025::AttributeHandle queriedAttribute;
+  rti1516_2025::TransportationTypeHandle queriedTransportationType;
+};
+
+TEST_CASE(
+    "RTIambassador routes instance transportation type change and query through a configured process endpoint",
+    "[integration][foundation][object-management][transportation][transport][process-boundary][public-endpoint][process-transportation-instance-control][rti.service.request-attribute-transportation-type-change][rti.service.query-attribute-transportation-type]") {
+  auto runScenario = [](CallbackModel callbackModel) {
+    auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+    REQUIRE(listener);
+    auto const port = listener->address().port;
+    REQUIRE(port != 0U);
+
+    constexpr wchar_t const* federationName =
+        L"public-process-transportation-instance-execution";
+    constexpr wchar_t const* federateName =
+        L"public-process-transportation-instance-federate";
+    constexpr char const* objectName = "HLAobjectRoot.Customer";
+    constexpr char const* attributeName = "HLAprivilegeToDeleteObject";
+    constexpr char const* transportationTypeName = "HLAreliable";
+    std::atomic_uint64_t expectedObjectClass{0U};
+    std::atomic_uint64_t expectedAttribute{0U};
+    std::atomic_uint64_t expectedTransportation{0U};
+    std::exception_ptr serverError;
+    std::thread server([&] {
+      try {
+        EmbeddedFederationRegistry registry;
+        ProcessFederationService service(
+            registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+        auto connection = listener->accept(
+            nullptr,
+            {"public-process-transportation-instance-server", 0x9603U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession session(connection);
+        auto handler = service.handlerFor(session);
+        auto serveExpected = [&](TransportServiceOperation operation) {
+          return ProcessTransportServiceDispatcher::serveOne(
+              session,
+              [&](TransportServiceMessage const& request) {
+                if (request.operation != operation) {
+                  throw std::runtime_error(
+                      "The public process transportation-instance server received an unexpected operation (expected " +
+                      std::to_string(static_cast<unsigned>(operation)) +
+                      ", got " +
+                      std::to_string(static_cast<unsigned>(request.operation)) + ").");
+                }
+                return handler(request);
+              });
+        };
+
+        if (!serveExpected(TransportServiceOperation::create_federation_execution)) {
+          throw std::runtime_error(
+              "The public process transportation-instance server lost Create.");
+        }
+        auto const objectClass = registry.objectClassHandleFor(
+            federationName, objectName);
+        auto const attribute = registry.attributeHandleFor(
+            federationName, objectName, attributeName);
+        auto const transportation = registry.transportationTypeHandleFor(
+            federationName, transportationTypeName);
+        if (!objectClass || !attribute || !transportation) {
+          throw std::runtime_error(
+              "The public process transportation-instance server could not resolve its FOM handles.");
+        }
+        expectedObjectClass.store(*objectClass, std::memory_order_release);
+        expectedAttribute.store(*attribute, std::memory_order_release);
+        expectedTransportation.store(*transportation, std::memory_order_release);
+        if (!serveExpected(TransportServiceOperation::join_federation_execution) ||
+            !serveExpected(TransportServiceOperation::get_object_class_handle) ||
+            !serveExpected(TransportServiceOperation::get_attribute_handle) ||
+            !serveExpected(TransportServiceOperation::get_transportation_type_handle) ||
+            !serveExpected(TransportServiceOperation::publish_object_class_attributes) ||
+            !serveExpected(TransportServiceOperation::register_object_instance) ||
+            !serveExpected(
+                TransportServiceOperation::request_attribute_transportation_type_change) ||
+            !serveExpected(TransportServiceOperation::receive_interaction) ||
+            !serveExpected(TransportServiceOperation::query_attribute_transportation_type) ||
+            !serveExpected(TransportServiceOperation::receive_interaction) ||
+            !serveExpected(TransportServiceOperation::resign_federation_execution)) {
+          throw std::runtime_error(
+              "The public process transportation-instance server lost a declaration, callback, or Resign operation.");
+        }
+        service.detach(session);
+        connection->close();
+      } catch (...) {
+        serverError = std::current_exception();
+      }
+    });
+
+    TransportationTypeFederateAmbassador federate;
+    auto rti = makeRti();
+    auto configuration = RtiConfiguration::createConfiguration()
+                             .withConfigurationName(
+                                 L"public-process-transportation-instance-client")
+                             .withRtiAddress(
+                                 L"tcp://127.0.0.1:" + std::to_wstring(port));
+    std::exception_ptr clientError;
+    bool clientJoined = false;
+    try {
+      REQUIRE(rti->connect(federate, callbackModel, configuration).addressUsed);
+      rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+      static_cast<void>(rti->joinFederationExecution(
+          federateName,
+          L"public-process-transportation-instance-type",
+          federationName));
+      clientJoined = true;
+      auto const objectClass = rti->getObjectClassHandle(L"HLAobjectRoot.Customer");
+      REQUIRE(objectClass.toString() ==
+              L"ObjectClassHandle(" +
+                  std::to_wstring(
+                      expectedObjectClass.load(std::memory_order_acquire)) +
+                  L")");
+      auto const attribute =
+          rti->getAttributeHandle(objectClass, L"HLAprivilegeToDeleteObject");
+      REQUIRE(attribute.isValid());
+      auto const transportation =
+          rti->getTransportationTypeHandle(L"HLAreliable");
+      REQUIRE(transportation.toString() ==
+              L"TransportationTypeHandle(" +
+                  std::to_wstring(
+                      expectedTransportation.load(std::memory_order_acquire)) +
+                  L")");
+      rti1516_2025::AttributeHandleSet attributes;
+      attributes.insert(attribute);
+      rti->publishObjectClassAttributes(objectClass, attributes);
+      auto const objectInstance = rti->registerObjectInstance(objectClass);
+      REQUIRE(objectInstance.isValid());
+      REQUIRE_NOTHROW(rti->requestAttributeTransportationTypeChange(
+          objectInstance, attributes, transportation));
+      REQUIRE_NOTHROW(rti->evokeCallback(0.0));
+      REQUIRE(federate.changeCount == 1U);
+      REQUIRE(federate.changedObjectInstance == objectInstance);
+      REQUIRE(federate.changedAttributes.size() == 1U);
+      REQUIRE(federate.changedAttributes.contains(attribute));
+      REQUIRE(federate.changedTransportationType == transportation);
+      REQUIRE_NOTHROW(rti->queryAttributeTransportationType(
+          objectInstance, attribute));
+      REQUIRE_NOTHROW(rti->evokeCallback(0.0));
+      REQUIRE(federate.queryCount == 1U);
+      REQUIRE(federate.queriedObjectInstance == objectInstance);
+      REQUIRE(federate.queriedAttribute == attribute);
+      REQUIRE(federate.queriedTransportationType == transportation);
+      rti->resignFederationExecution(NO_ACTION);
+      rti->disconnect();
+    } catch (...) {
+      clientError = std::current_exception();
+      if (clientJoined) {
+        try {
+          rti->resignFederationExecution(NO_ACTION);
+        } catch (...) {
+        }
+      }
+      try {
+        rti->disconnect();
+      } catch (...) {
+      }
+    }
+    if (listener) {
+      listener.reset();
+    }
+    if (server.joinable()) {
+      server.join();
+    }
+    if (clientError) {
+      std::rethrow_exception(clientError);
+    }
+  REQUIRE_FALSE(serverError);
+  REQUIRE(expectedAttribute.load(std::memory_order_acquire) != 0U);
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
+}
+
+#endif
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+class InteractionTransportationFederateAmbassador final
+    : public NullFederateAmbassador {
+ public:
+  void confirmInteractionTransportationTypeChange(
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::TransportationTypeHandle const& transportationType) override {
+    ++changeCount;
+    changedInteractionClass = interactionClass;
+    changedTransportationType = transportationType;
+  }
+
+  void reportInteractionTransportationType(
+      rti1516_2025::FederateHandle const& federate,
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::TransportationTypeHandle const& transportationType) override {
+    ++queryCount;
+    queriedFederate = federate;
+    queriedInteractionClass = interactionClass;
+    queriedTransportationType = transportationType;
+  }
+
+  std::size_t changeCount = 0U;
+  rti1516_2025::InteractionClassHandle changedInteractionClass;
+  rti1516_2025::TransportationTypeHandle changedTransportationType;
+  std::size_t queryCount = 0U;
+  rti1516_2025::FederateHandle queriedFederate;
+  rti1516_2025::InteractionClassHandle queriedInteractionClass;
+  rti1516_2025::TransportationTypeHandle queriedTransportationType;
+};
+
+TEST_CASE(
+    "RTIambassador routes interaction transportation type change and query through a configured process endpoint",
+    "[integration][foundation][interaction-management][transportation][transport][process-boundary][public-endpoint][process-transportation-interaction-control][rti.service.request-interaction-transportation-type-change][rti.service.query-interaction-transportation-type]") {
+  auto runScenario = [](CallbackModel callbackModel) {
+    auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+    REQUIRE(listener);
+    auto const port = listener->address().port;
+    REQUIRE(port != 0U);
+
+    constexpr wchar_t const* federationName =
+        L"public-process-transportation-interaction-execution";
+    constexpr wchar_t const* federateName =
+        L"public-process-transportation-interaction-federate";
+    constexpr char const* interactionName =
+        "HLAinteractionRoot.ServerAction.TakeOrder";
+    constexpr wchar_t const* interactionNameWide =
+        L"HLAinteractionRoot.ServerAction.TakeOrder";
+    constexpr char const* transportationTypeName = "HLAbestEffort";
+    std::atomic_uint64_t expectedInteractionClass{0U};
+    std::atomic_uint64_t expectedTransportation{0U};
+    std::exception_ptr serverError;
+    std::thread server([&] {
+      try {
+        EmbeddedFederationRegistry registry;
+        ProcessFederationService service(
+            registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+        auto connection = listener->accept(
+            nullptr,
+            {"public-process-transportation-interaction-server", 0x9604U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession session(connection);
+        auto handler = service.handlerFor(session);
+        auto serveExpected = [&](TransportServiceOperation operation) {
+          return ProcessTransportServiceDispatcher::serveOne(
+              session,
+              [&](TransportServiceMessage const& request) {
+                if (request.operation != operation) {
+                  throw std::runtime_error(
+                      "The public process transportation-interaction server received an unexpected operation (expected " +
+                      std::to_string(static_cast<unsigned>(operation)) +
+                      ", got " +
+                      std::to_string(static_cast<unsigned>(request.operation)) +
+                      ").");
+                }
+                return handler(request);
+              });
+        };
+
+        if (!serveExpected(TransportServiceOperation::create_federation_execution)) {
+          throw std::runtime_error(
+              "The public process transportation-interaction server lost Create.");
+        }
+        auto const interactionClass = registry.interactionClassHandleFor(
+            federationName, interactionName);
+        auto const transportation = registry.transportationTypeHandleFor(
+            federationName, transportationTypeName);
+        if (!interactionClass || !transportation) {
+          throw std::runtime_error(
+              "The public process transportation-interaction server could not resolve its FOM handles.");
+        }
+        expectedInteractionClass.store(
+            *interactionClass, std::memory_order_release);
+        expectedTransportation.store(
+            *transportation, std::memory_order_release);
+        if (!serveExpected(TransportServiceOperation::join_federation_execution) ||
+            !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+            !serveExpected(TransportServiceOperation::get_transportation_type_handle) ||
+            !serveExpected(TransportServiceOperation::get_federate_handle) ||
+            !serveExpected(TransportServiceOperation::publish_interaction_class) ||
+            !serveExpected(
+                TransportServiceOperation::request_interaction_transportation_type_change) ||
+            !serveExpected(TransportServiceOperation::receive_interaction) ||
+            !serveExpected(
+                TransportServiceOperation::query_interaction_transportation_type) ||
+            !serveExpected(TransportServiceOperation::receive_interaction) ||
+            !serveExpected(TransportServiceOperation::resign_federation_execution)) {
+          throw std::runtime_error(
+              "The public process transportation-interaction server lost a declaration, callback, or Resign operation.");
+        }
+        service.detach(session);
+        connection->close();
+      } catch (...) {
+        serverError = std::current_exception();
+      }
+    });
+
+    InteractionTransportationFederateAmbassador federate;
+    auto rti = makeRti();
+    auto configuration = RtiConfiguration::createConfiguration()
+                             .withConfigurationName(
+                                 L"public-process-transportation-interaction-client")
+                             .withRtiAddress(
+                                 L"tcp://127.0.0.1:" + std::to_wstring(port));
+    std::exception_ptr clientError;
+    bool clientJoined = false;
+    try {
+      REQUIRE(rti->connect(federate, callbackModel, configuration).addressUsed);
+      rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+      static_cast<void>(rti->joinFederationExecution(
+          federateName,
+          L"public-process-transportation-interaction-type",
+          federationName));
+      clientJoined = true;
+      auto const interactionClass =
+          rti->getInteractionClassHandle(interactionNameWide);
+      REQUIRE(interactionClass.toString() ==
+              L"InteractionClassHandle(" +
+                  std::to_wstring(expectedInteractionClass.load(
+                      std::memory_order_acquire)) +
+                  L")");
+      auto const transportation =
+          rti->getTransportationTypeHandle(L"HLAbestEffort");
+      REQUIRE(transportation.toString() ==
+              L"TransportationTypeHandle(" +
+                  std::to_wstring(expectedTransportation.load(
+                      std::memory_order_acquire)) +
+                  L")");
+      auto const queriedFederate = rti->getFederateHandle(federateName);
+      REQUIRE(queriedFederate.isValid());
+      REQUIRE_NOTHROW(rti->publishInteractionClass(interactionClass));
+      REQUIRE_NOTHROW(rti->requestInteractionTransportationTypeChange(
+          interactionClass, transportation));
+      REQUIRE_NOTHROW(rti->evokeCallback(0.0));
+      REQUIRE(federate.changeCount == 1U);
+      REQUIRE(federate.changedInteractionClass == interactionClass);
+      REQUIRE(federate.changedTransportationType == transportation);
+      REQUIRE_NOTHROW(rti->queryInteractionTransportationType(
+          queriedFederate, interactionClass));
+      REQUIRE_NOTHROW(rti->evokeCallback(0.0));
+      REQUIRE(federate.queryCount == 1U);
+      REQUIRE(federate.queriedFederate == queriedFederate);
+      REQUIRE(federate.queriedInteractionClass == interactionClass);
+      REQUIRE(federate.queriedTransportationType == transportation);
+      rti->resignFederationExecution(NO_ACTION);
+      clientJoined = false;
+      rti->disconnect();
+    } catch (...) {
+      clientError = std::current_exception();
+      if (clientJoined) {
+        try {
+          rti->resignFederationExecution(NO_ACTION);
+        } catch (...) {
+        }
+      }
+      try {
+        rti->disconnect();
+      } catch (...) {
+      }
+    }
+    if (listener) {
+      listener.reset();
+    }
+    if (server.joinable()) {
+      server.join();
+    }
+    if (clientError) {
+      std::rethrow_exception(clientError);
+    }
+    REQUIRE_FALSE(serverError);
+    REQUIRE(expectedInteractionClass.load(std::memory_order_acquire) != 0U);
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
+}
+
+class DirectedInteractionTransportationQueryFederateAmbassador final
+    : public NullFederateAmbassador {
+ public:
+  void confirmInteractionTransportationTypeChange(
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::TransportationTypeHandle const& transportationType) override {
+    ++changeCount;
+    changedInteractionClass = interactionClass;
+    changedTransportationType = transportationType;
+  }
+
+  void reportInteractionTransportationType(
+      rti1516_2025::FederateHandle const& federate,
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::TransportationTypeHandle const& transportationType) override {
+    ++queryCount;
+    queriedFederate = federate;
+    queriedInteractionClass = interactionClass;
+    queriedTransportationType = transportationType;
+  }
+
+  std::size_t changeCount = 0U;
+  rti1516_2025::InteractionClassHandle changedInteractionClass;
+  rti1516_2025::TransportationTypeHandle changedTransportationType;
+  std::size_t queryCount = 0U;
+  rti1516_2025::FederateHandle queriedFederate;
+  rti1516_2025::InteractionClassHandle queriedInteractionClass;
+  rti1516_2025::TransportationTypeHandle queriedTransportationType;
+};
+
+TEST_CASE(
+    "RTIambassador reports a directed interaction transportation override through a configured process endpoint",
+    "[integration][foundation][interaction-management][object-management][transportation][transport]"
+    "[directed-interaction][directed-routing][process-boundary][public-endpoint]"
+    "[process-directed-interaction-transportation-query][callbacks][callback-immediate][2025]"
+    "[rti.service.publish-object-class-directed-interactions][rti.service.request-interaction-transportation-type-change]"
+    "[rti.service.query-interaction-transportation-type]"
+    "[federate.callback.confirm-interaction-transportation-type-change]"
+    "[federate.callback.report-interaction-transportation-type]") {
+  auto runScenario = [](CallbackModel callbackModel) {
+    constexpr wchar_t const* federationName =
+        L"public-process-directed-transportation-query-execution";
+    constexpr wchar_t const* federateName =
+        L"public-process-directed-transportation-query-federate";
+    constexpr char const* objectClassName =
+        "HLAobjectRoot.UmbraDirectedFixtureObject";
+    constexpr char const* interactionClassName =
+        "HLAinteractionRoot.UmbraDirectedFixtureInteraction";
+    constexpr char const* transportationTypeName = "HLAbestEffort";
+
+    auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+    REQUIRE(listener);
+    auto const port = listener->address().port;
+    REQUIRE(port != 0U);
+
+    std::atomic_uint64_t expectedObjectClass{0U};
+    std::atomic_uint64_t expectedInteractionClass{0U};
+    std::atomic_uint64_t expectedTransportation{0U};
+    std::exception_ptr serverError;
+    std::thread server([&] {
+      try {
+        EmbeddedFederationRegistry registry;
+        ProcessFederationService service(
+            registry,
+            composedDirectedProcessDefinition(),
+            ProcessFederationServiceOptions{});
+        auto connection = listener->accept(
+            nullptr,
+            {"public-process-directed-transportation-query-server", 0x9741U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession session(connection);
+        auto handler = service.handlerFor(session);
+        auto serveExpected = [&](TransportServiceOperation operation,
+                                 char const* description) {
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  session,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          std::string(description) + " expected operation " +
+                          std::to_string(static_cast<unsigned>(operation)) +
+                          " but received " +
+                          std::to_string(static_cast<unsigned>(request.operation)));
+                    }
+                    auto response = handler(request);
+                    if (response.status != TransportServiceStatus::ok) {
+                      throw std::runtime_error(
+                          std::string(description) + " handler status " +
+                          std::to_string(static_cast<unsigned>(response.status)));
+                    }
+                    return response;
+                  })) {
+            throw std::runtime_error(description);
+          }
+        };
+
+        serveExpected(
+            TransportServiceOperation::create_federation_execution,
+            "The directed transportation query server lost Create.");
+        auto const objectClass = registry.objectClassHandleFor(
+            federationName, objectClassName);
+        auto const interactionClass = registry.interactionClassHandleFor(
+            federationName, interactionClassName);
+        auto const transportation = registry.transportationTypeHandleFor(
+            federationName, transportationTypeName);
+        if (!objectClass || !interactionClass || !transportation) {
+          throw std::runtime_error(
+              "The directed transportation query server could not resolve its FOM handles.");
+        }
+        expectedObjectClass.store(*objectClass, std::memory_order_release);
+        expectedInteractionClass.store(*interactionClass, std::memory_order_release);
+        expectedTransportation.store(*transportation, std::memory_order_release);
+
+        serveExpected(
+            TransportServiceOperation::join_federation_execution,
+            "The directed transportation query server lost Join.");
+        serveExpected(
+            TransportServiceOperation::get_object_class_handle,
+            "The directed transportation query server lost object lookup.");
+        serveExpected(
+            TransportServiceOperation::get_interaction_class_handle,
+            "The directed transportation query server lost interaction lookup.");
+        serveExpected(
+            TransportServiceOperation::get_transportation_type_handle,
+            "The directed transportation query server lost transportation lookup.");
+        serveExpected(
+            TransportServiceOperation::get_federate_handle,
+            "The directed transportation query server lost federate lookup.");
+        serveExpected(
+            TransportServiceOperation::publish_object_class_directed_interactions,
+            "The directed transportation query server lost directed publication.");
+        serveExpected(
+            TransportServiceOperation::request_interaction_transportation_type_change,
+            "The directed transportation query server lost directed transportation change.");
+        serveExpected(
+            TransportServiceOperation::receive_interaction,
+            "The directed transportation query server lost transportation confirmation.");
+        serveExpected(
+            TransportServiceOperation::query_interaction_transportation_type,
+            "The directed transportation query server lost transportation query.");
+        serveExpected(
+            TransportServiceOperation::receive_interaction,
+            "The directed transportation query server lost transportation report.");
+        serveExpected(
+            TransportServiceOperation::resign_federation_execution,
+            "The directed transportation query server lost Resign.");
+        service.detach(session);
+        connection->close();
+      } catch (...) {
+        serverError = std::current_exception();
+      }
+    });
+
+    DirectedInteractionTransportationQueryFederateAmbassador federate;
+    auto rti = makeRti();
+    auto configuration = RtiConfiguration::createConfiguration()
+                             .withConfigurationName(
+                                 L"public-process-directed-transportation-query-client")
+                             .withRtiAddress(
+                                 L"tcp://127.0.0.1:" + std::to_wstring(port));
+    std::exception_ptr clientError;
+    bool clientJoined = false;
+    try {
+      REQUIRE(rti->connect(federate, callbackModel, configuration).addressUsed);
+      rti->createFederationExecution(
+          federationName, L"server-owned-directed-transportation-fom.xml");
+      static_cast<void>(rti->joinFederationExecution(
+          federateName,
+          L"public-process-directed-transportation-query-type",
+          federationName));
+      clientJoined = true;
+
+      auto const objectClass = rti->getObjectClassHandle(
+          L"HLAobjectRoot.UmbraDirectedFixtureObject");
+      auto const interactionClass = rti->getInteractionClassHandle(
+          L"HLAinteractionRoot.UmbraDirectedFixtureInteraction");
+      auto const transportation = rti->getTransportationTypeHandle(
+          L"HLAbestEffort");
+      REQUIRE(objectClass.toString() ==
+              L"ObjectClassHandle(" +
+                  std::to_wstring(expectedObjectClass.load(
+                      std::memory_order_acquire)) +
+                  L")");
+      REQUIRE(interactionClass.toString() ==
+              L"InteractionClassHandle(" +
+                  std::to_wstring(expectedInteractionClass.load(
+                      std::memory_order_acquire)) +
+                  L")");
+      REQUIRE(transportation.toString() ==
+              L"TransportationTypeHandle(" +
+                  std::to_wstring(expectedTransportation.load(
+                      std::memory_order_acquire)) +
+                  L")");
+      auto const queriedFederate = rti->getFederateHandle(federateName);
+      REQUIRE(queriedFederate.isValid());
+      REQUIRE_NOTHROW(rti->publishObjectClassDirectedInteractions(
+          objectClass, rti1516_2025::InteractionClassHandleSet{interactionClass}));
+      REQUIRE_NOTHROW(rti->requestInteractionTransportationTypeChange(
+          interactionClass, transportation));
+      REQUIRE_NOTHROW(rti->evokeCallback(0.0));
+      REQUIRE(federate.changeCount == 1U);
+      REQUIRE(federate.changedInteractionClass == interactionClass);
+      REQUIRE(federate.changedTransportationType == transportation);
+
+      REQUIRE_NOTHROW(rti->queryInteractionTransportationType(
+          queriedFederate, interactionClass));
+      REQUIRE_NOTHROW(rti->evokeCallback(0.0));
+      REQUIRE(federate.queryCount == 1U);
+      REQUIRE(federate.queriedFederate == queriedFederate);
+      REQUIRE(federate.queriedInteractionClass == interactionClass);
+      REQUIRE(federate.queriedTransportationType == transportation);
+      rti->resignFederationExecution(NO_ACTION);
+      clientJoined = false;
+      rti->disconnect();
+    } catch (...) {
+      clientError = std::current_exception();
+      if (clientJoined) {
+        try {
+          rti->resignFederationExecution(NO_ACTION);
+        } catch (...) {
+        }
+      }
+      try {
+        rti->disconnect();
+      } catch (...) {
+      }
+    }
+    listener.reset();
+    if (server.joinable()) {
+      server.join();
+    }
+    if (serverError) {
+      try {
+        std::rethrow_exception(serverError);
+      } catch (std::exception const& error) {
+        FAIL_CHECK(std::string("directed transportation query server: ") +
+                   error.what());
+      } catch (...) {
+        FAIL_CHECK(
+            "directed transportation query server failed with an unknown exception");
+      }
+    }
+    if (clientError) {
+      std::rethrow_exception(clientError);
+    }
+    REQUIRE_FALSE(serverError);
+    REQUIRE_FALSE(clientJoined);
+    REQUIRE(expectedObjectClass.load(std::memory_order_acquire) != 0U);
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
+}
+
+class RegionalInteractionTransportationFederateAmbassador final
+    : public NullFederateAmbassador {
+ public:
+  void confirmInteractionTransportationTypeChange(
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::TransportationTypeHandle const& transportationType) override {
+    ++changeCount;
+    changedInteractionClass = interactionClass;
+    changedTransportationType = transportationType;
+  }
+
+  void receiveInteraction(
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::ParameterHandleValueMap const& parameterValues,
+      rti1516_2025::VariableLengthData const& userSuppliedTag,
+      rti1516_2025::TransportationTypeHandle const& transportationType,
+      rti1516_2025::FederateHandle const& producingFederate,
+      rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
+    ++receiveCount;
+    receivedInteractionClass = interactionClass;
+    receivedTransportationType = transportationType;
+    receivedProducingFederate = producingFederate;
+    receivedParameterCount = parameterValues.size();
+    receivedRegionCount = optionalSentRegions == nullptr
+        ? 0U
+        : optionalSentRegions->size();
+    receivedOptionalRegions = optionalSentRegions != nullptr;
+    receivedTag.clear();
+    if (userSuppliedTag.size() != 0U) {
+      auto const* first = static_cast<std::uint8_t const*>(userSuppliedTag.data());
+      receivedTag.assign(first, first + userSuppliedTag.size());
+    }
+  }
+
+  std::size_t changeCount = 0U;
+  rti1516_2025::InteractionClassHandle changedInteractionClass;
+  rti1516_2025::TransportationTypeHandle changedTransportationType;
+  std::size_t receiveCount = 0U;
+  rti1516_2025::InteractionClassHandle receivedInteractionClass;
+  rti1516_2025::TransportationTypeHandle receivedTransportationType;
+  rti1516_2025::FederateHandle receivedProducingFederate;
+  std::size_t receivedParameterCount = 0U;
+  std::size_t receivedRegionCount = 0U;
+  bool receivedOptionalRegions = false;
+  std::vector<std::uint8_t> receivedTag;
+};
+
+TEST_CASE(
+    "RTIambassadors preserve a regional interaction transportation override through a configured process endpoint",
+    "[integration][foundation][data-distribution-management][interaction-management][transportation][transport][process-boundary][public-endpoint][regional-interaction][process-transportation-regional-interaction-control][rti.service.request-interaction-transportation-type-change][rti.service.subscribe-interaction-class-with-regions][rti.service.send-interaction-with-regions][federate.callback.confirm-interaction-transportation-type-change][federate.callback.receive-interaction][2025]") {
+  auto runScenario = [](CallbackModel callbackModel) {
+    constexpr wchar_t const* federationName =
+        L"public-process-transportation-regional-interaction-execution";
+    constexpr wchar_t const* senderName =
+        L"public-process-transportation-regional-interaction-sender";
+    constexpr wchar_t const* receiverName =
+        L"public-process-transportation-regional-interaction-receiver";
+    constexpr wchar_t const* federateType =
+        L"public-process-transportation-regional-interaction-type";
+    constexpr wchar_t const* interactionNameWide =
+        L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+    constexpr wchar_t const* parameterNameWide = L"TimelinessOk";
+    constexpr wchar_t const* dimensionNameWide = L"ServerId";
+
+    auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+    REQUIRE(listener);
+    auto const port = listener->address().port;
+    REQUIRE(port != 0U);
+
+    std::atomic_uint64_t expectedInteractionClass{0U};
+    std::atomic_uint64_t expectedParameter{0U};
+    std::atomic_uint64_t expectedDimension{0U};
+    std::atomic_uint64_t expectedTransportation{0U};
+    std::exception_ptr serverError;
+    std::thread server([&] {
+      try {
+        EmbeddedFederationRegistry registry;
+        ProcessFederationService service(
+            registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+        auto senderConnection = listener->accept(
+            nullptr,
+            {"public-process-transportation-regional-interaction-server", 0x9605U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession sender(senderConnection);
+        auto senderHandler = service.handlerFor(sender);
+        auto serveExpected = [&](ProcessTransportSession& session,
+                                 auto const& handler,
+                                 TransportServiceOperation operation,
+                                 char const* description) {
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  session,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation != operation) {
+                      throw std::runtime_error(description);
+                    }
+                    auto response = handler(request);
+                    if (response.status != TransportServiceStatus::ok) {
+                      throw std::runtime_error(description);
+                    }
+                    return response;
+                  })) {
+            throw std::runtime_error(description);
+          }
+        };
+
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::create_federation_execution,
+            "The regional transportation process server lost Create.");
+        auto const interactionClass = registry.interactionClassHandleFor(
+            federationName,
+            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+        auto const parameter = registry.parameterHandleFor(
+            federationName,
+            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed",
+            "TimelinessOk");
+        auto const dimension = registry.dimensionHandleFor(
+            federationName, "ServerId");
+        auto const transportation = registry.transportationTypeHandleFor(
+            federationName, "HLAbestEffort");
+        if (!interactionClass || !parameter || !dimension || !transportation) {
+          throw std::runtime_error(
+              "The regional transportation process server could not resolve its FOM handles.");
+        }
+        expectedInteractionClass.store(*interactionClass, std::memory_order_release);
+        expectedParameter.store(*parameter, std::memory_order_release);
+        expectedDimension.store(*dimension, std::memory_order_release);
+        expectedTransportation.store(*transportation, std::memory_order_release);
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::join_federation_execution,
+            "The regional transportation process server lost sender Join.");
+
+        auto receiverConnection = listener->accept(
+            nullptr,
+            {"public-process-transportation-regional-interaction-server", 0x9606U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession receiver(receiverConnection);
+        auto receiverHandler = service.handlerFor(receiver);
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::join_federation_execution,
+            "The regional transportation process server lost receiver Join.");
+
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::get_interaction_class_handle,
+            "The regional transportation process server lost sender class lookup.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_interaction_class_handle,
+            "The regional transportation process server lost receiver class lookup.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::get_parameter_handle,
+            "The regional transportation process server lost sender parameter lookup.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_parameter_handle,
+            "The regional transportation process server lost receiver parameter lookup.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::get_dimension_handle,
+            "The regional transportation process server lost sender dimension lookup.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_dimension_handle,
+            "The regional transportation process server lost receiver dimension lookup.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::get_transportation_type_handle,
+            "The regional transportation process server lost sender transportation lookup.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::create_region,
+            "The regional transportation process server lost sender region creation.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::create_region,
+            "The regional transportation process server lost receiver region creation.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::set_range_bounds,
+            "The regional transportation process server lost sender bounds.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::commit_region_modifications,
+            "The regional transportation process server lost sender region commit.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::set_range_bounds,
+            "The regional transportation process server lost receiver bounds.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::commit_region_modifications,
+            "The regional transportation process server lost receiver region commit.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::publish_interaction_class,
+            "The regional transportation process server lost Publish.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::request_interaction_transportation_type_change,
+            "The regional transportation process server lost transportation override.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::receive_interaction,
+            "The regional transportation process server lost transportation confirmation.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::set_convey_region_designator_sets_switch,
+            "The regional transportation process server lost Convey switch set.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_convey_region_designator_sets_switch,
+            "The regional transportation process server lost Convey switch query.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::subscribe_interaction_class_with_regions,
+            "The regional transportation process server lost regional Subscribe.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::send_interaction_with_regions,
+            "The regional transportation process server lost regional Send.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::receive_interaction,
+            "The regional transportation process server lost regional Receive.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::unsubscribe_interaction_class_with_regions,
+            "The regional transportation process server lost regional Unsubscribe.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The regional transportation process server lost sender Resign.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The regional transportation process server lost receiver Resign.");
+        service.detach(sender);
+        service.detach(receiver);
+        senderConnection->close();
+        receiverConnection->close();
+      } catch (...) {
+        serverError = std::current_exception();
+      }
+    });
+
+    RegionalInteractionTransportationFederateAmbassador senderFederate;
+    RegionalInteractionTransportationFederateAmbassador receiverFederate;
+    auto senderRti = makeRti();
+    auto receiverRti = makeRti();
+    auto configurationFor = [&](wchar_t const* name) {
+      return RtiConfiguration::createConfiguration()
+          .withConfigurationName(name)
+          .withRtiAddress(L"tcp://127.0.0.1:" + std::to_wstring(port));
+    };
+    std::exception_ptr clientError;
+    bool senderJoined = false;
+    bool receiverJoined = false;
+    try {
+      REQUIRE(senderRti->connect(
+                  senderFederate,
+                  callbackModel,
+                  configurationFor(L"public-process-transportation-regional-interaction-sender-client"))
+                  .addressUsed);
+      senderRti->createFederationExecution(
+          federationName, L"server-owned-fom.xml");
+      auto const senderHandle = senderRti->joinFederationExecution(
+          senderName, federateType, federationName);
+      REQUIRE(senderHandle.isValid());
+      senderJoined = true;
+
+      REQUIRE(receiverRti->connect(
+                  receiverFederate,
+                  callbackModel,
+                  configurationFor(L"public-process-transportation-regional-interaction-receiver-client"))
+                  .addressUsed);
+      auto const receiverHandle = receiverRti->joinFederationExecution(
+          receiverName, federateType, federationName);
+      REQUIRE(receiverHandle.isValid());
+      receiverJoined = true;
+
+      auto const senderInteraction =
+          senderRti->getInteractionClassHandle(interactionNameWide);
+      auto const receiverInteraction =
+          receiverRti->getInteractionClassHandle(interactionNameWide);
+      auto const expectedClass =
+          rti1516_2025::umbra_binding_detail::makeInteractionClassHandle(
+              expectedInteractionClass.load(std::memory_order_acquire));
+      REQUIRE(senderInteraction.toString() == expectedClass.toString());
+      REQUIRE(receiverInteraction.toString() == expectedClass.toString());
+      auto const senderParameter =
+          senderRti->getParameterHandle(senderInteraction, parameterNameWide);
+      auto const receiverParameter =
+          receiverRti->getParameterHandle(receiverInteraction, parameterNameWide);
+      auto const expectedParameterHandle =
+          rti1516_2025::umbra_binding_detail::makeParameterHandle(
+              expectedParameter.load(std::memory_order_acquire));
+      REQUIRE(senderParameter == expectedParameterHandle);
+      REQUIRE(receiverParameter == expectedParameterHandle);
+      auto const senderDimension =
+          senderRti->getDimensionHandle(dimensionNameWide);
+      auto const receiverDimension =
+          receiverRti->getDimensionHandle(dimensionNameWide);
+      auto const expectedDimensionText =
+          L"DimensionHandle(" +
+          std::to_wstring(expectedDimension.load(std::memory_order_acquire)) +
+          L")";
+      REQUIRE(senderDimension.toString() == expectedDimensionText);
+      REQUIRE(receiverDimension.toString() == expectedDimensionText);
+      auto const transportation =
+          senderRti->getTransportationTypeHandle(L"HLAbestEffort");
+      auto const expectedTransportationText =
+          L"TransportationTypeHandle(" +
+          std::to_wstring(expectedTransportation.load(std::memory_order_acquire)) +
+          L")";
+      REQUIRE(transportation.toString() == expectedTransportationText);
+
+      auto const senderRegion = senderRti->createRegion(
+          rti1516_2025::DimensionHandleSet{senderDimension});
+      auto const receiverRegion = receiverRti->createRegion(
+          rti1516_2025::DimensionHandleSet{receiverDimension});
+      REQUIRE(senderRegion.isValid());
+      REQUIRE(receiverRegion.isValid());
+      REQUIRE_NOTHROW(senderRti->setRangeBounds(
+          senderRegion, senderDimension, rti1516_2025::RangeBounds(0UL, 5UL)));
+      REQUIRE_NOTHROW(senderRti->commitRegionModifications(
+          rti1516_2025::RegionHandleSet{senderRegion}));
+      REQUIRE_NOTHROW(receiverRti->setRangeBounds(
+          receiverRegion,
+          receiverDimension,
+          rti1516_2025::RangeBounds(0UL, 5UL)));
+      REQUIRE_NOTHROW(receiverRti->commitRegionModifications(
+          rti1516_2025::RegionHandleSet{receiverRegion}));
+
+      REQUIRE_NOTHROW(senderRti->publishInteractionClass(senderInteraction));
+      REQUIRE_NOTHROW(senderRti->requestInteractionTransportationTypeChange(
+          senderInteraction, transportation));
+      REQUIRE_NOTHROW(senderRti->evokeCallback(0.0));
+      REQUIRE(senderFederate.changeCount == 1U);
+      REQUIRE(senderFederate.changedInteractionClass == senderInteraction);
+      REQUIRE(senderFederate.changedTransportationType == transportation);
+
+      REQUIRE_NOTHROW(receiverRti->setConveyRegionDesignatorSetsSwitch(true));
+      REQUIRE(receiverRti->getConveyRegionDesignatorSetsSwitch());
+      REQUIRE_NOTHROW(receiverRti->subscribeInteractionClassWithRegions(
+          receiverInteraction,
+          rti1516_2025::RegionHandleSet{receiverRegion},
+          true));
+      ParameterHandleValueMap parameterValues;
+      std::array<std::uint8_t, 2U> encodedParameter{0x01U, 0x00U};
+      parameterValues.emplace(
+          senderParameter,
+          VariableLengthData(encodedParameter.data(), encodedParameter.size()));
+      std::array<std::uint8_t, 1U> tag{0xB5U};
+      REQUIRE_NOTHROW(senderRti->sendInteractionWithRegions(
+          senderInteraction,
+          parameterValues,
+          rti1516_2025::RegionHandleSet{senderRegion},
+          VariableLengthData(tag.data(), tag.size())));
+      REQUIRE_NOTHROW(receiverRti->evokeCallback(0.0));
+
+      REQUIRE(receiverFederate.receiveCount == 1U);
+      REQUIRE(receiverFederate.receivedInteractionClass == receiverInteraction);
+      REQUIRE(receiverFederate.receivedTransportationType == transportation);
+      REQUIRE(receiverFederate.receivedProducingFederate == senderHandle);
+      REQUIRE(receiverFederate.receivedParameterCount == 1U);
+      REQUIRE(receiverFederate.receivedOptionalRegions);
+      REQUIRE(receiverFederate.receivedRegionCount == 1U);
+      REQUIRE(receiverFederate.receivedTag == std::vector<std::uint8_t>{0xB5U});
+
+      REQUIRE_NOTHROW(receiverRti->unsubscribeInteractionClassWithRegions(
+          receiverInteraction,
+          rti1516_2025::RegionHandleSet{receiverRegion}));
+      senderRti->resignFederationExecution(NO_ACTION);
+      senderJoined = false;
+      receiverRti->resignFederationExecution(NO_ACTION);
+      receiverJoined = false;
+      senderRti->disconnect();
+      receiverRti->disconnect();
+    } catch (...) {
+      clientError = std::current_exception();
+      if (senderJoined) {
+        try {
+          senderRti->resignFederationExecution(NO_ACTION);
+        } catch (...) {
+        }
+      }
+      if (receiverJoined) {
+        try {
+          receiverRti->resignFederationExecution(NO_ACTION);
+        } catch (...) {
+        }
+      }
+      try {
+        senderRti->disconnect();
+      } catch (...) {
+      }
+      try {
+        receiverRti->disconnect();
+      } catch (...) {
+      }
+    }
+    listener.reset();
+    if (server.joinable()) {
+      server.join();
+    }
+    if (clientError) {
+      if (serverError) {
+        std::rethrow_exception(serverError);
+      }
+      std::rethrow_exception(clientError);
+    }
+    REQUIRE_FALSE(serverError);
+    REQUIRE_FALSE(senderJoined);
+    REQUIRE_FALSE(receiverJoined);
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
+}
+
+class TimestampedRegionalInteractionTransportationFederateAmbassador final
+    : public NullFederateAmbassador {
+ public:
+  void confirmInteractionTransportationTypeChange(
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::TransportationTypeHandle const& transportationType) override {
+    ++changeCount;
+    changedInteractionClass = interactionClass;
+    changedTransportationType = transportationType;
+  }
+
+  void receiveInteraction(
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::ParameterHandleValueMap const& parameterValues,
+      rti1516_2025::VariableLengthData const& userSuppliedTag,
+      rti1516_2025::TransportationTypeHandle const& transportationType,
+      rti1516_2025::FederateHandle const& producingFederate,
+      rti1516_2025::RegionHandleSet const* optionalSentRegions,
+      rti1516_2025::LogicalTime const& time,
+      rti1516_2025::OrderType sentOrderType,
+      rti1516_2025::OrderType receivedOrderType,
+      rti1516_2025::MessageRetractionHandle const* optionalRetraction) override {
+    ++receiveCount;
+    callbackOrder.push_back('I');
+    receivedInteractionClass = interactionClass;
+    receivedTransportationType = transportationType;
+    receivedProducingFederate = producingFederate;
+    receivedParameterCount = parameterValues.size();
+    receivedOptionalRegions = optionalSentRegions != nullptr;
+    receivedRegionCount = optionalSentRegions == nullptr
+        ? 0U
+        : optionalSentRegions->size();
+    receivedOptionalRetraction = optionalRetraction != nullptr;
+    receivedRetractionValid = optionalRetraction != nullptr &&
+        optionalRetraction->isValid();
+    receivedTimestampImplementation = time.implementationName();
+    receivedTimestampValue = -1;
+    if (auto const* integerTime =
+            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+      receivedTimestampValue = integerTime->getTime();
+    }
+    receivedSentOrder = sentOrderType;
+    receivedOrder = receivedOrderType;
+    receivedTag.clear();
+    if (userSuppliedTag.size() != 0U) {
+      auto const* data =
+          static_cast<std::uint8_t const*>(userSuppliedTag.data());
+      receivedTag.assign(data, data + userSuppliedTag.size());
+    }
+  }
+
+  void timeConstrainedEnabled(rti1516_2025::LogicalTime const&) override {
+    ++timeConstrainedEnabledCount;
+  }
+
+  void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
+    ++timeAdvanceGrantCount;
+    callbackOrder.push_back('G');
+    timeAdvanceGrantValue = -1;
+    if (auto const* integerTime =
+            dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
+      timeAdvanceGrantValue = integerTime->getTime();
+    }
+  }
+
+  std::size_t changeCount = 0U;
+  rti1516_2025::InteractionClassHandle changedInteractionClass;
+  rti1516_2025::TransportationTypeHandle changedTransportationType;
+  std::size_t receiveCount = 0U;
+  rti1516_2025::InteractionClassHandle receivedInteractionClass;
+  rti1516_2025::TransportationTypeHandle receivedTransportationType;
+  rti1516_2025::FederateHandle receivedProducingFederate;
+  std::size_t receivedParameterCount = 0U;
+  bool receivedOptionalRegions = false;
+  std::size_t receivedRegionCount = 0U;
+  bool receivedOptionalRetraction = false;
+  bool receivedRetractionValid = false;
+  std::wstring receivedTimestampImplementation;
+  std::int64_t receivedTimestampValue = -1;
+  rti1516_2025::OrderType receivedSentOrder = rti1516_2025::RECEIVE;
+  rti1516_2025::OrderType receivedOrder = rti1516_2025::RECEIVE;
+  std::vector<std::uint8_t> receivedTag;
+  std::size_t timeConstrainedEnabledCount = 0U;
+  std::size_t timeAdvanceGrantCount = 0U;
+  std::int64_t timeAdvanceGrantValue = -1;
+  std::vector<char> callbackOrder;
+};
+
+TEST_CASE(
+    "RTIambassadors preserve a timestamped regional interaction transportation override through a configured process endpoint",
+    "[integration][foundation][data-distribution-management][interaction-management][time-management][transportation][transport][process-boundary][public-endpoint][timestamped-regional-interaction][process-transportation-timestamped-regional-interaction-control][rti.service.get-interaction-class-handle][rti.service.get-parameter-handle][rti.service.get-dimension-handle][rti.service.get-transportation-type-handle][rti.service.publish-interaction-class][rti.service.create-region][rti.service.set-range-bounds][rti.service.commit-region-modifications][rti.service.request-interaction-transportation-type-change][rti.service.get-convey-region-designator-sets-switch][rti.service.set-convey-region-designator-sets-switch][rti.service.subscribe-interaction-class-with-regions][rti.service.send-interaction-with-regions][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.time-advance-request][rti.service.evoke-callback][federate.callback.confirm-interaction-transportation-type-change][federate.callback.receive-interaction][federate.callback.time-advance-grant][2025]") {
+  auto runScenario = [](CallbackModel callbackModel) {
+    constexpr wchar_t const* federationName =
+        L"public-process-transportation-timestamped-regional-execution";
+    constexpr wchar_t const* senderName =
+        L"public-process-transportation-timestamped-regional-sender";
+    constexpr wchar_t const* receiverName =
+        L"public-process-transportation-timestamped-regional-receiver";
+    constexpr wchar_t const* federateType =
+        L"public-process-transportation-timestamped-regional-type";
+    constexpr wchar_t const* interactionNameWide =
+        L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+    constexpr wchar_t const* parameterNameWide = L"TimelinessOk";
+    constexpr wchar_t const* dimensionNameWide = L"ServerId";
+
+    auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+    REQUIRE(listener);
+    auto const port = listener->address().port;
+    REQUIRE(port != 0U);
+
+    std::atomic_uint64_t expectedInteractionClass{0U};
+    std::atomic_uint64_t expectedParameter{0U};
+    std::atomic_uint64_t expectedDimension{0U};
+    std::atomic_uint64_t expectedTransportation{0U};
+    std::atomic_uint64_t recipientCount{0U};
+    std::exception_ptr serverError;
+    std::shared_ptr<ProcessTransportConnection> serverSenderConnection;
+    std::shared_ptr<ProcessTransportConnection> serverReceiverConnection;
+    std::thread server([&] {
+      try {
+        EmbeddedFederationRegistry registry;
+        ProcessFederationService service(
+            registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+        auto senderConnection = listener->accept(
+            nullptr,
+            {"public-process-transportation-timestamped-regional-server", 0x9607U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        serverSenderConnection = senderConnection;
+        ProcessTransportSession sender(senderConnection);
+        auto const senderHandler = service.handlerFor(sender);
+        auto serveExpected = [&](ProcessTransportSession& session,
+                                 auto const& handler,
+                                 TransportServiceOperation operation,
+                                 char const* description) {
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  session,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation != operation) {
+                      throw std::runtime_error(description);
+                    }
+                    auto response = handler(request);
+                    if (response.status != TransportServiceStatus::ok) {
+                      throw std::runtime_error(description);
+                    }
+                    return response;
+                  })) {
+            throw std::runtime_error(description);
+          }
+        };
+
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::create_federation_execution,
+            "The timestamped regional transportation server lost Create.");
+        auto const interactionClass = registry.interactionClassHandleFor(
+            federationName,
+            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+        auto const parameter = registry.parameterHandleFor(
+            federationName,
+            "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed",
+            "TimelinessOk");
+        auto const dimension = registry.dimensionHandleFor(
+            federationName, "ServerId");
+        auto const transportation = registry.transportationTypeHandleFor(
+            federationName, "HLAbestEffort");
+        if (!interactionClass || !parameter || !dimension || !transportation) {
+          throw std::runtime_error(
+              "The timestamped regional transportation server could not resolve its FOM handles.");
+        }
+        expectedInteractionClass.store(*interactionClass, std::memory_order_release);
+        expectedParameter.store(*parameter, std::memory_order_release);
+        expectedDimension.store(*dimension, std::memory_order_release);
+        expectedTransportation.store(*transportation, std::memory_order_release);
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::join_federation_execution,
+            "The timestamped regional transportation server lost sender Join.");
+
+        auto receiverConnection = listener->accept(
+            nullptr,
+            {"public-process-transportation-timestamped-regional-server", 0x9608U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        serverReceiverConnection = receiverConnection;
+        ProcessTransportSession receiver(receiverConnection);
+        auto const receiverHandler = service.handlerFor(receiver);
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::join_federation_execution,
+            "The timestamped regional transportation server lost receiver Join.");
+
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::get_interaction_class_handle,
+            "The timestamped regional transportation server lost sender class lookup.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_interaction_class_handle,
+            "The timestamped regional transportation server lost receiver class lookup.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::get_parameter_handle,
+            "The timestamped regional transportation server lost sender parameter lookup.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_parameter_handle,
+            "The timestamped regional transportation server lost receiver parameter lookup.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::get_dimension_handle,
+            "The timestamped regional transportation server lost sender dimension lookup.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_dimension_handle,
+            "The timestamped regional transportation server lost receiver dimension lookup.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::get_transportation_type_handle,
+            "The timestamped regional transportation server lost transportation lookup.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::create_region,
+            "The timestamped regional transportation server lost sender region creation.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::create_region,
+            "The timestamped regional transportation server lost receiver region creation.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::set_range_bounds,
+            "The timestamped regional transportation server lost sender bounds.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::commit_region_modifications,
+            "The timestamped regional transportation server lost sender region commit.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::set_range_bounds,
+            "The timestamped regional transportation server lost receiver bounds.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::commit_region_modifications,
+            "The timestamped regional transportation server lost receiver region commit.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::publish_interaction_class,
+            "The timestamped regional transportation server lost Publish.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::request_interaction_transportation_type_change,
+            "The timestamped regional transportation server lost transportation override.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::receive_interaction,
+            "The timestamped regional transportation server lost transportation confirmation.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_convey_region_designator_sets_switch,
+            "The timestamped regional transportation server lost Convey lookup.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::set_convey_region_designator_sets_switch,
+            "The timestamped regional transportation server lost Convey set.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::get_convey_region_designator_sets_switch,
+            "The timestamped regional transportation server lost Convey verification.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::subscribe_interaction_class_with_regions,
+            "The timestamped regional transportation server lost regional Subscribe.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::enable_time_regulation,
+            "The timestamped regional transportation server lost Enable Time Regulation.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::enable_time_constrained,
+            "The timestamped regional transportation server lost Enable Time Constrained.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::time_advance_request,
+            "The timestamped regional transportation server lost receiver TAR.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::receive_interaction,
+            "The timestamped regional transportation server lost receiver pre-send poll.");
+
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                sender,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation !=
+                      TransportServiceOperation::send_interaction_with_regions) {
+                    throw std::runtime_error(
+                        "The timestamped regional transportation server lost regional Send.");
+                  }
+                  auto response = senderHandler(request);
+                  if (response.status != TransportServiceStatus::ok) {
+                    throw std::runtime_error(
+                        "The timestamped regional transportation server rejected regional Send.");
+                  }
+                  auto const result =
+                      umbra::detail::decodeProcessFederationSendInteractionResult(
+                          response.payload);
+                  recipientCount.store(result.recipientCount, std::memory_order_release);
+                  return response;
+                })) {
+          throw std::runtime_error(
+              "The timestamped regional transportation server lost regional Send.");
+        }
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::time_advance_request,
+            "The timestamped regional transportation server lost sender TAR.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::receive_interaction,
+            "The timestamped regional transportation server lost receiver TSO Receive.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::acknowledge_tso_delivery,
+            "The timestamped regional transportation server lost TSO acknowledgement.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::unsubscribe_interaction_class_with_regions,
+            "The timestamped regional transportation server lost regional Unsubscribe.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The timestamped regional transportation server lost sender Resign.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The timestamped regional transportation server lost receiver Resign.");
+        service.detach(sender);
+        service.detach(receiver);
+        senderConnection->close();
+        receiverConnection->close();
+      } catch (...) {
+        serverError = std::current_exception();
+        if (serverSenderConnection) {
+          serverSenderConnection->close();
+        }
+        if (serverReceiverConnection) {
+          serverReceiverConnection->close();
+        }
+      }
+    });
+
+    TimestampedRegionalInteractionTransportationFederateAmbassador senderFederate;
+    TimestampedRegionalInteractionTransportationFederateAmbassador receiverFederate;
+    auto senderRti = makeRti();
+    auto receiverRti = makeRti();
+    auto configurationFor = [&](wchar_t const* name) {
+      return RtiConfiguration::createConfiguration()
+          .withConfigurationName(name)
+          .withRtiAddress(L"tcp://127.0.0.1:" + std::to_wstring(port));
+    };
+    std::exception_ptr clientError;
+    bool senderJoined = false;
+    bool receiverJoined = false;
+    try {
+      REQUIRE(senderRti->connect(
+                  senderFederate,
+                  callbackModel,
+                  configurationFor(
+                      L"public-process-transportation-timestamped-regional-sender-client"))
+                  .addressUsed);
+      REQUIRE_NOTHROW(senderRti->createFederationExecution(
+          federationName, L"server-owned-fom.xml"));
+      auto const senderHandle = senderRti->joinFederationExecution(
+          senderName, federateType, federationName);
+      REQUIRE(senderHandle.isValid());
+      senderJoined = true;
+
+      REQUIRE(receiverRti->connect(
+                  receiverFederate,
+                  callbackModel,
+                  configurationFor(
+                      L"public-process-transportation-timestamped-regional-receiver-client"))
+                  .addressUsed);
+      auto const receiverHandle = receiverRti->joinFederationExecution(
+          receiverName, federateType, federationName);
+      REQUIRE(receiverHandle.isValid());
+      receiverJoined = true;
+
+      auto const senderInteraction =
+          senderRti->getInteractionClassHandle(interactionNameWide);
+      auto const receiverInteraction =
+          receiverRti->getInteractionClassHandle(interactionNameWide);
+      auto const expectedClass =
+          rti1516_2025::umbra_binding_detail::makeInteractionClassHandle(
+              expectedInteractionClass.load(std::memory_order_acquire));
+      REQUIRE(senderInteraction == expectedClass);
+      REQUIRE(receiverInteraction == expectedClass);
+      auto const senderParameter =
+          senderRti->getParameterHandle(senderInteraction, parameterNameWide);
+      auto const receiverParameter = receiverRti->getParameterHandle(
+          receiverInteraction, parameterNameWide);
+      auto const expectedParameterHandle =
+          rti1516_2025::umbra_binding_detail::makeParameterHandle(
+              expectedParameter.load(std::memory_order_acquire));
+      REQUIRE(senderParameter == expectedParameterHandle);
+      REQUIRE(receiverParameter == expectedParameterHandle);
+      auto const senderDimension = senderRti->getDimensionHandle(dimensionNameWide);
+      auto const receiverDimension =
+          receiverRti->getDimensionHandle(dimensionNameWide);
+      auto const expectedDimensionText =
+          L"DimensionHandle(" +
+          std::to_wstring(expectedDimension.load(std::memory_order_acquire)) +
+          L")";
+      REQUIRE(senderDimension.toString() == expectedDimensionText);
+      REQUIRE(receiverDimension.toString() == expectedDimensionText);
+      auto const transportation =
+          senderRti->getTransportationTypeHandle(L"HLAbestEffort");
+      auto const expectedTransportationText =
+          L"TransportationTypeHandle(" +
+          std::to_wstring(expectedTransportation.load(std::memory_order_acquire)) +
+          L")";
+      REQUIRE(transportation.toString() == expectedTransportationText);
+
+      auto const senderRegion = senderRti->createRegion(
+          rti1516_2025::DimensionHandleSet{senderDimension});
+      auto const receiverRegion = receiverRti->createRegion(
+          rti1516_2025::DimensionHandleSet{receiverDimension});
+      REQUIRE(senderRegion.isValid());
+      REQUIRE(receiverRegion.isValid());
+      REQUIRE_NOTHROW(senderRti->setRangeBounds(
+          senderRegion, senderDimension, rti1516_2025::RangeBounds(0UL, 5UL)));
+      REQUIRE_NOTHROW(senderRti->commitRegionModifications(
+          rti1516_2025::RegionHandleSet{senderRegion}));
+      REQUIRE_NOTHROW(receiverRti->setRangeBounds(
+          receiverRegion,
+          receiverDimension,
+          rti1516_2025::RangeBounds(0UL, 5UL)));
+      REQUIRE_NOTHROW(receiverRti->commitRegionModifications(
+          rti1516_2025::RegionHandleSet{receiverRegion}));
+      REQUIRE_NOTHROW(senderRti->publishInteractionClass(senderInteraction));
+      REQUIRE_NOTHROW(senderRti->requestInteractionTransportationTypeChange(
+          senderInteraction, transportation));
+      // The process endpoint exposes confirmation as a receive-order poll.
+      // Evoked and immediate callback models differ only in how the callback
+      // is dispatched after that poll; both models must make the poll.
+      static_cast<void>(senderRti->evokeCallback(0.0));
+      REQUIRE(senderFederate.changeCount == 1U);
+      REQUIRE(senderFederate.changedInteractionClass == senderInteraction);
+      REQUIRE(senderFederate.changedTransportationType == transportation);
+
+      REQUIRE_FALSE(receiverRti->getConveyRegionDesignatorSetsSwitch());
+      REQUIRE_NOTHROW(receiverRti->setConveyRegionDesignatorSetsSwitch(true));
+      REQUIRE(receiverRti->getConveyRegionDesignatorSetsSwitch());
+      REQUIRE_NOTHROW(receiverRti->subscribeInteractionClassWithRegions(
+          receiverInteraction,
+          rti1516_2025::RegionHandleSet{receiverRegion},
+          true));
+      REQUIRE_NOTHROW(senderRti->enableTimeRegulation(
+          rti1516_2025::HLAinteger64Interval(0)));
+      if (callbackModel == HLA_EVOKED) {
+        static_cast<void>(senderRti->evokeCallback(0.0));
+      }
+      REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
+      if (callbackModel == HLA_EVOKED) {
+        static_cast<void>(receiverRti->evokeCallback(0.0));
+      }
+      REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
+      REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(5)));
+      // Keep the empty pre-send receive poll explicit.  The service uses it
+      // to complete the receiver's constrained TAR before a timestamped
+      // interaction is admitted, independent of callback dispatch model.
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+
+      ParameterHandleValueMap parameterValues;
+      std::array<std::uint8_t, 2U> const parameterBytes{0x05U, 0x00U};
+      parameterValues.emplace(
+          senderParameter,
+          VariableLengthData(parameterBytes.data(), parameterBytes.size()));
+      std::array<std::uint8_t, 3U> const tagBytes{0x54U, 0x53U, 0x4FU};
+      auto const retraction = senderRti->sendInteractionWithRegions(
+          senderInteraction,
+          parameterValues,
+          rti1516_2025::RegionHandleSet{senderRegion},
+          VariableLengthData(tagBytes.data(), tagBytes.size()),
+          rti1516_2025::HLAinteger64Time(5));
+      REQUIRE(retraction.isValid());
+      REQUIRE(recipientCount.load(std::memory_order_acquire) == 1U);
+      REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(5)));
+      // Sender TAR is a request/response operation and its grant does not
+      // require a second sender receive poll.  The receiver needs one poll
+      // to admit the queued timestamped event.  In the evoked model a
+      // second local evoke drains the grant callback queued alongside the
+      // interaction; immediate delivery has already run it synchronously.
+      static_cast<void>(receiverRti->evokeCallback(0.0));
+      if (callbackModel == HLA_EVOKED) {
+        static_cast<void>(receiverRti->evokeCallback(0.0));
+      }
+
+      REQUIRE(receiverFederate.receiveCount == 1U);
+      REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+      REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I', 'G'});
+      REQUIRE(receiverFederate.receivedInteractionClass == receiverInteraction);
+      REQUIRE(receiverFederate.receivedTransportationType == transportation);
+      REQUIRE(receiverFederate.receivedProducingFederate == senderHandle);
+      REQUIRE(receiverFederate.receivedParameterCount == 1U);
+      REQUIRE(receiverFederate.receivedOptionalRegions);
+      REQUIRE(receiverFederate.receivedRegionCount == 1U);
+      REQUIRE(receiverFederate.receivedOptionalRetraction);
+      REQUIRE(receiverFederate.receivedRetractionValid);
+      REQUIRE(receiverFederate.receivedTimestampImplementation ==
+              L"HLAinteger64Time");
+      REQUIRE(receiverFederate.receivedTimestampValue == 5);
+      REQUIRE(receiverFederate.receivedSentOrder == rti1516_2025::TIMESTAMP);
+      REQUIRE(receiverFederate.receivedOrder == rti1516_2025::TIMESTAMP);
+      REQUIRE(receiverFederate.timeAdvanceGrantValue == 5);
+      REQUIRE(receiverFederate.receivedTag ==
+              std::vector<std::uint8_t>{0x54U, 0x53U, 0x4FU});
+
+      REQUIRE_NOTHROW(receiverRti->unsubscribeInteractionClassWithRegions(
+          receiverInteraction,
+          rti1516_2025::RegionHandleSet{receiverRegion}));
+      REQUIRE_NOTHROW(senderRti->resignFederationExecution(NO_ACTION));
+      senderJoined = false;
+      REQUIRE_NOTHROW(receiverRti->resignFederationExecution(NO_ACTION));
+      receiverJoined = false;
+      REQUIRE_NOTHROW(senderRti->disconnect());
+      REQUIRE_NOTHROW(receiverRti->disconnect());
+    } catch (...) {
+      clientError = std::current_exception();
+      if (senderJoined) {
+        try {
+          senderRti->resignFederationExecution(NO_ACTION);
+        } catch (...) {
+        }
+      }
+      if (receiverJoined) {
+        try {
+          receiverRti->resignFederationExecution(NO_ACTION);
+        } catch (...) {
+        }
+      }
+      try {
+        senderRti->disconnect();
+      } catch (...) {
+      }
+      try {
+        receiverRti->disconnect();
+      } catch (...) {
+      }
+    }
+    listener.reset();
+    if (server.joinable()) {
+      server.join();
+    }
+    if (serverError) {
+      try {
+        std::rethrow_exception(serverError);
+      } catch (std::exception const& error) {
+        FAIL_CHECK(std::string("timestamped regional transportation server: ") +
+                   error.what());
+      } catch (...) {
+        FAIL_CHECK(
+            "timestamped regional transportation server failed with an unknown exception");
+      }
+    }
+    if (clientError) {
+      std::rethrow_exception(clientError);
+    }
+    REQUIRE_FALSE(serverError);
+    REQUIRE_FALSE(senderJoined);
+    REQUIRE_FALSE(receiverJoined);
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
+}
+
+class DirectedInteractionTransportationFederateAmbassador final
+    : public NullFederateAmbassador {
+ public:
+  void confirmInteractionTransportationTypeChange(
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::TransportationTypeHandle const& transportationType) override {
+    ++changeCount;
+    changedInteractionClass = interactionClass;
+    changedTransportationType = transportationType;
+  }
+
+  std::size_t changeCount = 0U;
+  rti1516_2025::InteractionClassHandle changedInteractionClass;
+  rti1516_2025::TransportationTypeHandle changedTransportationType;
+};
+
+TEST_CASE(
+    "RTIambassadors preserve a directed interaction transportation override through a configured process endpoint",
+    "[integration][foundation][interaction-management][object-management][transportation]"
+    "[directed-interaction][directed-routing][process-boundary][public-endpoint]"
+    "[process-directed-interaction-transportation][callbacks][callback-immediate][2025]"
+    "[rti.service.publish-object-class-directed-interactions][rti.service.request-interaction-transportation-type-change]"
+    "[rti.service.send-directed-interaction][process-event.receive-directed-interaction]"
+    "[federate.callback.confirm-interaction-transportation-type-change]") {
+  auto runScenario = [](CallbackModel callbackModel) {
+    constexpr wchar_t const* federationName =
+        L"public-process-directed-transportation-execution";
+    constexpr wchar_t const* senderName =
+        L"public-process-directed-transportation-sender";
+    constexpr wchar_t const* receiverName =
+        L"public-process-directed-transportation-receiver";
+    constexpr char const* objectClassName =
+        "HLAobjectRoot.UmbraDirectedFixtureObject";
+    constexpr char const* interactionClassName =
+        "HLAinteractionRoot.UmbraDirectedFixtureInteraction";
+    constexpr char const* attributeName = "DirectedTargetMarker";
+    constexpr char const* transportationTypeName = "HLAbestEffort";
+
+    auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+    REQUIRE(listener);
+    auto const port = listener->address().port;
+    REQUIRE(port != 0U);
+
+    std::atomic_uint64_t expectedObjectClass{0U};
+    std::atomic_uint64_t expectedInteractionClass{0U};
+    std::atomic_uint64_t expectedTransportation{0U};
+    std::exception_ptr serverError;
+    std::thread server([&] {
+      try {
+        EmbeddedFederationRegistry registry;
+        ProcessFederationService service(
+            registry,
+            composedDirectedProcessDefinition(),
+            ProcessFederationServiceOptions{});
+
+        auto senderConnection = listener->accept(
+            nullptr,
+            {"public-process-directed-transportation-server", 0x9731U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession sender(senderConnection);
+        auto senderHandler = service.handlerFor(sender);
+        auto serveExpected = [&](ProcessTransportSession& session,
+                                 auto const& handler,
+                                 TransportServiceOperation operation,
+                                 char const* description) {
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  session,
+                  [&](TransportServiceMessage const& request) {
+                    if (request.operation != operation) {
+                      throw std::runtime_error(
+                          std::string(description) + " expected operation " +
+                          std::to_string(static_cast<unsigned>(operation)) +
+                          " but received " +
+                          std::to_string(static_cast<unsigned>(request.operation)));
+                    }
+                    auto response = handler(request);
+                    if (response.status != TransportServiceStatus::ok) {
+                      throw std::runtime_error(
+                          std::string(description) + " handler status " +
+                          std::to_string(static_cast<unsigned>(response.status)));
+                    }
+                    return response;
+                  })) {
+            throw std::runtime_error(description);
+          }
+        };
+
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::create_federation_execution,
+            "The directed transportation server lost Create.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::join_federation_execution,
+            "The directed transportation server lost sender Join.");
+
+        auto const objectClass =
+            registry.objectClassHandleFor(federationName, objectClassName);
+        auto const interactionClass =
+            registry.interactionClassHandleFor(federationName, interactionClassName);
+        auto const attribute =
+            registry.attributeHandleFor(federationName, objectClassName, attributeName);
+        auto const transportation = registry.transportationTypeHandleFor(
+            federationName, transportationTypeName);
+        if (!objectClass || !interactionClass || !attribute || !transportation) {
+          throw std::runtime_error(
+              "The directed transportation server could not resolve its FOM handles.");
+        }
+        expectedObjectClass.store(*objectClass, std::memory_order_release);
+        expectedInteractionClass.store(*interactionClass, std::memory_order_release);
+        expectedTransportation.store(*transportation, std::memory_order_release);
+
+        auto receiverConnection = listener->accept(
+            nullptr,
+            {"public-process-directed-transportation-server", 0x9732U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession receiver(receiverConnection);
+        auto receiverHandler = service.handlerFor(receiver);
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::join_federation_execution,
+            "The directed transportation server lost receiver Join.");
+
+        auto const senderMember = registry.memberByName(federationName, senderName);
+        auto const receiverMember = registry.memberByName(federationName, receiverName);
+        if (!senderMember || !receiverMember) {
+          throw std::runtime_error(
+              "The directed transportation server could not resolve joined federates.");
+        }
+        if (registry.setObjectClassAttributePublication(
+                federationName,
+                senderMember->id,
+                *objectClass,
+                std::set<std::uint64_t>{*attribute},
+                true) != ObjectClassAttributeDeclarationStatus::applied ||
+            registry.setObjectClassAttributeSubscription(
+                federationName,
+                receiverMember->id,
+                *objectClass,
+                std::set<std::uint64_t>{*attribute},
+                true) != ObjectClassAttributeDeclarationStatus::applied ||
+            registry.subscribeObjectClassDirectedInteractions(
+                federationName,
+                receiverMember->id,
+                *objectClass,
+                std::set<std::uint64_t>{*interactionClass},
+                true) != umbra::detail::DirectedInteractionDeclarationStatus::applied) {
+          throw std::runtime_error(
+              "The directed transportation target declarations were rejected.");
+        }
+
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::get_object_class_handle,
+            "The directed transportation server lost object lookup.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::get_interaction_class_handle,
+            "The directed transportation server lost interaction lookup.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::get_transportation_type_handle,
+            "The directed transportation server lost transportation lookup.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::publish_object_class_directed_interactions,
+            "The directed transportation server lost directed publication.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::request_interaction_transportation_type_change,
+            "The directed transportation server lost directed transportation change.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::receive_interaction,
+            "The directed transportation server lost transportation confirmation.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::register_object_instance,
+            "The directed transportation server lost target registration.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::receive_interaction,
+            "The directed transportation server lost target discovery.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::send_directed_interaction,
+            "The directed transportation server lost directed Send.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::receive_interaction,
+            "The directed transportation server lost directed Receive.");
+        serveExpected(
+            sender,
+            senderHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The directed transportation server lost sender Resign.");
+        service.detach(sender);
+        service.detach(receiver);
+        senderConnection->close();
+        receiverConnection->close();
+      } catch (...) {
+        serverError = std::current_exception();
+      }
+    });
+
+    DirectedInteractionTransportationFederateAmbassador senderFederate;
+    auto senderRti = makeRti();
+    auto configuration = RtiConfiguration::createConfiguration()
+                             .withConfigurationName(
+                                 L"public-process-directed-transportation-client")
+                             .withRtiAddress(
+                                 L"tcp://127.0.0.1:" + std::to_wstring(port));
+    std::exception_ptr clientError;
+    std::shared_ptr<ProcessTransportConnection> receiverConnection;
+    std::optional<rti1516_2025::FederateHandle> senderJoined;
+    std::optional<rti1516_2025::FederateHandle> receiverJoined;
+    bool senderIsJoined = false;
+    try {
+      REQUIRE(senderRti->connect(senderFederate, callbackModel, configuration).addressUsed);
+      senderRti->createFederationExecution(
+          federationName, L"server-owned-directed-transportation-fom.xml");
+      senderJoined = senderRti->joinFederationExecution(
+          senderName,
+          L"public-process-directed-transportation-type",
+          federationName);
+      senderIsJoined = true;
+
+      receiverConnection = ProcessTransportConnection::connectClient(
+          nullptr,
+          {"127.0.0.1", port},
+          {"public-process-directed-transportation-server", 0x9733U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession receiver(receiverConnection);
+      TransportServiceMessage receiverJoinResponse;
+      REQUIRE(receiver.request(
+                  TransportServiceMessage{
+                      TransportServiceMessageKind::request,
+                      TransportServiceOperation::join_federation_execution,
+                      TransportServiceStatus::ok,
+                      1U,
+                      umbra::detail::encodeProcessFederationJoinRequest(
+                          umbra::detail::ProcessFederationJoinRequest{
+                              federationName,
+                              L"public-process-directed-transportation-type",
+                              receiverName})},
+                  receiverJoinResponse));
+      REQUIRE(receiverJoinResponse.status == TransportServiceStatus::ok);
+      auto const receiverJoin = umbra::detail::decodeProcessFederationJoinResult(
+          receiverJoinResponse.payload);
+      receiverJoined = rti1516_2025::umbra_binding_detail::makeFederateHandle(
+          receiverJoin.federateId);
+
+      auto const objectClass = senderRti->getObjectClassHandle(
+          L"HLAobjectRoot.UmbraDirectedFixtureObject");
+      auto const interactionClass = senderRti->getInteractionClassHandle(
+          L"HLAinteractionRoot.UmbraDirectedFixtureInteraction");
+      auto const transportation = senderRti->getTransportationTypeHandle(
+          L"HLAbestEffort");
+      REQUIRE(objectClass.toString() ==
+              L"ObjectClassHandle(" +
+                  std::to_wstring(expectedObjectClass.load(std::memory_order_acquire)) +
+                  L")");
+      REQUIRE(interactionClass.toString() ==
+              L"InteractionClassHandle(" +
+                  std::to_wstring(expectedInteractionClass.load(std::memory_order_acquire)) +
+                  L")");
+      REQUIRE(transportation.toString() ==
+              L"TransportationTypeHandle(" +
+                  std::to_wstring(expectedTransportation.load(std::memory_order_acquire)) +
+                  L")");
+      REQUIRE_NOTHROW(senderRti->publishObjectClassDirectedInteractions(
+          objectClass, rti1516_2025::InteractionClassHandleSet{interactionClass}));
+      REQUIRE_NOTHROW(senderRti->requestInteractionTransportationTypeChange(
+          interactionClass, transportation));
+      static_cast<void>(senderRti->evokeCallback(0.0));
+      REQUIRE(senderFederate.changeCount == 1U);
+      REQUIRE(senderFederate.changedInteractionClass == interactionClass);
+      REQUIRE(senderFederate.changedTransportationType == transportation);
+
+      auto const objectInstance = senderRti->registerObjectInstance(objectClass);
+      REQUIRE(objectInstance.isValid());
+      auto const objectInstanceValue =
+          *rti1516_2025::umbra_binding_detail::objectInstanceHandleValue(objectInstance);
+
+      TransportServiceMessage discoveryResponse;
+      REQUIRE(receiver.request(
+          TransportServiceMessage{
+              TransportServiceMessageKind::request,
+              TransportServiceOperation::receive_interaction,
+              TransportServiceStatus::ok,
+              2U,
+              umbra::detail::encodeProcessFederationReceiveInteractionRequest(
+                  umbra::detail::ProcessFederationReceiveInteractionRequest{
+                      federationName, receiverJoin.federateId})},
+          discoveryResponse));
+      REQUIRE(discoveryResponse.status == TransportServiceStatus::ok);
+      auto const discoveryResult =
+          umbra::detail::decodeProcessFederationReceiveInteractionResult(
+              discoveryResponse.payload);
+      REQUIRE(discoveryResult.discoveryEvent.has_value());
+      REQUIRE(discoveryResult.discoveryEvent->objectInstanceHandle == objectInstanceValue);
+
+      std::array<std::uint8_t, 3U> const tagBytes{0x54U, 0x52U, 0x4EU};
+      REQUIRE_NOTHROW(senderRti->sendDirectedInteraction(
+          interactionClass,
+          objectInstance,
+          ParameterHandleValueMap{},
+          VariableLengthData(tagBytes.data(), tagBytes.size())));
+
+      TransportServiceMessage receiveResponse;
+      REQUIRE(receiver.request(
+          TransportServiceMessage{
+              TransportServiceMessageKind::request,
+              TransportServiceOperation::receive_interaction,
+              TransportServiceStatus::ok,
+              3U,
+              umbra::detail::encodeProcessFederationReceiveInteractionRequest(
+                  umbra::detail::ProcessFederationReceiveInteractionRequest{
+                      federationName, receiverJoin.federateId})},
+          receiveResponse));
+      REQUIRE(receiveResponse.status == TransportServiceStatus::ok);
+      auto const eventResult =
+          umbra::detail::decodeProcessFederationReceiveInteractionResult(
+              receiveResponse.payload);
+      REQUIRE(eventResult.event.has_value());
+      REQUIRE(eventResult.event->objectInstanceHandle.has_value());
+      REQUIRE(*eventResult.event->objectInstanceHandle == objectInstanceValue);
+      REQUIRE(eventResult.event->transportationName == transportationTypeName);
+      REQUIRE(eventResult.event->interactionClassHandle ==
+              rti1516_2025::umbra_binding_detail::interactionClassHandleValue(
+                  interactionClass));
+      auto const envelope = umbra::detail::decodeProcessFederationInteractionEnvelope(
+          eventResult.event->payload);
+      REQUIRE(envelope.has_value());
+      REQUIRE(envelope->parameterValues.empty());
+      REQUIRE(envelope->userSuppliedTag ==
+              std::vector<std::uint8_t>{0x54U, 0x52U, 0x4EU});
+
+      senderRti->resignFederationExecution(DELETE_OBJECTS);
+      senderIsJoined = false;
+      senderRti->disconnect();
+      receiverConnection->close();
+    } catch (...) {
+      clientError = std::current_exception();
+      if (senderIsJoined) {
+        try {
+          senderRti->resignFederationExecution(NO_ACTION);
+        } catch (...) {
+        }
+      }
+      try {
+        senderRti->disconnect();
+      } catch (...) {
+      }
+      if (receiverConnection) {
+        receiverConnection->close();
+      }
+    }
+    listener.reset();
+    if (server.joinable()) {
+      server.join();
+    }
+    if (serverError) {
+      try {
+        std::rethrow_exception(serverError);
+      } catch (std::exception const& error) {
+        FAIL_CHECK(std::string("directed transportation server: ") + error.what());
+      } catch (...) {
+        FAIL_CHECK("directed transportation server failed with an unknown exception");
+      }
+    }
+    if (clientError) {
+      std::rethrow_exception(clientError);
+    }
+    REQUIRE_FALSE(serverError);
+    REQUIRE_FALSE(senderIsJoined);
+    REQUIRE(receiverJoined.has_value());
+    REQUIRE(receiverJoined->isValid());
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "RTIambassadors apply timestamped federation-save replacement through a configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][time-management][transport][process-boundary][public-endpoint][2025][timed-save][save-replacement][multi-federate-callback-ordering][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.request-federation-save][rti.service.time-advance-request][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
+  class ReplacementTimedSaveFederateAmbassador final
+      : public NullFederateAmbassador {
+   public:
+    void timeRegulationEnabled(
+        rti1516_2025::LogicalTime const& time) override {
+      ++timeRegulationEnabledCount;
+      timeRegulationEnabledImplementation = time.implementationName();
+    }
+    void timeConstrainedEnabled(
+        rti1516_2025::LogicalTime const& time) override {
+      ++timeConstrainedEnabledCount;
+      timeConstrainedEnabledImplementation = time.implementationName();
+    }
+    void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
+      ++timeAdvanceGrantCount;
+      timeAdvanceGrantImplementation = time.implementationName();
+      timeAdvanceGrantValue = time.toString();
+      callbackOrder.push_back("grant");
+    }
+    void initiateFederateSave(
+        std::wstring const& label,
+        rti1516_2025::LogicalTime const& time) override {
+      ++timedInitiateCount;
+      timedInitiateLabels.push_back(label);
+      timedInitiateImplementation = time.implementationName();
+      timedInitiateValue = time.toString();
+      callbackOrder.push_back("save-initiate-timed");
+    }
+    void federationSaved() override {
+      ++savedCount;
+      callbackOrder.push_back("saved");
+    }
+    std::size_t timeRegulationEnabledCount = 0U;
+    std::wstring timeRegulationEnabledImplementation;
+    std::size_t timeConstrainedEnabledCount = 0U;
+    std::wstring timeConstrainedEnabledImplementation;
+    std::size_t timeAdvanceGrantCount = 0U;
+    std::wstring timeAdvanceGrantImplementation;
+    std::wstring timeAdvanceGrantValue;
+    std::size_t timedInitiateCount = 0U;
+    std::vector<std::wstring> timedInitiateLabels;
+    std::wstring timedInitiateImplementation;
+    std::wstring timedInitiateValue;
+    std::size_t savedCount = 0U;
+    std::vector<std::string> callbackOrder;
+  };
+
+  using umbra::detail::ProcessTransportListener;
+  constexpr wchar_t const* federationName =
+      L"process-timed-federation-save-replacement-execution";
+  constexpr wchar_t const* ownerType =
+      L"process-timed-federation-save-replacement-owner-type";
+  constexpr wchar_t const* receiverType =
+      L"process-timed-federation-save-replacement-receiver-type";
+  constexpr wchar_t const* firstSaveLabel =
+      L"process-timed-federation-save-replacement-first";
+  constexpr wchar_t const* replacementSaveLabel =
+      L"process-timed-federation-save-replacement-final";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto ownerConnection = listener->accept(
+          nullptr,
+          {"process-timed-federation-save-replacement-server", 0x9740U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession ownerSession(ownerConnection);
+      auto ownerHandler = service.handlerFor(ownerSession);
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(ownerSession, ownerHandler,
+                    TransportServiceOperation::create_federation_execution,
+                    "The save-replacement server lost Create.");
+      serveExpected(ownerSession, ownerHandler,
+                    TransportServiceOperation::join_federation_execution,
+                    "The save-replacement server lost owner Join.");
+      auto receiverConnection = listener->accept(
+          nullptr,
+          {"process-timed-federation-save-replacement-server", 0x9741U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession receiverSession(receiverConnection);
+      auto receiverHandler = service.handlerFor(receiverSession);
+      serveExpected(receiverSession, receiverHandler,
+                    TransportServiceOperation::join_federation_execution,
+                    "The save-replacement server lost receiver Join.");
+      serveExpected(ownerSession, ownerHandler,
+                    TransportServiceOperation::enable_time_regulation,
+                    "The save-replacement server lost owner Enable Time Regulation.");
+      serveExpected(receiverSession, receiverHandler,
+                    TransportServiceOperation::enable_time_constrained,
+                    "The save-replacement server lost receiver Enable Time Constrained.");
+      serveExpected(ownerSession, ownerHandler,
+                    TransportServiceOperation::request_federation_save,
+                    "The save-replacement server lost first Request Federation Save.");
+      serveExpected(ownerSession, ownerHandler,
+                    TransportServiceOperation::request_federation_save,
+                    "The save-replacement server lost replacement Request Federation Save.");
+      serveExpected(ownerSession, ownerHandler,
+                    TransportServiceOperation::time_advance_request,
+                    "The save-replacement server lost owner TAR.");
+      serveExpected(receiverSession, receiverHandler,
+                    TransportServiceOperation::time_advance_request,
+                    "The save-replacement server lost receiver TAR.");
+      serveExpected(ownerSession, ownerHandler,
+                    TransportServiceOperation::receive_interaction,
+                    "The save-replacement server lost owner save polling.");
+      serveExpected(ownerSession, ownerHandler,
+                    TransportServiceOperation::federate_save_begun,
+                    "The save-replacement server lost owner Federate Save Begun.");
+      serveExpected(receiverSession, receiverHandler,
+                    TransportServiceOperation::federate_save_begun,
+                    "The save-replacement server lost receiver Federate Save Begun.");
+      serveExpected(ownerSession, ownerHandler,
+                    TransportServiceOperation::federate_save_complete,
+                    "The save-replacement server lost owner Federate Save Complete.");
+      serveExpected(receiverSession, receiverHandler,
+                    TransportServiceOperation::federate_save_complete,
+                    "The save-replacement server lost receiver Federate Save Complete.");
+      serveExpected(ownerSession, ownerHandler,
+                    TransportServiceOperation::receive_interaction,
+                    "The save-replacement server lost owner completion polling.");
+      serveExpected(receiverSession, receiverHandler,
+                    TransportServiceOperation::receive_interaction,
+                    "The save-replacement server lost receiver completion polling.");
+      serveExpected(ownerSession, ownerHandler,
+                    TransportServiceOperation::resign_federation_execution,
+                    "The save-replacement server lost owner Resign.");
+      serveExpected(receiverSession, receiverHandler,
+                    TransportServiceOperation::resign_federation_execution,
+                    "The save-replacement server lost receiver Resign.");
+      service.detach(receiverSession);
+      service.detach(ownerSession);
+      receiverConnection->close();
+      ownerConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ReplacementTimedSaveFederateAmbassador ownerFederate;
+  ReplacementTimedSaveFederateAmbassador receiverFederate;
+  auto ownerRti = makeRti();
+  auto receiverRti = makeRti();
+  auto ownerConfiguration = RtiConfiguration::createConfiguration()
+                                .withConfigurationName(
+                                    L"process-timed-federation-save-replacement-owner-client")
+                                .withRtiAddress(
+                                    L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto receiverConfiguration = RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(
+                                       L"process-timed-federation-save-replacement-receiver-client")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool ownerJoined = false;
+  bool receiverJoined = false;
+  try {
+    REQUIRE(ownerRti->connect(ownerFederate, HLA_EVOKED, ownerConfiguration)
+                .addressUsed);
+    REQUIRE_NOTHROW(ownerRti->createFederationExecution(
+        federationName,
+        L"server-owned-process-timed-federation-save-fom.xml"));
+    REQUIRE(ownerRti->joinFederationExecution(ownerType, federationName)
+                .isValid());
+    ownerJoined = true;
+    REQUIRE(receiverRti->connect(
+                receiverFederate, HLA_EVOKED, receiverConfiguration)
+                .addressUsed);
+    REQUIRE(receiverRti->joinFederationExecution(receiverType, federationName)
+                .isValid());
+    receiverJoined = true;
+
+    REQUIRE_NOTHROW(ownerRti->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timeRegulationEnabledCount == 1U);
+    REQUIRE_NOTHROW(receiverRti->enableTimeConstrained());
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.timeConstrainedEnabledCount == 1U);
+
+    rti1516_2025::HLAinteger64Time firstSaveTime(5);
+    rti1516_2025::HLAinteger64Time replacementSaveTime(7);
+    REQUIRE_NOTHROW(ownerRti->requestFederationSave(
+        firstSaveLabel, firstSaveTime));
+    REQUIRE(ownerFederate.timedInitiateCount == 0U);
+    REQUIRE(receiverFederate.timedInitiateCount == 0U);
+    REQUIRE_NOTHROW(ownerRti->requestFederationSave(
+        replacementSaveLabel, replacementSaveTime));
+    REQUIRE(ownerFederate.timedInitiateCount == 0U);
+    REQUIRE(receiverFederate.timedInitiateCount == 0U);
+
+    REQUIRE_NOTHROW(ownerRti->timeAdvanceRequest(replacementSaveTime));
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timeAdvanceGrantCount == 1U);
+    REQUIRE(ownerFederate.timeAdvanceGrantValue == replacementSaveTime.toString());
+    REQUIRE(ownerFederate.timedInitiateCount == 0U);
+    REQUIRE_NOTHROW(receiverRti->timeAdvanceRequest(replacementSaveTime));
+    static_cast<void>(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.timedInitiateCount == 1U);
+    REQUIRE(receiverFederate.timedInitiateLabels ==
+            std::vector<std::wstring>{replacementSaveLabel});
+    REQUIRE(receiverFederate.timedInitiateImplementation == L"HLAinteger64Time");
+    REQUIRE(receiverFederate.timedInitiateValue == replacementSaveTime.toString());
+    REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
+    static_cast<void>(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.timeAdvanceGrantCount == 1U);
+    REQUIRE(receiverFederate.timeAdvanceGrantValue == replacementSaveTime.toString());
+    REQUIRE(ownerFederate.timedInitiateCount == 0U);
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.timedInitiateCount == 1U);
+    REQUIRE(ownerFederate.timedInitiateLabels ==
+            std::vector<std::wstring>{replacementSaveLabel});
+    REQUIRE(ownerFederate.timedInitiateImplementation == L"HLAinteger64Time");
+    REQUIRE(ownerFederate.timedInitiateValue == replacementSaveTime.toString());
+    REQUIRE(ownerFederate.callbackOrder ==
+            std::vector<std::string>{"grant", "save-initiate-timed"});
+    REQUIRE(receiverFederate.callbackOrder ==
+            std::vector<std::string>{"save-initiate-timed", "grant"});
+
+    REQUIRE_NOTHROW(ownerRti->federateSaveBegun());
+    REQUIRE_NOTHROW(receiverRti->federateSaveBegun());
+    REQUIRE_NOTHROW(ownerRti->federateSaveComplete());
+    REQUIRE_NOTHROW(receiverRti->federateSaveComplete());
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.savedCount == 1U);
+    REQUIRE(receiverFederate.savedCount == 1U);
+
+    REQUIRE_NOTHROW(ownerRti->resignFederationExecution(NO_ACTION));
+    ownerJoined = false;
+    REQUIRE_NOTHROW(receiverRti->resignFederationExecution(NO_ACTION));
+    receiverJoined = false;
+    REQUIRE_NOTHROW(ownerRti->disconnect());
+    REQUIRE_NOTHROW(receiverRti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (receiverJoined) {
+      try {
+        receiverRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (ownerJoined) {
+      try {
+        ownerRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      receiverRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      ownerRti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+TEST_CASE(
+    "RTIambassadors carry federation save not-complete through a configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][save-not-complete][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][federate.callback.initiate-federate-save][federate.callback.federation-not-saved]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-save-not-complete-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-save-not-complete-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-save-not-complete-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-save-not-complete-server", 0x9742U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The process save-not-complete server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The process save-not-complete server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The process save-not-complete server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process save-not-complete server lost save-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The process save-not-complete server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_not_complete,
+          "The process save-not-complete server lost Federate Save Not Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The process save-not-complete server lost save-failure polling.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The process save-not-complete server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSaveFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-save-not-complete-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    REQUIRE_NOTHROW(rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-save-not-complete-fom.xml"));
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.initiateCount == 1U);
+    REQUIRE(federate.initiateLabel == saveLabel);
+
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveNotComplete());
+    REQUIRE(federate.notSavedCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.notSavedCount == 1U);
+    REQUIRE(federate.notSavedReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+
+    REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(rti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    try {
+      rti->resignFederationExecution(NO_ACTION);
+    } catch (...) {
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+TEST_CASE(
+    "RTIambassadors coordinate federation save not-complete across a configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][multi-federate][2025][save-not-complete][multi-federate-callback-ordering][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][federate.callback.initiate-federate-save][federate.callback.federation-not-saved]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-save-not-complete-multi-execution";
+  constexpr wchar_t const* ownerType =
+      L"process-federation-save-not-complete-owner-type";
+  constexpr wchar_t const* receiverType =
+      L"process-federation-save-not-complete-receiver-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-save-not-complete-multi-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto ownerConnection = listener->accept(
+          nullptr,
+          {"process-federation-save-not-complete-multi-server", 0x9743U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession ownerSession(ownerConnection);
+      auto ownerHandler = service.handlerFor(ownerSession);
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The multi-federate save-not-complete server lost Create.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The multi-federate save-not-complete server lost owner Join.");
+
+      auto receiverConnection = listener->accept(
+          nullptr,
+          {"process-federation-save-not-complete-multi-server", 0x9744U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession receiverSession(receiverConnection);
+      auto receiverHandler = service.handlerFor(receiverSession);
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The multi-federate save-not-complete server lost receiver Join.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::request_federation_save,
+          "The multi-federate save-not-complete server lost Request Federation Save.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate save-not-complete server lost owner initiation polling.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate save-not-complete server lost receiver initiation polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The multi-federate save-not-complete server lost owner Federate Save Begun.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The multi-federate save-not-complete server lost receiver Federate Save Begun.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_not_complete,
+          "The multi-federate save-not-complete server lost owner Federate Save Not Complete.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate save-not-complete server lost owner failure polling.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate save-not-complete server lost receiver failure polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The multi-federate save-not-complete server lost owner Resign.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The multi-federate save-not-complete server lost receiver Resign.");
+      service.detach(receiverSession);
+      service.detach(ownerSession);
+      receiverConnection->close();
+      ownerConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSaveFederateAmbassador ownerFederate;
+  ProcessSaveFederateAmbassador receiverFederate;
+  auto ownerRti = makeRti();
+  auto receiverRti = makeRti();
+  auto ownerConfiguration = RtiConfiguration::createConfiguration()
+                                .withConfigurationName(
+                                    L"process-federation-save-not-complete-owner")
+                                .withRtiAddress(
+                                    L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto receiverConfiguration = RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(
+                                       L"process-federation-save-not-complete-receiver")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool ownerJoined = false;
+  bool receiverJoined = false;
+  try {
+    REQUIRE(ownerRti->connect(ownerFederate, HLA_EVOKED, ownerConfiguration)
+                .addressUsed);
+    REQUIRE_NOTHROW(ownerRti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-save-not-complete-fom.xml"));
+    REQUIRE(ownerRti->joinFederationExecution(ownerType, federationName)
+                .isValid());
+    ownerJoined = true;
+
+    REQUIRE(receiverRti->connect(
+                receiverFederate,
+                HLA_EVOKED,
+                receiverConfiguration)
+                .addressUsed);
+    REQUIRE(receiverRti->joinFederationExecution(receiverType, federationName)
+                .isValid());
+    receiverJoined = true;
+
+    REQUIRE_NOTHROW(ownerRti->requestFederationSave(saveLabel));
+    REQUIRE(ownerFederate.initiateCount == 0U);
+    REQUIRE(receiverFederate.initiateCount == 0U);
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.initiateCount == 1U);
+    REQUIRE(ownerFederate.initiateLabel == saveLabel);
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.initiateCount == 1U);
+    REQUIRE(receiverFederate.initiateLabel == saveLabel);
+
+    REQUIRE_NOTHROW(ownerRti->federateSaveBegun());
+    REQUIRE_NOTHROW(receiverRti->federateSaveBegun());
+    REQUIRE_NOTHROW(ownerRti->federateSaveNotComplete());
+    REQUIRE(ownerFederate.notSavedCount == 0U);
+    REQUIRE(receiverFederate.notSavedCount == 0U);
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.notSavedCount == 1U);
+    REQUIRE(receiverFederate.notSavedCount == 1U);
+    REQUIRE(ownerFederate.notSavedReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+    REQUIRE(receiverFederate.notSavedReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+
+    REQUIRE_NOTHROW(ownerRti->resignFederationExecution(NO_ACTION));
+    ownerJoined = false;
+    REQUIRE_NOTHROW(receiverRti->resignFederationExecution(NO_ACTION));
+    receiverJoined = false;
+    REQUIRE_NOTHROW(ownerRti->disconnect());
+    REQUIRE_NOTHROW(receiverRti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (receiverJoined) {
+      try {
+        receiverRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (ownerJoined) {
+      try {
+        ownerRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      receiverRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      ownerRti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+TEST_CASE(
+    "RTIambassadors expose terminal federation save status after a process save failure",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][save-not-complete][terminal-save-status][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][rti.service.query-federation-save-status][federate.callback.initiate-federate-save][federate.callback.federation-not-saved][federate.callback.federation-save-status-response]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-save-status-after-failure-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-save-status-after-failure-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-save-status-after-failure-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-save-status-after-failure-server", 0x9755U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The terminal save-status server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The terminal save-status server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The terminal save-status server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The terminal save-status server lost save-initiation polling.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The terminal save-status server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_not_complete,
+          "The terminal save-status server lost Federate Save Not Complete.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The terminal save-status server lost save-failure polling.");
+      serveExpected(
+          TransportServiceOperation::query_federation_save_status,
+          "The terminal save-status server lost the post-failure status query.");
+      serveExpected(
+          TransportServiceOperation::receive_interaction,
+          "The terminal save-status server lost terminal-status polling.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The terminal save-status server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSaveFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-save-status-after-failure-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    REQUIRE_NOTHROW(rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-save-status-after-failure-fom.xml"));
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.initiateCount == 1U);
+    REQUIRE(federate.initiateLabel == saveLabel);
+
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveNotComplete());
+    REQUIRE(federate.notSavedCount == 0U);
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.notSavedCount == 1U);
+    REQUIRE(federate.notSavedReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+
+    REQUIRE_NOTHROW(rti->queryFederationSaveStatus());
+    REQUIRE_FALSE(rti->evokeCallback(0.0));
+    REQUIRE(federate.federationSaveStatusReports.size() == 1U);
+    REQUIRE(federate.federationSaveStatusReports.back().size() == 1U);
+    REQUIRE(federate.federationSaveStatusReports.back()[0].first ==
+            federateHandle);
+    REQUIRE(federate.federationSaveStatusReports.back()[0].second ==
+            rti1516_2025::NO_SAVE_IN_PROGRESS);
+
+    REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+    REQUIRE_NOTHROW(rti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    try {
+      rti->resignFederationExecution(NO_ACTION);
+    } catch (...) {
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+TEST_CASE(
+    "RTIambassadors expose terminal federation save status to every participant after a process save failure",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][multi-federate][receiver-reporter][2025][save-not-complete][terminal-save-status][multi-federate-callback-ordering][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][rti.service.query-federation-save-status][federate.callback.initiate-federate-save][federate.callback.federation-not-saved][federate.callback.federation-save-status-response]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-save-status-terminal-multi-execution";
+  constexpr wchar_t const* ownerType =
+      L"process-federation-save-status-terminal-multi-owner-type";
+  constexpr wchar_t const* receiverType =
+      L"process-federation-save-status-terminal-multi-receiver-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-save-status-terminal-multi-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto ownerConnection = listener->accept(
+          nullptr,
+          {"process-federation-save-status-terminal-multi-server", 0x9756U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession ownerSession(ownerConnection);
+      auto ownerHandler = service.handlerFor(ownerSession);
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The terminal multi-federate save-status server lost Create.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The terminal multi-federate save-status server lost owner Join.");
+
+      auto receiverConnection = listener->accept(
+          nullptr,
+          {"process-federation-save-status-terminal-multi-server", 0x9757U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession receiverSession(receiverConnection);
+      auto receiverHandler = service.handlerFor(receiverSession);
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The terminal multi-federate save-status server lost receiver Join.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::request_federation_save,
+          "The terminal multi-federate save-status server lost Request Federation Save.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The terminal multi-federate save-status server lost owner initiation polling.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The terminal multi-federate save-status server lost receiver initiation polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The terminal multi-federate save-status server lost owner Federate Save Begun.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The terminal multi-federate save-status server lost receiver Federate Save Begun.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::federate_save_not_complete,
+          "The terminal multi-federate save-status server lost receiver Federate Save Not Complete.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The terminal multi-federate save-status server lost owner failure polling.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The terminal multi-federate save-status server lost receiver failure polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::query_federation_save_status,
+          "The terminal multi-federate save-status server lost the owner terminal-status query.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The terminal multi-federate save-status server lost owner terminal-status polling.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::query_federation_save_status,
+          "The terminal multi-federate save-status server lost the receiver terminal-status query.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The terminal multi-federate save-status server lost receiver terminal-status polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The terminal multi-federate save-status server lost owner Resign.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The terminal multi-federate save-status server lost receiver Resign.");
+      service.detach(receiverSession);
+      service.detach(ownerSession);
+      receiverConnection->close();
+      ownerConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSaveFederateAmbassador ownerFederate;
+  ProcessSaveFederateAmbassador receiverFederate;
+  auto ownerRti = makeRti();
+  auto receiverRti = makeRti();
+  auto ownerConfiguration = RtiConfiguration::createConfiguration()
+                                .withConfigurationName(
+                                    L"process-federation-save-status-terminal-multi-owner")
+                                .withRtiAddress(
+                                    L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto receiverConfiguration = RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(
+                                       L"process-federation-save-status-terminal-multi-receiver")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool ownerJoined = false;
+  bool receiverJoined = false;
+  try {
+    REQUIRE(ownerRti->connect(ownerFederate, HLA_EVOKED, ownerConfiguration)
+                .addressUsed);
+    REQUIRE_NOTHROW(ownerRti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-save-status-terminal-multi-fom.xml"));
+    auto const ownerHandle =
+        ownerRti->joinFederationExecution(ownerType, federationName);
+    REQUIRE(ownerHandle.isValid());
+    ownerJoined = true;
+
+    REQUIRE(receiverRti->connect(
+                receiverFederate,
+                HLA_EVOKED,
+                receiverConfiguration)
+                .addressUsed);
+    auto const receiverHandle =
+        receiverRti->joinFederationExecution(receiverType, federationName);
+    REQUIRE(receiverHandle.isValid());
+    receiverJoined = true;
+
+    REQUIRE_NOTHROW(ownerRti->requestFederationSave(saveLabel));
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.initiateCount == 1U);
+    REQUIRE(ownerFederate.initiateLabel == saveLabel);
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.initiateCount == 1U);
+    REQUIRE(receiverFederate.initiateLabel == saveLabel);
+
+    REQUIRE_NOTHROW(ownerRti->federateSaveBegun());
+    REQUIRE_NOTHROW(receiverRti->federateSaveBegun());
+    REQUIRE_NOTHROW(receiverRti->federateSaveNotComplete());
+    REQUIRE(ownerFederate.notSavedCount == 0U);
+    REQUIRE(receiverFederate.notSavedCount == 0U);
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.notSavedCount == 1U);
+    REQUIRE(receiverFederate.notSavedCount == 1U);
+    REQUIRE(ownerFederate.notSavedReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+    REQUIRE(receiverFederate.notSavedReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+
+    REQUIRE_NOTHROW(ownerRti->queryFederationSaveStatus());
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.federationSaveStatusReports.size() == 1U);
+    REQUIRE(ownerFederate.federationSaveStatusReports.back().size() == 2U);
+    REQUIRE(ownerFederate.federationSaveStatusReports.back()[0].first ==
+            ownerHandle);
+    REQUIRE(ownerFederate.federationSaveStatusReports.back()[0].second ==
+            rti1516_2025::NO_SAVE_IN_PROGRESS);
+    REQUIRE(ownerFederate.federationSaveStatusReports.back()[1].first ==
+            receiverHandle);
+    REQUIRE(ownerFederate.federationSaveStatusReports.back()[1].second ==
+            rti1516_2025::NO_SAVE_IN_PROGRESS);
+
+    REQUIRE_NOTHROW(receiverRti->queryFederationSaveStatus());
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.federationSaveStatusReports.size() == 1U);
+    REQUIRE(receiverFederate.federationSaveStatusReports.back().size() == 2U);
+    REQUIRE(receiverFederate.federationSaveStatusReports.back()[0].first ==
+            ownerHandle);
+    REQUIRE(receiverFederate.federationSaveStatusReports.back()[0].second ==
+            rti1516_2025::NO_SAVE_IN_PROGRESS);
+    REQUIRE(receiverFederate.federationSaveStatusReports.back()[1].first ==
+            receiverHandle);
+    REQUIRE(receiverFederate.federationSaveStatusReports.back()[1].second ==
+            rti1516_2025::NO_SAVE_IN_PROGRESS);
+
+    REQUIRE_NOTHROW(ownerRti->resignFederationExecution(NO_ACTION));
+    ownerJoined = false;
+    REQUIRE_NOTHROW(receiverRti->resignFederationExecution(NO_ACTION));
+    receiverJoined = false;
+    REQUIRE_NOTHROW(ownerRti->disconnect());
+    REQUIRE_NOTHROW(receiverRti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (receiverJoined) {
+      try {
+        receiverRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (ownerJoined) {
+      try {
+        ownerRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      receiverRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      ownerRti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+TEST_CASE(
+    "RTIambassadors preserve terminal federation save status after an owner-reported process save failure",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][multi-federate][owner-reporter][2025][save-not-complete][terminal-save-status][multi-federate-callback-ordering][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][rti.service.query-federation-save-status][federate.callback.initiate-federate-save][federate.callback.federation-not-saved][federate.callback.federation-save-status-response]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-save-status-owner-reporter-execution";
+  constexpr wchar_t const* ownerType =
+      L"process-federation-save-status-owner-reporter-owner-type";
+  constexpr wchar_t const* receiverType =
+      L"process-federation-save-status-owner-reporter-receiver-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-save-status-owner-reporter-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto ownerConnection = listener->accept(
+          nullptr,
+          {"process-federation-save-status-owner-reporter-server", 0x9758U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession ownerSession(ownerConnection);
+      auto ownerHandler = service.handlerFor(ownerSession);
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The owner-reporter terminal save-status server lost Create.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The owner-reporter terminal save-status server lost owner Join.");
+
+      auto receiverConnection = listener->accept(
+          nullptr,
+          {"process-federation-save-status-owner-reporter-server", 0x9759U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession receiverSession(receiverConnection);
+      auto receiverHandler = service.handlerFor(receiverSession);
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The owner-reporter terminal save-status server lost receiver Join.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::request_federation_save,
+          "The owner-reporter terminal save-status server lost Request Federation Save.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The owner-reporter terminal save-status server lost owner initiation polling.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The owner-reporter terminal save-status server lost receiver initiation polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The owner-reporter terminal save-status server lost owner Federate Save Begun.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The owner-reporter terminal save-status server lost receiver Federate Save Begun.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_not_complete,
+          "The owner-reporter terminal save-status server lost owner Federate Save Not Complete.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The owner-reporter terminal save-status server lost owner failure polling.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The owner-reporter terminal save-status server lost receiver failure polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::query_federation_save_status,
+          "The owner-reporter terminal save-status server lost the owner terminal-status query.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The owner-reporter terminal save-status server lost owner terminal-status polling.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::query_federation_save_status,
+          "The owner-reporter terminal save-status server lost the receiver terminal-status query.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The owner-reporter terminal save-status server lost receiver terminal-status polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The owner-reporter terminal save-status server lost owner Resign.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The owner-reporter terminal save-status server lost receiver Resign.");
+      service.detach(receiverSession);
+      service.detach(ownerSession);
+      receiverConnection->close();
+      ownerConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSaveFederateAmbassador ownerFederate;
+  ProcessSaveFederateAmbassador receiverFederate;
+  auto ownerRti = makeRti();
+  auto receiverRti = makeRti();
+  auto ownerConfiguration = RtiConfiguration::createConfiguration()
+                                .withConfigurationName(
+                                    L"process-federation-save-status-owner-reporter-owner")
+                                .withRtiAddress(
+                                    L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto receiverConfiguration = RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(
+                                       L"process-federation-save-status-owner-reporter-receiver")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool ownerJoined = false;
+  bool receiverJoined = false;
+  try {
+    REQUIRE(ownerRti->connect(ownerFederate, HLA_EVOKED, ownerConfiguration)
+                .addressUsed);
+    REQUIRE_NOTHROW(ownerRti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-save-status-owner-reporter-fom.xml"));
+    auto const ownerHandle =
+        ownerRti->joinFederationExecution(ownerType, federationName);
+    REQUIRE(ownerHandle.isValid());
+    ownerJoined = true;
+
+    REQUIRE(receiverRti->connect(
+                receiverFederate,
+                HLA_EVOKED,
+                receiverConfiguration)
+                .addressUsed);
+    auto const receiverHandle =
+        receiverRti->joinFederationExecution(receiverType, federationName);
+    REQUIRE(receiverHandle.isValid());
+    receiverJoined = true;
+
+    REQUIRE_NOTHROW(ownerRti->requestFederationSave(saveLabel));
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.initiateCount == 1U);
+    REQUIRE(ownerFederate.initiateLabel == saveLabel);
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.initiateCount == 1U);
+    REQUIRE(receiverFederate.initiateLabel == saveLabel);
+
+    REQUIRE_NOTHROW(ownerRti->federateSaveBegun());
+    REQUIRE_NOTHROW(receiverRti->federateSaveBegun());
+    REQUIRE_NOTHROW(ownerRti->federateSaveNotComplete());
+    REQUIRE(ownerFederate.notSavedCount == 0U);
+    REQUIRE(receiverFederate.notSavedCount == 0U);
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.notSavedCount == 1U);
+    REQUIRE(receiverFederate.notSavedCount == 1U);
+    REQUIRE(ownerFederate.notSavedReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+    REQUIRE(receiverFederate.notSavedReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+
+    REQUIRE_NOTHROW(ownerRti->queryFederationSaveStatus());
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.federationSaveStatusReports.size() == 1U);
+    REQUIRE(ownerFederate.federationSaveStatusReports.back().size() == 2U);
+    REQUIRE(ownerFederate.federationSaveStatusReports.back()[0].first ==
+            ownerHandle);
+    REQUIRE(ownerFederate.federationSaveStatusReports.back()[0].second ==
+            rti1516_2025::NO_SAVE_IN_PROGRESS);
+    REQUIRE(ownerFederate.federationSaveStatusReports.back()[1].first ==
+            receiverHandle);
+    REQUIRE(ownerFederate.federationSaveStatusReports.back()[1].second ==
+            rti1516_2025::NO_SAVE_IN_PROGRESS);
+
+    REQUIRE_NOTHROW(receiverRti->queryFederationSaveStatus());
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.federationSaveStatusReports.size() == 1U);
+    REQUIRE(receiverFederate.federationSaveStatusReports.back().size() == 2U);
+    REQUIRE(receiverFederate.federationSaveStatusReports.back()[0].first ==
+            ownerHandle);
+    REQUIRE(receiverFederate.federationSaveStatusReports.back()[0].second ==
+            rti1516_2025::NO_SAVE_IN_PROGRESS);
+    REQUIRE(receiverFederate.federationSaveStatusReports.back()[1].first ==
+            receiverHandle);
+    REQUIRE(receiverFederate.federationSaveStatusReports.back()[1].second ==
+            rti1516_2025::NO_SAVE_IN_PROGRESS);
+
+    REQUIRE_NOTHROW(ownerRti->resignFederationExecution(NO_ACTION));
+    ownerJoined = false;
+    REQUIRE_NOTHROW(receiverRti->resignFederationExecution(NO_ACTION));
+    receiverJoined = false;
+    REQUIRE_NOTHROW(ownerRti->disconnect());
+    REQUIRE_NOTHROW(receiverRti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (receiverJoined) {
+      try {
+        receiverRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (ownerJoined) {
+      try {
+        ownerRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      receiverRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      ownerRti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+TEST_CASE(
+    "RTIambassadors preserve receiver-reported federation save not-complete across a configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][multi-federate][receiver-reporter][2025][save-not-complete][multi-federate-callback-ordering][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][federate.callback.initiate-federate-save][federate.callback.federation-not-saved]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-save-not-complete-receiver-reporter-execution";
+  constexpr wchar_t const* ownerType =
+      L"process-federation-save-not-complete-owner-type";
+  constexpr wchar_t const* receiverType =
+      L"process-federation-save-not-complete-receiver-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-save-not-complete-receiver-reporter-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{false});
+      auto ownerConnection = listener->accept(
+          nullptr,
+          {"process-federation-save-not-complete-multi-server", 0x9753U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession ownerSession(ownerConnection);
+      auto ownerHandler = service.handlerFor(ownerSession);
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The multi-federate save-not-complete server lost Create.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The multi-federate save-not-complete server lost owner Join.");
+
+      auto receiverConnection = listener->accept(
+          nullptr,
+          {"process-federation-save-not-complete-multi-server", 0x9754U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession receiverSession(receiverConnection);
+      auto receiverHandler = service.handlerFor(receiverSession);
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The multi-federate save-not-complete server lost receiver Join.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::request_federation_save,
+          "The multi-federate save-not-complete server lost Request Federation Save.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate save-not-complete server lost owner initiation polling.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate save-not-complete server lost receiver initiation polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The multi-federate save-not-complete server lost owner Federate Save Begun.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The multi-federate save-not-complete server lost receiver Federate Save Begun.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::federate_save_not_complete,
+          "The receiver-reporter save-not-complete server lost receiver Federate Save Not Complete.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate save-not-complete server lost owner failure polling.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::receive_interaction,
+          "The multi-federate save-not-complete server lost receiver failure polling.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The multi-federate save-not-complete server lost owner Resign.");
+      serveExpected(
+          receiverSession,
+          receiverHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The multi-federate save-not-complete server lost receiver Resign.");
+      service.detach(receiverSession);
+      service.detach(ownerSession);
+      receiverConnection->close();
+      ownerConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSaveFederateAmbassador ownerFederate;
+  ProcessSaveFederateAmbassador receiverFederate;
+  auto ownerRti = makeRti();
+  auto receiverRti = makeRti();
+  auto ownerConfiguration = RtiConfiguration::createConfiguration()
+                                .withConfigurationName(
+                                    L"process-federation-save-not-complete-owner")
+                                .withRtiAddress(
+                                    L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto receiverConfiguration = RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(
+                                       L"process-federation-save-not-complete-receiver")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool ownerJoined = false;
+  bool receiverJoined = false;
+  try {
+    REQUIRE(ownerRti->connect(ownerFederate, HLA_EVOKED, ownerConfiguration)
+                .addressUsed);
+    REQUIRE_NOTHROW(ownerRti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-save-not-complete-fom.xml"));
+    REQUIRE(ownerRti->joinFederationExecution(ownerType, federationName)
+                .isValid());
+    ownerJoined = true;
+
+    REQUIRE(receiverRti->connect(
+                receiverFederate,
+                HLA_EVOKED,
+                receiverConfiguration)
+                .addressUsed);
+    REQUIRE(receiverRti->joinFederationExecution(receiverType, federationName)
+                .isValid());
+    receiverJoined = true;
+
+    REQUIRE_NOTHROW(ownerRti->requestFederationSave(saveLabel));
+    REQUIRE(ownerFederate.initiateCount == 0U);
+    REQUIRE(receiverFederate.initiateCount == 0U);
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.initiateCount == 1U);
+    REQUIRE(ownerFederate.initiateLabel == saveLabel);
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(receiverFederate.initiateCount == 1U);
+    REQUIRE(receiverFederate.initiateLabel == saveLabel);
+
+    REQUIRE_NOTHROW(ownerRti->federateSaveBegun());
+    REQUIRE_NOTHROW(receiverRti->federateSaveBegun());
+    REQUIRE_NOTHROW(receiverRti->federateSaveNotComplete());
+    REQUIRE(ownerFederate.notSavedCount == 0U);
+    REQUIRE(receiverFederate.notSavedCount == 0U);
+    REQUIRE_FALSE(ownerRti->evokeCallback(0.0));
+    REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
+    REQUIRE(ownerFederate.notSavedCount == 1U);
+    REQUIRE(receiverFederate.notSavedCount == 1U);
+    REQUIRE(ownerFederate.notSavedReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+    REQUIRE(receiverFederate.notSavedReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+
+    REQUIRE_NOTHROW(ownerRti->resignFederationExecution(NO_ACTION));
+    ownerJoined = false;
+    REQUIRE_NOTHROW(receiverRti->resignFederationExecution(NO_ACTION));
+    receiverJoined = false;
+    REQUIRE_NOTHROW(ownerRti->disconnect());
+    REQUIRE_NOTHROW(receiverRti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (receiverJoined) {
+      try {
+        receiverRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (ownerJoined) {
+      try {
+        ownerRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      receiverRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      ownerRti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+TEST_CASE(
+    "RTIambassadors preserve terminal federation save status under HLA_IMMEDIATE after a process save failure",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][save-not-complete][terminal-save-status][callback-model-hla-immediate][process-federation-save-not-complete-status-terminal-immediate][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][rti.service.query-federation-save-status][federate.callback.initiate-federate-save][federate.callback.federation-not-saved][federate.callback.federation-save-status-response]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-save-status-immediate-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-save-status-immediate-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-save-status-immediate-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-save-status-immediate-server", 0x975AU},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The immediate terminal save-status server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The immediate terminal save-status server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The immediate terminal save-status server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The immediate terminal save-status server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_not_complete,
+          "The immediate terminal save-status server lost Federate Save Not Complete.");
+      serveExpected(
+          TransportServiceOperation::query_federation_save_status,
+          "The immediate terminal save-status server lost the post-failure status query.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The immediate terminal save-status server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessSaveFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-save-status-immediate-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_IMMEDIATE, configuration).addressUsed);
+    REQUIRE_NOTHROW(rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-save-status-immediate-fom.xml"));
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+    joined = true;
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE(federate.initiateCount == 1U);
+    REQUIRE(federate.initiateLabel == saveLabel);
+
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveNotComplete());
+    REQUIRE(federate.notSavedCount == 1U);
+    REQUIRE(federate.notSavedReason ==
+            rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE);
+
+    REQUIRE_NOTHROW(rti->queryFederationSaveStatus());
+    REQUIRE(federate.federationSaveStatusReports.size() == 1U);
+    REQUIRE(federate.federationSaveStatusReports.back().size() == 1U);
+    REQUIRE(federate.federationSaveStatusReports.back()[0].first ==
+            federateHandle);
+    REQUIRE(federate.federationSaveStatusReports.back()[0].second ==
+            rti1516_2025::NO_SAVE_IN_PROGRESS);
+
+    REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+    joined = false;
+    REQUIRE_NOTHROW(rti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+TEST_CASE(
+    "RTIambassadors preserve federation restore status under HLA_IMMEDIATE through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][callback-model-hla-immediate][process-federation-restore-status-immediate][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][rti.service.request-federation-restore][rti.service.query-federation-restore-status][rti.service.federate-restore-complete][federate.callback.request-federation-restore-succeeded][federate.callback.federation-restore-begun][federate.callback.initiate-federate-restore][federate.callback.federation-restore-status-response][federate.callback.federation-restored]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-status-immediate-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-restore-status-immediate-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-restore-status-immediate-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-restore-status-immediate-server", 0x9761U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The immediate restore-status server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The immediate restore-status server lost Join.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The immediate restore-status server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The immediate restore-status server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_complete,
+          "The immediate restore-status server lost Federate Save Complete.");
+      serveExpected(
+          TransportServiceOperation::request_federation_restore,
+          "The immediate restore-status server lost Request Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::query_federation_restore_status,
+          "The immediate restore-status server lost Query Federation Restore Status.");
+      serveExpected(
+          TransportServiceOperation::federate_restore_complete,
+          "The immediate restore-status server lost Federate Restore Complete.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The immediate restore-status server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessRestoreFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-restore-status-immediate-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_IMMEDIATE, configuration).addressUsed);
+    REQUIRE_NOTHROW(rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-status-fom.xml"));
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+    joined = true;
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE(federate.saveInitiateCount == 1U);
+    REQUIRE(federate.saveLabel == saveLabel);
+
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveComplete());
+    REQUIRE(federate.saveCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+    REQUIRE(federate.restoreSucceededCount == 1U);
+    REQUIRE(federate.restoreBegunCount == 1U);
+    REQUIRE(federate.restoreInitiateCount == 1U);
+    REQUIRE(federate.restorePostFederateHandle.isValid());
+
+    REQUIRE_NOTHROW(rti->queryFederationRestoreStatus());
+    REQUIRE(federate.federationRestoreStatusReports.size() == 1U);
+    auto const& statuses = federate.federationRestoreStatusReports.back();
+    REQUIRE(statuses.size() == 1U);
+    REQUIRE(statuses.front().preRestoreHandle.isValid());
+    REQUIRE(statuses.front().postRestoreHandle.isValid());
+    REQUIRE(statuses.front().status == rti1516_2025::FEDERATE_RESTORING);
+
+    REQUIRE_NOTHROW(rti->federateRestoreComplete());
+    REQUIRE(federate.restoreCompleteCount == 1U);
+    REQUIRE(federate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-request-succeeded",
+                "restore-begun",
+                "restore-initiate",
+                "restore-status",
+                "restore-complete"});
+
+    REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+    joined = false;
+    REQUIRE_NOTHROW(rti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+TEST_CASE(
+    "RTIambassadors preserve idle and terminal federation restore status under HLA_IMMEDIATE through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][callbacks][transport][process-boundary][public-endpoint][2025][callback-model-hla-immediate][process-federation-restore-status-idle-terminal-immediate][rti.service.query-federation-restore-status][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][rti.service.request-federation-restore][rti.service.federate-restore-complete][federate.callback.federation-restore-status-response][federate.callback.request-federation-restore-succeeded][federate.callback.federation-restore-begun][federate.callback.initiate-federate-restore][federate.callback.federation-restored]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-status-boundaries-immediate-execution";
+  constexpr wchar_t const* federateType =
+      L"process-federation-restore-status-boundaries-immediate-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-restore-status-boundaries-immediate-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto connection = listener->accept(
+          nullptr,
+          {"process-federation-restore-status-boundaries-immediate-server",
+           0x9762U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          TransportServiceOperation::create_federation_execution,
+          "The immediate restore-status-boundaries server lost Create.");
+      serveExpected(
+          TransportServiceOperation::join_federation_execution,
+          "The immediate restore-status-boundaries server lost Join.");
+      serveExpected(
+          TransportServiceOperation::query_federation_restore_status,
+          "The immediate restore-status-boundaries server lost idle Query Federation Restore Status.");
+      serveExpected(
+          TransportServiceOperation::request_federation_save,
+          "The immediate restore-status-boundaries server lost Request Federation Save.");
+      serveExpected(
+          TransportServiceOperation::federate_save_begun,
+          "The immediate restore-status-boundaries server lost Federate Save Begun.");
+      serveExpected(
+          TransportServiceOperation::federate_save_complete,
+          "The immediate restore-status-boundaries server lost Federate Save Complete.");
+      serveExpected(
+          TransportServiceOperation::request_federation_restore,
+          "The immediate restore-status-boundaries server lost Request Federation Restore.");
+      serveExpected(
+          TransportServiceOperation::query_federation_restore_status,
+          "The immediate restore-status-boundaries server lost in-progress Query Federation Restore Status.");
+      serveExpected(
+          TransportServiceOperation::federate_restore_complete,
+          "The immediate restore-status-boundaries server lost Federate Restore Complete.");
+      serveExpected(
+          TransportServiceOperation::query_federation_restore_status,
+          "The immediate restore-status-boundaries server lost terminal Query Federation Restore Status.");
+      serveExpected(
+          TransportServiceOperation::resign_federation_execution,
+          "The immediate restore-status-boundaries server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  ProcessRestoreFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-federation-restore-status-boundaries-immediate-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_IMMEDIATE, configuration).addressUsed);
+    REQUIRE_NOTHROW(rti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-status-boundaries-fom.xml"));
+    auto const federateHandle =
+        rti->joinFederationExecution(federateType, federationName);
+    REQUIRE(federateHandle.isValid());
+    joined = true;
+
+    REQUIRE_NOTHROW(rti->queryFederationRestoreStatus());
+    REQUIRE(federate.federationRestoreStatusReports.size() == 1U);
+    auto const& idleStatuses = federate.federationRestoreStatusReports.back();
+    REQUIRE(idleStatuses.size() == 1U);
+    REQUIRE(idleStatuses.front().preRestoreHandle.isValid());
+    REQUIRE_FALSE(idleStatuses.front().postRestoreHandle.isValid());
+    REQUIRE(idleStatuses.front().status ==
+            rti1516_2025::NO_RESTORE_IN_PROGRESS);
+
+    REQUIRE_NOTHROW(rti->requestFederationSave(saveLabel));
+    REQUIRE(federate.saveInitiateCount == 1U);
+    REQUIRE_NOTHROW(rti->federateSaveBegun());
+    REQUIRE_NOTHROW(rti->federateSaveComplete());
+    REQUIRE(federate.saveCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(rti->requestFederationRestore(saveLabel));
+    REQUIRE(federate.restoreSucceededCount == 1U);
+    REQUIRE(federate.restoreBegunCount == 1U);
+    REQUIRE(federate.restoreInitiateCount == 1U);
+
+    REQUIRE_NOTHROW(rti->queryFederationRestoreStatus());
+    REQUIRE(federate.federationRestoreStatusReports.size() == 2U);
+    auto const& restoringStatuses = federate.federationRestoreStatusReports.back();
+    REQUIRE(restoringStatuses.size() == 1U);
+    REQUIRE(restoringStatuses.front().preRestoreHandle.isValid());
+    REQUIRE(restoringStatuses.front().postRestoreHandle.isValid());
+    REQUIRE(restoringStatuses.front().status ==
+            rti1516_2025::FEDERATE_RESTORING);
+
+    REQUIRE_NOTHROW(rti->federateRestoreComplete());
+    REQUIRE(federate.restoreCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(rti->queryFederationRestoreStatus());
+    REQUIRE(federate.federationRestoreStatusReports.size() == 3U);
+    auto const& terminalStatuses = federate.federationRestoreStatusReports.back();
+    REQUIRE(terminalStatuses.size() == 1U);
+    REQUIRE(terminalStatuses.front().preRestoreHandle.isValid());
+    REQUIRE_FALSE(terminalStatuses.front().postRestoreHandle.isValid());
+    REQUIRE(terminalStatuses.front().status ==
+            rti1516_2025::NO_RESTORE_IN_PROGRESS);
+    REQUIRE(federate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-status",
+                "restore-request-succeeded",
+                "restore-begun",
+                "restore-initiate",
+                "restore-status",
+                "restore-complete",
+                "restore-status"});
+
+    REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+    joined = false;
+    REQUIRE_NOTHROW(rti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+}
+TEST_CASE(
+    "RTIambassadors preserve multi-federate federation restore status projections under HLA_IMMEDIATE through the configured process endpoint",
+    "[integration][foundation][federation-management][save-restore][callbacks][transport][process-boundary][public-endpoint][multi-federate][2025][callback-model-hla-immediate][process-federation-restore-status-multi-federate-immediate][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][rti.service.request-federation-restore][rti.service.query-federation-restore-status][rti.service.federate-restore-complete][federate.callback.request-federation-restore-succeeded][federate.callback.federation-restore-begun][federate.callback.initiate-federate-restore][federate.callback.federation-restore-status-response][federate.callback.federation-restored]") {
+  using umbra::detail::ProcessTransportListener;
+
+  constexpr wchar_t const* federationName =
+      L"process-federation-restore-status-multi-federate-immediate-execution";
+  constexpr wchar_t const* firstFederateType =
+      L"process-federation-restore-status-multi-federate-immediate-first-type";
+  constexpr wchar_t const* secondFederateType =
+      L"process-federation-restore-status-multi-federate-immediate-second-type";
+  constexpr wchar_t const* saveLabel =
+      L"process-federation-restore-status-multi-federate-immediate-label";
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto firstConnection = listener->accept(
+          nullptr,
+          {"process-federation-restore-status-multi-federate-immediate-server",
+           0x9763U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession first(firstConnection);
+      auto firstHandler = service.handlerFor(first);
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(
+                        std::string(description) +
+                        " received an unexpected process operation.");
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The immediate multi-federate restore-status server lost Create.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The immediate multi-federate restore-status server lost first Join.");
+
+      auto secondConnection = listener->accept(
+          nullptr,
+          {"process-federation-restore-status-multi-federate-immediate-server",
+           0x9764U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession second(secondConnection);
+      auto secondHandler = service.handlerFor(second);
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The immediate multi-federate restore-status server lost second Join.");
+
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::request_federation_save,
+          "The immediate multi-federate restore-status server lost Request Federation Save.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The immediate multi-federate restore-status server lost first Federate Save Begun.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::federate_save_begun,
+          "The immediate multi-federate restore-status server lost second Federate Save Begun.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The immediate multi-federate restore-status server lost first Federate Save Complete.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::federate_save_complete,
+          "The immediate multi-federate restore-status server lost second Federate Save Complete.");
+
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::request_federation_restore,
+          "The immediate multi-federate restore-status server lost Request Federation Restore.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::query_federation_restore_status,
+          "The immediate multi-federate restore-status server lost first in-progress Query Federation Restore Status.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::query_federation_restore_status,
+          "The immediate multi-federate restore-status server lost second in-progress Query Federation Restore Status.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::federate_restore_complete,
+          "The immediate multi-federate restore-status server lost first Federate Restore Complete.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::query_federation_restore_status,
+          "The immediate multi-federate restore-status server lost first waiting Query Federation Restore Status.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::query_federation_restore_status,
+          "The immediate multi-federate restore-status server lost second waiting Query Federation Restore Status.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::federate_restore_complete,
+          "The immediate multi-federate restore-status server lost second Federate Restore Complete.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::query_federation_restore_status,
+          "The immediate multi-federate restore-status server lost first terminal Query Federation Restore Status.");
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::query_federation_restore_status,
+          "The immediate multi-federate restore-status server lost second terminal Query Federation Restore Status.");
+
+      serveExpected(
+          second,
+          secondHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The immediate multi-federate restore-status server lost second Resign.");
+      serveExpected(
+          first,
+          firstHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The immediate multi-federate restore-status server lost first Resign.");
+      service.detach(second);
+      service.detach(first);
+      secondConnection->close();
+      firstConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  auto firstRti = makeRti();
+  auto secondRti = makeRti();
+  ProcessRestoreFederateAmbassador firstFederate;
+  ProcessRestoreFederateAmbassador secondFederate;
+  auto firstConfiguration = RtiConfiguration::createConfiguration()
+                                .withConfigurationName(
+                                    L"process-federation-restore-status-multi-federate-immediate-first")
+                                .withRtiAddress(
+                                    L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto secondConfiguration = RtiConfiguration::createConfiguration()
+                                 .withConfigurationName(
+                                     L"process-federation-restore-status-multi-federate-immediate-second")
+                                 .withRtiAddress(
+                                     L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool firstJoined = false;
+  bool secondJoined = false;
+  try {
+    REQUIRE(firstRti->connect(firstFederate, HLA_IMMEDIATE, firstConfiguration)
+                .addressUsed);
+    REQUIRE_NOTHROW(firstRti->createFederationExecution(
+        federationName,
+        L"server-owned-process-federation-restore-status-fom.xml"));
+    auto const firstHandle = firstRti->joinFederationExecution(
+        firstFederateType,
+        federationName);
+    REQUIRE(firstHandle.isValid());
+    firstJoined = true;
+
+    REQUIRE(secondRti->connect(
+                secondFederate,
+                HLA_IMMEDIATE,
+                secondConfiguration)
+                .addressUsed);
+    auto const secondHandle = secondRti->joinFederationExecution(
+        secondFederateType,
+        federationName);
+    REQUIRE(secondHandle.isValid());
+    REQUIRE(firstHandle != secondHandle);
+    secondJoined = true;
+
+    REQUIRE_NOTHROW(firstRti->requestFederationSave(saveLabel));
+    REQUIRE(firstFederate.saveInitiateCount == 1U);
+    REQUIRE(secondFederate.saveInitiateCount == 0U);
+    REQUIRE_NOTHROW(firstRti->federateSaveBegun());
+    REQUIRE(firstFederate.saveInitiateCount == 1U);
+    REQUIRE(secondFederate.saveInitiateCount == 0U);
+    REQUIRE_NOTHROW(secondRti->federateSaveBegun());
+    REQUIRE(secondFederate.saveInitiateCount == 1U);
+    REQUIRE_NOTHROW(firstRti->federateSaveComplete());
+    REQUIRE(firstFederate.saveCompleteCount == 0U);
+    REQUIRE_NOTHROW(secondRti->federateSaveComplete());
+    REQUIRE(secondFederate.saveCompleteCount == 1U);
+
+    REQUIRE_NOTHROW(firstRti->requestFederationRestore(saveLabel));
+    REQUIRE(firstFederate.saveCompleteCount == 1U);
+    REQUIRE(firstFederate.restoreSucceededCount == 1U);
+    REQUIRE(firstFederate.restoreBegunCount == 1U);
+    REQUIRE(firstFederate.restoreInitiateCount == 1U);
+    REQUIRE(secondFederate.restoreSucceededCount == 0U);
+    REQUIRE(secondFederate.restoreBegunCount == 0U);
+    REQUIRE(secondFederate.restoreInitiateCount == 0U);
+
+    auto requireStatus = [](auto const& statuses,
+                            auto const& handle,
+                            rti1516_2025::RestoreStatus expectedStatus,
+                            bool expectedPostHandleValidity) {
+      auto const status = std::find_if(
+          statuses.begin(),
+          statuses.end(),
+          [&handle](auto const& candidate) {
+            return candidate.preRestoreHandle == handle;
+          });
+      REQUIRE(status != statuses.end());
+      if (status == statuses.end()) {
+        return;
+      }
+      REQUIRE(status->status == expectedStatus);
+      REQUIRE(status->postRestoreHandle.isValid() == expectedPostHandleValidity);
+      if (expectedPostHandleValidity) {
+        REQUIRE(status->postRestoreHandle == handle);
+      }
+    };
+
+    REQUIRE_NOTHROW(firstRti->queryFederationRestoreStatus());
+    REQUIRE(firstFederate.federationRestoreStatusReports.size() == 1U);
+    auto const& firstRestoringStatuses =
+        firstFederate.federationRestoreStatusReports.back();
+    REQUIRE(firstRestoringStatuses.size() == 2U);
+    requireStatus(
+        firstRestoringStatuses,
+        firstHandle,
+        rti1516_2025::FEDERATE_RESTORING,
+        true);
+    requireStatus(
+        firstRestoringStatuses,
+        secondHandle,
+        rti1516_2025::FEDERATE_RESTORING,
+        true);
+
+    REQUIRE_NOTHROW(secondRti->queryFederationRestoreStatus());
+    REQUIRE(secondFederate.saveCompleteCount == 1U);
+    REQUIRE(secondFederate.restoreSucceededCount == 0U);
+    REQUIRE(secondFederate.restoreBegunCount == 1U);
+    REQUIRE(secondFederate.restoreInitiateCount == 1U);
+    REQUIRE(secondFederate.federationRestoreStatusReports.size() == 1U);
+    auto const& secondRestoringStatuses =
+        secondFederate.federationRestoreStatusReports.back();
+    REQUIRE(secondRestoringStatuses.size() == 2U);
+    requireStatus(
+        secondRestoringStatuses,
+        firstHandle,
+        rti1516_2025::FEDERATE_RESTORING,
+        true);
+    requireStatus(
+        secondRestoringStatuses,
+        secondHandle,
+        rti1516_2025::FEDERATE_RESTORING,
+        true);
+
+    REQUIRE_NOTHROW(firstRti->federateRestoreComplete());
+    REQUIRE(firstFederate.restoreCompleteCount == 0U);
+    REQUIRE_NOTHROW(firstRti->queryFederationRestoreStatus());
+    REQUIRE(firstFederate.federationRestoreStatusReports.size() == 2U);
+    auto const& firstWaitingStatuses =
+        firstFederate.federationRestoreStatusReports.back();
+    REQUIRE(firstWaitingStatuses.size() == 2U);
+    requireStatus(
+        firstWaitingStatuses,
+        firstHandle,
+        rti1516_2025::FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE,
+        true);
+    requireStatus(
+        firstWaitingStatuses,
+        secondHandle,
+        rti1516_2025::FEDERATE_RESTORING,
+        true);
+
+    REQUIRE_NOTHROW(secondRti->queryFederationRestoreStatus());
+    REQUIRE(secondFederate.federationRestoreStatusReports.size() == 2U);
+    auto const& secondWaitingStatuses =
+        secondFederate.federationRestoreStatusReports.back();
+    REQUIRE(secondWaitingStatuses.size() == 2U);
+    requireStatus(
+        secondWaitingStatuses,
+        firstHandle,
+        rti1516_2025::FEDERATE_WAITING_FOR_FEDERATION_TO_RESTORE,
+        true);
+    requireStatus(
+        secondWaitingStatuses,
+        secondHandle,
+        rti1516_2025::FEDERATE_RESTORING,
+        true);
+
+    REQUIRE_NOTHROW(secondRti->federateRestoreComplete());
+    REQUIRE(secondFederate.restoreCompleteCount == 1U);
+    REQUIRE(firstFederate.restoreCompleteCount == 0U);
+
+    REQUIRE_NOTHROW(firstRti->queryFederationRestoreStatus());
+    REQUIRE(firstFederate.restoreCompleteCount == 1U);
+    REQUIRE(firstFederate.federationRestoreStatusReports.size() == 3U);
+    auto const& firstTerminalStatuses =
+        firstFederate.federationRestoreStatusReports.back();
+    REQUIRE(firstTerminalStatuses.size() == 2U);
+    requireStatus(
+        firstTerminalStatuses,
+        firstHandle,
+        rti1516_2025::NO_RESTORE_IN_PROGRESS,
+        false);
+    requireStatus(
+        firstTerminalStatuses,
+        secondHandle,
+        rti1516_2025::NO_RESTORE_IN_PROGRESS,
+        false);
+
+    REQUIRE_NOTHROW(secondRti->queryFederationRestoreStatus());
+    REQUIRE(secondFederate.federationRestoreStatusReports.size() == 3U);
+    auto const& secondTerminalStatuses =
+        secondFederate.federationRestoreStatusReports.back();
+    REQUIRE(secondTerminalStatuses.size() == 2U);
+    requireStatus(
+        secondTerminalStatuses,
+        firstHandle,
+        rti1516_2025::NO_RESTORE_IN_PROGRESS,
+        false);
+    requireStatus(
+        secondTerminalStatuses,
+        secondHandle,
+        rti1516_2025::NO_RESTORE_IN_PROGRESS,
+        false);
+    REQUIRE(firstFederate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-request-succeeded",
+                "restore-begun",
+                "restore-initiate",
+                "restore-status",
+                "restore-status",
+                "restore-complete",
+                "restore-status"});
+    REQUIRE(secondFederate.callbackOrder ==
+            std::vector<std::string>{
+                "restore-begun",
+                "restore-initiate",
+                "restore-status",
+                "restore-status",
+                "restore-complete",
+                "restore-status"});
+
+    REQUIRE_NOTHROW(secondRti->resignFederationExecution(NO_ACTION));
+    secondJoined = false;
+    REQUIRE_NOTHROW(secondRti->disconnect());
+    REQUIRE_NOTHROW(firstRti->resignFederationExecution(NO_ACTION));
+    firstJoined = false;
+    REQUIRE_NOTHROW(firstRti->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (secondJoined) {
+      try {
+        secondRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (firstJoined) {
+      try {
+        firstRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      secondRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      firstRti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
 }
 #endif

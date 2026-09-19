@@ -187,18 +187,22 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "The FOM edition setting rejects ambiguous 202x spellings",
+    "The FOM edition setting reports an unparseable 202x spelling without aborting Connect",
     "[unit][external][fom][edition-policy]") {
   using rti1516_2025::HLA_EVOKED;
   using rti1516_2025::RtiConfiguration;
+  using rti1516_2025::SETTINGS_FAILED_TO_PARSE;
 
   rti1516_2025::NullFederateAmbassador callbacks;
   rti1516_2025::umbra_binding_detail::UmbraRtiAmbassador rti;
   auto configuration = RtiConfiguration::createConfiguration()
       .withAdditionalSettings(L"fomEdition=202x");
-  REQUIRE_THROWS_AS(
-      rti.connect(callbacks, HLA_EVOKED, configuration),
-      rti1516_2025::RTIinternalError);
+  auto const result = rti.connect(callbacks, HLA_EVOKED, configuration);
+  REQUIRE_FALSE(result.configurationUsed);
+  REQUIRE_FALSE(result.addressUsed);
+  REQUIRE(result.additionalSettingsResult == SETTINGS_FAILED_TO_PARSE);
+  REQUIRE_FALSE(result.message.empty());
+  REQUIRE_NOTHROW(rti.disconnect());
 }
 
 TEST_CASE(

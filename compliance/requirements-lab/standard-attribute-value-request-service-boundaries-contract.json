@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for ordinary Request Attribute Value Update service boundaries. The source uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, ordinary FOM, endpoint, callback configuration, and federation identity. It verifies object-instance and object-class request overloads, invalid handle rejection, request tags, provider callbacks, response reflection, and federation cleanup without asserting provider-specific names, registries, headers, transport, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-attribute-value-request-service-boundaries",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador object-instance and object-class Request Attribute Value Update services with FederateAmbassador provider and reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador requestAttributeValueUpdate declarations and FederateAmbassador provideAttributeValueUpdate/reflectAttributeValues callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeValueRequestServiceBoundariesContract"
+      ]
+    }
+  ]
+}

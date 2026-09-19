@@ -24,6 +24,8 @@ API surfaces, owner, and focused execution commands.
     python tools/query_rti_work.py focus <lane-tag> --summary --compact
     python tools/query_rti_work.py trace <exact-catch2-title> --summary --compact
     python tools/query_rti_work.py matrix <lane-or-exact-catch2-title> --summary --compact
+    python tools/query_rti_work.py matrix <family-or-lane> --group-by requirement --summary --compact
+    python tools/query_rti_work.py matrix <family-or-lane> --group-by section --summary --compact
     python tools/query_rti_work.py requirement <lab-requirement-id> --summary --compact
     python tools/query_rti_work.py section <document:clause> --summary --compact
     python tools/query_rti_work.py check --lane <lane-tag> --summary --compact
@@ -43,12 +45,27 @@ owner-release, regular, and If Available companions remain separate lanes.
 Keep multi-acquirer/cancellation races, push behavior, divestiture, and
 conformance as follow-on slices rather than widening this query.
 
-Use `test <substring>` or `search <term>` only to discover a candidate; once
-selected, switch to the exact `case`, `trace`, and `matrix` commands so the
-next work item stays bounded and reproducible. The exact `case` card also
+Use `test <substring>` or `search <term>` only to discover a candidate; a
+multi-word `search restore work` query is ANDed by default and remains bounded
+(`--any-term` is an explicit broad lookup). Once selected, switch to the exact
+`case`, `trace`, and `matrix` commands so the next work item stays bounded and
+reproducible. The exact `case` card also
 labels each row as `requirements-mapped`, `explicit-disposition`, or
 `unclassified`, so an intentional no-standalone-surface decision cannot be
 mistaken for missing traceability.
+
+The default matrix is one row per Catch2 case. For a standards review, use
+`--group-by requirement` to get one row per Requirements-Lab id with its
+canonical 2025 subsections and case ids, or `--group-by section` to invert the
+crosswalk and list the requirements/cases covering each subsection. Both views
+reuse the direct requirement-to-subsection join and cap each case preview, so
+they remain bounded even when a cross-cutting requirement is exercised by many
+tests. An exact requirement or subsection query narrows the aggregate to that
+one key; a family or lane query retains the complete bounded crosswalk.
+
+`resume`/`dashboard` also expose the latest verified implementation-fix card
+from `ROADMAP-INDEX.json`; use its exact case, focus, matrix, and CTest handles
+to re-run a regression without reopening the full save/restore inventory.
 
 ### Run a route-aware CI lane
 
@@ -1401,7 +1418,10 @@ bounded family selector with requirement/canonical-2025-section counts and
 adds bounded ID previews and direct requirement-to-section pairs. This is the
 intended handoff for selecting the next C++ slice; the text card prints the
 first bounded family as a recommendation and JSON exposes the same
-`recommended_family_id`.
+`recommended_family_id`. Each family option also emits exact
+`matrix --group-by requirement` and `matrix --group-by section` commands, so
+the test-to-Lab-to-2025-subsection crosswalk is available from that first
+bounded query.
 
 `ready --summary --compact` is intentionally the active implementation handoff:
 it reports the next plan/test/lane, mapping counts, and a bounded preview of
@@ -1447,6 +1467,13 @@ with live Catch2 counts, next-test requirement/subsection previews, an exact
 `next_source` handoff when one is queued, and copyable `work`, `focus`, and
 family `matrix` commands. Add `--status all` only when historical completed
 families are required.
+An exact indexed family id is treated as the stable handle and wins over
+overlapping cross-cutting tags, so `roadmap transport-and-conformance` returns
+that one family rather than every family carrying the same tag.
+Family counts use the same membership rules as reverse trace links: broad
+family tags plus exact indexed lane owners and `next_lane` handles. This keeps
+the family card, `gaps --family`, and per-test `trace`/`matrix` views on one
+consistent set of Catch2 rows.
 Each exhausted-family row also includes a collapsed `next` action in
 compact/summary output, so the immediate implementation decision is available
 without reopening the long roadmap.
@@ -1470,6 +1497,12 @@ separate `review_trace` handle instead. This is bounded discovery over the
 checked-in index; it does not rescan the Requirements Lab. If a broad family has no single `next_lane`,
 `work <family-id>` emits the same bounded lane-discovery command plus a scoped
 `ready --family <family-id>` handoff so the next case is still selected locally.
+The default inventory includes broad cross-cutting tags; add `--focused` to
+restrict a family query to its explicit `focused_lane_tags` aliases. Use that
+focused form for ordinary slice selection, and leave the broad form for
+taxonomy/review work:
+
+    python tools/query_rti_work.py lanes --family transport-and-conformance --focused --summary --compact
 
 The implementation plan is queryable by heading without printing its prose:
 
@@ -1660,6 +1693,42 @@ identity, one callback per Evoke Callback, and sender exclusion. Keep
 immediate, callback-disable, timestamped/region/directed fanout, package/JUnit,
 review, validation, interoperability, and conformance in separate lanes.
 
+The regional transportation-control companion is also a distinct queryable
+slice (84 assertions, 23 direct Lab anchors, 11 canonical subsections, and
+17 official C++ API surfaces):
+
+    python tools/query_rti_work.py case umbra-cpp-process-endpoint-transportation-regional-interaction-integration --summary --compact
+    python tools/query_rti_work.py focus process-transportation-regional-interaction-control --summary --compact
+    python tools/query_rti_work.py trace "RTIambassadors preserve a regional interaction transportation override through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-transportation-regional-interaction-integration --summary --compact
+    python tools/query_rti_work.py check --lane process-transportation-regional-interaction-control --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.RTIambassadors preserve a regional interaction transportation override through a configured process endpoint$" --output-on-failure
+
+It is a bounded private foundation slice: the confirmed HLAbestEffort
+publisher override is observed after a regional send, with source-region
+metadata retained at the receiver. Timestamped/retraction, directed,
+multi-recipient, relaxed/direct DDM, save/restore, package/JUnit,
+protected-review, validation, interoperability, and conformance stay in their
+own lanes.
+
+The timestamped regional transportation-control companion is the newest
+bounded process slice (122 assertions, 27 direct Lab anchors, 15 canonical
+subsections, and 21 official C++ API surfaces):
+
+    python tools/query_rti_work.py case umbra-cpp-process-endpoint-transportation-timestamped-regional-interaction-integration --summary --compact
+    python tools/query_rti_work.py focus process-transportation-timestamped-regional-interaction-control --summary --compact
+    python tools/query_rti_work.py trace "RTIambassadors preserve a timestamped regional interaction transportation override through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-transportation-timestamped-regional-interaction-integration --summary --compact
+    python tools/query_rti_work.py check --lane process-transportation-timestamped-regional-interaction-control --summary --compact
+    ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.RTIambassadors preserve a timestamped regional interaction transportation override through a configured process endpoint$" --output-on-failure
+
+It proves the publisher-scoped HLAbestEffort override, timestamp/TIMESTAMP and
+retraction identity, callback-before-grant ordering, and conveyed source-region
+metadata under `HLA_EVOKED` and `HLA_IMMEDIATE`. Keep directed,
+multi-recipient, relaxed/direct DDM, callback-gating, save/restore,
+package/JUnit, protected-review, validation, interoperability, and conformance
+as separate lanes.
+
 The newest process TSO/DDM slice is independently queryable:
 
     python tools/query_rti_work.py focus timestamped-process-regional-interaction --summary --compact
@@ -1759,13 +1828,28 @@ slice.
     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-parameterized --output-on-failure
     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R "^umbra_rti_package_process_connection_loss_consumer$" --output-on-failure
     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-connection-loss --output-on-failure
+    ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R "^umbra_rti_package_process_connection_loss_delete_objects_consumer$" --output-on-failure
+    ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-connection-loss-delete-objects --output-on-failure
     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R "^umbra_rti_package_process_object_registration_consumer$" --output-on-failure
     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-object-registration --output-on-failure
     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R "^umbra_rti_package_process_named_registration_consumer$" --output-on-failure
     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-named-registration --output-on-failure
-    ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R "^umbra_rti_package_process_attribute_update_consumer$" --output-on-failure
-    ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-attribute-update --output-on-failure
-    python tools/verify_process_package_lanes.py --ctest ctest --test-dir <build-dir>/package-smoke-consumer --index docs/planning/ROADMAP-INDEX.json --config Debug
+     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R "^umbra_rti_package_process_attribute_update_consumer$" --output-on-failure
+     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-attribute-update --output-on-failure
+     python tools/query_rti_work.py lane package-process-federation-save-restore --summary --compact
+     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R "^umbra_rti_package_process_federation_save_restore_consumer$" --output-on-failure
+     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore --output-on-failure
+     python tools/query_rti_work.py lane package-process-federation-save-restore-failure --summary --compact
+     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R "^umbra_rti_package_process_federation_save_restore_failure_consumer$" --output-on-failure
+     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore-failure --output-on-failure
+     python tools/query_rti_work.py lane package-process-federation-save-restore-abort --summary --compact
+     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R "^umbra_rti_package_process_federation_save_restore_abort_consumer$" --output-on-failure
+     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore-abort --output-on-failure
+     python tools/query_rti_work.py lane package-process-federation-save-restore-status --summary --compact
+     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R "^umbra_rti_package_process_federation_save_restore_status_consumer$" --output-on-failure
+     ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-federation-save-restore-status --output-on-failure
+      ctest --test-dir <build-dir>/package-smoke-consumer -C Debug --output-on-failure --output-junit <build-dir>/package-smoke-consumer/Testing/package-process.xml
+     python tools/verify_process_package_lanes.py --ctest ctest --test-dir <build-dir>/package-smoke-consumer --index docs/planning/ROADMAP-INDEX.json --config Debug --junit <build-dir>/package-smoke-consumer/Testing/package-process.xml
     python tools/query_rti_work.py test "Embedded transport loss applies the bounded automatic NoAction forced-resign policy" --summary --compact
     python tools/query_rti_work.py next --pointer
     python tools/query_rti_work.py focus process-boundary --summary --compact

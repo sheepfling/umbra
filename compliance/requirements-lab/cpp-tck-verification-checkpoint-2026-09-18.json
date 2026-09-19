@@ -3,17 +3,17 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-18-651-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-18-685-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
-    "promoted": 651,
+    "promoted": 685,
     "candidate": 0,
-    "inventory": 651,
+    "inventory": 685,
     "full_promoted_matrix_rerun": true
   },
   "adapter": {
     "path": "packages/hla-rti-cpp-tck/adapters/current-package",
-    "package_prefix": ".build/package-smoke-install",
+    "package_prefix": ".build/package-smoke-install-regional-boundaries-current",
     "callback_models": [
       "evoked",
       "immediate"
@@ -63,6 +63,34 @@
       "verification": "CTest matrix plus separate direct ordinary, contract, and timed runs",
       "artifacts": [
         ".build/cpp-tck-package-smoke-save-restore"
+      ]
+    },
+    {
+      "name": "federation-restore-abort",
+      "scenario_ids": [
+        "cpp-tck.federation-restore-abort",
+        "cpp-tck.federation-restore-abort-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused CTest and direct runner across evoked and immediate callback models; all 4 restore-abort cases passed",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/federation-restore-abort-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/federation-restore-abort-focused.xml"
+      ]
+    },
+    {
+      "name": "federation-restore-work-item-ownership-assumption",
+      "scenario_ids": [
+        "cpp-tck.federation-restore-work-item-ownership-assumption",
+        "cpp-tck.federation-restore-work-item-ownership-assumption-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused CTest and direct runner across evoked and immediate callback models; all 4 ownership-assumption restore cases passed",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/federation-restore-ownership-assumption-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/federation-restore-ownership-assumption-focused.xml"
       ]
     },
     {
@@ -742,16 +770,28 @@
       "scenario_ids": [
         "cpp-tck.receive-order-attribute-update-callback-cancellation",
         "cpp-tck.receive-order-attribute-update-callback-cancellation-contract",
+        "cpp-tck.receive-order-attribute-update",
+        "cpp-tck.receive-order-attribute-update-contract",
+        "cpp-tck.receive-order-interaction",
+        "cpp-tck.receive-order-interaction-contract",
+        "cpp-tck.receive-order-object-removal",
+        "cpp-tck.receive-order-object-removal-contract",
         "cpp-tck.receive-order-interaction-callback-cancellation",
         "cpp-tck.receive-order-interaction-callback-cancellation-contract",
         "cpp-tck.receive-order-multi-attribute-update-callback-cancellation",
         "cpp-tck.receive-order-multi-attribute-update-callback-cancellation-contract"
       ],
-      "cases": 12,
-      "passed": 12,
-      "verification": "CTest and direct runner; all three pure contracts independently reran 2/2",
+      "cases": 24,
+      "passed": 24,
+      "verification": "CTest and direct runner; all six pure contracts independently reran 2/2",
       "artifacts": [
-        ".build/cpp-tck-package-smoke-receive-order-cancellation"
+        ".build/cpp-tck-package-smoke-receive-order-cancellation",
+        ".build/cpp-tck-full-promoted-2026-09-18/receive-order-attribute-update-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/receive-order-attribute-update-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/receive-order-interaction-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/receive-order-interaction-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/receive-order-object-removal-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/receive-order-object-removal-focused.xml"
       ]
     },
     {
@@ -1419,6 +1459,12 @@
         "cpp-tck.joined-federate-mom-removed-object-count-contract",
         "cpp-tck.joined-federate-mom-updates-sent-counts",
         "cpp-tck.joined-federate-mom-updates-sent-counts-contract",
+        "cpp-tck.joined-federate-mom-registered-object-count",
+        "cpp-tck.joined-federate-mom-registered-object-count-contract",
+        "cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report",
+        "cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report-contract",
+        "cpp-tck.joined-federate-mom-deletable-object-count",
+        "cpp-tck.joined-federate-mom-deletable-object-count-contract",
         "cpp-tck.joined-federate-mom-interactions-received-counts",
         "cpp-tck.joined-federate-mom-interactions-received-counts-contract",
         "cpp-tck.joined-federate-mom-directed-interactions-sent-counts",
@@ -1434,11 +1480,17 @@
         "cpp-tck.joined-federate-mom-time-state-durations",
         "cpp-tck.joined-federate-mom-time-state-durations-contract"
       ],
-      "cases": 48,
-      "passed": 48,
-      "verification": "CTest and direct runner across evoked and immediate callback models",
+      "cases": 60,
+      "passed": 60,
+      "verification": "Focused direct runner and full installed-package matrix across evoked and immediate callback models",
       "artifacts": [
-        ".build/cpp-tck-package-smoke-next-joined-federate-mom"
+        ".build/cpp-tck-package-smoke-next-joined-federate-mom",
+        ".build/cpp-tck-full-promoted-2026-09-18/joined-federate-mom-registered-object-count-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/joined-federate-mom-registered-object-count-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/joined-federate-mom-deletable-object-report-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/joined-federate-mom-deletable-object-report-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/joined-federate-mom-deletable-object-count-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/joined-federate-mom-deletable-object-count-focused.xml"
       ]
     },
     {
@@ -1510,6 +1562,108 @@
       "verification": "CTest and direct runner across evoked and immediate callback models after aligning immediate delivery with a regular pending acquisition",
       "artifacts": [
         ".build/cpp-tck-package-smoke-next-ownership-regional-current/ownership-regional-after-model-fix.json"
+      ]
+    },
+    {
+      "name": "ownership-acquisition-if-available",
+      "scenario_ids": [
+        "cpp-tck.ownership-acquisition-if-available",
+        "cpp-tck.ownership-acquisition-if-available-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused CTest and direct runner across evoked and immediate callback models; all 4 If Available ownership-acquisition cases passed",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/ownership-acquisition-if-available-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/ownership-acquisition-if-available-focused.xml"
+      ]
+    },
+    {
+      "name": "auto-provide-disabled-discovery-only",
+      "scenario_ids": [
+        "cpp-tck.auto-provide-disabled-discovery-only",
+        "cpp-tck.auto-provide-disabled-discovery-only-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused CTest and direct runner across evoked and immediate callback models; all 4 disabled Auto Provide discovery-only cases passed",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/auto-provide-disabled-discovery-only-candidate.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/auto-provide-disabled-discovery-only-candidate.xml"
+      ]
+    },
+    {
+      "name": "auto-provide-disabled-explicit-request",
+      "scenario_ids": [
+        "cpp-tck.auto-provide-disabled-explicit-request",
+        "cpp-tck.auto-provide-disabled-explicit-request-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused CTest and direct runner across evoked and immediate callback models; all 4 disabled Auto Provide explicit-request cases passed",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/auto-provide-disabled-explicit-request-candidate.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/auto-provide-disabled-explicit-request-candidate.xml"
+      ]
+    },
+    {
+      "name": "object-management-service-boundaries",
+      "scenario_ids": [
+        "cpp-tck.object-registration-service-boundaries",
+        "cpp-tck.object-registration-service-boundaries-contract",
+        "cpp-tck.object-deletion-service-boundaries",
+        "cpp-tck.object-deletion-service-boundaries-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "Focused CTest and direct runner across evoked and immediate callback models; all 8 object-management service-boundary cases passed",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/object-management-service-boundaries-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/object-management-service-boundaries-focused.xml"
+      ]
+    },
+    {
+      "name": "ordinary-delivery-service-boundaries",
+      "scenario_ids": [
+        "cpp-tck.attribute-update-service-boundaries",
+        "cpp-tck.attribute-update-service-boundaries-contract",
+        "cpp-tck.interaction-service-boundaries",
+        "cpp-tck.interaction-service-boundaries-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "Focused CTest and direct runner across evoked and immediate callback models; all 8 ordinary attribute-update and interaction service-boundary cases passed",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/ordinary-delivery-service-boundaries-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/ordinary-delivery-service-boundaries-focused.xml"
+      ]
+    },
+    {
+      "name": "attribute-value-request-service-boundaries",
+      "scenario_ids": [
+        "cpp-tck.attribute-value-request-service-boundaries",
+        "cpp-tck.attribute-value-request-service-boundaries-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused CTest and direct runner across evoked and immediate callback models; all 4 Request Attribute Value Update service-boundary cases passed",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/attribute-value-request-service-boundaries-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/attribute-value-request-service-boundaries-focused.xml"
+      ]
+    },
+    {
+      "name": "connection-service-boundaries",
+      "scenario_ids": [
+        "cpp-tck.connection-service-boundaries",
+        "cpp-tck.connection-service-boundaries-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused CTest and direct runner across evoked and immediate callback models; all 4 connection service-boundary cases passed",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/connection-service-boundaries-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/connection-service-boundaries-focused.xml"
       ]
     },
     {
@@ -1661,6 +1815,12 @@
         "cpp-tck.attribute-interaction-contract",
         "cpp-tck.receive-order-attribute-update-callback-cancellation",
         "cpp-tck.receive-order-attribute-update-callback-cancellation-contract",
+        "cpp-tck.receive-order-attribute-update",
+        "cpp-tck.receive-order-attribute-update-contract",
+        "cpp-tck.receive-order-interaction",
+        "cpp-tck.receive-order-interaction-contract",
+        "cpp-tck.receive-order-object-removal",
+        "cpp-tck.receive-order-object-removal-contract",
         "cpp-tck.receive-order-interaction-callback-cancellation",
         "cpp-tck.receive-order-interaction-callback-cancellation-contract",
         "cpp-tck.interaction-subscription-lifecycle",
@@ -1998,6 +2158,10 @@
         "cpp-tck.callback-controls-time-role-enablement-contract",
         "cpp-tck.federation-save-restore",
         "cpp-tck.federation-save-restore-contract",
+        "cpp-tck.federation-restore-abort",
+        "cpp-tck.federation-restore-abort-contract",
+        "cpp-tck.federation-restore-work-item-ownership-assumption",
+        "cpp-tck.federation-restore-work-item-ownership-assumption-contract",
         "cpp-tck.federation-save-restore-interlocks",
         "cpp-tck.federation-save-restore-interlocks-contract",
         "cpp-tck.timed-federation-save-restore",
@@ -2028,6 +2192,12 @@
         "cpp-tck.joined-federate-mom-removed-object-count-contract",
         "cpp-tck.joined-federate-mom-updates-sent-counts",
         "cpp-tck.joined-federate-mom-updates-sent-counts-contract",
+        "cpp-tck.joined-federate-mom-registered-object-count",
+        "cpp-tck.joined-federate-mom-registered-object-count-contract",
+        "cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report",
+        "cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report-contract",
+        "cpp-tck.joined-federate-mom-deletable-object-count",
+        "cpp-tck.joined-federate-mom-deletable-object-count-contract",
         "cpp-tck.joined-federate-mom-interactions-received-counts",
         "cpp-tck.joined-federate-mom-interactions-received-counts-contract",
         "cpp-tck.joined-federate-mom-directed-interactions-sent-counts",
@@ -2165,17 +2335,35 @@
         "cpp-tck.delay-subscription-evaluation-attribute-update-contract",
         "cpp-tck.delay-subscription-evaluation-timestamped-interaction-contract",
         "cpp-tck.delay-subscription-evaluation-timestamped-directed-interaction-contract",
-        "cpp-tck.delay-subscription-evaluation-timestamped-attribute-update-contract"
-      ],
-      "cases": 1302,
-      "passed": 1302,
+        "cpp-tck.delay-subscription-evaluation-timestamped-attribute-update-contract",
+        "cpp-tck.ownership-acquisition-if-available",
+        "cpp-tck.ownership-acquisition-if-available-contract",
+        "cpp-tck.auto-provide-disabled-discovery-only",
+        "cpp-tck.auto-provide-disabled-discovery-only-contract",
+        "cpp-tck.auto-provide-disabled-explicit-request",
+        "cpp-tck.auto-provide-disabled-explicit-request-contract",
+        "cpp-tck.object-registration-service-boundaries",
+        "cpp-tck.object-registration-service-boundaries-contract",
+        "cpp-tck.object-deletion-service-boundaries",
+         "cpp-tck.object-deletion-service-boundaries-contract",
+         "cpp-tck.attribute-update-service-boundaries",
+         "cpp-tck.attribute-update-service-boundaries-contract",
+         "cpp-tck.interaction-service-boundaries",
+         "cpp-tck.interaction-service-boundaries-contract",
+         "cpp-tck.attribute-value-request-service-boundaries",
+         "cpp-tck.attribute-value-request-service-boundaries-contract",
+         "cpp-tck.connection-service-boundaries",
+         "cpp-tck.connection-service-boundaries-contract"
+        ],
+  "cases": 1370,
+  "passed": 1370,
       "skipped": 0,
       "failed": 0,
-      "verification": "Fresh installed-package direct runner over all 651 catalog IDs in both evoked and immediate callback models with the adapter-managed current-process connection-loss fixture; all 1,302 callback-model cases passed with zero skips and zero failures, and result IDs matched the catalog exactly.",
-      "artifacts": [
-        ".build/cpp-tck-full-promoted-2026-09-18/all-promoted-direct-with-loss-fixture.json",
-        ".build/cpp-tck-full-promoted-2026-09-18/all-promoted-direct-with-loss-fixture.xml"
-      ]
+  "verification": "Fresh installed-package direct runner over all 685 catalog IDs in both evoked and immediate callback models with the adapter-provided process-service connection-loss fixture; all 1,370 callback-model cases passed with zero skips and zero failures, and result IDs matched the catalog exactly.",
+  "artifacts": [
+     ".build/cpp-tck-full-promoted-2026-09-18/all-expanded-promoted-connection-service-boundaries-complete.json",
+     ".build/cpp-tck-full-promoted-2026-09-18/all-expanded-promoted-connection-service-boundaries-complete.xml"
+  ]
     }
   ],
   "candidate_failures": [

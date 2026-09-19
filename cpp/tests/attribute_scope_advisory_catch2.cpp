@@ -234,13 +234,20 @@ TEST_CASE(
     requireSingleScopeReport(subscriberReports.inScope);
     REQUIRE(subscriberReports.outOfScope.empty());
 
-    // Replace the regional declaration with ordinary scope, then remove it.
-    // These two transitions exercise the ordinary/regional subscription forms
-    // without changing the source object's region association.
+    // Clear the explicit source associations before replacing the regional
+    // declaration with ordinary scope.  An ordinary subscription uses the
+    // implicit default source realization; it does not match an explicitly
+    // associated source region.
     REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributesWithRegions(
         objectClass,
         subscriberPair));
     requireSingleScopeReport(subscriberReports.outOfScope);
+    REQUIRE_NOTHROW(owner->unassociateRegionsForUpdates(
+        objectInstance,
+        ownerOverlapPair));
+    REQUIRE_NOTHROW(owner->unassociateRegionsForUpdates(
+        objectInstance,
+        ownerDisjointPair));
     REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
         objectClass,
         attributes,
@@ -257,6 +264,13 @@ TEST_CASE(
         subscriberPair,
         true));
     requireSingleScopeReport(subscriberReports.inScope);
+
+    REQUIRE_NOTHROW(owner->associateRegionsForUpdates(
+        objectInstance,
+        ownerOverlapPair));
+    REQUIRE_NOTHROW(owner->associateRegionsForUpdates(
+        objectInstance,
+        ownerDisjointPair));
 
     // The source is currently associated with both owner regions and the
     // receiver overlaps the first. Move the receiver to the second overlap,

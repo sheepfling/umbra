@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for standard connection and callback-service boundaries. The source uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and federation identity. It verifies all standard connect overloads, callback-model validation, duplicate-connect rejection, pre-connect service failures, callback enable/disable and evocation, disconnect, and reconnect without asserting provider-specific names, registries, headers, transport, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-connection-service-boundaries",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador connect overloads, callback controls, pre-connect service boundaries, disconnect, and reconnect with ConfigurationResult and FederateAmbassador callback services",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador connection and callback-control declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioConnectionServiceBoundariesContract"
+      ]
+    }
+  ]
+}

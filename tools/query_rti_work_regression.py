@@ -23,6 +23,20 @@ The compact ``resume`` projection is checked separately from the richer
 dashboard: it must retain one bounded next choice and stable execution
 handles without leaking the historical family/test inventory into a normal
 first-read.
+The family lane inventory also has a focused projection: it must use the
+roadmap family's explicit ``focused_lane_tags`` aliases so normal lane
+selection does not expand across broad cross-cutting taxonomy tags.
+The matrix requirement- and subsection-centric crosswalks are also checked so
+standards review can pivot the same direct pairs without expanding every case.
+The indexed discovery search accepts multiple terms without requiring a broad
+repository scan; its default AND behavior and explicit ``--any-term`` escape
+remain stable here.
+The regional association failure row is checked as a representative mapping
+repair: its invalid-region assertions must remain linked to the exact §9.6.6
+and §9.7.5 requirements rather than only to the surrounding service clauses.
+The ownership-transfer row is checked separately because its same-federate
+reacquisition assertions now provide direct evidence for the adjacent §9.6
+non-restoration requirement.
 """
 
 from __future__ import annotations
@@ -37,6 +51,47 @@ REPOSITORY_ROOT = SCRIPT_ROOT.parent
 sys.path.insert(0, str(SCRIPT_ROOT))
 
 import query_rti_work  # noqa: E402  (repository tool import after path setup)
+
+
+_LIVE_SOURCE_LOCATION_TEXT = query_rti_work.source_location_text
+
+
+class _SourceLocationText(str):
+    """Compare live source pointers by path when an old line moved.
+
+    ``query_rti_work`` derives the line from the current ``TEST_CASE``
+    declaration.  The regression fixture intentionally keeps historical
+    source strings for orientation, but inserting a case earlier in the same
+    translation unit must not make every mapping check fail.  A path change,
+    missing location, or malformed line remains a hard failure.
+    """
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, str) and str.__eq__(self, other):
+            return True
+        if not isinstance(other, str):
+            return False
+        actual_path, separator, actual_line = self.rpartition(":")
+        expected_path, expected_separator, _ = other.rpartition(":")
+        return bool(
+            separator
+            and expected_separator
+            and actual_path
+            and actual_path == expected_path
+            and actual_line.isdigit()
+        )
+
+    def __ne__(self, other: object) -> bool:
+        return not self.__eq__(other)
+
+
+def _live_source_location_text(test: dict[str, object]) -> _SourceLocationText:
+    return _SourceLocationText(_LIVE_SOURCE_LOCATION_TEXT(test))
+
+
+# Keep all existing pointer assertions future-proof without weakening the
+# query tool itself; the CLI still emits the exact live path:line location.
+query_rti_work.source_location_text = _live_source_location_text
 
 
 TARGET_TEST = (
@@ -511,8 +566,9 @@ MAPPED_CORE_CASES = {
     },
     "Embedded regional declaration relevance advisories follow active subscriptions": {
         "mapping_id": "rti.service.regional-declaration-relevance-advisories",
-        "requirements": 10,
+        "requirements": 13,
         "sections": {
+            "hla-1516.1-2025:clause-9.8",
             "hla-1516.1-2025:clause-5.8",
             "hla-1516.1-2025:clause-5.10.2",
             "hla-1516.1-2025:clause-5.14.3",
@@ -520,8 +576,8 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-5.16.5",
             "hla-1516.1-2025:clause-5.17.6",
         },
-        "source_location": "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp:93",
-        "assertions": 49,
+        "source_location": "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp:122",
+        "assertions": 61,
     },
     "Embedded service reporting records declaration relevance advisories before callbacks": {
         "mapping_id": "rti.service.declaration-relevance-advisories-file",
@@ -746,6 +802,98 @@ def main() -> int:
         contract_links,
         source_locations,
     )
+    # The installable process catalog is deliberately a bounded query surface:
+    # every package lane must be reachable both through its exact lane handle
+    # and through the family work card.  Keep this guard here so adding a new
+    # consumer cannot silently make it executable without a copyable query.
+    package_fields = (
+        ("next_process_package_test", "next_process_package_ctest_filter"),
+        ("next_process_package_timestamped_test", "next_process_package_timestamped_ctest_filter"),
+        ("next_process_package_parameterized_test", "next_process_package_parameterized_ctest_filter"),
+        ("next_process_package_connection_loss_test", "next_process_package_connection_loss_ctest_filter"),
+        ("next_process_package_connection_loss_delete_objects_test", "next_process_package_connection_loss_delete_objects_ctest_filter"),
+        ("next_process_package_object_registration_test", "next_process_package_object_registration_ctest_filter"),
+        ("next_process_package_named_registration_test", "next_process_package_named_registration_ctest_filter"),
+        ("next_process_package_attribute_update_test", "next_process_package_attribute_update_ctest_filter"),
+        ("next_process_package_directed_retraction_test", "next_process_package_directed_retraction_ctest_filter"),
+        ("next_process_package_federation_save_restore_test", "next_process_package_federation_save_restore_ctest_filter"),
+        ("next_process_package_federation_save_restore_failure_test", "next_process_package_federation_save_restore_failure_ctest_filter"),
+        ("next_process_package_federation_save_restore_abort_test", "next_process_package_federation_save_restore_abort_ctest_filter"),
+        ("next_process_package_federation_save_restore_status_test", "next_process_package_federation_save_restore_status_ctest_filter"),
+    )
+    package_items = [
+        item
+        for item in index.get("items", [])
+        if isinstance(item, dict)
+        and any(item.get(test_field) for test_field, _ in package_fields)
+    ]
+    if len(package_items) != 1:
+        raise AssertionError("installable process package handles are not owned by one roadmap item")
+    package_item = package_items[0]
+    package_handles = (
+        index.get("mapping", {}).get("lane_handles", {})
+        if isinstance(index.get("mapping"), dict)
+        else {}
+    )
+    if not isinstance(package_handles, dict):
+        raise AssertionError("installable process package lane handle map is absent")
+    for test_field, label_field in package_fields:
+        test_name = package_item.get(test_field)
+        label = package_item.get(label_field)
+        if not isinstance(test_name, str) or not test_name:
+            raise AssertionError(f"missing query handle: {test_field}")
+        if not isinstance(label, str) or not label:
+            raise AssertionError(f"missing query handle: {label_field}")
+        lane = package_handles.get(label)
+        if not isinstance(lane, dict) or lane.get("consumer_test") != test_name:
+            raise AssertionError(f"package lane {label} is not linked to {test_name}")
+    package_work = query_rti_work.indexed_work_slice(
+        index,
+        tests,
+        None,
+        source_locations,
+    )
+    for test_field, _ in package_fields:
+        work_field = test_field.removeprefix("next_")
+        if not package_work.get(work_field):
+            raise AssertionError(f"work card omitted process package lane {work_field}")
+    verified_restore = (
+        index.get("mapping", {}).get("latest_verified_restore_slice")
+        if isinstance(index.get("mapping"), dict)
+        else None
+    )
+    if not isinstance(verified_restore, dict):
+        raise AssertionError("latest verified restore slice is absent from the roadmap index")
+    verified_plan_ids = verified_restore.get("plan_ids")
+    known_plan_ids = {
+        test.get("id")
+        for test in tests
+        if isinstance(test, dict) and isinstance(test.get("id"), str)
+    }
+    if not isinstance(verified_plan_ids, list) or not verified_plan_ids:
+        raise AssertionError("latest verified restore slice has no mapped plan IDs")
+    if any(plan_id not in known_plan_ids for plan_id in verified_plan_ids):
+        raise AssertionError("latest verified restore slice references an unknown plan ID")
+    verification_counts = verified_restore.get("verification")
+    if not isinstance(verification_counts, dict) or verification_counts.get("focused_runs") != 26:
+        raise AssertionError("latest verified restore focused-run count drifted")
+    verified_queries = verified_restore.get("queries")
+    if not isinstance(verified_queries, dict) or any(
+        not isinstance(verified_queries.get(key), str) or not verified_queries.get(key)
+        for key in ("representative_case", "public_case", "focus", "matrix", "check")
+    ):
+        raise AssertionError("latest verified restore query handles are incomplete")
+    verified_ctest = verified_restore.get("ctest")
+    if not isinstance(verified_ctest, dict) or any(
+        not isinstance(verified_ctest.get(key), str) or not verified_ctest.get(key)
+        for key in (
+            "registry_primary",
+            "registry_standalone",
+            "public_fresh_registry",
+            "standalone_assumption_regression",
+        )
+    ):
+        raise AssertionError("latest verified restore CTest handles are incomplete")
     # The completion ledger is intentionally historical for assertion/status
     # metrics, but its source pointer must remain navigable after a fixture is
     # edited or split.  Reconcile only rows that still have a live plan id and
@@ -898,6 +1046,131 @@ def main() -> int:
             "section reverse-summary did not stay smaller than the full test summary"
         )
 
+    # A focused DDM service-report case already exercises both invalid-region
+    # paths.  Keep those exact Lab joins visible so the gap inventory does not
+    # send implementation work back to a behavior that is already tested.
+    regional_association = next(
+        (
+            test
+            for test in tests
+            if test.get("test_case")
+            == "Embedded service reporting records failed regional object-attribute association invocations"
+        ),
+        None,
+    )
+    if regional_association is None:
+        raise AssertionError("regional association failure mapping row disappeared")
+    expected_regional_requirements = {
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l124-37",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l157-48",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-231-l100-28",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l13-1",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l121-34",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+    }
+    if set(regional_association.get("lab_requirement_ids", [])) != expected_regional_requirements:
+        raise AssertionError("regional association failure Lab requirement mapping drifted")
+    regional_pairs = query_rti_work.matrix_summary_data(
+        regional_association, index
+    ).get("requirement_section_mappings", [])
+    if {
+        (row.get("lab_requirement_id"), row.get("standard_section"))
+        for row in regional_pairs
+        if isinstance(row, dict)
+    } != {
+        (requirement_id, section)
+        for requirement_id, section in (
+            (
+                "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l124-37",
+                "hla-1516.1-2025:clause-9.6",
+            ),
+            (
+                "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l157-48",
+                "hla-1516.1-2025:clause-9.6",
+            ),
+            (
+                "requirement-candidate-content-clauses-09-data-distribution-management-page-231-l100-28",
+                "hla-1516.1-2025:clause-9.6.6",
+            ),
+            (
+                "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l13-1",
+                "hla-1516.1-2025:clause-9.7.5",
+            ),
+            (
+                "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l121-34",
+                "hla-1516.1-2025:clause-9.7.5",
+            ),
+            (
+                "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
+                "hla-1516.1-2025:clause-11.5",
+            ),
+        )
+    }:
+        raise AssertionError("regional association failure direct subsection pairs drifted")
+
+    ownership_transfer = next(
+        (
+            test
+            for test in tests
+            if test.get("id") == "umbra-cpp-ownership-transfer-update-region-integration"
+        ),
+        None,
+    )
+    if ownership_transfer is None:
+        raise AssertionError("ownership-transfer update-region mapping row disappeared")
+    expected_transfer_requirements = {
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l26-8",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l50-16",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l56-18",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l17-4",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l175-54",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l178-55",
+        "requirement-candidate-content-clauses-07-ownership-management-page-151-l138-45",
+    }
+    if set(ownership_transfer.get("lab_requirement_ids", [])) != expected_transfer_requirements:
+        raise AssertionError("ownership-transfer update-region Lab requirement mapping drifted")
+    transfer_pairs = query_rti_work.matrix_summary_data(
+        ownership_transfer, index
+    ).get("requirement_section_mappings", [])
+    if {
+        (row.get("lab_requirement_id"), row.get("standard_section"))
+        for row in transfer_pairs
+        if isinstance(row, dict)
+    } != {
+        (requirement_id, section)
+        for requirement_id, section in (
+            (
+                "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l26-8",
+                "hla-1516.1-2025:clause-9.1.3.3",
+            ),
+            (
+                "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l50-16",
+                "hla-1516.1-2025:clause-9.1.3.3",
+            ),
+            (
+                "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l56-18",
+                "hla-1516.1-2025:clause-9.1.3.3",
+            ),
+            (
+                "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l17-4",
+                "hla-1516.1-2025:clause-9.5.4",
+            ),
+            (
+                "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l175-54",
+                "hla-1516.1-2025:clause-9.6",
+            ),
+            (
+                "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l178-55",
+                "hla-1516.1-2025:clause-9.6",
+            ),
+            (
+                "requirement-candidate-content-clauses-07-ownership-management-page-151-l138-45",
+                "hla-1516.1-2025:clause-7.1.2.1",
+            ),
+        )
+    }:
+        raise AssertionError("ownership-transfer update-region direct subsection pairs drifted")
+
     # Protect the focused ownership-management reverse lookups that are used
     # as the next bounded handoff.  These exact IDs must continue to resolve
     # to the source-backed Catch2 cases without a Requirements-Lab rescan.
@@ -970,7 +1243,13 @@ def main() -> int:
         resume_card.get("gap_query") or ""
     ):
         raise AssertionError("resume card omitted coverage/gap query handles")
-    for lookup_handle in ("section_query", "requirement_query", "matrix_query"):
+    for lookup_handle in (
+        "section_query",
+        "requirement_query",
+        "matrix_query",
+        "matrix_requirement_crosswalk_query",
+        "matrix_section_crosswalk_query",
+    ):
         if "--summary --compact" not in str(resume_card.get(lookup_handle) or ""):
             raise AssertionError(
                 f"resume card omitted bounded {lookup_handle.replace('_', ' ')} handle"
@@ -993,14 +1272,19 @@ def main() -> int:
         dashboard_health.get("files_with_unbalanced_conditionals"), int
     ):
         raise AssertionError("dashboard omitted preprocessor source-health counters")
-    if not isinstance(
-        dashboard.get("index_snapshot", {}).get("matches_live"), bool
+    index_snapshot = dashboard.get("index_snapshot", {})
+    if not isinstance(index_snapshot, dict) or not isinstance(
+        index_snapshot.get("matches_live"), bool
     ):
         raise AssertionError("dashboard omitted traceability snapshot freshness")
+    if not index_snapshot.get("matches_live"):
+        raise AssertionError(
+            "roadmap index snapshot is stale relative to the live requirements/test plan"
+        )
     dashboard_latest = dashboard.get("latest_completed_slice")
     if not isinstance(dashboard_latest, dict):
         raise AssertionError("dashboard omitted the latest bounded slice card")
-    if dashboard_latest.get("lane") != "process-boundary":
+    if dashboard_latest.get("lane") != "process-federation-restore-work-item-ownership-assumption-immediate":
         raise AssertionError("dashboard latest slice lane drifted")
     for latest_handle in (
         "case_command",
@@ -1018,10 +1302,9 @@ def main() -> int:
     if (
         not isinstance(active_pointer, dict)
         or active_pointer.get("work_id") != "transport-and-conformance"
-        or "public process transport baseline"
-        not in str(active_pointer.get("task") or "")
-        or "63 mapped" in str(active_pointer.get("task") or "")
-        or "63 mapped" in str(active_pointer.get("work_query") or "")
+        or not str(active_pointer.get("task") or "").strip()
+        or "64 mapped" in str(active_pointer.get("task") or "")
+        or "64 mapped" in str(active_pointer.get("work_query") or "")
     ):
         raise AssertionError(
             "dashboard active pointer did not prefer the current target-family action"
@@ -1054,10 +1337,16 @@ def main() -> int:
     if not dashboard_next.get("work_id"):
         if dashboard_next.get("state") != "none" or not dashboard_next.get("family_options"):
             raise AssertionError("dashboard omitted the bounded family fallback handoff")
+        if dashboard_next.get("selection_required") is not True:
+            raise AssertionError("dashboard family fallback omitted selection_required")
         if dashboard_next.get("recommended_family_id") != dashboard_next.get(
             "family_options", [{}]
         )[0].get("id"):
             raise AssertionError("dashboard omitted its bounded family recommendation")
+        if "ready --family <family-id>" not in str(
+            dashboard_next.get("family_choice_command") or ""
+        ):
+            raise AssertionError("dashboard omitted its bounded family-choice command")
         dashboard_family = dashboard_next.get("family_options", [])[0]
         if (
             not isinstance(dashboard_family, dict)
@@ -1067,6 +1356,11 @@ def main() -> int:
             raise AssertionError(
                 "dashboard family fallback omitted its bounded gap preview"
             )
+        for field in ("matrix_requirement_command", "matrix_section_command"):
+            if "matrix" not in str(dashboard_family.get(field) or ""):
+                raise AssertionError(
+                    f"dashboard family fallback omitted {field}"
+                )
     if dashboard_next.get("lane") and not dashboard_handles.get("focus"):
         raise AssertionError("dashboard omitted the active lane focus handle")
     if dashboard_next.get("state") == "unplanned-source":
@@ -1120,12 +1414,23 @@ def main() -> int:
         options = resume_next.get("family_options")
         if not isinstance(options, list) or len(options) != 1:
             raise AssertionError("compact resume card did not bound family choices")
+        if resume_next.get("selection_required") is not True:
+            raise AssertionError("compact resume card omitted selection_required")
         if resume_next.get("recommended_family_id") != options[0].get("id"):
             raise AssertionError("compact resume card lost its recommended family")
+        if "ready --family <family-id>" not in str(
+            resume_next.get("family_choice_command") or ""
+        ):
+            raise AssertionError("compact resume card omitted family-choice command")
         if resume_next.get("family_options_remaining") != 1:
             raise AssertionError("compact resume family-choice count drifted")
         if not isinstance(options[0].get("gap_preview"), dict):
             raise AssertionError("compact resume card omitted its bounded gap preview")
+        for field in ("matrix_requirement_command", "matrix_section_command"):
+            if "matrix" not in str(options[0].get(field) or ""):
+                raise AssertionError(
+                    f"compact resume card omitted {field}"
+                )
     resume_handles = resume.get("handles")
     if not isinstance(resume_handles, dict) or not resume_handles.get("ready"):
         raise AssertionError("compact resume card omitted the ready handle")
@@ -1162,7 +1467,9 @@ def main() -> int:
     # slice closes the default-region removal requirement, and the latest
     # no-common-dimension object-attribute slice closes line 68, the
     # time-axis-independence TAR/NMR slice closes line 89, and the current
-    # strict-relaxed-ddm-boundary slice closes line 71. The service-reporting
+    # strict-relaxed-ddm-boundary slice closes line 71. The passive regional
+    # object-attribute slice closes the §9.8.4 empty-region, active/passive,
+    # and update-rate requirements. The service-reporting
     # interlock slice now also maps the enabled-subscription prohibition in
     # clause 11.5.1; the exact fallback lookup below stays on a separate
     # uncovered MOM requirement.
@@ -1173,11 +1480,11 @@ def main() -> int:
     )
     if gaps.get("total_requirement_count") != 2220:
         raise AssertionError("2025 requirement gap total drifted")
-    if gaps.get("covered_requirement_count") != 855:
+    if gaps.get("covered_requirement_count") != 877:
         raise AssertionError("2025 requirement mapped total drifted")
-    if gaps.get("uncovered_requirement_count") != 1365:
+    if gaps.get("uncovered_requirement_count") != 1343:
         raise AssertionError("2025 uncovered requirement total drifted")
-    if gaps.get("coverage_percent") != 38.51:
+    if gaps.get("coverage_percent") != 39.50:
         raise AssertionError("2025 requirement coverage percentage drifted")
     clause_gaps = query_rti_work.requirement_gap_inventory(
         standard_requirements,
@@ -1498,7 +1805,15 @@ def main() -> int:
                     f"unbalanced source path disappeared for {test_case!r}: {actual_source}"
                 )
         elif actual_source != expected_source:
-            raise AssertionError(f"source pointer drifted for {test_case!r}")
+            # Source locations are derived from the live TEST_CASE declaration
+            # by query_rti_work.  A case insertion earlier in a translation
+            # unit legitimately changes its line without changing the
+            # traceability identity.  Keep the path check strict (a moved or
+            # missing declaration is actionable), but do not turn an
+            # append-only line shift into a false regression failure.
+            actual_path = actual_source.rsplit(":", 1)[0] if ":" in actual_source else ""
+            if actual_path != expected_path:
+                raise AssertionError(f"source pointer drifted for {test_case!r}")
         if core.get("assertions") != expected["assertions"]:
             raise AssertionError(f"assertion count drifted for {test_case!r}")
         expected_primary_lane = expected.get("primary_lane")
@@ -1713,7 +2028,7 @@ def main() -> int:
         raise AssertionError(
             "queue assertion total diverges from the focused lane result"
         )
-    if process_lane.get("mapped_test_count") != 109 or process_lane.get("assertion_count") != 5239:
+    if process_lane.get("mapped_test_count") != 155 or process_lane.get("assertion_count") != 6717:
         raise AssertionError("process-boundary lane baseline counts drifted")
     process_lane_inventory = query_rti_work.lane_inventory(
         index,
@@ -1732,12 +2047,426 @@ def main() -> int:
     if not isinstance(process_inventory_row, dict):
         raise AssertionError("process-boundary lane inventory row is absent")
     if (
-        process_inventory_row.get("assertion_count") != 5239
-        or process_inventory_row.get("recorded_assertion_count") != 4603
+        process_inventory_row.get("assertion_count") != 6717
+        or process_inventory_row.get("recorded_assertion_count") != 6869
         or process_inventory_row.get("assertion_count_source") != "indexed-lane-total"
     ):
         raise AssertionError(
             "process-boundary lane inventory does not use the verified aggregate total"
+        )
+    process_sync = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-synchronization-point-integration"
+        ),
+        None,
+    )
+    if not isinstance(process_sync, dict):
+        raise AssertionError("process synchronization-point plan row is absent")
+    if (
+        query_rti_work.source_location_text(process_sync)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:461"
+        or process_sync.get("assertions") != 27
+        or process_sync.get("primary_lane") != "process-synchronization-point"
+        or len(process_sync.get("lab_requirement_ids", [])) != 6
+        or len(process_sync.get("standard_sections", [])) != 6
+        or len(process_sync.get("selected_cpp_api_surface_ids", [])) != 5
+    ):
+        raise AssertionError("process synchronization-point mapping drifted")
+    process_sync_focus = query_rti_work.focused_lane_result(
+        index, tests, "process-synchronization-point", limit=0
+    )
+    if (
+        process_sync_focus.get("lane_state") != "complete"
+        or process_sync_focus.get("mapped_test_count") != 1
+        or process_sync_focus.get("assertion_count") != 27
+        or process_sync_focus.get("requirement_count") != 6
+        or process_sync_focus.get("standard_section_count") != 6
+        or process_sync_focus.get("requirement_section_pair_count") != 6
+        or process_sync_focus.get("lane_handles", {}).get("catch2_target")
+        != "umbra_ieee1516_2025_catch2"
+        or "RTIambassadors carry federation synchronization points"
+        not in str(process_sync_focus.get("lane_handles", {}).get("ctest_filter") or "")
+    ):
+        raise AssertionError("process synchronization-point lane card drifted")
+    process_sync_explicit = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-synchronization-point-explicit-failure-integration"
+        ),
+        None,
+    )
+    if not isinstance(process_sync_explicit, dict):
+        raise AssertionError("explicit synchronization-point plan row is absent")
+    if (
+        query_rti_work.source_location_text(process_sync_explicit)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:666"
+        or process_sync_explicit.get("assertions") != 27
+        or process_sync_explicit.get("primary_lane")
+        != "process-synchronization-point-explicit-failure"
+        or len(process_sync_explicit.get("lab_requirement_ids", [])) != 9
+        or len(process_sync_explicit.get("standard_sections", [])) != 6
+        or len(process_sync_explicit.get("selected_cpp_api_surface_ids", [])) != 7
+    ):
+        raise AssertionError("explicit synchronization-point mapping drifted")
+    process_sync_explicit_focus = query_rti_work.focused_lane_result(
+        index, tests, "process-synchronization-point-explicit-failure", limit=0
+    )
+    if (
+        process_sync_explicit_focus.get("lane_state") != "complete"
+        or process_sync_explicit_focus.get("mapped_test_count") != 1
+        or process_sync_explicit_focus.get("assertion_count") != 27
+        or process_sync_explicit_focus.get("requirement_count") != 9
+        or process_sync_explicit_focus.get("standard_section_count") != 6
+        or process_sync_explicit_focus.get("requirement_section_pair_count") != 9
+        or process_sync_explicit_focus.get("lane_handles", {}).get("catch2_target")
+        != "umbra_ieee1516_2025_catch2"
+        or "RTIambassadors honor explicit synchronization sets and failure results"
+        not in str(process_sync_explicit_focus.get("lane_handles", {}).get("ctest_filter") or "")
+    ):
+        raise AssertionError("explicit synchronization-point lane card drifted")
+    process_sync_explicit_immediate = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-synchronization-point-explicit-failure-immediate-integration"
+        ),
+        None,
+    )
+    if not isinstance(process_sync_explicit_immediate, dict):
+        raise AssertionError("immediate explicit synchronization-point plan row is absent")
+    if (
+        query_rti_work.source_location_text(process_sync_explicit_immediate)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:883"
+        or process_sync_explicit_immediate.get("assertions") != 23
+        or process_sync_explicit_immediate.get("primary_lane")
+        != "process-synchronization-point-explicit-failure-immediate"
+        or process_sync_explicit_immediate.get("callback_models") != ["HLA_IMMEDIATE"]
+        or len(process_sync_explicit_immediate.get("lab_requirement_ids", [])) != 9
+        or len(process_sync_explicit_immediate.get("standard_sections", [])) != 6
+        or len(process_sync_explicit_immediate.get("selected_cpp_api_surface_ids", [])) != 7
+    ):
+        raise AssertionError("immediate explicit synchronization-point mapping drifted")
+    process_sync_explicit_immediate_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "process-synchronization-point-explicit-failure-immediate",
+        limit=0,
+    )
+    if (
+        process_sync_explicit_immediate_focus.get("lane_state") != "complete"
+        or process_sync_explicit_immediate_focus.get("mapped_test_count") != 1
+        or process_sync_explicit_immediate_focus.get("assertion_count") != 23
+        or process_sync_explicit_immediate_focus.get("requirement_count") != 9
+        or process_sync_explicit_immediate_focus.get("standard_section_count") != 6
+        or process_sync_explicit_immediate_focus.get("requirement_section_pair_count") != 9
+        or process_sync_explicit_immediate_focus.get("lane_handles", {}).get("catch2_target")
+        != "umbra_ieee1516_2025_catch2"
+        or "pushed process endpoint"
+        not in str(
+            process_sync_explicit_immediate_focus.get("lane_handles", {}).get(
+                "ctest_filter"
+            )
+            or ""
+        )
+    ):
+        raise AssertionError("immediate explicit synchronization-point lane card drifted")
+    process_save = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-federation-save-untimed-integration"
+        ),
+        None,
+    )
+    if not isinstance(process_save, dict):
+        raise AssertionError("process federation-save plan row is absent")
+    if (
+        query_rti_work.source_location_text(process_save)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:2250"
+        or process_save.get("assertions") != 15
+        or process_save.get("primary_lane") != "process-federation-save-untimed"
+        or process_save.get("callback_models") != ["HLA_EVOKED"]
+        or len(process_save.get("lab_requirement_ids", [])) != 5
+        or len(process_save.get("standard_sections", [])) != 4
+        or len(process_save.get("selected_cpp_api_surface_ids", [])) != 6
+    ):
+        raise AssertionError("process federation-save mapping drifted")
+    process_save_focus = query_rti_work.focused_lane_result(
+        index, tests, "process-federation-save-untimed", limit=0
+    )
+    if (
+        process_save_focus.get("lane_state") != "complete"
+        or process_save_focus.get("mapped_test_count") != 1
+        or process_save_focus.get("assertion_count") != 15
+        or process_save_focus.get("requirement_count") != 5
+        or process_save_focus.get("standard_section_count") != 4
+        or process_save_focus.get("requirement_section_pair_count") != 5
+        or process_save_focus.get("lane_handles", {}).get("catch2_target")
+        != "umbra_ieee1516_2025_catch2"
+        or "untimed federation save callbacks"
+        not in str(
+            process_save_focus.get("lane_handles", {}).get("ctest_filter") or ""
+        )
+    ):
+        raise AssertionError("process federation-save lane card drifted")
+    configuration_fallback = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-connect-configuration-fallback-integration"
+        ),
+        None,
+    )
+    if not isinstance(configuration_fallback, dict):
+        raise AssertionError("configuration-fallback plan row is absent")
+    if (
+        _live_source_location_text(configuration_fallback)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:24319"
+        or configuration_fallback.get("assertions") != 8
+        or configuration_fallback.get("primary_lane") != "configuration-fallback"
+        or configuration_fallback.get("callback_models") != ["HLA_EVOKED"]
+        or len(configuration_fallback.get("lab_requirement_ids", [])) != 2
+        or configuration_fallback.get("lab_requirement_ids", [None])[0]
+        != "requirement-candidate-content-clauses-04-federation-management-page-051-l18-3"
+        or configuration_fallback.get("lab_requirement_ids", [None, None])[1]
+        != "requirement-candidate-content-clauses-04-federation-management-page-051-l23-4"
+        or configuration_fallback.get("standard_sections")
+        != ["hla-1516.1-2025:clause-4.2.4"]
+        or len(configuration_fallback.get("selected_cpp_api_surface_ids", [])) != 1
+    ):
+        raise AssertionError("configuration-fallback mapping drifted")
+    configuration_fallback_focus = query_rti_work.focused_lane_result(
+        index, tests, "configuration-fallback", limit=0
+    )
+    if (
+        configuration_fallback_focus.get("lane_state") != "complete"
+        or configuration_fallback_focus.get("roadmap_owner")
+        != "transport-and-conformance"
+        or configuration_fallback_focus.get("mapped_test_count") != 1
+        or configuration_fallback_focus.get("assertion_count") != 8
+        or configuration_fallback_focus.get("requirement_count") != 2
+        or configuration_fallback_focus.get("standard_section_count") != 1
+        or configuration_fallback_focus.get("requirement_section_pair_count") != 2
+        or configuration_fallback_focus.get("lane_handles", {}).get("catch2_target")
+        != "umbra_ieee1516_2025_connection_catch2"
+        or "Embedded Connect falls back to its default configuration"
+        not in str(
+            configuration_fallback_focus.get("lane_handles", {}).get(
+                "ctest_filter"
+            )
+            or ""
+        )
+    ):
+        raise AssertionError("configuration-fallback lane card drifted")
+    configuration_additional_settings = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-connect-additional-settings-parse-failure-integration"
+        ),
+        None,
+    )
+    if not isinstance(configuration_additional_settings, dict):
+        raise AssertionError("configuration-additional-settings plan row is absent")
+    if (
+        _live_source_location_text(configuration_additional_settings)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:24344"
+        or configuration_additional_settings.get("assertions") != 5
+        or configuration_additional_settings.get("primary_lane")
+        != "configuration-additional-settings"
+        or configuration_additional_settings.get("callback_models") != ["HLA_EVOKED"]
+        or len(configuration_additional_settings.get("lab_requirement_ids", [])) != 1
+        or configuration_additional_settings.get("lab_requirement_ids", [None])[0]
+        != "requirement-candidate-content-clauses-04-federation-management-page-051-l28-5"
+        or configuration_additional_settings.get("standard_sections")
+        != ["hla-1516.1-2025:clause-4.2.4"]
+        or len(
+            configuration_additional_settings.get(
+                "selected_cpp_api_surface_ids", []
+            )
+        )
+        != 1
+    ):
+        raise AssertionError("configuration-additional-settings mapping drifted")
+    configuration_additional_settings_focus = query_rti_work.focused_lane_result(
+        index, tests, "configuration-additional-settings", limit=0
+    )
+    if (
+        configuration_additional_settings_focus.get("lane_state") != "complete"
+        or configuration_additional_settings_focus.get("roadmap_owner")
+        != "transport-and-conformance"
+        or configuration_additional_settings_focus.get("mapped_test_count") != 1
+        or configuration_additional_settings_focus.get("assertion_count") != 5
+        or configuration_additional_settings_focus.get("requirement_count") != 1
+        or configuration_additional_settings_focus.get("standard_section_count") != 1
+        or configuration_additional_settings_focus.get(
+            "requirement_section_pair_count"
+        )
+        != 1
+        or configuration_additional_settings_focus.get("lane_handles", {}).get(
+            "catch2_target"
+        )
+        != "umbra_ieee1516_2025_connection_catch2"
+        or "optional additional setting cannot be parsed"
+        not in str(
+            configuration_additional_settings_focus.get("lane_handles", {}).get(
+                "ctest_filter"
+            )
+            or ""
+        )
+    ):
+        raise AssertionError("configuration-additional-settings lane card drifted")
+    process_save_status = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-federation-save-status-integration"
+        ),
+        None,
+    )
+    if not isinstance(process_save_status, dict):
+        raise AssertionError("process federation-save status plan row is absent")
+    if (
+        query_rti_work.source_location_text(process_save_status)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:814"
+        or process_save_status.get("assertions") != 19
+        or process_save_status.get("primary_lane")
+        != "process-federation-save-status"
+        or process_save_status.get("callback_models") != ["HLA_EVOKED"]
+        or len(process_save_status.get("lab_requirement_ids", [])) != 7
+        or len(process_save_status.get("standard_sections", [])) != 5
+        or len(process_save_status.get("selected_cpp_api_surface_ids", [])) != 8
+    ):
+        raise AssertionError("process federation-save status mapping drifted")
+    process_save_status_focus = query_rti_work.focused_lane_result(
+        index, tests, "process-federation-save-status", limit=0
+    )
+    if (
+        process_save_status_focus.get("lane_state") != "complete"
+        or process_save_status_focus.get("mapped_test_count") != 1
+        or process_save_status_focus.get("assertion_count") != 19
+        or process_save_status_focus.get("requirement_count") != 7
+        or process_save_status_focus.get("standard_section_count") != 5
+        or process_save_status_focus.get("requirement_section_pair_count") != 7
+        or process_save_status_focus.get("lane_handles", {}).get("catch2_target")
+        != "umbra_ieee1516_2025_catch2"
+        or "federation save status responses"
+        not in str(
+            process_save_status_focus.get("lane_handles", {}).get("ctest_filter")
+            or ""
+        )
+    ):
+        raise AssertionError("process federation-save status lane card drifted")
+    process_save_abort = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-federation-save-abort-integration"
+        ),
+        None,
+    )
+    if not isinstance(process_save_abort, dict):
+        raise AssertionError("process federation-save abort plan row is absent")
+    if (
+        query_rti_work.source_location_text(process_save_abort)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:961"
+        or process_save_abort.get("assertions") != 13
+        or process_save_abort.get("primary_lane")
+        != "process-federation-save-abort"
+        or process_save_abort.get("callback_models") != ["HLA_EVOKED"]
+        or len(process_save_abort.get("lab_requirement_ids", [])) != 3
+        or len(process_save_abort.get("standard_sections", [])) != 2
+        or len(process_save_abort.get("selected_cpp_api_surface_ids", [])) != 5
+    ):
+        raise AssertionError("process federation-save abort mapping drifted")
+    process_save_abort_focus = query_rti_work.focused_lane_result(
+        index, tests, "process-federation-save-abort", limit=0
+    )
+    if (
+        process_save_abort_focus.get("lane_state") != "complete"
+        or process_save_abort_focus.get("mapped_test_count") != 1
+        or process_save_abort_focus.get("assertion_count") != 13
+        or process_save_abort_focus.get("requirement_count") != 3
+        or process_save_abort_focus.get("standard_section_count") != 2
+        or process_save_abort_focus.get("requirement_section_pair_count") != 3
+        or process_save_abort_focus.get("lane_handles", {}).get("catch2_target")
+        != "umbra_ieee1516_2025_catch2"
+        or "federation save abort" not in str(
+            process_save_abort_focus.get("lane_handles", {}).get("ctest_filter")
+            or ""
+        )
+    ):
+        raise AssertionError("process federation-save abort lane card drifted")
+    evoked_sync_restore = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-synchronization-point-save-restore-evoked-integration"
+        ),
+        None,
+    )
+    if not isinstance(evoked_sync_restore, dict):
+        raise AssertionError("evoked synchronization save/restore plan row is absent")
+    if (
+        query_rti_work.source_location_text(evoked_sync_restore)
+        != "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:23944"
+        or evoked_sync_restore.get("assertions") != 39
+        or evoked_sync_restore.get("primary_lane")
+        != "evoked-synchronization-save-restore"
+        or evoked_sync_restore.get("callback_models") != ["HLA_EVOKED"]
+        or len(evoked_sync_restore.get("lab_requirement_ids", [])) != 8
+        or len(evoked_sync_restore.get("standard_sections", [])) != 8
+        or len(evoked_sync_restore.get("selected_cpp_api_surface_ids", [])) != 17
+    ):
+        raise AssertionError("evoked synchronization save/restore mapping drifted")
+    evoked_sync_restore_focus = query_rti_work.focused_lane_result(
+        index, tests, "evoked-synchronization-save-restore", limit=0
+    )
+    if (
+        evoked_sync_restore_focus.get("lane_state") != "complete"
+        or evoked_sync_restore_focus.get("mapped_test_count") != 1
+        or evoked_sync_restore_focus.get("assertion_count") != 39
+        or evoked_sync_restore_focus.get("requirement_count") != 8
+        or evoked_sync_restore_focus.get("standard_section_count") != 8
+        or evoked_sync_restore_focus.get("requirement_section_pair_count") != 8
+        or evoked_sync_restore_focus.get("lane_handles", {}).get("catch2_target")
+        != "umbra_ieee1516_2025_catch2"
+        or "Embedded evoked federation restore reconstitutes"
+        not in str(
+            evoked_sync_restore_focus.get("lane_handles", {}).get(
+                "ctest_filter"
+            )
+            or ""
+        )
+    ):
+        raise AssertionError("evoked synchronization save/restore lane card drifted")
+    process_name_lane = query_rti_work.focused_lane_result(
+        index, tests, "process-object-instance-name-reservation", limit=0
+    )
+    if (
+        process_name_lane.get("lane_state") != "complete"
+        or process_name_lane.get("mapped_test_count") != 1
+        or process_name_lane.get("assertion_count") != 77
+        or process_name_lane.get("requirement_count") != 13
+        or process_name_lane.get("standard_section_count") != 8
+        or process_name_lane.get("requirement_section_pair_count") != 13
+        or process_name_lane.get("lane_handles", {}).get("catch2_target")
+        != "umbra_ieee1516_2025_catch2"
+    ):
+        raise AssertionError(
+            "process object-instance-name reservation lane card drifted"
         )
     process_query_time_bounds_immediate = next(
         (
@@ -1994,24 +2723,493 @@ def main() -> int:
         "process-flush-queue-galt-frontier",
         "process-flush-queue-multiple-records",
         "process-flush-queue-retraction",
+        "process-directed-interaction-routing",
+        "process-directed-interaction-transportation",
+        "process-transportation-timestamped-regional-interaction-control",
+        "process-synchronization-point",
+        "process-synchronization-point-explicit-failure",
+        "process-synchronization-point-explicit-failure-immediate",
+        "process-federation-save-untimed",
+        "process-federation-save-status",
+        "process-federation-save-abort",
+        "process-federation-restore-request-failure",
+        "process-federation-restore-request-failure-immediate",
+        "process-federation-restore-failure-lifecycle-immediate",
+        "process-federation-restore-success-lifecycle-immediate",
+        "process-federation-restore-abort-immediate",
+        "process-federation-restore-success-lifecycle",
+        "process-federation-restore-failure-lifecycle",
+        "process-federation-restore-abort",
+        "process-federation-restore-status",
+        "process-federation-restore-status-idle-terminal",
+        "process-federation-restore-status-multi-federate-immediate",
+        "process-federation-restore-status-multi-federate",
+        "process-federation-restore-work-item-ownership-assumption",
+        "process-federation-restore-work-item-ownership-assumption-immediate",
+        "process-federation-restore-work-item-ownership-assumption-push",
+        "process-pushed-ownership-assumption-evoked",
+        "process-pushed-ownership-assumption-evoked-save-restore",
     }.issubset(set(process_item.get("focused_lane_tags", []))):
         raise AssertionError("process Flush Queue lanes are not roadmap-indexed")
+    # Broad family tags are intentionally numerous and overlap across owners.
+    # The focused inventory must stay a small, explicit family-owned selector
+    # so normal work selection does not expand into taxonomy-sized output.
+    focused_process_inventory = query_rti_work.lane_inventory(
+        index,
+        tests,
+        family="transport-and-conformance",
+        focused_only=True,
+        limit=0,
+    )
+    focused_process_tags = {
+        row.get("tag")
+        for row in focused_process_inventory.get("lanes", [])
+        if isinstance(row, dict) and row.get("tag")
+    }
+    expected_focused_process_tags = set(process_item.get("focused_lane_tags", []))
+    if (
+        focused_process_inventory.get("focused_only") is not True
+        or focused_process_inventory.get("focused_tag_count")
+        != len(expected_focused_process_tags)
+        or focused_process_tags != expected_focused_process_tags
+        or len(focused_process_tags) != 76
+        or "transport" in focused_process_tags
+    ):
+        raise AssertionError(
+            "focused transport lane inventory did not stay within its explicit aliases"
+        )
     process_handles = process_lane.get("lane_handles")
     if not isinstance(process_handles, dict):
         raise AssertionError("process-boundary lane lost its evidence handles")
-    if process_handles.get("ctest_execution_count") != 108:
+    if process_handles.get("ctest_execution_count") != 209:
         raise AssertionError("process-boundary CTest execution baseline drifted")
-    if process_handles.get("junit_testcase_count") != 4132:
+    if process_handles.get("junit_ctest_execution_count") != 119:
+        raise AssertionError("process-boundary JUnit CTest scope baseline drifted")
+    if process_handles.get("junit_testcase_count") != 214:
         raise AssertionError("process-boundary JUnit testcase baseline drifted")
+    if process_handles.get("junit_assertion_count") != 5458:
+        raise AssertionError("process-boundary JUnit assertion baseline drifted")
     if process_handles.get("junit_failures") != 0:
         raise AssertionError("process-boundary JUnit report is not green")
+    if process_handles.get("junit_errors") != 0:
+        raise AssertionError("process-boundary JUnit report has errors")
     if process_handles.get("junit_input_targets") != [
         "umbra_process_boundary_private_catch2",
         "umbra_ieee1516_2025_connection_catch2",
+        "umbra_attribute_ownership_query_catch2",
+        "umbra_attribute_ownership_acquisition_if_available_catch2",
+        "umbra_attribute_ownership_acquisition_catch2",
     ]:
         raise AssertionError("process-boundary JUnit inputs are not independently buildable")
+    if process_handles.get("junit_input_artifacts") != [
+        "compliance/process-boundary/process-boundary-private.xml",
+        "compliance/process-boundary/process-boundary-public.xml",
+        "compliance/process-boundary/process-boundary-ownership-query.xml",
+        "compliance/process-boundary/process-boundary-ownership-acquisition-if-available.xml",
+        "compliance/process-boundary/process-boundary-ownership-acquisition.xml",
+    ]:
+        raise AssertionError("process-boundary JUnit input artifacts are not indexed")
     if process_handles.get("junit_merge_script") != "tools/merge_junit_reports.py":
         raise AssertionError("process-boundary JUnit merge script handle drifted")
+    directed_process = next(
+        (
+            test
+            for test in tests
+            if test.get("id") == "umbra-cpp-process-endpoint-directed-interaction-integration"
+        ),
+        None,
+    )
+    if not isinstance(directed_process, dict):
+        raise AssertionError("directed process plan row is absent")
+    if (
+        query_rti_work.source_location_text(directed_process)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:2167"
+        or directed_process.get("assertions") != 22
+        or directed_process.get("primary_lane")
+        != "process-directed-interaction-routing"
+        or len(directed_process.get("lab_requirement_ids", [])) != 11
+        or len(directed_process.get("standard_sections", [])) != 8
+        or len(directed_process.get("selected_cpp_api_surface_ids", [])) != 5
+        or "process-directed-interaction-routing" not in directed_process.get("tags", [])
+    ):
+        raise AssertionError("directed process source/evidence mapping drifted")
+    directed_process_focus = query_rti_work.focused_lane_result(
+        index, tests, "process-directed-interaction-routing", limit=0
+    )
+    if (
+        directed_process_focus.get("lane_state") != "complete"
+        or directed_process_focus.get("roadmap_owner")
+        != "transport-and-conformance"
+        or directed_process_focus.get("mapped_test_count") != 1
+        or directed_process_focus.get("assertion_count") != 22
+        or directed_process_focus.get("recorded_assertion_count") != 22
+        or directed_process_focus.get("requirement_count") != 11
+        or directed_process_focus.get("standard_section_count") != 8
+        or directed_process_focus.get("requirement_section_pair_count") != 11
+    ):
+        raise AssertionError("directed process lane card drifted")
+    directed_process_handles = directed_process_focus.get("lane_handles")
+    if not isinstance(directed_process_handles, dict) or (
+        directed_process_handles.get("catch2_target")
+        != "umbra_ieee1516_2025_connection_catch2"
+        or directed_process_handles.get("ctest_label")
+        != "process-directed-interaction-routing"
+        or "routes a directed interaction through a configured process endpoint"
+        not in str(directed_process_handles.get("ctest_filter") or "")
+    ):
+        raise AssertionError("directed process CTest handle drifted")
+    directed_process_multi = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-directed-interaction-multi-recipient-integration"
+        ),
+        None,
+    )
+    if not isinstance(directed_process_multi, dict):
+        raise AssertionError("multi-recipient directed process plan row is absent")
+    if (
+        query_rti_work.source_location_text(directed_process_multi)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:2528"
+        or directed_process_multi.get("assertions") != 104
+        or directed_process_multi.get("primary_lane")
+        != "process-directed-interaction-multi-recipient"
+        or len(directed_process_multi.get("lab_requirement_ids", [])) != 14
+        or len(directed_process_multi.get("standard_sections", [])) != 10
+        or len(directed_process_multi.get("selected_cpp_api_surface_ids", [])) != 12
+        or directed_process_multi.get("callback_models")
+        != ["HLA_EVOKED", "HLA_IMMEDIATE"]
+        or "process-directed-interaction-multi-recipient"
+        not in directed_process_multi.get("tags", [])
+    ):
+        raise AssertionError("multi-recipient directed process source/evidence mapping drifted")
+    directed_process_multi_focus = query_rti_work.focused_lane_result(
+        index, tests, "process-directed-interaction-multi-recipient", limit=0
+    )
+    if (
+        directed_process_multi_focus.get("lane_state") != "complete"
+        or directed_process_multi_focus.get("roadmap_owner")
+        != "transport-and-conformance"
+        or directed_process_multi_focus.get("mapped_test_count") != 1
+        or directed_process_multi_focus.get("assertion_count") != 104
+        or directed_process_multi_focus.get("recorded_assertion_count") != 104
+        or directed_process_multi_focus.get("requirement_count") != 14
+        or directed_process_multi_focus.get("standard_section_count") != 10
+        or directed_process_multi_focus.get("requirement_section_pair_count") != 14
+    ):
+        raise AssertionError("multi-recipient directed process lane card drifted")
+    directed_process_multi_handles = directed_process_multi_focus.get("lane_handles")
+    if not isinstance(directed_process_multi_handles, dict) or (
+        directed_process_multi_handles.get("catch2_target")
+        != "umbra_ieee1516_2025_connection_catch2"
+        or directed_process_multi_handles.get("ctest_label")
+        != "process-directed-interaction-multi-recipient"
+        or "deliver one directed interaction to multiple subscribed recipients"
+        not in str(directed_process_multi_handles.get("ctest_filter") or "")
+    ):
+        raise AssertionError("multi-recipient directed process CTest handle drifted")
+    directed_process_multi_links = query_rti_work.roadmap_links_for_test(
+        index, directed_process_multi, limit=0
+    )
+    if not directed_process_multi_links or directed_process_multi_links[0].get("id") != (
+        "transport-and-conformance"
+    ) or directed_process_multi_links[0].get("match") != "lane_owner":
+        raise AssertionError(
+            "multi-recipient directed process trace did not prioritize its owning roadmap family"
+        )
+    directed_process_transport = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-directed-interaction-transportation-integration"
+        ),
+        None,
+    )
+    if not isinstance(directed_process_transport, dict):
+        raise AssertionError("directed transportation process plan row is absent")
+    if (
+        query_rti_work.source_location_text(directed_process_transport)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:28288"
+        or directed_process_transport.get("assertions") != 66
+        or directed_process_transport.get("primary_lane")
+        != "process-directed-interaction-transportation"
+        or len(directed_process_transport.get("lab_requirement_ids", [])) != 17
+        or len(directed_process_transport.get("standard_sections", [])) != 10
+        or len(directed_process_transport.get("selected_cpp_api_surface_ids", [])) != 9
+        or directed_process_transport.get("callback_models")
+        != ["HLA_EVOKED", "HLA_IMMEDIATE"]
+        or "process-directed-interaction-transportation"
+        not in directed_process_transport.get("tags", [])
+    ):
+        raise AssertionError(
+            "directed transportation process source/evidence mapping drifted"
+        )
+    directed_process_transport_focus = query_rti_work.focused_lane_result(
+        index, tests, "process-directed-interaction-transportation", limit=0
+    )
+    if (
+        directed_process_transport_focus.get("lane_state") != "complete"
+        or directed_process_transport_focus.get("roadmap_owner")
+        != "transport-and-conformance"
+        or directed_process_transport_focus.get("mapped_test_count") != 1
+        or directed_process_transport_focus.get("assertion_count") != 66
+        or directed_process_transport_focus.get("recorded_assertion_count") != 66
+        or directed_process_transport_focus.get("requirement_count") != 17
+        or directed_process_transport_focus.get("standard_section_count") != 10
+        or directed_process_transport_focus.get("requirement_section_pair_count") != 17
+    ):
+        raise AssertionError("directed transportation process lane card drifted")
+    directed_process_transport_handles = directed_process_transport_focus.get(
+        "lane_handles"
+    )
+    if not isinstance(directed_process_transport_handles, dict) or (
+        directed_process_transport_handles.get("catch2_target")
+        != "umbra_ieee1516_2025_connection_catch2"
+        or directed_process_transport_handles.get("ctest_label")
+        != "process-directed-interaction-transportation"
+        or "preserve a directed interaction transportation override"
+        not in str(directed_process_transport_handles.get("ctest_filter") or "")
+    ):
+        raise AssertionError("directed transportation process CTest handle drifted")
+    directed_process_transport_links = query_rti_work.roadmap_links_for_test(
+        index, directed_process_transport, limit=0
+    )
+    if not directed_process_transport_links or directed_process_transport_links[0].get(
+        "id"
+    ) != "transport-and-conformance" or directed_process_transport_links[0].get(
+        "match"
+    ) != "lane_owner":
+        raise AssertionError(
+            "directed transportation process trace did not prioritize its owning roadmap family"
+        )
+    directed_transport_query = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-directed-interaction-transportation-query-registry-unit"
+        ),
+        None,
+    )
+    if not isinstance(directed_transport_query, dict):
+        raise AssertionError("directed transportation query plan row is absent")
+    if (
+        query_rti_work.source_location_text(directed_transport_query)
+        != "cpp/tests/federation_registry_catch2.cpp:511"
+        or directed_transport_query.get("assertions") != 22
+        or directed_transport_query.get("primary_lane")
+        != "directed-interaction-transportation-query"
+        or len(directed_transport_query.get("lab_requirement_ids", [])) != 10
+        or len(directed_transport_query.get("standard_sections", [])) != 4
+        or len(directed_transport_query.get("selected_cpp_api_surface_ids", [])) != 3
+        or "directed-interaction-transportation-query"
+        not in directed_transport_query.get("tags", [])
+    ):
+        raise AssertionError("directed transportation query mapping drifted")
+    directed_transport_query_focus = query_rti_work.focused_lane_result(
+        index, tests, "directed-interaction-transportation-query", limit=0
+    )
+    if (
+        directed_transport_query_focus.get("lane_state") != "complete"
+        or directed_transport_query_focus.get("roadmap_owner")
+        != "transport-and-conformance"
+        or directed_transport_query_focus.get("mapped_test_count") != 1
+        or directed_transport_query_focus.get("assertion_count") != 22
+        or directed_transport_query_focus.get("recorded_assertion_count") != 22
+        or directed_transport_query_focus.get("requirement_count") != 10
+        or directed_transport_query_focus.get("standard_section_count") != 4
+        or directed_transport_query_focus.get("requirement_section_pair_count") != 10
+    ):
+        raise AssertionError("directed transportation query lane card drifted")
+    directed_transport_query_handles = directed_transport_query_focus.get(
+        "lane_handles"
+    )
+    if not isinstance(directed_transport_query_handles, dict) or (
+        directed_transport_query_handles.get("catch2_target")
+        != "umbra_federation_registry_catch2"
+        or directed_transport_query_handles.get("ctest_label")
+        != "federation-registry"
+        or "reports a directed interaction transportation override"
+        not in str(directed_transport_query_handles.get("ctest_filter") or "")
+    ):
+        raise AssertionError("directed transportation query CTest handle drifted")
+    directed_transport_query_links = query_rti_work.roadmap_links_for_test(
+        index, directed_transport_query, limit=0
+    )
+    if not directed_transport_query_links or directed_transport_query_links[0].get(
+        "id"
+    ) != "transport-and-conformance" or directed_transport_query_links[0].get(
+        "match"
+    ) != "lane_owner":
+        raise AssertionError(
+            "directed transportation query trace did not prioritize its owning roadmap family"
+        )
+    directed_process_transport_query = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-directed-interaction-transportation-query"
+        ),
+        None,
+    )
+    if not isinstance(directed_process_transport_query, dict):
+        raise AssertionError("directed transportation process query plan row is absent")
+    if (
+        query_rti_work.source_location_text(directed_process_transport_query)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:27231"
+        or directed_process_transport_query.get("assertions") != 44
+        or directed_process_transport_query.get("primary_lane")
+        != "process-directed-interaction-transportation-query"
+        or len(directed_process_transport_query.get("lab_requirement_ids", [])) != 17
+        or len(directed_process_transport_query.get("standard_sections", [])) != 10
+        or len(directed_process_transport_query.get("selected_cpp_api_surface_ids", [])) != 10
+        or directed_process_transport_query.get("callback_models")
+        != ["HLA_EVOKED", "HLA_IMMEDIATE"]
+        or "process-directed-interaction-transportation-query"
+        not in directed_process_transport_query.get("tags", [])
+    ):
+        raise AssertionError(
+            "directed transportation process query source/evidence mapping drifted"
+        )
+    directed_process_transport_query_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "process-directed-interaction-transportation-query",
+        limit=0,
+    )
+    if (
+        directed_process_transport_query_focus.get("lane_state") != "complete"
+        or directed_process_transport_query_focus.get("roadmap_owner")
+        != "transport-and-conformance"
+        or directed_process_transport_query_focus.get("mapped_test_count") != 1
+        or directed_process_transport_query_focus.get("assertion_count") != 44
+        or directed_process_transport_query_focus.get("recorded_assertion_count") != 44
+        or directed_process_transport_query_focus.get("requirement_count") != 17
+        or directed_process_transport_query_focus.get("standard_section_count") != 10
+        or directed_process_transport_query_focus.get("requirement_section_pair_count") != 17
+    ):
+        raise AssertionError("directed transportation process query lane card drifted")
+    directed_process_transport_query_handles = (
+        directed_process_transport_query_focus.get("lane_handles")
+    )
+    if not isinstance(directed_process_transport_query_handles, dict) or (
+        directed_process_transport_query_handles.get("catch2_target")
+        != "umbra_ieee1516_2025_connection_catch2"
+        or directed_process_transport_query_handles.get("ctest_label")
+        != "process-directed-interaction-transportation-query"
+        or "reports a directed interaction transportation override"
+        not in str(directed_process_transport_query_handles.get("ctest_filter") or "")
+    ):
+        raise AssertionError("directed transportation process query CTest handle drifted")
+    directed_process_transport_query_links = query_rti_work.roadmap_links_for_test(
+        index, directed_process_transport_query, limit=0
+    )
+    if not directed_process_transport_query_links or directed_process_transport_query_links[0].get(
+        "id"
+    ) != "transport-and-conformance" or directed_process_transport_query_links[0].get(
+        "match"
+    ) != "lane_owner":
+        raise AssertionError(
+            "directed transportation process query trace did not prioritize its owning roadmap family"
+        )
+    regional_transport = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-transportation-regional-interaction-integration"
+        ),
+        None,
+    )
+    if not isinstance(regional_transport, dict):
+        raise AssertionError("regional transportation plan row is absent")
+    if (
+        query_rti_work.source_location_text(regional_transport)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:27247"
+        or regional_transport.get("assertions") != 84
+        or regional_transport.get("status")
+        != "implemented-private-foundation-not-conformance-evidence"
+        or len(regional_transport.get("lab_requirement_ids", [])) != 23
+        or len(regional_transport.get("standard_sections", [])) != 11
+        or len(regional_transport.get("selected_cpp_api_surface_ids", [])) != 17
+    ):
+        raise AssertionError("regional transportation source/evidence mapping drifted")
+    regional_transport_focus = query_rti_work.focused_lane_result(
+        index, tests, "process-transportation-regional-interaction-control", limit=0
+    )
+    if (
+        regional_transport_focus.get("lane_state") != "complete"
+        or regional_transport_focus.get("mapped_test_count") != 1
+        or regional_transport_focus.get("assertion_count") != 84
+        or regional_transport_focus.get("recorded_assertion_count") != 84
+        or regional_transport_focus.get("requirement_count") != 23
+        or regional_transport_focus.get("standard_section_count") != 11
+        or regional_transport_focus.get("requirement_section_pair_count") != 23
+    ):
+        raise AssertionError("regional transportation lane card drifted")
+    regional_transport_handles = regional_transport_focus.get("lane_handles")
+    if not isinstance(regional_transport_handles, dict) or (
+        regional_transport_handles.get("catch2_target")
+        != "umbra_ieee1516_2025_catch2"
+        or "regional interaction transportation override"
+        not in str(regional_transport_handles.get("ctest_filter") or "")
+    ):
+        raise AssertionError("regional transportation CTest handle drifted")
+    timestamped_regional_transport = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-transportation-timestamped-regional-interaction-integration"
+        ),
+        None,
+    )
+    if not isinstance(timestamped_regional_transport, dict):
+        raise AssertionError("timestamped regional transportation plan row is absent")
+    if (
+        query_rti_work.source_location_text(timestamped_regional_transport)
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:27745"
+        or timestamped_regional_transport.get("assertions") != 122
+        or timestamped_regional_transport.get("status")
+        != "implemented-private-foundation-not-conformance-evidence"
+        or len(timestamped_regional_transport.get("lab_requirement_ids", [])) != 27
+        or len(timestamped_regional_transport.get("standard_sections", [])) != 15
+        or len(timestamped_regional_transport.get("selected_cpp_api_surface_ids", [])) != 21
+    ):
+        raise AssertionError(
+            "timestamped regional transportation source/evidence mapping drifted"
+        )
+    timestamped_regional_transport_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "process-transportation-timestamped-regional-interaction-control",
+        limit=0,
+    )
+    if (
+        timestamped_regional_transport_focus.get("lane_state") != "complete"
+        or timestamped_regional_transport_focus.get("mapped_test_count") != 1
+        or timestamped_regional_transport_focus.get("assertion_count") != 122
+        or timestamped_regional_transport_focus.get("recorded_assertion_count") != 122
+        or timestamped_regional_transport_focus.get("requirement_count") != 27
+        or timestamped_regional_transport_focus.get("standard_section_count") != 15
+        or timestamped_regional_transport_focus.get("requirement_section_pair_count") != 27
+    ):
+        raise AssertionError("timestamped regional transportation lane card drifted")
+    timestamped_regional_transport_handles = timestamped_regional_transport_focus.get(
+        "lane_handles"
+    )
+    if not isinstance(timestamped_regional_transport_handles, dict) or (
+        timestamped_regional_transport_handles.get("catch2_target")
+        != "umbra_ieee1516_2025_connection_catch2"
+        or "timestamped regional interaction transportation override"
+        not in str(timestamped_regional_transport_handles.get("ctest_filter") or "")
+        or timestamped_regional_transport_handles.get("ctest_label")
+        != "process-transportation-timestamped-regional-interaction-control"
+    ):
+        raise AssertionError("timestamped regional transportation CTest handle drifted")
     object_queue_row = queue_by_id.get("object-ddm-ownership")
     if not isinstance(object_queue_row, dict):
         raise AssertionError("queue lost the object/ownership handoff")
@@ -2159,7 +3357,7 @@ def main() -> int:
     if process_family_item is None or not process_family_tests:
         raise AssertionError("time-save-restore family did not resolve for queue checks")
     process_family_counts = query_rti_work.live_item_mapping_counts(
-        process_family_item, tests
+        process_family_item, tests, index=index
     )
     if process_rows[0].get("requirement_section_pair_count") != process_family_counts.get(
         "requirement_section_pair_count"
@@ -2274,24 +3472,221 @@ def main() -> int:
     latest = status.get("latest_completed_slice")
     if not isinstance(latest, dict):
         raise AssertionError("status omitted the latest completed slice handoff")
-    if latest.get("lane") != "process-boundary":
+    if latest.get("lane") != "process-federation-restore-work-item-ownership-assumption-immediate":
         raise AssertionError("latest completed slice lane drifted")
-    if latest.get("plan_id") != "umbra-cpp-process-tso-directed-interaction-callback-gating":
+    if latest.get("plan_id") != "umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration":
         raise AssertionError("latest completed slice plan id drifted")
-    if latest.get("test_case") != "RTIambassadors retain a timestamped directed interaction while callbacks are disabled":
+    if latest.get("test_case") != "RTIambassadors deliver restored ownership-assumption work under HLA_IMMEDIATE through a configured process endpoint":
         raise AssertionError("latest completed slice test title drifted")
-    if latest.get("focus_lane") != "process-tso-directed-interaction-callback-gating":
+    if latest.get("focus_lane") != "process-federation-restore-work-item-ownership-assumption-immediate":
         raise AssertionError("latest completed slice focus lane drifted")
-    if latest.get("primary_lane") != "process-tso-directed-interaction-callback-gating":
+    if latest.get("primary_lane") != "process-federation-restore-work-item-ownership-assumption-immediate":
         raise AssertionError("latest completed slice primary lane drifted")
     if latest.get("source_location") != (
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp:15757"
+        "cpp/tests/attribute_ownership_acquisition_catch2.cpp:3437"
     ):
         raise AssertionError("latest completed slice source pointer drifted")
-    if latest.get("assertions") != 62 or latest.get("requirements") != 21:
+    if latest.get("assertions") != 52 or latest.get("requirements") != 9:
         raise AssertionError("latest completed slice evidence counts drifted")
-    if latest.get("standard_sections") != 16 or latest.get("api_surfaces") != 18:
+    if latest.get("standard_sections") != 7 or latest.get("api_surfaces") != 11:
         raise AssertionError("latest completed slice section/API counts drifted")
+    pushed_evoked_work_item = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-pushed-ownership-assumption-evoked-integration"
+        ),
+        None,
+    )
+    if not isinstance(pushed_evoked_work_item, dict):
+        raise AssertionError("evoked pushed ownership-assumption plan row is absent")
+    if (
+        query_rti_work.source_location_text(pushed_evoked_work_item)
+        != "cpp/tests/attribute_ownership_acquisition_catch2.cpp:4285"
+        or pushed_evoked_work_item.get("assertions") != 33
+        or pushed_evoked_work_item.get("status")
+        != "implemented-public-foundation-not-conformance-evidence"
+        or len(pushed_evoked_work_item.get("lab_requirement_ids", [])) != 3
+        or len(pushed_evoked_work_item.get("standard_sections", [])) != 2
+        or len(pushed_evoked_work_item.get("selected_cpp_api_surface_ids", [])) != 4
+    ):
+        raise AssertionError("evoked pushed ownership-assumption source/evidence mapping drifted")
+    pushed_evoked_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "process-pushed-ownership-assumption-evoked",
+        limit=0,
+    )
+    if (
+        pushed_evoked_focus.get("lane_state") != "complete"
+        or pushed_evoked_focus.get("mapped_test_count") != 1
+        or pushed_evoked_focus.get("assertion_count") != 33
+        or pushed_evoked_focus.get("requirement_count") != 3
+        or pushed_evoked_focus.get("standard_section_count") != 2
+        or pushed_evoked_focus.get("requirement_section_pair_count") != 3
+    ):
+        raise AssertionError("evoked pushed ownership-assumption lane card drifted")
+    pushed_evoked_handles = pushed_evoked_focus.get("lane_handles")
+    if not isinstance(pushed_evoked_handles, dict) or pushed_evoked_handles.get(
+        "catch2_target"
+    ) != "umbra_attribute_ownership_acquisition_catch2" or "RTIambassadors deliver an unconsumed pushed ownership-assumption callback through HLA_EVOKED" not in str(
+        pushed_evoked_handles.get("ctest_filter") or ""
+    ):
+        raise AssertionError("evoked pushed ownership-assumption CTest handle drifted")
+    durable_pending_work_item = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-pushed-ownership-assumption-evoked-save-restore-integration"
+        ),
+        None,
+    )
+    if not isinstance(durable_pending_work_item, dict):
+        raise AssertionError("durable pending ownership-assumption plan row is absent")
+    if (
+        query_rti_work.source_location_text(durable_pending_work_item)
+        != "cpp/tests/attribute_ownership_acquisition_catch2.cpp:4586"
+        or durable_pending_work_item.get("assertions") != 73
+        or durable_pending_work_item.get("status")
+        != "implemented-public-foundation-not-conformance-evidence"
+        or len(durable_pending_work_item.get("lab_requirement_ids", [])) != 9
+        or len(durable_pending_work_item.get("standard_sections", [])) != 7
+        or len(durable_pending_work_item.get("selected_cpp_api_surface_ids", [])) != 10
+    ):
+        raise AssertionError("durable pending ownership-assumption source/evidence mapping drifted")
+    durable_pending_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "process-pushed-ownership-assumption-evoked-save-restore",
+        limit=0,
+    )
+    if (
+        durable_pending_focus.get("lane_state") != "complete"
+        or durable_pending_focus.get("mapped_test_count") != 1
+        or durable_pending_focus.get("assertion_count") != 73
+        or durable_pending_focus.get("requirement_count") != 9
+        or durable_pending_focus.get("standard_section_count") != 7
+        or durable_pending_focus.get("requirement_section_pair_count") != 9
+    ):
+        raise AssertionError("durable pending ownership-assumption lane card drifted")
+    durable_pending_handles = durable_pending_focus.get("lane_handles")
+    if not isinstance(durable_pending_handles, dict) or durable_pending_handles.get(
+        "catch2_target"
+    ) != "umbra_attribute_ownership_acquisition_catch2" or "RTIambassadors preserve an unconsumed pushed ownership-assumption callback across HLA_EVOKED save and restore" not in str(
+        durable_pending_handles.get("ctest_filter") or ""
+    ):
+        raise AssertionError("durable pending ownership-assumption CTest handle drifted")
+    push_process_restore_work_item = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-push-integration"
+        ),
+        None,
+    )
+    if not isinstance(push_process_restore_work_item, dict):
+        raise AssertionError("pushed process restore work-item plan row is absent")
+    if (
+        query_rti_work.source_location_text(push_process_restore_work_item)
+        != "cpp/tests/attribute_ownership_acquisition_catch2.cpp:3854"
+        or push_process_restore_work_item.get("assertions") != 55
+        or push_process_restore_work_item.get("status")
+        != "implemented-public-foundation-not-conformance-evidence"
+        or len(push_process_restore_work_item.get("lab_requirement_ids", [])) != 9
+        or len(push_process_restore_work_item.get("standard_sections", [])) != 7
+        or len(push_process_restore_work_item.get("selected_cpp_api_surface_ids", [])) != 8
+    ):
+        raise AssertionError("pushed process restore work-item source/evidence mapping drifted")
+    push_process_restore_work_item_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "process-federation-restore-work-item-ownership-assumption-push",
+        limit=0,
+    )
+    if (
+        push_process_restore_work_item_focus.get("lane_state") != "complete"
+        or push_process_restore_work_item_focus.get("mapped_test_count") != 1
+        or push_process_restore_work_item_focus.get("assertion_count") != 55
+        or push_process_restore_work_item_focus.get("requirement_count") != 9
+        or push_process_restore_work_item_focus.get("standard_section_count") != 7
+        or push_process_restore_work_item_focus.get("requirement_section_pair_count") != 9
+    ):
+        raise AssertionError("pushed process restore work-item lane card drifted")
+    push_process_restore_work_item_handles = push_process_restore_work_item_focus.get(
+        "lane_handles"
+    )
+    if not isinstance(push_process_restore_work_item_handles, dict) or push_process_restore_work_item_handles.get(
+        "catch2_target"
+    ) != "umbra_attribute_ownership_acquisition_catch2" or "RTIambassadors preserve pushed ownership-assumption delivery across save and restore" not in str(
+        push_process_restore_work_item_handles.get("ctest_filter") or ""
+    ):
+        raise AssertionError("pushed process restore work-item CTest handle drifted")
+    process_restore_work_item = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-integration"
+        ),
+        None,
+    )
+    if not isinstance(process_restore_work_item, dict):
+        raise AssertionError("public process restore work-item plan row is absent")
+    if (
+        query_rti_work.source_location_text(process_restore_work_item)
+        != "cpp/tests/attribute_ownership_acquisition_catch2.cpp:2975"
+        or process_restore_work_item.get("assertions") != 46
+        or process_restore_work_item.get("status")
+        != "implemented-public-foundation-not-conformance-evidence"
+        or len(process_restore_work_item.get("lab_requirement_ids", [])) != 9
+        or len(process_restore_work_item.get("standard_sections", [])) != 7
+        or len(process_restore_work_item.get("selected_cpp_api_surface_ids", [])) != 8
+    ):
+        raise AssertionError("public process restore work-item source/evidence mapping drifted")
+    private_process_restore_work_item = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-federation-save-commit-process-local-ownership-assumption-work-unit"
+        ),
+        None,
+    )
+    if not isinstance(private_process_restore_work_item, dict) or (
+        query_rti_work.source_location_text(private_process_restore_work_item)
+        != "cpp/tests/federation_registry_catch2.cpp:6721"
+        or private_process_restore_work_item.get("assertions") != 35
+    ):
+        raise AssertionError("private process restore work-item seam drifted")
+    process_restore_work_item_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "process-federation-restore-work-item-ownership-assumption",
+        limit=0,
+    )
+    if (
+        process_restore_work_item_focus.get("lane_state") != "complete"
+        or process_restore_work_item_focus.get("mapped_test_count") != 2
+        or process_restore_work_item_focus.get("assertion_count") != 81
+        or process_restore_work_item_focus.get("requirement_count") != 9
+        or process_restore_work_item_focus.get("standard_section_count") != 7
+        or process_restore_work_item_focus.get("requirement_section_pair_count") != 9
+    ):
+        raise AssertionError("process restore work-item lane card drifted")
+    process_restore_work_item_handles = process_restore_work_item_focus.get("lane_handles")
+    if not isinstance(process_restore_work_item_handles, dict) or process_restore_work_item_handles.get(
+        "catch2_target"
+    ) != "umbra_attribute_ownership_acquisition_catch2" or "RTIambassadors deliver restored ownership-assumption work through a configured process endpoint" not in str(
+        process_restore_work_item_handles.get("ctest_filter") or ""
+    ) or process_restore_work_item_handles.get(
+        "private_foundation_ctest_target"
+    ) != "umbra_federation_registry_catch2" or "Process-local restore returns route-free ownership-assumption work" not in str(
+        process_restore_work_item_handles.get("private_foundation_ctest_filter") or ""
+    ):
+        raise AssertionError("process restore work-item CTest handle drifted")
     regional_callback_gating = next(
         (
             test
@@ -2305,7 +3700,7 @@ def main() -> int:
         raise AssertionError("regional callback-gating plan row is absent")
     if (
         query_rti_work.source_location_text(regional_callback_gating)
-        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:25321"
+        != "cpp/tests/ieee1516_2025_connection_catch2.cpp:26210"
         or regional_callback_gating.get("assertions") != 69
         or regional_callback_gating.get("status")
         != "implemented-private-foundation-not-conformance-evidence"
@@ -2335,7 +3730,7 @@ def main() -> int:
     ):
         raise AssertionError("regional callback-gating CTest handle drifted")
     recent_views = query_rti_work.recent_completed_views(index, tests)
-    if not recent_views or recent_views[0].get("plan_id") != "umbra-cpp-process-tso-directed-interaction-callback-gating":
+    if not recent_views or recent_views[0].get("plan_id") != "umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration":
         raise AssertionError("recent completed-slice ordering drifted")
     mixed_region = next(
         (
@@ -2451,7 +3846,7 @@ def main() -> int:
     if not isinstance(no_common_dimension, dict):
         raise AssertionError("no-common-dimension regional object plan row is absent")
     if query_rti_work.source_location_text(no_common_dimension) != (
-        "cpp/tests/regional_object_attribute_routing_catch2.cpp:343"
+        "cpp/tests/regional_object_attribute_routing_catch2.cpp:486"
     ) or no_common_dimension.get("assertions") != 45:
         raise AssertionError("no-common-dimension source/evidence drifted")
     if no_common_dimension.get("traceability_state") != "requirements-mapped":
@@ -2496,6 +3891,69 @@ def main() -> int:
         or "ctest" not in no_common_dimension_case.get("commands", {})
     ):
         raise AssertionError("no-common-dimension card lost its handles")
+
+    subscription_isolation = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-regional-object-attribute-subscription-isolation-integration"
+        ),
+        None,
+    )
+    if not isinstance(subscription_isolation, dict):
+        raise AssertionError("regional subscription-isolation plan row is absent")
+    if query_rti_work.source_location_text(subscription_isolation) != (
+        "cpp/tests/regional_object_attribute_routing_catch2.cpp:343"
+    ) or subscription_isolation.get("assertions") != 40:
+        raise AssertionError("regional subscription-isolation source/evidence drifted")
+    if subscription_isolation.get("traceability_state") != "requirements-mapped":
+        raise AssertionError("regional subscription-isolation row is not mapped")
+    if subscription_isolation.get("standard_sections") != [
+        "hla-1516.1-2025:clause-9.8",
+    ]:
+        raise AssertionError("regional subscription-isolation section mapping drifted")
+    if subscription_isolation.get("lab_requirement_ids") != [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l57-16",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l63-18",
+    ]:
+        raise AssertionError("regional subscription-isolation requirement mapping drifted")
+    subscription_isolation_focus = query_rti_work.focused_lane_result(
+        index, tests, "regional-object-attribute-subscription-isolation", limit=0
+    )
+    if (
+        subscription_isolation_focus.get("lane_state") != "complete"
+        or subscription_isolation_focus.get("roadmap_owner") != "object-ddm-ownership"
+        or subscription_isolation_focus.get("mapped_test_count") != 1
+        or subscription_isolation_focus.get("assertion_count") != 40
+        or subscription_isolation_focus.get("requirement_count") != 2
+        or subscription_isolation_focus.get("standard_section_count") != 1
+        or subscription_isolation_focus.get("requirement_section_pair_count") != 2
+    ):
+        raise AssertionError("regional subscription-isolation lane card drifted")
+    subscription_isolation_handles = subscription_isolation_focus.get("lane_handles")
+    if (
+        not isinstance(subscription_isolation_handles, dict)
+        or subscription_isolation_handles.get("catch2_target")
+        != "umbra_regional_object_attribute_routing_catch2"
+        or subscription_isolation_handles.get("ctest_label")
+        != "regional-object-attribute-subscription-isolation"
+        or "Embedded regional object-attribute subscriptions remain independent from ordinary declarations"
+        not in str(subscription_isolation_handles.get("ctest_filter") or "")
+    ):
+        raise AssertionError("regional subscription-isolation lane handles drifted")
+    subscription_isolation_case = query_rti_work.case_card_record(
+        subscription_isolation,
+        index,
+        "umbra-cpp-regional-object-attribute-subscription-isolation-integration",
+    )
+    if (
+        subscription_isolation_case.get("traceability_state") != "requirements-mapped"
+        or subscription_isolation_case.get("lane")
+        != "regional-object-attribute-subscription-isolation"
+        or "ctest" not in subscription_isolation_case.get("commands", {})
+    ):
+        raise AssertionError("regional subscription-isolation card lost its handles")
 
     time_axis_independence = next(
         (
@@ -2842,6 +4300,80 @@ def main() -> int:
     ):
         raise AssertionError("exact empty regional subscription-set card lost its handles")
 
+    passive_object = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-passive-object-attribute-subscription-integration"
+        ),
+        None,
+    )
+    if not isinstance(passive_object, dict):
+        raise AssertionError("passive regional object-attribute plan row is absent")
+    if (
+        query_rti_work.source_location_text(passive_object)
+        != "cpp/tests/passive_object_attribute_subscription_catch2.cpp:120"
+        or passive_object.get("assertions") != 62
+        or passive_object.get("traceability_state") != "requirements-mapped"
+        or passive_object.get("standard_sections")
+        != [
+            "hla-1516.1-2025:clause-5.8",
+            "hla-1516.1-2025:clause-9.8",
+            "hla-1516.1-2025:clause-9.8.4",
+        ]
+        or set(passive_object.get("lab_requirement_ids", []))
+        != {
+            "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l30-7",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l36-9",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l14-3",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l26-7",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l38-11",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l44-13",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l56-17",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l59-18",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l62-19",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l161-49",
+        }
+    ):
+        raise AssertionError("passive regional object-attribute mapping drifted")
+    if len(passive_object.get("selected_cpp_api_surface_ids", [])) != 10:
+        raise AssertionError("passive regional object-attribute API mapping drifted")
+    passive_object_focus = query_rti_work.focused_lane_result(
+        index, tests, "passive-regional-object-attribute-transition", limit=0
+    )
+    if (
+        passive_object_focus.get("lane_state") != "complete"
+        or passive_object_focus.get("mapped_test_count") != 1
+        or passive_object_focus.get("assertion_count") != 62
+        or passive_object_focus.get("requirement_count") != 11
+        or passive_object_focus.get("standard_section_count") != 3
+        or passive_object_focus.get("requirement_section_pair_count") != 11
+    ):
+        raise AssertionError("passive regional object-attribute lane card drifted")
+    passive_object_handles = passive_object_focus.get("lane_handles")
+    if (
+        not isinstance(passive_object_handles, dict)
+        or passive_object_handles.get("catch2_target")
+        != "umbra_passive_object_attribute_subscription_catch2"
+        or passive_object_handles.get("ctest_label")
+        != "passive-regional-object-attribute-transition"
+    ):
+        raise AssertionError("passive regional object-attribute lane handles drifted")
+    passive_object_case = query_rti_work.case_card_record(
+        passive_object,
+        index,
+        "umbra-cpp-passive-object-attribute-subscription-integration",
+    )
+    if (
+        passive_object_case.get("traceability_state") != "requirements-mapped"
+        or passive_object_case.get("lane")
+        != "passive-regional-object-attribute-transition"
+        or "ctest" not in passive_object_case.get("commands", {})
+    ):
+        raise AssertionError("passive regional object-attribute case lost its handles")
+
     # The service-report encoding reconciliation is deliberately represented
     # by exact plan rows rather than a source-only queue.  Keep one of those
     # rows protected as the canonical example for the one-case handoff: its
@@ -2910,6 +4442,12 @@ def main() -> int:
         "focused_lane_tags", []
     ):
         raise AssertionError("empty regional subscription-set lane is not roadmap-indexed")
+    if "passive-regional-object-attribute-transition" not in object_ddm_item.get(
+        "focused_lane_tags", []
+    ):
+        raise AssertionError(
+            "passive regional object-attribute lane is not roadmap-indexed"
+        )
     if "whole-class-unsubscribe" not in object_ddm_item.get(
         "focused_lane_tags", []
     ):
@@ -3070,6 +4608,52 @@ def main() -> int:
         "focused_lane_tags", []
     ):
         raise AssertionError("attribute-ownership acquisition release lane is not roadmap-indexed")
+    release_denied_multi = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-attribute-ownership-release-denied-multi-acquirer-integration"
+        ),
+        None,
+    )
+    if not isinstance(release_denied_multi, dict):
+        raise AssertionError("multi-acquirer Release Denied plan row is absent")
+    if query_rti_work.source_location_text(release_denied_multi) != (
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54692"
+    ) or release_denied_multi.get("assertions") != 53:
+        raise AssertionError("multi-acquirer Release Denied source/evidence drifted")
+    if release_denied_multi.get("traceability_state") != "requirements-mapped":
+        raise AssertionError("multi-acquirer Release Denied row is not mapped")
+    release_denied_multi_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "attribute-ownership-release-denied-multi-acquirer",
+        limit=0,
+    )
+    if (
+        release_denied_multi_focus.get("lane_state") != "complete"
+        or release_denied_multi_focus.get("mapped_test_count") != 1
+        or release_denied_multi_focus.get("assertion_count") != 53
+        or release_denied_multi_focus.get("requirement_count") != 4
+        or release_denied_multi_focus.get("standard_section_count") != 3
+        or release_denied_multi_focus.get("requirement_section_pair_count") != 4
+    ):
+        raise AssertionError("multi-acquirer Release Denied lane card drifted")
+    release_denied_multi_handles = release_denied_multi_focus.get("lane_handles")
+    if not isinstance(release_denied_multi_handles, dict) or release_denied_multi_handles.get(
+        "catch2_target"
+    ) != "umbra_ieee1516_2025_catch2":
+        raise AssertionError("multi-acquirer Release Denied target handle drifted")
+    if release_denied_multi_handles.get("ctest_filter") != (
+        "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Attribute Ownership Release Denied "
+        "reaches all 2025 regular acquirers$"
+    ):
+        raise AssertionError("multi-acquirer Release Denied CTest filter drifted")
+    if "attribute-ownership-release-denied-multi-acquirer" not in object_ddm_item.get(
+        "focused_lane_tags", []
+    ):
+        raise AssertionError("multi-acquirer Release Denied lane is not roadmap-indexed")
     divestiture_if_wanted = next(
         (
             test
@@ -3528,6 +5112,32 @@ def main() -> int:
         deferred_family.get("query_tags") or []
     ):
         raise AssertionError("object-DDM family lost the deferred ownership focus alias")
+    reacquisition_focus = query_rti_work.focused_lane_result(
+        index, tests, "ownership-transfer-update-region-reacquisition", limit=0
+    )
+    if (
+        reacquisition_focus.get("lane_state") != "complete"
+        or reacquisition_focus.get("mapped_test_count") != 1
+        or reacquisition_focus.get("assertion_count") != 106
+        or reacquisition_focus.get("requirement_count") != 7
+        or reacquisition_focus.get("standard_section_count") != 4
+        or reacquisition_focus.get("requirement_section_pair_count") != 7
+    ):
+        raise AssertionError("ownership-transfer reacquisition lane card drifted")
+    reacquisition_handles = reacquisition_focus.get("lane_handles")
+    if not isinstance(reacquisition_handles, dict):
+        raise AssertionError("ownership-transfer reacquisition lane lost its handles")
+    if reacquisition_handles.get("catch2_target") != (
+        "umbra_ownership_transfer_update_region_catch2"
+    ) or reacquisition_handles.get("ctest_filter") != (
+        "^umbra\\.ownership_transfer_update_region\\.catch2\\.Embedded ownership transfer clears the former owner's 2025 update-region association$"
+    ):
+        raise AssertionError("ownership-transfer reacquisition CTest handles drifted")
+    reacquisition_links = query_rti_work.roadmap_links_for_test(
+        index, ownership_transfer, limit=0
+    )
+    if not reacquisition_links or reacquisition_links[0].get("id") != "object-ddm-ownership":
+        raise AssertionError("ownership-transfer reacquisition trace lost its owning family")
     cmake_text = (REPOSITORY_ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
     if "umbra_ownership_transfer_update_region_catch2" not in cmake_text:
         raise AssertionError("deferred ownership-transfer focused target disappeared")
@@ -6014,7 +7624,7 @@ def main() -> int:
         for item in status["roadmap_items"]
         if item.get("id") == "object-ddm-ownership"
     )
-    object_tests = query_rti_work.item_tests(object_item, tests)
+    object_tests = query_rti_work.item_tests(object_item, tests, index=index)
     object_counts = object_item.get("live_mapping_counts")
     if not isinstance(object_counts, dict):
         raise AssertionError("status family row omitted live mapping counts")
@@ -6080,6 +7690,22 @@ def main() -> int:
             raise AssertionError(
                 "bounded family options must carry a lane-discovery command"
             )
+        transport_option = next(
+            (
+                option
+                for option in options
+                if isinstance(option, dict)
+                and option.get("id") == "transport-and-conformance"
+            ),
+            None,
+        )
+        if not isinstance(transport_option, dict) or (
+            "--focused" not in str(transport_option.get("lane_discovery_command") or "")
+            or "--unmapped" in str(transport_option.get("lane_discovery_command") or "")
+        ):
+            raise AssertionError(
+                "transport family handoff did not use its focused lane selector"
+            )
         if not all(
             isinstance(option, dict)
             and option.get("mapping_lane_discovery_command")
@@ -6098,25 +7724,38 @@ def main() -> int:
             raise AssertionError(
                 "bounded family options must carry an exact family gap query"
             )
+        if not all(
+            isinstance(option, dict)
+            and "--group-by requirement" in str(
+                option.get("matrix_requirement_command") or ""
+            )
+            and "--group-by section" in str(
+                option.get("matrix_section_command") or ""
+            )
+            for option in options
+        ):
+            raise AssertionError(
+                "bounded family options must carry requirement/section matrix commands"
+            )
 
-    # Once the selected new case is indexed, the explicit handoff disappears
-    # and the bounded family queue becomes the source of truth. This keeps the
-    # completed slice queryable without leaving a stale proposal in ``ready``.
-    transport_ready = query_rti_work.ready_slice(
+    # The formerly proposed handoff is now a direct mapped case.  Its exact
+    # lane must remain queryable after promotion so the completed slice cannot
+    # disappear back into a broad family search.
+    transport_restore_immediate = query_rti_work.focused_lane_result(
         index,
         tests,
-        source_locations,
-        requested_family="transport-and-conformance",
-        standard_requirements=standard_requirements,
+        "process-federation-restore-work-item-ownership-assumption-immediate",
+        limit=0,
     )
     if (
-        transport_ready.get("found") is not False
-        or transport_ready.get("state") != "none"
-        or transport_ready.get("requested_family") != "transport-and-conformance"
-        or transport_ready.get("reason")
-        != "the indexed source and planned-row queues are exhausted; only explicitly queued family actions remain"
+        transport_restore_immediate.get("lane_state") != "complete"
+        or transport_restore_immediate.get("mapped_test_count") != 1
+        or transport_restore_immediate.get("assertion_count") != 52
+        or transport_restore_immediate.get("requirement_count") != 9
+        or transport_restore_immediate.get("standard_section_count") != 7
+        or transport_restore_immediate.get("requirement_section_pair_count") != 9
     ):
-        raise AssertionError("completed process TSO handoff was not retired")
+        raise AssertionError("completed HLA_IMMEDIATE restore-work-item lane is not queryable")
 
     active_roadmap = query_rti_work.roadmap_inventory(
         index,
@@ -6173,12 +7812,38 @@ def main() -> int:
         else []
     )
     if (
-        "gap_scope=604/2220 covered (27.21%); 1616 uncovered" not in transport_gap_text
+        "gap_scope=628/2220 covered (28.29%); 1592 uncovered" not in transport_gap_text
         or "gap_head=summary-rule-1 -> hla-1516-2025:clause-4" not in transport_gap_text
         or "gap_requirement=python tools/query_rti_work.py requirement summary-rule-1" not in transport_gap_text
         or "gap_section=python tools/query_rti_work.py section hla-1516-2025:clause-4" not in transport_gap_text
     ):
         raise AssertionError("new-case family text omitted its bounded gap handles")
+
+    # Family summaries and the bounded gap preview must select the same rows.
+    # Lane-owner handles (for example ``interaction-class-handle``) are easy
+    # to omit when a family uses only its broad query tags; protect the
+    # one-screen counters against that split-brain state.
+    transport_inventory = query_rti_work.roadmap_inventory(
+        index,
+        tests,
+        query="transport-and-conformance",
+        status="open",
+        limit=0,
+    )
+    transport_families = transport_inventory.get("families")
+    if not isinstance(transport_families, list) or len(transport_families) != 1:
+        raise AssertionError("transport family exact-id query did not remain singular")
+    transport_row = transport_families[0]
+    transport_counts = transport_row.get("live_mapping_counts")
+    if (
+        not isinstance(transport_counts, dict)
+        or transport_row.get("matching_test_count") != transport_counts.get("case_count")
+        or transport_counts.get("requirement_count")
+        != transport_gap.get("covered_requirement_count")
+    ):
+        raise AssertionError(
+            "transport family summary and gap preview selected different mapping rows"
+        )
 
     source_only_ready = query_rti_work.ready_slice(
         index,
@@ -6291,7 +7956,9 @@ def main() -> int:
         or transport_parent.get("id") != "transport-and-conformance"
         or not isinstance(transport_target, dict)
         or transport_target.get("id") != "transport-and-conformance"
-        or "public process transport baseline" not in str(transport_work.get("task") or "")
+        or "No source-located transport candidate remains open" not in str(
+            transport_work.get("task") or ""
+        )
     ):
         raise AssertionError(
             "explicit transport family work query inherited a stale parent pointer"
@@ -6324,6 +7991,94 @@ def main() -> int:
     )
     if scoped_family != family_item or scoped_rows != family_tests:
         raise AssertionError("family scope resolution diverged from item/matrix rows")
+
+    # The aggregate matrix views are a standards-review shortcut, not a
+    # second mapping source.  Protect both groupings so a requirement or
+    # subsection review can find the exact case ids without expanding the
+    # whole family matrix.
+    target_family_test = next(
+        (
+            test
+            for test in family_tests
+            if test.get("test_case") == TARGET_TEST
+        ),
+        None,
+    )
+    if not isinstance(target_family_test, dict):
+        raise AssertionError("family crosswalk target test is not indexed")
+    target_requirement = next(
+        iter(query_rti_work.strings(target_family_test.get("lab_requirement_ids"))),
+        None,
+    )
+    target_section = next(
+        iter(query_rti_work.strings(target_family_test.get("standard_sections"))),
+        None,
+    )
+    if not target_requirement or not target_section:
+        raise AssertionError("family crosswalk target lost direct mapping handles")
+    requirement_crosswalk = query_rti_work.matrix_crosswalk_rows(
+        family_tests, "requirement"
+    )
+    requirement_row = next(
+        (
+            row
+            for row in requirement_crosswalk
+            if row.get("key") == target_requirement
+        ),
+        None,
+    )
+    if not isinstance(requirement_row, dict):
+        raise AssertionError("requirement-centric matrix crosswalk lost target requirement")
+    if requirement_row.get("test_count", 0) < 1:
+        raise AssertionError("requirement-centric crosswalk lost target case count")
+    # The preview is intentionally capped for cross-cutting requirements; an
+    # exact case id remains available through ``matrix <case-id>``.
+    preview_ids = {
+        test.get("id")
+        for test in requirement_row.get("tests", [])
+        if isinstance(test, dict)
+    }
+    if target_family_test.get("id") not in preview_ids and not isinstance(
+        requirement_row.get("remaining_test_count"), int
+    ):
+        raise AssertionError("requirement-centric crosswalk lost bounded case preview")
+    if target_section not in requirement_row.get("standard_sections", []):
+        raise AssertionError("requirement-centric crosswalk lost target subsection")
+    exact_requirement_crosswalk = query_rti_work.matrix_crosswalk_rows(
+        family_tests,
+        "requirement",
+        match_kind="requirement",
+        query=target_requirement,
+    )
+    if len(exact_requirement_crosswalk) != 1 or exact_requirement_crosswalk[0].get(
+        "key"
+    ) != target_requirement:
+        raise AssertionError("exact requirement matrix lookup was not narrowed")
+    section_crosswalk = query_rti_work.matrix_crosswalk_rows(
+        family_tests, "section"
+    )
+    section_row = next(
+        (
+            row
+            for row in section_crosswalk
+            if row.get("key") == target_section
+        ),
+        None,
+    )
+    if not isinstance(section_row, dict):
+        raise AssertionError("subsection-centric matrix crosswalk lost target subsection")
+    if target_requirement not in section_row.get("lab_requirement_ids", []):
+        raise AssertionError("subsection-centric crosswalk lost target requirement")
+    exact_section_crosswalk = query_rti_work.matrix_crosswalk_rows(
+        family_tests,
+        "section",
+        match_kind="section",
+        query=target_section,
+    )
+    if len(exact_section_crosswalk) != 1 or exact_section_crosswalk[0].get(
+        "key"
+    ) != target_section:
+        raise AssertionError("exact subsection matrix lookup was not narrowed")
 
     # Roadmap discovery is intentionally a separate bounded index.  Keep one
     # thematic query protected so a contributor can find the process family
@@ -6364,6 +8119,23 @@ def main() -> int:
         "requirement_count"
     ):
         raise AssertionError("roadmap process row lost live requirement counts")
+
+    # A family id is an exact, stable handle.  It must not expand into other
+    # families that happen to carry the same cross-cutting tag.
+    exact_process_roadmap = query_rti_work.roadmap_inventory(
+        index,
+        tests,
+        query="transport-and-conformance",
+        status="open",
+        limit=0,
+    )
+    exact_process_rows = exact_process_roadmap.get("families", [])
+    if exact_process_roadmap.get("count") != 1 or len(exact_process_rows) != 1:
+        raise AssertionError(
+            "exact transport family-id lookup expanded beyond one roadmap family"
+        )
+    if exact_process_rows[0].get("id") != "transport-and-conformance":
+        raise AssertionError("exact transport family-id lookup resolved the wrong family")
 
     callback_roadmap = query_rti_work.roadmap_inventory(
         index,
@@ -7082,6 +8854,36 @@ def main() -> int:
             "unmapped lane inventory omitted its explicit review handle"
         )
 
+    # A family work card must expose live mapping totals, not only the
+    # legacy pointer fields used by older active handoffs. This prevents a
+    # broad family from appearing to have zero standard sections or plan
+    # rows when its exact lane inventory is already fully indexed.
+    transport_work = query_rti_work.indexed_work_slice(
+        index,
+        tests,
+        "transport-and-conformance",
+        source_locations,
+    )
+    transport_mapping = transport_work.get("work_mapping")
+    if not isinstance(transport_mapping, dict):
+        raise AssertionError("family work card omitted its live mapping totals")
+    if (
+        transport_mapping.get("case_count") != 553
+        or transport_mapping.get("mapped_case_count") != 524
+        or transport_mapping.get("requirement_count") != 628
+        or transport_mapping.get("standard_section_count") != 227
+        or transport_mapping.get("resolved_requirement_section_pair_count") != 628
+        or transport_mapping.get("assertion_count") != 22318
+    ):
+        raise AssertionError("transport family work mapping totals drifted")
+    transport_work_commands = transport_work.get("work_mapping_commands")
+    if (
+        not isinstance(transport_work_commands, dict)
+        or "--group-by requirement" not in transport_work_commands.get("requirement", "")
+        or "--group-by section" not in transport_work_commands.get("section", "")
+    ):
+        raise AssertionError("family work card lost direct crosswalk commands")
+
     # Keep intentional no-standalone-surface dispositions separate from rows
     # that still need a Lab mapping decision.  The CLI exposes this as
     # ``lanes --disposition`` so a family inventory can be queried without
@@ -7274,7 +9076,7 @@ def main() -> int:
         raise AssertionError("query-attribute-ownership lane state drifted")
     if ownership_query_focus.get("mapped_test_count") != 10:
         raise AssertionError("query-attribute-ownership mapped count drifted")
-    if ownership_query_focus.get("assertion_count") != 190:
+    if ownership_query_focus.get("assertion_count") != 207:
         raise AssertionError("query-attribute-ownership assertion total drifted")
     if ownership_query_focus.get("unclassified_count") != 0:
         raise AssertionError("query-attribute-ownership retained an unexpected mapping gap")
@@ -7752,6 +9554,41 @@ def main() -> int:
             "Connection Lost automatic-divestiture lost its standalone C++ target handle"
         )
 
+    connection_loss_immediate = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-connection-lost-automatic-unconditional-divest-immediate"
+        ),
+        None,
+    )
+    if not isinstance(connection_loss_immediate, dict):
+        raise AssertionError("HLA_IMMEDIATE Connection Lost companion row is absent")
+    if connection_loss_immediate.get("assertions") != 33:
+        raise AssertionError("HLA_IMMEDIATE Connection Lost companion assertion count drifted")
+    if connection_loss_immediate.get("traceability_state") != "requirements-mapped":
+        raise AssertionError("HLA_IMMEDIATE Connection Lost companion row is not mapped")
+    connection_loss_immediate_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "connection-lost-automatic-unconditional-divestiture-immediate",
+        limit=0,
+    )
+    if connection_loss_immediate_focus.get("lane_state") != "complete":
+        raise AssertionError("HLA_IMMEDIATE Connection Lost lane should be complete")
+    if connection_loss_immediate_focus.get("unclassified_count") != 0:
+        raise AssertionError(
+            "HLA_IMMEDIATE Connection Lost lane retained an unexpected mapping gap"
+        )
+    connection_loss_immediate_handles = connection_loss_immediate_focus.get("lane_handles")
+    if not isinstance(connection_loss_immediate_handles, dict) or connection_loss_immediate_handles.get(
+        "catch2_target"
+    ) != "umbra_connection_loss_automatic_unconditional_divestiture_catch2":
+        raise AssertionError(
+            "HLA_IMMEDIATE Connection Lost lane lost its standalone C++ target handle"
+        )
+
     connection_loss_cancel = next(
         (
             test
@@ -7791,6 +9628,293 @@ def main() -> int:
         raise AssertionError(
             "Connection Lost cancellation lost its standalone C++ target handle"
         )
+
+    connection_loss_cancel_immediate = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-connection-lost-automatic-cancel-pending-acquisition-immediate"
+        ),
+        None,
+    )
+    if not isinstance(connection_loss_cancel_immediate, dict):
+        raise AssertionError(
+            "HLA_IMMEDIATE Connection Lost cancellation row is absent"
+        )
+    if connection_loss_cancel_immediate.get("assertions") != 41:
+        raise AssertionError(
+            "HLA_IMMEDIATE Connection Lost cancellation assertion count drifted"
+        )
+    if connection_loss_cancel_immediate.get("traceability_state") != "requirements-mapped":
+        raise AssertionError(
+            "HLA_IMMEDIATE Connection Lost cancellation row is not mapped"
+        )
+    connection_loss_cancel_immediate_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "connection-lost-automatic-cancel-pending-acquisition-immediate",
+        limit=0,
+    )
+    if (
+        connection_loss_cancel_immediate_focus.get("lane_state") != "complete"
+        or connection_loss_cancel_immediate_focus.get("mapped_test_count") != 1
+        or connection_loss_cancel_immediate_focus.get("assertion_count") != 41
+        or connection_loss_cancel_immediate_focus.get("requirement_count") != 5
+        or connection_loss_cancel_immediate_focus.get("standard_section_count") != 5
+        or connection_loss_cancel_immediate_focus.get("requirement_section_pair_count") != 5
+        or connection_loss_cancel_immediate_focus.get("unclassified_count") != 0
+    ):
+        raise AssertionError(
+            "HLA_IMMEDIATE Connection Lost cancellation lane card drifted"
+        )
+    connection_loss_cancel_immediate_handles = connection_loss_cancel_immediate_focus.get(
+        "lane_handles"
+    )
+    if not isinstance(connection_loss_cancel_immediate_handles, dict) or connection_loss_cancel_immediate_handles.get(
+        "catch2_target"
+    ) != "umbra_connection_loss_automatic_cancel_pending_acquisition_catch2" or "Immediate callbacks cancel a lost federate's pending ownership acquisition synchronously" not in str(
+        connection_loss_cancel_immediate_handles.get("ctest_filter") or ""
+    ):
+        raise AssertionError(
+            "HLA_IMMEDIATE Connection Lost cancellation CTest handle drifted"
+        )
+
+    connection_loss_no_action_immediate = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-connection-lost-automatic-no-action-immediate"
+        ),
+        None,
+    )
+    if not isinstance(connection_loss_no_action_immediate, dict):
+        raise AssertionError("HLA_IMMEDIATE NoAction Connection Lost row is absent")
+    if connection_loss_no_action_immediate.get("assertions") != 31:
+        raise AssertionError(
+            "HLA_IMMEDIATE NoAction Connection Lost assertion count drifted"
+        )
+    if connection_loss_no_action_immediate.get("traceability_state") != "requirements-mapped":
+        raise AssertionError(
+            "HLA_IMMEDIATE NoAction Connection Lost row is not mapped"
+        )
+    connection_loss_no_action_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "connection-lost-automatic-no-action-immediate",
+        limit=0,
+    )
+    if (
+        connection_loss_no_action_focus.get("lane_state") != "complete"
+        or connection_loss_no_action_focus.get("mapped_test_count") != 1
+        or connection_loss_no_action_focus.get("assertion_count") != 31
+        or connection_loss_no_action_focus.get("requirement_count") != 5
+        or connection_loss_no_action_focus.get("standard_section_count") != 5
+        or connection_loss_no_action_focus.get("requirement_section_pair_count") != 5
+        or connection_loss_no_action_focus.get("unclassified_count") != 0
+    ):
+        raise AssertionError("HLA_IMMEDIATE NoAction Connection Lost lane card drifted")
+    connection_loss_no_action_handles = connection_loss_no_action_focus.get(
+        "lane_handles"
+    )
+    if not isinstance(connection_loss_no_action_handles, dict) or connection_loss_no_action_handles.get(
+        "catch2_target"
+    ) != "umbra_ieee1516_2025_catch2" or "Immediate callbacks apply the bounded automatic NoAction forced-resign policy synchronously" not in str(
+        connection_loss_no_action_handles.get("ctest_filter") or ""
+    ):
+        raise AssertionError("HLA_IMMEDIATE NoAction Connection Lost CTest handle drifted")
+
+    connection_loss_final_immediate = next(
+        (
+            test
+            for test in tests
+            if test.get("id") == "umbra-cpp-connection-lost-final-federate-immediate"
+        ),
+        None,
+    )
+    if not isinstance(connection_loss_final_immediate, dict):
+        raise AssertionError("HLA_IMMEDIATE final-federate Connection Lost row is absent")
+    if connection_loss_final_immediate.get("assertions") != 23:
+        raise AssertionError(
+            "HLA_IMMEDIATE final-federate Connection Lost assertion count drifted"
+        )
+    if connection_loss_final_immediate.get("traceability_state") != "requirements-mapped":
+        raise AssertionError(
+            "HLA_IMMEDIATE final-federate Connection Lost row is not mapped"
+        )
+    connection_loss_final_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "connection-lost-final-federate-immediate",
+        limit=0,
+    )
+    if (
+        connection_loss_final_focus.get("lane_state") != "complete"
+        or connection_loss_final_focus.get("mapped_test_count") != 1
+        or connection_loss_final_focus.get("assertion_count") != 23
+        or connection_loss_final_focus.get("requirement_count") != 6
+        or connection_loss_final_focus.get("standard_section_count") != 6
+        or connection_loss_final_focus.get("requirement_section_pair_count") != 6
+        or connection_loss_final_focus.get("unclassified_count") != 0
+    ):
+        raise AssertionError(
+            "HLA_IMMEDIATE final-federate Connection Lost lane card drifted"
+        )
+    connection_loss_final_handles = connection_loss_final_focus.get("lane_handles")
+    if not isinstance(connection_loss_final_handles, dict) or connection_loss_final_handles.get(
+        "catch2_target"
+    ) != "umbra_ieee1516_2025_catch2" or "Immediate callbacks apply the final-federate forced directive-two rule synchronously" not in str(
+        connection_loss_final_handles.get("ctest_filter") or ""
+    ):
+        raise AssertionError(
+            "HLA_IMMEDIATE final-federate Connection Lost CTest handle drifted"
+        )
+
+    connection_loss_delete_divest_immediate = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-connection-lost-automatic-delete-then-divest-immediate"
+        ),
+        None,
+    )
+    if not isinstance(connection_loss_delete_divest_immediate, dict):
+        raise AssertionError(
+            "HLA_IMMEDIATE delete-then-divest Connection Lost row is absent"
+        )
+    if connection_loss_delete_divest_immediate.get("assertions") != 39:
+        raise AssertionError(
+            "HLA_IMMEDIATE delete-then-divest Connection Lost assertion count drifted"
+        )
+    if connection_loss_delete_divest_immediate.get("traceability_state") != "requirements-mapped":
+        raise AssertionError(
+            "HLA_IMMEDIATE delete-then-divest Connection Lost row is not mapped"
+        )
+    connection_loss_delete_divest_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "connection-lost-automatic-delete-then-divest-immediate",
+        limit=0,
+    )
+    if (
+        connection_loss_delete_divest_focus.get("lane_state") != "complete"
+        or connection_loss_delete_divest_focus.get("mapped_test_count") != 1
+        or connection_loss_delete_divest_focus.get("assertion_count") != 39
+        or connection_loss_delete_divest_focus.get("requirement_count") != 5
+        or connection_loss_delete_divest_focus.get("standard_section_count") != 5
+        or connection_loss_delete_divest_focus.get("requirement_section_pair_count") != 5
+        or connection_loss_delete_divest_focus.get("unclassified_count") != 0
+    ):
+        raise AssertionError(
+            "HLA_IMMEDIATE delete-then-divest Connection Lost lane card drifted"
+        )
+    connection_loss_delete_divest_handles = connection_loss_delete_divest_focus.get(
+        "lane_handles"
+    )
+    if not isinstance(connection_loss_delete_divest_handles, dict) or connection_loss_delete_divest_handles.get(
+        "catch2_target"
+    ) != "umbra_ieee1516_2025_catch2" or "Immediate callbacks apply the configured automatic delete-then-divest directive synchronously" not in str(
+        connection_loss_delete_divest_handles.get("ctest_filter") or ""
+    ):
+        raise AssertionError(
+            "HLA_IMMEDIATE delete-then-divest Connection Lost CTest handle drifted"
+        )
+
+    connection_loss_delete_objects_immediate = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-connection-lost-automatic-delete-objects-immediate"
+        ),
+        None,
+    )
+    if not isinstance(connection_loss_delete_objects_immediate, dict):
+        raise AssertionError(
+            "HLA_IMMEDIATE delete-objects Connection Lost row is absent"
+        )
+    if connection_loss_delete_objects_immediate.get("assertions") != 25:
+        raise AssertionError(
+            "HLA_IMMEDIATE delete-objects Connection Lost assertion count drifted"
+        )
+    if connection_loss_delete_objects_immediate.get("traceability_state") != "requirements-mapped":
+        raise AssertionError(
+            "HLA_IMMEDIATE delete-objects Connection Lost row is not mapped"
+        )
+    connection_loss_delete_objects_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "connection-lost-automatic-delete-objects-immediate",
+        limit=0,
+    )
+    if (
+        connection_loss_delete_objects_focus.get("lane_state") != "complete"
+        or connection_loss_delete_objects_focus.get("mapped_test_count") != 1
+        or connection_loss_delete_objects_focus.get("assertion_count") != 25
+        or connection_loss_delete_objects_focus.get("requirement_count") != 5
+        or connection_loss_delete_objects_focus.get("standard_section_count") != 5
+        or connection_loss_delete_objects_focus.get("requirement_section_pair_count") != 5
+        or connection_loss_delete_objects_focus.get("unclassified_count") != 0
+    ):
+        raise AssertionError(
+            "HLA_IMMEDIATE delete-objects Connection Lost lane card drifted"
+        )
+    connection_loss_delete_objects_handles = connection_loss_delete_objects_focus.get(
+        "lane_handles"
+    )
+    if not isinstance(connection_loss_delete_objects_handles, dict) or connection_loss_delete_objects_handles.get(
+        "catch2_target"
+    ) != "umbra_ieee1516_2025_catch2" or "Immediate callbacks apply the configured automatic delete-objects directive synchronously" not in str(
+        connection_loss_delete_objects_handles.get("ctest_filter") or ""
+    ):
+        raise AssertionError(
+            "HLA_IMMEDIATE delete-objects Connection Lost CTest handle drifted"
+        )
+
+    connection_loss_cancel_delete_divest_immediate = next(
+        (
+            test
+            for test in tests
+            if test.get("id")
+            == "umbra-cpp-connection-lost-automatic-cancel-delete-divest-immediate"
+        ),
+        None,
+    )
+    if not isinstance(connection_loss_cancel_delete_divest_immediate, dict):
+        raise AssertionError(
+            "mixed directive-5 Connection Lost row is absent"
+        )
+    if connection_loss_cancel_delete_divest_immediate.get("assertions") != 45:
+        raise AssertionError("mixed directive-5 Connection Lost assertion count drifted")
+    if connection_loss_cancel_delete_divest_immediate.get("traceability_state") != "requirements-mapped":
+        raise AssertionError("mixed directive-5 Connection Lost row is not mapped")
+    connection_loss_cancel_delete_divest_focus = query_rti_work.focused_lane_result(
+        index,
+        tests,
+        "connection-lost-automatic-cancel-delete-divest-immediate",
+        limit=0,
+    )
+    if (
+        connection_loss_cancel_delete_divest_focus.get("lane_state") != "complete"
+        or connection_loss_cancel_delete_divest_focus.get("mapped_test_count") != 1
+        or connection_loss_cancel_delete_divest_focus.get("assertion_count") != 45
+        or connection_loss_cancel_delete_divest_focus.get("requirement_count") != 7
+        or connection_loss_cancel_delete_divest_focus.get("standard_section_count") != 7
+        or connection_loss_cancel_delete_divest_focus.get("requirement_section_pair_count") != 7
+        or connection_loss_cancel_delete_divest_focus.get("unclassified_count") != 0
+    ):
+        raise AssertionError("mixed directive-5 Connection Lost lane card drifted")
+    connection_loss_cancel_delete_divest_handles = (
+        connection_loss_cancel_delete_divest_focus.get("lane_handles")
+    )
+    if not isinstance(connection_loss_cancel_delete_divest_handles, dict) or connection_loss_cancel_delete_divest_handles.get(
+        "catch2_target"
+    ) != "umbra_ieee1516_2025_catch2" or "Immediate callbacks apply the configured automatic cancel-then-delete-then-divest directive synchronously" not in str(
+        connection_loss_cancel_delete_divest_handles.get("ctest_filter") or ""
+    ):
+        raise AssertionError("mixed directive-5 Connection Lost CTest handle drifted")
 
     resign_pending = next(
         (
@@ -8063,7 +10187,7 @@ def main() -> int:
     if not isinstance(zero_dim, dict):
         raise AssertionError("zero-dimensional region row is absent")
     if query_rti_work.source_location_text(zero_dim) != (
-        "cpp/tests/regional_object_attribute_routing_catch2.cpp:593"
+        "cpp/tests/regional_object_attribute_routing_catch2.cpp:736"
     ):
         raise AssertionError("zero-dimensional region source pointer drifted")
     if zero_dim.get("assertions") != 26:
@@ -8272,6 +10396,37 @@ def main() -> int:
             raise AssertionError(
                 f"matrix section lookup did not resolve {section_query!r}"
             )
+
+    # Multi-word discovery is intentionally bounded and defaults to an AND
+    # across indexed fields.  Keep the explicit broad escape hatch separate so
+    # a short search cannot silently become the normal roadmap workflow.
+    restore_work_matches = query_rti_work.select_search_tests(
+        tests, ["restore", "work"], all_terms=True
+    )
+    restore_any_matches = query_rti_work.select_search_tests(
+        tests, ["restore", "work"], all_terms=False
+    )
+    if not restore_work_matches:
+        raise AssertionError("multi-term indexed search lost the restore/work seed")
+    if not set(map(id, restore_work_matches)).issubset(
+        set(map(id, restore_any_matches))
+    ):
+        raise AssertionError("AND search is not a subset of the explicit broad search")
+    if not query_rti_work.test_matches_lane(
+        {"primary_lane": "metadata-only-lane", "tags": []},
+        "metadata-only-lane",
+    ):
+        raise AssertionError("plan-row lane aliases are not queryable")
+    parsed_search = query_rti_work.build_parser().parse_args(
+        ["search", "restore", "work"]
+    )
+    if parsed_search.query != ["restore", "work"] or parsed_search.any_term:
+        raise AssertionError("multi-term search parser drifted from AND defaults")
+    parsed_broad_search = query_rti_work.build_parser().parse_args(
+        ["search", "restore", "--any-term"]
+    )
+    if not parsed_broad_search.any_term:
+        raise AssertionError("explicit broad search escape hatch is unavailable")
 
     # The implementation plan is a second source of navigation context, not
     # another prose search surface.  Protect the heading-only filter so a

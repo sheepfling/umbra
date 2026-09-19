@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the standard joined-federate MOM HLAobjectInstancesThatCanBeDeleted attribute. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM object and data-element declarations, and the standard library; the adapter supplies the provider package, ordinary FOM, standard MIM, endpoint, callback model, logical-time configuration when applicable, and application object class and attribute names. It verifies typed deletable-object counts at zero, one, and two live registrations and after deletion, reliable RTI-originated reflection metadata, standard handle/name lookups, and cleanup without provider-specific headers, registries, names, diagnostics, periodic timers, or wall-clock assumptions.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-deletable-object-count",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador standard MOM object-attribute request with FederateAmbassador reflectAttributeValues callback",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador MOM, object-management, declaration, callback, handle-lookup, and standard data-element declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomDeletableObjectCount"
+      ]
+    }
+  ]
+}

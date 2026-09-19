@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the standard Auto Provide switch-disabled boundary. The source uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, ordinary FOM, endpoint, and callback configuration. It verifies that an ordinary FOM leaves Auto Provide disabled, that active publication and subscription still produce standard object discovery, and that no provideAttributeValueUpdate solicitation is emitted. It does not assert provider-specific names, registries, headers, transport, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-auto-provide-disabled-discovery-only",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador Auto Provide switch lookup, ordinary object publication, subscription, registration, unsubscription, unpublication, resignation, and disconnect services with FederateAmbassador discovery and provideAttributeValueUpdate callback boundary",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador Auto Provide and object-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAutoProvideDisabledDiscoveryOnlyContract"
+      ]
+    }
+  ]
+}

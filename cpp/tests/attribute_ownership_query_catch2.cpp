@@ -817,4 +817,5 @@ TEST_CASE(
   }
   REQUIRE_FALSE(serverError);
 }
+
 #endif

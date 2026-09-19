@@ -70,6 +70,64 @@ class ProcessFederationClient final {
       std::uint64_t federateId,
       rti1516_2025::ResignAction resignAction);
 
+  [[nodiscard]] ProcessFederationRegisterSynchronizationPointResult
+  registerFederationSynchronizationPoint(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::wstring label,
+      std::vector<std::uint8_t> userSuppliedTag,
+      std::vector<std::uint64_t> synchronizationSet,
+      bool synchronizationSetWasSupplied);
+
+  [[nodiscard]] ProcessFederationSynchronizationPointAchievedResult
+  synchronizationPointAchieved(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::wstring label,
+      bool successfully);
+
+  [[nodiscard]] ProcessFederationSaveControlResult requestFederationSave(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::wstring label);
+  [[nodiscard]] ProcessFederationSaveControlResult requestFederationSave(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::wstring label,
+      std::optional<ProcessFederationLogicalTime> timestamp);
+  [[nodiscard]] ProcessFederationSaveControlResult federateSaveBegun(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  [[nodiscard]] ProcessFederationSaveControlResult federateSaveComplete(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  [[nodiscard]] ProcessFederationSaveControlResult federateSaveNotComplete(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  [[nodiscard]] ProcessFederationSaveControlResult queryFederationSaveStatus(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  [[nodiscard]] ProcessFederationSaveControlResult abortFederationSave(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  [[nodiscard]] ProcessFederationRestoreControlResult requestFederationRestore(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::wstring label);
+  [[nodiscard]] ProcessFederationRestoreControlResult federateRestoreComplete(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      bool callbacksEnabled = true);
+  [[nodiscard]] ProcessFederationRestoreControlResult federateRestoreNotComplete(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  [[nodiscard]] ProcessFederationRestoreControlResult abortFederationRestore(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  [[nodiscard]] ProcessFederationRestoreControlResult queryFederationRestoreStatus(
+      std::wstring federationName,
+      std::uint64_t federateId);
+
   [[nodiscard]] rti1516_2025::ResignAction getAutomaticResignDirective(
       std::wstring federationName,
       std::uint64_t federateId);
@@ -188,7 +246,8 @@ class ProcessFederationClient final {
   lookupObjectClassHandle(
       std::wstring federationName,
       std::uint64_t federateId,
-      std::wstring objectClassName);
+      std::wstring objectClassName,
+      bool callbacksEnabled = true);
 
   [[nodiscard]] std::optional<std::uint64_t> lookupParameterHandle(
       std::wstring federationName,
@@ -255,7 +314,8 @@ class ProcessFederationClient final {
       std::uint64_t divestingFederateId,
       std::uint64_t objectInstanceHandle,
       std::vector<std::uint64_t> attributeHandles,
-      std::vector<std::uint8_t> userSuppliedTag);
+      std::vector<std::uint8_t> userSuppliedTag,
+      bool callbacksEnabled = true);
 
   [[nodiscard]] ProcessFederationAttributeOwnershipReleaseDeniedResult
   attributeOwnershipReleaseDenied(
@@ -368,6 +428,18 @@ class ProcessFederationClient final {
       std::uint64_t requestingFederateId,
       std::uint64_t objectInstanceHandle,
       std::uint64_t attributeHandle);
+  [[nodiscard]] ProcessFederationInteractionTransportationTypeChangeResult
+  requestInteractionTransportationTypeChange(
+      std::wstring federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t interactionClassHandle,
+      std::uint64_t transportationTypeHandle);
+  [[nodiscard]] ProcessFederationInteractionTransportationTypeQueryResult
+  queryInteractionTransportationType(
+      std::wstring federationName,
+      std::uint64_t requestingFederateId,
+      std::uint64_t queriedFederateId,
+      std::uint64_t interactionClassHandle);
   void subscribeInteractionClass(
       std::wstring federationName,
       std::uint64_t federateId,
@@ -467,6 +539,24 @@ class ProcessFederationClient final {
       std::wstring federationName,
       std::uint64_t federateId,
       std::wstring objectInstanceName);
+
+  [[nodiscard]] ProcessFederationObjectInstanceNameReleaseResult
+  releaseObjectInstanceName(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::wstring objectInstanceName);
+
+  [[nodiscard]] ProcessFederationReserveMultipleObjectInstanceNamesResult
+  reserveMultipleObjectInstanceNames(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::set<std::wstring> objectInstanceNames);
+
+  [[nodiscard]] ProcessFederationReleaseMultipleObjectInstanceNamesResult
+  releaseMultipleObjectInstanceNames(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::set<std::wstring> objectInstanceNames);
 
   [[nodiscard]] std::optional<std::uint64_t> lookupDimensionHandle(
       std::wstring federationName,
@@ -692,6 +782,26 @@ class ProcessFederationClient final {
   void dispatchAttributeTransportationTypeQuery(
       ProcessFederationAttributeTransportationTypeQueryEvent event);
   void dispatchPushedAttributeTransportationTypeQuery();
+  void dispatchInteractionTransportationTypeChange(
+      ProcessFederationInteractionTransportationTypeChangeEvent event);
+  void dispatchPushedInteractionTransportationTypeChange();
+  void dispatchInteractionTransportationTypeQuery(
+      ProcessFederationInteractionTransportationTypeQueryEvent event);
+  void dispatchPushedInteractionTransportationTypeQuery();
+  void dispatchSynchronizationPointRegistrationSucceeded(std::wstring label);
+  void dispatchSynchronizationPointRegistrationFailed(
+      std::wstring label,
+      rti1516_2025::SynchronizationPointFailureReason failureReason);
+  void dispatchSynchronizationPointAnnouncement(
+      ProcessFederationSynchronizationPointAnnouncementEvent event);
+  void dispatchPushedSynchronizationPointAnnouncement();
+  void dispatchFederationSynchronized(
+      ProcessFederationFederationSynchronizedEvent event);
+  void dispatchPushedFederationSynchronized();
+  void dispatchFederationSave(ProcessFederationSaveEvent event);
+  void dispatchPushedFederationSave();
+  void dispatchFederationRestore(ProcessFederationRestoreEvent event);
+  void dispatchPushedFederationRestore();
   // Queue the process endpoint's accepted role-enable consequence through the
   // same official callback dispatcher used by all other process callbacks.
   void dispatchTimeRegulationEnabled(ProcessFederationLogicalTime event);
@@ -737,6 +847,16 @@ class ProcessFederationClient final {
   pendingPushedAttributeTransportationTypeChangeCount() const noexcept;
   [[nodiscard]] std::size_t
   pendingPushedAttributeTransportationTypeQueryCount() const noexcept;
+  [[nodiscard]] std::size_t
+  pendingPushedInteractionTransportationTypeChangeCount() const noexcept;
+  [[nodiscard]] std::size_t
+  pendingPushedInteractionTransportationTypeQueryCount() const noexcept;
+  [[nodiscard]] std::size_t
+  pendingPushedSynchronizationPointAnnouncementCount() const noexcept;
+  [[nodiscard]] std::size_t pendingPushedFederationSynchronizedCount()
+      const noexcept;
+  [[nodiscard]] std::size_t pendingPushedFederationSaveCount() const noexcept;
+  [[nodiscard]] std::size_t pendingPushedFederationRestoreCount() const noexcept;
   [[nodiscard]] std::size_t pendingPushedTimeAdvanceGrantCount()
       const noexcept;
   [[nodiscard]] std::size_t pendingPushedFlushQueueGrantCount()
@@ -784,6 +904,16 @@ class ProcessFederationClient final {
   receivePushedAttributeTransportationTypeChange();
   [[nodiscard]] ProcessFederationAttributeTransportationTypeQueryEvent
   receivePushedAttributeTransportationTypeQuery();
+  [[nodiscard]] ProcessFederationInteractionTransportationTypeChangeEvent
+  receivePushedInteractionTransportationTypeChange();
+  [[nodiscard]] ProcessFederationInteractionTransportationTypeQueryEvent
+  receivePushedInteractionTransportationTypeQuery();
+  [[nodiscard]] ProcessFederationSynchronizationPointAnnouncementEvent
+  receivePushedSynchronizationPointAnnouncement();
+  [[nodiscard]] ProcessFederationFederationSynchronizedEvent
+  receivePushedFederationSynchronized();
+  [[nodiscard]] ProcessFederationSaveEvent receivePushedFederationSave();
+  [[nodiscard]] ProcessFederationRestoreEvent receivePushedFederationRestore();
   [[nodiscard]] ProcessFederationLogicalTime receivePushedTimeAdvanceGrant();
   struct PendingFlushQueueGrant final {
     ProcessFederationLogicalTime grantedTime;
@@ -826,6 +956,16 @@ class ProcessFederationClient final {
       pendingAttributeTransportationTypeChangeEvents_;
   std::deque<ProcessFederationAttributeTransportationTypeQueryEvent>
       pendingAttributeTransportationTypeQueryEvents_;
+  std::deque<ProcessFederationInteractionTransportationTypeChangeEvent>
+      pendingInteractionTransportationTypeChangeEvents_;
+  std::deque<ProcessFederationInteractionTransportationTypeQueryEvent>
+      pendingInteractionTransportationTypeQueryEvents_;
+  std::deque<ProcessFederationSynchronizationPointAnnouncementEvent>
+      pendingSynchronizationPointAnnouncementEvents_;
+  std::deque<ProcessFederationFederationSynchronizedEvent>
+      pendingFederationSynchronizedEvents_;
+  std::deque<ProcessFederationSaveEvent> pendingFederationSaveEvents_;
+  std::deque<ProcessFederationRestoreEvent> pendingFederationRestoreEvents_;
   std::deque<ProcessFederationLogicalTime> pendingTimeAdvanceGrantEvents_;
   std::deque<PendingFlushQueueGrant> pendingFlushQueueGrantEvents_;
   // An unsolicited Request Retraction can arrive while a receive poll is

@@ -657,6 +657,11 @@ struct FederationSynchronizedNotification {
   FederateCallbackRoute callbackRoute;
   FederateServiceReportRoute serviceReportRoute;
   FederatePublicServiceReportRoute publicServiceReportRoute;
+  // Retained for process-boundary projection.  Embedded callers continue to
+  // use the callback route directly; the process service needs the receiving
+  // session identity in order to enqueue the same callback without exposing a
+  // callback functor across the socket.
+  std::uint64_t receivingFederateId = 0;
 };
 
 enum class SynchronizationPointRegistrationStatus {
@@ -1161,11 +1166,21 @@ struct ObjectInstanceRemovalRecipient {
   // RTI-owned MOM objects do not use the federate-created ownership/deletion
   // state machine.
   bool rtiOwnedMomObject = false;
+  // Timestamped projections may cross either the immediate receive boundary
+  // or a time-constrained grant boundary. Keep the accepted order pair with
+  // the planned callback; ordinary removals retain RECEIVE/RECEIVE defaults.
+  rti1516_2025::OrderType sentOrderType = rti1516_2025::RECEIVE;
+  rti1516_2025::OrderType receivedOrderType = rti1516_2025::RECEIVE;
 };
 
 struct ObjectInstanceDeletionPlan {
   ObjectInstanceDeletionStatus status = ObjectInstanceDeletionStatus::applied;
   std::vector<ObjectInstanceRemovalRecipient> recipients;
+  // HLAprivilegeToDeleteObject is a timestamp-ordered MIM attribute in the
+  // standard catalog, but a loaded FOM may select receive order.  Keep the
+  // effective order with the immutable plan so every service boundary makes
+  // the same retraction/timestamp decision without re-reading mutable state.
+  rti1516_2025::OrderType preferredOrderType = rti1516_2025::RECEIVE;
 };
 
 struct RemovedObjectInstanceSnapshot {
@@ -2685,6 +2700,11 @@ struct TsoObjectDeletionMessage {
   rti1516_2025::VariableLengthData userSuppliedTag;
   std::vector<TsoObjectDeletionRecipient> recipients;
   std::shared_ptr<rti1516_2025::LogicalTime const> timestamp;
+  // The Delete Object Instance message's sent order is fixed by the
+  // invocation-time HLAprivilegeToDeleteObject order.  Keep it with the
+  // immutable payload so immediate and grant-boundary projections agree even
+  // after the live object declaration changes.
+  rti1516_2025::OrderType sentOrderType = rti1516_2025::RECEIVE;
 };
 
 struct TsoObjectDeletionDelivery {

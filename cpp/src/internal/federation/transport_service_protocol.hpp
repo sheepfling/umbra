@@ -259,6 +259,48 @@ enum class TransportServiceOperation : std::uint16_t {
   // callback with the read-only report callback.
   request_attribute_transportation_type_change = 105U,
   query_attribute_transportation_type = 106U,
+  // Interaction transportation-type control uses the same split request /
+  // response and callback-event boundary as instance transportation control.
+  request_interaction_transportation_type_change = 107U,
+  query_interaction_transportation_type = 108U,
+  // Release Object Instance Name commits the reservation-ledger removal at
+  // the process-owned registry. It is intentionally distinct from reserve
+  // so a peer cannot silently treat a release as another reservation.
+  release_object_instance_name = 109U,
+  // Multiple-name reservation/release keep the StringSet state transition
+  // atomic at the process-owned registry and distinct from the single-name
+  // operations above.
+  reserve_multiple_object_instance_names = 110U,
+  release_multiple_object_instance_names = 111U,
+  // Federation synchronization-point registration/achievement are kept
+  // distinct private operations so a process peer cannot silently treat
+  // federation-management control as an ordinary interaction service.
+  register_federation_synchronization_point = 112U,
+  synchronization_point_achieved = 113U,
+  // Federation save control crosses the process seam as distinct operations
+  // so a peer cannot silently treat a save request or completion as an
+  // unrelated synchronization service.
+  request_federation_save = 114U,
+  federate_save_begun = 115U,
+  federate_save_complete = 116U,
+  federate_save_not_complete = 117U,
+  query_federation_save_status = 118U,
+  abort_federation_save = 119U,
+  // Federation restore request/control is kept distinct from save control so
+  // a private peer cannot silently apply the wrong federation-management
+  // state machine.  Request and completion each have their own operation so
+  // a peer cannot silently reinterpret a completion as another request.
+  request_federation_restore = 120U,
+  federate_restore_complete = 121U,
+  // Restore failure reporting is a distinct control operation.  A peer must
+  // not reinterpret a failed participant report as a successful completion.
+  federate_restore_not_complete = 122U,
+  // Restore abort is a separate control operation so its terminal failure
+  // reason cannot be confused with a participant-reported failure.
+  abort_federation_restore = 123U,
+  // Restore status queries have a typed response plus a queued status event;
+  // keep the control boundary distinct from abort and completion.
+  query_federation_restore_status = 124U,
 };
 
 enum class TransportServiceStatus : std::uint16_t {

@@ -223,9 +223,13 @@ and sends one grouped `Request Attribute Ownership Assumption` offer to each
 currently eligible non-pending federate, with the divestiture tag. That offer
 does not transfer ownership; the candidate must subsequently invoke an
 acquisition service. Before callback entry, Umbra rechecks the candidate's
-known-instance, publication, pending-state, and unowned boundaries. This is
-not yet a continuing owner-search loop for federates that become eligible
-after the original divestiture call.
+known-instance, publication, pending-state, and unowned boundaries. The search
+remains live for the unowned interval: a later join, discovery, or publication
+transition can make a new federate eligible; a declined or stale callback
+releases its reservation and advances the search; and a later divestiture
+starts a fresh search epoch with its own tag. These transitions are covered by
+focused embedded Catch2 lanes, but remain development-profile traceability
+evidence rather than a complete conformance claim.
 The bounded 2025 `Negotiated Attribute Ownership Divestiture` transition keeps
 the current owner while the attribute waits, selects an already pending regular
 acquirer, and sends the owner `Request Divestiture Confirmation` with the
@@ -236,13 +240,14 @@ Attribute Ownership Divestiture` removes the private waiting state and returns
 the attribute to ordinary regular-release planning. The implementation also
 handles a later regular acquisition, `NoAcquisitionPending` after its
 cancellation, and stale queued callback suppression. It deliberately does not
-yet perform the complete 2025 owner search or select a willing-to-acquire
-candidate.
+claim the complete 2025 ownership-arbitration matrix, RTI-owned ownership
+state, or all negotiated/automatic-resign combinations; the bounded owner-
+search continuation and callback reservations are covered separately.
 It deliberately does not include additional regional request edge cases,
   default-region synthesis, timestamped/retraction, broader DDM
   region associations/realizations
   and routing, full regular or negotiated
-acquisition, the continuing unconditional owner-search lifecycle, the complete
+acquisition, the complete unconditional owner-search arbitration matrix, the complete
 negotiated-divestiture lifecycle beyond this regular-candidate transition,
 update-rate reduction, FOM sharing policy, save/restore,
 distinct resign-action object disposition, RTI-owned ownership reports, further

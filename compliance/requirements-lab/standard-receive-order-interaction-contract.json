@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for consecutive ordinary receive-order interactions. The source uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies adapter-supplied interaction and parameter lookups, publication, active subscription, two ordinary Send Interaction callbacks in producer order, delivery metadata, sender exclusion, and standard federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-receive-order-interaction",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador interaction-class lookup, publication, active subscription, ordinary Send Interaction, unsubscription, unpublication, resignation, and disconnect services with FederateAmbassador receiveInteraction callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador ordinary interaction and FederateAmbassador delivery declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioReceiveOrderInteractionContract"
+      ]
+    }
+  ]
+}

@@ -201,7 +201,39 @@ set(ctest_command
   --test-dir "${consumer_binary_directory}"
   --output-on-failure
 )
+set(package_junit_artifact
+  "${consumer_binary_directory}/Testing/package-process.xml"
+)
+file(MAKE_DIRECTORY "${consumer_binary_directory}/Testing")
+list(APPEND ctest_command --output-junit "${package_junit_artifact}")
 if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
   list(APPEND ctest_command -C "${UMBRA_CONFIGURATION}")
 endif()
 umbra_run_checked(${ctest_command})
+
+if(DEFINED UMBRA_EXPECT_PROCESS_PROFILE AND
+   "${UMBRA_EXPECT_PROCESS_PROFILE}" STREQUAL "ON")
+  if(NOT EXISTS "${package_junit_artifact}")
+    message(FATAL_ERROR
+      "Installed-package smoke did not emit its JUnit artifact: ${package_junit_artifact}"
+    )
+  endif()
+  file(SIZE "${package_junit_artifact}" package_junit_size)
+  if(package_junit_size LESS 1)
+    message(FATAL_ERROR
+      "Installed-package smoke emitted an empty JUnit artifact: ${package_junit_artifact}"
+    )
+  endif()
+  set(package_junit_verify_command
+    "${UMBRA_PYTHON_EXECUTABLE}"
+    "${UMBRA_SOURCE_DIRECTORY}/tools/verify_process_package_lanes.py"
+    --ctest "${UMBRA_CTEST_COMMAND}"
+    --test-dir "${consumer_binary_directory}"
+    --index "${UMBRA_SOURCE_DIRECTORY}/docs/planning/ROADMAP-INDEX.json"
+    --junit "${package_junit_artifact}"
+  )
+  if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
+    list(APPEND package_junit_verify_command --config "${UMBRA_CONFIGURATION}")
+  endif()
+  umbra_run_checked(${package_junit_verify_command})
+endif()

@@ -183,6 +183,24 @@ bool isTransportServiceOperation(TransportServiceOperation operation) noexcept {
     case TransportServiceOperation::change_default_attribute_transportation_type:
     case TransportServiceOperation::request_attribute_transportation_type_change:
     case TransportServiceOperation::query_attribute_transportation_type:
+    case TransportServiceOperation::request_interaction_transportation_type_change:
+    case TransportServiceOperation::query_interaction_transportation_type:
+    case TransportServiceOperation::release_object_instance_name:
+    case TransportServiceOperation::reserve_multiple_object_instance_names:
+    case TransportServiceOperation::release_multiple_object_instance_names:
+    case TransportServiceOperation::register_federation_synchronization_point:
+    case TransportServiceOperation::synchronization_point_achieved:
+    case TransportServiceOperation::request_federation_save:
+    case TransportServiceOperation::federate_save_begun:
+    case TransportServiceOperation::federate_save_complete:
+    case TransportServiceOperation::federate_save_not_complete:
+    case TransportServiceOperation::query_federation_save_status:
+    case TransportServiceOperation::abort_federation_save:
+    case TransportServiceOperation::request_federation_restore:
+    case TransportServiceOperation::federate_restore_complete:
+    case TransportServiceOperation::federate_restore_not_complete:
+    case TransportServiceOperation::abort_federation_restore:
+    case TransportServiceOperation::query_federation_restore_status:
       return true;
   }
   return false;

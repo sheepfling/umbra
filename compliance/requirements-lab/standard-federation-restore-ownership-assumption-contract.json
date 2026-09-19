@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for an unconditional attribute-ownership divestiture whose pending Request Attribute Ownership Assumption work survives a standard federation save and restore. The source uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time selection when needed. It verifies object discovery, publication and subscription, pre-save divestiture state, save and restore lifecycle callbacks under both callback models, restored assumption metadata, callback gating for HLA_IMMEDIATE, no premature ownership transfer, and standard federation cleanup without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-restore-ownership-assumption",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador object declaration, unconditional ownership divestiture, save/restore, callback-control, ownership query, resignation, destruction, and disconnect services with FederateAmbassador discovery, save/restore, and ownership-assumption callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador ownership/save/restore declarations and FederateAmbassador object/save/restore/ownership callback declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationRestoreOwnershipAssumptionContract"
+      ]
+    }
+  ]
+}

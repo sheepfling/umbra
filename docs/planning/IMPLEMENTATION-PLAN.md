@@ -39,10 +39,55 @@ displayed direct pairs to that requested handle. The index records the process
 TSO in-transit ACK seam and its public observer case explicitly; use that
 bounded lane before adding broader transport forms.
 
-The process-boundary slice is now green and is no longer an open
-implementation queue: its 109 source-located Catch2 cases are mapped to the
-current canonical 2025 requirement/section index and retain 5,239 indexed
-Catch2 assertions. The newest bounded process TSO fan-out case at
+The directed transportation query/report registry slice is now independently
+green and queryable at `cpp/tests/federation_registry_catch2.cpp:511`. It
+carries 22 assertions, ten direct Lab requirements, four canonical 2025
+sections, and three official C++ API surfaces; the process-boundary delivery
+slice remains separately indexed and green. The process-boundary slice is now green and is no longer an open
+implementation queue: its 155 source-located Catch2 cases are mapped to the
+current canonical 2025 requirement/section index and retain 6,717 indexed
+Catch2 assertions. One separately queryable bounded process slice is the
+directed query/report transportation override case at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:27231`, with 44 assertions,
+17 Lab requirements, ten canonical 2025 sections, and ten official C++ API
+surfaces. Query it with `focus
+process-directed-interaction-transportation-query`, `trace`, `matrix`,
+`check --lane`, or its exact CTest title. The publisher-scoped
+`HLAbestEffort` change is confirmed and reported through the configured
+process endpoint under both callback models. The preceding directed
+receive-order transportation override case at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:28288`, with 66 assertions,
+17 Lab requirements, ten canonical 2025 sections, and nine official C++ API
+surfaces. Query it with `focus
+process-directed-interaction-transportation`, `trace`, `matrix`,
+`check --lane`, or its exact CTest title. The sender's publisher-scoped
+`HLAbestEffort` change is confirmed and reaches the process-boundary directed
+receive event with target and achieved transport preserved under both callback
+models. The two-recipient directed callback lane and timestamped regional
+interaction-transportation companion at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:27745` adds 122 assertions,
+maps 27 Lab requirements to 15 canonical 2025 sections and 21 official C++
+API surfaces, and is independently queryable with `focus
+process-transportation-timestamped-regional-interaction-control`, `trace`,
+`matrix`, `check --lane`, or its exact CTest title. It proves the
+publisher-scoped HLAbestEffort override, timestamp/TIMESTAMP and retraction
+preservation, callback-before-grant ordering, and source-region metadata under
+both callback models. The preceding bounded process interaction-transportation case
+at `cpp/tests/ieee1516_2025_connection_catch2.cpp:27030` adds 40 assertions,
+maps ten Lab requirements to four canonical 2025 sections and 9 official C++
+API surfaces, and is independently queryable with `focus
+process-transportation-interaction-control`, `trace`, `matrix`, `check --lane`,
+or its exact CTest title. The preceding regional companion at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:27247` carries 84 assertions,
+23 direct Lab requirements, 11 canonical 2025 sections, and 17 official C++
+API surfaces. It proves a confirmed HLAbestEffort override survives a regional
+send through the configured process endpoint under both callback models; query
+it with `focus process-transportation-regional-interaction-control`, `trace`,
+`matrix`, `check --lane`, or its exact CTest title. The preceding
+instance-transportation case at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:26822` adds 30 assertions, maps
+five Lab requirements to four canonical 2025 sections and 10 official API
+surfaces, and remains independently queryable. The preceding process TSO fan-out case at
 `cpp/tests/ieee1516_2025_connection_catch2.cpp:24629` adds 133 assertions,
 maps 20 Lab requirements to 13 canonical sections and 15 official C++ API
 surfaces, and proves that two same-timestamp interactions plus one later
@@ -127,14 +172,18 @@ lookup case at `cpp/tests/ieee1516_2025_connection_catch2.cpp:17953` adds 14
 assertions, and the federate-identity lookup case at
 `cpp/tests/ieee1516_2025_connection_catch2.cpp:17756` adds 11 assertions for
 active-name handle resolution and execution-scoped name retention after
-resignation. The current merged-JUnit artifact contains 4,132 testcases with
-zero failures/errors; the older m108 snapshot contained 2,733. The local-
+resignation. The JUnit target executes 119 independently buildable
+registrations; its merged artifact contains 214 emitted section-level
+testcases and 5,458 assertions with zero failures/errors. The
+aggregate umbrella registration remains CTest-only because its federation-
+management translation unit is not an evidence source. The local-
 delete process foundation adds a 9-assertion codec contract, extends the
 registry-bound service integration to 44 assertions, and adds an 18-assertion
 public two-federate endpoint integration. Receive-order Delete Object Instance
 adds a 25-assertion codec contract and a 25-assertion public endpoint/removal-
-callback integration; the timestamped public endpoint slice adds 64 assertions
-under both callback models, and the timestamped regional Update Attribute Values
+callback integration; the timestamped public endpoint slice adds 131 assertions
+across regulated and non-regulated variants under both callback models, and the
+timestamped regional Update Attribute Values
 endpoint adds 86 assertions under both callback models, and the regional
 subscription-removal endpoint adds 112 assertions under both callback models;
 the disjoint regional-update endpoint adds 50, the remote regional
@@ -192,8 +241,11 @@ catalog compatibility slice is indexed with 13 passing assertions and clauses
 `4.5.5`/`4.11.4`, explicitly separated from 2025 service conformance. The
 strict 2025-mode rejection and mixed-edition composer guard are also indexed
 as two- and seven-assertion compatibility slices against clause 4. The
-ambiguous 202x edition-setting guard is indexed as a one-assertion explicit
-no-standalone-Lab-surface policy row. The regional-unpublish update-region
+ambiguous 202x edition-setting guard now verifies that Connect completes with
+`SETTINGS_FAILED_TO_PARSE` and is indexed as a five-assertion explicit
+no-standalone-Lab-surface compatibility row; the executable mapped §4.2.4
+additional-settings evidence lives in the focused embedded connection lane.
+The regional-unpublish update-region
 lifetime slice is indexed with 17 assertions and 18 requirement anchors. The
 receive-order deletion update-region lifetime slice is indexed with 17
 assertions and 20 requirement anchors. The final object-removal callback
@@ -1082,6 +1134,10 @@ until a successful commit, and bounds are checked against each FOM dimension's
   default-region callback coverage is now present; broader DDM routing, save/restore,
   and package support
   remain separate work.
+  The focused object-side §9.8.4 gate also proves empty regional pairs are
+  true no-ops for active/passive state and update-rate designators. The receive
+  planner now applies the same positive-dimensional overlap rule to ordinary
+  subscriptions when an explicit source update region is associated.
 Attribute and interaction transportation names resolve against the completed
 transportation table, allowing a later module to provide the transportation;
 this does not implement data transport behavior.
@@ -2741,7 +2797,10 @@ conformance remain open. A separately contracted save/restore companion also
 saves a live queued deletion, terminalizes the designator after saving,
 restores the snapshot, delivers Remove Object Instance through Flush Queue
 Request, and proves post-delivery Request Retraction reconstitutes the
-object/name. Its timed-save-boundary companion now schedules a timestamp-six
+object/name. The same live-deletion case now runs under both HLA_EVOKED and
+HLA_IMMEDIATE (134 assertions); its immediate section holds the constrained
+grant at the save boundary and releases it without timing sleeps. Its
+timed-save-boundary companion now schedules a timestamp-six
 deletion against a logical-time-four save, restores the live deletion ledger,
 and repeats the FQR removal plus Request Retraction checks. General timed or
 durable restore and changed-membership/ownership recovery remain open.
@@ -3106,17 +3165,40 @@ service claim.
 
 ### Current indexed slice
 
-> **Live-pointer rule (2026-09-11):** the prose in this section records the
+> **Live-pointer rule (2026-09-18):** the prose in this section records the
 > history of completed slices and is not a work queue. Do not select a “next”
 > case from an older paragraph below. The authoritative current pointer is
 > always the bounded query output from `ready`, `work`, `queue`, and `focus`;
 > use `plan <heading-query>` only to locate this section without loading its
-> prose. The latest completed implementation slice is the two-receiver
-> process TSO fan-out lane at
-> `cpp/tests/ieee1516_2025_connection_catch2.cpp:24629`; query
-> `umbra-cpp-process-tso-interaction-fanout-integration` for its exact source,
-> tests, and requirement pairs (133 assertions; 20 Lab requirements; 13
-> clauses; 15 official C++ API surfaces). The preceding same-timestamp
+> prose. The latest completed implementation slice is the HLA_IMMEDIATE restored
+> ownership-assumption work-item case at
+> `cpp/tests/attribute_ownership_acquisition_catch2.cpp:3437`; query
+> `umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration`
+> for its exact source, tests, and requirement pairs (52 assertions; 9 Lab
+> requirements; 7 clauses; 11 official C++ API surfaces). It gates callbacks
+> across restore, preserves the pending reservation, and verifies
+> `Federation Restored` before exactly one assumption callback; it does not
+> claim Evoke, package, JUnit, review, or conformance evidence. The preceding
+> HLA_IMMEDIATE pushed ownership-assumption save/restore case is queryable as
+> `umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-push-integration`
+> at `cpp/tests/attribute_ownership_acquisition_catch2.cpp:3854` (55
+> assertions; 9 Lab requirements; 7 clauses; 8 official C++ API surfaces). The
+> preceding durable HLA_EVOKED pushed ownership-assumption save/restore case is
+> queryable as
+> `umbra-cpp-process-endpoint-pushed-ownership-assumption-evoked-save-restore-integration`
+> at `cpp/tests/attribute_ownership_acquisition_catch2.cpp:4586` (73
+> assertions; 9 Lab requirements; 7 clauses; 10 official C++ API surfaces). The
+> preceding no-save HLA_EVOKED fence is queryable as
+> `umbra-cpp-process-endpoint-pushed-ownership-assumption-evoked-integration`
+> at `cpp/tests/attribute_ownership_acquisition_catch2.cpp:4285` (33
+> assertions; 3 Lab requirements; 2 clauses; 4 official C++ API surfaces). The
+> preceding evoked
+> public companion is queryable as
+> `umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-integration`
+> at `cpp/tests/attribute_ownership_acquisition_catch2.cpp:2975`. The
+> preceding private registry seam is independently queryable as
+> `umbra-cpp-federation-save-commit-process-local-ownership-assumption-work-unit`
+> at `cpp/tests/federation_registry_catch2.cpp:6721`. The preceding same-timestamp
 > multiple-message FIFO lane remains independently queryable at
 > `cpp/tests/ieee1516_2025_connection_catch2.cpp:24182`. The preceding
 > time-regulation re-enable and attribute-retraction lanes remain queryable by
@@ -3142,7 +3224,8 @@ Run `python tools/query_rti_work.py ready --summary --compact` for bounded
 family choices; no active handoff is pending, so the completed re-enable row
 is not presented as new work.
 Use `python tools/query_rti_work.py focus process-boundary --summary --compact`
-for its 109-case mapped C++/JUnit card (5,239 indexed assertions). The completed
+for its 155-case mapped C++/JUnit card (6,717 indexed assertions; 6,869
+assertions recorded by the plan rows). The completed
 `application-value-state` slice is intentionally
 small: it adds the typed latest object-attribute value ledger, maps it to the
 existing object-update/save/restore requirements, and includes a route-free

@@ -126,6 +126,21 @@ class ProcessFederationCallbackBridge final {
       ProcessFederationAttributeTransportationTypeChangeEvent event);
   void submitAttributeTransportationTypeQuery(
       ProcessFederationAttributeTransportationTypeQueryEvent event);
+  void submitInteractionTransportationTypeChange(
+      ProcessFederationInteractionTransportationTypeChangeEvent event);
+  void submitInteractionTransportationTypeQuery(
+      ProcessFederationInteractionTransportationTypeQueryEvent event);
+
+  void submitSynchronizationPointRegistrationSucceeded(std::wstring label);
+  void submitSynchronizationPointRegistrationFailed(
+      std::wstring label,
+      rti1516_2025::SynchronizationPointFailureReason failureReason);
+  void submitSynchronizationPointAnnouncement(
+      ProcessFederationSynchronizationPointAnnouncementEvent event);
+  void submitFederationSynchronized(
+      ProcessFederationFederationSynchronizedEvent event);
+  void submitFederationSave(ProcessFederationSaveEvent event);
+  void submitFederationRestore(ProcessFederationRestoreEvent event);
 
   // Queue one process-side Time Regulation Enabled callback.  The value may
   // be the selected factory's initial time, which is valid for a role-enable

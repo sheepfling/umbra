@@ -17533,3 +17533,79 @@ python tools/query_rti_work.py focus public-process-register-object-instance-wit
 python tools/query_rti_work.py check --lane public-process-register-object-instance-with-regions-default-region-generated-name --summary --compact
 python tools/query_rti_work_regression.py
 ~~~
+
+### 2026-09-18 bounded segment triage — three local defects isolated without a Lab resync
+
+The post-fix bounded run for CTest registrations **#121–#240** is green
+(120/120). Three failures were resolved without reopening the pinned
+Requirements-Lab export or changing requirement numbering:
+
+* **#203 — fresh-registry Confirm Divestiture suppression:** this was a real
+  Umbra runtime defect. Resignation removed the negotiated acquisition
+  candidate but left its per-attribute assumption-search/tag ledger behind on
+  an owner-retained attribute. The resignation path now clears that stale
+  ledger, so restore keeps only the surviving notification. The existing case
+  remains mapped to the federation-management/ownership/save-restore clauses;
+  it is not a new Lab requirement.
+* **#219 — regional Request Attribute Value Update baseline copy:** this was a
+  test-fixture defect. The copied scenario registered an extra object and then
+  resigned with `NO_ACTION` while still owning it, so the expected success was
+  invalid under the existing 2025 resignation semantics. The stray object was
+  removed from the copy; the RTI behavior was not weakened.
+* **#228 — regional object scope advisory sequence:** this was a scenario
+  expectation defect. Ordinary subscription does not use the default region
+  while an explicit source-region association is still active. The case now
+  unassociates before the ordinary-subscription transition and re-associates
+  before the later explicit-region block, preserving the intended advisory
+  coverage and the existing default-region rule.
+
+These are deliberately recorded as local Umbra consumer/test-harness findings,
+not Requirements-Lab extraction complaints. A future recurrence after this
+entry should be logged separately rather than silently treated as a numbering
+or export revision.
+
+The exact query handles remain stable and keep the work discoverable without a
+source-tree search:
+
+~~~powershell
+python tools/query_rti_work.py case umbra-cpp-public-federation-save-commit-filesystem-process-restart-confirm-divestiture-resignation --summary --compact
+python tools/query_rti_work.py case umbra-cpp-regional-attribute-value-update-request-restored-baseline-integration --summary --compact
+python tools/query_rti_work.py case umbra-cpp-object-attribute-scope-advisory-integration --summary --compact
+ctest --test-dir .build -C Debug -I 203,203,1 --output-on-failure
+ctest --test-dir .build -C Debug -I 219,219,1 --output-on-failure
+ctest --test-dir .build -C Debug -I 228,228,1 --output-on-failure
+ctest --test-dir .build -C Debug -I 121,240,1 --output-on-failure
+~~~
+
+The three case cards retain their direct Requirements-Lab IDs, canonical
+`document:clause` subsections, API surfaces, roadmap owner, and exact CTest
+registration. The #203 and #219 rows now also carry explicit primary/focus lane
+aliases (`public-process-restart-confirm-divestiture-resignation` and
+`regional-request-filtering`), so their cards emit focused `focus`, `check`,
+and exact `ctest` commands instead of falling back to a broad neighboring lane.
+This is the intended query boundary: choose a case or lane first, then inspect
+only its mapped standard slice.
+
+### 2026-09-18 installable-package directed-retraction promotion slice — push-mode fixture sequencing
+
+The installable-package transport gate exposed a local promotion-fixture
+deadlock, not a Requirements-Lab extraction or numbering problem. The public
+directed-retraction consumer uses `HLA_EVOKED` over the probe's push-mode
+process service. Its discovery callback must be drained before sender time
+regulation; ordinary timestamped delivery is still `RECEIVE` order and must not
+wait for a TSO acknowledgement; a pre-delivery retraction does require the
+suppressed-delivery acknowledgement. The fixture had mixed those boundaries,
+so the server waited for requests the public client correctly did not issue.
+
+The probe now follows the actual public callback sequence and keeps the
+positive delivery and pre-delivery suppression acknowledgement paths separate.
+No public API or standards-facing behavior was relaxed, and no Lab resync was
+performed. This is recorded here so a future recurrence is distinguishable
+from a Requirements-Lab revision.
+
+Bounded verification:
+
+~~~powershell
+cmake --build .build --config Debug --target umbra_test_installable_package --parallel 4
+ctest --test-dir .build -C Debug -L installable-package --output-on-failure
+~~~

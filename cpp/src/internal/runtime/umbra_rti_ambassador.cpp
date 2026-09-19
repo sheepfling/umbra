@@ -297,8 +297,10 @@ std::filesystem::path configuredServiceReportDirectory(
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 umbra::detail::FomStandardEdition configuredFomStandardEdition(
     RtiConfiguration const* configuration,
-    bool& settingsApplied) {
+    bool& settingsApplied,
+    bool& settingsFailedToParse) {
   settingsApplied = false;
+  settingsFailedToParse = false;
   if (configuration == nullptr || configuration->additionalSettings().empty()) {
     return umbra::detail::FomStandardEdition::ieee1516_2025;
   }
@@ -322,8 +324,13 @@ umbra::detail::FomStandardEdition configuredFomStandardEdition(
         settingsApplied = true;
         return umbra::detail::FomStandardEdition::ieee1516_2025;
       }
-      throw RTIinternalError(
-          L"Umbra fomEdition must identify exactly IEEE1516-2010 or IEEE1516-2025; ambiguous 202x values are not accepted.");
+      // IEEE 1516.1-2025 §4.2.4 requires Connect to complete even when an
+      // optional additional-settings value cannot be parsed.  Keep the
+      // embedded profile on its default edition and report the parse failure
+      // through ConfigurationResult rather than turning it into a connection
+      // failure.
+      settingsFailedToParse = true;
+      return umbra::detail::FomStandardEdition::ieee1516_2025;
     }
     cursor = settings.find(key, cursor + key.size());
   }
@@ -8373,7 +8380,9 @@ void queueTimestampedObjectInstanceRemoval(
     std::uint64_t messageId,
     VariableLengthData userSuppliedTag,
     std::shared_ptr<LogicalTime const> timestamp,
-    bool provideRetraction) {
+    bool provideRetraction,
+    rti1516_2025::OrderType sentOrderType,
+    rti1516_2025::OrderType receivedOrderType) {
   if (!callbackRoute || !timestamp || messageId == 0) {
     throw RTIinternalError(
         L"The embedded federation has an incomplete timestamped object-removal payload.");
@@ -8390,6 +8399,8 @@ void queueTimestampedObjectInstanceRemoval(
       userSuppliedTag = std::move(userSuppliedTag),
       timestamp = std::move(timestamp),
       provideRetraction,
+      sentOrderType,
+      receivedOrderType,
       serviceReportRoute = std::move(serviceReportRoute)](FederateAmbassador& recipient) mutable {
     std::optional<umbra::detail::RemovedObjectInstanceSnapshot> removal;
     {
@@ -8429,14 +8440,16 @@ void queueTimestampedObjectInstanceRemoval(
               producingFederateId = removal->producingFederateId,
               timestamp,
               messageId,
-              provideRetraction](std::uint32_t serialNumber) {
+              provideRetraction,
+              sentOrderType,
+              receivedOrderType](std::uint32_t serialNumber) {
             return removeObjectInstanceServiceReportRecord(
                 objectInstanceHandle,
                 userSuppliedTag,
                 producingFederateId,
-                TIMESTAMP,
+                sentOrderType,
                 timestamp.get(),
-                RECEIVE,
+                receivedOrderType,
                 provideRetraction
                     ? std::optional<std::uint64_t>{messageId}
                     : std::nullopt,
@@ -8453,8 +8466,8 @@ void queueTimestampedObjectInstanceRemoval(
         userSuppliedTag,
         makeFederateHandle(removal->producingFederateId),
         *timestamp,
-        TIMESTAMP,
-        RECEIVE,
+        sentOrderType,
+        receivedOrderType,
         retraction ? &*retraction : nullptr);
   });
 }
@@ -9631,12 +9644,14 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
 
   bool settingsApplied = false;
   bool fomEditionSettingsApplied = false;
+  bool fomEditionSettingsFailedToParse = false;
   std::unique_ptr<umbra::detail::ServiceReportStore> serviceReportStore;
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   auto processEndpoint = configuredProcessEndpoint(configuration);
   auto const configuredFomEdition = configuredFomStandardEdition(
       configuration,
-      fomEditionSettingsApplied);
+      fomEditionSettingsApplied,
+      fomEditionSettingsFailedToParse);
   // The factory-created runtime always takes the filesystem path. An
   // explicitly constructed internal federation-management test ambassador
   // may instead supply its deterministic store; that construction path is not
@@ -9664,14 +9679,24 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
   // Construct the truthful result before mutating lifecycle state so a failed
   // allocation cannot leave a partially established connection behind.
   ConfigurationResult result = ignoredConfigurationResult();
+  auto const additionalSettingsResult =
+      fomEditionSettingsFailedToParse
+          ? SETTINGS_FAILED_TO_PARSE
+          : (settingsApplied || fomEditionSettingsApplied)
+                ? SETTINGS_APPLIED
+                : SETTINGS_IGNORED;
   if (processEndpoint) {
     result = ConfigurationResult(
         true,
         true,
-        (settingsApplied || fomEditionSettingsApplied)
-            ? SETTINGS_APPLIED
-            : SETTINGS_IGNORED,
+        additionalSettingsResult,
         L"Umbra selected the configured private process endpoint; its public service mapping is still being completed.");
+  } else if (fomEditionSettingsFailedToParse) {
+    result = ConfigurationResult(
+        false,
+        false,
+        SETTINGS_FAILED_TO_PARSE,
+        L"Umbra could not parse an optional additional-settings value; the default embedded configuration was used.");
   } else if (settingsApplied || fomEditionSettingsApplied) {
     result = ConfigurationResult(
         true, false, SETTINGS_APPLIED,
@@ -10035,6 +10060,16 @@ void UmbraRtiAmbassador::pumpProcessReceiveOrder(bool drainAll) {
           processClient->dispatchPushedAttributeTransportationTypeQuery();
           delivered = true;
         }
+        while (processClient->pendingPushedInteractionTransportationTypeChangeCount() !=
+               0U) {
+          processClient->dispatchPushedInteractionTransportationTypeChange();
+          delivered = true;
+        }
+        while (processClient->pendingPushedInteractionTransportationTypeQueryCount() !=
+               0U) {
+          processClient->dispatchPushedInteractionTransportationTypeQuery();
+          delivered = true;
+        }
         while (processClient->pendingPushedAttributeUpdateCount() != 0U) {
           processClient->dispatchPushedAttributeUpdate();
           delivered = true;
@@ -10063,6 +10098,23 @@ void UmbraRtiAmbassador::pumpProcessReceiveOrder(bool drainAll) {
         while (processClient->pendingPushedAttributeOwnershipUnavailableCount() !=
                0U) {
           processClient->dispatchPushedAttributeOwnershipUnavailable();
+          delivered = true;
+        }
+        while (processClient->pendingPushedSynchronizationPointAnnouncementCount() !=
+               0U) {
+          processClient->dispatchPushedSynchronizationPointAnnouncement();
+          delivered = true;
+        }
+        while (processClient->pendingPushedFederationSynchronizedCount() != 0U) {
+          processClient->dispatchPushedFederationSynchronized();
+          delivered = true;
+        }
+        while (processClient->pendingPushedFederationSaveCount() != 0U) {
+          processClient->dispatchPushedFederationSave();
+          delivered = true;
+        }
+        while (processClient->pendingPushedFederationRestoreCount() != 0U) {
+          processClient->dispatchPushedFederationRestore();
           delivered = true;
         }
         while (processClient->pendingPushedTimeAdvanceGrantCount() != 0U) {
@@ -11863,6 +11915,108 @@ void UmbraRtiAmbassador::registerFederationSynchronizationPointImpl(
     requestedFederateIds.insert(*federateId);
   }
 
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Register Federation Synchronization Point requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->registerFederationSynchronizationPoint(
+          federationName,
+          federateId,
+          synchronizationPointLabel,
+          std::move(copiedTag),
+          std::vector<std::uint64_t>(
+              requestedFederateIds.begin(), requestedFederateIds.end()),
+          synchronizationSetWasSupplied);
+      switch (result.status) {
+        case umbra::detail::ProcessFederationSynchronizationPointRegistrationStatus::
+            applied:
+          break;
+        case umbra::detail::ProcessFederationSynchronizationPointRegistrationStatus::
+            federation_does_not_exist:
+        case umbra::detail::ProcessFederationSynchronizationPointRegistrationStatus::
+            federate_not_member:
+          throw FederateNotExecutionMember(
+              L"The process federation no longer records this RTI ambassador as a member.");
+        case umbra::detail::ProcessFederationSynchronizationPointRegistrationStatus::
+            callback_route_missing:
+          throw RTIinternalError(
+              L"The process federation has no callback route for synchronization-point registration.");
+      }
+      if (result.succeeded) {
+        processClient->dispatchSynchronizationPointRegistrationSucceeded(
+            synchronizationPointLabel);
+      } else {
+        processClient->dispatchSynchronizationPointRegistrationFailed(
+            synchronizationPointLabel,
+            result.failureReason);
+      }
+      if (joinedServiceReport_) {
+      appendSuccessfulVoidServiceReportToFileIfSelected(
+          L"RegisterFederationSynchronizationPoint",
+          umbra::detail::MomServiceType::federation_management,
+          {{umbra::detail::MomArgumentType::string,
+            L"Synchronization point label",
+            umbra::detail::formatMomString(synchronizationPointLabel)},
+           {umbra::detail::MomArgumentType::table_5_user_supplied_tag,
+            L"User-supplied tag",
+            reportUserSuppliedTag},
+           {synchronizationSetWasSupplied
+                ? umbra::detail::MomArgumentType::federate_handle_set
+                : umbra::detail::MomArgumentType::null_value,
+            L"Optional set of joined federate designators",
+            synchronizationSetWasSupplied
+                ? umbra::detail::formatMomFederateHandleSet(synchronizationSet)
+                : umbra::detail::formatMomNull()}},
+          true);
+      appendSuccessfulVoidServiceReportToFileIfSelected(
+          L"ConfirmSynchronizationPointRegistration",
+          umbra::detail::MomServiceType::federation_management,
+          {{umbra::detail::MomArgumentType::string,
+            L"Synchronization point label",
+            umbra::detail::formatMomString(synchronizationPointLabel)},
+           {umbra::detail::MomArgumentType::boolean,
+            L"Registration-success indicator",
+            umbra::detail::formatMomBoolean(result.succeeded)},
+           {result.succeeded
+                ? umbra::detail::MomArgumentType::null_value
+                : umbra::detail::MomArgumentType::synchronization_point_failure_reason,
+            L"Optional failure reason",
+            result.succeeded
+                ? umbra::detail::formatMomNull()
+                : umbra::detail::formatMomSynchronizationPointFailureReason(
+                      result.failureReason)}},
+          true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
+
   umbra::detail::SynchronizationPointRegistrationPlan plan;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
@@ -11946,6 +12100,71 @@ void UmbraRtiAmbassador::synchronizationPointAchieved(
     bool successfully) {
   auto instrumentationScope = beginRtiCall("synchronizationPointAchieved");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Synchronization Point Achieved requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->synchronizationPointAchieved(
+          federationName,
+          federateId,
+          synchronizationPointLabel,
+          successfully);
+      switch (result.status) {
+        case umbra::detail::ProcessFederationSynchronizationPointAchievedStatus::
+            applied:
+          break;
+        case umbra::detail::ProcessFederationSynchronizationPointAchievedStatus::
+            federation_does_not_exist:
+        case umbra::detail::ProcessFederationSynchronizationPointAchievedStatus::
+            federate_not_member:
+          throw FederateNotExecutionMember(
+              L"The process federation no longer records this RTI ambassador as a member.");
+        case umbra::detail::ProcessFederationSynchronizationPointAchievedStatus::
+            synchronization_point_label_not_announced:
+          throw SynchronizationPointLabelNotAnnounced(
+              L"The supplied synchronization-point label has not been announced to this federate.");
+      }
+      if (joinedServiceReport_) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"SynchronizationPointAchieved",
+            umbra::detail::MomServiceType::federation_management,
+            {{umbra::detail::MomArgumentType::string,
+              L"Synchronization point label",
+              umbra::detail::formatMomString(synchronizationPointLabel)},
+             {umbra::detail::MomArgumentType::boolean,
+              L"Optional synchronization-success indicator",
+              umbra::detail::formatMomBoolean(successfully)}},
+            true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
   umbra::detail::SynchronizationPointAchievedPlan plan;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
@@ -11999,6 +12218,60 @@ void UmbraRtiAmbassador::synchronizationPointAchieved(
 void UmbraRtiAmbassador::requestFederationSave(std::wstring const& label) {
   auto instrumentationScope = beginRtiCall("requestFederationSave");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Request Federation Save requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->requestFederationSave(
+          federationName, federateId, label);
+      if (result.status !=
+          umbra::detail::FederationSaveControlStatus::applied) {
+        throwFederationSaveServiceFailure(
+            result.status,
+            L"Request Federation Save",
+            FederationSaveServiceFailure::request);
+      }
+      if (joinedServiceReport_) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"RequestFederationSave",
+            umbra::detail::MomServiceType::federation_management,
+            {{umbra::detail::MomArgumentType::string,
+              L"Federation save label",
+              umbra::detail::formatMomString(label)},
+             {umbra::detail::MomArgumentType::null_value,
+              L"Optional timestamp",
+              umbra::detail::formatMomNull()}},
+            true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
   std::vector<umbra::detail::FederationSaveNotification> notifications;
   std::wstring federationName;
   {
@@ -12057,6 +12330,74 @@ void UmbraRtiAmbassador::requestFederationSave(
     LogicalTime const& time) {
   auto instrumentationScope = beginRtiCall("requestFederationSave");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    std::wstring processImplementationName;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_ ||
+          !processLogicalTimeImplementationName_) {
+        throw FederateNotExecutionMember(
+            L"Request Federation Save with a timestamp requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+      processImplementationName = *processLogicalTimeImplementationName_;
+    }
+
+    try {
+      auto timestamp = cloneReferenceLogicalTime(processImplementationName, time);
+      if (timestamp->isInitial() || timestamp->isFinal()) {
+        throw InvalidLogicalTime(
+            L"A timestamped service requires a finite logical timestamp.");
+      }
+      auto const result = processClient->requestFederationSave(
+          federationName,
+          federateId,
+          label,
+          umbra::detail::ProcessFederationLogicalTime{
+              timestamp->implementationName(),
+              copyVariableLengthDataBytes(timestamp->encode())});
+      if (result.status !=
+          umbra::detail::FederationSaveControlStatus::applied) {
+        throwFederationSaveServiceFailure(
+            result.status,
+            L"Request Federation Save",
+            FederationSaveServiceFailure::request);
+      }
+      if (joinedServiceReport_) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"RequestFederationSave",
+            umbra::detail::MomServiceType::federation_management,
+            {{umbra::detail::MomArgumentType::string,
+              L"Federation save label",
+              umbra::detail::formatMomString(label)},
+             {umbra::detail::MomArgumentType::logical_time,
+              L"Optional timestamp",
+              umbra::detail::formatMomLogicalTime(*timestamp)}},
+            true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
   std::shared_ptr<umbra::detail::FederateTimeState> timeState;
   std::wstring federationName;
   std::uint64_t federateId = 0;
@@ -12225,6 +12566,55 @@ void UmbraRtiAmbassador::requestFederationSave(
 void UmbraRtiAmbassador::federateSaveBegun() {
   auto instrumentationScope = beginRtiCall("federateSaveBegun");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Federate Save Begun requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->federateSaveBegun(
+          federationName, federateId);
+      if (result.status !=
+          umbra::detail::FederationSaveControlStatus::applied) {
+        throwFederationSaveServiceFailure(
+            result.status,
+            L"Federate Save Begun",
+            FederationSaveServiceFailure::begun);
+      }
+      if (joinedServiceReport_) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"FederateSaveBegun",
+            umbra::detail::MomServiceType::federation_management,
+            {},
+            true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
   std::wstring federationName;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
@@ -12263,6 +12653,57 @@ void UmbraRtiAmbassador::federateSaveBegun() {
 void UmbraRtiAmbassador::federateSaveComplete() {
   auto instrumentationScope = beginRtiCall("federateSaveComplete");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Federate Save Complete requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->federateSaveComplete(
+          federationName, federateId);
+      if (result.status !=
+          umbra::detail::FederationSaveControlStatus::applied) {
+        throwFederationSaveServiceFailure(
+            result.status,
+            L"Federate Save Complete",
+            FederationSaveServiceFailure::completion);
+      }
+      if (joinedServiceReport_) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"FederateSaveComplete",
+            umbra::detail::MomServiceType::federation_management,
+            {{umbra::detail::MomArgumentType::boolean,
+              L"Federate save-success indicator",
+              umbra::detail::formatMomBoolean(true)}},
+            true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
   std::vector<umbra::detail::FederationSaveNotification> notifications;
   std::wstring federationName;
   bool saveCompletedSuccessfully = false;
@@ -12316,6 +12757,57 @@ void UmbraRtiAmbassador::federateSaveComplete() {
 void UmbraRtiAmbassador::federateSaveNotComplete() {
   auto instrumentationScope = beginRtiCall("federateSaveNotComplete");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Federate Save Not Complete requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->federateSaveNotComplete(
+          federationName, federateId);
+      if (result.status !=
+          umbra::detail::FederationSaveControlStatus::applied) {
+        throwFederationSaveServiceFailure(
+            result.status,
+            L"Federate Save Not Complete",
+            FederationSaveServiceFailure::completion);
+      }
+      if (joinedServiceReport_) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"FederateSaveComplete",
+            umbra::detail::MomServiceType::federation_management,
+            {{umbra::detail::MomArgumentType::boolean,
+              L"Federate save-success indicator",
+              umbra::detail::formatMomBoolean(false)}},
+            true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
   std::vector<umbra::detail::FederationSaveNotification> notifications;
   std::wstring federationName;
   {
@@ -12360,6 +12852,55 @@ void UmbraRtiAmbassador::federateSaveNotComplete() {
 void UmbraRtiAmbassador::abortFederationSave() {
   auto instrumentationScope = beginRtiCall("abortFederationSave");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Abort Federation Save requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->abortFederationSave(
+          federationName, federateId);
+      if (result.status !=
+          umbra::detail::FederationSaveControlStatus::applied) {
+        throwFederationSaveServiceFailure(
+            result.status,
+            L"Abort Federation Save",
+            FederationSaveServiceFailure::abort);
+      }
+      if (joinedServiceReport_) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"AbortFederationSave",
+            umbra::detail::MomServiceType::federation_management,
+            {},
+            true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
   std::vector<umbra::detail::FederationSaveNotification> notifications;
   std::wstring federationName;
   {
@@ -12403,6 +12944,55 @@ void UmbraRtiAmbassador::abortFederationSave() {
 void UmbraRtiAmbassador::queryFederationSaveStatus() {
   auto instrumentationScope = beginRtiCall("queryFederationSaveStatus");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Query Federation Save Status requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->queryFederationSaveStatus(
+          federationName, federateId);
+      if (result.status !=
+          umbra::detail::FederationSaveControlStatus::applied) {
+        throwFederationSaveServiceFailure(
+            result.status,
+            L"Query Federation Save Status",
+            FederationSaveServiceFailure::query);
+      }
+      if (joinedServiceReport_) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"QueryFederationSaveStatus",
+            umbra::detail::MomServiceType::federation_management,
+            {},
+            true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
   std::vector<umbra::detail::FederationSaveNotification> notifications;
   std::wstring federationName;
   {
@@ -12447,6 +13037,61 @@ void UmbraRtiAmbassador::queryFederationSaveStatus() {
 void UmbraRtiAmbassador::requestFederationRestore(std::wstring const& label) {
   auto instrumentationScope = beginRtiCall("requestFederationRestore");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Request Federation Restore requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->requestFederationRestore(
+          federationName, federateId, label);
+      if (result.status !=
+              umbra::detail::FederationRestoreControlStatus::applied &&
+          result.status !=
+              umbra::detail::FederationRestoreControlStatus::snapshot_not_found &&
+          result.status !=
+              umbra::detail::FederationRestoreControlStatus::membership_mismatch) {
+        throwFederationRestoreServiceFailure(
+            result.status,
+            L"Request Federation Restore",
+            FederationRestoreServiceFailure::request);
+      }
+      if (joinedServiceReport_) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"RequestFederationRestore",
+            umbra::detail::MomServiceType::federation_management,
+            {{umbra::detail::MomArgumentType::string,
+              L"Federation save label",
+              umbra::detail::formatMomString(label)}},
+            true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
   std::vector<umbra::detail::FederationRestoreNotification> notifications;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
@@ -12495,6 +13140,60 @@ void UmbraRtiAmbassador::requestFederationRestore(std::wstring const& label) {
 void UmbraRtiAmbassador::federateRestoreComplete() {
   auto instrumentationScope = beginRtiCall("federateRestoreComplete");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Federate Restore Complete requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->federateRestoreComplete(
+          federationName, federateId, callbacks_->isEnabled());
+      if (result.status !=
+          umbra::detail::FederationRestoreControlStatus::applied) {
+        throwFederationRestoreServiceFailure(
+            result.status,
+            L"Federate Restore Complete",
+            FederationRestoreServiceFailure::completion);
+      }
+      // The first process restore-control slice transports the lifecycle
+      // notifications. Rebinding ownership/time work items remains a
+      // separate card; this branch never silently fabricates those payloads.
+      if (joinedServiceReport_) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"FederateRestoreComplete",
+            umbra::detail::MomServiceType::federation_management,
+            {{umbra::detail::MomArgumentType::boolean,
+              L"Federate restore-success indicator",
+              umbra::detail::formatMomBoolean(true)}},
+            true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
   std::vector<umbra::detail::FederationRestoreNotification> notifications;
   std::vector<umbra::detail::FederationTimeGrantDispatch> timeAdvanceGrantDispatches;
   std::vector<umbra::detail::FederationTimeGrantDispatch> timeRoleEnableDispatches;
@@ -12709,6 +13408,57 @@ void UmbraRtiAmbassador::federateRestoreComplete() {
 void UmbraRtiAmbassador::federateRestoreNotComplete() {
   auto instrumentationScope = beginRtiCall("federateRestoreNotComplete");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Federate Restore Not Complete requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->federateRestoreNotComplete(
+          federationName, federateId);
+      if (result.status !=
+          umbra::detail::FederationRestoreControlStatus::applied) {
+        throwFederationRestoreServiceFailure(
+            result.status,
+            L"Federate Restore Not Complete",
+            FederationRestoreServiceFailure::completion);
+      }
+      if (joinedServiceReport_) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"FederateRestoreComplete",
+            umbra::detail::MomServiceType::federation_management,
+            {{umbra::detail::MomArgumentType::boolean,
+              L"Federate restore-success indicator",
+              umbra::detail::formatMomBoolean(false)}},
+            true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
   std::vector<umbra::detail::FederationRestoreNotification> notifications;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
@@ -12752,6 +13502,55 @@ void UmbraRtiAmbassador::federateRestoreNotComplete() {
 void UmbraRtiAmbassador::abortFederationRestore() {
   auto instrumentationScope = beginRtiCall("abortFederationRestore");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Abort Federation Restore requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->abortFederationRestore(
+          federationName, federateId);
+      if (result.status !=
+          umbra::detail::FederationRestoreControlStatus::applied) {
+        throwFederationRestoreServiceFailure(
+            result.status,
+            L"Abort Federation Restore",
+            FederationRestoreServiceFailure::abort);
+      }
+      if (joinedServiceReport_) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"AbortFederationRestore",
+            umbra::detail::MomServiceType::federation_management,
+            {},
+            true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
   std::vector<umbra::detail::FederationRestoreNotification> notifications;
   std::wstring federationName;
   {
@@ -12797,6 +13596,55 @@ void UmbraRtiAmbassador::abortFederationRestore() {
 void UmbraRtiAmbassador::queryFederationRestoreStatus() {
   auto instrumentationScope = beginRtiCall("queryFederationRestoreStatus");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Query Federation Restore Status requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->queryFederationRestoreStatus(
+          federationName, federateId);
+      if (result.status !=
+          umbra::detail::FederationRestoreControlStatus::applied) {
+        throwFederationRestoreServiceFailure(
+            result.status,
+            L"Query Federation Restore Status",
+            FederationRestoreServiceFailure::query);
+      }
+      if (joinedServiceReport_) {
+        appendSuccessfulVoidServiceReportToFileIfSelected(
+            L"QueryFederationRestoreStatus",
+            umbra::detail::MomServiceType::federation_management,
+            {},
+            true);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
   std::vector<umbra::detail::FederationRestoreNotification> notifications;
   std::wstring federationName;
   {
@@ -13107,7 +13955,10 @@ ObjectClassHandle UmbraRtiAmbassador::getObjectClassHandle(
     std::optional<std::uint64_t> handle;
     try {
       handle = processClient->lookupObjectClassHandle(
-          federationName, federateId, objectClassName);
+          federationName,
+          federateId,
+          objectClassName,
+          callbacks_->isEnabled());
     } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
       throw RTIinternalError(wideAscii(error.what()));
     } catch (umbra::detail::ProcessFederationClientError const& error) {
@@ -14546,6 +15397,46 @@ void UmbraRtiAmbassador::releaseObjectInstanceName(
     std::wstring const& objectInstanceName) {
   auto instrumentationScope = beginRtiCall("releaseObjectInstanceName");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Release Object Instance Name requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (processClient == nullptr) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+
+    umbra::detail::ProcessFederationObjectInstanceNameReleaseResult result;
+    try {
+      result = processClient->releaseObjectInstanceName(
+          std::move(federationName), federateId, objectInstanceName);
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    if (result.status !=
+        umbra::detail::ObjectInstanceNameReservationStatus::applied) {
+      throwObjectInstanceNameReservationFailure(
+          result.status,
+          L"Release Object Instance Name");
+    }
+    return;
+  }
+#endif
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -14597,6 +15488,77 @@ void UmbraRtiAmbassador::reserveMultipleObjectInstanceNames(
     std::set<std::wstring> const& objectInstanceNames) {
   auto instrumentationScope = beginRtiCall("reserveMultipleObjectInstanceNames");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Reserve Multiple Object Instance Names requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (processClient == nullptr) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+
+    umbra::detail::ProcessFederationReserveMultipleObjectInstanceNamesResult result;
+    try {
+      result = processClient->reserveMultipleObjectInstanceNames(
+          std::move(federationName), federateId, objectInstanceNames);
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    if (result.status !=
+        umbra::detail::ObjectInstanceNameReservationStatus::applied) {
+      throwObjectInstanceNameReservationFailure(
+          result.status,
+          L"Reserve Multiple Object Instance Names");
+    }
+    auto callbackSession = callbackSession_;
+    if (!callbackSession) {
+      throw RTIinternalError(
+          L"The process endpoint has no federate ambassador callback recipient.");
+    }
+    // Process-endpoint joins do not install a local embedded service-report
+    // route; keep this branch aligned with the existing single-name process
+    // service and let the process service own its reporting boundary.
+    if (!result.succeededNames.empty()) {
+      callbacks_->submit([
+          callbackSession,
+          succeededNames = std::move(result.succeededNames)]() mutable {
+        callbackSession->invoke([
+            succeededNames = std::move(succeededNames)](
+            FederateAmbassador& recipient) mutable {
+          recipient.multipleObjectInstanceNameReservationSucceeded(
+              succeededNames);
+        });
+      });
+    }
+    if (!result.failedNames.empty()) {
+      callbacks_->submit([
+          callbackSession,
+          failedNames = std::move(result.failedNames)]() mutable {
+        callbackSession->invoke([
+            failedNames = std::move(failedNames)](
+            FederateAmbassador& recipient) mutable {
+          recipient.multipleObjectInstanceNameReservationFailed(failedNames);
+        });
+      });
+    }
+    return;
+  }
+#endif
   std::wstring federationName;
   std::uint64_t federateId = 0;
   umbra::detail::MultipleObjectInstanceNameReservationResult result;
@@ -14673,6 +15635,46 @@ void UmbraRtiAmbassador::releaseMultipleObjectInstanceNames(
     std::set<std::wstring> const& objectInstanceNames) {
   auto instrumentationScope = beginRtiCall("releaseMultipleObjectInstanceNames");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Release Multiple Object Instance Names requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (processClient == nullptr) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+
+    umbra::detail::ProcessFederationReleaseMultipleObjectInstanceNamesResult result;
+    try {
+      result = processClient->releaseMultipleObjectInstanceNames(
+          std::move(federationName), federateId, objectInstanceNames);
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    if (result.status !=
+        umbra::detail::ObjectInstanceNameReservationStatus::applied) {
+      throwObjectInstanceNameReservationFailure(
+          result.status,
+          L"Release Multiple Object Instance Names");
+    }
+    return;
+  }
+#endif
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
@@ -15884,8 +16886,9 @@ void UmbraRtiAmbassador::deleteObjectInstance(
       throw ObjectInstanceNotKnown(
           L"Delete Object Instance requires a known ObjectInstanceHandle.");
     }
+    umbra::detail::ProcessFederationDeleteObjectInstanceResult result;
     try {
-      auto const result = processClient->deleteObjectInstance(
+      result = processClient->deleteObjectInstance(
           std::move(federationName),
           deletingFederateId,
           *objectInstanceValue,
@@ -15983,10 +16986,9 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
   auto instrumentationScope = beginRtiCall("deleteObjectInstance");
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   // The configured process endpoint carries timestamp preservation and
-  // callback reconstruction. This legacy object-deletion branch still does
-  // not project its process message identity as a public
-  // MessageRetractionHandle; keep that return-handle work as a separately
-  // mapped temporal slice rather than fabricating an identity here.
+  // callback reconstruction. Its execution-owned message identity is the
+  // same identity used by the process Retract service, so project it through
+  // the official return type instead of discarding the accepted designator.
   if (processEndpointActive_) {
     std::wstring federationName;
     std::uint64_t deletingFederateId = 0U;
@@ -16025,8 +17027,9 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
       processTimestampBytes.assign(data, data + encodedTimestamp.size());
     }
 
+    umbra::detail::ProcessFederationDeleteObjectInstanceResult result;
     try {
-      auto const result = processClient->deleteObjectInstance(
+      result = processClient->deleteObjectInstance(
           std::move(federationName),
           deletingFederateId,
           *objectInstanceValue,
@@ -16063,7 +17066,10 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
     } catch (umbra::detail::ProcessFederationClientError const& error) {
       throw RTIinternalError(wideAscii(error.what()));
     }
-    return MessageRetractionHandle();
+    if (result.messageId == 0U) {
+      return MessageRetractionHandle();
+    }
+    return makeMessageRetractionHandle(result.messageId);
   }
 #endif
   try {
@@ -16100,6 +17106,8 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
   std::wstring federationName;
   std::uint64_t producingFederateId = 0;
   std::vector<std::uint64_t> tsoRecipientIds;
+  rti1516_2025::OrderType deletionSentOrderType = rti1516_2025::RECEIVE;
+  bool provideRetraction = false;
   umbra::detail::FederationTsoObjectDeletionEnqueueResult enqueueResult;
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
@@ -16125,9 +17133,13 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
     if (plan.status != umbra::detail::ObjectInstanceDeletionStatus::applied) {
       throwObjectInstanceDeletionFailure(plan.status);
     }
+    deletionSentOrderType = plan.preferredOrderType;
+    provideRetraction =
+        timeSnapshot.timeRegulating &&
+        plan.preferredOrderType == rti1516_2025::TIMESTAMP;
 
     std::set<std::uint64_t> timeConstrainedRecipients;
-    if (timeSnapshot.timeRegulating) {
+    if (provideRetraction) {
       auto const federationSnapshot = registry.timeSnapshotFor(federationName);
       if (!federationSnapshot) {
         throw RTIinternalError(
@@ -16140,7 +17152,7 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
       }
     }
     for (auto const& recipient : plan.recipients) {
-      if (timeSnapshot.timeRegulating &&
+      if (provideRetraction &&
           timeConstrainedRecipients.contains(recipient.receivingFederateId)) {
         tsoRecipientIds.push_back(recipient.receivingFederateId);
       }
@@ -16151,6 +17163,7 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
     message.objectInstanceHandle = *objectInstanceHandle;
     message.userSuppliedTag = copiedTag;
     message.timestamp = std::shared_ptr<LogicalTime const>(timestamp);
+    message.sentOrderType = plan.preferredOrderType;
     enqueueResult = registry.enqueueTsoObjectDeletion(
         federationName,
         producingFederateId,
@@ -16196,7 +17209,7 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
       umbra::detail::MomArgumentType::null_value,
       L"",
       umbra::detail::formatMomNull()};
-  if (timeSnapshot.timeRegulating) {
+  if (provideRetraction) {
     returnedArgument = {
         umbra::detail::MomArgumentType::message_retraction_handle,
         L"Message retraction designator",
@@ -16224,10 +17237,12 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
         enqueueResult.messageId,
         copiedTag,
         std::shared_ptr<LogicalTime const>(timestamp),
-        timeSnapshot.timeRegulating);
+        provideRetraction,
+        deletionSentOrderType,
+        rti1516_2025::RECEIVE);
   }
 
-  if (!timeSnapshot.timeRegulating) {
+  if (!provideRetraction) {
     return MessageRetractionHandle();
   }
   return makeMessageRetractionHandle(enqueueResult.messageId);
@@ -18884,7 +19899,8 @@ void UmbraRtiAmbassador::unconditionalAttributeOwnershipDivestiture(
           std::vector<std::uint64_t>(
               attributeHandlesResult->begin(),
               attributeHandlesResult->end()),
-          copyVariableLengthDataBytes(userSuppliedTag));
+          copyVariableLengthDataBytes(userSuppliedTag),
+          callbacks_->isEnabled());
       if (!result.value) {
         throw RTIinternalError(
             L"The process endpoint did not accept Unconditional Attribute Ownership Divestiture.");
@@ -27372,8 +28388,6 @@ void UmbraRtiAmbassador::requestAttributeTransportationTypeChange(
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
-    requireFederationServiceOperationAvailable(
-        L"Request Attribute Transportation Type Change");
   }
   auto const objectInstanceValue = objectInstanceHandleValue(objectInstance);
   if (!objectInstanceValue) {
@@ -27445,11 +28459,6 @@ void UmbraRtiAmbassador::requestAttributeTransportationTypeChange(
     } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
       throw RTIinternalError(wideAscii(error.what()));
     }
-    appendSuccessfulVoidServiceReportToFileIfSelected(
-        L"RequestAttributeTransportationTypeChange",
-        umbra::detail::MomServiceType::object_management,
-        reportArguments,
-        true);
     return;
   }
 #endif
@@ -27669,7 +28678,6 @@ void UmbraRtiAmbassador::queryAttributeTransportationType(
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
-    requireFederationServiceOperationAvailable(L"Query Attribute Transportation Type");
   }
   auto const objectInstanceValue = objectInstanceHandleValue(objectInstance);
   if (!objectInstanceValue) {
@@ -27732,11 +28740,6 @@ void UmbraRtiAmbassador::queryAttributeTransportationType(
     } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
       throw RTIinternalError(wideAscii(error.what()));
     }
-    appendSuccessfulVoidServiceReportToFileIfSelected(
-        L"QueryAttributeTransportationType",
-        umbra::detail::MomServiceType::object_management,
-        reportArguments,
-        true);
     return;
   }
 #endif
@@ -27802,8 +28805,6 @@ void UmbraRtiAmbassador::requestInteractionTransportationTypeChange(
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
-    requireFederationServiceOperationAvailable(
-        L"Request Interaction Transportation Type Change");
   }
   auto const interactionClassValue = interactionClassHandleValue(interactionClass);
   if (!interactionClassValue) {
@@ -27826,6 +28827,49 @@ void UmbraRtiAmbassador::requestInteractionTransportationTypeChange(
        L"Transportation type",
        umbra::detail::formatMomTransportationTypeHandle(transportationType)},
   };
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t requestingFederateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Request Interaction Transportation Type Change requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      requestingFederateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->requestInteractionTransportationTypeChange(
+          std::move(federationName),
+          requestingFederateId,
+          *interactionClassValue,
+          *transportationTypeHandleValue(transportationType));
+      if (result.status !=
+          umbra::detail::InteractionTransportationTypeChangeStatus::applied) {
+        throwInteractionTransportationTypeChangeFailure(result.status);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
 
   std::wstring federationName;
   std::uint64_t requestingFederateId = 0;
@@ -27895,8 +28939,6 @@ void UmbraRtiAmbassador::queryInteractionTransportationType(
   {
     std::scoped_lock lock(mutex_, federationManagementMutex());
     requireConnected(lifecycle_);
-    requireFederationServiceOperationAvailable(
-        L"Query Interaction Transportation Type");
   }
   auto const queriedFederateId = federateHandleValue(federate);
   if (!queriedFederateId) {
@@ -27919,6 +28961,49 @@ void UmbraRtiAmbassador::queryInteractionTransportationType(
        L"Interaction class designator",
        umbra::detail::formatMomInteractionClassHandle(interactionClass)},
   };
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t requestingFederateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnected(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Query Interaction Transportation Type requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (!processClient) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      requestingFederateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->queryInteractionTransportationType(
+          std::move(federationName),
+          requestingFederateId,
+          *queriedFederateId,
+          *interactionClassValue);
+      if (result.status !=
+          umbra::detail::InteractionTransportationTypeQueryStatus::applied) {
+        throwInteractionTransportationTypeQueryFailure(result.status);
+      }
+      processClient->dispatchPendingPushedEvents();
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    return;
+  }
+#endif
 
   std::wstring federationName;
   std::uint64_t requestingFederateId = 0;
