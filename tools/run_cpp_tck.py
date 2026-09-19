@@ -881,6 +881,8 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "cpp-tck.logical-time-factory-factory-contract",
     "java-tck.federation-membership",
     "cpp-tck.federation-lifecycle-contract",
+    "cpp-tck.unnamed-join-overload",
+    "cpp-tck.unnamed-join-overload-contract",
     "cpp-tck.automatic-resign-directive-delete-objects",
     "cpp-tck.automatic-resign-directive-delete-objects-contract",
     "cpp-tck.mom-transportation-type-change-request",
