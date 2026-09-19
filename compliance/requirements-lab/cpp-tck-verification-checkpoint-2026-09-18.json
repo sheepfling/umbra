@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-factory-discovery-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-logical-time-factory-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2578,6 +2578,21 @@
         ".build/cpp-tck-full-promoted-2026-09-18/factory-discovery-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-factory.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-factory.xml"
+      ]
+    },
+    {
+      "name": "logical-time-factory",
+      "scenario_ids": [
+        "java-tck.logical-time-factory"
+      ],
+      "cases": 2,
+      "passed": 2,
+      "verification": "Focused installed-package direct runner across evoked and immediate callback models; the Java-parity logical-time factory scenario passed 2/2 and was included in the complete 702-scenario promoted evidence run.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/logical-time-factory-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/logical-time-factory-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-logical-time-factory.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-logical-time-factory.xml"
       ]
     }
   ],

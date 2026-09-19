@@ -3989,7 +3989,7 @@
         "get-time-factory-api-contract.json",
         "logical-time-encoding-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioLogicalTimeFactory",
+      "cpp_test": "src/portable_tck.cpp#scenarioLogicalTimeFactoryPortable",
       "runner_id": "java-tck.logical-time-factory",
       "default_status": "adapter-required",
       "promotion": "promoted"

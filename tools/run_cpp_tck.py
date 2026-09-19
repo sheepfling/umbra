@@ -875,6 +875,7 @@ PUBLIC_HANDLE_DECODING_SCENARIOS = (
 PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "java-tck.factory-discovery",
     "cpp-tck.rti-ambassador-factory-contract",
+    "java-tck.logical-time-factory",
     "cpp-tck.variable-length-data-contract",
     "cpp-tck.logical-time-contract",
     "cpp-tck.logical-time-factory-factory-contract",

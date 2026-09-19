@@ -7,6 +7,7 @@ namespace {
 constexpr char factoryDiscoveryScenario[] = "java-tck.factory-discovery";
 constexpr char rtiAmbassadorFactoryContractScenario[] =
     "cpp-tck.rti-ambassador-factory-contract";
+constexpr char logicalTimeFactoryScenario[] = "java-tck.logical-time-factory";
 constexpr char variableLengthDataContractScenario[] =
     "cpp-tck.variable-length-data-contract";
 constexpr char logicalTimeContractScenario[] =
@@ -268,6 +269,182 @@ void scenarioRTIambassadorFactoryPortableContract(
   require(
       static_cast<bool>(secondAmbassador),
       "RTIambassadorFactory was not reusable for a second standard RTIambassador");
+}
+
+void scenarioLogicalTimeFactoryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session session(options, model, "time");
+  requireException(
+      [&] { static_cast<void>(session.rtiAmbassador().getTimeFactory()); },
+      L"NotConnected",
+      "getting the logical-time factory before connect");
+  session.connect();
+  requireException(
+      [&] { static_cast<void>(session.rtiAmbassador().getTimeFactory()); },
+      L"FederateNotExecutionMember",
+      "getting the logical-time factory before joining");
+  auto const federation = federationName(options, "logical-time-factory");
+  session.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  session.join(options.ownerFederateName, options.federateType, federation);
+
+  auto time = makeTimeContext(session);
+  verifyReferenceTimeTypes();
+  verifyLogicalTimeDataElements(session, time);
+  require(
+      time.factory->getName() == time.initial->implementationName(),
+      "logical-time factory name did not match the returned logical-time implementation");
+
+  auto const initialEncoding = encodeTime(*time.initial);
+  auto const initialEncodedValue = time.initial->encode();
+  auto decodedInitial = time.factory->decodeLogicalTime(time.initial->encode());
+  require(decodedInitial != nullptr, "logical-time factory returned no decoded initial time");
+  requireTimeEquals(
+      *decodedInitial,
+      *time.initial,
+      "logical-time initial encode/decode");
+  auto decodedInitialFromBuffer = time.factory->decodeLogicalTime(
+      initialEncodedValue.data(),
+      time.initial->encodedLength());
+  require(decodedInitialFromBuffer != nullptr,
+          "logical-time factory returned no buffer-decoded initial time");
+  requireTimeEquals(
+      *decodedInitialFromBuffer,
+      *time.initial,
+      "logical-time initial buffer decode");
+  require(
+      initialEncoding.size() == time.initial->encodedLength(),
+      "logical-time encoded length did not match the encoded value");
+  requireDirectTimeEncoding(
+      *time.initial,
+      "logical-time initial value");
+  requireDirectTimeEncoding(
+      *time.finalTime,
+      "logical-time final value");
+
+  auto directDecodedInitial = time.factory->makeFinal();
+  directDecodedInitial->decode(
+      initialEncoding.data(),
+      initialEncoding.size());
+  requireTimeEquals(
+      *directDecodedInitial,
+      *time.initial,
+      "logical-time direct buffer decode");
+  if (initialEncoding.size() > 1U) {
+    std::vector<rti::Octet> truncatedInitial(
+        initialEncoding.begin(),
+        initialEncoding.end() - 1);
+    requireException(
+        [&] {
+          static_cast<void>(
+              time.factory->decodeLogicalTime(
+                  truncatedInitial.data(),
+                  truncatedInitial.size()));
+        },
+        L"CouldNotDecode",
+        "truncated logical-time buffer");
+  }
+
+  auto decodedZero = time.factory->decodeLogicalTimeInterval(time.zero->encode());
+  require(decodedZero != nullptr, "logical-time factory returned no decoded zero interval");
+  require(*decodedZero == *time.zero, "logical-time zero interval did not round-trip");
+  auto const epsilonEncodedValue = time.epsilon->encode();
+  auto decodedEpsilon = time.factory->decodeLogicalTimeInterval(
+      epsilonEncodedValue.data(),
+      time.epsilon->encodedLength());
+  require(decodedEpsilon != nullptr,
+          "logical-time factory returned no buffer-decoded epsilon interval");
+  require(*decodedEpsilon == *time.epsilon,
+          "logical-time epsilon interval did not round-trip");
+
+  requireDirectTimeEncoding(
+      *time.zero,
+      "logical-time zero interval");
+  requireDirectTimeEncoding(
+      *time.epsilon,
+      "logical-time epsilon interval");
+
+  auto zeroEncoding = copyBytes(time.zero->encode());
+  auto directDecodedZero = time.factory->makeEpsilon();
+  directDecodedZero->decode(zeroEncoding.data(), zeroEncoding.size());
+  require(
+      *directDecodedZero == *time.zero,
+      "logical-time interval direct buffer decode");
+  if (zeroEncoding.size() > 1U) {
+    std::vector<rti::Octet> truncatedZero(
+        zeroEncoding.begin(),
+        zeroEncoding.end() - 1);
+    requireException(
+        [&] {
+          static_cast<void>(
+              time.factory->decodeLogicalTimeInterval(
+                  truncatedZero.data(),
+                  truncatedZero.size()));
+        },
+        L"CouldNotDecode",
+        "truncated logical-time interval buffer");
+  }
+
+  auto boundary = time.factory->makeInitial();
+  boundary->setFinal();
+  require(boundary->isFinal(), "logical-time setFinal did not create final time");
+  boundary->setInitial();
+  require(boundary->isInitial(), "logical-time setInitial did not restore initial time");
+  auto intervalArithmetic = time.factory->makeZero();
+  *intervalArithmetic += *time.epsilon;
+  require(
+      *intervalArithmetic == *time.epsilon,
+      "logical-time interval addition did not advance from zero");
+  *intervalArithmetic -= *time.epsilon;
+  require(
+      *intervalArithmetic == *time.zero,
+      "logical-time interval subtraction did not return to zero");
+  require(
+      *time.epsilon > *time.zero && *time.zero < *time.epsilon,
+      "logical-time interval ordering did not place epsilon after zero");
+
+  auto first = timeAfter(*time.factory, *time.initial, *time.epsilon, 1U);
+  auto second = timeAfter(*time.factory, *time.initial, *time.epsilon, 2U);
+  require(*first > *time.initial, "epsilon did not advance logical time");
+  require(*second > *first, "logical-time values did not preserve ordering");
+  require(*first <= *second && *second >= *first,
+          "logical-time comparison operators were inconsistent");
+  auto difference = time.factory->makeZero();
+  difference->setToDifference(*second, *first);
+  require(*difference == *time.epsilon,
+          "logical-time difference did not recover one epsilon interval");
+  auto copied = time.factory->makeInitial();
+  *copied = *second;
+  require(*copied == *second, "logical-time assignment did not preserve the value");
+  auto underflow = time.factory->makeInitial();
+  requireException(
+      [&] { *underflow -= *time.epsilon; },
+      L"IllegalTimeArithmetic",
+      "logical-time subtraction before initial");
+  auto overflow = time.factory->makeFinal();
+  requireException(
+      [&] { *overflow += *time.epsilon; },
+      L"IllegalTimeArithmetic",
+      "logical-time addition after final");
+
+  requireException(
+      [&] { static_cast<void>(time.factory->decodeLogicalTime(rti::VariableLengthData{})); },
+      L"CouldNotDecode",
+      "empty logical-time encoding");
+  requireException(
+      [&] {
+        static_cast<void>(
+            time.factory->decodeLogicalTimeInterval(rti::VariableLengthData{}));
+      },
+      L"CouldNotDecode",
+      "empty logical-time interval encoding");
+
+  session.resign(rti::NO_ACTION);
+  session.rtiAmbassador().destroyFederationExecution(federation);
+  session.disconnect();
 }
 
 void scenarioVariableLengthDataPortable(
@@ -7187,6 +7364,16 @@ int runFactoryDiscoveryScenarios(int argc, char** argv) {
       scenarioRTIambassadorFactoryPortableContract);
 }
 
+int runLogicalTimeFactoryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      logicalTimeFactoryScenario,
+      logicalTimeFactoryScenario,
+      scenarioLogicalTimeFactoryPortable,
+      scenarioLogicalTimeFactoryPortable);
+}
+
 int runVariableLengthDataScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -8483,6 +8670,18 @@ bool hasFactoryDiscoveryScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasLogicalTimeFactoryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    if (std::string(argv[index + 1]) == logicalTimeFactoryScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasVariableLengthDataScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) == "--scenario" &&
@@ -8949,6 +9148,9 @@ int main(int argc, char** argv) {
     }
     if (hasFactoryDiscoveryScenario(argc, argv)) {
       return runFactoryDiscoveryScenarios(argc, argv);
+    }
+    if (hasLogicalTimeFactoryScenario(argc, argv)) {
+      return runLogicalTimeFactoryScenarios(argc, argv);
     }
     if (hasVariableLengthDataScenario(argc, argv)) {
       return runVariableLengthDataScenarios(argc, argv);

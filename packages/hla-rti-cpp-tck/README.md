@@ -1945,6 +1945,10 @@ official logical-time factory-factory default and integer selection, reference-
 factory forwarding, unknown-name rejection, and initial-value construction as an
 independently selectable, provider- and FOM-independent slice; its parity anchor
 is `java-tck.logical-time-factory`.
+The Java-parity `java-tck.logical-time-factory` ID now dispatches through the
+portable logical-time factory source, keeping its lifecycle, encoding, arithmetic,
+and boundary checks on the standard API with adapter-owned logical-time and FOM
+configuration.
 The promoted `cpp-tck.logical-time-data-elements-contract` runner exposes the
 standard `HLAlogicalTime` and `HLAlogicalTimeInterval` DataElement wrapper
 round-trip, nested-buffer, clone/copy, type-compatibility, boundary, and
