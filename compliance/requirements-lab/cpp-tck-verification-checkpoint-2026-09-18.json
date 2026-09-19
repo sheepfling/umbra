@@ -3,12 +3,12 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-693-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-695-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
-    "promoted": 693,
+    "promoted": 695,
     "candidate": 0,
-    "inventory": 693,
+    "inventory": 695,
     "full_promoted_matrix_rerun": true
   },
   "adapter": {
@@ -2369,22 +2369,24 @@
          "cpp-tck.connection-service-boundaries",
          "cpp-tck.connection-service-boundaries-contract",
       "cpp-tck.ownership-service-boundaries",
-      "cpp-tck.ownership-service-boundaries-contract",
-      "cpp-tck.timestamped-directed-interaction-retraction",
+    "cpp-tck.ownership-service-boundaries-contract",
+    "cpp-tck.timestamped-directed-interaction-retraction-fanout",
+    "cpp-tck.timestamped-directed-interaction-retraction-fanout-contract",
+    "cpp-tck.timestamped-directed-interaction-retraction",
       "cpp-tck.timestamped-directed-interaction-retraction-contract",
       "cpp-tck.attribute-ownership-acquisition-cancellation",
       "cpp-tck.attribute-ownership-acquisition-cancellation-contract",
       "cpp-tck.unconditional-attribute-ownership-divestiture",
       "cpp-tck.unconditional-attribute-ownership-divestiture-contract"
     ],
-    "cases": 1386,
-    "passed": 1386,
+    "cases": 1390,
+    "passed": 1390,
       "skipped": 0,
       "failed": 0,
-    "verification": "Fresh installed-package direct runner over all 693 catalog IDs in both evoked and immediate callback models with the adapter-provided process-service connection-loss fixture; all 1,386 callback-model cases passed with zero skips and zero failures, and result IDs matched the catalog exactly.",
+    "verification": "Fresh installed-package direct runner over all 695 catalog IDs in both evoked and immediate callback models with the adapter-provided process-service connection-loss fixture; all 1,390 callback-model cases passed with zero skips and zero failures, and result IDs matched the catalog exactly.",
   "artifacts": [
-      ".build/cpp-tck-full-promoted-2026-09-18/full-693-promoted-with-loss.json",
-      ".build/cpp-tck-full-promoted-2026-09-18/full-693-promoted-with-loss.xml"
+      ".build/cpp-tck-full-promoted-2026-09-18/full-695-promoted-with-loss.json",
+      ".build/cpp-tck-full-promoted-2026-09-18/full-695-promoted-with-loss.xml"
   ]
     },
     {
@@ -2399,7 +2401,7 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-18/unconditional-attribute-ownership-divestiture-candidate.json",
         ".build/cpp-tck-full-promoted-2026-09-18/unconditional-attribute-ownership-divestiture-candidate.xml",
-        ".build/cpp-tck-full-promoted-2026-09-18/full-693-promoted-with-loss.json"
+        ".build/cpp-tck-full-promoted-2026-09-18/full-695-promoted-with-loss.json"
       ]
     },
     {
@@ -2414,7 +2416,7 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-18/attribute-ownership-acquisition-cancellation-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-18/attribute-ownership-acquisition-cancellation-focused.xml",
-        ".build/cpp-tck-full-promoted-2026-09-18/full-693-promoted-with-loss.json"
+        ".build/cpp-tck-full-promoted-2026-09-18/full-695-promoted-with-loss.json"
       ]
     },
     {
@@ -2429,7 +2431,22 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-18/timestamped-directed-interaction-retraction-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-18/timestamped-directed-interaction-retraction-focused.xml",
-        ".build/cpp-tck-full-promoted-2026-09-18/full-693-promoted-with-loss.json"
+        ".build/cpp-tck-full-promoted-2026-09-18/full-695-promoted-with-loss.json"
+      ]
+    },
+    {
+      "name": "timestamped-directed-interaction-retraction-fanout",
+      "scenario_ids": [
+        "cpp-tck.timestamped-directed-interaction-retraction-fanout",
+        "cpp-tck.timestamped-directed-interaction-retraction-fanout-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused installed-package direct runner across evoked and immediate callback models; both scenarios passed 4/4 and were included in the complete promoted evidence run.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/timestamped-directed-interaction-retraction-fanout-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/timestamped-directed-interaction-retraction-fanout-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-695-promoted-with-loss.json"
       ]
     }
   ],
