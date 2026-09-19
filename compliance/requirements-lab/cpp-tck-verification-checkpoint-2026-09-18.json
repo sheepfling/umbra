@@ -3,12 +3,12 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-18-685-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-18-687-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
-    "promoted": 685,
+    "promoted": 687,
     "candidate": 0,
-    "inventory": 685,
+    "inventory": 687,
     "full_promoted_matrix_rerun": true
   },
   "adapter": {
@@ -1667,6 +1667,20 @@
       ]
     },
     {
+      "name": "ownership-service-boundaries",
+      "scenario_ids": [
+        "cpp-tck.ownership-service-boundaries",
+        "cpp-tck.ownership-service-boundaries-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused CTest and direct runner across evoked and immediate callback models; all 4 ordinary ownership service-boundary cases passed",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/ownership-service-boundaries-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/ownership-service-boundaries-focused.xml"
+      ]
+    },
+    {
       "name": "full-installed-package-catalog-matrix",
       "scenario_ids": [
         "java-tck.factory-discovery",
@@ -2353,16 +2367,18 @@
          "cpp-tck.attribute-value-request-service-boundaries",
          "cpp-tck.attribute-value-request-service-boundaries-contract",
          "cpp-tck.connection-service-boundaries",
-         "cpp-tck.connection-service-boundaries-contract"
+         "cpp-tck.connection-service-boundaries-contract",
+         "cpp-tck.ownership-service-boundaries",
+         "cpp-tck.ownership-service-boundaries-contract"
         ],
-  "cases": 1370,
-  "passed": 1370,
+  "cases": 1374,
+  "passed": 1374,
       "skipped": 0,
       "failed": 0,
-  "verification": "Fresh installed-package direct runner over all 685 catalog IDs in both evoked and immediate callback models with the adapter-provided process-service connection-loss fixture; all 1,370 callback-model cases passed with zero skips and zero failures, and result IDs matched the catalog exactly.",
+  "verification": "Fresh installed-package direct runner over all 687 catalog IDs in both evoked and immediate callback models with the adapter-provided process-service connection-loss fixture; all 1,374 callback-model cases passed with zero skips and zero failures, and result IDs matched the catalog exactly.",
   "artifacts": [
-     ".build/cpp-tck-full-promoted-2026-09-18/all-expanded-promoted-connection-service-boundaries-complete.json",
-     ".build/cpp-tck-full-promoted-2026-09-18/all-expanded-promoted-connection-service-boundaries-complete.xml"
+     ".build/cpp-tck-full-promoted-2026-09-18/all-expanded-promoted-ownership-service-boundaries-complete.json",
+     ".build/cpp-tck-full-promoted-2026-09-18/all-expanded-promoted-ownership-service-boundaries-complete.xml"
   ]
     }
   ],

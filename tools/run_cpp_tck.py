@@ -911,6 +911,8 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "cpp-tck.attribute-value-request-service-boundaries-contract",
     "cpp-tck.connection-service-boundaries",
     "cpp-tck.connection-service-boundaries-contract",
+    "cpp-tck.ownership-service-boundaries",
+    "cpp-tck.ownership-service-boundaries-contract",
     "cpp-tck.custom-transportation-directed-interaction-delivery",
     "cpp-tck.custom-transportation-directed-interaction-delivery-contract",
     "cpp-tck.federation-save-restore-interlocks",

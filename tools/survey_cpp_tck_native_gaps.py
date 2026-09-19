@@ -91,18 +91,14 @@ def private_markers_for(path: Path) -> tuple[list[str], list[str]]:
     return sorted(markers), sorted(marker_files)
 
 
-def semantic_catalog_matches(catalog: dict[str, object]) -> dict[str, str]:
-    matches: dict[str, str] = {}
+def semantic_catalog_matches(catalog: dict[str, object]) -> dict[str, list[str]]:
+    matches: dict[str, list[str]] = {}
     for scenario in catalog["scenarios"]:
         scenario_id = scenario["id"]
         for native_runner_id in scenario.get("native_equivalent_runner_ids", []):
-            previous = matches.get(native_runner_id)
-            if previous is not None and previous != scenario_id:
-                raise ValueError(
-                    f"native runner {native_runner_id} maps to both "
-                    f"{previous} and {scenario_id}"
-                )
-            matches[native_runner_id] = scenario_id
+            scenario_ids = matches.setdefault(native_runner_id, [])
+            if scenario_id not in scenario_ids:
+                scenario_ids.append(scenario_id)
     return matches
 
 
@@ -115,12 +111,12 @@ def classify(
     private_markers, private_marker_files = private_markers_for(path)
     source = path.read_text(encoding="utf-8")
     integration = "[integration]" in source
-    semantic_match = semantic_matches.get(runner_id)
+    semantic_match = semantic_matches.get(runner_id, [])
     return {
         "path": path.as_posix(),
         "runner_id": runner_id,
         "catalog_match": runner_id in catalog_ids,
-        "semantic_catalog_match": semantic_match,
+        "semantic_catalog_match": semantic_match or None,
         "integration": integration,
         "private_markers": private_markers,
         "private_marker_files": private_marker_files,
@@ -128,7 +124,7 @@ def classify(
             integration
             and not private_markers
             and runner_id not in catalog_ids
-            and semantic_match is None
+            and not semantic_match
         ),
     }
 

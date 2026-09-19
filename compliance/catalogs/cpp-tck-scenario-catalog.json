@@ -13660,6 +13660,85 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.ownership-service-boundaries",
+      "category": "ownership-management",
+      "title": "Exercise ordinary ownership services and lifecycle boundaries as a portable standard slice",
+      "api_methods": [
+        "RTIambassador.queryAttributeOwnership",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.attributeOwnershipDivestitureIfWanted",
+        "RTIambassador.negotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.confirmDivestiture",
+        "RTIambassador.cancelNegotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.attributeOwnershipReleaseDenied",
+        "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.informAttributeOwnership",
+        "FederateAmbassador.requestAttributeOwnershipAssumption",
+        "FederateAmbassador.attributeIsNotOwned",
+        "FederateAmbassador.requestDivestitureConfirmation",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.attributeOwnershipUnavailable",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ownership-management",
+        "cpp-1516.1-ownership-invalid-handle-boundaries"
+      ],
+      "contract_refs": [
+        "standard-ownership-management-contract.json",
+        "standard-ownership-service-boundaries-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioOwnershipServiceBoundaries",
+      "runner_id": "cpp-tck.ownership-service-boundaries",
+      "parity": "java-tck.ownership",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.ownership-service-boundaries-contract",
+      "category": "ownership-management",
+      "title": "Pure standard C++ contract for ordinary ownership-service boundaries",
+      "api_methods": [
+        "RTIambassador.queryAttributeOwnership",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.attributeOwnershipDivestitureIfWanted",
+        "RTIambassador.negotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.confirmDivestiture",
+        "RTIambassador.cancelNegotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.attributeOwnershipReleaseDenied",
+        "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "FederateAmbassador.informAttributeOwnership",
+        "FederateAmbassador.requestAttributeOwnershipAssumption",
+        "FederateAmbassador.attributeIsNotOwned",
+        "FederateAmbassador.requestDivestitureConfirmation",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.attributeOwnershipUnavailable",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ownership-management",
+        "cpp-1516.1-ownership-invalid-handle-boundaries"
+      ],
+      "contract_refs": [
+        "standard-ownership-service-boundaries-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioOwnershipServiceBoundariesContract",
+      "runner_id": "cpp-tck.ownership-service-boundaries-contract",
+      "parity": "cpp-tck.ownership-service-boundaries",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "java-tck.directed-interactions",
       "category": "directed-interaction",
       "title": "Enforce directed declaration and send lifecycle boundaries and exercise ordinary directed interaction publication, subscription, delivery, and handle boundaries",

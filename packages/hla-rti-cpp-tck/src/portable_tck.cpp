@@ -185,6 +185,10 @@ constexpr char connectionServiceBoundariesScenario[] =
     "cpp-tck.connection-service-boundaries";
 constexpr char connectionServiceBoundariesContractId[] =
     "cpp-tck.connection-service-boundaries-contract";
+constexpr char ownershipServiceBoundariesScenario[] =
+    "cpp-tck.ownership-service-boundaries";
+constexpr char ownershipServiceBoundariesContractId[] =
+    "cpp-tck.ownership-service-boundaries-contract";
 
 void scenarioAutoProvideDisabledDiscoveryOnly(
     Options const& options,
@@ -462,6 +466,18 @@ void scenarioConnectionServiceBoundariesContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioConnectionServiceBoundaries(options, model);
+}
+
+void scenarioOwnershipServiceBoundaries(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioOwnership(options, model);
+}
+
+void scenarioOwnershipServiceBoundariesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioOwnershipManagementContract(options, model);
 }
 
 void scenarioJoinedFederateMomRegisteredObjectCount(
@@ -4544,6 +4560,16 @@ int runConnectionServiceBoundariesScenarios(int argc, char** argv) {
       scenarioConnectionServiceBoundariesContract);
 }
 
+int runOwnershipServiceBoundariesScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      ownershipServiceBoundariesScenario,
+      ownershipServiceBoundariesContractId,
+      scenarioOwnershipServiceBoundaries,
+      scenarioOwnershipServiceBoundariesContract);
+}
+
 PortableScenario delaySubscriptionEvaluationScenario(std::string const& id) {
   if (id == delaySubscriptionEvaluationInteractionScenario) {
     return scenarioDelaySubscriptionEvaluationInteraction;
@@ -5488,6 +5514,20 @@ bool hasConnectionServiceBoundariesScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasOwnershipServiceBoundariesScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == ownershipServiceBoundariesScenario ||
+        scenario == ownershipServiceBoundariesContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasCustomTransportationTimestampedRegionalInteractionDeliveryScenario(
     int argc,
     char** argv) {
@@ -5759,6 +5799,9 @@ int main(int argc, char** argv) {
     }
     if (hasConnectionServiceBoundariesScenario(argc, argv)) {
       return runConnectionServiceBoundariesScenarios(argc, argv);
+    }
+    if (hasOwnershipServiceBoundariesScenario(argc, argv)) {
+      return runOwnershipServiceBoundariesScenarios(argc, argv);
     }
     if (hasCustomTransportationAttributeDeliveryScenario(argc, argv)) {
       return runCustomTransportationAttributeDeliveryScenarios(argc, argv);
