@@ -13,7 +13,8 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador order/transport declarations and FederateAmbassador callbacks",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTransportOrderContract"
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioTransportOrderPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioTransportOrderPortableContract"
       ]
     }
   ]

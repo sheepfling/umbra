@@ -3,12 +3,12 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-701-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
-    "promoted": 701,
+    "promoted": 702,
     "candidate": 0,
-    "inventory": 701,
+    "inventory": 702,
     "full_promoted_matrix_rerun": true
   },
   "adapter": {
@@ -2498,6 +2498,22 @@
         ".build/cpp-tck-full-promoted-2026-09-18/order-type-change-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-18/order-type-change-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-701-promoted-with-loss.json"
+      ]
+    },
+    {
+      "name": "transport-order",
+      "scenario_ids": [
+        "cpp-tck.transport-order",
+        "cpp-tck.transport-order-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused installed-package direct runner across evoked and immediate callback models; both portable ordinary transport/order scenarios passed 4/4 and were included in the complete 702-scenario promoted evidence run.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/transport-order-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/transport-order-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-promoted-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-promoted-with-loss.xml"
       ]
     }
   ],

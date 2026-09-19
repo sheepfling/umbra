@@ -544,6 +544,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timed-default-region-attribute-save-restore` | Timestamped save/restore of a queued default-region attribute update, including empty source-region metadata, Flush Queue delivery, and retraction state |
 | `cpp-tck.timed-default-region-attribute-save-restore-contract` | Standard adapter-backed contract for timestamped default-region attribute save/restore, reflection metadata, Flush Queue delivery, and retraction |
 | `java-tck.transport-order` | Receive/timestamp order controls, default and per-instance order and transport controls, request/confirmation boundaries, invalid class/object/attribute/transport boundaries, transport queries, and delivered transport identity |
+| `cpp-tck.transport-order` | Independently selectable portable ordinary order and transportation controls, invalid-handle boundaries, transport queries, and delivered transport identity |
 | `cpp-tck.transport-order-contract` | Standard adapter-backed ordinary order and transportation contract for default and per-instance controls, queries, invalid-handle boundaries, and delivered transport identity |
 | `cpp-tck.transportation-type-change` | Ordinary attribute and interaction transportation-type changes, pending versus immediate confirmations, before/after delivery, and committed query reports |
 | `cpp-tck.transportation-type-change-contract` | Pure standard C++ contract for ordinary attribute and interaction transportation-type changes and confirmation/report callbacks |
@@ -2062,7 +2063,7 @@ promoted `cpp-tck.timestamped-interaction-regulation-reenable-contract`,
 add ordinary and directed timestamped Time Constrained/Time Regulation
 re-enable boundaries with the same adapter-owned configuration. The
 promoted `cpp-tck.support-services-contract`,
-`cpp-tck.transport-order-contract`, and
+`cpp-tck.transport-order`, `cpp-tck.transport-order-contract`, and
 `cpp-tck.relevance-advisories-contract` runners similarly expose the standard
 support lookup, ordinary order/transport, and advisory-switch surfaces as
 independently selectable pure C++ slices.

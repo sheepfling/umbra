@@ -4282,6 +4282,60 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.transport-order",
+      "category": "transportation-and-order",
+      "title": "Exercise the standard ordinary order and transportation control surface as an independently selectable portable slice",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.requestAttributeTransportationTypeChange",
+        "RTIambassador.queryAttributeTransportationType",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.requestInteractionTransportationTypeChange",
+        "RTIambassador.queryInteractionTransportationType",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.confirmAttributeTransportationTypeChange",
+        "FederateAmbassador.reportAttributeTransportationType",
+        "FederateAmbassador.confirmInteractionTransportationTypeChange",
+        "FederateAmbassador.reportInteractionTransportationType",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-order-type-control",
+        "cpp-1516.1-transportation-type-control",
+        "cpp-1516.1-order-transport-invalid-handle-boundaries"
+      ],
+      "contract_refs": [
+        "standard-transport-order-contract.json"
+      ],
+      "native_equivalent_runner_ids": [
+        "java-tck.transport-order"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioTransportOrderPortable",
+      "runner_id": "cpp-tck.transport-order",
+      "parity": "java-tck.transport-order",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.transport-order-contract",
       "category": "transportation-and-order",
       "title": "Exercise the standard ordinary order and transportation control contract",
@@ -4311,7 +4365,7 @@
       "contract_refs": [
         "standard-transport-order-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTransportOrderContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTransportOrderPortableContract",
       "runner_id": "cpp-tck.transport-order-contract",
       "parity": "java-tck.transport-order",
       "default_status": "run",
