@@ -2070,6 +2070,9 @@ promoted `cpp-tck.support-services-contract`,
 `cpp-tck.relevance-advisories-contract` runners similarly expose the standard
 support lookup, ordinary order/transport, and advisory-switch surfaces as
 independently selectable pure C++ slices.
+The Java-parity `java-tck.transport-order` ID now dispatches through the same
+portable ordinary order/transport implementation, keeping the language-parity
+entry point on the standard-only source and adapter-owned configuration.
 The promoted `java-tck.synchronization`, `cpp-tck.synchronization-points`, and
 `cpp-tck.synchronization-point-contract` runners now expose the Java-parity
 synchronization-point lifecycle through the portable standard source, including

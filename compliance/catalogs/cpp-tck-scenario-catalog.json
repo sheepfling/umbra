@@ -25231,7 +25231,7 @@
         "receive-order-interaction-api-contract.json",
         "receive-order-interaction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTransportOrder",
+      "cpp_test": "src/portable_tck.cpp#scenarioTransportOrderPortable",
       "runner_id": "java-tck.transport-order",
       "default_status": "run",
       "promotion": "promoted"

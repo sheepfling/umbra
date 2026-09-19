@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-synchronization-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-transport-order-java-parity-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2545,6 +2545,21 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-18/synchronization-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-18/synchronization-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-synchronization.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-synchronization.xml"
+      ]
+    },
+    {
+      "name": "transport-order-java-parity",
+      "scenario_ids": [
+        "java-tck.transport-order"
+      ],
+      "cases": 2,
+      "passed": 2,
+      "verification": "Focused installed-package direct runner across evoked and immediate callback models; the Java-parity transport/order ID passed 2/2 through portable dispatch while the paired portable C++ transport/order scenarios remained green in the existing gate.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/transport-order-parity-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/transport-order-parity-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-synchronization.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-synchronization.xml"
       ]

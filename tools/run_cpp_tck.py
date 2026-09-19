@@ -909,6 +909,7 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "cpp-tck.order-type-change-contract",
     "cpp-tck.transport-order",
     "cpp-tck.transport-order-contract",
+    "java-tck.transport-order",
     "cpp-tck.standard-order-and-transportation-lookups",
     "cpp-tck.standard-order-and-transportation-lookups-contract",
     "java-tck.synchronization",
