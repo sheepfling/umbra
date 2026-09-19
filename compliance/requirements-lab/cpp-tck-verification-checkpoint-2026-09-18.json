@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-order-transportation-lookups-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-synchronization-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2530,6 +2530,23 @@
         ".build/cpp-tck-full-promoted-2026-09-18/standard-order-and-transportation-lookups-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-support-lookups-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-support-lookups-with-loss.xml"
+      ]
+    },
+    {
+      "name": "synchronization",
+      "scenario_ids": [
+        "java-tck.synchronization",
+        "cpp-tck.synchronization-points",
+        "cpp-tck.synchronization-point-contract"
+      ],
+      "cases": 6,
+      "passed": 6,
+      "verification": "Focused installed-package direct runner across evoked and immediate callback models; the Java-parity synchronization scenario, the portable synchronization-point scenario, and the portable contract scenario passed 6/6 and were included in the complete 702-scenario promoted evidence run.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/synchronization-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/synchronization-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-synchronization.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-synchronization.xml"
       ]
     }
   ],

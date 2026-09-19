@@ -181,6 +181,10 @@ constexpr char standardOrderAndTransportationLookupsScenario[] =
     "cpp-tck.standard-order-and-transportation-lookups";
 constexpr char standardOrderAndTransportationLookupsContractId[] =
     "cpp-tck.standard-order-and-transportation-lookups-contract";
+constexpr char javaSynchronizationScenario[] = "java-tck.synchronization";
+constexpr char synchronizationPointsScenario[] = "cpp-tck.synchronization-points";
+constexpr char synchronizationPointContractScenario[] =
+    "cpp-tck.synchronization-point-contract";
 constexpr char unconditionalAttributeOwnershipDivestitureScenario[] =
     "cpp-tck.unconditional-attribute-ownership-divestiture";
 constexpr char unconditionalAttributeOwnershipDivestitureContractId[] =
@@ -221,6 +225,229 @@ constexpr char ownershipServiceBoundariesScenario[] =
     "cpp-tck.ownership-service-boundaries";
 constexpr char ownershipServiceBoundariesContractId[] =
     "cpp-tck.ownership-service-boundaries-contract";
+
+void scenarioSynchronizationPointsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session lifecycle(options, model, "synchronization-lifecycle");
+  rti::VariableLengthData const emptyTag;
+  rti::FederateHandleSet const emptySynchronizationSet;
+  requireException(
+      [&] {
+        lifecycle.rtiAmbassador().registerFederationSynchronizationPoint(
+            L"tck-lifecycle-global-before-connect",
+            emptyTag);
+      },
+      L"NotConnected",
+      "global synchronization-point registration before connect");
+  requireException(
+      [&] {
+        lifecycle.rtiAmbassador().registerFederationSynchronizationPoint(
+            L"tck-lifecycle-explicit-before-connect",
+            emptyTag,
+            emptySynchronizationSet);
+      },
+      L"NotConnected",
+      "explicit synchronization-point registration before connect");
+  requireException(
+      [&] {
+        lifecycle.rtiAmbassador().synchronizationPointAchieved(
+            L"tck-lifecycle-achieved-before-connect");
+      },
+      L"NotConnected",
+      "synchronization-point achievement before connect");
+  lifecycle.connect();
+  requireException(
+      [&] {
+        lifecycle.rtiAmbassador().registerFederationSynchronizationPoint(
+            L"tck-lifecycle-global-before-join",
+            emptyTag);
+      },
+      L"FederateNotExecutionMember",
+      "global synchronization-point registration before joining an execution");
+  requireException(
+      [&] {
+        lifecycle.rtiAmbassador().registerFederationSynchronizationPoint(
+            L"tck-lifecycle-explicit-before-join",
+            emptyTag,
+            emptySynchronizationSet);
+      },
+      L"FederateNotExecutionMember",
+      "explicit synchronization-point registration before joining an execution");
+  requireException(
+      [&] {
+        lifecycle.rtiAmbassador().synchronizationPointAchieved(
+            L"tck-lifecycle-achieved-before-join");
+      },
+      L"FederateNotExecutionMember",
+      "synchronization-point achievement before joining an execution");
+  lifecycle.disconnect();
+
+  Session first(options, model, "owner");
+  Session second(options, model, "member");
+  Session third(options, model, "late");
+  auto const federation = federationName(options, "synchronization-points");
+
+  first.connect();
+  second.connect();
+  third.connect();
+  first.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  first.join(options.ownerFederateName, options.federateType, federation);
+  second.join(options.memberFederateName, options.federateType, federation);
+
+  std::vector<std::uint8_t> tagBytes{0x53U, 0x59U, 0x4EU, 0x43U};
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  std::wstring const globalLabel = L"tck-global-synchronization";
+  first.rtiAmbassador().registerFederationSynchronizationPoint(globalLabel, tag);
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.synchronizationPointRegistrations().size() >= 1U &&
+            first.synchronizationPointAnnouncements().size() >= 1U &&
+            second.synchronizationPointAnnouncements().size() >= 1U;
+      },
+      options,
+      "global synchronization-point registration and announcement");
+
+  auto const registration = first.synchronizationPointRegistrations().front();
+  require(registration.succeeded && registration.label == globalLabel,
+          "synchronization-point registration did not succeed for the requested label");
+  for (auto* session : {&first, &second}) {
+    auto const announcements = session->synchronizationPointAnnouncements();
+    require(announcements.front().label == globalLabel,
+            "synchronization-point announcement returned the wrong label");
+    require(announcements.front().tag == tagBytes,
+            "synchronization-point announcement returned the wrong tag");
+  }
+
+  // A default synchronization set includes a member that joins after the
+  // point is registered, so the late member receives the pending
+  // announcement and participates in the completion barrier.
+  third.join(L"tck-third", options.federateType, federation);
+  waitFor(
+      third,
+      [&] { return third.synchronizationPointAnnouncements().size() >= 1U; },
+      options,
+      "late synchronization-point announcement");
+  require(
+      third.synchronizationPointRegistrations().empty(),
+      "late synchronization member received a registration-success callback");
+  auto const lateAnnouncements = third.synchronizationPointAnnouncements();
+  require(lateAnnouncements.front().label == globalLabel &&
+              lateAnnouncements.front().tag == tagBytes,
+          "late synchronization-point announcement returned the wrong label or tag");
+
+  // Registration is one-shot by label.  A duplicate is reported to the
+  // requesting federate and does not replace the already announced point.
+  second.rtiAmbassador().registerFederationSynchronizationPoint(globalLabel, tag);
+  waitFor(
+      second,
+      [&] { return second.synchronizationPointRegistrations().size() >= 1U; },
+      options,
+      "duplicate synchronization-point registration result");
+  auto const duplicate = second.synchronizationPointRegistrations().back();
+  require(!duplicate.succeeded && duplicate.label == globalLabel &&
+              duplicate.failureReason.has_value() &&
+              duplicate.failureReason.value() ==
+                  rti::SYNCHRONIZATION_POINT_LABEL_NOT_UNIQUE,
+          "duplicate synchronization-point registration returned the wrong result");
+
+  first.rtiAmbassador().synchronizationPointAchieved(globalLabel, true);
+  second.rtiAmbassador().synchronizationPointAchieved(globalLabel, false);
+  third.rtiAmbassador().synchronizationPointAchieved(globalLabel, true);
+  waitForSessions(
+      {&first, &second, &third},
+      [&] {
+        return first.federationSynchronized().size() >= 1U &&
+            second.federationSynchronized().size() >= 1U &&
+            third.federationSynchronized().size() >= 1U;
+      },
+      options,
+      "synchronization-point completion");
+  for (auto* session : {&first, &second, &third}) {
+    auto const completions = session->federationSynchronized();
+    require(completions.front().label == globalLabel,
+            "federation synchronized callback returned the wrong label");
+    require(completions.front().failedToSyncSet.count(second.federateHandle()) == 1U,
+            "federation synchronized callback omitted the unsuccessful federate");
+  }
+  requireException(
+      [&] { first.rtiAmbassador().synchronizationPointAchieved(globalLabel); },
+      L"SynchronizationPointLabelNotAnnounced",
+      "re-achieving a completed synchronization point");
+
+  // An explicit synchronization set excludes the third member, which gives
+  // the portable test a second registration form without relying on provider
+  // membership reports or private synchronization state.
+  std::wstring const explicitLabel = L"tck-explicit-synchronization";
+  rti::FederateHandleSet invalidExplicitSet{rti::FederateHandle{}};
+  requireException(
+      [&] {
+        first.rtiAmbassador().registerFederationSynchronizationPoint(
+            L"tck-invalid-explicit-synchronization",
+            tag,
+            invalidExplicitSet);
+      },
+      L"InvalidFederateHandle",
+      "explicit synchronization set with an invalid federate handle");
+  rti::FederateHandleSet explicitSet{
+      first.federateHandle(),
+      second.federateHandle()};
+  first.rtiAmbassador().registerFederationSynchronizationPoint(
+      explicitLabel,
+      tag,
+      explicitSet);
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.synchronizationPointRegistrations().size() >= 2U &&
+            first.synchronizationPointAnnouncements().size() >= 2U &&
+            second.synchronizationPointAnnouncements().size() >= 2U;
+      },
+      options,
+      "explicit synchronization-set registration and announcement");
+  for (int pass = 0; pass != 8; ++pass) {
+    third.pump();
+  }
+  require(third.synchronizationPointAnnouncements().size() == 1U,
+          "explicit synchronization set announced to an excluded federate");
+
+  first.rtiAmbassador().synchronizationPointAchieved(explicitLabel);
+  second.rtiAmbassador().synchronizationPointAchieved(explicitLabel);
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.federationSynchronized().size() >= 2U &&
+            second.federationSynchronized().size() >= 2U;
+      },
+      options,
+      "explicit synchronization-set completion");
+  require(third.federationSynchronized().size() == 1U,
+          "excluded federate received explicit synchronization completion");
+  for (auto* session : {&first, &second}) {
+    auto const completions = session->federationSynchronized();
+    require(completions.back().label == explicitLabel &&
+                completions.back().failedToSyncSet.empty(),
+            "explicit synchronization completion returned an unexpected failure set");
+  }
+
+  third.resign(rti::NO_ACTION);
+  second.resign(rti::NO_ACTION);
+  first.resign(rti::NO_ACTION);
+  first.rtiAmbassador().destroyFederationExecution(federation);
+  third.disconnect();
+  second.disconnect();
+  first.disconnect();
+}
+
+void scenarioSynchronizationPointPortableContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioSynchronizationPointsPortable(options, model);
+}
 
 void scenarioAutoProvideDisabledDiscoveryOnly(
     Options const& options,
@@ -6890,6 +7117,64 @@ int runStandardOrderAndTransportationLookupScenarios(int argc, char** argv) {
       scenarioStandardOrderAndTransportationLookupsPortableContract);
 }
 
+int runSynchronizationPointScenarios(int argc, char** argv) {
+  auto const options = parseOptions(argc, argv);
+  std::vector<ScenarioResult> results;
+  for (auto const& callback : callbackModels(options)) {
+    for (auto const& selected : options.scenarios) {
+      if (selected != javaSynchronizationScenario &&
+          selected != synchronizationPointsScenario &&
+          selected != synchronizationPointContractScenario) {
+        continue;
+      }
+      auto const started = Clock::now();
+      ScenarioResult result{selected, callback.first, "passed", "", 0};
+      try {
+        if (selected == synchronizationPointContractScenario) {
+          scenarioSynchronizationPointPortableContract(options, callback.second);
+        } else {
+          scenarioSynchronizationPointsPortable(options, callback.second);
+        }
+      } catch (rti::Exception const& error) {
+        result.status = "failed";
+        result.message = toNarrow(error.name()) + ": " + toNarrow(error.what());
+      } catch (std::exception const& error) {
+        result.status = "failed";
+        result.message = error.what();
+      } catch (...) {
+        result.status = "failed";
+        result.message = "unknown non-standard exception";
+      }
+      result.durationMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
+          Clock::now() - started).count();
+      results.push_back(result);
+      std::cout << result.status << " " << result.id << " ["
+                << result.callbackModel << "]";
+      if (!result.message.empty()) {
+        std::cout << ": " << result.message;
+      }
+      std::cout << '\n';
+    }
+  }
+  if (!options.results.empty()) {
+    writeResults(options.results, options, results);
+  }
+  if (!options.junit.empty()) {
+    writeJUnit(options.junit, results);
+  }
+  auto const failures = std::count_if(
+      results.begin(),
+      results.end(),
+      [](auto const& result) { return result.status == "failed"; });
+  auto const skipped = std::count_if(
+      results.begin(),
+      results.end(),
+      [](auto const& result) { return result.status == "skipped"; });
+  std::cout << "summary passed=" << results.size() - failures - skipped
+            << " skipped=" << skipped << " failed=" << failures << '\n';
+  return failures == 0 ? 0 : 1;
+}
+
 int runMomTransportationTypeChangeRequestScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -8084,6 +8369,21 @@ bool hasStandardOrderAndTransportationLookupScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasSynchronizationPointScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == javaSynchronizationScenario ||
+        scenario == synchronizationPointsScenario ||
+        scenario == synchronizationPointContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasUnconditionalAttributeOwnershipDivestitureScenario(
     int argc,
     char** argv) {
@@ -8497,6 +8797,9 @@ int main(int argc, char** argv) {
     }
     if (hasStandardOrderAndTransportationLookupScenario(argc, argv)) {
       return runStandardOrderAndTransportationLookupScenarios(argc, argv);
+    }
+    if (hasSynchronizationPointScenario(argc, argv)) {
+      return runSynchronizationPointScenarios(argc, argv);
     }
     if (hasUnconditionalAttributeOwnershipDivestitureScenario(argc, argv)) {
       return runUnconditionalAttributeOwnershipDivestitureScenarios(argc, argv);

@@ -13,7 +13,7 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador synchronization-point declarations",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioSynchronizationPointContract"
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSynchronizationPointPortableContract"
       ]
     }
   ]

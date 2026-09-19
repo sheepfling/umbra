@@ -18110,7 +18110,7 @@
         "synchronization-point-api-contract.json",
         "synchronization-point-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioSynchronizationPoints",
+      "cpp_test": "src/portable_tck.cpp#scenarioSynchronizationPointsPortable",
       "runner_id": "java-tck.synchronization",
       "default_status": "run",
       "promotion": "promoted"
@@ -18139,7 +18139,7 @@
         "synchronization-point-api-contract.json",
         "synchronization-point-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioSynchronizationPoints",
+      "cpp_test": "src/portable_tck.cpp#scenarioSynchronizationPointsPortable",
       "runner_id": "cpp-tck.synchronization-points",
       "parity": "java-tck.synchronization",
       "default_status": "run",
@@ -18167,7 +18167,7 @@
       "contract_refs": [
         "standard-synchronization-point-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioSynchronizationPointContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioSynchronizationPointPortableContract",
       "runner_id": "cpp-tck.synchronization-point-contract",
       "parity": "java-tck.synchronization",
       "default_status": "run",

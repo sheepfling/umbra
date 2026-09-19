@@ -2070,6 +2070,11 @@ promoted `cpp-tck.support-services-contract`,
 `cpp-tck.relevance-advisories-contract` runners similarly expose the standard
 support lookup, ordinary order/transport, and advisory-switch surfaces as
 independently selectable pure C++ slices.
+The promoted `java-tck.synchronization`, `cpp-tck.synchronization-points`, and
+`cpp-tck.synchronization-point-contract` runners now expose the Java-parity
+synchronization-point lifecycle through the portable standard source, including
+global and explicit-set registration, late-join announcement, achievement
+failure metadata, completion callbacks, and lifecycle boundaries.
 The promoted `cpp-tck.transportation-type-change` scenario and its pure contract
 twin similarly expose ordinary attribute and interaction transportation-type
 changes as an independently selectable standard slice. They verify standard
