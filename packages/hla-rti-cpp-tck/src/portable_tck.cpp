@@ -33,6 +33,14 @@ constexpr char explicitMimCreationScenario[] =
     "cpp-tck.explicit-mim-creation";
 constexpr char explicitMimCreationContractScenario[] =
     "cpp-tck.explicit-mim-creation-contract";
+constexpr char federationMomCurrentFddScenario[] =
+    "cpp-tck.federation-mom-current-fdd";
+constexpr char federationMomCurrentFddContractScenario[] =
+    "cpp-tck.federation-mom-current-fdd-contract";
+constexpr char federationMomContentReportsScenario[] =
+    "cpp-tck.federation-mom-content-reports";
+constexpr char federationMomContentReportsContractScenario[] =
+    "cpp-tck.federation-mom-content-reports-contract";
 constexpr char automaticResignDirectiveDeleteObjectsId[] =
     "cpp-tck.automatic-resign-directive-delete-objects";
 constexpr char automaticResignDirectiveDeleteObjectsContractId[] =
@@ -537,6 +545,29 @@ void scenarioExplicitMimCreationContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioExplicitMimCreationContract(options, model);
+}
+void scenarioFederationMomCurrentFddPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomCurrentFdd(options, model);
+}
+
+void scenarioFederationMomCurrentFddContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomCurrentFddContract(options, model);
+}
+
+void scenarioFederationMomContentReportsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomContentReports(options, model);
+}
+
+void scenarioFederationMomContentReportsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomContentReportsContract(options, model);
 }
 void scenarioSynchronizationPointsPortable(
     Options const& options,
@@ -7524,6 +7555,25 @@ int runExplicitMimCreationScenarios(int argc, char** argv) {
       scenarioExplicitMimCreationPortable,
       scenarioExplicitMimCreationContractPortable);
 }
+int runFederationMomCurrentFddScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationMomCurrentFddScenario,
+      federationMomCurrentFddContractScenario,
+      scenarioFederationMomCurrentFddPortable,
+      scenarioFederationMomCurrentFddContractPortable);
+}
+
+int runFederationMomContentReportsScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationMomContentReportsScenario,
+      federationMomContentReportsContractScenario,
+      scenarioFederationMomContentReportsPortable,
+      scenarioFederationMomContentReportsContractPortable);
+}
 
 int runSynchronizationPointScenarios(int argc, char** argv) {
   auto const options = parseOptions(argc, argv);
@@ -8904,6 +8954,33 @@ bool hasExplicitMimCreationScenario(int argc, char** argv) {
   }
   return false;
 }
+bool hasFederationMomCurrentFddScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationMomCurrentFddScenario ||
+        scenario == federationMomCurrentFddContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederationMomContentReportsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationMomContentReportsScenario ||
+        scenario == federationMomContentReportsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
 bool hasSynchronizationPointScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -9359,6 +9436,12 @@ int main(int argc, char** argv) {
     }
     if (hasExplicitMimCreationScenario(argc, argv)) {
       return runExplicitMimCreationScenarios(argc, argv);
+    }
+    if (hasFederationMomCurrentFddScenario(argc, argv)) {
+      return runFederationMomCurrentFddScenarios(argc, argv);
+    }
+    if (hasFederationMomContentReportsScenario(argc, argv)) {
+      return runFederationMomContentReportsScenarios(argc, argv);
     }
     if (hasLogicalTimeScenario(argc, argv)) {
       return runLogicalTimeScenarios(argc, argv);

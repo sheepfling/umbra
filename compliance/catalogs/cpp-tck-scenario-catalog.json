@@ -1134,7 +1134,7 @@
         "fom-composition-requirements-contract.json",
         "federation-execution-api-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFederationMomCurrentFdd",
+      "cpp_test": "src/portable_tck.cpp#scenarioFederationMomCurrentFddPortable",
       "runner_id": "cpp-tck.federation-mom-current-fdd",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -1166,7 +1166,7 @@
       "contract_refs": [
         "standard-federation-mom-current-fdd-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFederationMomCurrentFddContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioFederationMomCurrentFddContractPortable",
       "runner_id": "cpp-tck.federation-mom-current-fdd-contract",
       "parity": "cpp-tck.federation-mom-current-fdd",
       "default_status": "adapter-required",
@@ -1199,7 +1199,7 @@
         "standard-federation-mom-content-reports-contract.json",
         "federation-execution-api-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFederationMomContentReports",
+      "cpp_test": "src/portable_tck.cpp#scenarioFederationMomContentReportsPortable",
       "runner_id": "cpp-tck.federation-mom-content-reports",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -1231,7 +1231,7 @@
       "contract_refs": [
         "standard-federation-mom-content-reports-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioFederationMomContentReportsContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioFederationMomContentReportsContractPortable",
       "runner_id": "cpp-tck.federation-mom-content-reports-contract",
       "parity": "cpp-tck.federation-mom-content-reports",
       "default_status": "adapter-required",

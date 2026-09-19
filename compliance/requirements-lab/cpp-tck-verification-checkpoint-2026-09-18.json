@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-explicit-mim-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-federation-mom-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2657,6 +2657,24 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-18/explicit-mim-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-18/explicit-mim-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.xml"
+      ]
+    },
+    {
+      "name": "federation-mom-discovery-content",
+      "scenario_ids": [
+        "cpp-tck.federation-mom-current-fdd",
+        "cpp-tck.federation-mom-current-fdd-contract",
+        "cpp-tck.federation-mom-content-reports",
+        "cpp-tck.federation-mom-content-reports-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "Focused installed-package direct runner across evoked and immediate callback models; federation MOM current-FDD and FOM-module/MIM content reporting routes passed 8/8 and were included in the complete 702-scenario promoted evidence run.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/federation-mom-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/federation-mom-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.xml"
       ]
