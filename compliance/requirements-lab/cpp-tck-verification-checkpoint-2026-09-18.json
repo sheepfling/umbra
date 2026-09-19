@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-order-transportation-lookups-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2514,6 +2514,22 @@
         ".build/cpp-tck-full-promoted-2026-09-18/transport-order-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-promoted-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-promoted-with-loss.xml"
+      ]
+    },
+    {
+      "name": "standard-order-and-transportation-lookups",
+      "scenario_ids": [
+        "cpp-tck.standard-order-and-transportation-lookups",
+        "cpp-tck.standard-order-and-transportation-lookups-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused installed-package direct runner across evoked and immediate callback models; both portable standard order and transportation lookup scenarios passed 4/4 and were included in the complete 702-scenario promoted evidence run.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/standard-order-and-transportation-lookups-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/standard-order-and-transportation-lookups-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-support-lookups-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-support-lookups-with-loss.xml"
       ]
     }
   ],

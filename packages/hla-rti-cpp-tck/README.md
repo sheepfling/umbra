@@ -181,6 +181,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.modify-lookahead-contract` | Pure standard C++ contract for Query Lookahead and Modify Lookahead across the deferred-decrease boundary |
 | `java-tck.support-services` | Full public federate, object, attribute, interaction, parameter, object-instance, and dimension name/handle lookup in both directions with pre-connect/pre-join lifecycle boundaries, standard invalid-name/handle boundaries, order/transport/update-rate/normalization lookup lifecycle boundaries, all public handle decoder lifecycle boundaries, ordinary handle encode/decode, direct-buffer and `VariableLengthData&` handle encoding, encoded-length and truncated-buffer checks, copied-handle equality/hash/ordering stability, valid `AttributeHandleSet` copy/assignment/lookup/erase semantics, independent `AttributeHandleValueMap` and `ParameterHandleValueMap` value storage, normalization stability, available-dimension boundaries, and order/transportation handles |
 | `cpp-tck.support-services-contract` | Standard adapter-backed support-service contract for public lookup, normalization, handle encoding/decoding, available dimensions, order, transportation, update-rate, and lifecycle-boundary behavior |
+| `cpp-tck.standard-order-and-transportation-lookups` | Independently selectable portable mandatory order and transportation lookup lifecycle, round-trip, cross-federate stability, invalid-input, and cleanup slice |
 | `cpp-tck.standard-order-and-transportation-lookups-contract` | Standard adapter-backed mandatory order and transportation lookup contract across lifecycle admission, round trips, invalid inputs, and cleanup |
 | `java-tck.declaration-management` | Pre-connect and pre-join lifecycle boundaries for object and interaction declarations, ordinary object publication/subscription, active and passive declarations, interaction publication/subscription, withdrawal, and invalid-class/attribute failure boundaries |
 | `cpp-tck.declaration-management-contract` | Standard adapter-backed declaration-management contract for object and interaction publication, active/passive subscription, withdrawal, lifecycle boundaries, and invalid-handle failures |
@@ -2063,6 +2064,8 @@ promoted `cpp-tck.timestamped-interaction-regulation-reenable-contract`,
 add ordinary and directed timestamped Time Constrained/Time Regulation
 re-enable boundaries with the same adapter-owned configuration. The
 promoted `cpp-tck.support-services-contract`,
+`cpp-tck.standard-order-and-transportation-lookups`,
+`cpp-tck.standard-order-and-transportation-lookups-contract`,
 `cpp-tck.transport-order`, `cpp-tck.transport-order-contract`, and
 `cpp-tck.relevance-advisories-contract` runners similarly expose the standard
 support lookup, ordinary order/transport, and advisory-switch surfaces as

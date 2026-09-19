@@ -177,6 +177,10 @@ constexpr char orderTypeChangeContractId[] =
     "cpp-tck.order-type-change-contract";
 constexpr char transportOrderScenario[] = "cpp-tck.transport-order";
 constexpr char transportOrderContractId[] = "cpp-tck.transport-order-contract";
+constexpr char standardOrderAndTransportationLookupsScenario[] =
+    "cpp-tck.standard-order-and-transportation-lookups";
+constexpr char standardOrderAndTransportationLookupsContractId[] =
+    "cpp-tck.standard-order-and-transportation-lookups-contract";
 constexpr char unconditionalAttributeOwnershipDivestitureScenario[] =
     "cpp-tck.unconditional-attribute-ownership-divestiture";
 constexpr char unconditionalAttributeOwnershipDivestitureContractId[] =
@@ -6343,6 +6347,145 @@ void scenarioTransportOrderPortableContract(
   scenarioTransportOrderPortable(options, model);
 }
 
+void scenarioStandardOrderAndTransportationLookupsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session lifecycle(options, model, "standard-support-type-lifecycle");
+  auto requireLookupLifecycle = [&](std::wstring const& expected,
+                                   std::string const& phase) {
+    requireException(
+        [&] {
+          static_cast<void>(lifecycle.rtiAmbassador().getOrderType(L"Receive"));
+        },
+        expected,
+        "looking up Receive order type " + phase);
+    requireException(
+        [&] {
+          static_cast<void>(lifecycle.rtiAmbassador().getOrderName(rti::RECEIVE));
+        },
+        expected,
+        "looking up Receive order name " + phase);
+    requireException(
+        [&] {
+          static_cast<void>(lifecycle.rtiAmbassador().getOrderType(L"TimeStamp"));
+        },
+        expected,
+        "looking up TimeStamp order type " + phase);
+    requireException(
+        [&] {
+          static_cast<void>(lifecycle.rtiAmbassador().getOrderName(rti::TIMESTAMP));
+        },
+        expected,
+        "looking up TimeStamp order name " + phase);
+    requireException(
+        [&] {
+          static_cast<void>(lifecycle.rtiAmbassador().getTransportationTypeHandle(
+              L"HLAreliable"));
+        },
+        expected,
+        "looking up reliable transportation type " + phase);
+    requireException(
+        [&] {
+          static_cast<void>(lifecycle.rtiAmbassador().getTransportationTypeName(
+              rti::TransportationTypeHandle{}));
+        },
+        expected,
+        "looking up an invalid transportation type " + phase);
+  };
+
+  requireLookupLifecycle(L"NotConnected", "before connect");
+  lifecycle.connect();
+  requireLookupLifecycle(
+      L"FederateNotExecutionMember",
+      "after connect before join");
+  lifecycle.disconnect();
+
+  Session owner(options, model, "standard-support-type-owner");
+  Session member(options, model, "standard-support-type-member");
+  auto const federation = federationName(options, "standard-support-type-lookups");
+  connectAndJoin(owner, member, options, federation, options.fom);
+
+  require(
+      owner.rtiAmbassador().getOrderType(L"Receive") == rti::RECEIVE &&
+          owner.rtiAmbassador().getOrderType(L"TimeStamp") == rti::TIMESTAMP,
+      "standard order names did not resolve to the mandatory order types");
+  require(
+      owner.rtiAmbassador().getOrderName(rti::RECEIVE) == L"Receive" &&
+          owner.rtiAmbassador().getOrderName(rti::TIMESTAMP) == L"TimeStamp",
+      "mandatory order types did not round-trip to their standard names");
+  require(
+      member.rtiAmbassador().getOrderType(L"Receive") == rti::RECEIVE &&
+          member.rtiAmbassador().getOrderType(L"TimeStamp") == rti::TIMESTAMP,
+      "member order lookups did not resolve to the mandatory order types");
+
+  auto const ownerReliable = owner.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  auto const ownerBestEffort = owner.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAbestEffort");
+  auto const memberReliable = member.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  auto const memberBestEffort = member.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAbestEffort");
+  require(
+      ownerReliable.isValid() && ownerBestEffort.isValid() &&
+          memberReliable.isValid() && memberBestEffort.isValid(),
+      "mandatory transportation lookup returned an invalid handle");
+  require(
+      ownerReliable != ownerBestEffort && memberReliable != memberBestEffort,
+      "mandatory transportation types did not remain distinct");
+  require(
+      ownerReliable == memberReliable && ownerBestEffort == memberBestEffort,
+      "mandatory transportation handles were not stable across federates");
+  require(
+      owner.rtiAmbassador().getTransportationTypeName(ownerReliable) ==
+              L"HLAreliable" &&
+          owner.rtiAmbassador().getTransportationTypeName(ownerBestEffort) ==
+              L"HLAbestEffort" &&
+          member.rtiAmbassador().getTransportationTypeName(memberReliable) ==
+              L"HLAreliable" &&
+          member.rtiAmbassador().getTransportationTypeName(memberBestEffort) ==
+              L"HLAbestEffort",
+      "mandatory transportation handles did not round-trip to their standard names");
+
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getOrderType(L"MissingOrder"));
+      },
+      L"InvalidOrderName",
+      "missing order name lookup");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getOrderName(
+            static_cast<rti::OrderType>(0x7fU)));
+      },
+      L"InvalidOrderType",
+      "invalid order type lookup");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getTransportationTypeHandle(
+            L"MissingTransportation"));
+      },
+      L"InvalidTransportationName",
+      "missing transportation name lookup");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getTransportationTypeName(
+            rti::TransportationTypeHandle{}));
+      },
+      L"InvalidTransportationTypeHandle",
+      "invalid transportation handle lookup");
+
+  owner.resign(rti::NO_ACTION);
+  member.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+}
+
+void scenarioStandardOrderAndTransportationLookupsPortableContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioStandardOrderAndTransportationLookupsPortable(options, model);
+}
+
 void scenarioCustomTransportationTimestampedRegionalInteractionDelivery(
     Options const& options,
     rti::CallbackModel model) {
@@ -6735,6 +6878,16 @@ int runTransportOrderScenarios(int argc, char** argv) {
       transportOrderContractId,
       scenarioTransportOrderPortable,
       scenarioTransportOrderPortableContract);
+}
+
+int runStandardOrderAndTransportationLookupScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      standardOrderAndTransportationLookupsScenario,
+      standardOrderAndTransportationLookupsContractId,
+      scenarioStandardOrderAndTransportationLookupsPortable,
+      scenarioStandardOrderAndTransportationLookupsPortableContract);
 }
 
 int runMomTransportationTypeChangeRequestScenarios(int argc, char** argv) {
@@ -7917,6 +8070,20 @@ bool hasTransportOrderScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasStandardOrderAndTransportationLookupScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == standardOrderAndTransportationLookupsScenario ||
+        scenario == standardOrderAndTransportationLookupsContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasUnconditionalAttributeOwnershipDivestitureScenario(
     int argc,
     char** argv) {
@@ -8327,6 +8494,9 @@ int main(int argc, char** argv) {
     }
     if (hasTransportOrderScenario(argc, argv)) {
       return runTransportOrderScenarios(argc, argv);
+    }
+    if (hasStandardOrderAndTransportationLookupScenario(argc, argv)) {
+      return runStandardOrderAndTransportationLookupScenarios(argc, argv);
     }
     if (hasUnconditionalAttributeOwnershipDivestitureScenario(argc, argv)) {
       return runUnconditionalAttributeOwnershipDivestitureScenarios(argc, argv);

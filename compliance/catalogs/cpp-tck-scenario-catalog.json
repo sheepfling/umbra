@@ -4244,7 +4244,7 @@
         "transportation-type-requirements-contract.json",
         "federation-execution-api-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioStandardOrderAndTransportationLookups",
+      "cpp_test": "src/portable_tck.cpp#scenarioStandardOrderAndTransportationLookupsPortable",
       "runner_id": "cpp-tck.standard-order-and-transportation-lookups",
       "parity": "java-tck.support-services",
       "default_status": "run",
@@ -4275,7 +4275,7 @@
       "contract_refs": [
         "standard-order-and-transportation-lookups-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioStandardOrderAndTransportationLookupsContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioStandardOrderAndTransportationLookupsPortableContract",
       "runner_id": "cpp-tck.standard-order-and-transportation-lookups-contract",
       "parity": "cpp-tck.standard-order-and-transportation-lookups",
       "default_status": "adapter-required",
