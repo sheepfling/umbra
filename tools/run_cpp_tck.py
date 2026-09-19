@@ -903,6 +903,8 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "cpp-tck.timestamped-directed-interaction-retraction-fanout-contract",
     "cpp-tck.modify-lookahead",
     "cpp-tck.modify-lookahead-contract",
+    "cpp-tck.transportation-type-change",
+    "cpp-tck.transportation-type-change-contract",
     "cpp-tck.unconditional-attribute-ownership-divestiture",
     "cpp-tck.unconditional-attribute-ownership-divestiture-contract",
     "cpp-tck.auto-provide-disabled-discovery-only",

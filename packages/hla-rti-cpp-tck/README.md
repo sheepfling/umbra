@@ -543,6 +543,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timed-default-region-attribute-save-restore-contract` | Standard adapter-backed contract for timestamped default-region attribute save/restore, reflection metadata, Flush Queue delivery, and retraction |
 | `java-tck.transport-order` | Receive/timestamp order controls, default and per-instance order and transport controls, request/confirmation boundaries, invalid class/object/attribute/transport boundaries, transport queries, and delivered transport identity |
 | `cpp-tck.transport-order-contract` | Standard adapter-backed ordinary order and transportation contract for default and per-instance controls, queries, invalid-handle boundaries, and delivered transport identity |
+| `cpp-tck.transportation-type-change` | Ordinary attribute and interaction transportation-type changes, pending versus immediate confirmations, before/after delivery, and committed query reports |
+| `cpp-tck.transportation-type-change-contract` | Pure standard C++ contract for ordinary attribute and interaction transportation-type changes and confirmation/report callbacks |
 | `java-tck.relevance-advisories` | Pre-connect and pre-join support-switch accessor boundaries, advisory/support-switch state, active/passive declaration relevance, registration and interaction turn-on/turn-off callbacks, named update-rate callbacks, and active per-attribute update-rate queries |
 | `cpp-tck.relevance-advisories-contract` | Standard adapter-backed advisory and support-switch contract for lifecycle accessors, declaration relevance, registration/interaction callbacks, and update-rate queries |
 | `cpp-tck.attribute-relevance-known-class` | Adapter-FOM-driven known-class policy, inherited object discovery, known-attribute turn-up/turn-down advisories, and suppression of derived-only declarations |
@@ -2055,6 +2057,12 @@ promoted `cpp-tck.support-services-contract`,
 `cpp-tck.relevance-advisories-contract` runners similarly expose the standard
 support lookup, ordinary order/transport, and advisory-switch surfaces as
 independently selectable pure C++ slices.
+The promoted `cpp-tck.transportation-type-change` scenario and its pure contract
+twin similarly expose ordinary attribute and interaction transportation-type
+changes as an independently selectable standard slice. They verify standard
+reliable/best-effort lookup, pending versus immediate confirmation boundaries,
+delivery before and after confirmation, and committed query reports while the
+provider package, FOM, endpoint, and callback model remain adapter inputs.
 The promoted `cpp-tck.fom-model-contract`,
 `cpp-tck.fom-module-composition-contract`,
 `cpp-tck.fom-additional-module-join-atomicity-contract`, and

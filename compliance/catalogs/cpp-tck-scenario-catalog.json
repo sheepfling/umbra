@@ -14453,6 +14453,93 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.transportation-type-change",
+      "category": "transportation-type-change",
+      "title": "Exercise ordinary attribute and interaction transportation-type changes across confirmation boundaries",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.requestAttributeTransportationTypeChange",
+        "RTIambassador.queryAttributeTransportationType",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.requestInteractionTransportationTypeChange",
+        "RTIambassador.queryInteractionTransportationType",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.confirmAttributeTransportationTypeChange",
+        "FederateAmbassador.reportAttributeTransportationType",
+        "FederateAmbassador.confirmInteractionTransportationTypeChange",
+        "FederateAmbassador.reportInteractionTransportationType",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-transportation-type-control",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-transportation-type-change-contract.json",
+        "standard-transport-order-contract.json"
+      ],
+      "native_equivalent_runner_ids": [
+        "cpp-tck.transportation-type-change"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioTransportationTypeChange",
+      "runner_id": "cpp-tck.transportation-type-change",
+      "parity": "java-tck.transport-order",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.transportation-type-change-contract",
+      "category": "transportation-type-change",
+      "title": "Pure standard C++ contract for ordinary transportation-type changes",
+      "api_methods": [
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.requestAttributeTransportationTypeChange",
+        "RTIambassador.queryAttributeTransportationType",
+        "RTIambassador.requestInteractionTransportationTypeChange",
+        "RTIambassador.queryInteractionTransportationType",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.sendInteraction",
+        "FederateAmbassador.confirmAttributeTransportationTypeChange",
+        "FederateAmbassador.reportAttributeTransportationType",
+        "FederateAmbassador.confirmInteractionTransportationTypeChange",
+        "FederateAmbassador.reportInteractionTransportationType",
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-transportation-type-control",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-transportation-type-change-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioTransportationTypeChangeContract",
+      "runner_id": "cpp-tck.transportation-type-change-contract",
+      "parity": "cpp-tck.transportation-type-change",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-directed-interaction-retraction-fanout",
       "category": "timestamped-directed-interaction-retraction-fanout",
       "title": "Retract one queued timestamped directed interaction across multiple recipients before delivery",

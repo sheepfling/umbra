@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for ordinary attribute and interaction transportation-type changes. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies standard HLAreliable and HLAbestEffort lookup, publication and subscription, object registration and discovery, pending versus immediate confirmation behavior, ordinary attribute and interaction delivery before and after confirmation, and committed query reports. It does not assert provider-specific names, registries, headers, MOM behavior, DDM, save/restore, or interoperability.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-transportation-type-change",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador requestAttributeTransportationTypeChange, queryAttributeTransportationType, requestInteractionTransportationTypeChange, queryInteractionTransportationType, publication, subscription, registration, update, and send services with FederateAmbassador confirmation, report, reflection, and interaction callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador transportation-type change declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioTransportationTypeChange"
+      ]
+    }
+  ]
+}

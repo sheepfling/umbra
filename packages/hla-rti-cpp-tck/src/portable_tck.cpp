@@ -168,6 +168,10 @@ constexpr char timestampedDirectedInteractionRetractionFanoutContractId[] =
 constexpr char modifyLookaheadScenario[] = "cpp-tck.modify-lookahead";
 constexpr char modifyLookaheadContractId[] =
     "cpp-tck.modify-lookahead-contract";
+constexpr char transportationTypeChangeScenario[] =
+    "cpp-tck.transportation-type-change";
+constexpr char transportationTypeChangeContractId[] =
+    "cpp-tck.transportation-type-change-contract";
 constexpr char unconditionalAttributeOwnershipDivestitureScenario[] =
     "cpp-tck.unconditional-attribute-ownership-divestiture";
 constexpr char unconditionalAttributeOwnershipDivestitureContractId[] =
@@ -5280,6 +5284,318 @@ void scenarioModifyLookaheadContract(
   scenarioModifyLookahead(options, model);
 }
 
+void scenarioTransportationTypeChange(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "transportation-type-change-owner");
+  Session observer(options, model, "transportation-type-change-observer");
+  auto const federation = federationName(options, "transportation-type-change");
+  connectAndJoin(owner, observer, options, federation, options.fom);
+
+  rti::ObjectClassHandle ownerClass;
+  rti::AttributeHandle ownerAttribute;
+  rti::InteractionClassHandle ownerInteraction;
+  rti::ParameterHandle ownerParameter;
+  handles(owner, options, ownerClass, ownerAttribute, ownerInteraction, ownerParameter);
+
+  rti::ObjectClassHandle observerClass;
+  rti::AttributeHandle observerAttribute;
+  rti::InteractionClassHandle observerInteraction;
+  rti::ParameterHandle observerParameter;
+  handles(
+      observer,
+      options,
+      observerClass,
+      observerAttribute,
+      observerInteraction,
+      observerParameter);
+  require(
+      ownerClass == observerClass && ownerAttribute == observerAttribute &&
+          ownerInteraction == observerInteraction && ownerParameter == observerParameter,
+      "transportation-type change lookups did not retain cross-federate handle identity");
+
+  auto const reliable = owner.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  auto const bestEffort = owner.rtiAmbassador().getTransportationTypeHandle(L"HLAbestEffort");
+  require(
+      reliable.isValid() && bestEffort.isValid() && reliable != bestEffort,
+      "transportation-type change lookup did not return distinct standard transports");
+
+  rti::AttributeHandleSet ownerAttributes;
+  ownerAttributes.insert(ownerAttribute);
+  rti::AttributeHandleSet observerAttributes;
+  observerAttributes.insert(observerAttribute);
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes,
+      true,
+      L"");
+  owner.rtiAmbassador().publishInteractionClass(ownerInteraction);
+  observer.rtiAmbassador().subscribeInteractionClass(observerInteraction, true);
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(object.isValid(), "transportation-type change registration returned an invalid handle");
+  waitFor(
+      observer,
+      [&] { return observer.recorder().hasDiscovery(object); },
+      options,
+      "transportation-type change object discovery");
+
+  auto sameTransport = [](rti::RTIambassador& inspector,
+                          rti::TransportationTypeHandle const& actual,
+                          std::wstring const& expectedName) {
+    return actual.isValid() && inspector.getTransportationTypeName(actual) == expectedName;
+  };
+
+  owner.recorder().clearTransportationRecords();
+  owner.rtiAmbassador().queryAttributeTransportationType(object, ownerAttribute);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().attributeTransportationReports().size() >= 1U; },
+      options,
+      "initial attribute transportation query");
+  auto const initialAttributeReports = owner.recorder().attributeTransportationReports();
+  auto const initialAttributeReport = std::find_if(
+      initialAttributeReports.begin(),
+      initialAttributeReports.end(),
+      [&](auto const& report) {
+        return report.object == object && report.attribute == ownerAttribute;
+      });
+  require(
+      initialAttributeReport != initialAttributeReports.end() &&
+          sameTransport(owner.rtiAmbassador(), initialAttributeReport->transportation, L"HLAreliable"),
+      "initial attribute transportation query did not report reliable transport");
+
+  auto sendAttribute = [&](std::uint8_t valueByte, std::uint8_t tagByte) {
+    std::vector<std::uint8_t> valueBytes{valueByte};
+    std::vector<std::uint8_t> tagBytes{tagByte};
+    rti::AttributeHandleValueMap values;
+    values.emplace(
+        ownerAttribute,
+        rti::VariableLengthData(valueBytes.data(), valueBytes.size()));
+    rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+    owner.rtiAmbassador().updateAttributeValues(object, values, tag);
+  };
+
+  owner.recorder().clearTransportationRecords();
+  observer.recorder().clearReflection();
+  owner.rtiAmbassador().requestAttributeTransportationTypeChange(
+      object,
+      ownerAttributes,
+      bestEffort);
+  if (model == rti::HLA_EVOKED) {
+    requireException(
+        [&] {
+          owner.rtiAmbassador().requestAttributeTransportationTypeChange(
+              object,
+              ownerAttributes,
+              reliable);
+        },
+        L"AttributeAlreadyBeingChanged",
+        "duplicate attribute transportation-type change request");
+  } else {
+    waitFor(
+        owner,
+        [&] { return owner.recorder().attributeTransportationConfirmations().size() >= 1U; },
+        options,
+        "immediate attribute transportation-type change confirmation");
+  }
+
+  sendAttribute(0x01U, 0x11U);
+  waitFor(
+      observer,
+      [&] { return observer.recorder().reflection().present; },
+      options,
+      "pre-confirmation attribute update");
+  auto const beforeReflection = observer.recorder().reflection();
+  require(
+      beforeReflection.object == object && beforeReflection.values.size() == 1U &&
+          beforeReflection.values.count(observerAttribute) == 1U &&
+          copyBytes(beforeReflection.values.at(observerAttribute)) ==
+              std::vector<std::uint8_t>{0x01U} &&
+          beforeReflection.tag == std::vector<std::uint8_t>{0x11U} &&
+          beforeReflection.producer == owner.federateHandle() &&
+          sameTransport(
+              observer.rtiAmbassador(),
+              beforeReflection.transportation,
+              model == rti::HLA_EVOKED ? L"HLAreliable" : L"HLAbestEffort"),
+      model == rti::HLA_EVOKED
+          ? "pre-confirmation attribute update did not use reliable transport"
+          : "immediate attribute transportation change did not use best-effort transport");
+
+  waitFor(
+      owner,
+      [&] { return owner.recorder().attributeTransportationConfirmations().size() >= 1U; },
+      options,
+      "attribute transportation-type change confirmation");
+  auto const attributeConfirmations = owner.recorder().attributeTransportationConfirmations();
+  auto const& attributeConfirmation = attributeConfirmations.back();
+  require(
+      attributeConfirmation.object == object &&
+          attributeConfirmation.attributes.count(ownerAttribute) == 1U &&
+          sameTransport(owner.rtiAmbassador(), attributeConfirmation.transportation,
+                        L"HLAbestEffort"),
+      "attribute transportation-type change confirmation did not commit best effort");
+
+  observer.recorder().clearReflection();
+  sendAttribute(0x02U, 0x12U);
+  waitFor(
+      observer,
+      [&] { return observer.recorder().reflection().present; },
+      options,
+      "post-confirmation attribute update");
+  auto const afterReflection = observer.recorder().reflection();
+  require(
+      afterReflection.object == object && afterReflection.values.size() == 1U &&
+          afterReflection.values.count(observerAttribute) == 1U &&
+          copyBytes(afterReflection.values.at(observerAttribute)) ==
+              std::vector<std::uint8_t>{0x02U} &&
+          afterReflection.tag == std::vector<std::uint8_t>{0x12U} &&
+          sameTransport(observer.rtiAmbassador(), afterReflection.transportation,
+                        L"HLAbestEffort"),
+      "post-confirmation attribute update did not use best-effort transport");
+
+  owner.recorder().clearTransportationRecords();
+  owner.rtiAmbassador().queryAttributeTransportationType(object, ownerAttribute);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().attributeTransportationReports().size() >= 1U; },
+      options,
+      "committed attribute transportation query");
+  auto const committedAttributeReports = owner.recorder().attributeTransportationReports();
+  auto const committedAttributeReport = std::find_if(
+      committedAttributeReports.begin(),
+      committedAttributeReports.end(),
+      [&](auto const& report) {
+        return report.object == object && report.attribute == ownerAttribute;
+      });
+  require(
+      committedAttributeReport != committedAttributeReports.end() &&
+          sameTransport(owner.rtiAmbassador(), committedAttributeReport->transportation,
+                        L"HLAbestEffort"),
+      "committed attribute transportation query did not report best effort");
+
+  auto sendInteraction = [&](std::uint8_t tagByte) {
+    std::vector<std::uint8_t> tagBytes{tagByte};
+    rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+    owner.rtiAmbassador().sendInteraction(
+        ownerInteraction,
+        rti::ParameterHandleValueMap{},
+        tag);
+  };
+
+  owner.recorder().clearTransportationRecords();
+  observer.recorder().clearInteraction();
+  owner.rtiAmbassador().requestInteractionTransportationTypeChange(
+      ownerInteraction,
+      bestEffort);
+  if (model == rti::HLA_EVOKED) {
+    requireException(
+        [&] {
+          owner.rtiAmbassador().requestInteractionTransportationTypeChange(
+              ownerInteraction,
+              reliable);
+        },
+        L"InteractionClassAlreadyBeingChanged",
+        "duplicate interaction transportation-type change request");
+  } else {
+    waitFor(
+        owner,
+        [&] { return owner.recorder().interactionTransportationConfirmations().size() >= 1U; },
+        options,
+        "immediate interaction transportation-type change confirmation");
+  }
+
+  sendInteraction(0x21U);
+  waitFor(
+      observer,
+      [&] { return observer.recorder().interaction().present; },
+      options,
+      "pre-confirmation interaction delivery");
+  auto const beforeInteraction = observer.recorder().interaction();
+  require(
+      beforeInteraction.interaction == observerInteraction &&
+          beforeInteraction.parameters.empty() &&
+          beforeInteraction.tag == std::vector<std::uint8_t>{0x21U} &&
+          beforeInteraction.producer == owner.federateHandle() &&
+          sameTransport(
+              observer.rtiAmbassador(),
+              beforeInteraction.transportation,
+              model == rti::HLA_EVOKED ? L"HLAreliable" : L"HLAbestEffort"),
+      model == rti::HLA_EVOKED
+          ? "pre-confirmation interaction did not use reliable transport"
+          : "immediate interaction transportation change did not use best-effort transport");
+
+  waitFor(
+      owner,
+      [&] { return owner.recorder().interactionTransportationConfirmations().size() >= 1U; },
+      options,
+      "interaction transportation-type change confirmation");
+  auto const interactionConfirmations = owner.recorder().interactionTransportationConfirmations();
+  auto const& interactionConfirmation = interactionConfirmations.back();
+  require(
+      interactionConfirmation.interaction == ownerInteraction &&
+          sameTransport(owner.rtiAmbassador(), interactionConfirmation.transportation,
+                        L"HLAbestEffort"),
+      "interaction transportation-type change confirmation did not commit best effort");
+
+  observer.recorder().clearInteraction();
+  sendInteraction(0x22U);
+  waitFor(
+      observer,
+      [&] { return observer.recorder().interaction().present; },
+      options,
+      "post-confirmation interaction delivery");
+  auto const afterInteraction = observer.recorder().interaction();
+  require(
+      afterInteraction.interaction == observerInteraction &&
+          afterInteraction.parameters.empty() &&
+          afterInteraction.tag == std::vector<std::uint8_t>{0x22U} &&
+          sameTransport(observer.rtiAmbassador(), afterInteraction.transportation,
+                        L"HLAbestEffort"),
+      "post-confirmation interaction did not use best-effort transport");
+
+  owner.recorder().clearTransportationRecords();
+  owner.rtiAmbassador().queryInteractionTransportationType(
+      owner.federateHandle(),
+      ownerInteraction);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().interactionTransportationReports().size() >= 1U; },
+      options,
+      "committed interaction transportation query");
+  auto const interactionReports = owner.recorder().interactionTransportationReports();
+  auto const interactionReport = std::find_if(
+      interactionReports.begin(),
+      interactionReports.end(),
+      [&](auto const& report) {
+        return report.federate == owner.federateHandle() &&
+            report.interaction == ownerInteraction;
+      });
+  require(
+      interactionReport != interactionReports.end() &&
+          sameTransport(owner.rtiAmbassador(), interactionReport->transportation,
+                        L"HLAbestEffort"),
+      "committed interaction transportation query did not report best effort");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(observerInteraction);
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(observerClass, observerAttributes);
+  owner.rtiAmbassador().unpublishInteractionClass(ownerInteraction);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  owner.rtiAmbassador().unpublishObjectClass(ownerClass);
+  owner.resign(rti::DELETE_OBJECTS);
+  observer.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioTransportationTypeChangeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTransportationTypeChange(options, model);
+}
+
 void scenarioCustomTransportationTimestampedRegionalInteractionDelivery(
     Options const& options,
     rti::CallbackModel model) {
@@ -5642,6 +5958,16 @@ int runModifyLookaheadScenarios(int argc, char** argv) {
       modifyLookaheadContractId,
       scenarioModifyLookahead,
       scenarioModifyLookaheadContract);
+}
+
+int runTransportationTypeChangeScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      transportationTypeChangeScenario,
+      transportationTypeChangeContractId,
+      scenarioTransportationTypeChange,
+      scenarioTransportationTypeChangeContract);
 }
 
 int runMomTransportationTypeChangeRequestScenarios(int argc, char** argv) {
@@ -6782,6 +7108,20 @@ bool hasModifyLookaheadScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasTransportationTypeChangeScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == transportationTypeChangeScenario ||
+        scenario == transportationTypeChangeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasUnconditionalAttributeOwnershipDivestitureScenario(
     int argc,
     char** argv) {
@@ -7183,6 +7523,9 @@ int main(int argc, char** argv) {
     }
     if (hasModifyLookaheadScenario(argc, argv)) {
       return runModifyLookaheadScenarios(argc, argv);
+    }
+    if (hasTransportationTypeChangeScenario(argc, argv)) {
+      return runTransportationTypeChangeScenarios(argc, argv);
     }
     if (hasUnconditionalAttributeOwnershipDivestitureScenario(argc, argv)) {
       return runUnconditionalAttributeOwnershipDivestitureScenarios(argc, argv);
