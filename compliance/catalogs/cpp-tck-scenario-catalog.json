@@ -14383,6 +14383,76 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.modify-lookahead",
+      "category": "modify-lookahead",
+      "title": "Exercise Query Lookahead and Modify Lookahead across the deferred-decrease boundary",
+      "api_methods": [
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.modifyLookahead",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-time-advance-and-grant",
+        "cpp-1516.1-time-role-callbacks",
+        "cpp-1516.1-time-management-negative-boundaries"
+      ],
+      "contract_refs": [
+        "standard-time-advance-contract.json",
+        "standard-modify-lookahead-contract.json"
+      ],
+      "native_equivalent_runner_ids": [
+        "cpp-tck.modify-lookahead"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioModifyLookahead",
+      "runner_id": "cpp-tck.modify-lookahead",
+      "parity": "java-tck.time-advance",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.modify-lookahead-contract",
+      "category": "modify-lookahead",
+      "title": "Pure standard C++ contract for Query Lookahead and Modify Lookahead",
+      "api_methods": [
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.queryLookahead",
+        "RTIambassador.modifyLookahead",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-time-advance-and-grant",
+        "cpp-1516.1-time-role-callbacks",
+        "cpp-1516.1-time-management-negative-boundaries"
+      ],
+      "contract_refs": [
+        "standard-modify-lookahead-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioModifyLookaheadContract",
+      "runner_id": "cpp-tck.modify-lookahead-contract",
+      "parity": "cpp-tck.modify-lookahead",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-directed-interaction-retraction-fanout",
       "category": "timestamped-directed-interaction-retraction-fanout",
       "title": "Retract one queued timestamped directed interaction across multiple recipients before delivery",

@@ -177,6 +177,8 @@ The executable covers these ordinary public-API workflows, under both
 | `java-tck.logical-time-factory` | Pre-connect and pre-join `getTimeFactory` lifecycle boundaries, standard `HLAinteger64Time`/`HLAfloat64Time` value and factory checks, concrete time/interval copy and assignment independence, zero/epsilon mutators, interval differences, direct interval encoding, default/named/unknown logical-time factory selection, adapter-selected logical-time values and zero/epsilon intervals, public `HLAlogicalTime`/`HLAlogicalTimeInterval` data-element round trips, nested-buffer boundaries, clone/copy independence, incompatible-type rejection, variable-length and direct-buffer encode/decode parity, encoded-length checks, truncated-buffer rejection, boundary transitions, comparison, interval arithmetic/order, and illegal underflow/overflow boundaries |
 | `java-tck.time-advance` | Time-service `NotConnected`/`FederateNotExecutionMember` boundaries, Time Regulation/Constrained roles, pre-membership lookahead boundaries, logical-time and lookahead queries, deferred lookahead decrease, all alternate advance entry points, asynchronous-delivery controls, Time Advance Request/Grant, standard duplicate-role, in-progress, backward-time, and duplicate-disable failure boundaries, and role shutdown |
 | `cpp-tck.time-advance-contract` | Standard adapter-backed time-role, logical-time query, advance, asynchronous-delivery, grant, and negative-boundary contract |
+| `cpp-tck.modify-lookahead` | Query and modify the standard time-regulation lookahead, including pre-regulation failures, valid increase, incompatible-interval rejection, deferred decrease, and post-grant application |
+| `cpp-tck.modify-lookahead-contract` | Pure standard C++ contract for Query Lookahead and Modify Lookahead across the deferred-decrease boundary |
 | `java-tck.support-services` | Full public federate, object, attribute, interaction, parameter, object-instance, and dimension name/handle lookup in both directions with pre-connect/pre-join lifecycle boundaries, standard invalid-name/handle boundaries, order/transport/update-rate/normalization lookup lifecycle boundaries, all public handle decoder lifecycle boundaries, ordinary handle encode/decode, direct-buffer and `VariableLengthData&` handle encoding, encoded-length and truncated-buffer checks, copied-handle equality/hash/ordering stability, valid `AttributeHandleSet` copy/assignment/lookup/erase semantics, independent `AttributeHandleValueMap` and `ParameterHandleValueMap` value storage, normalization stability, available-dimension boundaries, and order/transportation handles |
 | `cpp-tck.support-services-contract` | Standard adapter-backed support-service contract for public lookup, normalization, handle encoding/decoding, available dimensions, order, transportation, update-rate, and lifecycle-boundary behavior |
 | `cpp-tck.standard-order-and-transportation-lookups-contract` | Standard adapter-backed mandatory order and transportation lookup contract across lifecycle admission, round trips, invalid inputs, and cleanup |
@@ -1876,6 +1878,13 @@ concrete standard logical-time value and factory contract as an independently
 selectable, provider- and FOM-independent slice; RTI time-role and
 time-advance behavior remains in `java-tck.logical-time-factory` and
 `java-tck.time-advance`.
+The promoted `cpp-tck.modify-lookahead` scenario and its pure contract twin
+split the lookahead service into an independently selectable standard slice:
+they verify the pre-regulation exception boundary, Query Lookahead after
+enablement, a valid increase, InvalidLookahead rejection, deferred decrease,
+and application of that decrease after a shared time-advance grant. The
+provider package, FOM, endpoint, logical-time implementation, and callback
+model remain adapter inputs.
 The promoted `cpp-tck.exception-hierarchy-contract` runner exposes the complete
 official C++ exception hierarchy as an independently selectable,
 provider- and FOM-independent slice; its cross-language parity anchor is

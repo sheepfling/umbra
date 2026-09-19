@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the standard lookahead-control boundary. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, logical-time implementation, and callback configuration. It verifies the pre-regulation query and modification failures, the initial Query Lookahead value, a valid Modify Lookahead increase, InvalidLookahead rejection for an incompatible official standard interval representation, deferred decrease until the next grant, and application of that decrease after the grant. It does not assert provider-specific callback timing, MOM reports, DDM, save/restore, or interoperability.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-modify-lookahead",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador queryLookahead, modifyLookahead, enableTimeRegulation, enableTimeConstrained, timeAdvanceRequest with FederateAmbassador timeRegulationEnabled, timeConstrainedEnabled, and timeAdvanceGrant callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador lookahead-control declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioModifyLookaheadContract"
+      ]
+    }
+  ]
+}

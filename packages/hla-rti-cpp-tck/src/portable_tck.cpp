@@ -165,6 +165,9 @@ constexpr char timestampedDirectedInteractionRetractionFanoutScenario[] =
     "cpp-tck.timestamped-directed-interaction-retraction-fanout";
 constexpr char timestampedDirectedInteractionRetractionFanoutContractId[] =
     "cpp-tck.timestamped-directed-interaction-retraction-fanout-contract";
+constexpr char modifyLookaheadScenario[] = "cpp-tck.modify-lookahead";
+constexpr char modifyLookaheadContractId[] =
+    "cpp-tck.modify-lookahead-contract";
 constexpr char unconditionalAttributeOwnershipDivestitureScenario[] =
     "cpp-tck.unconditional-attribute-ownership-divestiture";
 constexpr char unconditionalAttributeOwnershipDivestitureContractId[] =
@@ -5124,6 +5127,159 @@ void scenarioTimestampedDirectedInteractionRetractionFanoutContract(
   scenarioTimestampedDirectedInteractionRetractionFanout(options, model);
 }
 
+void scenarioModifyLookahead(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Modify Lookahead testing requires an adapter-supplied logical-time implementation");
+
+  Session regulator(options, model, "modify-lookahead-regulator");
+  Session constrained(options, model, "modify-lookahead-constrained");
+  auto const federation = federationName(options, "modify-lookahead");
+  connectAndJoin(regulator, constrained, options, federation, options.fom);
+
+  auto regulatorTime = makeTimeContext(regulator);
+  auto constrainedTime = makeTimeContext(constrained);
+  require(
+      regulatorTime.factory->getName() == constrainedTime.factory->getName(),
+      "Modify Lookahead members selected different logical-time factories");
+
+  auto beforeRegulation = regulatorTime.factory->makeZero();
+  require(
+      beforeRegulation != nullptr,
+      "Modify Lookahead could not allocate a pre-regulation query interval");
+  requireException(
+      [&] { regulator.rtiAmbassador().queryLookahead(*beforeRegulation); },
+      L"TimeRegulationIsNotEnabled",
+      "querying lookahead before enabling time regulation");
+  requireException(
+      [&] {
+        regulator.rtiAmbassador().modifyLookahead(*regulatorTime.zero);
+      },
+      L"TimeRegulationIsNotEnabled",
+      "modifying lookahead before enabling time regulation");
+
+  constrained.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      constrained,
+      [&] { return constrained.recorder().timeConstrainedEnabled().size() >= 1U; },
+      options,
+      "Modify Lookahead time-constrained callback");
+  regulator.rtiAmbassador().enableTimeRegulation(*regulatorTime.epsilon);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeRegulationEnabled().size() >= 1U; },
+      options,
+      "Modify Lookahead time-regulation callback");
+
+  auto queriedInitial = regulatorTime.factory->makeZero();
+  require(
+      queriedInitial != nullptr,
+      "Modify Lookahead could not allocate an initial query interval");
+  regulator.rtiAmbassador().queryLookahead(*queriedInitial);
+  require(
+      *queriedInitial == *regulatorTime.epsilon,
+      "initial Query Lookahead did not match the enabled epsilon");
+
+  auto changedLookaheadTime = timeAfter(
+      *regulatorTime.factory,
+      *regulatorTime.initial,
+      *regulatorTime.epsilon,
+      3U);
+  auto changedLookahead = regulatorTime.factory->makeZero();
+  require(
+      changedLookahead != nullptr,
+      "Modify Lookahead could not allocate the increased interval");
+  changedLookahead->setToDifference(
+      *changedLookaheadTime,
+      *regulatorTime.initial);
+  regulator.rtiAmbassador().modifyLookahead(*changedLookahead);
+
+  auto queriedChanged = regulatorTime.factory->makeZero();
+  require(
+      queriedChanged != nullptr,
+      "Modify Lookahead could not allocate the changed query interval");
+  regulator.rtiAmbassador().queryLookahead(*queriedChanged);
+  require(
+      *queriedChanged == *changedLookahead,
+      "Modify Lookahead increase did not cross the Query Lookahead boundary");
+
+  std::unique_ptr<rti::LogicalTimeInterval> incompatibleLookahead;
+  if (regulatorTime.factory->getName() == L"HLAinteger64Time") {
+    incompatibleLookahead = std::make_unique<rti::HLAfloat64Interval>(1.0);
+  } else {
+    incompatibleLookahead = std::make_unique<rti::HLAinteger64Interval>(1);
+  }
+  requireException(
+      [&] { regulator.rtiAmbassador().modifyLookahead(*incompatibleLookahead); },
+      L"InvalidLookahead",
+      "modifying lookahead with an incompatible standard interval");
+  auto queriedAfterInvalid = regulatorTime.factory->makeZero();
+  regulator.rtiAmbassador().queryLookahead(*queriedAfterInvalid);
+  require(
+      *queriedAfterInvalid == *changedLookahead,
+      "an invalid Modify Lookahead changed the active interval");
+
+  regulator.rtiAmbassador().modifyLookahead(*regulatorTime.epsilon);
+  auto queriedDeferred = regulatorTime.factory->makeZero();
+  regulator.rtiAmbassador().queryLookahead(*queriedDeferred);
+  require(
+      *queriedDeferred == *changedLookahead,
+      "a decreased lookahead took effect before the next logical-time grant");
+
+  auto const regulatorTarget = timeAfter(
+      *regulatorTime.factory,
+      *regulatorTime.initial,
+      *regulatorTime.epsilon,
+      4U);
+  auto const constrainedTarget = timeAfter(
+      *constrainedTime.factory,
+      *constrainedTime.initial,
+      *constrainedTime.epsilon,
+      4U);
+  regulator.rtiAmbassador().timeAdvanceRequest(*regulatorTarget);
+  constrained.rtiAmbassador().timeAdvanceRequest(*constrainedTarget);
+  waitFor(
+      regulator,
+      constrained,
+      [&] {
+        return regulator.recorder().timeAdvanceGrants().size() >= 1U &&
+            constrained.recorder().timeAdvanceGrants().size() >= 1U;
+      },
+      options,
+      "Modify Lookahead grant after deferred decrease");
+  auto const regulatorGrants = regulator.recorder().timeAdvanceGrants();
+  auto const constrainedGrants = constrained.recorder().timeAdvanceGrants();
+  require(
+      regulatorGrants.size() == 1U && constrainedGrants.size() == 1U,
+      "Modify Lookahead delivered duplicate grants");
+  require(
+      regulatorGrants.front().encoded == encodeTime(*regulatorTarget) &&
+          constrainedGrants.front().encoded == encodeTime(*constrainedTarget),
+      "Modify Lookahead returned the wrong grant time");
+
+  auto appliedLookahead = regulatorTime.factory->makeZero();
+  regulator.rtiAmbassador().queryLookahead(*appliedLookahead);
+  require(
+      *appliedLookahead == *regulatorTime.epsilon,
+      "the decreased lookahead did not apply after the logical-time grant");
+
+  constrained.rtiAmbassador().disableTimeConstrained();
+  regulator.rtiAmbassador().disableTimeRegulation();
+  constrained.resign(rti::NO_ACTION);
+  regulator.resign(rti::NO_ACTION);
+  regulator.rtiAmbassador().destroyFederationExecution(federation);
+  constrained.disconnect();
+  regulator.disconnect();
+}
+
+void scenarioModifyLookaheadContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioModifyLookahead(options, model);
+}
+
 void scenarioCustomTransportationTimestampedRegionalInteractionDelivery(
     Options const& options,
     rti::CallbackModel model) {
@@ -5476,6 +5632,16 @@ int runPortableScenarioPair(
   std::cout << "summary passed=" << results.size() - failures - skipped
             << " skipped=" << skipped << " failed=" << failures << '\n';
   return failures == 0 ? 0 : 1;
+}
+
+int runModifyLookaheadScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      modifyLookaheadScenario,
+      modifyLookaheadContractId,
+      scenarioModifyLookahead,
+      scenarioModifyLookaheadContract);
 }
 
 int runMomTransportationTypeChangeRequestScenarios(int argc, char** argv) {
@@ -6602,6 +6768,20 @@ bool hasTimestampedDirectedInteractionRetractionFanoutScenario(
   return false;
 }
 
+bool hasModifyLookaheadScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == modifyLookaheadScenario ||
+        scenario == modifyLookaheadContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasUnconditionalAttributeOwnershipDivestitureScenario(
     int argc,
     char** argv) {
@@ -7000,6 +7180,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedDirectedInteractionRetractionFanoutScenario(argc, argv)) {
       return runTimestampedDirectedInteractionRetractionFanoutScenarios(argc, argv);
+    }
+    if (hasModifyLookaheadScenario(argc, argv)) {
+      return runModifyLookaheadScenarios(argc, argv);
     }
     if (hasUnconditionalAttributeOwnershipDivestitureScenario(argc, argv)) {
       return runUnconditionalAttributeOwnershipDivestitureScenarios(argc, argv);
