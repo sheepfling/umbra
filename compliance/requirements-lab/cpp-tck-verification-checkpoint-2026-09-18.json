@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-federation-queryability-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-explicit-mim-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2641,6 +2641,22 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-18/federation-queryability-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-18/federation-queryability-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.xml"
+      ]
+    },
+    {
+      "name": "explicit-mim-creation",
+      "scenario_ids": [
+        "cpp-tck.explicit-mim-creation",
+        "cpp-tck.explicit-mim-creation-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "Focused installed-package direct runner across evoked and immediate callback models; adapter-supplied standard MIM creation and shared-declaration preservation passed 4/4 and were included in the complete 702-scenario promoted evidence run.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/explicit-mim-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/explicit-mim-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.xml"
       ]

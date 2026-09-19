@@ -1075,7 +1075,7 @@
         "federation-execution-api-contract.json",
         "federation-management-embedded-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioExplicitMimCreation",
+      "cpp_test": "src/portable_tck.cpp#scenarioExplicitMimCreationPortable",
       "runner_id": "cpp-tck.explicit-mim-creation",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -1101,7 +1101,7 @@
       "contract_refs": [
         "standard-explicit-mim-creation-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioExplicitMimCreationContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioExplicitMimCreationContractPortable",
       "runner_id": "cpp-tck.explicit-mim-creation-contract",
       "parity": "cpp-tck.explicit-mim-creation",
       "default_status": "adapter-required",

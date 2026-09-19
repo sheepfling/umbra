@@ -887,6 +887,8 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "cpp-tck.federation-list-services-contract",
     "cpp-tck.federate-lookup-lifecycle",
     "cpp-tck.federate-lookup-lifecycle-contract",
+    "cpp-tck.explicit-mim-creation",
+    "cpp-tck.explicit-mim-creation-contract",
     "cpp-tck.automatic-resign-directive-delete-objects",
     "cpp-tck.automatic-resign-directive-delete-objects-contract",
     "cpp-tck.mom-transportation-type-change-request",

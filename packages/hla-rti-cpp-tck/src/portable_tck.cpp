@@ -29,6 +29,10 @@ constexpr char federateLookupLifecycleScenario[] =
     "cpp-tck.federate-lookup-lifecycle";
 constexpr char federateLookupLifecycleContractScenario[] =
     "cpp-tck.federate-lookup-lifecycle-contract";
+constexpr char explicitMimCreationScenario[] =
+    "cpp-tck.explicit-mim-creation";
+constexpr char explicitMimCreationContractScenario[] =
+    "cpp-tck.explicit-mim-creation-contract";
 constexpr char automaticResignDirectiveDeleteObjectsId[] =
     "cpp-tck.automatic-resign-directive-delete-objects";
 constexpr char automaticResignDirectiveDeleteObjectsContractId[] =
@@ -522,6 +526,17 @@ void scenarioFederateLookupLifecycleContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederateLookupLifecycleContract(options, model);
+}
+void scenarioExplicitMimCreationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioExplicitMimCreation(options, model);
+}
+
+void scenarioExplicitMimCreationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioExplicitMimCreationContract(options, model);
 }
 void scenarioSynchronizationPointsPortable(
     Options const& options,
@@ -7500,6 +7515,15 @@ int runFederateLookupLifecycleScenarios(int argc, char** argv) {
       scenarioFederateLookupLifecyclePortable,
       scenarioFederateLookupLifecycleContractPortable);
 }
+int runExplicitMimCreationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      explicitMimCreationScenario,
+      explicitMimCreationContractScenario,
+      scenarioExplicitMimCreationPortable,
+      scenarioExplicitMimCreationContractPortable);
+}
 
 int runSynchronizationPointScenarios(int argc, char** argv) {
   auto const options = parseOptions(argc, argv);
@@ -8867,6 +8891,19 @@ bool hasFederateLookupLifecycleScenario(int argc, char** argv) {
   }
   return false;
 }
+bool hasExplicitMimCreationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == explicitMimCreationScenario ||
+        scenario == explicitMimCreationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
 bool hasSynchronizationPointScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -9319,6 +9356,9 @@ int main(int argc, char** argv) {
     }
     if (hasFederateLookupLifecycleScenario(argc, argv)) {
       return runFederateLookupLifecycleScenarios(argc, argv);
+    }
+    if (hasExplicitMimCreationScenario(argc, argv)) {
+      return runExplicitMimCreationScenarios(argc, argv);
     }
     if (hasLogicalTimeScenario(argc, argv)) {
       return runLogicalTimeScenarios(argc, argv);
