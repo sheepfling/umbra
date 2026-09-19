@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-federation-mom-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-api-foundations-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2675,6 +2675,31 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-18/federation-mom-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-18/federation-mom-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.xml"
+      ]
+    },
+    {
+      "name": "standard-api-foundations",
+      "scenario_ids": [
+        "cpp-tck.logical-time-data-elements-contract",
+        "cpp-tck.exception-hierarchy-contract",
+        "cpp-tck.enum-contract",
+        "cpp-tck.handle-and-collection-contract",
+        "cpp-tck.data-element-contract",
+        "cpp-tck.basic-data-elements-contract",
+        "cpp-tck.composite-data-elements-contract",
+        "cpp-tck.configuration-and-authorization-contract",
+        "cpp-tck.runtime-identity-contract",
+        "cpp-tck.authorizer-factory-factory-contract",
+        "cpp-tck.null-federate-ambassador-contract"
+      ],
+      "cases": 22,
+      "passed": 22,
+      "verification": "Focused installed-package direct runner across evoked and immediate callback models; the provider-independent standard API and data-element foundation routes passed 22/22 and were included in the complete 702-scenario promoted evidence run.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-18/standard-api-foundations-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/standard-api-foundations-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.xml"
       ]

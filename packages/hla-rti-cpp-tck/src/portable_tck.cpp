@@ -14,6 +14,26 @@ constexpr char logicalTimeContractScenario[] =
     "cpp-tck.logical-time-contract";
 constexpr char logicalTimeFactoryFactoryContractScenario[] =
     "cpp-tck.logical-time-factory-factory-contract";
+constexpr char logicalTimeDataElementsContractScenario[] =
+    "cpp-tck.logical-time-data-elements-contract";
+constexpr char exceptionHierarchyContractScenario[] =
+    "cpp-tck.exception-hierarchy-contract";
+constexpr char enumContractScenario[] = "cpp-tck.enum-contract";
+constexpr char handleAndCollectionContractScenario[] =
+    "cpp-tck.handle-and-collection-contract";
+constexpr char dataElementContractScenario[] = "cpp-tck.data-element-contract";
+constexpr char basicDataElementsContractScenario[] =
+    "cpp-tck.basic-data-elements-contract";
+constexpr char compositeDataElementsContractScenario[] =
+    "cpp-tck.composite-data-elements-contract";
+constexpr char configurationAndAuthorizationContractScenario[] =
+    "cpp-tck.configuration-and-authorization-contract";
+constexpr char runtimeIdentityContractScenario[] =
+    "cpp-tck.runtime-identity-contract";
+constexpr char authorizerFactoryFactoryContractScenario[] =
+    "cpp-tck.authorizer-factory-factory-contract";
+constexpr char nullFederateAmbassadorContractScenario[] =
+    "cpp-tck.null-federate-ambassador-contract";
 constexpr char federationLifecycleScenario[] = "java-tck.federation-membership";
 constexpr char federationLifecycleContractScenario[] =
     "cpp-tck.federation-lifecycle-contract";
@@ -488,6 +508,57 @@ void scenarioLogicalTimeFactoryFactoryPortable(
     Options const&,
     rti::CallbackModel) {
   verifyStandardLogicalTimeFactoryFactoryContract();
+}
+void scenarioLogicalTimeDataElementsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioLogicalTimeDataElementsContract(options, model);
+}
+
+void scenarioExceptionHierarchyPortable(Options const&, rti::CallbackModel) {
+  verifyStandardExceptionHierarchyContract();
+}
+
+void scenarioEnumPortable(Options const&, rti::CallbackModel) {
+  verifyStandardEnumContract();
+}
+
+void scenarioHandleAndCollectionPortable(Options const&, rti::CallbackModel) {
+  verifyStandardHandleAndCollectionContract();
+}
+
+void scenarioDataElementPortable(Options const&, rti::CallbackModel) {
+  verifyStandardDataElementContract();
+}
+
+void scenarioBasicDataElementsPortable(Options const&, rti::CallbackModel) {
+  verifyBasicDataElementsContract();
+}
+
+void scenarioCompositeDataElementsPortable(Options const&, rti::CallbackModel) {
+  verifyCompositeDataElementsContract();
+}
+
+void scenarioConfigurationAndAuthorizationPortable(
+    Options const&,
+    rti::CallbackModel) {
+  verifyStandardConfigurationAndAuthorizationContract();
+}
+
+void scenarioRuntimeIdentityPortable(Options const&, rti::CallbackModel) {
+  verifyStandardRuntimeIdentityContract();
+}
+
+void scenarioAuthorizerFactoryFactoryPortable(
+    Options const&,
+    rti::CallbackModel) {
+  verifyStandardAuthorizerFactoryFactoryContract();
+}
+
+void scenarioNullFederateAmbassadorPortable(
+    Options const&,
+    rti::CallbackModel) {
+  verifyStandardNullFederateAmbassadorContract();
 }
 
 void scenarioFederationLifecyclePortable(
@@ -7509,6 +7580,115 @@ int runLogicalTimeFactoryFactoryScenarios(int argc, char** argv) {
       scenarioLogicalTimeFactoryFactoryPortable,
       scenarioLogicalTimeFactoryFactoryPortable);
 }
+int runLogicalTimeDataElementsScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      logicalTimeDataElementsContractScenario,
+      logicalTimeDataElementsContractScenario,
+      scenarioLogicalTimeDataElementsPortable,
+      scenarioLogicalTimeDataElementsPortable);
+}
+
+int runExceptionHierarchyScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      exceptionHierarchyContractScenario,
+      exceptionHierarchyContractScenario,
+      scenarioExceptionHierarchyPortable,
+      scenarioExceptionHierarchyPortable);
+}
+
+int runEnumScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      enumContractScenario,
+      enumContractScenario,
+      scenarioEnumPortable,
+      scenarioEnumPortable);
+}
+
+int runHandleAndCollectionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      handleAndCollectionContractScenario,
+      handleAndCollectionContractScenario,
+      scenarioHandleAndCollectionPortable,
+      scenarioHandleAndCollectionPortable);
+}
+
+int runDataElementScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      dataElementContractScenario,
+      dataElementContractScenario,
+      scenarioDataElementPortable,
+      scenarioDataElementPortable);
+}
+
+int runBasicDataElementsScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      basicDataElementsContractScenario,
+      basicDataElementsContractScenario,
+      scenarioBasicDataElementsPortable,
+      scenarioBasicDataElementsPortable);
+}
+
+int runCompositeDataElementsScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      compositeDataElementsContractScenario,
+      compositeDataElementsContractScenario,
+      scenarioCompositeDataElementsPortable,
+      scenarioCompositeDataElementsPortable);
+}
+
+int runConfigurationAndAuthorizationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      configurationAndAuthorizationContractScenario,
+      configurationAndAuthorizationContractScenario,
+      scenarioConfigurationAndAuthorizationPortable,
+      scenarioConfigurationAndAuthorizationPortable);
+}
+
+int runRuntimeIdentityScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      runtimeIdentityContractScenario,
+      runtimeIdentityContractScenario,
+      scenarioRuntimeIdentityPortable,
+      scenarioRuntimeIdentityPortable);
+}
+
+int runAuthorizerFactoryFactoryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      authorizerFactoryFactoryContractScenario,
+      authorizerFactoryFactoryContractScenario,
+      scenarioAuthorizerFactoryFactoryPortable,
+      scenarioAuthorizerFactoryFactoryPortable);
+}
+
+int runNullFederateAmbassadorScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      nullFederateAmbassadorContractScenario,
+      nullFederateAmbassadorContractScenario,
+      scenarioNullFederateAmbassadorPortable,
+      scenarioNullFederateAmbassadorPortable);
+}
 int runFederationLifecycleScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -8887,6 +9067,137 @@ bool hasLogicalTimeFactoryFactoryScenario(int argc, char** argv) {
   }
   return false;
 }
+bool hasLogicalTimeDataElementsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    if (std::string(argv[index + 1]) == logicalTimeDataElementsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasExceptionHierarchyScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    if (std::string(argv[index + 1]) == exceptionHierarchyContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasEnumScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    if (std::string(argv[index + 1]) == enumContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasHandleAndCollectionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    if (std::string(argv[index + 1]) == handleAndCollectionContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasDataElementScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    if (std::string(argv[index + 1]) == dataElementContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasBasicDataElementsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    if (std::string(argv[index + 1]) == basicDataElementsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasCompositeDataElementsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    if (std::string(argv[index + 1]) == compositeDataElementsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasConfigurationAndAuthorizationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    if (std::string(argv[index + 1]) == configurationAndAuthorizationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasRuntimeIdentityScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    if (std::string(argv[index + 1]) == runtimeIdentityContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasAuthorizerFactoryFactoryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    if (std::string(argv[index + 1]) == authorizerFactoryFactoryContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasNullFederateAmbassadorScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    if (std::string(argv[index + 1]) == nullFederateAmbassadorContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
 bool hasFederationLifecycleScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -9421,6 +9732,39 @@ int main(int argc, char** argv) {
     }
     if (hasLogicalTimeFactoryFactoryScenario(argc, argv)) {
       return runLogicalTimeFactoryFactoryScenarios(argc, argv);
+    }
+    if (hasLogicalTimeDataElementsScenario(argc, argv)) {
+      return runLogicalTimeDataElementsScenarios(argc, argv);
+    }
+    if (hasExceptionHierarchyScenario(argc, argv)) {
+      return runExceptionHierarchyScenarios(argc, argv);
+    }
+    if (hasEnumScenario(argc, argv)) {
+      return runEnumScenarios(argc, argv);
+    }
+    if (hasHandleAndCollectionScenario(argc, argv)) {
+      return runHandleAndCollectionScenarios(argc, argv);
+    }
+    if (hasDataElementScenario(argc, argv)) {
+      return runDataElementScenarios(argc, argv);
+    }
+    if (hasBasicDataElementsScenario(argc, argv)) {
+      return runBasicDataElementsScenarios(argc, argv);
+    }
+    if (hasCompositeDataElementsScenario(argc, argv)) {
+      return runCompositeDataElementsScenarios(argc, argv);
+    }
+    if (hasConfigurationAndAuthorizationScenario(argc, argv)) {
+      return runConfigurationAndAuthorizationScenarios(argc, argv);
+    }
+    if (hasRuntimeIdentityScenario(argc, argv)) {
+      return runRuntimeIdentityScenarios(argc, argv);
+    }
+    if (hasAuthorizerFactoryFactoryScenario(argc, argv)) {
+      return runAuthorizerFactoryFactoryScenarios(argc, argv);
+    }
+    if (hasNullFederateAmbassadorScenario(argc, argv)) {
+      return runNullFederateAmbassadorScenarios(argc, argv);
     }
     if (hasFederationLifecycleScenario(argc, argv)) {
       return runFederationLifecycleScenarios(argc, argv);

@@ -169,7 +169,7 @@
       "contract_refs": [
         "standard-logical-time-data-elements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioLogicalTimeDataElementsContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioLogicalTimeDataElementsPortable",
       "runner_id": "cpp-tck.logical-time-data-elements-contract",
       "parity": "java-tck.logical-time-factory",
       "default_status": "run",
@@ -377,7 +377,7 @@
       "contract_refs": [
         "standard-exception-hierarchy-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioExceptionHierarchyContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioExceptionHierarchyPortable",
       "runner_id": "cpp-tck.exception-hierarchy-contract",
       "parity": "java-tck.overloads-and-exceptions",
       "default_status": "run",
@@ -472,7 +472,7 @@
       "contract_refs": [
         "standard-enumeration-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioEnumContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioEnumPortable",
       "runner_id": "cpp-tck.enum-contract",
       "parity": "java-tck.api-surface-inventory",
       "default_status": "run",
@@ -566,7 +566,7 @@
       "contract_refs": [
         "standard-handle-and-collection-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioHandleAndCollectionContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioHandleAndCollectionPortable",
       "runner_id": "cpp-tck.handle-and-collection-contract",
       "parity": "java-tck.api-surface-inventory",
       "default_status": "run",
@@ -595,7 +595,7 @@
       "contract_refs": [
         "standard-configuration-and-authorization-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioConfigurationAndAuthorizationContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioConfigurationAndAuthorizationPortable",
       "runner_id": "cpp-tck.configuration-and-authorization-contract",
       "parity": "java-tck.api-surface-inventory",
       "default_status": "run",
@@ -618,7 +618,7 @@
       "contract_refs": [
         "standard-authorizer-factory-factory-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioAuthorizerFactoryFactoryContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioAuthorizerFactoryFactoryPortable",
       "runner_id": "cpp-tck.authorizer-factory-factory-contract",
       "parity": "java-tck.api-surface-inventory",
       "default_status": "run",
@@ -638,7 +638,7 @@
       "contract_refs": [
         "standard-runtime-identity-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioRuntimeIdentityContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioRuntimeIdentityPortable",
       "runner_id": "cpp-tck.runtime-identity-contract",
       "parity": "java-tck.factory-discovery",
       "default_status": "run",
@@ -678,7 +678,7 @@
       "contract_refs": [
         "standard-null-federate-ambassador-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioNullFederateAmbassadorContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioNullFederateAmbassadorPortable",
       "runner_id": "cpp-tck.null-federate-ambassador-contract",
       "parity": "java-tck.api-surface-inventory",
       "default_status": "run",
@@ -705,7 +705,7 @@
       "contract_refs": [
         "standard-data-element-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioDataElementContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioDataElementPortable",
       "runner_id": "cpp-tck.data-element-contract",
       "parity": "java-tck.api-surface-inventory",
       "default_status": "run",
@@ -753,7 +753,7 @@
         "basic-data-elements-helper-requirements-contract.json",
         "opaque-data-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioBasicDataElementsContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioBasicDataElementsPortable",
       "runner_id": "cpp-tck.basic-data-elements-contract",
       "parity": "java-tck.encoder-round-trip",
       "default_status": "run",
@@ -783,7 +783,7 @@
         "basic-data-elements-requirements-contract.json",
         "basic-data-elements-helper-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioCompositeDataElementsContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioCompositeDataElementsPortable",
       "runner_id": "cpp-tck.composite-data-elements-contract",
       "parity": "java-tck.encoder-round-trip",
       "default_status": "run",
