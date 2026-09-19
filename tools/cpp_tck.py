@@ -279,12 +279,17 @@ def scenario_inventory() -> list[str]:
     match = SCENARIO_INVENTORY_PATTERN.search(main_source)
     if match is None:
         return []
-    inventory = re.findall(r'"([^"]+)"', match.group("body"))
+    main_inventory = re.findall(r'"([^"]+)"', match.group("body"))
+    inventory = list(main_inventory)
     shim_path = SOURCE_ROOT / "src" / "portable_tck.cpp"
     if shim_path.is_file():
         shim_source = shim_path.read_text(encoding="utf-8")
+        shim_inventory = re.findall(
+            r'constexpr\s+char\s+\w+\[\]\s*=\s*"([^"]+)"',
+            shim_source,
+        )
         inventory.extend(
-            re.findall(r'constexpr char\s+\w+Id\[\]\s*=\s*"([^"]+)"', shim_source)
+            scenario_id for scenario_id in shim_inventory if scenario_id not in main_inventory
         )
     return inventory
 
