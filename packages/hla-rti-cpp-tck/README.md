@@ -579,6 +579,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.ownership-acquisition-publication-fence-contract` | Standard adapter-backed ownership-acquisition publication-fence contract using only the official API and adapter-supplied multi-attribute FOM |
 | `cpp-tck.ownership-acquisition-if-available` | Dedicated If Available ownership-acquisition unavailable callback and post-divestiture transfer boundary |
 | `cpp-tck.ownership-acquisition-if-available-contract` | Pure standard C++ contract for If Available acquisition, unavailable metadata, ownership transfer, and lifecycle cleanup |
+| `cpp-tck.unconditional-attribute-ownership-divestiture` | Standard unconditional divestiture with regular acquisition, initial If Available rejection, ownership-assumption eligibility, exact tags, and post-divestiture If Available retry |
+| `cpp-tck.unconditional-attribute-ownership-divestiture-contract` | Pure standard C++ contract for multi-recipient unconditional attribute ownership divestiture |
 | `cpp-tck.ownership-query-partition-cleanup` | Partition mixed owned/unowned attribute-query results, reject invalid query handles, and suppress stale query results after object removal |
 | `cpp-tck.ownership-query-partition-cleanup-contract` | Standard adapter-backed ownership-query partition and cleanup contract using only the official API and adapter-supplied multi-attribute FOM |
 | `cpp-tck.divestiture-if-wanted-mixed-acquirers` | Transfers independently pending attributes to mixed regular and If Available acquirers with Divestiture If Wanted; immediate mode uses regular pending acquisition to preserve the standard pending boundary |

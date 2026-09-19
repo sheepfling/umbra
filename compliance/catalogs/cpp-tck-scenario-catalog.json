@@ -12185,6 +12185,7 @@
         "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
         "RTIambassador.unconditionalAttributeOwnershipDivestiture",
         "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.evokeCallback",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
@@ -12246,6 +12247,80 @@
       "cpp_test": "src/portable_tck.cpp#scenarioOwnershipAcquisitionIfAvailableContract",
       "runner_id": "cpp-tck.ownership-acquisition-if-available-contract",
       "parity": "cpp-tck.ownership-acquisition-if-available",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.unconditional-attribute-ownership-divestiture",
+      "category": "ownership-management",
+      "title": "Resolve regular acquisition and a post-divestiture If Available retry through one unconditional divestiture",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestAttributeOwnershipAssumption",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management",
+        "cpp-1516.1-federation-create-join-resign-destroy"
+      ],
+      "contract_refs": [
+        "standard-ownership-management-contract.json",
+        "standard-ownership-acquisition-if-available-contract.json",
+        "standard-unconditional-attribute-ownership-divestiture-contract.json"
+      ],
+      "native_equivalent_runner_ids": [
+        "cpp-tck.unconditional-attribute-ownership-divestiture"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioUnconditionalAttributeOwnershipDivestiture",
+      "runner_id": "cpp-tck.unconditional-attribute-ownership-divestiture",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.unconditional-attribute-ownership-divestiture-contract",
+      "category": "ownership-management",
+      "title": "Pure standard C++ contract for multi-recipient unconditional attribute ownership divestiture",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.resignFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestAttributeOwnershipAssumption",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-object-management",
+        "cpp-1516.1-ownership-management"
+      ],
+      "contract_refs": [
+        "standard-unconditional-attribute-ownership-divestiture-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioUnconditionalAttributeOwnershipDivestitureContract",
+      "runner_id": "cpp-tck.unconditional-attribute-ownership-divestiture-contract",
+      "parity": "cpp-tck.unconditional-attribute-ownership-divestiture",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

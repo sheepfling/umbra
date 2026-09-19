@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records a portable C++ TCK check for the official IEEE 1516.1 unconditional attribute ownership divestiture service. The source uses only the standard RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. It verifies the immediate unavailability of an If Available request while an attribute is owned, one divestiture resolving a pending regular acquisition and issuing a standard ownership-assumption offer, explicit callback servicing through evokeCallback, exact callback metadata and tag preservation, eligibility filtering for an unpublished candidate, and a subsequent standard If Available acquisition after the attribute becomes unowned. It does not assert provider-specific names, registries, headers, transport, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-unconditional-attribute-ownership-divestiture",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador unconditionalAttributeOwnershipDivestiture, attributeOwnershipAcquisition, attributeOwnershipAcquisitionIfAvailable, and evokeCallback services with FederateAmbassador discovery, requestAttributeOwnershipAssumption, and attributeOwnershipAcquisitionNotification callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioUnconditionalAttributeOwnershipDivestitureContract"
+      ]
+    }
+  ]
+}

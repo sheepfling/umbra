@@ -153,6 +153,10 @@ constexpr char ownershipAcquisitionIfAvailableScenario[] =
     "cpp-tck.ownership-acquisition-if-available";
 constexpr char ownershipAcquisitionIfAvailableContractId[] =
     "cpp-tck.ownership-acquisition-if-available-contract";
+constexpr char unconditionalAttributeOwnershipDivestitureScenario[] =
+    "cpp-tck.unconditional-attribute-ownership-divestiture";
+constexpr char unconditionalAttributeOwnershipDivestitureContractId[] =
+    "cpp-tck.unconditional-attribute-ownership-divestiture-contract";
 constexpr char autoProvideDisabledDiscoveryOnlyScenario[] =
     "cpp-tck.auto-provide-disabled-discovery-only";
 constexpr char autoProvideDisabledDiscoveryOnlyContractId[] =
@@ -2104,6 +2108,380 @@ void scenarioOwnershipAcquisitionIfAvailableContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioOwnershipAcquisitionIfAvailable(options, model);
+}
+
+void scenarioUnconditionalAttributeOwnershipDivestiture(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Unconditional ownership-divestiture testing requires an adapter-supplied model FOM");
+
+  Session owner(options, model, "unconditional-divestiture-owner");
+  Session regularRequester(options, model, "unconditional-divestiture-regular");
+  Session ifAvailableRequester(options, model, "unconditional-divestiture-if-available");
+  Session invitedCandidate(options, model, "unconditional-divestiture-invited");
+  Session unpublishedCandidate(options, model, "unconditional-divestiture-unpublished");
+  auto const federation = federationName(
+      options,
+      "unconditional-attribute-ownership-divestiture");
+
+  owner.connect();
+  regularRequester.connect();
+  ifAvailableRequester.connect();
+  invitedCandidate.connect();
+  unpublishedCandidate.connect();
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.modelFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(
+      options.ownerFederateName + L"-unconditional-divestiture-owner",
+      options.federateType,
+      federation);
+  regularRequester.join(
+      options.memberFederateName + L"-unconditional-divestiture-regular",
+      options.federateType,
+      federation);
+  ifAvailableRequester.join(
+      options.memberFederateName + L"-unconditional-divestiture-if-available",
+      options.federateType,
+      federation);
+  invitedCandidate.join(
+      options.memberFederateName + L"-unconditional-divestiture-invited",
+      options.federateType,
+      federation);
+  unpublishedCandidate.join(
+      options.memberFederateName + L"-unconditional-divestiture-unpublished",
+      options.federateType,
+      federation);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
+  auto const regularClass = regularRequester.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
+  auto const ifAvailableClass =
+      ifAvailableRequester.rtiAmbassador().getObjectClassHandle(
+          options.typedObjectClassName);
+  auto const invitedClass = invitedCandidate.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
+  auto const unpublishedClass =
+      unpublishedCandidate.rtiAmbassador().getObjectClassHandle(
+          options.typedObjectClassName);
+  auto const ownerIdentity = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.typedIdentityAttributeName);
+  auto const ownerInteger = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.typedIntegerAttributeName);
+  auto const ownerAscii = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.typedAsciiAttributeName);
+  auto const ownerUnicode = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.typedUnicodeAttributeName);
+  auto const regularIdentity = regularRequester.rtiAmbassador().getAttributeHandle(
+      regularClass,
+      options.typedIdentityAttributeName);
+  auto const ifAvailableInteger =
+      ifAvailableRequester.rtiAmbassador().getAttributeHandle(
+          ifAvailableClass,
+          options.typedIntegerAttributeName);
+  auto const invitedAscii = invitedCandidate.rtiAmbassador().getAttributeHandle(
+      invitedClass,
+      options.typedAsciiAttributeName);
+  auto const invitedUnicode = invitedCandidate.rtiAmbassador().getAttributeHandle(
+      invitedClass,
+      options.typedUnicodeAttributeName);
+  auto const unpublishedAscii =
+      unpublishedCandidate.rtiAmbassador().getAttributeHandle(
+          unpublishedClass,
+          options.typedAsciiAttributeName);
+  auto const unpublishedUnicode =
+      unpublishedCandidate.rtiAmbassador().getAttributeHandle(
+          unpublishedClass,
+          options.typedUnicodeAttributeName);
+  require(
+      ownerClass.isValid() && regularClass.isValid() &&
+          ifAvailableClass.isValid() && invitedClass.isValid() &&
+          unpublishedClass.isValid(),
+      "Unconditional ownership-divestiture object-class lookup returned an invalid handle");
+  require(
+      ownerIdentity.isValid() && ownerInteger.isValid() && ownerAscii.isValid() &&
+          ownerUnicode.isValid() && regularIdentity.isValid() &&
+          ifAvailableInteger.isValid() && invitedAscii.isValid() &&
+          invitedUnicode.isValid() && unpublishedAscii.isValid() &&
+          unpublishedUnicode.isValid(),
+      "Unconditional ownership-divestiture attribute lookup returned an invalid handle");
+  require(
+      ownerIdentity != ownerInteger && ownerInteger != ownerAscii &&
+          ownerAscii != ownerUnicode,
+      "Unconditional ownership-divestiture adapter supplied duplicate attributes");
+
+  rti::AttributeHandleSet const ownerAttributes{
+      ownerIdentity,
+      ownerInteger,
+      ownerAscii,
+      ownerUnicode};
+  rti::AttributeHandleSet const regularAttributes{regularIdentity};
+  rti::AttributeHandleSet const ifAvailableAttributes{ifAvailableInteger};
+  rti::AttributeHandleSet const invitedAttributes{invitedAscii, invitedUnicode};
+  rti::AttributeHandleSet const unpublishedAttributes{
+      unpublishedAscii,
+      unpublishedUnicode};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  regularRequester.rtiAmbassador().publishObjectClassAttributes(
+      regularClass,
+      regularAttributes);
+  ifAvailableRequester.rtiAmbassador().publishObjectClassAttributes(
+      ifAvailableClass,
+      ifAvailableAttributes);
+  invitedCandidate.rtiAmbassador().publishObjectClassAttributes(
+      invitedClass,
+      invitedAttributes);
+  regularRequester.rtiAmbassador().subscribeObjectClassAttributes(
+      regularClass,
+      regularAttributes,
+      true,
+      L"");
+  ifAvailableRequester.rtiAmbassador().subscribeObjectClassAttributes(
+      ifAvailableClass,
+      ifAvailableAttributes,
+      true,
+      L"");
+  invitedCandidate.rtiAmbassador().subscribeObjectClassAttributes(
+      invitedClass,
+      invitedAttributes,
+      true,
+      L"");
+  unpublishedCandidate.rtiAmbassador().subscribeObjectClassAttributes(
+      unpublishedClass,
+      unpublishedAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "Unconditional ownership-divestiture registration returned an invalid object handle");
+  waitForSessions(
+      {&regularRequester, &ifAvailableRequester, &invitedCandidate,
+       &unpublishedCandidate},
+      [&] {
+        return regularRequester.recorder().hasDiscovery(object) &&
+            ifAvailableRequester.recorder().hasDiscovery(object) &&
+            invitedCandidate.recorder().hasDiscovery(object) &&
+            unpublishedCandidate.recorder().hasDiscovery(object);
+      },
+      options,
+      "unconditional ownership-divestiture object discovery");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerIdentity) &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerInteger) &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAscii) &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerUnicode),
+      "Unconditional ownership-divestiture did not establish initial ownership");
+
+  std::vector<std::uint8_t> const regularTagBytes{0xA2U, 0x07U, 0x20U};
+  std::vector<std::uint8_t> const ifAvailableTagBytes{0xB2U, 0x07U, 0x20U};
+  std::vector<std::uint8_t> const assumptionTagBytes{0xD2U, 0x07U, 0x20U};
+  std::vector<std::uint8_t> const invitedTagBytes{0xC2U, 0x07U, 0x20U};
+  rti::VariableLengthData const regularTag(
+      regularTagBytes.data(),
+      regularTagBytes.size());
+  rti::VariableLengthData const ifAvailableTag(
+      ifAvailableTagBytes.data(),
+      ifAvailableTagBytes.size());
+  rti::VariableLengthData const assumptionTag(
+      assumptionTagBytes.data(),
+      assumptionTagBytes.size());
+  rti::VariableLengthData const invitedTag(
+      invitedTagBytes.data(),
+      invitedTagBytes.size());
+  regularRequester.recorder().clearOwnershipRecords();
+  ifAvailableRequester.recorder().clearOwnershipRecords();
+  invitedCandidate.recorder().clearOwnershipRecords();
+  unpublishedCandidate.recorder().clearOwnershipRecords();
+  regularRequester.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      regularAttributes,
+      regularTag);
+  ifAvailableRequester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+      object,
+      ifAvailableAttributes,
+      ifAvailableTag);
+
+  auto serviceImmediateCallbacks = [&] {
+    if (model != rti::HLA_IMMEDIATE) {
+      return;
+    }
+    static_cast<void>(regularRequester.rtiAmbassador().evokeCallback(0.0));
+    static_cast<void>(ifAvailableRequester.rtiAmbassador().evokeCallback(0.0));
+    static_cast<void>(invitedCandidate.rtiAmbassador().evokeCallback(0.0));
+    static_cast<void>(unpublishedCandidate.rtiAmbassador().evokeCallback(0.0));
+  };
+  waitForSessions(
+      {&regularRequester, &ifAvailableRequester},
+      [&] {
+        serviceImmediateCallbacks();
+        return ifAvailableRequester.recorder().ownershipUnavailable().has_value();
+      },
+      options,
+      "unconditional ownership-divestiture initial If Available rejection");
+  auto const unavailable = ifAvailableRequester.recorder().ownershipUnavailable();
+  require(
+      unavailable->object == object &&
+          unavailable->attributes == ifAvailableAttributes &&
+          unavailable->tag == ifAvailableTagBytes,
+      "Unconditional ownership-divestiture initial If Available rejection returned the wrong metadata");
+  ifAvailableRequester.recorder().clearOwnershipRecords();
+  owner.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+      object,
+      ownerAttributes,
+      assumptionTag);
+  waitForSessions(
+      {&regularRequester, &ifAvailableRequester, &invitedCandidate},
+      [&] {
+        serviceImmediateCallbacks();
+        return regularRequester.recorder().ownershipAcquisition().has_value();
+      },
+      options,
+      "unconditional ownership-divestiture regular acquisition callback");
+  waitForSessions(
+      {&regularRequester, &ifAvailableRequester, &invitedCandidate},
+      [&] {
+        serviceImmediateCallbacks();
+        return invitedCandidate.recorder().ownershipAssumption().has_value();
+      },
+      options,
+      "unconditional ownership-divestiture ownership-assumption callback");
+  auto const regularAcquisition = regularRequester.recorder().ownershipAcquisition();
+  auto const assumption = invitedCandidate.recorder().ownershipAssumption();
+  require(
+      regularAcquisition->object == object &&
+          regularAcquisition->attributes == regularAttributes &&
+          regularAcquisition->tag == regularTagBytes,
+      "Unconditional ownership-divestiture regular acquisition returned the wrong metadata");
+  require(
+      assumption->object == object && assumption->attributes == invitedAttributes &&
+          assumption->tag == assumptionTagBytes,
+      "Unconditional ownership-divestiture assumption returned the wrong metadata");
+  require(
+      !ifAvailableRequester.recorder().ownershipAcquisition().has_value(),
+      "Unconditional ownership-divestiture bypassed the initial If Available rejection");
+  unpublishedCandidate.pump();
+  require(
+      !unpublishedCandidate.recorder().ownershipAssumption().has_value(),
+      "Unconditional ownership-divestiture offered an unpublished candidate");
+  require(
+      !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerIdentity) &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerInteger) &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAscii) &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerUnicode) &&
+          regularRequester.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              regularIdentity) &&
+          !ifAvailableRequester.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              ifAvailableInteger) &&
+          !invitedCandidate.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              invitedAscii) &&
+          !invitedCandidate.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              invitedUnicode),
+      "Unconditional ownership-divestiture established the wrong ownership split");
+
+  ifAvailableRequester.recorder().clearOwnershipRecords();
+  ifAvailableRequester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+      object,
+      ifAvailableAttributes,
+      ifAvailableTag);
+  waitForSessions(
+      {&ifAvailableRequester},
+      [&] {
+        serviceImmediateCallbacks();
+        return ifAvailableRequester.recorder().ownershipAcquisition().has_value();
+      },
+      options,
+      "unconditional ownership-divestiture retried If Available acquisition");
+  auto const ifAvailableAcquisition =
+      ifAvailableRequester.recorder().ownershipAcquisition();
+  require(
+      ifAvailableAcquisition->object == object &&
+          ifAvailableAcquisition->attributes == ifAvailableAttributes &&
+          ifAvailableAcquisition->tag == ifAvailableTagBytes,
+      "Unconditional ownership-divestiture retried If Available acquisition returned the wrong metadata");
+  require(
+      ifAvailableRequester.rtiAmbassador().isAttributeOwnedByFederate(
+          object,
+          ifAvailableInteger),
+      "Unconditional ownership-divestiture retried If Available acquisition did not establish ownership");
+
+  invitedCandidate.recorder().clearOwnershipRecords();
+  invitedCandidate.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+      object,
+      invitedAttributes,
+      invitedTag);
+  waitFor(
+      invitedCandidate,
+      [&] { return invitedCandidate.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "unconditional ownership-divestiture invited acquisition");
+  auto const invitedAcquisition = invitedCandidate.recorder().ownershipAcquisition();
+  require(
+      invitedAcquisition->object == object &&
+          invitedAcquisition->attributes == invitedAttributes &&
+          invitedAcquisition->tag == invitedTagBytes,
+      "Unconditional ownership-divestiture invited acquisition returned the wrong metadata");
+  require(
+      invitedCandidate.rtiAmbassador().isAttributeOwnedByFederate(
+          object,
+          invitedAscii) &&
+          invitedCandidate.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              invitedUnicode),
+      "Unconditional ownership-divestiture invited acquisition did not establish ownership");
+
+  unpublishedCandidate.rtiAmbassador().unsubscribeObjectClassAttributes(
+      unpublishedClass,
+      unpublishedAttributes);
+  invitedCandidate.rtiAmbassador().unsubscribeObjectClassAttributes(
+      invitedClass,
+      invitedAttributes);
+  ifAvailableRequester.rtiAmbassador().unsubscribeObjectClassAttributes(
+      ifAvailableClass,
+      ifAvailableAttributes);
+  regularRequester.rtiAmbassador().unsubscribeObjectClassAttributes(
+      regularClass,
+      regularAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  invitedCandidate.rtiAmbassador().unpublishObjectClassAttributes(
+      invitedClass,
+      invitedAttributes);
+  ifAvailableRequester.rtiAmbassador().unpublishObjectClassAttributes(
+      ifAvailableClass,
+      ifAvailableAttributes);
+  regularRequester.rtiAmbassador().unpublishObjectClassAttributes(
+      regularClass,
+      regularAttributes);
+  invitedCandidate.resign(rti::NO_ACTION);
+  ifAvailableRequester.resign(rti::NO_ACTION);
+  regularRequester.resign(rti::NO_ACTION);
+  unpublishedCandidate.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  invitedCandidate.disconnect();
+  ifAvailableRequester.disconnect();
+  regularRequester.disconnect();
+  unpublishedCandidate.disconnect();
+  owner.disconnect();
+}
+
+void scenarioUnconditionalAttributeOwnershipDivestitureContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioUnconditionalAttributeOwnershipDivestiture(options, model);
 }
 
 void scenarioAutomaticResignDirectiveDeleteObjects(
@@ -4480,6 +4858,18 @@ int runOwnershipAcquisitionIfAvailableScenarios(int argc, char** argv) {
       scenarioOwnershipAcquisitionIfAvailableContract);
 }
 
+int runUnconditionalAttributeOwnershipDivestitureScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      unconditionalAttributeOwnershipDivestitureScenario,
+      unconditionalAttributeOwnershipDivestitureContractId,
+      scenarioUnconditionalAttributeOwnershipDivestiture,
+      scenarioUnconditionalAttributeOwnershipDivestitureContract);
+}
+
 int runAutoProvideDisabledDiscoveryOnlyScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -5402,6 +5792,22 @@ bool hasOwnershipAcquisitionIfAvailableScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasUnconditionalAttributeOwnershipDivestitureScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == unconditionalAttributeOwnershipDivestitureScenario ||
+        scenario == unconditionalAttributeOwnershipDivestitureContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasAutoProvideDisabledDiscoveryOnlyScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -5775,6 +6181,9 @@ int main(int argc, char** argv) {
     }
     if (hasOwnershipAcquisitionIfAvailableScenario(argc, argv)) {
       return runOwnershipAcquisitionIfAvailableScenarios(argc, argv);
+    }
+    if (hasUnconditionalAttributeOwnershipDivestitureScenario(argc, argv)) {
+      return runUnconditionalAttributeOwnershipDivestitureScenarios(argc, argv);
     }
     if (hasAutoProvideDisabledDiscoveryOnlyScenario(argc, argv)) {
       return runAutoProvideDisabledDiscoveryOnlyScenarios(argc, argv);
