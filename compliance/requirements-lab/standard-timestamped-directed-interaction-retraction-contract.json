@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for ordinary timestamped directed-interaction retraction. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, logical-time implementation, and callback configuration. It verifies queued timestamped directed-interaction metadata, retraction before delivery, a receiver time-advance grant after cancellation, later directed delivery, and the MessageCanNoLongerBeRetracted boundary after delivery. It does not assert provider-specific callback timing, MOM reports, DDM, save/restore, or interoperability.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-directed-interaction-retraction",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador sendDirectedInteraction, retract, timeAdvanceRequest, enableTimeRegulation, enableTimeConstrained with FederateAmbassador receiveDirectedInteraction and timeAdvanceGrant callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador timestamped directed-interaction declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioTimestampedDirectedInteractionRetractionContract"
+      ]
+    }
+  ]
+}

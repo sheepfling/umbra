@@ -375,6 +375,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.directed-interaction-subscription-kind-contract` | Standard adapter-backed directed-interaction subscription-kind contract for by-ownership/universal declarations, target routing, delivery metadata, and cleanup |
 | `cpp-tck.timestamped-directed-interactions` | Timestamped directed Send/Receive, invalid class/target/retraction-handle boundaries, selective and universal target routing, constrained grant delivery, timestamp/order metadata, and retraction lifecycle |
 | `cpp-tck.timestamped-directed-interactions-contract` | Standard adapter-backed timestamped directed-interaction and retraction contract using official target-routing, time-role, and callback APIs |
+| `cpp-tck.timestamped-directed-interaction-retraction` | Retract a queued timestamped directed interaction before delivery and preserve subsequent delivery |
+| `cpp-tck.timestamped-directed-interaction-retraction-contract` | Pure standard C++ contract for timestamped directed-interaction retraction, delivery metadata, and terminal retraction |
 | `cpp-tck.region-lifecycle` | Pre-connect and pre-join region and region-qualified service boundaries, including timestamped regional send, two-dimensional region creation, dimension metadata and bounds, commit/query, and invalid/in-use/delete boundaries |
 | `cpp-tck.region-lifecycle-contract` | Standard adapter-backed region and dimension lifecycle contract for region-qualified service boundaries, metadata and bounds, range commit/query, validation, and deletion |
 | `cpp-tck.regional-unpublish-region-release` | Region-qualified object registration keeps a region in use until unpublishing the associated attribute releases it synchronously |
@@ -1977,6 +1979,13 @@ runners expose the mixed-advance, future-input Flush Queue, and terminal
 retraction boundaries as independently selectable pure standard C++ contracts.
 They take provider, FOM, endpoint, callback, and logical-time configuration from
 the adapter.
+The promoted `cpp-tck.timestamped-directed-interaction-retraction` scenario and
+its contract twin cover the directed-message retraction boundary: a queued
+timestamped directed interaction is retracted before delivery, the receiver
+advances cleanly, and a later message proves normal delivery with target, tag,
+producer, time, order, transportation, and retraction metadata. The source uses
+only the official IEEE C++ API and standard library; provider, FOM, endpoint,
+logical-time, and callback configuration remain adapter inputs.
 The promoted `cpp-tck.timestamped-interaction-cross-producer-order-contract`,
 `cpp-tck.timestamped-interaction-no-fanout-contract`, and
 `cpp-tck.timestamped-interaction-retraction-fanout-contract` runners add

@@ -157,6 +157,10 @@ constexpr char attributeOwnershipAcquisitionCancellationScenario[] =
     "cpp-tck.attribute-ownership-acquisition-cancellation";
 constexpr char attributeOwnershipAcquisitionCancellationContractId[] =
     "cpp-tck.attribute-ownership-acquisition-cancellation-contract";
+constexpr char timestampedDirectedInteractionRetractionScenario[] =
+    "cpp-tck.timestamped-directed-interaction-retraction";
+constexpr char timestampedDirectedInteractionRetractionContractId[] =
+    "cpp-tck.timestamped-directed-interaction-retraction-contract";
 constexpr char unconditionalAttributeOwnershipDivestitureScenario[] =
     "cpp-tck.unconditional-attribute-ownership-divestiture";
 constexpr char unconditionalAttributeOwnershipDivestitureContractId[] =
@@ -4535,6 +4539,238 @@ void scenarioCustomTransportationTimestampedDirectedInteractionAlternateAdvances
   scenarioCustomTransportationTimestampedDirectedInteractionAlternateAdvances(options, model);
 }
 
+void scenarioTimestampedDirectedInteractionRetraction(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Timestamped directed-interaction retraction testing requires an adapter-supplied logical-time implementation");
+
+  Session publisher(options, model, "timestamped-directed-retraction-publisher");
+  Session receiver(options, model, "timestamped-directed-retraction-receiver");
+  auto const federation = federationName(
+      options,
+      "timestamped-directed-interaction-retraction");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverClass,
+      options.attributeName);
+  auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverInteraction = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      publisherClass.isValid() && receiverClass.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid() &&
+          publisherInteraction.isValid() && receiverInteraction.isValid() &&
+          publisherParameter.isValid() && receiverParameter.isValid(),
+      "Timestamped directed-interaction retraction lookup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const receiverAttributes{receiverAttribute};
+  rti::InteractionClassHandleSet const publisherDirected{publisherInteraction};
+  rti::InteractionClassHandleSet const receiverDirected{receiverInteraction};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes,
+      true,
+      L"");
+  publisher.rtiAmbassador().publishObjectClassDirectedInteractions(
+      publisherClass,
+      publisherDirected);
+  receiver.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      receiverClass,
+      receiverDirected,
+      true);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction,
+      rti::TIMESTAMP);
+
+  auto const target = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      target.isValid(),
+      "Timestamped directed-interaction retraction registration returned an invalid target");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(target); },
+      options,
+      "timestamped directed-interaction retraction target discovery");
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  enableTimestampedRoles(
+      publisher,
+      receiver,
+      publisherTime,
+      receiverTime,
+      options,
+      "timestamped directed-interaction retraction");
+  publisher.recorder().clearTimeCallbacks();
+  receiver.recorder().clearTimeCallbacks();
+  publisher.recorder().clearTimedDirectedInteractions();
+  receiver.recorder().clearTimedDirectedInteractions();
+  publisher.recorder().clearCallbackOrder();
+  receiver.recorder().clearCallbackOrder();
+
+  auto const firstMessageTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  std::vector<std::uint8_t> const firstParameterBytes{0x52U, 0x45U, 0x54U};
+  std::vector<std::uint8_t> const firstTagBytes{0x52U, 0x31U};
+  rti::ParameterHandleValueMap firstParameters;
+  firstParameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(
+          firstParameterBytes.data(),
+          firstParameterBytes.size()));
+  rti::VariableLengthData const firstTag(
+      firstTagBytes.data(),
+      firstTagBytes.size());
+  auto const firstRetraction = publisher.rtiAmbassador().sendDirectedInteraction(
+      publisherInteraction,
+      target,
+      firstParameters,
+      firstTag,
+      *firstMessageTime);
+  require(
+      firstRetraction.isValid(),
+      "Timestamped directed-interaction retraction returned an invalid first handle");
+  require(
+      receiver.recorder().timedDirectedInteractions().empty(),
+      "Timestamped directed-interaction retraction delivered before the advance");
+
+  receiver.rtiAmbassador().timeAdvanceRequest(*firstMessageTime);
+  publisher.rtiAmbassador().retract(firstRetraction);
+  publisher.rtiAmbassador().timeAdvanceRequest(*firstMessageTime);
+  waitForSessions(
+      {&publisher, &receiver},
+      [&] {
+        return receiver.recorder().timeAdvanceGrants().size() >= 1U;
+      },
+      options,
+      "timestamped directed-interaction retraction grant after cancellation");
+  require(
+      receiver.recorder().timedDirectedInteractions().empty(),
+      "Timestamped directed-interaction retraction delivered a canceled message");
+  require(
+      receiver.recorder().timeAdvanceGrants().front().encoded ==
+          encodeTime(*firstMessageTime),
+      "Timestamped directed-interaction retraction returned the wrong receiver grant time");
+  publisher.recorder().clearCallbackOrder();
+  receiver.recorder().clearCallbackOrder();
+  auto const secondMessageTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      8U);
+  std::vector<std::uint8_t> const secondParameterBytes{0x44U, 0x45U, 0x4CU};
+  std::vector<std::uint8_t> const secondTagBytes{0x52U, 0x32U};
+  rti::ParameterHandleValueMap secondParameters;
+  secondParameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(
+          secondParameterBytes.data(),
+          secondParameterBytes.size()));
+  rti::VariableLengthData const secondTag(
+      secondTagBytes.data(),
+      secondTagBytes.size());
+  auto const secondRetraction = publisher.rtiAmbassador().sendDirectedInteraction(
+      publisherInteraction,
+      target,
+      secondParameters,
+      secondTag,
+      *secondMessageTime);
+  require(
+      secondRetraction.isValid(),
+      "Timestamped directed-interaction retraction returned an invalid delivery handle");
+  receiver.rtiAmbassador().timeAdvanceRequest(*secondMessageTime);
+  if (publisher.recorder().timeAdvanceGrants().size() >= 1U) {
+    publisher.rtiAmbassador().timeAdvanceRequest(*secondMessageTime);
+  }
+  waitForSessions(
+      {&publisher, &receiver},
+      [&] {
+        return receiver.recorder().timeAdvanceGrants().size() >= 2U &&
+            receiver.recorder().timedDirectedInteractions().size() >= 1U;
+      },
+      options,
+      "timestamped directed-interaction delivery after retraction control");
+
+  auto const delivered = receiver.recorder().timedDirectedInteractions().front();
+  require(
+      delivered.interaction == receiverInteraction && delivered.object == target &&
+          delivered.parameters.size() == 1U &&
+          delivered.parameters.count(receiverParameter) == 1U &&
+          copyBytes(delivered.parameters.at(receiverParameter)) == secondParameterBytes,
+      "Timestamped directed-interaction delivery returned the wrong target or parameters");
+  require(
+      delivered.tag == secondTagBytes &&
+          delivered.producer == publisher.federateHandle(),
+      "Timestamped directed-interaction delivery changed its tag or producer");
+  require(
+      delivered.transportation.isValid() &&
+          !receiver.rtiAmbassador().getTransportationTypeName(
+              delivered.transportation).empty(),
+      "Timestamped directed-interaction delivery returned invalid transportation metadata");
+  require(
+      delivered.time == encodeTime(*secondMessageTime) &&
+          !delivered.timeText.empty() &&
+          delivered.sentOrder == rti::TIMESTAMP &&
+          delivered.receivedOrder == rti::TIMESTAMP &&
+          delivered.retractionPresent &&
+          delivered.retraction == copyBytes(secondRetraction.encode()),
+      "Timestamped directed-interaction delivery returned the wrong time, order, or retraction metadata");
+  requireException(
+      [&] { publisher.rtiAmbassador().retract(secondRetraction); },
+      L"MessageCanNoLongerBeRetracted",
+      "retracting a delivered timestamped directed interaction");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(
+      receiverClass,
+      receiverDirected);
+  publisher.rtiAmbassador().unpublishObjectClassDirectedInteractions(
+      publisherClass,
+      publisherDirected);
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverClass,
+      receiverAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      publisherAttributes);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioTimestampedDirectedInteractionRetractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDirectedInteractionRetraction(options, model);
+}
+
 void scenarioCustomTransportationTimestampedRegionalInteractionDelivery(
     Options const& options,
     rti::CallbackModel model) {
@@ -5005,6 +5241,18 @@ int runAttributeOwnershipAcquisitionCancellationScenarios(
       attributeOwnershipAcquisitionCancellationContractId,
       scenarioAttributeOwnershipAcquisitionCancellation,
       scenarioAttributeOwnershipAcquisitionCancellationContract);
+}
+
+int runTimestampedDirectedInteractionRetractionScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedDirectedInteractionRetractionScenario,
+      timestampedDirectedInteractionRetractionContractId,
+      scenarioTimestampedDirectedInteractionRetraction,
+      scenarioTimestampedDirectedInteractionRetractionContract);
 }
 
 int runUnconditionalAttributeOwnershipDivestitureScenarios(
@@ -5957,6 +6205,22 @@ bool hasAttributeOwnershipAcquisitionCancellationScenario(
   return false;
 }
 
+bool hasTimestampedDirectedInteractionRetractionScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedDirectedInteractionRetractionScenario ||
+        scenario == timestampedDirectedInteractionRetractionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasUnconditionalAttributeOwnershipDivestitureScenario(
     int argc,
     char** argv) {
@@ -6349,6 +6613,9 @@ int main(int argc, char** argv) {
     }
     if (hasAttributeOwnershipAcquisitionCancellationScenario(argc, argv)) {
       return runAttributeOwnershipAcquisitionCancellationScenarios(argc, argv);
+    }
+    if (hasTimestampedDirectedInteractionRetractionScenario(argc, argv)) {
+      return runTimestampedDirectedInteractionRetractionScenarios(argc, argv);
     }
     if (hasUnconditionalAttributeOwnershipDivestitureScenario(argc, argv)) {
       return runUnconditionalAttributeOwnershipDivestitureScenarios(argc, argv);
