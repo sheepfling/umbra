@@ -8610,7 +8610,7 @@
         "attribute-ownership-check-api-contract.json",
         "attribute-ownership-check-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeSourceResignation",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeSourceResignationPortable",
       "runner_id": "cpp-tck.timestamped-attribute-source-resignation",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -8654,7 +8654,7 @@
       "contract_refs": [
         "standard-timestamped-attribute-source-resignation-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeSourceResignationContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeSourceResignationContractPortable",
       "runner_id": "cpp-tck.timestamped-attribute-source-resignation-contract",
       "parity": "cpp-tck.timestamped-attribute-source-resignation",
       "default_status": "adapter-required",
