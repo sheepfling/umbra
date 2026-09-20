@@ -9060,7 +9060,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateFlushQueueFutureInput",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateFlushQueueFutureInputPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-flush-queue-future-input",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -9101,7 +9101,7 @@
       "contract_refs": [
         "standard-timestamped-attribute-update-flush-queue-future-input-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateFlushQueueFutureInputContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateFlushQueueFutureInputContractPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-flush-queue-future-input-contract",
       "parity": "cpp-tck.timestamped-attribute-update-flush-queue-future-input",
       "default_status": "adapter-required",

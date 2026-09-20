@@ -451,6 +451,10 @@ constexpr char timestampedAttributeUpdateNoFanoutScenario[] =
     "cpp-tck.timestamped-attribute-update-no-fanout";
 constexpr char timestampedAttributeUpdateNoFanoutContractId[] =
     "cpp-tck.timestamped-attribute-update-no-fanout-contract";
+constexpr char timestampedAttributeUpdateFlushQueueFutureInputScenario[] =
+    "cpp-tck.timestamped-attribute-update-flush-queue-future-input";
+constexpr char timestampedAttributeUpdateFlushQueueFutureInputContractId[] =
+    "cpp-tck.timestamped-attribute-update-flush-queue-future-input-contract";
 constexpr char timestampedObjectDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion";
 constexpr char timestampedObjectDeletionContractId[] =
@@ -1496,6 +1500,18 @@ void scenarioTimestampedAttributeUpdateNoFanoutContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedAttributeUpdateNoFanoutContract(options, model);
+}
+
+void scenarioTimestampedAttributeUpdateFlushQueueFutureInputPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateFlushQueueFutureInput(options, model);
+}
+
+void scenarioTimestampedAttributeUpdateFlushQueueFutureInputContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateFlushQueueFutureInputContract(options, model);
 }
 
 void scenarioTimestampedObjectDeletionPortable(
@@ -9624,6 +9640,18 @@ int runTimestampedAttributeUpdateNoFanoutScenarios(int argc, char** argv) {
       scenarioTimestampedAttributeUpdateNoFanoutContractPortable);
 }
 
+int runTimestampedAttributeUpdateFlushQueueFutureInputScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedAttributeUpdateFlushQueueFutureInputScenario,
+      timestampedAttributeUpdateFlushQueueFutureInputContractId,
+      scenarioTimestampedAttributeUpdateFlushQueueFutureInputPortable,
+      scenarioTimestampedAttributeUpdateFlushQueueFutureInputContractPortable);
+}
+
 int runTimestampedObjectDeletionScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -10998,6 +11026,22 @@ bool hasTimestampedAttributeUpdateNoFanoutScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedAttributeUpdateNoFanoutScenario ||
         scenario == timestampedAttributeUpdateNoFanoutContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedAttributeUpdateFlushQueueFutureInputScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedAttributeUpdateFlushQueueFutureInputScenario ||
+        scenario == timestampedAttributeUpdateFlushQueueFutureInputContractId) {
       return true;
     }
   }
@@ -12743,6 +12787,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedAttributeUpdateNoFanoutScenario(argc, argv)) {
       return runTimestampedAttributeUpdateNoFanoutScenarios(argc, argv);
+    }
+    if (hasTimestampedAttributeUpdateFlushQueueFutureInputScenario(argc, argv)) {
+      return runTimestampedAttributeUpdateFlushQueueFutureInputScenarios(argc, argv);
     }
     if (hasTimestampedObjectDeletionScenario(argc, argv)) {
       return runTimestampedObjectDeletionScenarios(argc, argv);
