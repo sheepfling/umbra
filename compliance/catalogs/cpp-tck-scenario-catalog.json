@@ -8880,7 +8880,7 @@
         "time-advance-api-contract.json",
         "time-advance-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateNoFanout",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateNoFanoutPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-no-fanout",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -8911,7 +8911,7 @@
       "contract_refs": [
         "standard-timestamped-attribute-update-no-fanout-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateNoFanoutContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateNoFanoutContractPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-no-fanout-contract",
       "parity": "cpp-tck.timestamped-attribute-update-no-fanout",
       "default_status": "adapter-required",
