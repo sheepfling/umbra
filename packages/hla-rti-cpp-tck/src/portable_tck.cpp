@@ -395,6 +395,10 @@ constexpr char nextMessageRequestScenario[] =
     "cpp-tck.next-message-request";
 constexpr char nextMessageRequestContractId[] =
     "cpp-tck.next-message-request-contract";
+constexpr char availableTimeAdvancesInclusiveGaltScenario[] =
+    "cpp-tck.available-time-advances-inclusive-galt";
+constexpr char availableTimeAdvancesInclusiveGaltContractId[] =
+    "cpp-tck.available-time-advances-inclusive-galt-contract";
 constexpr char modifyLookaheadScenario[] = "cpp-tck.modify-lookahead";
 constexpr char modifyLookaheadContractId[] =
     "cpp-tck.modify-lookahead-contract";
@@ -1340,6 +1344,18 @@ void scenarioNextMessageRequestContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioNextMessageRequestContract(options, model);
+}
+
+void scenarioAvailableTimeAdvancesInclusiveGaltPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAvailableTimeAdvancesInclusiveGalt(options, model);
+}
+
+void scenarioAvailableTimeAdvancesInclusiveGaltContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAvailableTimeAdvancesInclusiveGaltContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -9139,6 +9155,16 @@ int runNextMessageRequestScenarios(int argc, char** argv) {
       scenarioNextMessageRequestContractPortable);
 }
 
+int runAvailableTimeAdvancesInclusiveGaltScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      availableTimeAdvancesInclusiveGaltScenario,
+      availableTimeAdvancesInclusiveGaltContractId,
+      scenarioAvailableTimeAdvancesInclusiveGaltPortable,
+      scenarioAvailableTimeAdvancesInclusiveGaltContractPortable);
+}
+
 int runUnconditionalAttributeOwnershipDivestitureScenarios(
     int argc,
     char** argv) {
@@ -10185,6 +10211,20 @@ bool hasNextMessageRequestScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == nextMessageRequestScenario ||
         scenario == nextMessageRequestContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasAvailableTimeAdvancesInclusiveGaltScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == availableTimeAdvancesInclusiveGaltScenario ||
+        scenario == availableTimeAdvancesInclusiveGaltContractId) {
       return true;
     }
   }
@@ -11565,6 +11605,9 @@ int main(int argc, char** argv) {
     }
     if (hasNextMessageRequestScenario(argc, argv)) {
       return runNextMessageRequestScenarios(argc, argv);
+    }
+    if (hasAvailableTimeAdvancesInclusiveGaltScenario(argc, argv)) {
+      return runAvailableTimeAdvancesInclusiveGaltScenarios(argc, argv);
     }
     if (hasModifyLookaheadScenario(argc, argv)) {
       return runModifyLookaheadScenarios(argc, argv);

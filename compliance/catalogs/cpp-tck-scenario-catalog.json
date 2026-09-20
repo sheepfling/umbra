@@ -11977,7 +11977,7 @@
         "receive-order-interaction-api-contract.json",
         "receive-order-interaction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioAvailableTimeAdvancesInclusiveGalt",
+      "cpp_test": "src/portable_tck.cpp#scenarioAvailableTimeAdvancesInclusiveGaltPortable",
       "runner_id": "cpp-tck.available-time-advances-inclusive-galt",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -12011,7 +12011,7 @@
       "contract_refs": [
         "standard-available-time-advances-inclusive-galt-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioAvailableTimeAdvancesInclusiveGaltContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioAvailableTimeAdvancesInclusiveGaltContractPortable",
       "runner_id": "cpp-tck.available-time-advances-inclusive-galt-contract",
       "parity": "cpp-tck.available-time-advances-inclusive-galt",
       "default_status": "adapter-required",
