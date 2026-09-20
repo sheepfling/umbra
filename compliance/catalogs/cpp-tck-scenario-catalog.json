@@ -2040,7 +2040,7 @@
         "fixed-record-requirements-contract.json",
         "variable-array-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportObjectAttributeDeclaration",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportObjectAttributeDeclarationPortable",
       "runner_id": "cpp-tck.service-report-object-attribute-declaration",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -2080,7 +2080,7 @@
       "contract_refs": [
         "standard-service-report-object-attribute-declaration-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportObjectAttributeDeclarationContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportObjectAttributeDeclarationContractPortable",
       "runner_id": "cpp-tck.service-report-object-attribute-declaration-contract",
       "parity": "cpp-tck.service-report-object-attribute-declaration",
       "default_status": "adapter-required",
@@ -2135,7 +2135,7 @@
         "fixed-record-requirements-contract.json",
         "variable-array-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportDirectedInteractionDeclaration",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportDirectedInteractionDeclarationPortable",
       "runner_id": "cpp-tck.service-report-directed-interaction-declaration",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -2174,7 +2174,7 @@
       "contract_refs": [
         "standard-service-report-directed-interaction-declaration-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportDirectedInteractionDeclarationContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportDirectedInteractionDeclarationContractPortable",
       "runner_id": "cpp-tck.service-report-directed-interaction-declaration-contract",
       "parity": "cpp-tck.service-report-directed-interaction-declaration",
       "default_status": "adapter-required",
@@ -2224,7 +2224,7 @@
         "fixed-record-requirements-contract.json",
         "variable-array-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportDirectedInteractionPublication",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportDirectedInteractionPublicationPortable",
       "runner_id": "cpp-tck.service-report-directed-interaction-publication",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -2262,7 +2262,7 @@
       "contract_refs": [
         "standard-service-report-directed-interaction-publication-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportDirectedInteractionPublicationContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportDirectedInteractionPublicationContractPortable",
       "runner_id": "cpp-tck.service-report-directed-interaction-publication-contract",
       "parity": "cpp-tck.service-report-directed-interaction-publication",
       "default_status": "adapter-required",
@@ -2310,7 +2310,7 @@
         "fixed-record-requirements-contract.json",
         "variable-array-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionPublication",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInteractionPublicationPortable",
       "runner_id": "cpp-tck.service-report-interaction-publication",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -2347,7 +2347,7 @@
       "contract_refs": [
         "standard-service-report-interaction-publication-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionPublicationContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInteractionPublicationContractPortable",
       "runner_id": "cpp-tck.service-report-interaction-publication-contract",
       "parity": "cpp-tck.service-report-interaction-publication",
       "default_status": "adapter-required",
@@ -2393,7 +2393,7 @@
         "fixed-record-requirements-contract.json",
         "variable-array-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionSubscription",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInteractionSubscriptionPortable",
       "runner_id": "cpp-tck.service-report-interaction-subscription",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -2429,7 +2429,7 @@
       "contract_refs": [
         "standard-service-report-interaction-subscription-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionSubscriptionContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInteractionSubscriptionContractPortable",
       "runner_id": "cpp-tck.service-report-interaction-subscription-contract",
       "parity": "cpp-tck.service-report-interaction-subscription",
       "default_status": "adapter-required",

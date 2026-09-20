@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-mom-service-reports-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-declaration-publication-service-reports-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2756,6 +2756,38 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-standard-mom-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-standard-mom-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
+      ]
+    },
+    {
+      "name": "standard-declaration-publication-service-reports",
+      "scenario_ids": [
+        "cpp-tck.service-report-object-attribute-declaration",
+        "cpp-tck.service-report-object-attribute-declaration-contract",
+        "cpp-tck.service-report-directed-interaction-declaration",
+        "cpp-tck.service-report-directed-interaction-declaration-contract",
+        "cpp-tck.service-report-directed-interaction-publication",
+        "cpp-tck.service-report-directed-interaction-publication-contract",
+        "cpp-tck.service-report-interaction-publication",
+        "cpp-tck.service-report-interaction-publication-contract",
+        "cpp-tck.service-report-interaction-subscription",
+        "cpp-tck.service-report-interaction-subscription-contract"
+      ],
+      "cases": 20,
+      "passed": 20,
+      "verification": "Five focused installed-package direct runs through portable dispatch, one base/contract pair per runner, across evoked and immediate callback models; standard object-attribute declaration, directed declaration/publication, and ordinary interaction publication/subscription service reports passed 20/20 with no provider-specific headers or fixtures.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-object-attribute-declaration-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-object-attribute-declaration-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-directed-interaction-declaration-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-directed-interaction-declaration-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-directed-interaction-publication-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-directed-interaction-publication-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-interaction-publication-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-interaction-publication-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-interaction-subscription-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-interaction-subscription-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
       ]
