@@ -395,6 +395,10 @@ constexpr char timestampedInteractionCrossProducerOrderScenario[] =
     "cpp-tck.timestamped-interaction-cross-producer-order";
 constexpr char timestampedInteractionCrossProducerOrderContractId[] =
     "cpp-tck.timestamped-interaction-cross-producer-order-contract";
+constexpr char timestampedInteractionNoFanoutScenario[] =
+    "cpp-tck.timestamped-interaction-no-fanout";
+constexpr char timestampedInteractionNoFanoutContractId[] =
+    "cpp-tck.timestamped-interaction-no-fanout-contract";
 constexpr char timestampedAttributeUpdateScenario[] =
     "cpp-tck.timestamped-attribute-update";
 constexpr char timestampedAttributeUpdateContractId[] =
@@ -1464,6 +1468,18 @@ void scenarioTimestampedInteractionCrossProducerOrderContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedInteractionCrossProducerOrderContract(options, model);
+}
+
+void scenarioTimestampedInteractionNoFanoutPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionNoFanout(options, model);
+}
+
+void scenarioTimestampedInteractionNoFanoutContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionNoFanoutContract(options, model);
 }
 
 void scenarioTimestampedDirectedAlternateAdvancesPortable(
@@ -9415,6 +9431,16 @@ int runTimestampedInteractionCrossProducerOrderScenarios(
       scenarioTimestampedInteractionCrossProducerOrderContractPortable);
 }
 
+int runTimestampedInteractionNoFanoutScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionNoFanoutScenario,
+      timestampedInteractionNoFanoutContractId,
+      scenarioTimestampedInteractionNoFanoutPortable,
+      scenarioTimestampedInteractionNoFanoutContractPortable);
+}
+
 int runTimestampedDirectedAlternateAdvancesScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -10635,6 +10661,20 @@ bool hasTimestampedInteractionCrossProducerOrderScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedInteractionCrossProducerOrderScenario ||
         scenario == timestampedInteractionCrossProducerOrderContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionNoFanoutScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionNoFanoutScenario ||
+        scenario == timestampedInteractionNoFanoutContractId) {
       return true;
     }
   }
@@ -12143,6 +12183,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedInteractionCrossProducerOrderScenario(argc, argv)) {
       return runTimestampedInteractionCrossProducerOrderScenarios(argc, argv);
+    }
+    if (hasTimestampedInteractionNoFanoutScenario(argc, argv)) {
+      return runTimestampedInteractionNoFanoutScenarios(argc, argv);
     }
     if (hasTimestampedDirectedAlternateAdvancesScenario(argc, argv)) {
       return runTimestampedDirectedAlternateAdvancesScenarios(argc, argv);

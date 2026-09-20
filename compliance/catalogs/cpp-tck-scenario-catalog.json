@@ -7576,7 +7576,7 @@
         "time-advance-api-contract.json",
         "time-advance-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionNoFanout",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionNoFanoutPortable",
       "runner_id": "cpp-tck.timestamped-interaction-no-fanout",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -7605,7 +7605,7 @@
       "contract_refs": [
         "standard-timestamped-interaction-no-fanout-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionNoFanoutContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionNoFanoutContractPortable",
       "runner_id": "cpp-tck.timestamped-interaction-no-fanout-contract",
       "parity": "cpp-tck.timestamped-interaction-no-fanout",
       "default_status": "adapter-required",
