@@ -11758,7 +11758,7 @@
         "time-advance-requirements-contract.json",
         "object-instance-registration-api-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedAlternateAdvances",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedAlternateAdvancesPortable",
       "runner_id": "cpp-tck.timestamped-directed-alternate-advances",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -11806,7 +11806,7 @@
         "object-instance-registration-api-contract.json",
         "standard-timestamped-directed-alternate-advances-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedAlternateAdvancesContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedAlternateAdvancesContractPortable",
       "runner_id": "cpp-tck.timestamped-directed-alternate-advances-contract",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",

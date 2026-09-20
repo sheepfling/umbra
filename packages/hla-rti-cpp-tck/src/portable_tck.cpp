@@ -403,6 +403,10 @@ constexpr char timestampedInteractionMixedAdvancesScenario[] =
     "cpp-tck.timestamped-interaction-mixed-advances";
 constexpr char timestampedInteractionMixedAdvancesContractId[] =
     "cpp-tck.timestamped-interaction-mixed-advances-contract";
+constexpr char timestampedDirectedAlternateAdvancesScenario[] =
+    "cpp-tck.timestamped-directed-alternate-advances";
+constexpr char timestampedDirectedAlternateAdvancesContractId[] =
+    "cpp-tck.timestamped-directed-alternate-advances-contract";
 constexpr char modifyLookaheadScenario[] = "cpp-tck.modify-lookahead";
 constexpr char modifyLookaheadContractId[] =
     "cpp-tck.modify-lookahead-contract";
@@ -1372,6 +1376,18 @@ void scenarioTimestampedInteractionMixedAdvancesContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedInteractionMixedAdvancesContract(options, model);
+}
+
+void scenarioTimestampedDirectedAlternateAdvancesPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDirectedAlternateAdvances(options, model);
+}
+
+void scenarioTimestampedDirectedAlternateAdvancesContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDirectedAlternateAdvancesContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -9191,6 +9207,16 @@ int runTimestampedInteractionMixedAdvancesScenarios(int argc, char** argv) {
       scenarioTimestampedInteractionMixedAdvancesContractPortable);
 }
 
+int runTimestampedDirectedAlternateAdvancesScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedDirectedAlternateAdvancesScenario,
+      timestampedDirectedAlternateAdvancesContractId,
+      scenarioTimestampedDirectedAlternateAdvancesPortable,
+      scenarioTimestampedDirectedAlternateAdvancesContractPortable);
+}
+
 int runUnconditionalAttributeOwnershipDivestitureScenarios(
     int argc,
     char** argv) {
@@ -10265,6 +10291,20 @@ bool hasTimestampedInteractionMixedAdvancesScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedInteractionMixedAdvancesScenario ||
         scenario == timestampedInteractionMixedAdvancesContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedDirectedAlternateAdvancesScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedDirectedAlternateAdvancesScenario ||
+        scenario == timestampedDirectedAlternateAdvancesContractId) {
       return true;
     }
   }
@@ -11651,6 +11691,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedInteractionMixedAdvancesScenario(argc, argv)) {
       return runTimestampedInteractionMixedAdvancesScenarios(argc, argv);
+    }
+    if (hasTimestampedDirectedAlternateAdvancesScenario(argc, argv)) {
+      return runTimestampedDirectedAlternateAdvancesScenarios(argc, argv);
     }
     if (hasModifyLookaheadScenario(argc, argv)) {
       return runModifyLookaheadScenarios(argc, argv);
