@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-20-702-standard-custom-transportation-timestamped-directed-interaction-alternate-advances-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-20-702-standard-custom-transportation-regional-attribute-delivery-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -4324,6 +4324,22 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-20/custom-transportation-timestamped-directed-interaction-alternate-advances-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-20/custom-transportation-timestamped-directed-interaction-alternate-advances-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
+      ]
+    },
+    {
+      "name": "standard-custom-transportation-regional-attribute-delivery",
+      "scenario_ids": [
+        "cpp-tck.custom-transportation-regional-attribute-delivery",
+        "cpp-tck.custom-transportation-regional-attribute-delivery-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "One focused installed-package direct run through portable dispatch across evoked and immediate callback models; ordinary regional attribute delivery with the adapter-declared custom FOM transportation type, conveyed source-region metadata, overlap filtering, transportation lookups, and standard reflect callback passed 4/4 with no provider-specific headers or fixtures.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-20/custom-transportation-regional-attribute-delivery-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-20/custom-transportation-regional-attribute-delivery-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
       ]
