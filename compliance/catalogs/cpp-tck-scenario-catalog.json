@@ -11227,7 +11227,7 @@
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionTombstone",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionTombstonePortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-tombstone",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -11263,7 +11263,7 @@
       "contract_refs": [
         "standard-timestamped-object-deletion-tombstone-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionTombstoneContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionTombstoneContractPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-tombstone-contract",
       "parity": "cpp-tck.timestamped-object-deletion-tombstone",
       "default_status": "adapter-required",
