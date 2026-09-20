@@ -2576,7 +2576,7 @@
         "receive-order-attribute-update-api-contract.json",
         "subscribe-interaction-class-api-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportAttributeUpdate",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportAttributeUpdatePortable",
       "runner_id": "cpp-tck.service-report-attribute-update",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -2613,7 +2613,7 @@
       "contract_refs": [
         "standard-service-report-attribute-update-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportAttributeUpdateContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportAttributeUpdateContractPortable",
       "runner_id": "cpp-tck.service-report-attribute-update-contract",
       "parity": "cpp-tck.service-report-attribute-update",
       "default_status": "adapter-required",
@@ -3121,7 +3121,7 @@
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportRequestAttributeValueUpdate",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportRequestAttributeValueUpdatePortable",
       "runner_id": "cpp-tck.service-report-request-attribute-value-update",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -3162,7 +3162,7 @@
       "contract_refs": [
         "standard-service-report-request-attribute-value-update-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportRequestAttributeValueUpdateContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportRequestAttributeValueUpdateContractPortable",
       "runner_id": "cpp-tck.service-report-request-attribute-value-update-contract",
       "parity": "cpp-tck.service-report-request-attribute-value-update",
       "default_status": "adapter-required",
@@ -3454,7 +3454,7 @@
         "receive-order-interaction-api-contract.json",
         "receive-order-interaction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportRegisterObjectInstance",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportRegisterObjectInstancePortable",
       "runner_id": "cpp-tck.service-report-register-object-instance",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -3492,7 +3492,7 @@
       "contract_refs": [
         "standard-service-report-register-object-instance-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportRegisterObjectInstanceContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportRegisterObjectInstanceContractPortable",
       "runner_id": "cpp-tck.service-report-register-object-instance-contract",
       "parity": "cpp-tck.service-report-register-object-instance",
       "default_status": "adapter-required",
@@ -3818,7 +3818,7 @@
         "receive-order-interaction-api-contract.json",
         "receive-order-interaction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportDeleteObjectInstance",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportDeleteObjectInstancePortable",
       "runner_id": "cpp-tck.service-report-delete-object-instance",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -3859,7 +3859,7 @@
       "contract_refs": [
         "standard-service-report-delete-object-instance-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportDeleteObjectInstanceContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportDeleteObjectInstanceContractPortable",
       "runner_id": "cpp-tck.service-report-delete-object-instance-contract",
       "parity": "cpp-tck.service-report-delete-object-instance",
       "default_status": "adapter-required",

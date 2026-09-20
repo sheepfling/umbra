@@ -134,6 +134,22 @@ constexpr char serviceReportInteractionSubscriptionScenario[] =
     "cpp-tck.service-report-interaction-subscription";
 constexpr char serviceReportInteractionSubscriptionContractScenario[] =
     "cpp-tck.service-report-interaction-subscription-contract";
+constexpr char serviceReportAttributeUpdateScenario[] =
+    "cpp-tck.service-report-attribute-update";
+constexpr char serviceReportAttributeUpdateContractScenario[] =
+    "cpp-tck.service-report-attribute-update-contract";
+constexpr char serviceReportRequestAttributeValueUpdateScenario[] =
+    "cpp-tck.service-report-request-attribute-value-update";
+constexpr char serviceReportRequestAttributeValueUpdateContractScenario[] =
+    "cpp-tck.service-report-request-attribute-value-update-contract";
+constexpr char serviceReportRegisterObjectInstanceScenario[] =
+    "cpp-tck.service-report-register-object-instance";
+constexpr char serviceReportRegisterObjectInstanceContractScenario[] =
+    "cpp-tck.service-report-register-object-instance-contract";
+constexpr char serviceReportDeleteObjectInstanceScenario[] =
+    "cpp-tck.service-report-delete-object-instance";
+constexpr char serviceReportDeleteObjectInstanceContractScenario[] =
+    "cpp-tck.service-report-delete-object-instance-contract";
 constexpr char automaticResignDirectiveDeleteObjectsId[] =
     "cpp-tck.automatic-resign-directive-delete-objects";
 constexpr char automaticResignDirectiveDeleteObjectsContractId[] =
@@ -940,6 +956,54 @@ void scenarioServiceReportInteractionSubscriptionContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioServiceReportInteractionSubscriptionContract(options, model);
+}
+
+void scenarioServiceReportAttributeUpdatePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportAttributeUpdate(options, model);
+}
+
+void scenarioServiceReportAttributeUpdateContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportAttributeUpdateContract(options, model);
+}
+
+void scenarioServiceReportRequestAttributeValueUpdatePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportRequestAttributeValueUpdate(options, model);
+}
+
+void scenarioServiceReportRequestAttributeValueUpdateContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportRequestAttributeValueUpdateContract(options, model);
+}
+
+void scenarioServiceReportRegisterObjectInstancePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportRegisterObjectInstance(options, model);
+}
+
+void scenarioServiceReportRegisterObjectInstanceContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportRegisterObjectInstanceContract(options, model);
+}
+
+void scenarioServiceReportDeleteObjectInstancePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDeleteObjectInstance(options, model);
+}
+
+void scenarioServiceReportDeleteObjectInstanceContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDeleteObjectInstanceContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -8269,6 +8333,48 @@ int runServiceReportInteractionSubscriptionScenarios(int argc, char** argv) {
       scenarioServiceReportInteractionSubscriptionContractPortable);
 }
 
+int runServiceReportAttributeUpdateScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportAttributeUpdateScenario,
+      serviceReportAttributeUpdateContractScenario,
+      scenarioServiceReportAttributeUpdatePortable,
+      scenarioServiceReportAttributeUpdateContractPortable);
+}
+
+int runServiceReportRequestAttributeValueUpdateScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportRequestAttributeValueUpdateScenario,
+      serviceReportRequestAttributeValueUpdateContractScenario,
+      scenarioServiceReportRequestAttributeValueUpdatePortable,
+      scenarioServiceReportRequestAttributeValueUpdateContractPortable);
+}
+
+int runServiceReportRegisterObjectInstanceScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportRegisterObjectInstanceScenario,
+      serviceReportRegisterObjectInstanceContractScenario,
+      scenarioServiceReportRegisterObjectInstancePortable,
+      scenarioServiceReportRegisterObjectInstanceContractPortable);
+}
+
+int runServiceReportDeleteObjectInstanceScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportDeleteObjectInstanceScenario,
+      serviceReportDeleteObjectInstanceContractScenario,
+      scenarioServiceReportDeleteObjectInstancePortable,
+      scenarioServiceReportDeleteObjectInstanceContractPortable);
+}
+
 int runSynchronizationPointScenarios(int argc, char** argv) {
   auto const options = parseOptions(argc, argv);
   std::vector<ScenarioResult> results;
@@ -10095,6 +10201,64 @@ bool hasServiceReportInteractionSubscriptionScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasServiceReportAttributeUpdateScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportAttributeUpdateScenario ||
+        scenario == serviceReportAttributeUpdateContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportRequestAttributeValueUpdateScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportRequestAttributeValueUpdateScenario ||
+        scenario == serviceReportRequestAttributeValueUpdateContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportRegisterObjectInstanceScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportRegisterObjectInstanceScenario ||
+        scenario == serviceReportRegisterObjectInstanceContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportDeleteObjectInstanceScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportDeleteObjectInstanceScenario ||
+        scenario == serviceReportDeleteObjectInstanceContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasSynchronizationPointScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -10646,6 +10810,18 @@ int main(int argc, char** argv) {
     }
     if (hasServiceReportInteractionSubscriptionScenario(argc, argv)) {
       return runServiceReportInteractionSubscriptionScenarios(argc, argv);
+    }
+    if (hasServiceReportAttributeUpdateScenario(argc, argv)) {
+      return runServiceReportAttributeUpdateScenarios(argc, argv);
+    }
+    if (hasServiceReportRequestAttributeValueUpdateScenario(argc, argv)) {
+      return runServiceReportRequestAttributeValueUpdateScenarios(argc, argv);
+    }
+    if (hasServiceReportRegisterObjectInstanceScenario(argc, argv)) {
+      return runServiceReportRegisterObjectInstanceScenarios(argc, argv);
+    }
+    if (hasServiceReportDeleteObjectInstanceScenario(argc, argv)) {
+      return runServiceReportDeleteObjectInstanceScenarios(argc, argv);
     }
     if (hasLogicalTimeScenario(argc, argv)) {
       return runLogicalTimeScenarios(argc, argv);
