@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-connection-callback-foundation-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-mom-service-reports-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2720,6 +2720,42 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-19/connection-callback-foundation-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-19/connection-callback-foundation-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
+      ]
+    },
+    {
+      "name": "standard-mom-service-reports",
+      "scenario_ids": [
+        "cpp-tck.service-report-order-transportation-lookups",
+        "cpp-tck.service-report-order-transportation-lookups-contract",
+        "cpp-tck.service-report-order-transportation-lookup-failures",
+        "cpp-tck.service-report-order-transportation-lookup-failures-contract",
+        "cpp-tck.service-report-federate-object-class-lookups",
+        "cpp-tck.service-report-federate-object-class-lookups-contract",
+        "cpp-tck.service-report-federate-object-class-lookup-failures",
+        "cpp-tck.service-report-federate-object-class-lookup-failures-contract",
+        "cpp-tck.service-report-interaction-parameter-lookups",
+        "cpp-tck.service-report-interaction-parameter-lookups-contract",
+        "cpp-tck.service-report-interaction-parameter-lookup-failures",
+        "cpp-tck.service-report-interaction-parameter-lookup-failures-contract",
+        "cpp-tck.service-report-interaction",
+        "cpp-tck.service-report-interaction-contract",
+        "cpp-tck.service-report-receive-order-interaction",
+        "cpp-tck.service-report-receive-order-interaction-contract",
+        "cpp-tck.service-report-timestamped-directed-interaction",
+        "cpp-tck.service-report-timestamped-directed-interaction-contract",
+        "cpp-tck.service-report-object-attribute-update-rate-lookups",
+        "cpp-tck.service-report-object-attribute-update-rate-lookups-contract",
+        "cpp-tck.service-report-object-attribute-update-rate-lookup-failures",
+        "cpp-tck.service-report-object-attribute-update-rate-lookup-failures-contract"
+      ],
+      "cases": 44,
+      "passed": 44,
+      "verification": "Focused installed-package direct runner through portable dispatch across evoked and immediate callback models; typed standard MOM service reports and provider-neutral failure routes passed 44/44 and were included in the complete 702-scenario promoted evidence run.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-standard-mom-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-standard-mom-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
       ]

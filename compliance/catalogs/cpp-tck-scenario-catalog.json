@@ -1268,7 +1268,7 @@
         "subscribe-interaction-class-api-contract.json",
         "publish-interaction-class-api-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInteraction",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInteractionPortable",
       "runner_id": "cpp-tck.service-report-interaction",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -1300,7 +1300,7 @@
       "contract_refs": [
         "standard-service-report-interaction-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInteractionContractPortable",
       "runner_id": "cpp-tck.service-report-interaction-contract",
       "parity": "cpp-tck.service-report-interaction",
       "default_status": "adapter-required",
@@ -1345,7 +1345,7 @@
         "receive-order-interaction-requirements-contract.json",
         "standard-service-report-receive-order-interaction-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportReceiveOrderInteraction",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportReceiveOrderInteractionPortable",
       "runner_id": "cpp-tck.service-report-receive-order-interaction",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -1379,7 +1379,7 @@
       "contract_refs": [
         "standard-service-report-receive-order-interaction-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportReceiveOrderInteractionContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportReceiveOrderInteractionContractPortable",
       "runner_id": "cpp-tck.service-report-receive-order-interaction-contract",
       "parity": "cpp-tck.service-report-receive-order-interaction",
       "default_status": "adapter-required",
@@ -1444,7 +1444,7 @@
         "time-advance-requirements-contract.json",
         "standard-service-report-timestamped-directed-interaction-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedDirectedInteraction",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportTimestampedDirectedInteractionPortable",
       "runner_id": "cpp-tck.service-report-timestamped-directed-interaction",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -1494,7 +1494,7 @@
       "contract_refs": [
         "standard-service-report-timestamped-directed-interaction-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedDirectedInteractionContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportTimestampedDirectedInteractionContractPortable",
       "runner_id": "cpp-tck.service-report-timestamped-directed-interaction-contract",
       "parity": "cpp-tck.service-report-timestamped-directed-interaction",
       "default_status": "adapter-required",
@@ -28187,7 +28187,7 @@
         "federation-execution-api-contract.json",
         "standard-service-report-order-transportation-lookups-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportOrderTransportationLookups",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportOrderTransportationLookupsPortable",
       "runner_id": "cpp-tck.service-report-order-transportation-lookups",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -28217,7 +28217,7 @@
       "contract_refs": [
         "standard-service-report-order-transportation-lookups-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportOrderTransportationLookupsContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportOrderTransportationLookupsContractPortable",
       "runner_id": "cpp-tck.service-report-order-transportation-lookups-contract",
       "parity": "cpp-tck.service-report-order-transportation-lookups",
       "default_status": "adapter-required",
@@ -28255,7 +28255,7 @@
         "federation-execution-api-contract.json",
         "standard-service-report-order-transportation-lookups-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportOrderTransportationLookupFailures",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportOrderTransportationLookupFailuresPortable",
       "runner_id": "cpp-tck.service-report-order-transportation-lookup-failures",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -28285,7 +28285,7 @@
       "contract_refs": [
         "standard-service-report-order-transportation-lookups-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportOrderTransportationLookupFailuresContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportOrderTransportationLookupFailuresContractPortable",
       "runner_id": "cpp-tck.service-report-order-transportation-lookup-failures-contract",
       "parity": "cpp-tck.service-report-order-transportation-lookup-failures",
       "default_status": "adapter-required",
@@ -28325,7 +28325,7 @@
         "federation-execution-api-contract.json",
         "standard-service-report-lookup-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportFederateObjectClassLookups",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportFederateObjectClassLookupsPortable",
       "runner_id": "cpp-tck.service-report-federate-object-class-lookups",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -28357,7 +28357,7 @@
       "contract_refs": [
         "standard-service-report-lookup-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportFederateObjectClassLookupsContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportFederateObjectClassLookupsContractPortable",
       "runner_id": "cpp-tck.service-report-federate-object-class-lookups-contract",
       "parity": "cpp-tck.service-report-federate-object-class-lookups",
       "default_status": "adapter-required",
@@ -28395,7 +28395,7 @@
         "federation-execution-api-contract.json",
         "standard-service-report-lookup-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionParameterLookups",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInteractionParameterLookupsPortable",
       "runner_id": "cpp-tck.service-report-interaction-parameter-lookups",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -28425,7 +28425,7 @@
       "contract_refs": [
         "standard-service-report-lookup-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionParameterLookupsContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInteractionParameterLookupsContractPortable",
       "runner_id": "cpp-tck.service-report-interaction-parameter-lookups-contract",
       "parity": "cpp-tck.service-report-interaction-parameter-lookups",
       "default_status": "adapter-required",
@@ -28476,7 +28476,7 @@
         "update-rate-value-requirements-contract.json",
         "standard-service-report-lookup-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportObjectAttributeUpdateRateLookups",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportObjectAttributeUpdateRateLookupsPortable",
       "runner_id": "cpp-tck.service-report-object-attribute-update-rate-lookups",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -28515,7 +28515,7 @@
       "contract_refs": [
         "standard-service-report-lookup-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportObjectAttributeUpdateRateLookupsContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportObjectAttributeUpdateRateLookupsContractPortable",
       "runner_id": "cpp-tck.service-report-object-attribute-update-rate-lookups-contract",
       "parity": "cpp-tck.service-report-object-attribute-update-rate-lookups",
       "default_status": "adapter-required",
@@ -28555,7 +28555,7 @@
         "federation-execution-api-contract.json",
         "standard-service-report-lookup-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportFederateObjectClassLookupFailures",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportFederateObjectClassLookupFailuresPortable",
       "runner_id": "cpp-tck.service-report-federate-object-class-lookup-failures",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -28587,7 +28587,7 @@
       "contract_refs": [
         "standard-service-report-lookup-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportFederateObjectClassLookupFailuresContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportFederateObjectClassLookupFailuresContractPortable",
       "runner_id": "cpp-tck.service-report-federate-object-class-lookup-failures-contract",
       "parity": "cpp-tck.service-report-federate-object-class-lookup-failures",
       "default_status": "adapter-required",
@@ -28625,7 +28625,7 @@
         "federation-execution-api-contract.json",
         "standard-service-report-lookup-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionParameterLookupFailures",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInteractionParameterLookupFailuresPortable",
       "runner_id": "cpp-tck.service-report-interaction-parameter-lookup-failures",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -28655,7 +28655,7 @@
       "contract_refs": [
         "standard-service-report-lookup-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionParameterLookupFailuresContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInteractionParameterLookupFailuresContractPortable",
       "runner_id": "cpp-tck.service-report-interaction-parameter-lookup-failures-contract",
       "parity": "cpp-tck.service-report-interaction-parameter-lookup-failures",
       "default_status": "adapter-required",
@@ -28699,7 +28699,7 @@
         "federation-execution-api-contract.json",
         "standard-service-report-lookup-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportObjectAttributeUpdateRateLookupFailures",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportObjectAttributeUpdateRateLookupFailuresPortable",
       "runner_id": "cpp-tck.service-report-object-attribute-update-rate-lookup-failures",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -28735,7 +28735,7 @@
       "contract_refs": [
         "standard-service-report-lookup-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportObjectAttributeUpdateRateLookupFailuresContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportObjectAttributeUpdateRateLookupFailuresContractPortable",
       "runner_id": "cpp-tck.service-report-object-attribute-update-rate-lookup-failures-contract",
       "parity": "cpp-tck.service-report-object-attribute-update-rate-lookup-failures",
       "default_status": "adapter-required",

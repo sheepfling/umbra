@@ -70,6 +70,50 @@ constexpr char federationMomContentReportsScenario[] =
     "cpp-tck.federation-mom-content-reports";
 constexpr char federationMomContentReportsContractScenario[] =
     "cpp-tck.federation-mom-content-reports-contract";
+constexpr char serviceReportOrderTransportationLookupsScenario[] =
+    "cpp-tck.service-report-order-transportation-lookups";
+constexpr char serviceReportOrderTransportationLookupsContractScenario[] =
+    "cpp-tck.service-report-order-transportation-lookups-contract";
+constexpr char serviceReportOrderTransportationLookupFailuresScenario[] =
+    "cpp-tck.service-report-order-transportation-lookup-failures";
+constexpr char serviceReportOrderTransportationLookupFailuresContractScenario[] =
+    "cpp-tck.service-report-order-transportation-lookup-failures-contract";
+constexpr char serviceReportFederateObjectClassLookupsScenario[] =
+    "cpp-tck.service-report-federate-object-class-lookups";
+constexpr char serviceReportFederateObjectClassLookupsContractScenario[] =
+    "cpp-tck.service-report-federate-object-class-lookups-contract";
+constexpr char serviceReportFederateObjectClassLookupFailuresScenario[] =
+    "cpp-tck.service-report-federate-object-class-lookup-failures";
+constexpr char serviceReportFederateObjectClassLookupFailuresContractScenario[] =
+    "cpp-tck.service-report-federate-object-class-lookup-failures-contract";
+constexpr char serviceReportInteractionParameterLookupsScenario[] =
+    "cpp-tck.service-report-interaction-parameter-lookups";
+constexpr char serviceReportInteractionParameterLookupsContractScenario[] =
+    "cpp-tck.service-report-interaction-parameter-lookups-contract";
+constexpr char serviceReportInteractionParameterLookupFailuresScenario[] =
+    "cpp-tck.service-report-interaction-parameter-lookup-failures";
+constexpr char serviceReportInteractionParameterLookupFailuresContractScenario[] =
+    "cpp-tck.service-report-interaction-parameter-lookup-failures-contract";
+constexpr char serviceReportInteractionScenario[] =
+    "cpp-tck.service-report-interaction";
+constexpr char serviceReportInteractionContractScenario[] =
+    "cpp-tck.service-report-interaction-contract";
+constexpr char serviceReportReceiveOrderInteractionScenario[] =
+    "cpp-tck.service-report-receive-order-interaction";
+constexpr char serviceReportReceiveOrderInteractionContractScenario[] =
+    "cpp-tck.service-report-receive-order-interaction-contract";
+constexpr char serviceReportTimestampedDirectedInteractionScenario[] =
+    "cpp-tck.service-report-timestamped-directed-interaction";
+constexpr char serviceReportTimestampedDirectedInteractionContractScenario[] =
+    "cpp-tck.service-report-timestamped-directed-interaction-contract";
+constexpr char serviceReportObjectAttributeUpdateRateLookupsScenario[] =
+    "cpp-tck.service-report-object-attribute-update-rate-lookups";
+constexpr char serviceReportObjectAttributeUpdateRateLookupsContractScenario[] =
+    "cpp-tck.service-report-object-attribute-update-rate-lookups-contract";
+constexpr char serviceReportObjectAttributeUpdateRateLookupFailuresScenario[] =
+    "cpp-tck.service-report-object-attribute-update-rate-lookup-failures";
+constexpr char serviceReportObjectAttributeUpdateRateLookupFailuresContractScenario[] =
+    "cpp-tck.service-report-object-attribute-update-rate-lookup-failures-contract";
 constexpr char automaticResignDirectiveDeleteObjectsId[] =
     "cpp-tck.automatic-resign-directive-delete-objects";
 constexpr char automaticResignDirectiveDeleteObjectsContractId[] =
@@ -685,6 +729,139 @@ void scenarioFederationMomContentReportsContractPortable(
     rti::CallbackModel model) {
   scenarioFederationMomContentReportsContract(options, model);
 }
+
+void scenarioServiceReportOrderTransportationLookupsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportOrderTransportationLookups(options, model);
+}
+
+void scenarioServiceReportOrderTransportationLookupsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportOrderTransportationLookupsContract(options, model);
+}
+
+void scenarioServiceReportOrderTransportationLookupFailuresPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportOrderTransportationLookupFailures(options, model);
+}
+
+void scenarioServiceReportOrderTransportationLookupFailuresContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportOrderTransportationLookupFailuresContract(options, model);
+}
+
+void scenarioServiceReportFederateObjectClassLookupsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportFederateObjectClassLookups(options, model);
+}
+
+void scenarioServiceReportFederateObjectClassLookupsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportFederateObjectClassLookupsContract(options, model);
+}
+
+void scenarioServiceReportFederateObjectClassLookupFailuresPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportFederateObjectClassLookupFailures(options, model);
+}
+
+void scenarioServiceReportFederateObjectClassLookupFailuresContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportFederateObjectClassLookupFailuresContract(options, model);
+}
+
+void scenarioServiceReportInteractionParameterLookupsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInteractionParameterLookups(options, model);
+}
+
+void scenarioServiceReportInteractionParameterLookupsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInteractionParameterLookupsContract(options, model);
+}
+
+void scenarioServiceReportInteractionParameterLookupFailuresPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInteractionParameterLookupFailures(options, model);
+}
+
+void scenarioServiceReportInteractionParameterLookupFailuresContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInteractionParameterLookupFailuresContract(options, model);
+}
+
+void scenarioServiceReportInteractionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInteraction(options, model);
+}
+
+void scenarioServiceReportInteractionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInteractionContract(options, model);
+}
+
+void scenarioServiceReportReceiveOrderInteractionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportReceiveOrderInteraction(options, model);
+}
+
+void scenarioServiceReportReceiveOrderInteractionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportReceiveOrderInteractionContract(options, model);
+}
+
+void scenarioServiceReportTimestampedDirectedInteractionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportTimestampedDirectedInteraction(options, model);
+}
+
+void scenarioServiceReportTimestampedDirectedInteractionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportTimestampedDirectedInteractionContract(options, model);
+}
+
+void scenarioServiceReportObjectAttributeUpdateRateLookupsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportObjectAttributeUpdateRateLookups(options, model);
+}
+
+void scenarioServiceReportObjectAttributeUpdateRateLookupsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportObjectAttributeUpdateRateLookupsContract(options, model);
+}
+
+void scenarioServiceReportObjectAttributeUpdateRateLookupFailuresPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportObjectAttributeUpdateRateLookupFailures(options, model);
+}
+
+void scenarioServiceReportObjectAttributeUpdateRateLookupFailuresContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportObjectAttributeUpdateRateLookupFailuresContract(options, model);
+}
+
 void scenarioSynchronizationPointsPortable(
     Options const& options,
     rti::CallbackModel model) {
@@ -7830,6 +8007,134 @@ int runFederationMomContentReportsScenarios(int argc, char** argv) {
       scenarioFederationMomContentReportsContractPortable);
 }
 
+int runServiceReportOrderTransportationLookupsScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportOrderTransportationLookupsScenario,
+      serviceReportOrderTransportationLookupsContractScenario,
+      scenarioServiceReportOrderTransportationLookupsPortable,
+      scenarioServiceReportOrderTransportationLookupsContractPortable);
+}
+
+int runServiceReportOrderTransportationLookupFailuresScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportOrderTransportationLookupFailuresScenario,
+      serviceReportOrderTransportationLookupFailuresContractScenario,
+      scenarioServiceReportOrderTransportationLookupFailuresPortable,
+      scenarioServiceReportOrderTransportationLookupFailuresContractPortable);
+}
+
+int runServiceReportFederateObjectClassLookupsScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportFederateObjectClassLookupsScenario,
+      serviceReportFederateObjectClassLookupsContractScenario,
+      scenarioServiceReportFederateObjectClassLookupsPortable,
+      scenarioServiceReportFederateObjectClassLookupsContractPortable);
+}
+
+int runServiceReportFederateObjectClassLookupFailuresScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportFederateObjectClassLookupFailuresScenario,
+      serviceReportFederateObjectClassLookupFailuresContractScenario,
+      scenarioServiceReportFederateObjectClassLookupFailuresPortable,
+      scenarioServiceReportFederateObjectClassLookupFailuresContractPortable);
+}
+
+int runServiceReportInteractionParameterLookupsScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportInteractionParameterLookupsScenario,
+      serviceReportInteractionParameterLookupsContractScenario,
+      scenarioServiceReportInteractionParameterLookupsPortable,
+      scenarioServiceReportInteractionParameterLookupsContractPortable);
+}
+
+int runServiceReportInteractionParameterLookupFailuresScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportInteractionParameterLookupFailuresScenario,
+      serviceReportInteractionParameterLookupFailuresContractScenario,
+      scenarioServiceReportInteractionParameterLookupFailuresPortable,
+      scenarioServiceReportInteractionParameterLookupFailuresContractPortable);
+}
+
+int runServiceReportInteractionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportInteractionScenario,
+      serviceReportInteractionContractScenario,
+      scenarioServiceReportInteractionPortable,
+      scenarioServiceReportInteractionContractPortable);
+}
+
+int runServiceReportReceiveOrderInteractionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportReceiveOrderInteractionScenario,
+      serviceReportReceiveOrderInteractionContractScenario,
+      scenarioServiceReportReceiveOrderInteractionPortable,
+      scenarioServiceReportReceiveOrderInteractionContractPortable);
+}
+
+int runServiceReportTimestampedDirectedInteractionScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportTimestampedDirectedInteractionScenario,
+      serviceReportTimestampedDirectedInteractionContractScenario,
+      scenarioServiceReportTimestampedDirectedInteractionPortable,
+      scenarioServiceReportTimestampedDirectedInteractionContractPortable);
+}
+
+int runServiceReportObjectAttributeUpdateRateLookupsScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportObjectAttributeUpdateRateLookupsScenario,
+      serviceReportObjectAttributeUpdateRateLookupsContractScenario,
+      scenarioServiceReportObjectAttributeUpdateRateLookupsPortable,
+      scenarioServiceReportObjectAttributeUpdateRateLookupsContractPortable);
+}
+
+int runServiceReportObjectAttributeUpdateRateLookupFailuresScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportObjectAttributeUpdateRateLookupFailuresScenario,
+      serviceReportObjectAttributeUpdateRateLookupFailuresContractScenario,
+      scenarioServiceReportObjectAttributeUpdateRateLookupFailuresPortable,
+      scenarioServiceReportObjectAttributeUpdateRateLookupFailuresContractPortable);
+}
+
 int runSynchronizationPointScenarios(int argc, char** argv) {
   auto const options = parseOptions(argc, argv);
   std::vector<ScenarioResult> results;
@@ -9409,6 +9714,179 @@ bool hasFederationMomContentReportsScenario(int argc, char** argv) {
   }
   return false;
 }
+
+bool hasServiceReportOrderTransportationLookupsScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportOrderTransportationLookupsScenario ||
+        scenario == serviceReportOrderTransportationLookupsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportOrderTransportationLookupFailuresScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportOrderTransportationLookupFailuresScenario ||
+        scenario == serviceReportOrderTransportationLookupFailuresContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportFederateObjectClassLookupsScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportFederateObjectClassLookupsScenario ||
+        scenario == serviceReportFederateObjectClassLookupsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportFederateObjectClassLookupFailuresScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportFederateObjectClassLookupFailuresScenario ||
+        scenario == serviceReportFederateObjectClassLookupFailuresContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportInteractionParameterLookupsScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportInteractionParameterLookupsScenario ||
+        scenario == serviceReportInteractionParameterLookupsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportInteractionParameterLookupFailuresScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportInteractionParameterLookupFailuresScenario ||
+        scenario == serviceReportInteractionParameterLookupFailuresContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportInteractionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportInteractionScenario ||
+        scenario == serviceReportInteractionContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportReceiveOrderInteractionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportReceiveOrderInteractionScenario ||
+        scenario == serviceReportReceiveOrderInteractionContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportTimestampedDirectedInteractionScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportTimestampedDirectedInteractionScenario ||
+        scenario == serviceReportTimestampedDirectedInteractionContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportObjectAttributeUpdateRateLookupsScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportObjectAttributeUpdateRateLookupsScenario ||
+        scenario == serviceReportObjectAttributeUpdateRateLookupsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportObjectAttributeUpdateRateLookupFailuresScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportObjectAttributeUpdateRateLookupFailuresScenario ||
+        scenario == serviceReportObjectAttributeUpdateRateLookupFailuresContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasSynchronizationPointScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -9912,6 +10390,39 @@ int main(int argc, char** argv) {
     }
     if (hasFederationMomContentReportsScenario(argc, argv)) {
       return runFederationMomContentReportsScenarios(argc, argv);
+    }
+    if (hasServiceReportOrderTransportationLookupsScenario(argc, argv)) {
+      return runServiceReportOrderTransportationLookupsScenarios(argc, argv);
+    }
+    if (hasServiceReportOrderTransportationLookupFailuresScenario(argc, argv)) {
+      return runServiceReportOrderTransportationLookupFailuresScenarios(argc, argv);
+    }
+    if (hasServiceReportFederateObjectClassLookupsScenario(argc, argv)) {
+      return runServiceReportFederateObjectClassLookupsScenarios(argc, argv);
+    }
+    if (hasServiceReportFederateObjectClassLookupFailuresScenario(argc, argv)) {
+      return runServiceReportFederateObjectClassLookupFailuresScenarios(argc, argv);
+    }
+    if (hasServiceReportInteractionParameterLookupsScenario(argc, argv)) {
+      return runServiceReportInteractionParameterLookupsScenarios(argc, argv);
+    }
+    if (hasServiceReportInteractionParameterLookupFailuresScenario(argc, argv)) {
+      return runServiceReportInteractionParameterLookupFailuresScenarios(argc, argv);
+    }
+    if (hasServiceReportInteractionScenario(argc, argv)) {
+      return runServiceReportInteractionScenarios(argc, argv);
+    }
+    if (hasServiceReportReceiveOrderInteractionScenario(argc, argv)) {
+      return runServiceReportReceiveOrderInteractionScenarios(argc, argv);
+    }
+    if (hasServiceReportTimestampedDirectedInteractionScenario(argc, argv)) {
+      return runServiceReportTimestampedDirectedInteractionScenarios(argc, argv);
+    }
+    if (hasServiceReportObjectAttributeUpdateRateLookupsScenario(argc, argv)) {
+      return runServiceReportObjectAttributeUpdateRateLookupsScenarios(argc, argv);
+    }
+    if (hasServiceReportObjectAttributeUpdateRateLookupFailuresScenario(argc, argv)) {
+      return runServiceReportObjectAttributeUpdateRateLookupFailuresScenarios(argc, argv);
     }
     if (hasLogicalTimeScenario(argc, argv)) {
       return runLogicalTimeScenarios(argc, argv);
