@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-20-702-standard-timestamped-interaction-source-resignation-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-20-702-standard-timestamped-interaction-source-resignation-fanout-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -3684,6 +3684,22 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-20/timestamped-interaction-source-resignation-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-20/timestamped-interaction-source-resignation-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
+      ]
+    },
+    {
+      "name": "standard-timestamped-interaction-source-resignation-fanout",
+      "scenario_ids": [
+        "cpp-tck.timestamped-interaction-source-resignation-fanout",
+        "cpp-tck.timestamped-interaction-source-resignation-fanout-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "One focused installed-package direct run through portable dispatch across evoked and immediate callback models; queued timestamped ordinary interaction fan-out to each recipient after producer resignation passed 4/4 with no provider-specific headers or fixtures.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-20/timestamped-interaction-source-resignation-fanout-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-20/timestamped-interaction-source-resignation-fanout-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
       ]
