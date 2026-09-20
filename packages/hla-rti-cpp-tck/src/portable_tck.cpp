@@ -186,6 +186,10 @@ constexpr char serviceReportInterlockScenario[] =
     "cpp-tck.service-report-interlock";
 constexpr char serviceReportInterlockContractScenario[] =
     "cpp-tck.service-report-interlock-contract";
+constexpr char serviceReportSynchronizationScenario[] =
+    "cpp-tck.service-report-synchronization";
+constexpr char serviceReportSynchronizationContractScenario[] =
+    "cpp-tck.service-report-synchronization-contract";
 constexpr char automaticResignDirectiveDeleteObjectsId[] =
     "cpp-tck.automatic-resign-directive-delete-objects";
 constexpr char automaticResignDirectiveDeleteObjectsContractId[] =
@@ -1148,6 +1152,18 @@ void scenarioServiceReportInterlockContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioServiceReportInterlockContract(options, model);
+}
+
+void scenarioServiceReportSynchronizationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportSynchronization(options, model);
+}
+
+void scenarioServiceReportSynchronizationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportSynchronizationContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -8617,6 +8633,16 @@ int runServiceReportInterlockScenarios(int argc, char** argv) {
       scenarioServiceReportInterlockContractPortable);
 }
 
+int runServiceReportSynchronizationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportSynchronizationScenario,
+      serviceReportSynchronizationContractScenario,
+      scenarioServiceReportSynchronizationPortable,
+      scenarioServiceReportSynchronizationContractPortable);
+}
+
 int runSynchronizationPointScenarios(int argc, char** argv) {
   auto const options = parseOptions(argc, argv);
   std::vector<ScenarioResult> results;
@@ -10639,6 +10665,20 @@ bool hasServiceReportInterlockScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasServiceReportSynchronizationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportSynchronizationScenario ||
+        scenario == serviceReportSynchronizationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasSynchronizationPointScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -11229,6 +11269,9 @@ int main(int argc, char** argv) {
     }
     if (hasServiceReportInterlockScenario(argc, argv)) {
       return runServiceReportInterlockScenarios(argc, argv);
+    }
+    if (hasServiceReportSynchronizationScenario(argc, argv)) {
+      return runServiceReportSynchronizationScenarios(argc, argv);
     }
     if (hasLogicalTimeScenario(argc, argv)) {
       return runLogicalTimeScenarios(argc, argv);
