@@ -1127,15 +1127,12 @@ def run_executable_direct(
     results: Path | None,
     junit: Path | None,
 ) -> None:
-    chunks = direct_scenario_chunks(
-        arguments,
-        inputs,
-        executable,
-        selected,
-        results,
-        junit,
-    )
-    if len(chunks) <= 1:
+    # The portable C++ launcher dispatches by scanning every --scenario value
+    # and selecting the first specialized family it recognizes.  Mixing
+    # families in one child process therefore drops the other IDs from the
+    # evidence without failing the process.  Keep each direct evidence child
+    # to one catalog scenario so the merged result is complete and portable.
+    if len(selected) <= 1:
         command = [str(executable)] + direct_arguments(
             arguments,
             inputs,
@@ -1147,8 +1144,7 @@ def run_executable_direct(
         return
 
     print(
-        f"Direct run split into {len(chunks)} child-process batches "
-        f"for {len(selected)} scenarios",
+        f"Direct run split into {len(selected)} child-process scenarios",
         flush=True,
     )
     with tempfile.TemporaryDirectory(
@@ -1158,7 +1154,7 @@ def run_executable_direct(
         temporary_root = Path(temporary_directory)
         result_parts: list[Path] = []
         junit_parts: list[Path] = []
-        for index, chunk in enumerate(chunks):
+        for index, scenario in enumerate(selected):
             chunk_results = (
                 temporary_root / f"chunk-{index}.json" if results is not None else None
             )
@@ -1168,7 +1164,7 @@ def run_executable_direct(
             command = [str(executable)] + direct_arguments(
                 arguments,
                 inputs,
-                chunk,
+                [scenario],
                 chunk_results,
                 chunk_junit,
             )
@@ -1276,6 +1272,33 @@ def merge_json_evidence_parts(parts: Iterable[Path], output: Path) -> None:
         json.dumps(payload, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+
+
+def validate_direct_evidence(
+    results: Path,
+    selected: list[dict[str, Any]],
+    callback_model: str,
+) -> None:
+    payload = json.loads(results.read_text(encoding="utf-8"))
+    models = ("evoked", "immediate") if callback_model == "both" else (callback_model,)
+    expected = {
+        (scenario["id"], model)
+        for scenario in selected
+        for model in models
+    }
+    observed = {
+        (result.get("id"), result.get("callback_model"))
+        for result in payload.get("results", [])
+    }
+    missing = sorted(expected - observed)
+    if missing:
+        preview = ", ".join(f"{scenario_id}/{model}" for scenario_id, model in missing[:12])
+        suffix = "" if len(missing) <= 12 else f" (+{len(missing) - 12} more)"
+        raise ValueError(
+            "direct evidence is missing selected scenario/callback results: "
+            + preview
+            + suffix
+        )
 
 
 def merge_json_evidence(
@@ -1780,6 +1803,8 @@ def run_direct(
                 merge_junit_evidence_parts(junit_parts, junit)
     else:
         run_executable_direct(arguments, inputs, executable, selected, results, junit)
+    if results is not None:
+        validate_direct_evidence(results, selected, arguments.callback_model)
     return {
         "executable": str(executable),
         "scenario_count": len(selected),
