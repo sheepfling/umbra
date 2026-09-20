@@ -423,6 +423,10 @@ constexpr char timestampedDirectedInteractionSourceResignationScenario[] =
     "cpp-tck.timestamped-directed-interaction-source-resignation";
 constexpr char timestampedDirectedInteractionSourceResignationContractId[] =
     "cpp-tck.timestamped-directed-interaction-source-resignation-contract";
+constexpr char timestampedDirectedInteractionSourceResignationFanoutScenario[] =
+    "cpp-tck.timestamped-directed-interaction-source-resignation-fanout";
+constexpr char timestampedDirectedInteractionSourceResignationFanoutContractId[] =
+    "cpp-tck.timestamped-directed-interaction-source-resignation-fanout-contract";
 constexpr char modifyLookaheadScenario[] = "cpp-tck.modify-lookahead";
 constexpr char modifyLookaheadContractId[] =
     "cpp-tck.modify-lookahead-contract";
@@ -1452,6 +1456,18 @@ void scenarioTimestampedDirectedInteractionSourceResignationContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedDirectedInteractionSourceResignationContract(options, model);
+}
+
+void scenarioTimestampedDirectedInteractionSourceResignationFanoutPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDirectedInteractionSourceResignationFanout(options, model);
+}
+
+void scenarioTimestampedDirectedInteractionSourceResignationFanoutContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDirectedInteractionSourceResignationFanoutContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -9329,6 +9345,18 @@ int runTimestampedDirectedInteractionSourceResignationScenarios(
       scenarioTimestampedDirectedInteractionSourceResignationContractPortable);
 }
 
+int runTimestampedDirectedInteractionSourceResignationFanoutScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedDirectedInteractionSourceResignationFanoutScenario,
+      timestampedDirectedInteractionSourceResignationFanoutContractId,
+      scenarioTimestampedDirectedInteractionSourceResignationFanoutPortable,
+      scenarioTimestampedDirectedInteractionSourceResignationFanoutContractPortable);
+}
+
 int runUnconditionalAttributeOwnershipDivestitureScenarios(
     int argc,
     char** argv) {
@@ -10481,6 +10509,22 @@ bool hasTimestampedDirectedInteractionSourceResignationScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedDirectedInteractionSourceResignationScenario ||
         scenario == timestampedDirectedInteractionSourceResignationContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedDirectedInteractionSourceResignationFanoutScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedDirectedInteractionSourceResignationFanoutScenario ||
+        scenario == timestampedDirectedInteractionSourceResignationFanoutContractId) {
       return true;
     }
   }
@@ -11882,6 +11926,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedDirectedInteractionSourceResignationScenario(argc, argv)) {
       return runTimestampedDirectedInteractionSourceResignationScenarios(argc, argv);
+    }
+    if (hasTimestampedDirectedInteractionSourceResignationFanoutScenario(argc, argv)) {
+      return runTimestampedDirectedInteractionSourceResignationFanoutScenarios(argc, argv);
     }
     if (hasModifyLookaheadScenario(argc, argv)) {
       return runModifyLookaheadScenarios(argc, argv);
