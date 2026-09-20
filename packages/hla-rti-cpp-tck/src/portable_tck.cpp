@@ -435,6 +435,10 @@ constexpr char timestampedAttributeSourceResignationScenario[] =
     "cpp-tck.timestamped-attribute-source-resignation";
 constexpr char timestampedAttributeSourceResignationContractId[] =
     "cpp-tck.timestamped-attribute-source-resignation-contract";
+constexpr char timestampedAttributeSourceResignationFanoutScenario[] =
+    "cpp-tck.timestamped-attribute-source-resignation-fanout";
+constexpr char timestampedAttributeSourceResignationFanoutContractId[] =
+    "cpp-tck.timestamped-attribute-source-resignation-fanout-contract";
 constexpr char timestampedObjectDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion";
 constexpr char timestampedObjectDeletionContractId[] =
@@ -1432,6 +1436,18 @@ void scenarioTimestampedAttributeSourceResignationContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedAttributeSourceResignationContract(options, model);
+}
+
+void scenarioTimestampedAttributeSourceResignationFanoutPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeSourceResignationFanout(options, model);
+}
+
+void scenarioTimestampedAttributeSourceResignationFanoutContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeSourceResignationFanoutContract(options, model);
 }
 
 void scenarioTimestampedObjectDeletionPortable(
@@ -9514,6 +9530,18 @@ int runTimestampedAttributeSourceResignationScenarios(
       scenarioTimestampedAttributeSourceResignationContractPortable);
 }
 
+int runTimestampedAttributeSourceResignationFanoutScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedAttributeSourceResignationFanoutScenario,
+      timestampedAttributeSourceResignationFanoutContractId,
+      scenarioTimestampedAttributeSourceResignationFanoutPortable,
+      scenarioTimestampedAttributeSourceResignationFanoutContractPortable);
+}
+
 int runTimestampedObjectDeletionScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -10826,6 +10854,22 @@ bool hasTimestampedAttributeSourceResignationScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedAttributeSourceResignationScenario ||
         scenario == timestampedAttributeSourceResignationContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedAttributeSourceResignationFanoutScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedAttributeSourceResignationFanoutScenario ||
+        scenario == timestampedAttributeSourceResignationFanoutContractId) {
       return true;
     }
   }
@@ -12559,6 +12603,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedAttributeSourceResignationScenario(argc, argv)) {
       return runTimestampedAttributeSourceResignationScenarios(argc, argv);
+    }
+    if (hasTimestampedAttributeSourceResignationFanoutScenario(argc, argv)) {
+      return runTimestampedAttributeSourceResignationFanoutScenarios(argc, argv);
     }
     if (hasTimestampedObjectDeletionScenario(argc, argv)) {
       return runTimestampedObjectDeletionScenarios(argc, argv);

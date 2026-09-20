@@ -9310,7 +9310,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeSourceResignationFanout",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeSourceResignationFanoutPortable",
       "runner_id": "cpp-tck.timestamped-attribute-source-resignation-fanout",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -9348,7 +9348,7 @@
       "contract_refs": [
         "standard-timestamped-attribute-source-resignation-fanout-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeSourceResignationFanoutContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeSourceResignationFanoutContractPortable",
       "runner_id": "cpp-tck.timestamped-attribute-source-resignation-fanout-contract",
       "parity": "cpp-tck.timestamped-attribute-source-resignation-fanout",
       "default_status": "adapter-required",
