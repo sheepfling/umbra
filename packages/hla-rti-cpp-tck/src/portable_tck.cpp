@@ -407,6 +407,10 @@ constexpr char timestampedInteractionReenableScenario[] =
     "cpp-tck.timestamped-interaction-reenable";
 constexpr char timestampedInteractionReenableContractId[] =
     "cpp-tck.timestamped-interaction-reenable-contract";
+constexpr char timestampedInteractionRegulationReenableScenario[] =
+    "cpp-tck.timestamped-interaction-regulation-reenable";
+constexpr char timestampedInteractionRegulationReenableContractId[] =
+    "cpp-tck.timestamped-interaction-regulation-reenable-contract";
 constexpr char timestampedDirectedInteractionReenableScenario[] =
     "cpp-tck.timestamped-directed-interaction-reenable";
 constexpr char timestampedDirectedInteractionReenableContractId[] =
@@ -1544,6 +1548,18 @@ void scenarioTimestampedDirectedInteractionReenableContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedDirectedInteractionReenableContract(options, model);
+}
+
+void scenarioTimestampedInteractionRegulationReenablePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionRegulationReenable(options, model);
+}
+
+void scenarioTimestampedInteractionRegulationReenableContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionRegulationReenableContract(options, model);
 }
 
 void scenarioTimestampedDirectedAlternateAdvancesPortable(
@@ -9551,6 +9567,18 @@ int runTimestampedDirectedInteractionReenableScenarios(
       scenarioTimestampedDirectedInteractionReenableContractPortable);
 }
 
+int runTimestampedInteractionRegulationReenableScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionRegulationReenableScenario,
+      timestampedInteractionRegulationReenableContractId,
+      scenarioTimestampedInteractionRegulationReenablePortable,
+      scenarioTimestampedInteractionRegulationReenableContractPortable);
+}
+
 int runTimestampedDirectedAlternateAdvancesScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -10847,6 +10875,22 @@ bool hasTimestampedDirectedInteractionReenableScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedDirectedInteractionReenableScenario ||
         scenario == timestampedDirectedInteractionReenableContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionRegulationReenableScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionRegulationReenableScenario ||
+        scenario == timestampedInteractionRegulationReenableContractId) {
       return true;
     }
   }
@@ -12370,6 +12414,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedDirectedInteractionReenableScenario(argc, argv)) {
       return runTimestampedDirectedInteractionReenableScenarios(argc, argv);
+    }
+    if (hasTimestampedInteractionRegulationReenableScenario(argc, argv)) {
+      return runTimestampedInteractionRegulationReenableScenarios(argc, argv);
     }
     if (hasTimestampedDirectedAlternateAdvancesScenario(argc, argv)) {
       return runTimestampedDirectedAlternateAdvancesScenarios(argc, argv);
