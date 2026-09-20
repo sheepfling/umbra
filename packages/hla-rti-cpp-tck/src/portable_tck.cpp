@@ -379,6 +379,10 @@ constexpr char timestampedInteractionsScenario[] =
     "cpp-tck.timestamped-interactions";
 constexpr char timestampedInteractionsContractId[] =
     "cpp-tck.timestamped-interactions-contract";
+constexpr char timestampedInteractionSourceResignationScenario[] =
+    "cpp-tck.timestamped-interaction-source-resignation";
+constexpr char timestampedInteractionSourceResignationContractId[] =
+    "cpp-tck.timestamped-interaction-source-resignation-contract";
 constexpr char timestampedAttributeUpdateScenario[] =
     "cpp-tck.timestamped-attribute-update";
 constexpr char timestampedAttributeUpdateContractId[] =
@@ -1400,6 +1404,18 @@ void scenarioTimestampedInteractionMixedAdvancesContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedInteractionMixedAdvancesContract(options, model);
+}
+
+void scenarioTimestampedInteractionSourceResignationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionSourceResignation(options, model);
+}
+
+void scenarioTimestampedInteractionSourceResignationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionSourceResignationContract(options, model);
 }
 
 void scenarioTimestampedDirectedAlternateAdvancesPortable(
@@ -9303,6 +9319,18 @@ int runTimestampedInteractionMixedAdvancesScenarios(int argc, char** argv) {
       scenarioTimestampedInteractionMixedAdvancesContractPortable);
 }
 
+int runTimestampedInteractionSourceResignationScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionSourceResignationScenario,
+      timestampedInteractionSourceResignationContractId,
+      scenarioTimestampedInteractionSourceResignationPortable,
+      scenarioTimestampedInteractionSourceResignationContractPortable);
+}
+
 int runTimestampedDirectedAlternateAdvancesScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -10459,6 +10487,22 @@ bool hasTimestampedInteractionMixedAdvancesScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedInteractionMixedAdvancesScenario ||
         scenario == timestampedInteractionMixedAdvancesContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionSourceResignationScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionSourceResignationScenario ||
+        scenario == timestampedInteractionSourceResignationContractId) {
       return true;
     }
   }
@@ -11955,6 +11999,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedInteractionMixedAdvancesScenario(argc, argv)) {
       return runTimestampedInteractionMixedAdvancesScenarios(argc, argv);
+    }
+    if (hasTimestampedInteractionSourceResignationScenario(argc, argv)) {
+      return runTimestampedInteractionSourceResignationScenarios(argc, argv);
     }
     if (hasTimestampedDirectedAlternateAdvancesScenario(argc, argv)) {
       return runTimestampedDirectedAlternateAdvancesScenarios(argc, argv);
