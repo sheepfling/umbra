@@ -7006,7 +7006,7 @@
         "time-advance-api-contract.json",
         "time-advance-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractions",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionsPortable",
       "runner_id": "cpp-tck.timestamped-interactions",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -7035,7 +7035,7 @@
       "contract_refs": [
         "standard-timestamped-interactions-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionsContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionsContractPortable",
       "runner_id": "cpp-tck.timestamped-interactions-contract",
       "parity": "cpp-tck.timestamped-interactions",
       "default_status": "adapter-required",

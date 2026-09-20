@@ -375,6 +375,10 @@ constexpr char timestampedDirectedInteractionRetractionFanoutScenario[] =
     "cpp-tck.timestamped-directed-interaction-retraction-fanout";
 constexpr char timestampedDirectedInteractionRetractionFanoutContractId[] =
     "cpp-tck.timestamped-directed-interaction-retraction-fanout-contract";
+constexpr char timestampedInteractionsScenario[] =
+    "cpp-tck.timestamped-interactions";
+constexpr char timestampedInteractionsContractId[] =
+    "cpp-tck.timestamped-interactions-contract";
 constexpr char modifyLookaheadScenario[] = "cpp-tck.modify-lookahead";
 constexpr char modifyLookaheadContractId[] =
     "cpp-tck.modify-lookahead-contract";
@@ -1260,6 +1264,18 @@ void scenarioServiceReportTimestampedDeleteObjectInstanceFailureContractPortable
     Options const& options,
     rti::CallbackModel model) {
   scenarioServiceReportTimestampedDeleteObjectInstanceFailureContract(options, model);
+}
+
+void scenarioTimestampedInteractionsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractions(options, model);
+}
+
+void scenarioTimestampedInteractionsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionsContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -9009,6 +9025,16 @@ int runTimestampedDirectedInteractionRetractionFanoutScenarios(
       scenarioTimestampedDirectedInteractionRetractionFanoutContract);
 }
 
+int runTimestampedInteractionsScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionsScenario,
+      timestampedInteractionsContractId,
+      scenarioTimestampedInteractionsPortable,
+      scenarioTimestampedInteractionsContractPortable);
+}
+
 int runUnconditionalAttributeOwnershipDivestitureScenarios(
     int argc,
     char** argv) {
@@ -9985,6 +10011,20 @@ bool hasTimestampedDirectedInteractionRetractionFanoutScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedDirectedInteractionRetractionFanoutScenario ||
         scenario == timestampedDirectedInteractionRetractionFanoutContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionsScenario ||
+        scenario == timestampedInteractionsContractId) {
       return true;
     }
   }
@@ -11350,6 +11390,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedDirectedInteractionRetractionFanoutScenario(argc, argv)) {
       return runTimestampedDirectedInteractionRetractionFanoutScenarios(argc, argv);
+    }
+    if (hasTimestampedInteractionsScenario(argc, argv)) {
+      return runTimestampedInteractionsScenarios(argc, argv);
     }
     if (hasModifyLookaheadScenario(argc, argv)) {
       return runModifyLookaheadScenarios(argc, argv);
