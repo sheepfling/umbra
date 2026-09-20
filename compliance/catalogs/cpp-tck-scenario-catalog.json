@@ -7885,7 +7885,7 @@
       "contract_refs": [
         "standard-timestamped-directed-interaction-reenable-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionReenableContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionReenableContractPortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-reenable-contract",
       "parity": "cpp-tck.timestamped-directed-interaction-reenable",
       "default_status": "adapter-required",
@@ -7933,7 +7933,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionReenable",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionReenablePortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-reenable",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
