@@ -411,6 +411,10 @@ constexpr char timestampedAttributeUpdateAlternateAdvancesScenario[] =
     "cpp-tck.timestamped-attribute-update-alternate-advances";
 constexpr char timestampedAttributeUpdateAlternateAdvancesContractId[] =
     "cpp-tck.timestamped-attribute-update-alternate-advances-contract";
+constexpr char timestampedObjectDeletionMixedAdvancesScenario[] =
+    "cpp-tck.timestamped-object-deletion-mixed-advances";
+constexpr char timestampedObjectDeletionMixedAdvancesContractId[] =
+    "cpp-tck.timestamped-object-deletion-mixed-advances-contract";
 constexpr char modifyLookaheadScenario[] = "cpp-tck.modify-lookahead";
 constexpr char modifyLookaheadContractId[] =
     "cpp-tck.modify-lookahead-contract";
@@ -1404,6 +1408,18 @@ void scenarioTimestampedAttributeUpdateAlternateAdvancesContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedAttributeUpdateAlternateAdvancesContract(options, model);
+}
+
+void scenarioTimestampedObjectDeletionMixedAdvancesPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionMixedAdvances(options, model);
+}
+
+void scenarioTimestampedObjectDeletionMixedAdvancesContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionMixedAdvancesContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -9245,6 +9261,18 @@ int runTimestampedAttributeUpdateAlternateAdvancesScenarios(
       scenarioTimestampedAttributeUpdateAlternateAdvancesContractPortable);
 }
 
+int runTimestampedObjectDeletionMixedAdvancesScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedObjectDeletionMixedAdvancesScenario,
+      timestampedObjectDeletionMixedAdvancesContractId,
+      scenarioTimestampedObjectDeletionMixedAdvancesPortable,
+      scenarioTimestampedObjectDeletionMixedAdvancesContractPortable);
+}
+
 int runUnconditionalAttributeOwnershipDivestitureScenarios(
     int argc,
     char** argv) {
@@ -10349,6 +10377,22 @@ bool hasTimestampedAttributeUpdateAlternateAdvancesScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedAttributeUpdateAlternateAdvancesScenario ||
         scenario == timestampedAttributeUpdateAlternateAdvancesContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedObjectDeletionMixedAdvancesScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedObjectDeletionMixedAdvancesScenario ||
+        scenario == timestampedObjectDeletionMixedAdvancesContractId) {
       return true;
     }
   }
@@ -11741,6 +11785,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedAttributeUpdateAlternateAdvancesScenario(argc, argv)) {
       return runTimestampedAttributeUpdateAlternateAdvancesScenarios(argc, argv);
+    }
+    if (hasTimestampedObjectDeletionMixedAdvancesScenario(argc, argv)) {
+      return runTimestampedObjectDeletionMixedAdvancesScenarios(argc, argv);
     }
     if (hasModifyLookaheadScenario(argc, argv)) {
       return runModifyLookaheadScenarios(argc, argv);

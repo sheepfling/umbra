@@ -11598,7 +11598,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionMixedAdvances",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionMixedAdvancesPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-mixed-advances",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -11637,7 +11637,7 @@
       "contract_refs": [
         "standard-timestamped-object-deletion-mixed-advances-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionMixedAdvancesContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionMixedAdvancesContractPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-mixed-advances-contract",
       "parity": "cpp-tck.timestamped-object-deletion-mixed-advances",
       "default_status": "adapter-required",
