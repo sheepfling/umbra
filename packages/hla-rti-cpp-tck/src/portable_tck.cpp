@@ -118,6 +118,10 @@ constexpr char serviceReportTimestampedInteractionScenario[] =
     "cpp-tck.service-report-timestamped-interaction";
 constexpr char serviceReportTimestampedInteractionContractScenario[] =
     "cpp-tck.service-report-timestamped-interaction-contract";
+constexpr char serviceReportTimestampedAttributeUpdateFailureScenario[] =
+    "cpp-tck.service-report-timestamped-attribute-update-failure";
+constexpr char serviceReportTimestampedAttributeUpdateFailureContractScenario[] =
+    "cpp-tck.service-report-timestamped-attribute-update-failure-contract";
 constexpr char serviceReportObjectAttributeUpdateRateLookupsScenario[] =
     "cpp-tck.service-report-object-attribute-update-rate-lookups";
 constexpr char serviceReportObjectAttributeUpdateRateLookupsContractScenario[] =
@@ -1212,6 +1216,18 @@ void scenarioServiceReportTimestampedInteractionContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioServiceReportTimestampedInteractionContract(options, model);
+}
+
+void scenarioServiceReportTimestampedAttributeUpdateFailurePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportTimestampedAttributeUpdateFailure(options, model);
+}
+
+void scenarioServiceReportTimestampedAttributeUpdateFailureContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportTimestampedAttributeUpdateFailureContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -8725,6 +8741,18 @@ int runServiceReportTimestampedInteractionScenarios(int argc, char** argv) {
       scenarioServiceReportTimestampedInteractionContractPortable);
 }
 
+int runServiceReportTimestampedAttributeUpdateFailureScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportTimestampedAttributeUpdateFailureScenario,
+      serviceReportTimestampedAttributeUpdateFailureContractScenario,
+      scenarioServiceReportTimestampedAttributeUpdateFailurePortable,
+      scenarioServiceReportTimestampedAttributeUpdateFailureContractPortable);
+}
+
 int runSynchronizationPointScenarios(int argc, char** argv) {
   auto const options = parseOptions(argc, argv);
   std::vector<ScenarioResult> results;
@@ -10805,6 +10833,22 @@ bool hasServiceReportTimestampedInteractionScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasServiceReportTimestampedAttributeUpdateFailureScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportTimestampedAttributeUpdateFailureScenario ||
+        scenario == serviceReportTimestampedAttributeUpdateFailureContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasSynchronizationPointScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -11407,6 +11451,9 @@ int main(int argc, char** argv) {
     }
     if (hasServiceReportTimestampedInteractionScenario(argc, argv)) {
       return runServiceReportTimestampedInteractionScenarios(argc, argv);
+    }
+    if (hasServiceReportTimestampedAttributeUpdateFailureScenario(argc, argv)) {
+      return runServiceReportTimestampedAttributeUpdateFailureScenarios(argc, argv);
     }
     if (hasLogicalTimeScenario(argc, argv)) {
       return runLogicalTimeScenarios(argc, argv);

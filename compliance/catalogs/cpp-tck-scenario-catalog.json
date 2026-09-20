@@ -2785,7 +2785,7 @@
         "get-time-factory-api-contract.json",
         "time-role-api-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedAttributeUpdateFailure",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportTimestampedAttributeUpdateFailurePortable",
       "runner_id": "cpp-tck.service-report-timestamped-attribute-update-failure",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -2839,7 +2839,7 @@
       "contract_refs": [
         "standard-service-report-timestamped-attribute-update-failure-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedAttributeUpdateFailureContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportTimestampedAttributeUpdateFailureContractPortable",
       "runner_id": "cpp-tck.service-report-timestamped-attribute-update-failure-contract",
       "parity": "cpp-tck.service-report-timestamped-attribute-update-failure",
       "default_status": "adapter-required",
