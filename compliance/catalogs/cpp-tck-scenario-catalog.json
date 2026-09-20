@@ -7509,7 +7509,7 @@
         "time-advance-api-contract.json",
         "time-advance-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionCrossProducerOrder",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionCrossProducerOrderPortable",
       "runner_id": "cpp-tck.timestamped-interaction-cross-producer-order",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -7540,7 +7540,7 @@
       "contract_refs": [
         "standard-timestamped-interaction-cross-producer-order-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionCrossProducerOrderContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionCrossProducerOrderContractPortable",
       "runner_id": "cpp-tck.timestamped-interaction-cross-producer-order-contract",
       "parity": "cpp-tck.timestamped-interaction-cross-producer-order",
       "default_status": "adapter-required",

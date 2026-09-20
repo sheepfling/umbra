@@ -391,6 +391,10 @@ constexpr char timestampedInteractionTsoDesignatorTerminalizationScenario[] =
     "cpp-tck.timestamped-interaction-tso-designator-terminalization";
 constexpr char timestampedInteractionTsoDesignatorTerminalizationContractId[] =
     "cpp-tck.timestamped-interaction-tso-designator-terminalization-contract";
+constexpr char timestampedInteractionCrossProducerOrderScenario[] =
+    "cpp-tck.timestamped-interaction-cross-producer-order";
+constexpr char timestampedInteractionCrossProducerOrderContractId[] =
+    "cpp-tck.timestamped-interaction-cross-producer-order-contract";
 constexpr char timestampedAttributeUpdateScenario[] =
     "cpp-tck.timestamped-attribute-update";
 constexpr char timestampedAttributeUpdateContractId[] =
@@ -1448,6 +1452,18 @@ void scenarioTimestampedInteractionTsoDesignatorTerminalizationContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedInteractionTsoDesignatorTerminalizationContract(options, model);
+}
+
+void scenarioTimestampedInteractionCrossProducerOrderPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionCrossProducerOrder(options, model);
+}
+
+void scenarioTimestampedInteractionCrossProducerOrderContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionCrossProducerOrderContract(options, model);
 }
 
 void scenarioTimestampedDirectedAlternateAdvancesPortable(
@@ -9387,6 +9403,18 @@ int runTimestampedInteractionTsoDesignatorTerminalizationScenarios(
       scenarioTimestampedInteractionTsoDesignatorTerminalizationContractPortable);
 }
 
+int runTimestampedInteractionCrossProducerOrderScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionCrossProducerOrderScenario,
+      timestampedInteractionCrossProducerOrderContractId,
+      scenarioTimestampedInteractionCrossProducerOrderPortable,
+      scenarioTimestampedInteractionCrossProducerOrderContractPortable);
+}
+
 int runTimestampedDirectedAlternateAdvancesScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -10591,6 +10619,22 @@ bool hasTimestampedInteractionTsoDesignatorTerminalizationScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedInteractionTsoDesignatorTerminalizationScenario ||
         scenario == timestampedInteractionTsoDesignatorTerminalizationContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionCrossProducerOrderScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionCrossProducerOrderScenario ||
+        scenario == timestampedInteractionCrossProducerOrderContractId) {
       return true;
     }
   }
@@ -12096,6 +12140,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedInteractionTsoDesignatorTerminalizationScenario(argc, argv)) {
       return runTimestampedInteractionTsoDesignatorTerminalizationScenarios(argc, argv);
+    }
+    if (hasTimestampedInteractionCrossProducerOrderScenario(argc, argv)) {
+      return runTimestampedInteractionCrossProducerOrderScenarios(argc, argv);
     }
     if (hasTimestampedDirectedAlternateAdvancesScenario(argc, argv)) {
       return runTimestampedDirectedAlternateAdvancesScenarios(argc, argv);
