@@ -379,6 +379,10 @@ constexpr char timestampedInteractionsScenario[] =
     "cpp-tck.timestamped-interactions";
 constexpr char timestampedInteractionsContractId[] =
     "cpp-tck.timestamped-interactions-contract";
+constexpr char timestampedAttributeUpdateScenario[] =
+    "cpp-tck.timestamped-attribute-update";
+constexpr char timestampedAttributeUpdateContractId[] =
+    "cpp-tck.timestamped-attribute-update-contract";
 constexpr char modifyLookaheadScenario[] = "cpp-tck.modify-lookahead";
 constexpr char modifyLookaheadContractId[] =
     "cpp-tck.modify-lookahead-contract";
@@ -1276,6 +1280,18 @@ void scenarioTimestampedInteractionsContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedInteractionsContract(options, model);
+}
+
+void scenarioTimestampedAttributeUpdatePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdate(options, model);
+}
+
+void scenarioTimestampedAttributeUpdateContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -9035,6 +9051,16 @@ int runTimestampedInteractionsScenarios(int argc, char** argv) {
       scenarioTimestampedInteractionsContractPortable);
 }
 
+int runTimestampedAttributeUpdateScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedAttributeUpdateScenario,
+      timestampedAttributeUpdateContractId,
+      scenarioTimestampedAttributeUpdatePortable,
+      scenarioTimestampedAttributeUpdateContractPortable);
+}
+
 int runUnconditionalAttributeOwnershipDivestitureScenarios(
     int argc,
     char** argv) {
@@ -10025,6 +10051,20 @@ bool hasTimestampedInteractionsScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedInteractionsScenario ||
         scenario == timestampedInteractionsContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedAttributeUpdateScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedAttributeUpdateScenario ||
+        scenario == timestampedAttributeUpdateContractId) {
       return true;
     }
   }
@@ -11393,6 +11433,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedInteractionsScenario(argc, argv)) {
       return runTimestampedInteractionsScenarios(argc, argv);
+    }
+    if (hasTimestampedAttributeUpdateScenario(argc, argv)) {
+      return runTimestampedAttributeUpdateScenarios(argc, argv);
     }
     if (hasModifyLookaheadScenario(argc, argv)) {
       return runModifyLookaheadScenarios(argc, argv);
