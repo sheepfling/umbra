@@ -1673,7 +1673,7 @@
         "variable-array-requirements-contract.json",
         "standard-service-report-timestamped-delete-object-instance-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedDeleteObjectInstance",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportTimestampedDeleteObjectInstancePortable",
       "runner_id": "cpp-tck.service-report-timestamped-delete-object-instance",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -1718,7 +1718,7 @@
       "contract_refs": [
         "standard-service-report-timestamped-delete-object-instance-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedDeleteObjectInstanceContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportTimestampedDeleteObjectInstanceContractPortable",
       "runner_id": "cpp-tck.service-report-timestamped-delete-object-instance-contract",
       "parity": "cpp-tck.service-report-timestamped-delete-object-instance",
       "default_status": "adapter-required",
