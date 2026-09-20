@@ -7802,7 +7802,7 @@
       "contract_refs": [
         "standard-timestamped-interaction-reenable-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionReenableContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionReenableContractPortable",
       "runner_id": "cpp-tck.timestamped-interaction-reenable-contract",
       "parity": "cpp-tck.timestamped-interaction-reenable",
       "default_status": "adapter-required",
@@ -7844,7 +7844,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionReenable",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionReenablePortable",
       "runner_id": "cpp-tck.timestamped-interaction-reenable",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
