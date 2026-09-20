@@ -8260,7 +8260,7 @@
         "request-retraction-requirements-contract.json",
         "object-instance-registration-api-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionTarNmr",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionTarNmrPortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-tar-nmr",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -8303,7 +8303,7 @@
       "contract_refs": [
         "standard-timestamped-directed-interaction-tar-nmr-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionTarNmrContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionTarNmrContractPortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-tar-nmr-contract",
       "parity": "cpp-tck.timestamped-directed-interaction-tar-nmr",
       "default_status": "adapter-required",

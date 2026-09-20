@@ -415,6 +415,10 @@ constexpr char timestampedObjectDeletionMixedAdvancesScenario[] =
     "cpp-tck.timestamped-object-deletion-mixed-advances";
 constexpr char timestampedObjectDeletionMixedAdvancesContractId[] =
     "cpp-tck.timestamped-object-deletion-mixed-advances-contract";
+constexpr char timestampedDirectedInteractionTarNmrScenario[] =
+    "cpp-tck.timestamped-directed-interaction-tar-nmr";
+constexpr char timestampedDirectedInteractionTarNmrContractId[] =
+    "cpp-tck.timestamped-directed-interaction-tar-nmr-contract";
 constexpr char modifyLookaheadScenario[] = "cpp-tck.modify-lookahead";
 constexpr char modifyLookaheadContractId[] =
     "cpp-tck.modify-lookahead-contract";
@@ -1420,6 +1424,18 @@ void scenarioTimestampedObjectDeletionMixedAdvancesContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedObjectDeletionMixedAdvancesContract(options, model);
+}
+
+void scenarioTimestampedDirectedInteractionTarNmrPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDirectedInteractionTarNmr(options, model);
+}
+
+void scenarioTimestampedDirectedInteractionTarNmrContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedDirectedInteractionTarNmrContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -9273,6 +9289,18 @@ int runTimestampedObjectDeletionMixedAdvancesScenarios(
       scenarioTimestampedObjectDeletionMixedAdvancesContractPortable);
 }
 
+int runTimestampedDirectedInteractionTarNmrScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedDirectedInteractionTarNmrScenario,
+      timestampedDirectedInteractionTarNmrContractId,
+      scenarioTimestampedDirectedInteractionTarNmrPortable,
+      scenarioTimestampedDirectedInteractionTarNmrContractPortable);
+}
+
 int runUnconditionalAttributeOwnershipDivestitureScenarios(
     int argc,
     char** argv) {
@@ -10393,6 +10421,22 @@ bool hasTimestampedObjectDeletionMixedAdvancesScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedObjectDeletionMixedAdvancesScenario ||
         scenario == timestampedObjectDeletionMixedAdvancesContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedDirectedInteractionTarNmrScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedDirectedInteractionTarNmrScenario ||
+        scenario == timestampedDirectedInteractionTarNmrContractId) {
       return true;
     }
   }
@@ -11788,6 +11832,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedObjectDeletionMixedAdvancesScenario(argc, argv)) {
       return runTimestampedObjectDeletionMixedAdvancesScenarios(argc, argv);
+    }
+    if (hasTimestampedDirectedInteractionTarNmrScenario(argc, argv)) {
+      return runTimestampedDirectedInteractionTarNmrScenarios(argc, argv);
     }
     if (hasModifyLookaheadScenario(argc, argv)) {
       return runModifyLookaheadScenarios(argc, argv);
