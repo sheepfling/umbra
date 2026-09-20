@@ -8343,7 +8343,7 @@
         "timestamped-directed-interaction-api-contract.json",
         "timestamped-directed-interaction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionImmediateSourceResignation",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionImmediateSourceResignationPortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-immediate-source-resignation",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -8380,7 +8380,7 @@
       "contract_refs": [
         "standard-timestamped-directed-interaction-immediate-source-resignation-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionImmediateSourceResignationContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionImmediateSourceResignationContractPortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-immediate-source-resignation-contract",
       "parity": "cpp-tck.timestamped-directed-interaction-immediate-source-resignation",
       "default_status": "adapter-required",
