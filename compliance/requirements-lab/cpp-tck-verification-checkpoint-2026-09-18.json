@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-ordinary-service-report-failures-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-named-object-instance-service-reports-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2840,6 +2840,30 @@
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-attribute-update-failure-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-delete-object-instance-failure-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-delete-object-instance-failure-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
+      ]
+    },
+    {
+      "name": "standard-named-object-instance-service-reports",
+      "scenario_ids": [
+        "cpp-tck.service-report-reserve-object-instance-name",
+        "cpp-tck.service-report-reserve-object-instance-name-contract",
+        "cpp-tck.service-report-release-object-instance-name",
+        "cpp-tck.service-report-release-object-instance-name-contract",
+        "cpp-tck.service-report-release-multiple-object-instance-names",
+        "cpp-tck.service-report-release-multiple-object-instance-names-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "Three focused installed-package direct runs through portable dispatch, one base/contract pair per runner, across evoked and immediate callback models; named object-instance reservation and release service reports passed 12/12 with no provider-specific headers or fixtures.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-reserve-object-instance-name-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-reserve-object-instance-name-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-release-object-instance-name-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-release-object-instance-name-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-release-multiple-object-instance-names-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-release-multiple-object-instance-names-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
       ]

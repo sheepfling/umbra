@@ -3207,7 +3207,7 @@
         "receive-order-interaction-requirements-contract.json",
         "federation-execution-api-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportReleaseMultipleObjectInstanceNames",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportReleaseMultipleObjectInstanceNamesPortable",
       "runner_id": "cpp-tck.service-report-release-multiple-object-instance-names",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -3243,7 +3243,7 @@
       "contract_refs": [
         "standard-service-report-release-multiple-object-instance-names-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportReleaseMultipleObjectInstanceNamesContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportReleaseMultipleObjectInstanceNamesContractPortable",
       "runner_id": "cpp-tck.service-report-release-multiple-object-instance-names-contract",
       "parity": "cpp-tck.service-report-release-multiple-object-instance-names",
       "default_status": "adapter-required",
@@ -3288,7 +3288,7 @@
         "receive-order-interaction-requirements-contract.json",
         "federation-execution-api-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportReleaseObjectInstanceName",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportReleaseObjectInstanceNamePortable",
       "runner_id": "cpp-tck.service-report-release-object-instance-name",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -3324,7 +3324,7 @@
       "contract_refs": [
         "standard-service-report-release-object-instance-name-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportReleaseObjectInstanceNameContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportReleaseObjectInstanceNameContractPortable",
       "runner_id": "cpp-tck.service-report-release-object-instance-name-contract",
       "parity": "cpp-tck.service-report-release-object-instance-name",
       "default_status": "adapter-required",
@@ -3369,7 +3369,7 @@
         "receive-order-interaction-requirements-contract.json",
         "federation-execution-api-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportReserveObjectInstanceName",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportReserveObjectInstanceNamePortable",
       "runner_id": "cpp-tck.service-report-reserve-object-instance-name",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -3405,7 +3405,7 @@
       "contract_refs": [
         "standard-service-report-reserve-object-instance-name-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportReserveObjectInstanceNameContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportReserveObjectInstanceNameContractPortable",
       "runner_id": "cpp-tck.service-report-reserve-object-instance-name-contract",
       "parity": "cpp-tck.service-report-reserve-object-instance-name",
       "default_status": "adapter-required",

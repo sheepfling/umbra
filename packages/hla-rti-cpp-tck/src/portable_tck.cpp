@@ -162,6 +162,18 @@ constexpr char serviceReportDeleteObjectInstanceFailureScenario[] =
     "cpp-tck.service-report-delete-object-instance-failure";
 constexpr char serviceReportDeleteObjectInstanceFailureContractScenario[] =
     "cpp-tck.service-report-delete-object-instance-failure-contract";
+constexpr char serviceReportReserveObjectInstanceNameScenario[] =
+    "cpp-tck.service-report-reserve-object-instance-name";
+constexpr char serviceReportReserveObjectInstanceNameContractScenario[] =
+    "cpp-tck.service-report-reserve-object-instance-name-contract";
+constexpr char serviceReportReleaseObjectInstanceNameScenario[] =
+    "cpp-tck.service-report-release-object-instance-name";
+constexpr char serviceReportReleaseObjectInstanceNameContractScenario[] =
+    "cpp-tck.service-report-release-object-instance-name-contract";
+constexpr char serviceReportReleaseMultipleObjectInstanceNamesScenario[] =
+    "cpp-tck.service-report-release-multiple-object-instance-names";
+constexpr char serviceReportReleaseMultipleObjectInstanceNamesContractScenario[] =
+    "cpp-tck.service-report-release-multiple-object-instance-names-contract";
 constexpr char automaticResignDirectiveDeleteObjectsId[] =
     "cpp-tck.automatic-resign-directive-delete-objects";
 constexpr char automaticResignDirectiveDeleteObjectsContractId[] =
@@ -1052,6 +1064,42 @@ void scenarioServiceReportDeleteObjectInstanceFailureContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioServiceReportDeleteObjectInstanceFailureContract(options, model);
+}
+
+void scenarioServiceReportReserveObjectInstanceNamePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportReserveObjectInstanceName(options, model);
+}
+
+void scenarioServiceReportReserveObjectInstanceNameContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportReserveObjectInstanceNameContract(options, model);
+}
+
+void scenarioServiceReportReleaseObjectInstanceNamePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportReleaseObjectInstanceName(options, model);
+}
+
+void scenarioServiceReportReleaseObjectInstanceNameContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportReleaseObjectInstanceNameContract(options, model);
+}
+
+void scenarioServiceReportReleaseMultipleObjectInstanceNamesPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportReleaseMultipleObjectInstanceNames(options, model);
+}
+
+void scenarioServiceReportReleaseMultipleObjectInstanceNamesContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportReleaseMultipleObjectInstanceNamesContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -8455,6 +8503,40 @@ int runServiceReportDeleteObjectInstanceFailureScenarios(
       scenarioServiceReportDeleteObjectInstanceFailureContractPortable);
 }
 
+int runServiceReportReserveObjectInstanceNameScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportReserveObjectInstanceNameScenario,
+      serviceReportReserveObjectInstanceNameContractScenario,
+      scenarioServiceReportReserveObjectInstanceNamePortable,
+      scenarioServiceReportReserveObjectInstanceNameContractPortable);
+}
+
+int runServiceReportReleaseObjectInstanceNameScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportReleaseObjectInstanceNameScenario,
+      serviceReportReleaseObjectInstanceNameContractScenario,
+      scenarioServiceReportReleaseObjectInstanceNamePortable,
+      scenarioServiceReportReleaseObjectInstanceNameContractPortable);
+}
+
+int runServiceReportReleaseMultipleObjectInstanceNamesScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportReleaseMultipleObjectInstanceNamesScenario,
+      serviceReportReleaseMultipleObjectInstanceNamesContractScenario,
+      scenarioServiceReportReleaseMultipleObjectInstanceNamesPortable,
+      scenarioServiceReportReleaseMultipleObjectInstanceNamesContractPortable);
+}
+
 int runSynchronizationPointScenarios(int argc, char** argv) {
   auto const options = parseOptions(argc, argv);
   std::vector<ScenarioResult> results;
@@ -10383,6 +10465,54 @@ bool hasServiceReportDeleteObjectInstanceFailureScenario(
   return false;
 }
 
+bool hasServiceReportReserveObjectInstanceNameScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportReserveObjectInstanceNameScenario ||
+        scenario == serviceReportReserveObjectInstanceNameContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportReleaseObjectInstanceNameScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportReleaseObjectInstanceNameScenario ||
+        scenario == serviceReportReleaseObjectInstanceNameContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportReleaseMultipleObjectInstanceNamesScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportReleaseMultipleObjectInstanceNamesScenario ||
+        scenario == serviceReportReleaseMultipleObjectInstanceNamesContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasSynchronizationPointScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -10955,6 +11085,15 @@ int main(int argc, char** argv) {
     }
     if (hasServiceReportDeleteObjectInstanceFailureScenario(argc, argv)) {
       return runServiceReportDeleteObjectInstanceFailureScenarios(argc, argv);
+    }
+    if (hasServiceReportReserveObjectInstanceNameScenario(argc, argv)) {
+      return runServiceReportReserveObjectInstanceNameScenarios(argc, argv);
+    }
+    if (hasServiceReportReleaseObjectInstanceNameScenario(argc, argv)) {
+      return runServiceReportReleaseObjectInstanceNameScenarios(argc, argv);
+    }
+    if (hasServiceReportReleaseMultipleObjectInstanceNamesScenario(argc, argv)) {
+      return runServiceReportReleaseMultipleObjectInstanceNamesScenarios(argc, argv);
     }
     if (hasLogicalTimeScenario(argc, argv)) {
       return runLogicalTimeScenarios(argc, argv);
