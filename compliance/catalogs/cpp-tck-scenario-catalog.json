@@ -8967,7 +8967,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateAlternateAdvances",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateAlternateAdvancesPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-alternate-advances",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -9012,7 +9012,7 @@
       "contract_refs": [
         "standard-timestamped-attribute-update-alternate-advances-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateAlternateAdvancesContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateAlternateAdvancesContractPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-alternate-advances-contract",
       "parity": "cpp-tck.timestamped-attribute-update-alternate-advances",
       "default_status": "adapter-required",
