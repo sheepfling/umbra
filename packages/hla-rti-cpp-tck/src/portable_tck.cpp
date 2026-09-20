@@ -459,6 +459,10 @@ constexpr char timestampedInteractionFlushQueueFutureInputScenario[] =
     "cpp-tck.timestamped-interaction-flush-queue-future-input";
 constexpr char timestampedInteractionFlushQueueFutureInputContractId[] =
     "cpp-tck.timestamped-interaction-flush-queue-future-input-contract";
+constexpr char timestampedAttributeOrderCohortScenario[] =
+    "cpp-tck.timestamped-attribute-order-cohort";
+constexpr char timestampedAttributeOrderCohortContractId[] =
+    "cpp-tck.timestamped-attribute-order-cohort-contract";
 constexpr char timestampedObjectDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion";
 constexpr char timestampedObjectDeletionContractId[] =
@@ -1528,6 +1532,18 @@ void scenarioTimestampedInteractionFlushQueueFutureInputContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedInteractionFlushQueueFutureInputContract(options, model);
+}
+
+void scenarioTimestampedAttributeOrderCohortPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeOrderCohort(options, model);
+}
+
+void scenarioTimestampedAttributeOrderCohortContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeOrderCohortContract(options, model);
 }
 
 void scenarioTimestampedObjectDeletionPortable(
@@ -9680,6 +9696,16 @@ int runTimestampedInteractionFlushQueueFutureInputScenarios(
       scenarioTimestampedInteractionFlushQueueFutureInputContractPortable);
 }
 
+int runTimestampedAttributeOrderCohortScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedAttributeOrderCohortScenario,
+      timestampedAttributeOrderCohortContractId,
+      scenarioTimestampedAttributeOrderCohortPortable,
+      scenarioTimestampedAttributeOrderCohortContractPortable);
+}
+
 int runTimestampedObjectDeletionScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -11086,6 +11112,20 @@ bool hasTimestampedInteractionFlushQueueFutureInputScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedInteractionFlushQueueFutureInputScenario ||
         scenario == timestampedInteractionFlushQueueFutureInputContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedAttributeOrderCohortScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedAttributeOrderCohortScenario ||
+        scenario == timestampedAttributeOrderCohortContractId) {
       return true;
     }
   }
@@ -12837,6 +12877,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedInteractionFlushQueueFutureInputScenario(argc, argv)) {
       return runTimestampedInteractionFlushQueueFutureInputScenarios(argc, argv);
+    }
+    if (hasTimestampedAttributeOrderCohortScenario(argc, argv)) {
+      return runTimestampedAttributeOrderCohortScenarios(argc, argv);
     }
     if (hasTimestampedObjectDeletionScenario(argc, argv)) {
       return runTimestampedObjectDeletionScenarios(argc, argv);

@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-20-702-standard-timestamped-interaction-flush-queue-future-input-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-20-702-standard-timestamped-attribute-order-cohort-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -3556,6 +3556,22 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-20/timestamped-interaction-flush-queue-future-input-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-20/timestamped-interaction-flush-queue-future-input-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
+      ]
+    },
+    {
+      "name": "standard-timestamped-attribute-order-cohort",
+      "scenario_ids": [
+        "cpp-tck.timestamped-attribute-order-cohort",
+        "cpp-tck.timestamped-attribute-order-cohort-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "One focused installed-package direct run through portable dispatch across evoked and immediate callback models; timestamped multi-attribute order cohort and standard callback ordering passed 4/4 with no provider-specific headers or fixtures.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-20/timestamped-attribute-order-cohort-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-20/timestamped-attribute-order-cohort-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
       ]

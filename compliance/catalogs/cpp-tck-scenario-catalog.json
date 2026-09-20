@@ -8709,7 +8709,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeOrderCohort",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeOrderCohortPortable",
       "runner_id": "cpp-tck.timestamped-attribute-order-cohort",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -8753,7 +8753,7 @@
       "contract_refs": [
         "standard-timestamped-attribute-order-cohort-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeOrderCohortContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeOrderCohortContractPortable",
       "runner_id": "cpp-tck.timestamped-attribute-order-cohort-contract",
       "parity": "cpp-tck.timestamped-attribute-order-cohort",
       "default_status": "adapter-required",
