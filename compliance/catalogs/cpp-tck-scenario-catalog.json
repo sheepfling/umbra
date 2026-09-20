@@ -1559,7 +1559,7 @@
         "time-advance-requirements-contract.json",
         "standard-service-report-timestamped-attribute-update-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedAttributeUpdate",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportTimestampedAttributeUpdatePortable",
       "runner_id": "cpp-tck.service-report-timestamped-attribute-update",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -1606,7 +1606,7 @@
       "contract_refs": [
         "standard-service-report-timestamped-attribute-update-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedAttributeUpdateContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportTimestampedAttributeUpdateContractPortable",
       "runner_id": "cpp-tck.service-report-timestamped-attribute-update-contract",
       "parity": "cpp-tck.service-report-timestamped-attribute-update",
       "default_status": "adapter-required",
