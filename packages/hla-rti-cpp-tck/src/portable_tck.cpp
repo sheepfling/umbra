@@ -443,6 +443,10 @@ constexpr char timestampedAttributeUpdateOwnershipTransferScenario[] =
     "cpp-tck.timestamped-attribute-update-ownership-transfer";
 constexpr char timestampedAttributeUpdateOwnershipTransferContractId[] =
     "cpp-tck.timestamped-attribute-update-ownership-transfer-contract";
+constexpr char timestampedAttributeUpdateQueuedPasselRetractionScenario[] =
+    "cpp-tck.timestamped-attribute-update-queued-passel-retraction";
+constexpr char timestampedAttributeUpdateQueuedPasselRetractionContractId[] =
+    "cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract";
 constexpr char timestampedObjectDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion";
 constexpr char timestampedObjectDeletionContractId[] =
@@ -1464,6 +1468,18 @@ void scenarioTimestampedAttributeUpdateOwnershipTransferContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedAttributeUpdateOwnershipTransferContract(options, model);
+}
+
+void scenarioTimestampedAttributeUpdateQueuedPasselRetractionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateQueuedPasselRetraction(options, model);
+}
+
+void scenarioTimestampedAttributeUpdateQueuedPasselRetractionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateQueuedPasselRetractionContract(options, model);
 }
 
 void scenarioTimestampedObjectDeletionPortable(
@@ -9570,6 +9586,18 @@ int runTimestampedAttributeUpdateOwnershipTransferScenarios(
       scenarioTimestampedAttributeUpdateOwnershipTransferContractPortable);
 }
 
+int runTimestampedAttributeUpdateQueuedPasselRetractionScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedAttributeUpdateQueuedPasselRetractionScenario,
+      timestampedAttributeUpdateQueuedPasselRetractionContractId,
+      scenarioTimestampedAttributeUpdateQueuedPasselRetractionPortable,
+      scenarioTimestampedAttributeUpdateQueuedPasselRetractionContractPortable);
+}
+
 int runTimestampedObjectDeletionScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -10914,6 +10942,22 @@ bool hasTimestampedAttributeUpdateOwnershipTransferScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedAttributeUpdateOwnershipTransferScenario ||
         scenario == timestampedAttributeUpdateOwnershipTransferContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedAttributeUpdateQueuedPasselRetractionScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedAttributeUpdateQueuedPasselRetractionScenario ||
+        scenario == timestampedAttributeUpdateQueuedPasselRetractionContractId) {
       return true;
     }
   }
@@ -12653,6 +12697,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedAttributeUpdateOwnershipTransferScenario(argc, argv)) {
       return runTimestampedAttributeUpdateOwnershipTransferScenarios(argc, argv);
+    }
+    if (hasTimestampedAttributeUpdateQueuedPasselRetractionScenario(argc, argv)) {
+      return runTimestampedAttributeUpdateQueuedPasselRetractionScenarios(argc, argv);
     }
     if (hasTimestampedObjectDeletionScenario(argc, argv)) {
       return runTimestampedObjectDeletionScenarios(argc, argv);

@@ -8804,7 +8804,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateQueuedPasselRetraction",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateQueuedPasselRetractionPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-queued-passel-retraction",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -8844,7 +8844,7 @@
       "contract_refs": [
         "standard-timestamped-attribute-update-queued-passel-retraction-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateQueuedPasselRetractionContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateQueuedPasselRetractionContractPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract",
       "parity": "cpp-tck.timestamped-attribute-update-queued-passel-retraction",
       "default_status": "adapter-required",

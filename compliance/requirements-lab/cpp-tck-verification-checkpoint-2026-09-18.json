@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-20-702-standard-timestamped-attribute-update-ownership-transfer-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-20-702-standard-timestamped-attribute-update-queued-passel-retraction-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -3492,6 +3492,22 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-20/timestamped-attribute-update-ownership-transfer-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-20/timestamped-attribute-update-ownership-transfer-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
+      ]
+    },
+    {
+      "name": "standard-timestamped-attribute-update-queued-passel-retraction",
+      "scenario_ids": [
+        "cpp-tck.timestamped-attribute-update-queued-passel-retraction",
+        "cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "One focused installed-package direct run through portable dispatch across evoked and immediate callback models; timestamped multi-attribute passel ordering and suppression of a retracted queued update passed 4/4 with no provider-specific headers or fixtures.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-20/timestamped-attribute-update-queued-passel-retraction-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-20/timestamped-attribute-update-queued-passel-retraction-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
       ]
