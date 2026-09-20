@@ -8509,7 +8509,7 @@
         "attribute-ownership-check-api-contract.json",
         "attribute-ownership-check-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateOwnershipTransfer",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateOwnershipTransferPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-ownership-transfer",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -8552,7 +8552,7 @@
       "contract_refs": [
         "standard-timestamped-attribute-update-ownership-transfer-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateOwnershipTransferContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateOwnershipTransferContractPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-ownership-transfer-contract",
       "parity": "cpp-tck.timestamped-attribute-update-ownership-transfer",
       "default_status": "adapter-required",

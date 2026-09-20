@@ -439,6 +439,10 @@ constexpr char timestampedAttributeSourceResignationFanoutScenario[] =
     "cpp-tck.timestamped-attribute-source-resignation-fanout";
 constexpr char timestampedAttributeSourceResignationFanoutContractId[] =
     "cpp-tck.timestamped-attribute-source-resignation-fanout-contract";
+constexpr char timestampedAttributeUpdateOwnershipTransferScenario[] =
+    "cpp-tck.timestamped-attribute-update-ownership-transfer";
+constexpr char timestampedAttributeUpdateOwnershipTransferContractId[] =
+    "cpp-tck.timestamped-attribute-update-ownership-transfer-contract";
 constexpr char timestampedObjectDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion";
 constexpr char timestampedObjectDeletionContractId[] =
@@ -1448,6 +1452,18 @@ void scenarioTimestampedAttributeSourceResignationFanoutContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedAttributeSourceResignationFanoutContract(options, model);
+}
+
+void scenarioTimestampedAttributeUpdateOwnershipTransferPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateOwnershipTransfer(options, model);
+}
+
+void scenarioTimestampedAttributeUpdateOwnershipTransferContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedAttributeUpdateOwnershipTransferContract(options, model);
 }
 
 void scenarioTimestampedObjectDeletionPortable(
@@ -9542,6 +9558,18 @@ int runTimestampedAttributeSourceResignationFanoutScenarios(
       scenarioTimestampedAttributeSourceResignationFanoutContractPortable);
 }
 
+int runTimestampedAttributeUpdateOwnershipTransferScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedAttributeUpdateOwnershipTransferScenario,
+      timestampedAttributeUpdateOwnershipTransferContractId,
+      scenarioTimestampedAttributeUpdateOwnershipTransferPortable,
+      scenarioTimestampedAttributeUpdateOwnershipTransferContractPortable);
+}
+
 int runTimestampedObjectDeletionScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -10870,6 +10898,22 @@ bool hasTimestampedAttributeSourceResignationFanoutScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedAttributeSourceResignationFanoutScenario ||
         scenario == timestampedAttributeSourceResignationFanoutContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedAttributeUpdateOwnershipTransferScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedAttributeUpdateOwnershipTransferScenario ||
+        scenario == timestampedAttributeUpdateOwnershipTransferContractId) {
       return true;
     }
   }
@@ -12606,6 +12650,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedAttributeSourceResignationFanoutScenario(argc, argv)) {
       return runTimestampedAttributeSourceResignationFanoutScenarios(argc, argv);
+    }
+    if (hasTimestampedAttributeUpdateOwnershipTransferScenario(argc, argv)) {
+      return runTimestampedAttributeUpdateOwnershipTransferScenarios(argc, argv);
     }
     if (hasTimestampedObjectDeletionScenario(argc, argv)) {
       return runTimestampedObjectDeletionScenarios(argc, argv);
