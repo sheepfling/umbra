@@ -114,6 +114,10 @@ constexpr char serviceReportTimestampedDeleteObjectInstanceScenario[] =
     "cpp-tck.service-report-timestamped-delete-object-instance";
 constexpr char serviceReportTimestampedDeleteObjectInstanceContractScenario[] =
     "cpp-tck.service-report-timestamped-delete-object-instance-contract";
+constexpr char serviceReportTimestampedInteractionScenario[] =
+    "cpp-tck.service-report-timestamped-interaction";
+constexpr char serviceReportTimestampedInteractionContractScenario[] =
+    "cpp-tck.service-report-timestamped-interaction-contract";
 constexpr char serviceReportObjectAttributeUpdateRateLookupsScenario[] =
     "cpp-tck.service-report-object-attribute-update-rate-lookups";
 constexpr char serviceReportObjectAttributeUpdateRateLookupsContractScenario[] =
@@ -1196,6 +1200,18 @@ void scenarioServiceReportTimestampedDeleteObjectInstanceContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioServiceReportTimestampedDeleteObjectInstanceContract(options, model);
+}
+
+void scenarioServiceReportTimestampedInteractionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportTimestampedInteraction(options, model);
+}
+
+void scenarioServiceReportTimestampedInteractionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportTimestampedInteractionContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -8699,6 +8715,16 @@ int runServiceReportTimestampedDeleteObjectInstanceScenarios(
       scenarioServiceReportTimestampedDeleteObjectInstanceContractPortable);
 }
 
+int runServiceReportTimestampedInteractionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportTimestampedInteractionScenario,
+      serviceReportTimestampedInteractionContractScenario,
+      scenarioServiceReportTimestampedInteractionPortable,
+      scenarioServiceReportTimestampedInteractionContractPortable);
+}
+
 int runSynchronizationPointScenarios(int argc, char** argv) {
   auto const options = parseOptions(argc, argv);
   std::vector<ScenarioResult> results;
@@ -10765,6 +10791,20 @@ bool hasServiceReportTimestampedDeleteObjectInstanceScenario(
   return false;
 }
 
+bool hasServiceReportTimestampedInteractionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportTimestampedInteractionScenario ||
+        scenario == serviceReportTimestampedInteractionContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasSynchronizationPointScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -11364,6 +11404,9 @@ int main(int argc, char** argv) {
     }
     if (hasServiceReportTimestampedDeleteObjectInstanceScenario(argc, argv)) {
       return runServiceReportTimestampedDeleteObjectInstanceScenarios(argc, argv);
+    }
+    if (hasServiceReportTimestampedInteractionScenario(argc, argv)) {
+      return runServiceReportTimestampedInteractionScenarios(argc, argv);
     }
     if (hasLogicalTimeScenario(argc, argv)) {
       return runLogicalTimeScenarios(argc, argv);
