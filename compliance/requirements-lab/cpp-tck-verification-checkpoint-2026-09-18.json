@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-20-702-standard-delay-subscription-evaluation-interaction-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-20-702-standard-delay-subscription-evaluation-directed-interaction-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -4100,6 +4100,22 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-20/delay-subscription-evaluation-interaction-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-20/delay-subscription-evaluation-interaction-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
+      ]
+    },
+    {
+      "name": "standard-delay-subscription-evaluation-directed-interaction",
+      "scenario_ids": [
+        "cpp-tck.delay-subscription-evaluation-directed-interaction",
+        "cpp-tck.delay-subscription-evaluation-directed-interaction-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "One focused installed-package direct run through portable dispatch across evoked and immediate callback models; directed-interaction Delay Subscription Evaluation switch behavior at the callback boundary passed 4/4 with no provider-specific headers or fixtures.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-20/delay-subscription-evaluation-directed-interaction-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-20/delay-subscription-evaluation-directed-interaction-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
       ]
