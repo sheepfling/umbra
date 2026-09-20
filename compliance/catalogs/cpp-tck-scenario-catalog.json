@@ -3011,7 +3011,7 @@
         "fixed-record-requirements-contract.json",
         "variable-array-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedDeleteObjectInstanceFailure",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportTimestampedDeleteObjectInstanceFailurePortable",
       "runner_id": "cpp-tck.service-report-timestamped-delete-object-instance-failure",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -3062,7 +3062,7 @@
       "contract_refs": [
         "standard-service-report-timestamped-delete-object-instance-failure-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedDeleteObjectInstanceFailureContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportTimestampedDeleteObjectInstanceFailureContractPortable",
       "runner_id": "cpp-tck.service-report-timestamped-delete-object-instance-failure-contract",
       "parity": "cpp-tck.service-report-timestamped-delete-object-instance-failure",
       "default_status": "adapter-required",
