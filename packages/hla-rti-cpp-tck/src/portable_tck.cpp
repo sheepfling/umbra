@@ -387,6 +387,10 @@ constexpr char timestampedObjectDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion";
 constexpr char timestampedObjectDeletionContractId[] =
     "cpp-tck.timestamped-object-deletion-contract";
+constexpr char alternateTimeAdvancesScenario[] =
+    "cpp-tck.alternate-time-advances";
+constexpr char alternateTimeAdvancesContractId[] =
+    "cpp-tck.alternate-time-advances-contract";
 constexpr char modifyLookaheadScenario[] = "cpp-tck.modify-lookahead";
 constexpr char modifyLookaheadContractId[] =
     "cpp-tck.modify-lookahead-contract";
@@ -1308,6 +1312,18 @@ void scenarioTimestampedObjectDeletionContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedObjectDeletionContract(options, model);
+}
+
+void scenarioAlternateTimeAdvancesPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAlternateTimeAdvances(options, model);
+}
+
+void scenarioAlternateTimeAdvancesContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAlternateTimeAdvancesContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -9087,6 +9103,16 @@ int runTimestampedObjectDeletionScenarios(int argc, char** argv) {
       scenarioTimestampedObjectDeletionContractPortable);
 }
 
+int runAlternateTimeAdvancesScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      alternateTimeAdvancesScenario,
+      alternateTimeAdvancesContractId,
+      scenarioAlternateTimeAdvancesPortable,
+      scenarioAlternateTimeAdvancesContractPortable);
+}
+
 int runUnconditionalAttributeOwnershipDivestitureScenarios(
     int argc,
     char** argv) {
@@ -10105,6 +10131,20 @@ bool hasTimestampedObjectDeletionScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedObjectDeletionScenario ||
         scenario == timestampedObjectDeletionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasAlternateTimeAdvancesScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == alternateTimeAdvancesScenario ||
+        scenario == alternateTimeAdvancesContractId) {
       return true;
     }
   }
@@ -11479,6 +11519,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedObjectDeletionScenario(argc, argv)) {
       return runTimestampedObjectDeletionScenarios(argc, argv);
+    }
+    if (hasAlternateTimeAdvancesScenario(argc, argv)) {
+      return runAlternateTimeAdvancesScenarios(argc, argv);
     }
     if (hasModifyLookaheadScenario(argc, argv)) {
       return runModifyLookaheadScenarios(argc, argv);
