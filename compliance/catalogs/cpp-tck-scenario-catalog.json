@@ -7253,7 +7253,7 @@
         "next-message-request-available-api-contract.json",
         "next-message-request-available-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionMixedAdvances",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionMixedAdvancesPortable",
       "runner_id": "cpp-tck.timestamped-interaction-mixed-advances",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -7292,7 +7292,7 @@
       "contract_refs": [
         "standard-timestamped-interaction-mixed-advances-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionMixedAdvancesContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionMixedAdvancesContractPortable",
       "runner_id": "cpp-tck.timestamped-interaction-mixed-advances-contract",
       "parity": "cpp-tck.timestamped-interaction-mixed-advances",
       "default_status": "adapter-required",
