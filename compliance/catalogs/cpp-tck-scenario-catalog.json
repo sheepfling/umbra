@@ -2899,7 +2899,7 @@
         "fixed-record-requirements-contract.json",
         "variable-array-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedInteractionFailure",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportTimestampedInteractionFailurePortable",
       "runner_id": "cpp-tck.service-report-timestamped-interaction-failure",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -2945,7 +2945,7 @@
       "contract_refs": [
         "standard-service-report-timestamped-interaction-failure-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportTimestampedInteractionFailureContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportTimestampedInteractionFailureContractPortable",
       "runner_id": "cpp-tck.service-report-timestamped-interaction-failure-contract",
       "parity": "cpp-tck.service-report-timestamped-interaction-failure",
       "default_status": "adapter-required",
