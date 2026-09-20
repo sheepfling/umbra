@@ -11072,7 +11072,7 @@
         "time-advance-requirements-contract.json",
         "object-instance-registration-api-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletion",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -11105,7 +11105,7 @@
       "contract_refs": [
         "standard-timestamped-object-deletion-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionContractPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-contract",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",

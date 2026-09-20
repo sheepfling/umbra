@@ -383,6 +383,10 @@ constexpr char timestampedAttributeUpdateScenario[] =
     "cpp-tck.timestamped-attribute-update";
 constexpr char timestampedAttributeUpdateContractId[] =
     "cpp-tck.timestamped-attribute-update-contract";
+constexpr char timestampedObjectDeletionScenario[] =
+    "cpp-tck.timestamped-object-deletion";
+constexpr char timestampedObjectDeletionContractId[] =
+    "cpp-tck.timestamped-object-deletion-contract";
 constexpr char modifyLookaheadScenario[] = "cpp-tck.modify-lookahead";
 constexpr char modifyLookaheadContractId[] =
     "cpp-tck.modify-lookahead-contract";
@@ -1292,6 +1296,18 @@ void scenarioTimestampedAttributeUpdateContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedAttributeUpdateContract(options, model);
+}
+
+void scenarioTimestampedObjectDeletionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletion(options, model);
+}
+
+void scenarioTimestampedObjectDeletionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -9061,6 +9077,16 @@ int runTimestampedAttributeUpdateScenarios(int argc, char** argv) {
       scenarioTimestampedAttributeUpdateContractPortable);
 }
 
+int runTimestampedObjectDeletionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedObjectDeletionScenario,
+      timestampedObjectDeletionContractId,
+      scenarioTimestampedObjectDeletionPortable,
+      scenarioTimestampedObjectDeletionContractPortable);
+}
+
 int runUnconditionalAttributeOwnershipDivestitureScenarios(
     int argc,
     char** argv) {
@@ -10065,6 +10091,20 @@ bool hasTimestampedAttributeUpdateScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedAttributeUpdateScenario ||
         scenario == timestampedAttributeUpdateContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedObjectDeletionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedObjectDeletionScenario ||
+        scenario == timestampedObjectDeletionContractId) {
       return true;
     }
   }
@@ -11436,6 +11476,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedAttributeUpdateScenario(argc, argv)) {
       return runTimestampedAttributeUpdateScenarios(argc, argv);
+    }
+    if (hasTimestampedObjectDeletionScenario(argc, argv)) {
+      return runTimestampedObjectDeletionScenarios(argc, argv);
     }
     if (hasModifyLookaheadScenario(argc, argv)) {
       return runModifyLookaheadScenarios(argc, argv);
