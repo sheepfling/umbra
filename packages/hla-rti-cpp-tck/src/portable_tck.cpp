@@ -475,6 +475,10 @@ constexpr char timestampedObjectDeletionRetractionJoinedOwnersScenario[] =
     "cpp-tck.timestamped-object-deletion-retraction-joined-owners";
 constexpr char timestampedObjectDeletionRetractionJoinedOwnersContractId[] =
     "cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract";
+constexpr char timestampedObjectDeletionSourceResignationFanoutScenario[] =
+    "cpp-tck.timestamped-object-deletion-source-resignation-fanout";
+constexpr char timestampedObjectDeletionSourceResignationFanoutContractId[] =
+    "cpp-tck.timestamped-object-deletion-source-resignation-fanout-contract";
 constexpr char timestampedObjectDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion";
 constexpr char timestampedObjectDeletionContractId[] =
@@ -1592,6 +1596,18 @@ void scenarioTimestampedObjectDeletionJoinedOwnerRetractionContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedObjectDeletionJoinedOwnerRetractionContract(options, model);
+}
+
+void scenarioTimestampedObjectDeletionSourceResignationFanoutPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionSourceResignationFanout(options, model);
+}
+
+void scenarioTimestampedObjectDeletionSourceResignationFanoutContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionSourceResignationFanoutContract(options, model);
 }
 
 void scenarioTimestampedObjectDeletionPortable(
@@ -9786,6 +9802,18 @@ int runTimestampedObjectDeletionRetractionJoinedOwnersScenarios(
       scenarioTimestampedObjectDeletionJoinedOwnerRetractionContractPortable);
 }
 
+int runTimestampedObjectDeletionSourceResignationFanoutScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedObjectDeletionSourceResignationFanoutScenario,
+      timestampedObjectDeletionSourceResignationFanoutContractId,
+      scenarioTimestampedObjectDeletionSourceResignationFanoutPortable,
+      scenarioTimestampedObjectDeletionSourceResignationFanoutContractPortable);
+}
+
 int runTimestampedObjectDeletionScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -11250,6 +11278,22 @@ bool hasTimestampedObjectDeletionRetractionJoinedOwnersScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedObjectDeletionRetractionJoinedOwnersScenario ||
         scenario == timestampedObjectDeletionRetractionJoinedOwnersContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedObjectDeletionSourceResignationFanoutScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedObjectDeletionSourceResignationFanoutScenario ||
+        scenario == timestampedObjectDeletionSourceResignationFanoutContractId) {
       return true;
     }
   }
@@ -13013,6 +13057,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedObjectDeletionRetractionJoinedOwnersScenario(argc, argv)) {
       return runTimestampedObjectDeletionRetractionJoinedOwnersScenarios(argc, argv);
+    }
+    if (hasTimestampedObjectDeletionSourceResignationFanoutScenario(argc, argv)) {
+      return runTimestampedObjectDeletionSourceResignationFanoutScenarios(argc, argv);
     }
     if (hasTimestampedObjectDeletionScenario(argc, argv)) {
       return runTimestampedObjectDeletionScenarios(argc, argv);

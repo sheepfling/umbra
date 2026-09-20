@@ -11397,7 +11397,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionSourceResignationFanout",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionSourceResignationFanoutPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-source-resignation-fanout",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -11435,7 +11435,7 @@
       "contract_refs": [
         "standard-timestamped-object-deletion-source-resignation-fanout-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionSourceResignationFanoutContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionSourceResignationFanoutContractPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-source-resignation-fanout-contract",
       "parity": "cpp-tck.timestamped-object-deletion-source-resignation-fanout",
       "default_status": "adapter-required",
