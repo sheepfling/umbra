@@ -463,6 +463,10 @@ constexpr char timestampedAttributeOrderCohortScenario[] =
     "cpp-tck.timestamped-attribute-order-cohort";
 constexpr char timestampedAttributeOrderCohortContractId[] =
     "cpp-tck.timestamped-attribute-order-cohort-contract";
+constexpr char timestampedObjectDeletionNoFanoutScenario[] =
+    "cpp-tck.timestamped-object-deletion-no-fanout";
+constexpr char timestampedObjectDeletionNoFanoutContractId[] =
+    "cpp-tck.timestamped-object-deletion-no-fanout-contract";
 constexpr char timestampedObjectDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion";
 constexpr char timestampedObjectDeletionContractId[] =
@@ -1544,6 +1548,18 @@ void scenarioTimestampedAttributeOrderCohortContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedAttributeOrderCohortContract(options, model);
+}
+
+void scenarioTimestampedObjectDeletionNoFanoutPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionNoFanout(options, model);
+}
+
+void scenarioTimestampedObjectDeletionNoFanoutContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionNoFanoutContract(options, model);
 }
 
 void scenarioTimestampedObjectDeletionPortable(
@@ -9706,6 +9722,16 @@ int runTimestampedAttributeOrderCohortScenarios(int argc, char** argv) {
       scenarioTimestampedAttributeOrderCohortContractPortable);
 }
 
+int runTimestampedObjectDeletionNoFanoutScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedObjectDeletionNoFanoutScenario,
+      timestampedObjectDeletionNoFanoutContractId,
+      scenarioTimestampedObjectDeletionNoFanoutPortable,
+      scenarioTimestampedObjectDeletionNoFanoutContractPortable);
+}
+
 int runTimestampedObjectDeletionScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -11126,6 +11152,20 @@ bool hasTimestampedAttributeOrderCohortScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedAttributeOrderCohortScenario ||
         scenario == timestampedAttributeOrderCohortContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedObjectDeletionNoFanoutScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedObjectDeletionNoFanoutScenario ||
+        scenario == timestampedObjectDeletionNoFanoutContractId) {
       return true;
     }
   }
@@ -12880,6 +12920,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedAttributeOrderCohortScenario(argc, argv)) {
       return runTimestampedAttributeOrderCohortScenarios(argc, argv);
+    }
+    if (hasTimestampedObjectDeletionNoFanoutScenario(argc, argv)) {
+      return runTimestampedObjectDeletionNoFanoutScenarios(argc, argv);
     }
     if (hasTimestampedObjectDeletionScenario(argc, argv)) {
       return runTimestampedObjectDeletionScenarios(argc, argv);

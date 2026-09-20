@@ -11146,7 +11146,7 @@
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionNoFanout",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionNoFanoutPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-no-fanout",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -11178,7 +11178,7 @@
       "contract_refs": [
         "standard-timestamped-object-deletion-no-fanout-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionNoFanoutContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionNoFanoutContractPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-no-fanout-contract",
       "parity": "cpp-tck.timestamped-object-deletion-no-fanout",
       "default_status": "adapter-required",
