@@ -471,6 +471,10 @@ constexpr char timestampedObjectDeletionTombstoneScenario[] =
     "cpp-tck.timestamped-object-deletion-tombstone";
 constexpr char timestampedObjectDeletionTombstoneContractId[] =
     "cpp-tck.timestamped-object-deletion-tombstone-contract";
+constexpr char timestampedObjectDeletionRetractionJoinedOwnersScenario[] =
+    "cpp-tck.timestamped-object-deletion-retraction-joined-owners";
+constexpr char timestampedObjectDeletionRetractionJoinedOwnersContractId[] =
+    "cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract";
 constexpr char timestampedObjectDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion";
 constexpr char timestampedObjectDeletionContractId[] =
@@ -1576,6 +1580,18 @@ void scenarioTimestampedObjectDeletionTombstoneContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedObjectDeletionTombstoneContract(options, model);
+}
+
+void scenarioTimestampedObjectDeletionJoinedOwnerRetractionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionJoinedOwnerRetraction(options, model);
+}
+
+void scenarioTimestampedObjectDeletionJoinedOwnerRetractionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionJoinedOwnerRetractionContract(options, model);
 }
 
 void scenarioTimestampedObjectDeletionPortable(
@@ -9758,6 +9774,18 @@ int runTimestampedObjectDeletionTombstoneScenarios(int argc, char** argv) {
       scenarioTimestampedObjectDeletionTombstoneContractPortable);
 }
 
+int runTimestampedObjectDeletionRetractionJoinedOwnersScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedObjectDeletionRetractionJoinedOwnersScenario,
+      timestampedObjectDeletionRetractionJoinedOwnersContractId,
+      scenarioTimestampedObjectDeletionJoinedOwnerRetractionPortable,
+      scenarioTimestampedObjectDeletionJoinedOwnerRetractionContractPortable);
+}
+
 int runTimestampedObjectDeletionScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -11206,6 +11234,22 @@ bool hasTimestampedObjectDeletionTombstoneScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedObjectDeletionTombstoneScenario ||
         scenario == timestampedObjectDeletionTombstoneContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedObjectDeletionRetractionJoinedOwnersScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedObjectDeletionRetractionJoinedOwnersScenario ||
+        scenario == timestampedObjectDeletionRetractionJoinedOwnersContractId) {
       return true;
     }
   }
@@ -12966,6 +13010,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedObjectDeletionTombstoneScenario(argc, argv)) {
       return runTimestampedObjectDeletionTombstoneScenarios(argc, argv);
+    }
+    if (hasTimestampedObjectDeletionRetractionJoinedOwnersScenario(argc, argv)) {
+      return runTimestampedObjectDeletionRetractionJoinedOwnersScenarios(argc, argv);
     }
     if (hasTimestampedObjectDeletionScenario(argc, argv)) {
       return runTimestampedObjectDeletionScenarios(argc, argv);

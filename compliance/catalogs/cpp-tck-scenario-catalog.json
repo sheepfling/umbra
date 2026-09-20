@@ -11499,7 +11499,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionJoinedOwnerRetraction",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionJoinedOwnerRetractionPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-retraction-joined-owners",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -11547,7 +11547,7 @@
       "contract_refs": [
         "standard-timestamped-object-deletion-retraction-joined-owners-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionJoinedOwnerRetractionContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionJoinedOwnerRetractionContractPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-retraction-joined-owners-contract",
       "parity": "cpp-tck.timestamped-object-deletion-retraction-joined-owners",
       "default_status": "adapter-required",
