@@ -9144,7 +9144,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateReenable",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateReenablePortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-reenable",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -9180,7 +9180,7 @@
       "contract_refs": [
         "standard-timestamped-attribute-update-reenable-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedAttributeUpdateReenableContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateReenableContractPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-reenable-contract",
       "parity": "cpp-tck.timestamped-attribute-update-reenable",
       "default_status": "adapter-required",
