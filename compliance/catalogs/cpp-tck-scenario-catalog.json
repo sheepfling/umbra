@@ -11311,7 +11311,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionRegulationReenable",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionRegulationReenablePortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-regulation-reenable",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -11351,7 +11351,7 @@
       "contract_refs": [
         "standard-timestamped-object-deletion-regulation-reenable-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedObjectDeletionRegulationReenableContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionRegulationReenableContractPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-regulation-reenable-contract",
       "parity": "cpp-tck.timestamped-object-deletion-regulation-reenable",
       "default_status": "adapter-required",

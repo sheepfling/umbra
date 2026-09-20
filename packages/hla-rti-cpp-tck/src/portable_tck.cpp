@@ -435,6 +435,10 @@ constexpr char timestampedObjectDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion";
 constexpr char timestampedObjectDeletionContractId[] =
     "cpp-tck.timestamped-object-deletion-contract";
+constexpr char timestampedObjectDeletionRegulationReenableScenario[] =
+    "cpp-tck.timestamped-object-deletion-regulation-reenable";
+constexpr char timestampedObjectDeletionRegulationReenableContractId[] =
+    "cpp-tck.timestamped-object-deletion-regulation-reenable-contract";
 constexpr char alternateTimeAdvancesScenario[] =
     "cpp-tck.alternate-time-advances";
 constexpr char alternateTimeAdvancesContractId[] =
@@ -1424,6 +1428,18 @@ void scenarioTimestampedObjectDeletionContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedObjectDeletionContract(options, model);
+}
+
+void scenarioTimestampedObjectDeletionRegulationReenablePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionRegulationReenable(options, model);
+}
+
+void scenarioTimestampedObjectDeletionRegulationReenableContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedObjectDeletionRegulationReenableContract(options, model);
 }
 
 void scenarioAlternateTimeAdvancesPortable(
@@ -9480,6 +9496,18 @@ int runTimestampedObjectDeletionScenarios(int argc, char** argv) {
       scenarioTimestampedObjectDeletionContractPortable);
 }
 
+int runTimestampedObjectDeletionRegulationReenableScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedObjectDeletionRegulationReenableScenario,
+      timestampedObjectDeletionRegulationReenableContractId,
+      scenarioTimestampedObjectDeletionRegulationReenablePortable,
+      scenarioTimestampedObjectDeletionRegulationReenableContractPortable);
+}
+
 int runAlternateTimeAdvancesScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -10768,6 +10796,22 @@ bool hasTimestampedObjectDeletionScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedObjectDeletionScenario ||
         scenario == timestampedObjectDeletionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedObjectDeletionRegulationReenableScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedObjectDeletionRegulationReenableScenario ||
+        scenario == timestampedObjectDeletionRegulationReenableContractId) {
       return true;
     }
   }
@@ -12471,6 +12515,10 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedObjectDeletionScenario(argc, argv)) {
       return runTimestampedObjectDeletionScenarios(argc, argv);
+    }
+    if (hasTimestampedObjectDeletionRegulationReenableScenario(argc, argv)) {
+      return runTimestampedObjectDeletionRegulationReenableScenarios(
+          argc, argv);
     }
     if (hasAlternateTimeAdvancesScenario(argc, argv)) {
       return runAlternateTimeAdvancesScenarios(argc, argv);
