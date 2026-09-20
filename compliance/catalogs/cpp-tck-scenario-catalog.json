@@ -8074,7 +8074,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionSourceResignation",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionSourceResignationPortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-source-resignation",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -8166,7 +8166,7 @@
         "request-retraction-requirements-contract.json",
         "standard-timestamped-directed-interaction-source-resignation-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedDirectedInteractionSourceResignationContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionSourceResignationContractPortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-source-resignation-contract",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
