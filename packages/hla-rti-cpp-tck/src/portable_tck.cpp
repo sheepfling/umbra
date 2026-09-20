@@ -383,6 +383,10 @@ constexpr char timestampedInteractionSourceResignationScenario[] =
     "cpp-tck.timestamped-interaction-source-resignation";
 constexpr char timestampedInteractionSourceResignationContractId[] =
     "cpp-tck.timestamped-interaction-source-resignation-contract";
+constexpr char timestampedInteractionSourceResignationFanoutScenario[] =
+    "cpp-tck.timestamped-interaction-source-resignation-fanout";
+constexpr char timestampedInteractionSourceResignationFanoutContractId[] =
+    "cpp-tck.timestamped-interaction-source-resignation-fanout-contract";
 constexpr char timestampedAttributeUpdateScenario[] =
     "cpp-tck.timestamped-attribute-update";
 constexpr char timestampedAttributeUpdateContractId[] =
@@ -1416,6 +1420,18 @@ void scenarioTimestampedInteractionSourceResignationContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedInteractionSourceResignationContract(options, model);
+}
+
+void scenarioTimestampedInteractionSourceResignationFanoutPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionSourceResignationFanout(options, model);
+}
+
+void scenarioTimestampedInteractionSourceResignationFanoutContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionSourceResignationFanoutContract(options, model);
 }
 
 void scenarioTimestampedDirectedAlternateAdvancesPortable(
@@ -9331,6 +9347,18 @@ int runTimestampedInteractionSourceResignationScenarios(
       scenarioTimestampedInteractionSourceResignationContractPortable);
 }
 
+int runTimestampedInteractionSourceResignationFanoutScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionSourceResignationFanoutScenario,
+      timestampedInteractionSourceResignationFanoutContractId,
+      scenarioTimestampedInteractionSourceResignationFanoutPortable,
+      scenarioTimestampedInteractionSourceResignationFanoutContractPortable);
+}
+
 int runTimestampedDirectedAlternateAdvancesScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -10503,6 +10531,22 @@ bool hasTimestampedInteractionSourceResignationScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedInteractionSourceResignationScenario ||
         scenario == timestampedInteractionSourceResignationContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionSourceResignationFanoutScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionSourceResignationFanoutScenario ||
+        scenario == timestampedInteractionSourceResignationFanoutContractId) {
       return true;
     }
   }
@@ -12002,6 +12046,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedInteractionSourceResignationScenario(argc, argv)) {
       return runTimestampedInteractionSourceResignationScenarios(argc, argv);
+    }
+    if (hasTimestampedInteractionSourceResignationFanoutScenario(argc, argv)) {
+      return runTimestampedInteractionSourceResignationFanoutScenarios(argc, argv);
     }
     if (hasTimestampedDirectedAlternateAdvancesScenario(argc, argv)) {
       return runTimestampedDirectedAlternateAdvancesScenarios(argc, argv);
