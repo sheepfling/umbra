@@ -1763,7 +1763,7 @@
         "fixed-record-requirements-contract.json",
         "variable-array-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionFailure",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInteractionFailurePortable",
       "runner_id": "cpp-tck.service-report-interaction-failure",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -1798,7 +1798,7 @@
       "contract_refs": [
         "standard-service-report-interaction-failure-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInteractionFailureContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInteractionFailureContractPortable",
       "runner_id": "cpp-tck.service-report-interaction-failure-contract",
       "parity": "cpp-tck.service-report-interaction-failure",
       "default_status": "adapter-required",
@@ -2671,7 +2671,7 @@
         "fixed-record-requirements-contract.json",
         "variable-array-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportAttributeUpdateFailure",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportAttributeUpdateFailurePortable",
       "runner_id": "cpp-tck.service-report-attribute-update-failure",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -2716,7 +2716,7 @@
       "contract_refs": [
         "standard-service-report-attribute-update-failure-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportAttributeUpdateFailureContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportAttributeUpdateFailureContractPortable",
       "runner_id": "cpp-tck.service-report-attribute-update-failure-contract",
       "parity": "cpp-tck.service-report-attribute-update-failure",
       "default_status": "adapter-required",
@@ -3917,7 +3917,7 @@
         "fixed-record-requirements-contract.json",
         "variable-array-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportDeleteObjectInstanceFailure",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportDeleteObjectInstanceFailurePortable",
       "runner_id": "cpp-tck.service-report-delete-object-instance-failure",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -3961,7 +3961,7 @@
       "contract_refs": [
         "standard-service-report-delete-object-instance-failure-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportDeleteObjectInstanceFailureContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportDeleteObjectInstanceFailureContractPortable",
       "runner_id": "cpp-tck.service-report-delete-object-instance-failure-contract",
       "parity": "cpp-tck.service-report-delete-object-instance-failure",
       "default_status": "adapter-required",

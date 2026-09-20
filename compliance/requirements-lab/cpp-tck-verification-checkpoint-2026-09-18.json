@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-ordinary-service-report-success-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-ordinary-service-report-failures-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2816,6 +2816,30 @@
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-register-object-instance-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-delete-object-instance-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-delete-object-instance-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
+      ]
+    },
+    {
+      "name": "standard-ordinary-service-report-failures",
+      "scenario_ids": [
+        "cpp-tck.service-report-interaction-failure",
+        "cpp-tck.service-report-interaction-failure-contract",
+        "cpp-tck.service-report-attribute-update-failure",
+        "cpp-tck.service-report-attribute-update-failure-contract",
+        "cpp-tck.service-report-delete-object-instance-failure",
+        "cpp-tck.service-report-delete-object-instance-failure-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "Three focused installed-package direct runs through portable dispatch, one base/contract pair per runner, across evoked and immediate callback models; ordinary interaction, attribute-update, and object-deletion failure service reports passed 12/12 with no provider-specific headers or fixtures.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-interaction-failure-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-interaction-failure-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-attribute-update-failure-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-attribute-update-failure-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-delete-object-instance-failure-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-delete-object-instance-failure-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
       ]

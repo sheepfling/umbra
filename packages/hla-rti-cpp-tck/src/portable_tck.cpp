@@ -150,6 +150,18 @@ constexpr char serviceReportDeleteObjectInstanceScenario[] =
     "cpp-tck.service-report-delete-object-instance";
 constexpr char serviceReportDeleteObjectInstanceContractScenario[] =
     "cpp-tck.service-report-delete-object-instance-contract";
+constexpr char serviceReportInteractionFailureScenario[] =
+    "cpp-tck.service-report-interaction-failure";
+constexpr char serviceReportInteractionFailureContractScenario[] =
+    "cpp-tck.service-report-interaction-failure-contract";
+constexpr char serviceReportAttributeUpdateFailureScenario[] =
+    "cpp-tck.service-report-attribute-update-failure";
+constexpr char serviceReportAttributeUpdateFailureContractScenario[] =
+    "cpp-tck.service-report-attribute-update-failure-contract";
+constexpr char serviceReportDeleteObjectInstanceFailureScenario[] =
+    "cpp-tck.service-report-delete-object-instance-failure";
+constexpr char serviceReportDeleteObjectInstanceFailureContractScenario[] =
+    "cpp-tck.service-report-delete-object-instance-failure-contract";
 constexpr char automaticResignDirectiveDeleteObjectsId[] =
     "cpp-tck.automatic-resign-directive-delete-objects";
 constexpr char automaticResignDirectiveDeleteObjectsContractId[] =
@@ -1004,6 +1016,42 @@ void scenarioServiceReportDeleteObjectInstanceContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioServiceReportDeleteObjectInstanceContract(options, model);
+}
+
+void scenarioServiceReportInteractionFailurePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInteractionFailure(options, model);
+}
+
+void scenarioServiceReportInteractionFailureContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInteractionFailureContract(options, model);
+}
+
+void scenarioServiceReportAttributeUpdateFailurePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportAttributeUpdateFailure(options, model);
+}
+
+void scenarioServiceReportAttributeUpdateFailureContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportAttributeUpdateFailureContract(options, model);
+}
+
+void scenarioServiceReportDeleteObjectInstanceFailurePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDeleteObjectInstanceFailure(options, model);
+}
+
+void scenarioServiceReportDeleteObjectInstanceFailureContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDeleteObjectInstanceFailureContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -8375,6 +8423,38 @@ int runServiceReportDeleteObjectInstanceScenarios(int argc, char** argv) {
       scenarioServiceReportDeleteObjectInstanceContractPortable);
 }
 
+int runServiceReportInteractionFailureScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportInteractionFailureScenario,
+      serviceReportInteractionFailureContractScenario,
+      scenarioServiceReportInteractionFailurePortable,
+      scenarioServiceReportInteractionFailureContractPortable);
+}
+
+int runServiceReportAttributeUpdateFailureScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportAttributeUpdateFailureScenario,
+      serviceReportAttributeUpdateFailureContractScenario,
+      scenarioServiceReportAttributeUpdateFailurePortable,
+      scenarioServiceReportAttributeUpdateFailureContractPortable);
+}
+
+int runServiceReportDeleteObjectInstanceFailureScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportDeleteObjectInstanceFailureScenario,
+      serviceReportDeleteObjectInstanceFailureContractScenario,
+      scenarioServiceReportDeleteObjectInstanceFailurePortable,
+      scenarioServiceReportDeleteObjectInstanceFailureContractPortable);
+}
+
 int runSynchronizationPointScenarios(int argc, char** argv) {
   auto const options = parseOptions(argc, argv);
   std::vector<ScenarioResult> results;
@@ -10259,6 +10339,50 @@ bool hasServiceReportDeleteObjectInstanceScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasServiceReportInteractionFailureScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportInteractionFailureScenario ||
+        scenario == serviceReportInteractionFailureContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportAttributeUpdateFailureScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportAttributeUpdateFailureScenario ||
+        scenario == serviceReportAttributeUpdateFailureContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportDeleteObjectInstanceFailureScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportDeleteObjectInstanceFailureScenario ||
+        scenario == serviceReportDeleteObjectInstanceFailureContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasSynchronizationPointScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -10822,6 +10946,15 @@ int main(int argc, char** argv) {
     }
     if (hasServiceReportDeleteObjectInstanceScenario(argc, argv)) {
       return runServiceReportDeleteObjectInstanceScenarios(argc, argv);
+    }
+    if (hasServiceReportInteractionFailureScenario(argc, argv)) {
+      return runServiceReportInteractionFailureScenarios(argc, argv);
+    }
+    if (hasServiceReportAttributeUpdateFailureScenario(argc, argv)) {
+      return runServiceReportAttributeUpdateFailureScenarios(argc, argv);
+    }
+    if (hasServiceReportDeleteObjectInstanceFailureScenario(argc, argv)) {
+      return runServiceReportDeleteObjectInstanceFailureScenarios(argc, argv);
     }
     if (hasLogicalTimeScenario(argc, argv)) {
       return runLogicalTimeScenarios(argc, argv);
