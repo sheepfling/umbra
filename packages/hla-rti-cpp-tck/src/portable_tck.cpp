@@ -387,6 +387,10 @@ constexpr char timestampedInteractionSourceResignationFanoutScenario[] =
     "cpp-tck.timestamped-interaction-source-resignation-fanout";
 constexpr char timestampedInteractionSourceResignationFanoutContractId[] =
     "cpp-tck.timestamped-interaction-source-resignation-fanout-contract";
+constexpr char timestampedInteractionTsoDesignatorTerminalizationScenario[] =
+    "cpp-tck.timestamped-interaction-tso-designator-terminalization";
+constexpr char timestampedInteractionTsoDesignatorTerminalizationContractId[] =
+    "cpp-tck.timestamped-interaction-tso-designator-terminalization-contract";
 constexpr char timestampedAttributeUpdateScenario[] =
     "cpp-tck.timestamped-attribute-update";
 constexpr char timestampedAttributeUpdateContractId[] =
@@ -1432,6 +1436,18 @@ void scenarioTimestampedInteractionSourceResignationFanoutContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedInteractionSourceResignationFanoutContract(options, model);
+}
+
+void scenarioTimestampedInteractionTsoDesignatorTerminalizationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionTsoDesignatorTerminalization(options, model);
+}
+
+void scenarioTimestampedInteractionTsoDesignatorTerminalizationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionTsoDesignatorTerminalizationContract(options, model);
 }
 
 void scenarioTimestampedDirectedAlternateAdvancesPortable(
@@ -9359,6 +9375,18 @@ int runTimestampedInteractionSourceResignationFanoutScenarios(
       scenarioTimestampedInteractionSourceResignationFanoutContractPortable);
 }
 
+int runTimestampedInteractionTsoDesignatorTerminalizationScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionTsoDesignatorTerminalizationScenario,
+      timestampedInteractionTsoDesignatorTerminalizationContractId,
+      scenarioTimestampedInteractionTsoDesignatorTerminalizationPortable,
+      scenarioTimestampedInteractionTsoDesignatorTerminalizationContractPortable);
+}
+
 int runTimestampedDirectedAlternateAdvancesScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -10547,6 +10575,22 @@ bool hasTimestampedInteractionSourceResignationFanoutScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedInteractionSourceResignationFanoutScenario ||
         scenario == timestampedInteractionSourceResignationFanoutContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionTsoDesignatorTerminalizationScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionTsoDesignatorTerminalizationScenario ||
+        scenario == timestampedInteractionTsoDesignatorTerminalizationContractId) {
       return true;
     }
   }
@@ -12049,6 +12093,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedInteractionSourceResignationFanoutScenario(argc, argv)) {
       return runTimestampedInteractionSourceResignationFanoutScenarios(argc, argv);
+    }
+    if (hasTimestampedInteractionTsoDesignatorTerminalizationScenario(argc, argv)) {
+      return runTimestampedInteractionTsoDesignatorTerminalizationScenarios(argc, argv);
     }
     if (hasTimestampedDirectedAlternateAdvancesScenario(argc, argv)) {
       return runTimestampedDirectedAlternateAdvancesScenarios(argc, argv);

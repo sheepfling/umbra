@@ -7431,7 +7431,7 @@
         "flush-queue-request-api-contract.json",
         "flush-queue-request-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionTsoDesignatorTerminalization",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionTsoDesignatorTerminalizationPortable",
       "runner_id": "cpp-tck.timestamped-interaction-tso-designator-terminalization",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -7474,7 +7474,7 @@
       "contract_refs": [
         "standard-timestamped-interaction-tso-designator-terminalization-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionTsoDesignatorTerminalizationContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionTsoDesignatorTerminalizationContractPortable",
       "runner_id": "cpp-tck.timestamped-interaction-tso-designator-terminalization-contract",
       "parity": "cpp-tck.timestamped-interaction-tso-designator-terminalization",
       "default_status": "adapter-required",
