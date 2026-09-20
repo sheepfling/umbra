@@ -11843,7 +11843,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioNextMessageRequest",
+      "cpp_test": "src/portable_tck.cpp#scenarioNextMessageRequestPortable",
       "runner_id": "cpp-tck.next-message-request",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -11873,7 +11873,7 @@
       "contract_refs": [
         "standard-next-message-request-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioNextMessageRequestContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioNextMessageRequestContractPortable",
       "runner_id": "cpp-tck.next-message-request-contract",
       "parity": "cpp-tck.next-message-request",
       "default_status": "adapter-required",
