@@ -7649,7 +7649,7 @@
         "request-retraction-api-contract.json",
         "request-retraction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionRetractionFanout",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionRetractionFanoutPortable",
       "runner_id": "cpp-tck.timestamped-interaction-retraction-fanout",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -7686,7 +7686,7 @@
       "contract_refs": [
         "standard-timestamped-interaction-retraction-fanout-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioTimestampedInteractionRetractionFanoutContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionRetractionFanoutContractPortable",
       "runner_id": "cpp-tck.timestamped-interaction-retraction-fanout-contract",
       "parity": "cpp-tck.timestamped-interaction-retraction-fanout",
       "default_status": "adapter-required",

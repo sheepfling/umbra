@@ -399,6 +399,10 @@ constexpr char timestampedInteractionNoFanoutScenario[] =
     "cpp-tck.timestamped-interaction-no-fanout";
 constexpr char timestampedInteractionNoFanoutContractId[] =
     "cpp-tck.timestamped-interaction-no-fanout-contract";
+constexpr char timestampedInteractionRetractionFanoutScenario[] =
+    "cpp-tck.timestamped-interaction-retraction-fanout";
+constexpr char timestampedInteractionRetractionFanoutContractId[] =
+    "cpp-tck.timestamped-interaction-retraction-fanout-contract";
 constexpr char timestampedAttributeUpdateScenario[] =
     "cpp-tck.timestamped-attribute-update";
 constexpr char timestampedAttributeUpdateContractId[] =
@@ -1480,6 +1484,18 @@ void scenarioTimestampedInteractionNoFanoutContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTimestampedInteractionNoFanoutContract(options, model);
+}
+
+void scenarioTimestampedInteractionRetractionFanoutPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionRetractionFanout(options, model);
+}
+
+void scenarioTimestampedInteractionRetractionFanoutContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTimestampedInteractionRetractionFanoutContract(options, model);
 }
 
 void scenarioTimestampedDirectedAlternateAdvancesPortable(
@@ -9441,6 +9457,18 @@ int runTimestampedInteractionNoFanoutScenarios(int argc, char** argv) {
       scenarioTimestampedInteractionNoFanoutContractPortable);
 }
 
+int runTimestampedInteractionRetractionFanoutScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      timestampedInteractionRetractionFanoutScenario,
+      timestampedInteractionRetractionFanoutContractId,
+      scenarioTimestampedInteractionRetractionFanoutPortable,
+      scenarioTimestampedInteractionRetractionFanoutContractPortable);
+}
+
 int runTimestampedDirectedAlternateAdvancesScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -10675,6 +10703,22 @@ bool hasTimestampedInteractionNoFanoutScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedInteractionNoFanoutScenario ||
         scenario == timestampedInteractionNoFanoutContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTimestampedInteractionRetractionFanoutScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == timestampedInteractionRetractionFanoutScenario ||
+        scenario == timestampedInteractionRetractionFanoutContractId) {
       return true;
     }
   }
@@ -12186,6 +12230,9 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedInteractionNoFanoutScenario(argc, argv)) {
       return runTimestampedInteractionNoFanoutScenarios(argc, argv);
+    }
+    if (hasTimestampedInteractionRetractionFanoutScenario(argc, argv)) {
+      return runTimestampedInteractionRetractionFanoutScenarios(argc, argv);
     }
     if (hasTimestampedDirectedAlternateAdvancesScenario(argc, argv)) {
       return runTimestampedDirectedAlternateAdvancesScenarios(argc, argv);
