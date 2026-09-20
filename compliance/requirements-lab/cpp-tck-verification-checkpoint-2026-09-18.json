@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-20-702-standard-delay-subscription-evaluation-timestamped-attribute-update-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-20-702-standard-custom-transportation-interaction-delivery-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -4180,6 +4180,22 @@
       "artifacts": [
         ".build/cpp-tck-full-promoted-2026-09-20/delay-subscription-evaluation-timestamped-attribute-update-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-20/delay-subscription-evaluation-timestamped-attribute-update-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
+      ]
+    },
+    {
+      "name": "standard-custom-transportation-interaction-delivery",
+      "scenario_ids": [
+        "cpp-tck.custom-transportation-interaction-delivery",
+        "cpp-tck.custom-transportation-interaction-delivery-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "One focused installed-package direct run through portable dispatch across evoked and immediate callback models; ordinary interaction delivery with the adapter-declared custom FOM transportation type, transportation lookups, and standard receive callback passed 4/4 with no provider-specific headers or fixtures.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-20/custom-transportation-interaction-delivery-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-20/custom-transportation-interaction-delivery-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
       ]
