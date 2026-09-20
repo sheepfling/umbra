@@ -28040,7 +28040,7 @@
         "subscribe-interaction-class-api-contract.json",
         "standard-service-reporting-interlock-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInterlock",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInterlockPortable",
       "runner_id": "cpp-tck.service-report-interlock",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
@@ -28068,7 +28068,7 @@
       "contract_refs": [
         "standard-service-reporting-interlock-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportInterlockContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInterlockContractPortable",
       "runner_id": "cpp-tck.service-report-interlock-contract",
       "parity": "cpp-tck.service-report-interlock",
       "default_status": "adapter-required",

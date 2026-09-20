@@ -182,6 +182,10 @@ constexpr char serviceReportLocalDeleteObjectInstanceFailureScenario[] =
     "cpp-tck.service-report-local-delete-object-instance-failure";
 constexpr char serviceReportLocalDeleteObjectInstanceFailureContractScenario[] =
     "cpp-tck.service-report-local-delete-object-instance-failure-contract";
+constexpr char serviceReportInterlockScenario[] =
+    "cpp-tck.service-report-interlock";
+constexpr char serviceReportInterlockContractScenario[] =
+    "cpp-tck.service-report-interlock-contract";
 constexpr char automaticResignDirectiveDeleteObjectsId[] =
     "cpp-tck.automatic-resign-directive-delete-objects";
 constexpr char automaticResignDirectiveDeleteObjectsContractId[] =
@@ -1132,6 +1136,18 @@ void scenarioServiceReportLocalDeleteObjectInstanceFailureContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioServiceReportLocalDeleteObjectInstanceFailureContract(options, model);
+}
+
+void scenarioServiceReportInterlockPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInterlock(options, model);
+}
+
+void scenarioServiceReportInterlockContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInterlockContract(options, model);
 }
 
 void scenarioSynchronizationPointsPortable(
@@ -8591,6 +8607,16 @@ int runServiceReportLocalDeleteObjectInstanceFailureScenarios(
       scenarioServiceReportLocalDeleteObjectInstanceFailureContractPortable);
 }
 
+int runServiceReportInterlockScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportInterlockScenario,
+      serviceReportInterlockContractScenario,
+      scenarioServiceReportInterlockPortable,
+      scenarioServiceReportInterlockContractPortable);
+}
+
 int runSynchronizationPointScenarios(int argc, char** argv) {
   auto const options = parseOptions(argc, argv);
   std::vector<ScenarioResult> results;
@@ -10599,6 +10625,20 @@ bool hasServiceReportLocalDeleteObjectInstanceFailureScenario(
   return false;
 }
 
+bool hasServiceReportInterlockScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportInterlockScenario ||
+        scenario == serviceReportInterlockContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasSynchronizationPointScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -11186,6 +11226,9 @@ int main(int argc, char** argv) {
     }
     if (hasServiceReportLocalDeleteObjectInstanceFailureScenario(argc, argv)) {
       return runServiceReportLocalDeleteObjectInstanceFailureScenarios(argc, argv);
+    }
+    if (hasServiceReportInterlockScenario(argc, argv)) {
+      return runServiceReportInterlockScenarios(argc, argv);
     }
     if (hasLogicalTimeScenario(argc, argv)) {
       return runLogicalTimeScenarios(argc, argv);

@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-local-delete-service-reports-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-service-report-interlock-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2884,6 +2884,22 @@
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-local-delete-object-instance-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-local-delete-object-instance-failure-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-local-delete-object-instance-failure-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
+      ]
+    },
+    {
+      "name": "standard-service-report-interlock",
+      "scenario_ids": [
+        "cpp-tck.service-report-interlock",
+        "cpp-tck.service-report-interlock-contract"
+      ],
+      "cases": 4,
+      "passed": 4,
+      "verification": "One focused installed-package direct run through portable dispatch across evoked and immediate callback models; service-reporting interlock switch and subscription boundaries passed 4/4 with no provider-specific headers or fixtures.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-interlock-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-interlock-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
       ]
