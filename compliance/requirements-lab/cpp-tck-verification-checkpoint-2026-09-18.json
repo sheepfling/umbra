@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-api-foundations-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-connection-callback-foundation-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2702,6 +2702,26 @@
         ".build/cpp-tck-full-promoted-2026-09-18/standard-api-foundations-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-federation-lifecycle.xml"
+      ]
+    },
+    {
+      "name": "connection-callback-foundation",
+      "scenario_ids": [
+        "java-tck.overloads-and-exceptions",
+        "cpp-tck.connection-callback-contract",
+        "cpp-tck.callback-reentrancy",
+        "cpp-tck.callback-reentrancy-contract",
+        "java-tck.malformed-inputs",
+        "cpp-tck.malformed-inputs-contract"
+      ],
+      "cases": 12,
+      "passed": 12,
+      "verification": "Focused installed-package direct runner through portable dispatch across evoked and immediate callback models; connection overload/callback, callback re-entrancy, and malformed FOM or encoded-input routes passed 12/12 and were included in the complete 702-scenario promoted evidence run with the adapter-managed connection-loss fixture.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-19/connection-callback-foundation-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/connection-callback-foundation-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
       ]
     }
   ],

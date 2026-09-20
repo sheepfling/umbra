@@ -34,6 +34,15 @@ constexpr char authorizerFactoryFactoryContractScenario[] =
     "cpp-tck.authorizer-factory-factory-contract";
 constexpr char nullFederateAmbassadorContractScenario[] =
     "cpp-tck.null-federate-ambassador-contract";
+constexpr char connectionScenario[] = "java-tck.overloads-and-exceptions";
+constexpr char connectionCallbackContractScenario[] =
+    "cpp-tck.connection-callback-contract";
+constexpr char callbackReentrancyScenario[] = "cpp-tck.callback-reentrancy";
+constexpr char callbackReentrancyContractScenario[] =
+    "cpp-tck.callback-reentrancy-contract";
+constexpr char malformedInputsScenario[] = "java-tck.malformed-inputs";
+constexpr char malformedInputsContractScenario[] =
+    "cpp-tck.malformed-inputs-contract";
 constexpr char federationLifecycleScenario[] = "java-tck.federation-membership";
 constexpr char federationLifecycleContractScenario[] =
     "cpp-tck.federation-lifecycle-contract";
@@ -559,6 +568,42 @@ void scenarioNullFederateAmbassadorPortable(
     Options const&,
     rti::CallbackModel) {
   verifyStandardNullFederateAmbassadorContract();
+}
+
+void scenarioConnectionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioConnection(options, model);
+}
+
+void scenarioConnectionCallbackContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioConnectionCallbackContract(options, model);
+}
+
+void scenarioCallbackReentrancyPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackReentrancy(options, model);
+}
+
+void scenarioCallbackReentrancyContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioCallbackReentrancyContract(options, model);
+}
+
+void scenarioMalformedInputsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioMalformedInputs(options, model);
+}
+
+void scenarioMalformedInputsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioMalformedInputsContract(options, model);
 }
 
 void scenarioFederationLifecyclePortable(
@@ -7689,6 +7734,36 @@ int runNullFederateAmbassadorScenarios(int argc, char** argv) {
       scenarioNullFederateAmbassadorPortable,
       scenarioNullFederateAmbassadorPortable);
 }
+
+int runConnectionCallbackFoundationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      connectionScenario,
+      connectionCallbackContractScenario,
+      scenarioConnectionPortable,
+      scenarioConnectionCallbackContractPortable);
+}
+
+int runCallbackReentrancyScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      callbackReentrancyScenario,
+      callbackReentrancyContractScenario,
+      scenarioCallbackReentrancyPortable,
+      scenarioCallbackReentrancyContractPortable);
+}
+
+int runMalformedInputsScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      malformedInputsScenario,
+      malformedInputsContractScenario,
+      scenarioMalformedInputsPortable,
+      scenarioMalformedInputsContractPortable);
+}
 int runFederationLifecycleScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -9198,6 +9273,48 @@ bool hasNullFederateAmbassadorScenario(int argc, char** argv) {
   }
   return false;
 }
+
+bool hasConnectionCallbackFoundationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == connectionScenario ||
+        scenario == connectionCallbackContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasCallbackReentrancyScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == callbackReentrancyScenario ||
+        scenario == callbackReentrancyContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasMalformedInputsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == malformedInputsScenario ||
+        scenario == malformedInputsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
 bool hasFederationLifecycleScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -9765,6 +9882,15 @@ int main(int argc, char** argv) {
     }
     if (hasNullFederateAmbassadorScenario(argc, argv)) {
       return runNullFederateAmbassadorScenarios(argc, argv);
+    }
+    if (hasConnectionCallbackFoundationScenario(argc, argv)) {
+      return runConnectionCallbackFoundationScenarios(argc, argv);
+    }
+    if (hasCallbackReentrancyScenario(argc, argv)) {
+      return runCallbackReentrancyScenarios(argc, argv);
+    }
+    if (hasMalformedInputsScenario(argc, argv)) {
+      return runMalformedInputsScenarios(argc, argv);
     }
     if (hasFederationLifecycleScenario(argc, argv)) {
       return runFederationLifecycleScenarios(argc, argv);

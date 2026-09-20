@@ -199,7 +199,7 @@
       "contract_refs": [
         "standard-connection-callback-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioConnectionCallbackContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioConnectionCallbackContractPortable",
       "runner_id": "cpp-tck.connection-callback-contract",
       "parity": "java-tck.overloads-and-exceptions",
       "default_status": "run",
@@ -294,7 +294,7 @@
       "contract_refs": [
         "standard-callback-reentrancy-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioCallbackReentrancy",
+      "cpp_test": "src/portable_tck.cpp#scenarioCallbackReentrancyPortable",
       "runner_id": "cpp-tck.callback-reentrancy",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "run",
@@ -319,7 +319,7 @@
       "contract_refs": [
         "standard-callback-reentrancy-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioCallbackReentrancyContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioCallbackReentrancyContractPortable",
       "runner_id": "cpp-tck.callback-reentrancy-contract",
       "parity": "cpp-tck.callback-reentrancy",
       "default_status": "run",
@@ -501,7 +501,7 @@
         "connection-callback-api-contract.json",
         "connection-implementation-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioConnection",
+      "cpp_test": "src/portable_tck.cpp#scenarioConnectionPortable",
       "runner_id": "java-tck.overloads-and-exceptions",
       "default_status": "run",
       "promotion": "promoted"
@@ -806,7 +806,7 @@
         "fom-source-diagnostics-requirements-contract.json",
         "basic-data-elements-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioMalformedInputs",
+      "cpp_test": "src/portable_tck.cpp#scenarioMalformedInputsPortable",
       "runner_id": "java-tck.malformed-inputs",
       "default_status": "run",
       "promotion": "promoted"
@@ -828,7 +828,7 @@
       "contract_refs": [
         "standard-malformed-inputs-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioMalformedInputsContract",
+      "cpp_test": "src/portable_tck.cpp#scenarioMalformedInputsContractPortable",
       "runner_id": "cpp-tck.malformed-inputs-contract",
       "parity": "java-tck.malformed-inputs",
       "default_status": "adapter-required",
