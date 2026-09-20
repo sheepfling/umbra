@@ -3,7 +3,7 @@
   "kind": "hla-rti-cpp-tck-verification-checkpoint",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard": "IEEE 1516.1-2025",
-  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-named-object-instance-service-reports-promoted-checkpoint",
+  "checkpoint": "hla-standard-tck-2026-09-19-702-standard-local-delete-service-reports-promoted-checkpoint",
   "catalog": {
     "path": "compliance/catalogs/cpp-tck-scenario-catalog.json",
     "promoted": 702,
@@ -2864,6 +2864,26 @@
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-release-object-instance-name-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-release-multiple-object-instance-names-focused.json",
         ".build/cpp-tck-full-promoted-2026-09-19/service-report-release-multiple-object-instance-names-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
+        ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
+      ]
+    },
+    {
+      "name": "standard-local-delete-service-reports",
+      "scenario_ids": [
+        "cpp-tck.service-report-local-delete-object-instance",
+        "cpp-tck.service-report-local-delete-object-instance-contract",
+        "cpp-tck.service-report-local-delete-object-instance-failure",
+        "cpp-tck.service-report-local-delete-object-instance-failure-contract"
+      ],
+      "cases": 8,
+      "passed": 8,
+      "verification": "Two focused installed-package direct runs through portable dispatch, one base/contract pair per runner, across evoked and immediate callback models; local object deletion success and failure service reports passed 8/8 with no provider-specific headers or fixtures.",
+      "artifacts": [
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-local-delete-object-instance-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-local-delete-object-instance-focused.xml",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-local-delete-object-instance-failure-focused.json",
+        ".build/cpp-tck-full-promoted-2026-09-19/service-report-local-delete-object-instance-failure-focused.xml",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.json",
         ".build/cpp-tck-full-promoted-2026-09-18/full-702-connection-callback-foundation-with-loss.xml"
       ]
