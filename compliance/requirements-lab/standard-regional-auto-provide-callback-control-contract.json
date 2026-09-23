@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK contract uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs plus the standard library. The adapter supplies the provider, Auto Provide FOM, endpoint, callback configuration, object class, attribute, and DDM dimension. With callbacks disabled on the regional subscriber, object registration and subscription must not produce discovery or Auto Provide callbacks. After callbacks are enabled, the test verifies one discovery followed by one provideAttributeValueUpdate callback for the object and attribute, with an empty request tag. No provider-specific behavior or headers are used.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-regional-auto-provide-callback-control",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional registration and subscription, disableCallbacks, and enableCallbacks services with FederateAmbassador discoverObjectInstance and provideAttributeValueUpdate callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador callback controls and regional object services",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideCallbackControl",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideCallbackControlContract"
+      ]
+    }
+  ]
+}

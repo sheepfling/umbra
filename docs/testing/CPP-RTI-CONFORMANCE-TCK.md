@@ -15,15 +15,117 @@ objects.
 The catalog and the executable's default `all` inventory are kept as a
 one-to-one set. Run `python tools/cpp_tck.py` to verify the catalog, the
 official-header boundary, and that inventory before running a provider. The
-current gate reports 565 catalog scenarios and 565 executable scenarios; the
+current gate reports 724 catalog scenarios and 724 executable scenarios; the
 official C++ API audit reports all 164 `RTIambassador` methods and all 56
 `FederateAmbassador` callbacks represented.
 
-The inventory gate is compiled and exercised through the installed-package
-adapter. Its 12 contract-only scenarios run in both callback models (24
-scenario-model cases), with 24 passed and no skips or failures. The adapter
-continues to provide the provider library, FOMs, logical-time choice, and
-endpoint settings; the portable source remains independent of those details.
+The current-source portable executable was rebuilt against the installed-package
+adapter. The connection-boundaries pair passed all four focused CTest cases
+(evoked and immediate callback models); the matching Java parity ID passed both
+callback models in a direct run. Evidence is recorded in
+`.build/cpp-tck-connection-credentials-adapter-config-current-ctest.json` and
+`.build/cpp-tck-connection-credentials-adapter-config-java-parity-current.json`.
+The adapter continues to provide the provider library, FOMs, logical-time
+choice, and endpoint settings; the portable source remains independent of those
+details.
+
+On 2026-09-23, the rebuilt current-source executable ran the pre-addition full
+verified installed-package matrix for 714 promoted scenarios: 1,412 CTest cases passed
+and 16 fixture-dependent cases were skipped (zero failures). The per-test CTest
+record is in `.build/cpp-tck-python/Testing/Temporary/LastTest.log`. The skipped
+cases cover connection-loss cleanup, automatic divestiture and pending-
+acquisition cancellation after connection loss, plus automatic-resign
+delete-objects behavior. All 16 were then run through the Python process adapter
+with the installed-package TCK executable: eight scenario IDs in both callback
+models passed (16/16), with machine-readable evidence in
+`.build/cpp-tck-connection-loss-fixture-current-20260923.json` and `.xml`.
+Together these runs verify every one of the 1,428 pre-addition scenario/callback pairs. The
+targeted service-report family independently passed 156/156 cases, and
+joined-federate MOM object-count coverage passed 4/4. These checks caught and
+corrected an invalid extra `HLAfederate` service-report parameter expectation:
+IEEE 1516.2-2025 defines it as a routing dimension, not a parameter of
+`HLAreportServiceInvocation`.
+
+The 2026-09-23 interaction-inheritance slice adds
+`cpp-tck.inherited-interaction-class-delivery` and its contract runner. Using the
+adapter-selected rich FOM, it verifies per-subscriber received-class and
+parameter projection for base and derived subscriptions, including the
+one-directional class boundary. Both IDs passed in both callback models: 4/4
+focused CTest cases against the installed package. The run record is in
+`.build/cpp-tck-inherited-interaction-class-delivery.junit.xml`, with validated
+scenario evidence in `.build/cpp-tck-inherited-interaction-class-delivery.json`.
+Together with the earlier full matrix and its connection-loss fixture rerun,
+the verified evidence at this checkpoint covers all 1,432 scenario/callback
+pairs across 716 catalog IDs.
+
+The timestamped interaction-inheritance slice adds
+`cpp-tck.timestamped-inherited-interaction-class-delivery` and its contract
+runner. It checks the same per-subscriber class/parameter projection for a
+timestamp-ordered send, including timestamp metadata and withholding delivery
+until time advance. The base subscriber receives the base class and inherited
+parameter; the derived subscriber receives the derived class and both
+parameters. Both IDs passed under both callback models in the promoted-only
+installed-package gate (4/4 new scenario/callback pairs; 8/8 cases including the
+receive-order inheritance regression). Evidence is recorded in
+`.build/cpp-tck-inherited-interaction-focused/.build/cpp-tck-timestamped-inherited-interaction-class-delivery-evidence.json`
+and `.build/cpp-tck-inherited-interaction-focused/.build/cpp-tck-timestamped-inherited-interaction-class-delivery-verified.junit.xml`.
+That brings verified evidence to 1,436 scenario/callback pairs across 718 IDs.
+
+The directed derived-object target slice adds
+`cpp-tck.directed-interaction-derived-object-target` and its contract runner.
+It publishes the FOM-directed interaction on the derived object-class handle,
+registers an instance of that class, and confirms that only a directed
+subscriber receives the callback even when an unsubscribed observer also knows
+the target. Both IDs passed under evoked and immediate callbacks in the
+promoted-only installed-package gate (4/4 cases). Evidence is recorded in
+`.build/cpp-tck-directed-inherited-focused/.build/cpp-tck-directed-derived-object-target-evidence.json`
+and `.build/cpp-tck-directed-inherited-focused/.build/cpp-tck-directed-derived-object-target-verified.junit.xml`.
+The verified total is now 1,440 scenario/callback pairs across 720 catalog IDs.
+
+The timestamped directed derived-object slice adds
+`cpp-tck.timestamped-directed-interaction-derived-object-target` and its
+contract runner. It sends at logical time to a derived-class instance whose
+FOM association is inherited from the base object class. A universal directed
+subscriber receives the callback only after its TAR; the sender advances below
+the event time, and an attribute-only observer discovers the target without
+receiving the interaction. The callback checks target, class, parameter, tag,
+producer, timestamp and order metadata, retraction-handle metadata, and
+transportation lookup. Both IDs passed under evoked and immediate callbacks
+(4/4 cases); the ordinary derived-target and timestamped TAR/NMR regressions
+also passed (8/8 cases). Evidence is recorded in
+`.build/cpp-tck-directed-inherited-focused/timestamped-directed-derived-object-target-promoted.json`
+and `.build/cpp-tck-directed-inherited-focused/timestamped-directed-derived-object-target-promoted.junit.xml`.
+Verified evidence now covers 1,444 scenario/callback pairs across 722 catalog
+IDs.
+
+The receive-order directed derived-target eligibility slice adds
+`cpp-tck.directed-derived-object-target-eligibility` and its contract runner.
+Four independent federates distinguish the interaction publisher, derived
+target owner, universal directed subscriber, and attribute-only observer. The
+owner and universal subscriber each receive exactly one callback; the sender
+and observer receive none, while the observer still discovers the target.
+Both IDs passed under evoked and immediate callbacks against the installed
+package (4/4 cases). Evidence is recorded in
+`.build-cpp-tck-current-package/directed-derived-object-target-eligibility-promoted.json`
+and `.build-cpp-tck-current-package/directed-derived-object-target-eligibility-promoted.xml`;
+the promoted evidence gate and inventory validator both pass. Verified
+evidence now covers 1,448 scenario/callback pairs across 724 catalog IDs.
+
+A follow-up portability scan found six pre-existing delay-subscription-evaluation
+scenario families whose catalog requirement IDs are Umbra-prefixed. They were
+not changed in this slice. Before counting them as pure-HLA evidence, verify
+whether each behavior maps directly to a canonical IEEE 1516.1-2025
+subsection; otherwise classify and separate those cases as provider-specific.
+
+The timestamped directed-interaction case distinguishes three destination
+roles: the target owner receives the interaction, a universal subscriber also
+receives it, and a non-universal subscriber that discovers the target but owns
+none of its attributes receives no callback. Both callback models passed
+against the installed-package adapter. Evidence is recorded in
+`.build-cpp-tck-current-package/timestamped-directed-interactions-owner-eligibility.json`
+and `.build-cpp-tck-current-package/timestamped-directed-interactions-owner-eligibility.xml`;
+the focused artifact passes
+`python tools/cpp_tck.py --results .build-cpp-tck-current-package/timestamped-directed-interactions-owner-eligibility.json --promotion promoted --scenario cpp-tck.timestamped-directed-interactions`.
 
 The independently filtered synchronization and asynchronous-delivery slice was
 also run against the installed package on 2026-09-10. The four selected
@@ -378,7 +480,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-    The verified lane currently runs all 547 promoted scenarios (1094
+    The verified lane currently runs all 724 promoted scenarios (1448
 callback-model cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`; the catalog has no
 remaining candidate IDs outside that lane. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and

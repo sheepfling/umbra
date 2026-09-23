@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 multi-source regional Auto Provide surface. The source uses only standard RTIambassador and FederateAmbassador services plus the standard library; the adapter supplies the Auto Provide FOM, object class, two attributes, dimensional name, endpoint, provider configuration, and callback model. It verifies one provider-owned object whose two attributes are associated with independent source regions, two subscribers with independently overlapping regions, one discovery and one provideAttributeValueUpdate solicitation per source attribute, and one ordinary reflection per subscriber carrying the correct source-region designator, value, tag, reliable transportation, and producer metadata. It does not depend on private headers, registries, provider names, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-regional-auto-provide-multi-source",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador multi-attribute regional object publication, registration, subscription, Auto Provide, and update services with FederateAmbassador discovery, provideAttributeValueUpdate, and reflectAttributeValues callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador multi-source regional Auto Provide declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideMultiSource",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideMultiSourceContract"
+      ]
+    }
+  ]
+}

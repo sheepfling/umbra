@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 timestamped regional Auto Provide response surface. The source uses only standard RTIambassador and FederateAmbassador services plus the standard library; the adapter supplies the Auto Provide FOM, object class, attribute, dimensional name, logical-time implementation, endpoint, provider configuration, and callback model. It verifies one overlapping source and subscriber region, time-constrained and time-regulating callbacks, one grouped provideAttributeValueUpdate callback with an empty request tag, a timestamped response issued from that callback through updateAttributeValues, queued delivery at a matching time advance, source-region and order metadata, a valid message-retraction handle, and the standard post-delivery retraction failure. It does not depend on private headers, registries, provider names, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-regional-auto-provide-timestamped-response",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional object publication, registration, subscription, time-management, timestamped update, and retraction services with FederateAmbassador discovery, provideAttributeValueUpdate, timestamped reflectAttributeValues, and time-management callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador timestamped regional Auto Provide response declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideTimestampedResponse",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideTimestampedResponseContract"
+      ]
+    }
+  ]
+}

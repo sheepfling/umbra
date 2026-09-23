@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 regional Auto Provide overlap and stale-solicitation surface. The source uses only standard RTIambassador and FederateAmbassador services plus the standard library; the adapter supplies the Auto Provide FOM, object class, attribute, dimensional name, endpoint, provider configuration, and callback model. It verifies an overlapping source and subscriber region, one discovery and one provideAttributeValueUpdate solicitation for the first object, then moves the subscribed region out of scope during the second discovery and verifies that the second object does not produce a stale provider solicitation. It does not depend on private headers, registries, provider names, or implementation behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-regional-auto-provide-overlap",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional object publication, registration, subscription, region-modification, and Auto Provide services with FederateAmbassador discovery and provideAttributeValueUpdate callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador regional Auto Provide overlap declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideOverlap",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideOverlapContract"
+      ]
+    }
+  ]
+}

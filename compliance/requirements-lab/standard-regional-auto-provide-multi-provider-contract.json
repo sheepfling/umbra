@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK contract uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs plus the standard library. The adapter supplies the provider, FOM, endpoint, callback model, object class, two attributes, and DDM dimension. One federate initially owns and publishes both attributes; a second publishes and subscribes to the second attribute, receives its standard ownership assumption offer, and acquires it with attributeOwnershipAcquisitionIfAvailable. A later regional subscription must solicit each attribute from its current owner. The providers return distinct ordinary updates, and the requester verifies each value, tag, producer, reliable transportation, and source-region designator. The scenario contains no provider-specific names, headers, registries, or behavior assumptions.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-regional-auto-provide-multi-provider",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional object publication, registration, subscription, ownership divestiture and acquisition, Auto Provide, and update services with FederateAmbassador ownership, discovery, provideAttributeValueUpdate, and reflectAttributeValues callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership and regional object services",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideMultiProvider",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionalAutoProvideMultiProviderContract"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for timestamped directed delivery to an object instance of a derived object class. The test uses only the official C++ RTIambassador and FederateAmbassador APIs plus the C++ standard library. The adapter supplies the provider package, rich FOM, endpoint, logical-time implementation, and callback configuration. The FOM fixture declares the directed interaction on the base object class and the target object class inherits that association. The publisher registers the derived-class instance, publishes the associated directed interaction, and sends it at logical time; a universally directed subscriber requests a time advance and verifies delivery only after the advance, including target handle, parameter, tag, producer, logical time, sent and received order, retraction handle, and resolvable transportation metadata. An observer that discovers the target through an ordinary attribute subscription but does not subscribe to directed interactions receives no directed callback. DDM, alternate time-advance services, and retraction service behavior are covered separately. This is public-API test traceability, not certification or a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-timestamped-directed-derived-object-target-delivery",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador directed-interaction publication, subscription, object registration, timestamped Send Directed Interaction, time regulation and time-constrained services with FederateAmbassador discoverObjectInstance, receiveDirectedInteraction at logical time, time-role, and timeAdvanceGrant callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador directed-interaction, logical-time, time-advance, and order-type declarations with FederateAmbassador discovery and timestamped directed-interaction callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedDirectedDerivedObjectTargetDeliveryContract"
+      ]
+    }
+  ]
+}

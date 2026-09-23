@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for a directed interaction targeting an object instance of a derived object class. The test uses only the official C++ RTIambassador and FederateAmbassador APIs plus the standard library. The adapter supplies the provider package, selected rich FOM, endpoint, and callback configuration; the TCK FOM fixture declares the directed interaction on the base object class, and the target object class inherits from it. The publisher registers an instance of that derived class, the target subscriber and a non-subscribing observer both discover it, and only the universal directed subscriber receives the standard receiveDirectedInteraction callback with the target handle, parameter, tag, producer, and resolvable transportation metadata. The scenario is receive-order only; timestamps, retraction, subscription-kind variations, and DDM remain covered by separate scenarios. This is public-API test traceability, not certification or a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-directed-derived-object-target-delivery",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador directed-interaction publication, subscription, object registration, and Send Directed Interaction with FederateAmbassador receiveDirectedInteraction callback",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador directed-interaction declaration and send services with FederateAmbassador discoverObjectInstance and receiveDirectedInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioDirectedDerivedObjectTargetDeliveryContract"
+      ]
+    }
+  ]
+}

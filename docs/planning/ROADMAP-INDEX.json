@@ -13,7 +13,7 @@
       "do_not_start_without": "A separately mapped stress case with its own requirements, sections, and exact CTest handle; do not reopen either completed observer/retraction case or add a sleep-based/polling-race test."
     }
   ],
-  "live_query_note": "This index retains historical roadmap prose snapshots; use python tools/query_rti_work.py resume as the first bounded resume card, then dashboard --summary --compact, status --summary --compact, roadmap --summary --compact, ready --summary --compact, queue --summary --compact, and next --pointer --summary --compact for current counts, bounded family search, one exact implementation handoff, bounded family state, planned-row heads, direct requirement-to-2025-subsection pair totals, and the next source/planned-row handoff. Resume and dashboard expose source_only_reconciliation with the first unplanned C++ declaration, source location, and explicit ready --include-source-only/next --include-source-only commands; this is diagnostic reconciliation and never an implicit Lab rescan. They also expose mapping.latest_verified_restore_slice for fixes that reuse existing mapped cases, including exact case/focus/matrix/check/CTest handles. Roadmap family search also accepts an exact Requirements-Lab id, canonical 2025 document:clause subsection, or official C++ API surface and returns the owning family without a full plan dump. Lane focus cards and roadmap rows expose bounded requirement IDs, canonical document:clause keys, and direct pairs. A mapped plan row may declare primary_lane when broad taxonomy tags overlap; case/trace/matrix then resolve the owning lane and roadmap family deterministically while retaining the broad tags as context. For an unclassified source-located C++ case, add unmapped --disposition unclassified --show-contract-candidates --summary --compact to expose existing contract Lab/clause candidates without assigning them.",
+  "live_query_note": "This index retains historical roadmap prose snapshots; use python tools/query_rti_work.py resume as the first bounded resume card, then dashboard --summary --compact, status --summary --compact, roadmap --summary --compact, ready --summary --compact, queue --summary --compact, and next --pointer --summary --compact for current counts, bounded family search, one exact C++ handoff or gap-ranked family candidate, bounded family state, planned-row heads, direct requirement-to-2025-subsection pair totals, and the next source/planned-row handoff. The gap-ranked family candidate is globally uncovered, belongs to a subsection already represented by that family's tests, and includes direct requirement/section lookup handles. Resume and dashboard expose source_only_reconciliation with the first unplanned C++ declaration, source location, and explicit ready --include-source-only/next --include-source-only commands; this is diagnostic reconciliation and never an implicit Lab rescan. They also expose mapping.latest_verified_restore_slice for fixes that reuse existing mapped cases, including exact case/focus/matrix/check/CTest handles. Roadmap family search also accepts an exact Requirements-Lab id, canonical 2025 document:clause subsection, or official C++ API surface and returns the owning family without a full plan dump. Lane focus cards and roadmap rows expose bounded requirement IDs, canonical document:clause keys, and direct pairs. A mapped plan row may declare primary_lane when broad taxonomy tags overlap; case/trace/matrix then resolve the owning lane and roadmap family deterministically while retaining the broad tags as context. For an unclassified source-located C++ case, add unmapped --disposition unclassified --show-contract-candidates --summary --compact to expose existing contract Lab/clause candidates without assigning them.",
   "resume_card": {
     "first_query": "python tools/query_rti_work.py resume",
     "detail_query": "python tools/query_rti_work.py dashboard --summary --compact",
@@ -34,33 +34,8 @@
     "issue_query": "python tools/query_rti_work.py lab-issues --summary --compact",
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
-  "active_handoff": {
-    "id": "process-federation-restore-work-item-ownership-assumption-immediate",
-    "state": "completed",
-    "family": "transport-and-conformance",
-    "lane": "process-federation-restore-work-item-ownership-assumption-immediate",
-    "objective": "Completed bounded slice: the process-boundary C++ case proves restored ownership-assumption work-item delivery under HLA_IMMEDIATE. Keep the completed HLA_IMMEDIATE restore lifecycle/abort boundaries, existing HLA_EVOKED work-item baseline, pushed work-item, restore-status, package, and conformance lanes separate, and use the exact CTest gate for regression.",
-    "test_case": "RTIambassadors deliver restored ownership-assumption work under HLA_IMMEDIATE through a configured process endpoint",
-    "source_target": "cpp/tests/attribute_ownership_acquisition_catch2.cpp",
-    "mapping_seed_plan_id": "umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-integration",
-    "mapping_seed_policy": "Direct mapping is now registered from the completed HLA_EVOKED public restore-work-item seed with its own HLA_IMMEDIATE callback-gate and durable-pending boundary. Do not inherit Evoke Callback, already-pushed work-item, restore-status, package, or conformance claims.",
-    "ctest_target": "umbra_attribute_ownership_acquisition_catch2",
-    "ctest_filter": "^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors deliver restored ownership-assumption work under HLA_IMMEDIATE through a configured process endpoint$",
-    "commands": {
-      "seed_case": "python tools/query_rti_work.py case umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-integration --summary --compact",
-      "seed_trace": "python tools/query_rti_work.py trace \"umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-integration\" --summary --compact",
-      "seed_matrix_requirement": "python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-integration --group-by requirement --summary --compact",
-      "seed_matrix_section": "python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-integration --group-by section --summary --compact",
-      "post_mapping_check": "python tools/query_rti_work.py check --lane process-federation-restore-work-item-ownership-assumption-immediate --summary --compact",
-      "ctest": "ctest --test-dir .build -C Debug -R \"^umbra\\.attribute_ownership_acquisition\\.catch2\\.RTIambassadors deliver restored ownership-assumption work under HLA_IMMEDIATE through a configured process endpoint$\" --output-on-failure"
-    },
-    "acceptance": [
-      "The process endpoint delivers the saved ownership-assumption work item to the public C++ surface under HLA_IMMEDIATE after Federation Restored without requiring an Evoke Callback call.",
-      "The HLA_IMMEDIATE restore-work-item boundary is green without sleeps, broad multi-lane assertions, or reuse of the existing pushed work-item lane.",
-      "The C++ plan row carries its own direct Requirements-Lab-to-2025-subsection pairs, focused lane, and exact CTest handle; status, work-item, package, and conformance lanes remain separate."
-    ]
-  },
-  "active_handoff_note": "The single-federate, idle/terminal, and multi-federate HLA_IMMEDIATE restore-status slices, the HLA_IMMEDIATE request-failure, failed, successful, abort, and durable ownership-assumption work-item boundaries are complete and independently mapped. The former active handoff is retained as a completed exact case card; use its case, trace, matrix, lane-check, and CTest commands for regression, then choose the next bounded family action without reopening the pinned Requirements Lab.",
+  "active_handoff": null,
+  "active_handoff_note": "The public process exception-report concurrency lane and private close/recheck regression are complete and separately queryable. No executable C++ RTI implementation slice is currently queued in transport-and-conformance; use its bounded queue rather than treating the ConfigurationResult Table 5 coverage inventory as a new callable-API task. Do not resync the unchanged Requirements Lab. The active portable C++ TCK expansion is tracked in docs/testing/CPP-RTI-CONFORMANCE-TCK.md. Its 724-scenario catalog now has verified evidence for all 1,448 scenario/callback pairs: the prior full 714-scenario matrix and connection-loss fixture rerun; receive-order and timestamped interaction-inheritance delivery; receive-order and timestamped directed derived-object delivery; and receive-order directed derived-target eligibility (4 callback pairs). The selected 12-case derived-target/TAR-NMR regression gate remains separately recorded, and the new eligibility pair passed both callback models in its focused installed-package run. Next TCK handoff: audit exactly six pre-existing delay-subscription-evaluation scenario families with Umbra-prefixed requirement IDs against canonical IEEE 1516.1-2025 subsections. Map only behavior supported by the pinned standard evidence; otherwise classify the IDs as provider-specific. Do not broaden the audit or resync unchanged Lab inputs. The native Catch2 survey found no directly portable candidate, so do not mechanically port private-header tests.",
   "documents": [
     {
       "id": "roadmap-quickstart",
@@ -112,84 +87,81 @@
     "current_counts": {
       "catch2_actionable_cases_without_cpp_source_location": 0,
       "catch2_cases_without_cpp_source_location": 1,
-      "catch2_cases_without_lab_requirement_mapping": 64,
+      "catch2_cases_without_lab_requirement_mapping": 69,
       "catch2_planned_cases": 0,
-      "catch2_plan_cases": 1285,
-      "catch2_unmapped_explicit_disposition": 64,
+      "catch2_plan_cases": 1317,
+      "catch2_unmapped_explicit_disposition": 69,
       "catch2_unmapped_unclassified": 0,
       "cpp_source_cases_without_plan_row": 0,
       "cpp_source_cases_without_plan_row_fom_composer": 0,
-      "service_report_store_lane_cases": 15,
-      "service_report_store_lane_mapped_cases": 12
+      "service_report_store_lane_cases": 17,
+      "service_report_store_lane_mapped_cases": 13
     },
     "current_snapshot": {
       "source": "python tools/query_rti_work.py dashboard --summary --compact",
-      "plan_cases": 1285,
-      "mapped_cases": 1221,
-      "unmapped_cases": 64,
-      "explicit_unmapped_cases": 64,
+      "plan_cases": 1317,
+      "mapped_cases": 1248,
+      "unmapped_cases": 69,
+      "explicit_unmapped_cases": 69,
       "unclassified_unmapped_cases": 0,
       "source_unlocated_cases": 1,
       "source_unlocated_actionable_cases": 0,
       "planned_cases": 0,
       "source_only_cases": 0,
-    "direct_requirement_section_pairs": 877,
+      "direct_requirement_section_pairs": 909,
       "standard_requirement_total": 2220,
-    "standard_requirement_coverage_percent": 39.5,
-      "service_report_store_cases": 15,
-      "service_report_store_mapped_cases": 12
+      "standard_requirement_coverage_percent": 40.95,
+      "service_report_store_cases": 17,
+      "service_report_store_mapped_cases": 13
     },
     "latest_completed_slice": {
-      "lane": "process-federation-restore-work-item-ownership-assumption-immediate",
+      "lane": "process-client-close-exception-recheck",
       "owner": "transport-and-conformance",
-      "plan_id": "umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration",
-      "test_case": "RTIambassadors deliver restored ownership-assumption work under HLA_IMMEDIATE through a configured process endpoint",
-      "source_location": "cpp/tests/attribute_ownership_acquisition_catch2.cpp:3437",
-      "primary_lane": "process-federation-restore-work-item-ownership-assumption-immediate",
-      "focus_lane": "process-federation-restore-work-item-ownership-assumption-immediate",
-      "assertions": 52,
-      "requirements": 9,
-      "standard_sections": 7,
-      "api_surfaces": 11,
-      "callback_models": [
-        "HLA_IMMEDIATE"
-      ],
-      "next_action": "Keep this HLA_IMMEDIATE durable-pending restore-work-item boundary green. Query the separate pushed work-item, other restored work-item families, remote transport, package/JUnit, protected-review, validation, interoperability, and conformance lanes independently."
+      "plan_id": "umbra-private-process-client-close-exception-recheck-unit",
+      "test_case": "Private ProcessFederationClient close releases a blocked exception-report recheck before draining projection leases",
+      "source_location": "cpp/tests/process_federation_service_catch2.cpp:3420",
+      "primary_lane": "process-client-close-exception-recheck",
+      "assertions": 8,
+      "requirements": 0,
+      "standard_sections": 0,
+      "api_surfaces": 0,
+      "callback_models": [],
+      "next_action": "Select the next implementation task from the bounded roadmap handoff; this private lifecycle regression is complete and is not an HLA conformance claim."
     },
     "previous_completed_slice": {
-      "lane": "process-federation-save-timed-multiple-constrained",
+      "lane": "process-exception-report-concurrency",
       "owner": "transport-and-conformance",
-      "plan_id": "umbra-cpp-process-endpoint-federation-save-timed-multiple-constrained-integration",
-      "test_case": "RTIambassadors admit timestamped federation saves to multiple constrained recipients through a configured process endpoint",
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2839",
-      "primary_lane": "process-federation-save-timed-multiple-constrained",
-      "focus_lane": "process-federation-save-timed-multiple-constrained",
-      "assertions": 63,
-      "requirements": 6,
-      "standard_sections": 3,
-      "api_surfaces": 12,
-      "callback_models": [
-        "HLA_EVOKED"
-      ],
-      "next_action": "Keep this multiple-constrained process timed-save boundary green and separate from queued TSO, replacement, status/abort/not-complete, restore, push-mode, package, and conformance lanes."
-    },
-    "prior_completed_slice": {
-      "lane": "connection-lost-automatic-cancel-delete-divest-immediate",
-      "owner": "transport-and-conformance",
-      "plan_id": "umbra-cpp-connection-lost-automatic-cancel-delete-divest-immediate",
-      "test_case": "Immediate callbacks apply the configured automatic cancel-then-delete-then-divest directive synchronously",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:20015",
-      "primary_lane": "connection-lost-automatic-cancel-delete-divest-immediate",
-      "focus_lane": "connection-lost-automatic-cancel-delete-divest-immediate",
-      "assertions": 45,
-      "requirements": 7,
-      "standard_sections": 7,
-      "api_surfaces": 4,
+      "plan_id": "umbra-cpp-process-exception-report-concurrency-integration",
+      "test_case": "RTIambassador preserves process exception-report recheck response ownership during concurrent service requests",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:40222",
+      "primary_lane": "process-exception-report-concurrency",
+      "assertions": 104,
+      "requirements": 2,
+      "standard_sections": 1,
+      "api_surfaces": 15,
       "callback_models": [
         "HLA_EVOKED",
         "HLA_IMMEDIATE"
       ],
-      "next_action": "Use the exact mixed HLA_EVOKED/HLA_IMMEDIATE directive-5 companion and keep the ordinary DELETE_OBJECTS, final-federate, and bounded NO_ACTION policies separate."
+      "next_action": "Retained as the prior public response-ownership slice; its direct requirement-to-§11.4.1 mapping remains queryable."
+    },
+    "prior_completed_slice": {
+      "lane": "mom-service-invocation-parameters",
+      "owner": "mom-after-base-services",
+      "plan_id": "umbra-cpp-mom-service-invocation-parameters-integration",
+      "test_case": "Embedded MOM service invocation reports include inherited HLAfederate",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:70653",
+      "primary_lane": "mom-service-invocation-parameters",
+      "focus_lane": "mom-service-invocation-parameters",
+      "assertions": 210,
+      "requirements": 2,
+      "standard_sections": 1,
+      "api_surfaces": 19,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "next_action": "Retained as the preceding slice in the rolling indexed completion pointers."
     },
     "latest_verified_restore_slice": {
       "id": "federation-registry-negotiated-ownership-assumption-ledger-restore",
@@ -241,6 +213,7 @@
     "lane_owners": {
       "service-report-store": "mom-after-base-services",
       "process-boundary": "transport-and-conformance",
+      "process-joined-federate-mom-report-file": "transport-and-conformance",
       "configuration-fallback": "transport-and-conformance",
       "configuration-additional-settings": "transport-and-conformance",
       "process-federation-restore-failure-lifecycle-immediate": "transport-and-conformance",
@@ -298,10 +271,16 @@
       "update-rate-passive-regional-subscription": "object-ddm-ownership",
       "passive-regional-object-attribute-transition": "object-ddm-ownership",
       "passive-regional-interaction-transition": "object-ddm-ownership",
+      "interaction-sent-class-preservation": "object-ddm-ownership",
+      "ddm-clause6-service-expansion": "object-ddm-ownership",
+      "interaction-subscription-mode-exclusivity": "object-ddm-ownership",
       "timestamped-default-region-attribute-restore-multi-recipient": "time-save-restore",
       "timestamped-regional-interaction-timed-restore": "time-save-restore",
       "timestamped-regional-interaction-source-resignation": "time-save-restore",
       "fom-module-management": "fom-module-declaration-management",
+      "fom-summary-rule-1": "fom-module-declaration-management",
+      "summary-rule-2": "object-ddm-ownership",
+      "summary-rule-3": "transport-and-conformance",
       "federation-mom-current-fdd": "fom-module-declaration-management",
       "federation-mom-content-reports": "mom-after-base-services",
       "public-process-restart-application-value-focused": "time-save-restore",
@@ -402,6 +381,12 @@
       "process-transportation-interaction-control": "transport-and-conformance",
       "process-transportation-regional-interaction-control": "transport-and-conformance",
       "process-transportation-timestamped-regional-interaction-control": "transport-and-conformance",
+      "process-unpublish-object-class-attributes": "transport-and-conformance",
+      "process-update-rate-query": "transport-and-conformance",
+      "process-update-rate-query-named": "transport-and-conformance",
+      "process-update-rate-subscription": "transport-and-conformance",
+      "process-update-attribute-delivery-reduction": "transport-and-conformance",
+      "timestamped-process-regional-update": "transport-and-conformance",
       "order-type-lookup": "time-save-restore",
       "order-type-control": "time-save-restore",
       "declaration-relevance-advisory": "fom-module-declaration-management",
@@ -503,6 +488,7 @@
       "timestamped-regional-interaction-tso-retraction": "time-save-restore",
       "object-instance-name-reservation": "object-ddm-ownership",
       "object-instance-named-registration": "object-ddm-ownership",
+      "object-instance-registration-invalid-region": "object-ddm-ownership",
       "regional-object-attribute-routing": "object-ddm-ownership",
       "regional-object-attribute-subscription-isolation": "object-ddm-ownership",
       "zero-dimensional-region": "object-ddm-ownership",
@@ -558,7 +544,31 @@
       "ordinary-regional-interaction-service-report-file": "mom-after-base-services",
       "ordinary-regional-interaction-service-report-mom-interaction": "mom-after-base-services",
       "service-report-file-lifecycle": "mom-after-base-services",
+      "process-service-report-file-switch-cycle": "transport-and-conformance",
+      "process-service-report-file-rejoin": "transport-and-conformance",
+      "process-service-report-file-multifederate": "transport-and-conformance",
+      "process-mom-set-switches": "transport-and-conformance",
+      "process-mom-service-report-interlock": "transport-and-conformance",
+      "process-mom-exception-report": "transport-and-conformance",
+      "process-mom-malformed-exception": "transport-and-conformance",
+      "process-mom-malformed-parameter": "transport-and-conformance",
+      "process-mom-malformed-value": "transport-and-conformance",
+      "process-mom-malformed-resign-action": "transport-and-conformance",
+      "process-mom-extension-parameter": "transport-and-conformance",
+      "process-mom-exception-reporting-switch": "transport-and-conformance",
+      "process-mom-service-exception-report": "transport-and-conformance",
+      "process-mom-exception-report-parameters": "transport-and-conformance",
+      "process-exception-report-concurrency": "transport-and-conformance",
+      "process-exception-report-projection-lifetime": "transport-and-conformance",
+      "process-client-close-exception-recheck": "transport-and-conformance",
+      "mom-service-invocation-parameters": "mom-after-base-services",
+      "mom-service-report-interaction-baseline": "mom-after-base-services",
+      "process-exception-reporting-switch-gates": "transport-and-conformance",
+      "process-exception-report-codec": "transport-and-conformance",
+      "process-service-report-file-failure": "transport-and-conformance",
+      "process-service-report-file-loss": "transport-and-conformance",
       "join-lifecycle": "mom-after-base-services",
+      "service-report-file-multifederate": "mom-after-base-services",
       "joined-federate-mom-report-file": "mom-after-base-services",
       "object-attribute-scope-advisory-state": "object-ddm-ownership",
       "regional-request-filtering": "object-ddm-ownership",
@@ -583,6 +593,35 @@
       "ordinary-regional-attribute-update-service-report": "mom-after-base-services"
     },
     "lane_handles": {
+      "process-exception-report-concurrency": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador preserves process exception-report recheck response ownership during concurrent service requests$",
+        "ctest_label": "process-exception-report-concurrency",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-client-close-exception-recheck": {
+        "catch2_target": "umbra_process_boundary_private_catch2",
+        "ctest_filter": "^umbra\\.process_boundary_private\\.catch2\\.Private ProcessFederationClient close releases a blocked exception-report recheck before draining projection leases$",
+        "ctest_label": "process-client-close-exception-recheck",
+        "source": "cpp/tests/process_federation_service_catch2.cpp"
+      },
+      "process-exception-report-projection-lifetime": {
+        "catch2_target": "umbra_process_boundary_private_catch2",
+        "ctest_filter": "^umbra\\.process_boundary_private\\.catch2\\.Private process exception-report projections cancel queued work and drain client lifetime before close$",
+        "ctest_label": "process-exception-report-projection-lifetime",
+        "source": "cpp/tests/process_federation_callback_bridge_catch2.cpp"
+      },
+      "mom-service-invocation-parameters": {
+        "catch2_target": "umbra_ieee1516_2025_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded MOM service invocation reports include inherited HLAfederate$",
+        "ctest_label": "mom-service-invocation-parameters",
+        "source": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp"
+      },
+      "mom-service-report-interaction-baseline": {
+        "catch2_target": "umbra_ieee1516_2025_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers HLAreportServiceInvocation to an eligible observer$",
+        "source": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp"
+      },
       "resign-action-assumption-discovery-continuation": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded assumption search continues after a later join and discovery$",
@@ -1040,6 +1079,18 @@
         "ctest_label": "passive-regional-interaction-transition",
         "source": "cpp/tests/passive_regional_interaction_transition_catch2.cpp"
       },
+      "interaction-sent-class-preservation": {
+        "catch2_target": "umbra_receive_order_interaction_catch2",
+        "ctest_filter": "^umbra\\.receive_order_interaction\\.catch2\\.Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle$",
+        "ctest_label": "interaction-sent-class-preservation",
+        "source": "cpp/tests/receive_order_interaction_catch2.cpp"
+      },
+      "interaction-subscription-mode-exclusivity": {
+        "catch2_target": "umbra_ieee1516_2025_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded MOM requestSubscriptions reports active passive and directed subscription state$",
+        "ctest_label": "interaction-subscription-mode-exclusivity",
+        "source": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp"
+      },
       "passive-regional-object-attribute-transition": {
         "catch2_target": "umbra_passive_object_attribute_subscription_catch2",
         "ctest_filter": "^umbra\\.passive_object_attribute_subscription\\.catch2\\.Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery$",
@@ -1059,6 +1110,12 @@
       "process-synchronization-point": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.RTIambassadors carry federation synchronization points through the configured process endpoint$",
+        "ctest_label": "process-boundary",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-joined-federate-mom-report-file": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador projects the joined-federate MOM report path through a configured process endpoint$",
         "ctest_label": "process-boundary",
         "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
       },
@@ -1896,6 +1953,12 @@
         "ctest_label": "object-instance-named-registration",
         "source": "cpp/tests/object_instance_named_registration_catch2.cpp"
       },
+      "object-instance-registration-invalid-region": {
+        "catch2_target": "umbra_object_instance_named_registration_catch2",
+        "ctest_filter": "^umbra\\.object_instance_named_registration\\.catch2\\.Embedded Register Object Instance With Regions rejects an invalid region designator$",
+        "ctest_label": "object-instance-registration-invalid-region",
+        "source": "cpp/tests/object_instance_named_registration_catch2.cpp"
+      },
       "regional-object-attribute-routing": {
         "catch2_target": "umbra_regional_object_attribute_routing_catch2",
         "ctest_filter": "^umbra\\.regional_object_attribute_routing\\.catch2\\.Embedded regional object attributes filter 2025 no-time updates by overlap$",
@@ -2195,6 +2258,18 @@
         "ctest_label": "object-instance-registration-discovery",
         "source": "cpp/tests/object_instance_registration_discovery_catch2.cpp"
       },
+      "summary-rule-2": {
+        "catch2_target": "umbra_object_instance_registration_discovery_catch2",
+        "ctest_filter": "^umbra\\.object_instance_registration_discovery\\.catch2\\.Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle$",
+        "ctest_label": "fom-summary-rule-2",
+        "source": "cpp/tests/object_instance_registration_discovery_catch2.cpp"
+      },
+      "summary-rule-3": {
+        "catch2_target": "umbra_process_boundary_private_catch2",
+        "ctest_filter": "^umbra\\.process_boundary_private\\.catch2\\.RTIambassador carries additional FOM modules through a configured process Join$",
+        "ctest_label": "summary-rule-3",
+        "source": "cpp/tests/process_federation_additional_fom_catch2.cpp"
+      },
       "ordinary-regional-interaction-failure-service-report-file": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed regional Send Interaction With Regions invocations$",
@@ -2223,6 +2298,120 @@
         "catch2_target": "umbra_ieee1516_2025_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service-report files retain one joined-federate path across switch cycles$",
         "ctest_label": "service-report-file-lifecycle",
+        "source": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp"
+      },
+      "process-service-report-file-switch-cycle": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador preserves process service-report file identity across switch cycles$",
+        "ctest_label": "process-service-report-file-switch-cycle",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-service-report-file-multifederate": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors allocate independent process service-report files for simultaneous joined federates$",
+        "ctest_label": "process-service-report-file-multifederate",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-mom-service-report-interlock": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador preserves the process HLAsetSwitches Service Reporting interlock$",
+        "ctest_label": "mom-service-reporting-interlock",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-mom-exception-report": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports a rejected process HLAsetSwitches interaction through HLAreportMOMexception$",
+        "ctest_label": "process-mom-exception-report",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-mom-malformed-exception": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports a malformed process HLAsetSwitches interaction through HLAreportMOMexception$",
+        "ctest_label": "process-mom-malformed-exception",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-mom-malformed-parameter": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports an unknown process HLAsetSwitches parameter through HLAreportMOMexception$",
+        "ctest_label": "process-mom-malformed-parameter",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-mom-malformed-value": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports a malformed process HLAsetSwitches value through HLAreportMOMexception$",
+        "ctest_label": "process-mom-malformed-value",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-mom-malformed-resign-action": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports a malformed process HLAresignAction parameter through HLAreportMOMexception$",
+        "ctest_label": "process-mom-malformed-resign-action",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-mom-extension-parameter": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador preserves a compatible process HLAsetSwitches extension parameter without mutating predefined switch state$",
+        "ctest_label": "process-mom-extension-parameter",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-mom-set-switches": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador carries HLAsetSwitches adjustments through a configured process endpoint$",
+        "ctest_label": "process-mom-set-switches",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-mom-exception-reporting-switch": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador carries a predefined process HLAexceptionReporting switch through HLAsetSwitches without mutating other switches$",
+        "ctest_label": "process-mom-exception-reporting-switch",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-mom-service-exception-report": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports process service invocation exceptions through HLAreportException when enabled$",
+        "ctest_label": "process-mom-service-exception-report",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-mom-exception-report-parameters": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador includes inherited HLAfederate in process HLAreportMOMexception payloads$",
+        "ctest_label": "process-mom-exception-report-parameters",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-exception-report-codec": {
+        "catch2_target": "umbra_process_boundary_private_catch2",
+        "ctest_filter": "^umbra\\.process_boundary_private\\.catch2\\.Process exception-report event codec preserves private source metadata and legacy MOM suffixes$",
+        "ctest_label": "process-exception-report-codec",
+        "source": "cpp/tests/process_federation_service_catch2.cpp"
+      },
+      "process-exception-reporting-switch-gates": {
+        "catch2_target": "umbra_process_boundary_private_catch2",
+        "ctest_filter": "^umbra\\.process_boundary_private\\.catch2\\.Private process Exception Reporting Switch preserves save restore gates and session identity$",
+        "ctest_label": "process-exception-reporting-switch-gates",
+        "source": "cpp/tests/process_federation_service_catch2.cpp"
+      },
+      "process-service-report-file-rejoin": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador assigns a new process service-report file after resign and rejoin$",
+        "ctest_label": "process-service-report-file-rejoin",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-service-report-file-failure": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador rejects an unusable process service-report directory before endpoint connection$",
+        "ctest_label": "process-service-report-file-failure",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-service-report-file-loss": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports a deterministic process service-report append failure after file loss$",
+        "ctest_label": "process-service-report-file-loss",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "service-report-file-multifederate": {
+        "catch2_target": "umbra_ieee1516_2025_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded simultaneously joined federates receive independent service-report files$",
+        "ctest_label": "service-report-file-multifederate",
         "source": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp"
       },
       "join-lifecycle": {
@@ -2331,6 +2520,42 @@
         "catch2_target": "umbra_ieee1516_2025_connection_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports a directed interaction transportation override through a configured process endpoint$",
         "ctest_label": "process-directed-interaction-transportation-query",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-unpublish-object-class-attributes": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador publishes and unpublishes object-class attributes and registers an object through a configured process endpoint$",
+        "ctest_label": "process-unpublish-object-class-attributes",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-update-rate-query": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador resolves update-rate values through a configured process endpoint$",
+        "ctest_label": "process-update-rate-query",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-update-rate-query-named": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador resolves named FDD update rates through a configured process endpoint$",
+        "ctest_label": "process-update-rate-query-named",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-update-rate-subscription": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador routes public object-class attribute subscription through a configured process endpoint$",
+        "ctest_label": "process-update-rate-subscription",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "process-update-attribute-delivery-reduction": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.(RTIambassador routes public Update Attribute Values through a configured process endpoint|RTIambassador reflects an update only once for overlapping process subscriptions|RTIambassador suppresses a disjoint regional update through a configured process endpoint)$",
+        "ctest_label": "process-update-attribute-delivery-reduction",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
+      "timestamped-process-regional-update": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador preserves a timestamped regional update through a configured process endpoint$",
+        "ctest_label": "timestamped-process-regional-update",
         "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
       },
       "order-type-lookup": {
@@ -2546,6 +2771,12 @@
         "junit_scope_note": "JUnit captures the independently buildable process-boundary targets (119 CTest registrations, 214 emitted section-level testcases, and 5458 assertions); the aggregate umbrella registration remains in the 209-test CTest label but is intentionally excluded from JUnit because its federation-management translation unit is not an evidence source. The checked-in JUnit artifact predates the latest federation-save abort slice and is not presented as fresh evidence.",
         "junit_merge_script": "tools/merge_junit_reports.py",
         "junit_generated_before_plan_id": "umbra-cpp-process-endpoint-directed-interaction-transportation-query"
+      },
+      "process-boundary-federation-lifecycle": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador routes public Create, Join, Resign, and Destroy through a configured process endpoint$",
+        "ctest_label": "process-boundary",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
       },
       "process-query-time-bounds": {
         "catch2_target": "umbra_ieee1516_2025_connection_catch2",
@@ -2823,9 +3054,32 @@
           "cpp/tests/ieee1516_2025_connection_catch2.cpp"
         ]
       },
+      "process-regional-class-request-attribute-value-update-private": {
+        "catch2_target": "umbra_process_boundary_private_catch2",
+        "ctest_filter": "^umbra\\.process_boundary_private\\.catch2\\.Private process service preserves regions for regional class Request Attribute Value Update$",
+        "ctest_label": "process-boundary",
+        "source": "cpp/tests/process_federation_service_catch2.cpp"
+      },
+      "process-regional-class-request-attribute-value-update-invalid-region-private": {
+        "catch2_target": "umbra_process_boundary_private_catch2",
+        "ctest_filter": "^umbra\\.process_boundary_private\\.catch2\\.Private process service rejects invalid regional class Request Attribute Value Update selectors deterministically$",
+        "ctest_label": "process-boundary",
+        "source": "cpp/tests/process_federation_service_catch2.cpp"
+      },
+      "process-regional-class-request-attribute-value-update-invalid-region-public": {
+        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador maps public process regional Request Attribute Value Update selector failures$",
+        "ctest_label": "process-boundary",
+        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+      },
       "fom-module-management": {
         "catch2_target": "umbra_fom_declaration_management_catch2",
         "ctest_filter": "^umbra\\.fom_declaration_management\\.catch2\\.",
+        "source": "cpp/tests/fom_declaration_management_catch2.cpp"
+      },
+      "fom-summary-rule-1": {
+        "catch2_target": "umbra_fom_declaration_management_catch2",
+        "ctest_filter": "^umbra\\.fom_declaration_management\\.catch2\\.Embedded joined federates retain a validated 2025 HLA FOM$",
         "source": "cpp/tests/fom_declaration_management_catch2.cpp"
       },
       "schema-conflict": {
@@ -3017,7 +3271,16 @@
       }
     },
     "lane_assertion_counts": {
-      "process-boundary": 6717,
+      "process-boundary": 6855,
+      "process-boundary-federation-lifecycle": 19,
+      "process-unpublish-object-class-attributes": 32,
+      "process-update-rate-query": 20,
+      "process-update-rate-query-named": 16,
+      "process-update-rate-subscription": 24,
+      "process-update-attribute-delivery-reduction": 131,
+      "interaction-subscription-mode-exclusivity": 129,
+      "interaction-sent-class-preservation": 87,
+      "timestamped-process-regional-update": 86,
       "process-object-instance-name-reservation": 77,
       "process-flush-queue": 16,
       "process-flush-queue-galt-frontier": 57,
@@ -3067,7 +3330,7 @@
       "process-pushed-ownership-assumption-evoked": 33,
       "process-pushed-ownership-assumption-evoked-save-restore": 73,
       "evoked-synchronization-save-restore": 39,
-      "process-multi-recipient-regional-interaction": 126,
+      "process-multi-recipient-regional-interaction": 268,
       "timestamped-process-regional-interaction": 71,
       "negotiated-divestiture-confirmation-pending": 103,
       "cancel-attribute-ownership-acquisition-confirmation-boundary": 51,
@@ -3255,13 +3518,14 @@
       "ownership-transfer-update-region-deferred-cancel": 66,
       "object-instance-name-reservation": 68,
       "object-instance-named-registration": 69,
+      "object-instance-registration-invalid-region": 10,
       "evoked-regional-interaction-source-region-snapshot": 42,
       "timestamped-regional-interaction-tso-retraction": 68,
       "regional-object-attribute-routing": 61,
       "regional-object-attribute-subscription-isolation": 40,
       "zero-dimensional-region": 26,
       "zero-dimensional-regional-interaction": 28,
-      "focused-positive-dimensional-regional-interaction": 50,
+      "focused-positive-dimensional-regional-interaction": 58,
       "whole-class-unsubscribe": 20,
       "no-common-dimension": 45,
       "time-axis-independence": 94,
@@ -3284,6 +3548,21 @@
       "ordinary-regional-interaction-service-report-mom-interaction": 107,
       "service-reporting-interlock": 41,
       "service-report-file-lifecycle": 232,
+      "process-service-report-file-switch-cycle": 35,
+      "process-service-report-file-multifederate": 26,
+      "process-mom-set-switches": 14,
+      "process-mom-service-report-interlock": 16,
+      "process-mom-extension-parameter": 16,
+      "process-mom-exception-reporting-switch": 30,
+      "process-mom-service-exception-report": 180,
+      "process-mom-exception-report-parameters": 148,
+      "mom-service-invocation-parameters": 210,
+      "process-exception-reporting-switch-gates": 26,
+      "process-exception-report-codec": 26,
+      "process-service-report-file-rejoin": 25,
+      "process-service-report-file-failure": 7,
+      "process-service-report-file-loss": 15,
+      "service-report-file-multifederate": 18,
       "object-attribute-scope-advisory-state": 187,
       "timestamped-regional-interaction-service-report": 490,
       "timestamped-regional-interaction-failure": 496
@@ -3447,7 +3726,7 @@
       "python tools/query_rti_work.py check --compact",
       "python tools/query_rti_work.py check --json",
       "python tools/query_rti_work.py test \"Embedded transport loss applies the bounded automatic NoAction forced-resign policy\" --summary --compact",
-      "python tools/query_rti_work.py test \"RTIambassador publishes object-class attributes and registers an object through a configured process endpoint\" --summary --compact",
+      "python tools/query_rti_work.py test \"RTIambassador publishes and unpublishes object-class attributes and registers an object through a configured process endpoint\" --summary --compact",
       "python tools/query_rti_work.py test \"RTIambassador reserves a name and registers a named object through a configured process endpoint\" --summary --compact",
       "ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -R \"^umbra_rti_package_process_connection_loss_consumer$\" --output-on-failure",
       "ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-connection-loss --output-on-failure",
@@ -3462,7 +3741,7 @@
       "python tools/query_rti_work.py test \"RTIambassador receives a process interaction through the official Evoke callback surface\" --summary --compact",
       "python tools/query_rti_work.py test \"Private process service routes ordinary Update Attribute Values to a subscribed receiver\" --summary --compact",
       "python tools/query_rti_work.py test \"RTIambassador routes public Update Attribute Values through a configured process endpoint\" --summary --compact",
-      "python tools/query_rti_work.py test \"RTIambassador delivers a process Update Attribute Values event through the official Reflect callback\" --summary --compact",
+      "python tools/query_rti_work.py test \"RTIambassador reflects an update only once for overlapping process subscriptions\" --summary --compact",
       "python tools/query_rti_work.py section hla-1516.1-2025:clause-6.10 --summary --limit 20",
       "python tools/query_rti_work.py section hla-1516.1-2025:clause-6.11.1 --summary --limit 20",
       "python tools/query_rti_work.py trace <exact-test-id-title-requirement-or-section> --summary --compact",
@@ -3705,6 +3984,70 @@
   },
   "recent_completed_slices": [
     {
+      "plan_id": "umbra-private-process-client-close-exception-recheck-unit",
+      "test_query": "Private ProcessFederationClient close releases a blocked exception-report recheck before draining projection leases",
+      "lane_queries": [
+        "unit",
+        "internal",
+        "callbacks",
+        "process-boundary",
+        "process-client-close-exception-recheck"
+      ],
+      "source_location": "cpp/tests/process_federation_service_catch2.cpp:3420",
+      "primary_lane": "process-client-close-exception-recheck",
+      "focus_lane": "process-client-close-exception-recheck",
+      "assertions": 8,
+      "callback_models": [],
+      "standard_sections": [],
+      "requirements": 0,
+      "api_surfaces": 0,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-exception-report-concurrency-integration",
+      "test_query": "RTIambassador preserves process exception-report recheck response ownership during concurrent service requests",
+      "lane_queries": [
+        "integration",
+        "development-profile",
+        "foundation",
+        "mom",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "process-exception-report-concurrency",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.get-object-class-handle",
+        "rti.service.get-object-class-name",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "rti.service.get-transportation-type-handle",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.get-exception-reporting-switch",
+        "rti.service.set-exception-reporting-switch",
+        "rti.service.evoke-callback",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect",
+        "federate.callback.receive-interaction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:40222",
+      "primary_lane": "process-exception-report-concurrency",
+      "focus_lane": "process-exception-report-concurrency",
+      "assertions": 104,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirements": 2,
+      "api_surfaces": 15,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
       "plan_id": "umbra-cpp-process-endpoint-federation-restore-abort-immediate-integration",
       "test_query": "RTIambassadors preserve federation restore abort under HLA_IMMEDIATE through the configured process endpoint",
       "lane_queries": [
@@ -3729,7 +4072,7 @@
         "federate.callback.initiate-federate-restore",
         "federate.callback.federation-not-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:24172",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:26046",
       "primary_lane": "process-federation-restore-abort-immediate",
       "focus_lane": "process-federation-restore-abort-immediate",
       "assertions": 25,
@@ -3773,7 +4116,7 @@
         "federate.callback.initiate-federate-restore",
         "federate.callback.federation-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:24027",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:25901",
       "primary_lane": "process-federation-restore-success-lifecycle-immediate",
       "focus_lane": "process-federation-restore-success-lifecycle-immediate",
       "assertions": 24,
@@ -3817,7 +4160,7 @@
         "federate.callback.initiate-federate-restore",
         "federate.callback.federation-not-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:23880",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:25754",
       "primary_lane": "process-federation-restore-failure-lifecycle-immediate",
       "focus_lane": "process-federation-restore-failure-lifecycle-immediate",
       "assertions": 25,
@@ -3854,7 +4197,7 @@
         "rti.service.request-federation-restore",
         "federate.callback.request-federation-restore-failed"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:23773",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:25647",
       "primary_lane": "process-federation-restore-request-failure-immediate",
       "focus_lane": "process-federation-restore-request-failure-immediate",
       "assertions": 10,
@@ -3897,7 +4240,7 @@
         "federate.callback.federation-restore-status-response",
         "federate.callback.federation-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:35396",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:37863",
       "primary_lane": "process-federation-restore-status-multi-federate-immediate",
       "focus_lane": "process-federation-restore-status-multi-federate-immediate",
       "assertions": 107,
@@ -3945,7 +4288,7 @@
         "federate.callback.initiate-federate-restore",
         "federate.callback.federation-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:35213",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:37680",
       "primary_lane": "process-federation-restore-status-idle-terminal-immediate",
       "focus_lane": "process-federation-restore-status-idle-terminal-immediate",
       "assertions": 38,
@@ -3993,7 +4336,7 @@
         "federate.callback.federation-restore-status-response",
         "federate.callback.federation-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:35055",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:37522",
       "primary_lane": "process-federation-restore-status-immediate",
       "focus_lane": "process-federation-restore-status-immediate",
       "assertions": 28,
@@ -4038,7 +4381,7 @@
         "federate.callback.federation-not-saved",
         "federate.callback.federation-save-status-response"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:34917",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:37384",
       "primary_lane": "process-federation-save-not-complete-status-terminal-immediate",
       "focus_lane": "process-federation-save-not-complete-status-terminal-immediate",
       "assertions": 20,
@@ -4082,7 +4425,7 @@
         "federate.callback.federation-not-saved",
         "federate.callback.federation-save-status-response"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:34407",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:36874",
       "primary_lane": "process-federation-save-not-complete-status-terminal-owner-reporter",
       "focus_lane": "process-federation-save-not-complete-status-terminal-owner-reporter",
       "assertions": 46,
@@ -4126,7 +4469,7 @@
         "federate.callback.federation-not-saved",
         "federate.callback.federation-save-status-response"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:34129",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:36596",
       "primary_lane": "process-federation-save-not-complete-status-terminal-multi-federate",
       "focus_lane": "process-federation-save-not-complete-status-terminal-multi-federate",
       "assertions": 46,
@@ -4167,7 +4510,7 @@
         "federate.callback.federation-not-saved",
         "federate.callback.federation-save-status-response"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:33983",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:36450",
       "primary_lane": "process-federation-save-not-complete-status-terminal",
       "focus_lane": "process-federation-save-not-complete-status-terminal",
       "assertions": 24,
@@ -4208,7 +4551,7 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-not-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:34685",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:37152",
       "primary_lane": "process-federation-save-not-complete-receiver-reporter",
       "focus_lane": "process-federation-save-not-complete-receiver-reporter",
       "assertions": 32,
@@ -4248,7 +4591,7 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-not-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:33751",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:36218",
       "primary_lane": "process-federation-save-not-complete-multi-federate",
       "focus_lane": "process-federation-save-not-complete-multi-federate",
       "assertions": 32,
@@ -4286,7 +4629,7 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-not-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:33620",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:36087",
       "primary_lane": "process-federation-save-not-complete",
       "focus_lane": "process-federation-save-not-complete",
       "assertions": 18,
@@ -4334,7 +4677,7 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:33323",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:35790",
       "primary_lane": "process-federation-save-timed-replacement",
       "focus_lane": "process-federation-save-timed-replacement",
       "assertions": 53,
@@ -4385,7 +4728,7 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:3264",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:4365",
       "primary_lane": "process-federation-save-timed-queued-tso",
       "focus_lane": "process-federation-save-timed-queued-tso",
       "assertions": 130,
@@ -4444,7 +4787,7 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2839",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:3940",
       "primary_lane": "process-federation-save-timed-multiple-constrained",
       "focus_lane": "process-federation-save-timed-multiple-constrained",
       "assertions": 63,
@@ -4489,7 +4832,7 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2507",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:3608",
       "primary_lane": "process-federation-save-timed-multi-federate",
       "focus_lane": "process-federation-save-timed-multi-federate",
       "assertions": 46,
@@ -4831,7 +5174,7 @@
       "primary_lane": "process-pushed-ownership-assumption-evoked-save-restore",
       "focus_lane": "process-pushed-ownership-assumption-evoked-save-restore",
       "assertions": 73,
-      "requirements": 9,
+      "requirements": 11,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
         "hla-1516.1-2025:clause-4.21.1",
@@ -5046,7 +5389,7 @@
         "federate.callback.federation-restore-status-response",
         "federate.callback.federation-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1753",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2873",
       "primary_lane": "process-federation-restore-status-multi-federate",
       "focus_lane": "process-federation-restore-status-multi-federate",
       "assertions": 106,
@@ -5093,7 +5436,7 @@
         "federate.callback.initiate-federate-restore",
         "federate.callback.federation-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1546",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2666",
       "primary_lane": "process-federation-restore-status-idle-terminal",
       "focus_lane": "process-federation-restore-status-idle-terminal",
       "assertions": 48,
@@ -5140,7 +5483,7 @@
         "federate.callback.federation-restore-status-response",
         "federate.callback.federation-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1371",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2491",
       "primary_lane": "process-federation-restore-status",
       "focus_lane": "process-federation-restore-status",
       "assertions": 34,
@@ -5185,7 +5528,7 @@
         "federate.callback.initiate-federate-restore",
         "federate.callback.federation-not-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1201",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2329",
       "primary_lane": "process-federation-restore-abort",
       "focus_lane": "process-federation-restore-abort",
       "assertions": 30,
@@ -5228,7 +5571,7 @@
         "federate.callback.initiate-federate-restore",
         "federate.callback.federation-not-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1038",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2166",
       "primary_lane": "process-federation-restore-failure-lifecycle",
       "focus_lane": "process-federation-restore-failure-lifecycle",
       "assertions": 30,
@@ -5271,7 +5614,7 @@
         "federate.callback.initiate-federate-restore",
         "federate.callback.federation-restored"
       ],
-        "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:876",
+        "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2004",
       "primary_lane": "process-federation-restore-success-lifecycle",
       "focus_lane": "process-federation-restore-success-lifecycle",
       "assertions": 29,
@@ -5309,7 +5652,7 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-not-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:961",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:5223",
       "primary_lane": "process-federation-save-abort",
       "focus_lane": "process-federation-save-abort",
       "assertions": 13,
@@ -5346,7 +5689,7 @@
         "federate.callback.federation-save-status-response",
         "federate.callback.federation-not-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:814",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:5076",
       "primary_lane": "process-federation-save-status",
       "focus_lane": "process-federation-save-status",
       "assertions": 19,
@@ -5384,7 +5727,7 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2250",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:3351",
       "primary_lane": "process-federation-save-untimed",
       "focus_lane": "process-federation-save-untimed",
       "assertions": 15,
@@ -5474,7 +5817,7 @@
         "federate.callback.announce-synchronization-point",
         "federate.callback.federation-synchronized"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:883",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:5556",
       "primary_lane": "process-synchronization-point-explicit-failure-immediate",
       "focus_lane": "process-synchronization-point-explicit-failure-immediate",
       "assertions": 23,
@@ -5515,7 +5858,7 @@
         "federate.callback.announce-synchronization-point",
         "federate.callback.federation-synchronized"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:666",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:5339",
       "primary_lane": "process-synchronization-point-explicit-failure",
       "focus_lane": "process-synchronization-point-explicit-failure",
       "assertions": 27,
@@ -5553,7 +5896,7 @@
         "federate.callback.announce-synchronization-point",
         "federate.callback.federation-synchronized"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:461",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1690",
       "primary_lane": "process-synchronization-point",
       "focus_lane": "process-synchronization-point",
       "assertions": 27,
@@ -5593,7 +5936,7 @@
         "federate.callback.confirm-interaction-transportation-type-change",
         "federate.callback.report-interaction-transportation-type"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:27231",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:34085",
       "primary_lane": "process-directed-interaction-transportation-query",
       "focus_lane": "process-directed-interaction-transportation-query",
       "assertions": 44,
@@ -5670,7 +6013,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:28288",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:35402",
       "primary_lane": "process-directed-interaction-transportation",
       "focus_lane": "process-directed-interaction-transportation",
       "assertions": 66,
@@ -5718,7 +6061,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2528",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:8206",
       "primary_lane": "process-directed-interaction-multi-recipient",
       "focus_lane": "process-directed-interaction-multi-recipient",
       "assertions": 104,
@@ -5776,7 +6119,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:27745",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:34859",
       "primary_lane": "process-transportation-timestamped-regional-interaction-control",
       "focus_lane": "process-transportation-timestamped-regional-interaction-control",
       "assertions": 122,
@@ -5835,7 +6178,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:27247",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:34361",
       "primary_lane": "process-transportation-regional-interaction-control",
       "focus_lane": "process-transportation-regional-interaction-control",
       "assertions": 84,
@@ -5891,7 +6234,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:15757",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:22447",
       "primary_lane": "process-tso-directed-interaction-callback-gating",
       "focus_lane": "process-tso-directed-interaction-callback-gating",
       "assertions": 62,
@@ -5943,7 +6286,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:26210",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:33064",
       "primary_lane": "process-tso-regional-interaction-callback-gating",
       "focus_lane": "process-tso-regional-interaction-callback-gating",
       "assertions": 69,
@@ -6011,7 +6354,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:24629",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:32372",
       "primary_lane": "process-tso-interaction-fanout",
       "focus_lane": "process-tso-interaction-fanout",
       "assertions": 133,
@@ -6072,7 +6415,7 @@
         "transport-and-conformance",
         "2025"
       ],
-        "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:24182",
+        "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:31925",
       "primary_lane": "process-tso-interaction-multiple-message-ordering",
       "focus_lane": "process-tso-interaction-multiple-message-ordering",
       "assertions": 51,
@@ -6182,7 +6525,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:23702",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:31445",
       "primary_lane": "process-tso-interaction-regulation-reenable-changed-lookahead",
       "focus_lane": "process-tso-interaction-regulation-reenable-changed-lookahead",
       "assertions": 67,
@@ -6242,7 +6585,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:23195",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:30937",
       "primary_lane": "process-tso-attribute-update-regulation-reenable-changed-lookahead",
       "focus_lane": "process-tso-attribute-update-regulation-reenable-changed-lookahead",
       "assertions": 70,
@@ -6293,7 +6636,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:22808",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:30550",
       "primary_lane": "process-tso-attribute-retraction-reenable",
       "focus_lane": "process-tso-attribute-retraction-reenable",
       "assertions": 45,
@@ -6355,7 +6698,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:21443",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:29734",
       "primary_lane": "process-tso-attribute-retraction-regional",
       "focus_lane": "process-tso-attribute-retraction-regional",
       "assertions": 122,
@@ -6411,7 +6754,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:20790",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:29081",
       "primary_lane": "process-tso-attribute-retraction-fanout",
       "focus_lane": "process-tso-attribute-retraction-fanout",
       "assertions": 100,
@@ -6464,7 +6807,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:20265",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:28553",
       "primary_lane": "process-tso-attribute-retraction-ordering",
       "focus_lane": "process-tso-attribute-retraction-ordering",
       "assertions": 81,
@@ -6514,7 +6857,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:20378",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:28117",
       "primary_lane": "process-tso-attribute-retraction-before-callback",
       "focus_lane": "process-tso-attribute-retraction-before-callback",
       "assertions": 51,
@@ -6564,7 +6907,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:20173",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:27912",
       "primary_lane": "process-query-time-bounds-zero-lookahead",
       "focus_lane": "process-query-time-bounds-zero-lookahead",
       "assertions": 28,
@@ -6607,7 +6950,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:19881",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:27620",
       "primary_lane": "process-query-time-bounds-queued-tso",
       "focus_lane": "process-query-time-bounds-queued-tso",
       "assertions": 31,
@@ -6645,7 +6988,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:19674",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:27413",
       "primary_lane": "process-query-time-bounds-multi-federate",
       "focus_lane": "process-query-time-bounds-multi-federate",
       "assertions": 24,
@@ -6682,7 +7025,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:19564",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:27303",
       "primary_lane": "process-query-time-bounds-immediate",
       "focus_lane": "process-query-time-bounds-immediate",
       "assertions": 14,
@@ -6729,7 +7072,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:12600",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:19290",
       "primary_lane": "process-time-advance-next-message-queued-focused",
       "focus_lane": "process-time-advance-next-message-queued-focused",
       "assertions": 101,
@@ -6778,7 +7121,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:19050",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:26789",
       "primary_lane": "process-flush-queue-multiple-records",
       "focus_lane": "process-flush-queue-multiple-records",
       "assertions": 110,
@@ -6825,7 +7168,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:18614",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:26352",
       "primary_lane": "process-flush-queue-galt-frontier",
       "focus_lane": "process-flush-queue-galt-frontier",
       "assertions": 57,
@@ -6865,7 +7208,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:18207",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:25353",
       "primary_lane": "process-boundary",
       "focus_lane": "process-flush-queue",
       "assertions": 16,
@@ -6899,7 +7242,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:17455",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:25150",
       "primary_lane": "process-boundary",
       "assertions": 23,
       "requirements": 6,
@@ -6930,7 +7273,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:17953",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:26239",
       "primary_lane": "process-boundary",
       "assertions": 14,
       "requirements": 5,
@@ -6958,7 +7301,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:17756",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:25451",
       "primary_lane": "process-boundary",
       "assertions": 11,
       "requirements": 2,
@@ -6986,7 +7329,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:17351",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:25046",
       "primary_lane": "process-boundary",
       "assertions": 9,
       "requirements": 2,
@@ -7302,7 +7645,7 @@
         "public-endpoint",
         "2025"
       ],
-      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:684",
+      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:685",
       "primary_lane": "process-ownership-query",
       "assertions": 26,
       "requirements": 6,
@@ -7330,7 +7673,7 @@
         "public-endpoint",
         "2025"
       ],
-      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:562",
+      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:563",
       "primary_lane": "process-ownership-check",
       "assertions": 18,
       "requirements": 3,
@@ -7895,7 +8238,7 @@
         "public-endpoint",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:17095",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:24790",
       "assertions": 48,
       "requirements": 4,
       "standard_sections": [
@@ -8140,7 +8483,7 @@
         "federate.callback.receive-interaction",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:15195",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:21886",
       "assertions": 71,
       "requirements": 28,
       "standard_sections": [
@@ -8189,7 +8532,7 @@
         "rti.service.send-interaction-with-regions",
         "federate.callback.receive-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:14552",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:21258",
       "assertions": 126,
       "requirements": 13,
       "standard_sections": [
@@ -8226,7 +8569,7 @@
         "rti.service.evoke-callback",
         "federate.callback.receive-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:14106",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:20797",
       "assertions": 79,
       "requirements": 10,
       "standard_sections": [
@@ -8261,7 +8604,7 @@
         "rti.service.get-available-dimensions-for-object-class",
         "rti.service.get-available-dimensions-for-interaction-class"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:13933",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:20624",
       "assertions": 28,
       "requirements": 4,
       "standard_sections": [
@@ -8293,7 +8636,7 @@
         "rti.service.get-transportation-type-handle",
         "rti.service.get-transportation-type-name"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:13785",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:20476",
       "assertions": 16,
       "requirements": 6,
       "standard_sections": [
@@ -8325,7 +8668,7 @@
         "rti.service.get-transportation-type-handle",
         "rti.service.get-transportation-type-name"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:13628",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:20319",
       "assertions": 16,
       "requirements": 6,
       "standard_sections": [
@@ -8356,7 +8699,7 @@
         "rti.service.get-attribute-name",
         "rti.service.get-parameter-name"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:13411",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:20102",
       "assertions": 24,
       "requirements": 4,
       "standard_sections": [
@@ -8385,7 +8728,7 @@
         "rti.service.get-object-class-name",
         "rti.service.get-interaction-class-name"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:13224",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:19915",
       "assertions": 20,
       "requirements": 4,
       "standard_sections": [
@@ -8416,7 +8759,7 @@
         "rti.service.get-object-instance-handle",
         "rti.service.get-object-instance-name"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:13040",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:19731",
       "assertions": 18,
       "requirements": 5,
       "standard_sections": [
@@ -8449,7 +8792,7 @@
         "rti.service.query-logical-time",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:12492",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:19182",
       "assertions": 22,
       "requirements": 4,
       "standard_sections": [
@@ -8480,7 +8823,7 @@
         "rti.service.query-logical-time",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:12396",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:19086",
       "assertions": 15,
       "requirements": 4,
       "standard_sections": [
@@ -8521,7 +8864,7 @@
         "federate.callback.time-constrained-enabled",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:12164",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:18854",
       "assertions": 34,
       "requirements": 6,
       "standard_sections": [
@@ -8555,7 +8898,7 @@
         "rti.service.query-lookahead",
         "federate.callback.time-regulation-enabled"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:12058",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:18748",
       "assertions": 17,
       "requirements": 3,
       "standard_sections": [
@@ -8585,7 +8928,7 @@
         "rti.service.evoke-callback",
         "federate.callback.time-regulation-enabled"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:11962",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:18652",
       "assertions": 13,
       "requirements": 2,
       "standard_sections": [
@@ -8663,7 +9006,7 @@
         "federate.callback.inform-attribute-ownership",
         "federate.callback.attribute-is-not-owned"
       ],
-      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:379",
+      "source_location": "cpp/tests/attribute_ownership_query_catch2.cpp:380",
       "assertions": 67,
       "callback_models": [
         "HLA_EVOKED",
@@ -9272,8 +9615,8 @@
         "service-reporting",
         "service-report-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:94222",
-      "assertions": 119,
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:69454",
+      "assertions": 125,
       "callback_models": [
         "HLA_EVOKED",
         "HLA_IMMEDIATE"
@@ -10696,17 +11039,19 @@
     },
     {
       "plan_id": "umbra-cpp-process-endpoint-federation-lifecycle-integration",
-      "test_query": "RTIambassador routes public Create, Join, and Resign through a configured process endpoint",
+      "test_query": "RTIambassador routes public Create, Join, Resign, and Destroy through a configured process endpoint",
       "lane_queries": [
         "integration",
         "foundation",
         "federation-management",
         "transport",
         "process-boundary",
-        "public-endpoint"
+        "public-endpoint",
+        "process-boundary-federation-lifecycle",
+        "rti.service.destroy-federation-execution"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:251",
-      "assertions": 9,
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:495",
+      "assertions": 19,
       "callback_models": [],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.1.1",
@@ -10714,7 +11059,12 @@
         "hla-1516.1-2025:clause-4.5.5",
         "hla-1516.1-2025:clause-4.11.4",
         "hla-1516.1-2025:clause-4.12",
-        "hla-1516.1-2025:clause-8.18.1"
+        "hla-1516.1-2025:clause-4.6.5",
+        "hla-1516.1-2025:clause-8",
+        "hla-1516.1-2025:clause-8.18.1",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.3.1",
+        "hla-1516.1-2025:clause-8.4.3"
       ],
       "status": "implemented-private-foundation-not-conformance-evidence"
     },
@@ -10781,7 +11131,7 @@
         "public-endpoint",
         "rti.service.change-interaction-order-type"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2185",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:8738",
       "assertions": 13,
       "callback_models": [],
       "standard_sections": [
@@ -10810,7 +11160,7 @@
         "process-boundary",
         "public-endpoint"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2167",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:7845",
       "assertions": 22,
       "callback_models": [],
       "standard_sections": [
@@ -10838,7 +11188,7 @@
         "process-boundary",
         "public-endpoint"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2344",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:8903",
       "assertions": 32,
       "callback_models": [
         "HLA_EVOKED"
@@ -10866,7 +11216,7 @@
         "process-boundary",
         "public-endpoint"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2673",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:9232",
       "assertions": 28,
       "callback_models": [
         "HLA_EVOKED"
@@ -10901,7 +11251,7 @@
         "rti.service.change-default-attribute-transportation-type",
         "rti.service.register-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:856",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:6262",
       "assertions": 18,
       "callback_models": [
         "HLA_EVOKED",
@@ -10915,7 +11265,7 @@
     },
     {
       "plan_id": "umbra-cpp-process-endpoint-object-registration-integration",
-      "test_query": "RTIambassador publishes object-class attributes and registers an object through a configured process endpoint",
+      "test_query": "RTIambassador publishes and unpublishes object-class attributes and registers an object through a configured process endpoint",
       "lane_queries": [
         "integration",
         "foundation",
@@ -10926,15 +11276,18 @@
         "process-boundary",
         "public-endpoint",
         "order-type-control",
+        "process-unpublish-object-class-attributes",
         "rti.service.get-object-class-handle",
         "rti.service.get-attribute-handle",
         "rti.service.publish-object-class-attributes",
+        "rti.service.unpublish-object-class-attributes",
+        "rti.service.unpublish-object-class",
         "rti.service.register-object-instance",
         "rti.service.change-attribute-order-type",
         "rti.service.change-default-attribute-order-type"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:689",
-      "assertions": 22,
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:6053",
+      "assertions": 32,
       "callback_models": [
         "HLA_EVOKED",
         "HLA_IMMEDIATE"
@@ -10942,6 +11295,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.1.2",
         "hla-1516.1-2025:clause-5.2",
+        "hla-1516.1-2025:clause-5.3",
         "hla-1516.1-2025:clause-6.8.4",
         "hla-1516.1-2025:clause-8.24.4",
         "hla-1516.1-2025:clause-8.25.3"
@@ -10961,7 +11315,7 @@
         "public-endpoint",
         "rti.service.subscribe-object-class-attributes"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:5225",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:12136",
       "assertions": 24,
       "callback_models": [
         "HLA_EVOKED",
@@ -10970,6 +11324,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.8"
       ],
+      "superseded_by": "umbra-cpp-process-endpoint-public-object-subscription-integration#process-update-rate-subscription",
       "status": "implemented-private-foundation-not-conformance-evidence"
     },
     {
@@ -11094,7 +11449,7 @@
         "public-endpoint",
         "rti.service.update-attribute-values"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:3000",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:9559",
       "assertions": 20,
       "callback_models": [
         "HLA_EVOKED",
@@ -11107,28 +11462,36 @@
     },
     {
       "plan_id": "umbra-cpp-process-endpoint-update-attribute-values-reflect-integration",
-      "test_query": "RTIambassador delivers a process Update Attribute Values event through the official Reflect callback",
+      "test_query": "RTIambassador reflects an update only once for overlapping process subscriptions",
       "lane_queries": [
         "integration",
         "foundation",
+        "data-distribution-management",
         "object-management",
         "callbacks",
         "callback-controls",
         "transport",
         "process-boundary",
         "public-endpoint",
+        "process-update-attribute-delivery-reduction",
+        "rti.service.subscribe-object-class-attributes",
+        "rti.service.register-object-instance",
         "rti.service.update-attribute-values",
+        "rti.service.discover-object-instance",
+        "federate.callback.discover-object-instance",
         "federate.callback.reflect-attribute-values"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:3181",
-      "assertions": 46,
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:9755",
+      "assertions": 61,
       "callback_models": [
         "HLA_EVOKED",
         "HLA_IMMEDIATE"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-6.9.3",
         "hla-1516.1-2025:clause-6.10",
-        "hla-1516.1-2025:clause-6.11.1"
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-9.1.6"
       ],
       "status": "implemented-private-foundation-not-conformance-evidence"
     },
@@ -11153,7 +11516,7 @@
         "rti.service.commit-region-modifications",
         "rti.service.register-object-instance-with-regions"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:3572",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:10131",
       "assertions": 34,
       "callback_models": [
         "HLA_EVOKED",
@@ -11185,7 +11548,7 @@
         "federate.callback.discover-object-instance",
         "federate.callback.reflect-attribute-values"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:3728",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:10287",
       "assertions": 66,
       "callback_models": [
         "HLA_EVOKED",
@@ -11219,7 +11582,7 @@
         "federate.callback.discover-object-instance",
         "federate.callback.reflect-attribute-values"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:4164",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:10723",
       "assertions": 86,
       "callback_models": [
         "HLA_EVOKED",
@@ -11261,7 +11624,7 @@
         "federate.callback.attributes-in-scope",
         "federate.callback.attributes-out-of-scope"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:4677",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:11236",
       "assertions": 112,
       "callback_models": [
         "HLA_EVOKED",
@@ -11304,7 +11667,7 @@
         "federate.callback.discover-object-instance",
         "federate.callback.reflect-attribute-values"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:5224",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:11783",
       "assertions": 50,
       "callback_models": [
         "HLA_EVOKED",
@@ -11318,7 +11681,8 @@
         "hla-1516.1-2025:clause-9.6",
         "hla-1516.1-2025:clause-9.8"
       ],
-      "status": "implemented-private-foundation-not-conformance-evidence"
+      "status": "implemented-private-foundation-not-conformance-evidence",
+      "superseded_by": "umbra-cpp-process-endpoint-disjoint-regional-update-integration#process-update-attribute-delivery-reduction"
     },
     {
       "plan_id": "umbra-cpp-process-attribute-relevance-advisory-transport",
@@ -11374,7 +11738,7 @@
         "federate.callback.turn-updates-on-for-object-instance",
         "federate.callback.turn-updates-off-for-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:7436",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:14000",
       "assertions": 74,
       "callback_models": [
         "HLA_EVOKED",
@@ -11440,7 +11804,7 @@
         "federate.callback.turn-updates-on-for-object-instance",
         "federate.callback.turn-updates-off-for-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:9145",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:15835",
       "assertions": 90,
       "callback_models": [
         "HLA_EVOKED",
@@ -11479,7 +11843,7 @@
         "federate.callback.turn-updates-on-for-object-instance",
         "federate.callback.turn-updates-off-for-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:8739",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:15429",
       "assertions": 82,
       "callback_models": [
         "HLA_EVOKED",
@@ -11516,7 +11880,7 @@
         "federate.callback.discover-object-instance",
         "federate.callback.turn-updates-on-for-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:9552",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:16242",
       "assertions": 64,
       "callback_models": [
         "HLA_EVOKED",
@@ -11702,6 +12066,40 @@
       "status": "implemented-private-foundation-not-conformance-evidence"
     },
     {
+      "plan_id": "umbra-cpp-process-federation-service-regional-class-request-attribute-value-update-invalid-region",
+      "test_query": "Private process service rejects invalid regional class Request Attribute Value Update selectors deterministically",
+      "lane_queries": [
+        "unit",
+        "foundation",
+        "object-management",
+        "ddm",
+        "callbacks",
+        "transport",
+        "process-boundary",
+        "service-dispatch",
+        "registry-binding",
+        "transport-contract",
+        "process-regional-class-request-attribute-value-update-invalid-region-private",
+        "invalid-regional-selector",
+        "rti.service.request-attribute-value-update-with-regions",
+        "rti.service.create-region",
+        "rti.service.set-range-bounds",
+        "rti.service.commit-region-modifications",
+        "2025"
+      ],
+      "source_location": "cpp/tests/process_federation_service_catch2.cpp:2998",
+      "primary_lane": "process-regional-class-request-attribute-value-update-invalid-region-private",
+      "focus_lane": "process-regional-class-request-attribute-value-update-invalid-region-private",
+      "assertions": 21,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.13.1"
+      ],
+      "requirements": 4,
+      "api_surfaces": 5,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
       "plan_id": "umbra-cpp-process-federation-service-regional-class-request-attribute-value-update",
       "test_query": "Private process service preserves regions for regional class Request Attribute Value Update",
       "lane_queries": [
@@ -11715,13 +12113,15 @@
         "service-dispatch",
         "registry-binding",
         "transport-contract",
+        "process-regional-class-request-attribute-value-update-private",
+        "disjoint-regional-selector",
         "rti.service.request-attribute-value-update-with-regions",
         "rti.service.register-object-instance-with-regions",
         "federate.callback.provide-attribute-value-update",
         "2025"
       ],
-      "source_location": "cpp/tests/process_federation_service_catch2.cpp:2428",
-      "assertions": 24,
+      "source_location": "cpp/tests/process_federation_service_catch2.cpp:2603",
+      "assertions": 30,
       "callback_models": [],
       "standard_sections": [
         "hla-1516.1-2025:clause-9.13.1"
@@ -11817,7 +12217,7 @@
         "federate.callback.provide-attribute-value-update",
         "federate.callback.reflect-attribute-values"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:15755",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:22994",
       "assertions": 62,
       "callback_models": [
         "HLA_EVOKED",
@@ -11847,7 +12247,7 @@
         "federate.callback.discover-object-instance",
         "federate.callback.provide-attribute-value-update"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:16278",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:23517",
       "assertions": 50,
       "callback_models": [
         "HLA_EVOKED",
@@ -11872,23 +12272,31 @@
         "callback-controls",
         "transport",
         "process-boundary",
+        "process-regional-class-request-attribute-value-update",
         "public-endpoint",
         "2025",
         "rti.service.request-attribute-value-update-with-regions",
         "rti.service.register-object-instance-with-regions",
         "rti.service.create-region",
-        "federate.callback.provide-attribute-value-update"
+        "rti.service.subscribe-object-class-attributes-with-regions",
+        "rti.service.update-attribute-values",
+        "federate.callback.provide-attribute-value-update",
+        "federate.callback.discover-object-instance",
+        "federate.callback.reflect-attribute-values"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:16697",
-      "assertions": 35,
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:23936",
+      "assertions": 50,
       "callback_models": [
-        "HLA_EVOKED"
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-9.13.1",
         "hla-1516.1-2025:clause-9.13.6",
+        "hla-1516.1-2025:clause-9.3",
+        "hla-1516.1-2025:clause-9.5",
         "hla-1516.1-2025:clause-11.5"
       ],
       "status": "implemented-public-foundation-not-conformance-evidence"
@@ -11919,7 +12327,7 @@
         "federate.callback.turn-updates-on-for-object-instance",
         "federate.callback.turn-updates-off-for-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:9893",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:16583",
       "assertions": 112,
       "callback_models": [
         "HLA_EVOKED",
@@ -11960,7 +12368,7 @@
         "federate.callback.turn-updates-on-for-object-instance",
         "federate.callback.turn-updates-off-for-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:5775",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:12334",
       "assertions": 96,
       "callback_models": [
         "HLA_EVOKED",
@@ -12064,7 +12472,7 @@
         "process-event.request-retraction",
         "federate.callback.request-retraction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:6210",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:12770",
       "assertions": 387,
       "callback_models": [
         "HLA_EVOKED",
@@ -12522,7 +12930,7 @@
         "public-endpoint",
         "local-delete-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:863",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:6705",
       "assertions": 18,
       "callback_models": [],
       "standard_sections": [
@@ -12567,7 +12975,7 @@
         "rti.service.delete-object-instance",
         "federate.callback.remove-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:7894",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:14458",
       "assertions": 25,
       "callback_models": [
         "HLA_EVOKED"
@@ -12601,7 +13009,7 @@
         "federate.callback.time-constrained-enabled",
         "federate.callback.remove-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:9166",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:14844",
       "assertions": 283,
       "callback_models": [
         "HLA_EVOKED",
@@ -19352,7 +19760,7 @@
         "rti.service.query-logical-time",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:595",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:5959",
       "assertions": 14,
       "callback_models": [
         "HLA_EVOKED"
@@ -19382,7 +19790,7 @@
         "rti.error.logical-time-already-passed",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:10835",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:17525",
       "assertions": 12,
       "callback_models": [
         "HLA_EVOKED"
@@ -19411,7 +19819,7 @@
         "rti.service.time-advance-request",
         "rti.error.invalid-logical-time"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:10928",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:17618",
       "assertions": 9,
       "callback_models": [
         "HLA_EVOKED"
@@ -19441,7 +19849,7 @@
         "rti.error.request-for-time-regulation-pending",
         "federate.callback.time-regulation-enabled"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:11012",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:17702",
       "assertions": 14,
       "callback_models": [
         "HLA_EVOKED"
@@ -19473,7 +19881,7 @@
         "rti.error.request-for-time-constrained-pending",
         "federate.callback.time-constrained-enabled"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:11105",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:17795",
       "assertions": 14,
       "callback_models": [
         "HLA_EVOKED"
@@ -19502,7 +19910,7 @@
         "rti.service.time-advance-request",
         "rti.error.invalid-logical-time"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:11210",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:17900",
       "assertions": 9,
       "callback_models": [
         "HLA_EVOKED"
@@ -19534,7 +19942,7 @@
         "rti.service.time-advance-request",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:11295",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:17985",
       "assertions": 30,
       "callback_models": [
         "HLA_EVOKED"
@@ -19580,7 +19988,7 @@
         "federate.callback.receive-interaction",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:11510",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:18200",
       "assertions": 62,
       "callback_models": [
         "HLA_EVOKED"
@@ -19673,7 +20081,7 @@
         "federate.callback.reflect-attribute-values",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:6829",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:13389",
       "assertions": 54,
       "requirements": 17,
       "api_surfaces": 17,
@@ -22642,11 +23050,10 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:26822",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:33676",
       "assertions": 30,
       "callback_models": [
-        "HLA_EVOKED",
-        "HLA_IMMEDIATE"
+        "HLA_EVOKED"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.26",
@@ -22677,7 +23084,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:27030",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:33884",
       "assertions": 40,
       "callback_models": [
         "HLA_EVOKED",
@@ -22715,12 +23122,13 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:2370",
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:3471",
       "primary_lane": "process-federation-save-timed",
       "focus_lane": "process-federation-save-timed",
       "assertions": 21,
       "callback_models": [
-        "HLA_EVOKED"
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
@@ -22767,9 +23175,1048 @@
         "hla-1516.1-2025:clause-7.1.1",
         "hla-1516.1-2025:clause-7.2"
       ],
-      "requirements": 9,
+      "requirements": 11,
       "api_surfaces": 11,
       "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-joined-federate-mom-report-file-foundation-integration",
+      "test_query": "Private process service allocates one filesystem service-report file and MOM identity per joined federate",
+      "lane_queries": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-report-file",
+        "service-reporting",
+        "process-boundary",
+        "registry-binding",
+        "2025",
+        "rti.service.join-federation-execution",
+        "rti.service.resign-federation-execution"
+      ],
+      "source_location": "cpp/tests/process_federation_service_catch2.cpp:131",
+      "primary_lane": "process-boundary",
+      "focus_lane": "process-boundary",
+      "assertions": 12,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.1.2",
+        "hla-1516.1-2025:clause-6.9.3",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "requirements": 3,
+      "api_surfaces": 4,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-joined-federate-mom-report-file-integration",
+      "test_query": "RTIambassador projects the joined-federate MOM report path through a configured process endpoint",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "federation-management",
+        "mom",
+        "joined-federate-mom",
+        "service-report-file",
+        "service-reporting",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "process-joined-federate-mom-report-file",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.get-object-class-handle",
+        "rti.service.get-attribute-handle",
+        "rti.service.subscribe-object-class-attributes",
+        "rti.service.evoke-callback",
+        "federate.callback.discover-object-instance",
+        "federate.callback.reflect-attribute-values"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:614",
+      "primary_lane": "process-joined-federate-mom-report-file",
+      "focus_lane": "process-joined-federate-mom-report-file",
+      "assertions": 27,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.2",
+        "hla-1516.1-2025:clause-4.5.5",
+        "hla-1516.1-2025:clause-4.6.5",
+        "hla-1516.1-2025:clause-4.11.4",
+        "hla-1516.1-2025:clause-4.12",
+        "hla-1516.1-2025:clause-6.1.2",
+        "hla-1516.1-2025:clause-6.9.3",
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "requirements": 11,
+      "api_surfaces": 11,
+      "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-service-report-file-switch-cycle-integration",
+      "test_query": "RTIambassador preserves process service-report file identity across switch cycles",
+      "lane_queries": [
+        "process-service-report-file-switch-cycle",
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-reporting",
+        "service-report-file",
+        "service-report-file-lifecycle",
+        "support-switches",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.get-service-reporting-switch",
+        "rti.service.set-service-reporting-switch",
+        "rti.service.get-send-service-reports-to-file-switch",
+        "rti.service.set-send-service-reports-to-file-switch",
+        "rti.service.get-object-class-handle"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1110",
+      "primary_lane": "process-service-report-file-switch-cycle",
+      "focus_lane": "process-service-report-file-switch-cycle",
+      "assertions": 35,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "requirements": 2,
+      "api_surfaces": 10,
+      "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-service-report-file-multifederate-integration",
+      "test_query": "RTIambassadors allocate independent process service-report files for simultaneous joined federates",
+      "lane_queries": [
+        "process-service-report-file-multifederate",
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-reporting",
+        "service-report-file",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:896",
+      "primary_lane": "process-service-report-file-multifederate",
+      "focus_lane": "process-service-report-file-multifederate",
+      "assertions": 26,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "requirements": 2,
+      "api_surfaces": 5,
+      "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-service-report-file-rejoin-integration",
+      "test_query": "RTIambassador assigns a new process service-report file after resign and rejoin",
+      "lane_queries": [
+        "process-service-report-file-rejoin",
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-reporting",
+        "service-report-file",
+        "service-report-file-lifecycle",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1322",
+      "primary_lane": "process-service-report-file-rejoin",
+      "focus_lane": "process-service-report-file-rejoin",
+      "assertions": 25,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "requirements": 2,
+      "api_surfaces": 5,
+      "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-service-report-file-failure-integration",
+      "test_query": "RTIambassador rejects an unusable process service-report directory before endpoint connection",
+      "lane_queries": [
+        "process-service-report-file-failure",
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-reporting",
+        "service-report-file",
+        "service-report-file-failure",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1497",
+      "primary_lane": "process-service-report-file-failure",
+      "focus_lane": "process-service-report-file-failure",
+      "assertions": 7,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "requirements": 2,
+      "api_surfaces": 1,
+      "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-service-report-file-loss-integration",
+      "test_query": "RTIambassador reports a deterministic process service-report append failure after file loss",
+      "lane_queries": [
+        "process-service-report-file-loss",
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-reporting",
+        "service-report-file",
+        "service-report-file-failure",
+        "service-report-file-loss",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.set-service-reporting-switch",
+        "rti.service.set-send-service-reports-to-file-switch",
+        "rti.service.get-object-class-handle",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:1539",
+      "primary_lane": "process-service-report-file-loss",
+      "focus_lane": "process-service-report-file-loss",
+      "assertions": 15,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "requirements": 2,
+      "api_surfaces": 8,
+      "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-service-report-file-multifederate-integration",
+      "test_query": "Embedded simultaneously joined federates receive independent service-report files",
+      "lane_queries": [
+        "service-report-file-multifederate",
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-reporting",
+        "service-report-file",
+        "service-report-store",
+        "filesystem",
+        "join-lifecycle",
+        "multifederate",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.resign-federation-execution",
+        "rti.service.destroy-federation-execution",
+        "rti.service.disconnect"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32604",
+      "primary_lane": "service-report-file-multifederate",
+      "focus_lane": "service-report-file-multifederate",
+      "assertions": 18,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.2"
+      ],
+      "requirements": 1,
+      "api_surfaces": 6,
+      "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-update-rate-query-integration",
+      "test_query": "RTIambassador resolves update-rate values through a configured process endpoint",
+      "lane_queries": [
+        "process-update-rate-query",
+        "integration",
+        "foundation",
+        "support-services",
+        "object-management",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.get-update-rate-value",
+        "rti.service.get-update-rate-value-for-attribute"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:6419",
+      "primary_lane": "process-update-rate-query",
+      "focus_lane": "process-update-rate-query",
+      "assertions": 20,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.2",
+        "hla-1516.1-2025:clause-5.2",
+        "hla-1516.1-2025:clause-6.8.4",
+        "hla-1516.1-2025:clause-10.11.6",
+        "hla-1516.1-2025:clause-10.12"
+      ],
+      "requirements": 7,
+      "api_surfaces": 6,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-named-update-rate-query-integration",
+      "test_query": "RTIambassador resolves named FDD update rates through a configured process endpoint",
+      "lane_queries": [
+        "process-update-rate-query-named",
+        "integration",
+        "foundation",
+        "support-services",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.get-update-rate-value"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:6575",
+      "primary_lane": "process-update-rate-query-named",
+      "focus_lane": "process-update-rate-query-named",
+      "assertions": 16,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-10.11.6",
+        "hla-1516.1-2025:clause-10.12"
+      ],
+      "requirements": 2,
+      "api_surfaces": 1,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-public-object-subscription-integration",
+      "test_query": "RTIambassador routes public object-class attribute subscription through a configured process endpoint",
+      "lane_queries": [
+        "process-update-rate-subscription",
+        "integration",
+        "foundation",
+        "declaration-management",
+        "object-management",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.subscribe-object-class-attributes"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:12136",
+      "primary_lane": "process-update-rate-subscription",
+      "focus_lane": "process-update-rate-subscription",
+      "assertions": 24,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirements": 4,
+      "api_surfaces": 1,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-disjoint-regional-update-integration",
+      "test_query": "RTIambassador suppresses a disjoint regional update through a configured process endpoint",
+      "lane_queries": [
+        "process-update-attribute-delivery-reduction",
+        "integration",
+        "foundation",
+        "data-distribution-management",
+        "object-management",
+        "callbacks",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "disjoint-regions",
+        "rti.service.update-attribute-values",
+        "federate.callback.discover-object-instance",
+        "federate.callback.reflect-attribute-values"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:11783",
+      "primary_lane": "process-update-attribute-delivery-reduction",
+      "focus_lane": "process-update-attribute-delivery-reduction",
+      "assertions": 116,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11.1",
+        "hla-1516.1-2025:clause-6.9.3",
+        "hla-1516.1-2025:clause-9.3",
+        "hla-1516.1-2025:clause-9.5",
+        "hla-1516.1-2025:clause-9.6",
+        "hla-1516.1-2025:clause-9.8"
+      ],
+      "requirements": 12,
+      "api_surfaces": 9,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-regional-class-request-attribute-value-update-invalid-region-public",
+      "test_query": "RTIambassador maps public process regional Request Attribute Value Update selector failures",
+      "lane_queries": [
+        "integration",
+        "foundation",
+        "object-management",
+        "ddm",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "process-regional-class-request-attribute-value-update-invalid-region-public",
+        "invalid-regional-selector",
+        "rti.service.request-attribute-value-update-with-regions",
+        "rti.service.create-region",
+        "rti.service.set-range-bounds",
+        "rti.service.commit-region-modifications"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:24486",
+      "primary_lane": "process-regional-class-request-attribute-value-update-invalid-region-public",
+      "focus_lane": "process-regional-class-request-attribute-value-update-invalid-region-public",
+      "assertions": 14,
+      "callback_models": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.13.1"
+      ],
+      "requirements": 4,
+      "api_surfaces": 12,
+      "status": "implemented-public-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-mom-federate-set-switches-integration",
+      "test_query": "RTIambassador carries HLAsetSwitches adjustments through a configured process endpoint",
+      "lane_queries": [
+        "process-mom-set-switches",
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "switches",
+        "mom-process-set-switches",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "rti.service.send-interaction",
+        "rti.service.get-service-reporting-switch",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:38281",
+      "primary_lane": "process-mom-set-switches",
+      "focus_lane": "process-mom-set-switches",
+      "assertions": 14,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-11.4.2"
+      ],
+      "requirements": 2,
+      "api_surfaces": 9,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-mom-service-report-interlock-integration",
+      "test_query": "RTIambassador preserves the process HLAsetSwitches Service Reporting interlock",
+      "lane_queries": [
+        "process-mom-service-report-interlock",
+        "integration",
+        "development-profile",
+        "foundation",
+        "federation-management",
+        "mom",
+        "switches",
+        "service-reporting",
+        "mom-service-reporting-interlock",
+        "process-mom-set-switches",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.get-service-reporting-switch",
+        "rti.service.get-parameter-handle",
+        "rti.service.send-interaction",
+        "rti.service.unsubscribe-interaction-class",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:38848",
+      "primary_lane": "process-mom-service-report-interlock",
+      "focus_lane": "process-mom-service-report-interlock",
+      "assertions": 16,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-11.4.2",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirements": 3,
+      "api_surfaces": 11,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-mom-exception-report-integration",
+      "test_query": "RTIambassador reports a rejected process HLAsetSwitches interaction through HLAreportMOMexception",
+      "lane_queries": [
+        "process-mom-exception-report",
+        "integration",
+        "development-profile",
+        "foundation",
+        "federation-management",
+        "mom",
+        "switches",
+        "service-reporting",
+        "mom-exception",
+        "process-mom-set-switches",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.get-service-reporting-switch",
+        "rti.service.send-interaction",
+        "rti.service.get-transportation-type-handle",
+        "rti.service.unsubscribe-interaction-class",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect",
+        "federate.callback.receive-interaction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:39003",
+      "primary_lane": "process-mom-exception-report",
+      "focus_lane": "process-mom-exception-report",
+      "assertions": 34,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirements": 3,
+      "api_surfaces": 13,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-mom-malformed-exception-integration",
+      "test_query": "RTIambassador reports a malformed process HLAsetSwitches interaction through HLAreportMOMexception",
+      "lane_queries": [
+        "process-mom-malformed-exception",
+        "integration",
+        "development-profile",
+        "foundation",
+        "federation-management",
+        "mom",
+        "switches",
+        "mom-exception",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.get-service-reporting-switch",
+        "rti.service.send-interaction",
+        "rti.service.get-transportation-type-handle",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect",
+        "federate.callback.receive-interaction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:39231",
+      "primary_lane": "process-mom-malformed-exception",
+      "focus_lane": "process-mom-malformed-exception",
+      "assertions": 29,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirements": 3,
+      "api_surfaces": 11,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-mom-malformed-parameter-integration",
+      "test_query": "RTIambassador reports an unknown process HLAsetSwitches parameter through HLAreportMOMexception",
+      "lane_queries": [
+        "process-mom-malformed-parameter",
+        "integration",
+        "development-profile",
+        "foundation",
+        "federation-management",
+        "mom",
+        "switches",
+        "mom-exception",
+        "unknown-parameter",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.get-service-reporting-switch",
+        "rti.service.send-interaction",
+        "rti.service.get-transportation-type-handle",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect",
+        "federate.callback.receive-interaction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:39441",
+      "primary_lane": "process-mom-malformed-parameter",
+      "focus_lane": "process-mom-malformed-parameter",
+      "assertions": 30,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirements": 3,
+      "api_surfaces": 11,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-mom-malformed-value-integration",
+      "test_query": "RTIambassador reports a malformed process HLAsetSwitches value through HLAreportMOMexception",
+      "lane_queries": [
+        "process-mom-malformed-value",
+        "integration",
+        "development-profile",
+        "foundation",
+        "federation-management",
+        "mom",
+        "switches",
+        "mom-exception",
+        "malformed-value",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.get-service-reporting-switch",
+        "rti.service.send-interaction",
+        "rti.service.get-transportation-type-handle",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect",
+        "federate.callback.receive-interaction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:39656",
+      "primary_lane": "process-mom-malformed-value",
+      "focus_lane": "process-mom-malformed-value",
+      "assertions": 30,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirements": 3,
+      "api_surfaces": 11,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-mom-malformed-resign-action-integration",
+      "test_query": "RTIambassador reports a malformed process HLAresignAction parameter through HLAreportMOMexception",
+      "lane_queries": [
+        "process-mom-malformed-resign-action",
+        "integration",
+        "development-profile",
+        "foundation",
+        "federation-management",
+        "mom",
+        "switches",
+        "mom-exception",
+        "malformed-resign-action",
+        "automatic-resign-action",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.get-service-reporting-switch",
+        "rti.service.get-automatic-resign-directive",
+        "rti.service.send-interaction",
+        "rti.service.get-transportation-type-handle",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect",
+        "federate.callback.receive-interaction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:38428",
+      "primary_lane": "process-mom-malformed-resign-action",
+      "focus_lane": "process-mom-malformed-resign-action",
+      "assertions": 30,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirements": 3,
+      "api_surfaces": 12,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-mom-extension-parameter-integration",
+      "test_query": "RTIambassador preserves a compatible process HLAsetSwitches extension parameter without mutating predefined switch state",
+      "lane_queries": [
+        "process-mom-extension-parameter",
+        "integration",
+        "development-profile",
+        "foundation",
+        "federation-management",
+        "mom",
+        "switches",
+        "mom-extension",
+        "extension-subclass",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "rti.service.get-service-reporting-switch",
+        "rti.service.get-automatic-resign-directive",
+        "rti.service.send-interaction",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:38653",
+      "primary_lane": "process-mom-extension-parameter",
+      "focus_lane": "process-mom-extension-parameter",
+      "assertions": 16,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirements": 1,
+      "api_surfaces": 10,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-exception-reporting-switch-gates-unit",
+      "test_query": "Private process Exception Reporting Switch preserves save restore gates and session identity",
+      "lane_queries": [
+        "process-exception-reporting-switch-gates",
+        "unit",
+        "support-services",
+        "mom",
+        "save-restore",
+        "transport",
+        "process-boundary",
+        "registry-binding",
+        "2025"
+      ],
+      "source_location": "cpp/tests/process_federation_service_catch2.cpp:3322",
+      "primary_lane": "process-exception-reporting-switch-gates",
+      "focus_lane": "process-exception-reporting-switch-gates",
+      "assertions": 26,
+      "standard_sections": [],
+      "requirements": 0,
+      "api_surfaces": 0,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-mom-exception-reporting-switch-integration",
+      "test_query": "RTIambassador carries a predefined process HLAexceptionReporting switch through HLAsetSwitches without mutating other switches",
+      "lane_queries": [
+        "process-mom-exception-reporting-switch",
+        "integration",
+        "development-profile",
+        "foundation",
+        "mom",
+        "switches",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "rti.service.send-interaction",
+        "rti.service.get-exception-reporting-switch",
+        "rti.service.set-exception-reporting-switch",
+        "rti.service.get-service-reporting-switch",
+        "rti.service.get-automatic-resign-directive",
+        "rti.service.get-send-service-reports-to-file-switch",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:39876",
+      "primary_lane": "process-mom-exception-reporting-switch",
+      "focus_lane": "process-mom-exception-reporting-switch",
+      "assertions": 30,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-10.48.1",
+        "hla-1516.1-2025:clause-10.49.4",
+        "hla-1516.1-2025:clause-11.4.2",
+        "hla-1516.1-2025:clause-11.6"
+      ],
+      "requirements": 6,
+      "api_surfaces": 13,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-exception-report-codec-unit",
+      "test_query": "Process exception-report event codec preserves private source metadata and legacy MOM suffixes",
+      "lane_queries": [
+        "process-exception-report-codec",
+        "transport",
+        "process-boundary"
+      ],
+      "source_location": "cpp/tests/process_federation_service_catch2.cpp:3418",
+      "primary_lane": "process-exception-report-codec",
+      "focus_lane": "process-exception-report-codec",
+      "assertions": 26,
+      "callback_models": [],
+      "standard_sections": [],
+      "requirements": 0,
+      "api_surfaces": 0,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-mom-service-exception-report-integration",
+      "test_query": "RTIambassador reports process service invocation exceptions through HLAreportException when enabled",
+      "lane_queries": [
+        "process-mom-service-exception-report",
+        "integration",
+        "development-profile",
+        "foundation",
+        "mom",
+        "switches",
+        "transport",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "rti.service.get-object-class-handle",
+        "rti.service.get-transportation-type-handle",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.unsubscribe-interaction-class",
+        "rti.service.send-interaction",
+        "rti.service.get-exception-reporting-switch",
+        "rti.service.set-exception-reporting-switch",
+        "rti.service.enable-callbacks",
+        "rti.service.disable-callbacks",
+        "rti.service.evoke-callback",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect",
+        "federate.callback.receive-interaction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:40000",
+      "primary_lane": "process-mom-service-exception-report",
+      "focus_lane": "process-mom-service-exception-report",
+      "assertions": 180,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-5.11"
+      ],
+      "requirements": 3,
+      "api_surfaces": 18,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-process-endpoint-mom-exception-report-parameters-integration",
+      "test_query": "RTIambassador includes inherited HLAfederate in process HLAreportMOMexception payloads",
+      "lane_queries": [
+        "process-mom-exception-report-parameters",
+        "integration",
+        "development-profile",
+        "foundation",
+        "mom",
+        "transport",
+        "mom-exception",
+        "process-boundary",
+        "public-endpoint",
+        "2025",
+        "rti.service.connect",
+        "rti.service.create-federation-execution",
+        "rti.service.join-federation-execution",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "rti.service.get-transportation-type-handle",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.unsubscribe-interaction-class",
+        "rti.service.send-interaction",
+        "rti.service.get-exception-reporting-switch",
+        "rti.service.evoke-callback",
+        "rti.service.resign-federation-execution",
+        "rti.service.disconnect",
+        "federate.callback.receive-interaction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:40217",
+      "primary_lane": "process-mom-exception-report-parameters",
+      "focus_lane": "process-mom-exception-report-parameters",
+      "assertions": 148,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirements": 2,
+      "api_surfaces": 14,
+      "status": "implemented-private-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-mom-service-invocation-parameters-integration",
+      "test_query": "Embedded MOM service invocation reports include inherited HLAfederate",
+      "lane_queries": [
+        "mom-service-invocation-parameters",
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "service-reporting",
+        "service-report-interaction",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.set-service-reporting-switch",
+        "rti.service.register-federation-synchronization-point",
+        "rti.service.resign-federation-execution",
+        "rti.service.decode-federate-handle",
+        "federate.callback.announce-synchronization-point",
+        "federate.callback.receive-interaction"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:70653",
+      "primary_lane": "mom-service-invocation-parameters",
+      "focus_lane": "mom-service-invocation-parameters",
+      "assertions": 210,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirements": 2,
+      "api_surfaces": 19,
+      "status": "implemented-in-noninstallable-development-profile"
     }
   ],
   "items": [
@@ -22792,10 +24239,11 @@
       "priority": 3,
       "title": "Complete FOM module management and declaration management beyond the current foundation",
       "roadmap_anchor": "Complete FOM module management and declaration management beyond the",
-      "query_tags": [
-        "fom",
-        "declaration-management",
-        "whole-object-class-declaration",
+    "query_tags": [
+      "fom",
+      "declaration-management",
+      "fom-summary-rule-1",
+      "whole-object-class-declaration",
         "federation-mom-current-fdd",
         "transportation-handle-stability",
         "federation-registry",
@@ -22805,8 +24253,11 @@
         "object-class-declaration-state"
       ],
       "next_action": "The FOM-composer source reconciliation queue is exhausted: all discovered declarations in that file now have explicit plan rows and exact source pointers, including the subscription-generation restore case. Keep the completed private composition/preparation evidence queryable, then select the next bounded C++ service family or add one deliberately mapped source case without rescanning the unchanged Requirements Lab.",
-      "next_lane": "fom-module-management",
-      "next_test_role": "baseline",
+    "next_lane": "fom-module-management",
+    "focused_lane_tags": [
+      "fom-summary-rule-1"
+    ],
+    "next_test_role": "baseline",
       "next_test_query": "Embedded Create Federation Execution rejects an empty FOM module set",
       "next_ctest_filter": "[fom-module-management]",
       "next_plan_ids": [
@@ -22872,14 +24323,17 @@
         "regional-provider-response-ddm-recheck",
         "attribute-value-update-response",
         "ownership-transfer-update-region",
-        "object-instance-name-reservation",
-        "object-instance-named-registration",
+    "object-instance-name-reservation",
+    "object-instance-named-registration",
     "object-instance-registration-discovery",
+    "fom-summary-rule-2",
+    "summary-rule-2",
     "register-object-instance-with-regions-default-region-generated-name",
     "regional-automatic-provision-relaxed-ddm",
     "strict-relaxed-ddm-boundary",
     "object-instance-lookup",
       "regional-object-attribute-routing",
+      "ddm-clause6-service-expansion",
       "regional-object-attribute-subscription-isolation",
       "regional-object-attribute-region-context",
       "object-instance-deletion",
@@ -22907,6 +24361,9 @@
       ],
       "focused_lane_tags": [
         "passive-regional-interaction-transition",
+        "interaction-sent-class-preservation",
+        "ddm-clause6-service-expansion",
+        "interaction-subscription-mode-exclusivity",
         "mixed-region-interaction-validation",
         "multi-region-regional-interaction",
         "subscription-dimension-validation",
@@ -22936,6 +24393,9 @@
         "ownership-transfer-update-region-deferred-cancel",
         "register-object-instance-with-regions-default-region-generated-name",
         "public-process-register-object-instance-with-regions-default-region-generated-name",
+        "object-instance-registration-invalid-region",
+        "fom-summary-rule-2",
+        "summary-rule-2",
         "regional-request-filtering"
       ],
       "next_task": "Keep the indexed Confirm Divestiture receive-order, push, and assumption-candidate baselines green, then select the next bounded service family through the queue. Do not rescan the unchanged Requirements Lab.",
@@ -22958,7 +24418,7 @@
       "priority": 1,
       "title": "Complete time management, ownership management, and save/restore",
       "roadmap_anchor": "Time management, ownership management, and save/restore.",
-      "current_focus": "The roadmap is indexed for 1,285 Catch2 cases (1,221 mapped; 64 explicit dispositions), including 155 process-boundary cases and 6,717 indexed assertions (6,869 recorded assertions). Source pointers, direct Requirements-Lab requirement-to-2025-section pairs, API surfaces, and focused CTest/JUnit handles are queryable through resume, ready, work, case, trace, matrix, focus, and check; these bounded commands do not rescan the unchanged Requirements Lab. The latest completed process-boundary slice is independently mapped and green; the process-boundary JUnit target remains independently buildable and its aggregate CTest/JUnit counts are refreshed from the generated artifact. The lane is evidence-complete, so select the next implementation slice from ready/work rather than reopening this completed pointer.",
+      "current_focus": "The roadmap is indexed for 1,294 Catch2 cases (1,230 mapped; 64 explicit dispositions), including 163 process-boundary cases and 6,799 indexed assertions (7,040 recorded plan-row assertions). The latest three-case process Update Attribute Values delivery/reduction slice is independently mapped and green, covering zero-recipient routing, ordinary Reflect delivery, and disjoint-region suppression. Source pointers, direct Requirements-Lab requirement-to-2025-section pairs, API surfaces, and focused CTest/JUnit handles are queryable through resume, ready, work, case, trace, matrix, focus, and check; these bounded commands do not rescan the unchanged Requirements Lab. The process-boundary JUnit target remains independently buildable and its aggregate CTest/JUnit counts are refreshed from the generated artifact. Select the next implementation slice from ready/work rather than reopening the unchanged Lab.",
       "next_work_id": "transport-and-conformance",
       "next_work_status": "in-progress",
       "next_work_query": "The focused process-boundary C++ spine is green at 63 mapped/source-located cases and 2,497 indexed Catch2 assertions; the process TSO interaction-before-grant slice is 60 HLA_EVOKED assertions mapped to 15 Requirements-Lab anchors and nine canonical 2025 sections; query `process-tso-interaction-before-grant`. Query the exact completed public object-discovery endpoint slice with `python tools/query_rti_work.py trace \"RTIambassador delivers object discovery through a configured process endpoint\" --summary --compact`. The dimension/transportation reverse-lookup slice is now indexed with 16 assertions, six Requirements-Lab anchors, three canonical 2025 sections, and four official C++ API surfaces; the separate reverse-FOM error matrix adds 16 assertions with the same six anchors and three clauses; the connection configuration block, handle baselines, callback-route receive-order, immediate-callback reentrancy, callback-disable, evoked one-at-a-time, concurrent-serialization, disabled-backlog, Evoke Multiple FIFO, evoked-disabled-pending, callback-session-close, callback-session concurrent-invocation, callback-session active-close, callback instrumentation, transport instrumentation, and DimensionHandle seams are now explicitly indexed; the RPR full-family object-registration and custom-payload compatibility slices, the official FederateHandle SDK-consumability/encoding baselines, the private federate lifecycle state-machine slices, and the initial-grant/NMR/Available/Flush-Queue time-state boundaries are now indexed; the accepted time-role MOM vector is indexed with 99 assertions and 24 Lab anchors; the float64 timed-save provider-time scheduling vector is indexed with 38 assertions and 11 Lab anchors; the federation-save resignation-recovery vector is indexed with 18 assertions and 8 Lab anchors; the restore-failure vector is indexed with 29 assertions and 11 Lab anchors; the service-report save/restore MOM vector is indexed with 46 assertions and 18 requirement anchors; the regional-unpublish update-region lifetime vector is indexed with 17 assertions and 18 requirement anchors; the regional-receive-order deletion update-region lifetime vector is indexed with 17 assertions and 20 requirement anchors; the final-object-removal region-release vector is indexed with 27 assertions and 21 requirement anchors; the associated-region discovery vector is indexed with 42 assertions and 22 requirement anchors; the Join advisory-switch seed vector is indexed with 16 assertions and 13 requirement anchors; the Join-time explicit NoAction automatic-resign vector is indexed with 7 assertions and 9 requirement anchors; the order and transportation MOM service-classification vector is indexed with 66 assertions and 19 requirement anchors; the joined-federate MOM/FOM-module snapshot vector is indexed with 12 assertions and 6 requirement anchors; the joined-federate MOM report-file identity save/restore vector is indexed with 46 assertions and 18 requirement anchors; the joined-federate MOM regional discovery vector is indexed with 124 assertions and 17 requirement anchors; the restored-baseline regional provider-response vector is indexed with 44 assertions and 20 requirement anchors; the timestamped Delete Object Instance retraction slice is green with 49 HLA_EVOKED assertions at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4305` and 26 requirement anchors; its queue drain after Enable Time Regulation reaches deletion/retraction/removal ordering. Keep it bounded to development-profile evidence and use the exact trace before promotion. The mapped known-class-disabled attribute-relevance case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:43361` is green with 35 HLA_EVOKED assertions, 18 Requirements-Lab anchors, 13 canonical 2025 sections, and 18 official C++ API surfaces; its source-derived known-class subscription consequence remains bounded. The paired static known-class-enabled case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:43457` is also green with 30 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 13 canonical 2025 sections, and 17 official C++ API surfaces; its known-class suppression consequence remains a source-derived refinement. The mapped update-rate passive-regional-subscription case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:43891` is green with 43 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 12 canonical 2025 sections, and 21 official C++ API surfaces; its passive-regional filtering consequence remains bounded. The mapped custom-transportation handle stability case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44136` is green with 21 HLA_EVOKED assertions, 12 Requirements-Lab anchors, 11 canonical 2025 sections, and 8 official C++ API surfaces; query its exact title or `transportation-handle-stability`. The mapped restored-baseline timestamped Update Attribute Values MOM interaction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4538` is green with 125 HLA_EVOKED/HLA_IMMEDIATE assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 13 official C++ API surfaces; query its exact title or `restored-baseline-copy`. The mapped restored-baseline regional Provide Attribute Value Update case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4697` is green with 251 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 21 official C++ API surfaces; query its exact title or `restored-baseline-copy`. The mapped three-dimensional regional object-attribute overlap case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47660` is green with 57 HLA_EVOKED assertions, 10 Requirements-Lab anchors, 10 canonical 2025 sections, and 24 official C++ API surfaces; query its exact title or `complete-overlap`. The m43 restored-baseline regional Request Attribute Value Update solicitation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4999` is green with 58 HLA_EVOKED assertions, 9 Requirements-Lab anchors, 7 canonical 2025 sections, and 20 official C++ API surfaces; its filtering and current-export traceability gap remain bounded. The m44 restored-baseline timestamped regional Update Attribute Values MOM interaction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5461` is green with 138 HLA_EVOKED/HLA_IMMEDIATE assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 30 official C++ API surfaces; its regional setup and RL-152 conditional-failure boundary remain bounded. The m45 restored-baseline timestamped Update Attribute Values file-failure case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5863` is green with 218 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 15 official C++ API surfaces; its filesystem-sink conditional-failure boundary remains bounded by RL-152. The m49 pre-delivery acquisition-cancellation race at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51525` is green with 33 HLA_EVOKED assertions; its stale internal owner work items are drained while the public confirmation and release callback streams remain empty. The m50 disabled Auto Provide discovery-only baseline at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52918` is green with 21 HLA_EVOKED assertions and proves discovery remains delivered while provider callbacks stay suppressed. The m51 Federation Synchronized-after-resignation service-report case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:57666` is green with 23 HLA_EVOKED assertions and verifies the completion record before the remaining federate callback. The m52 terminal TSO-designator case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:58330` is green with 40 HLA_EVOKED assertions and verifies five returned designators terminalize across TAR, TARA, NMR, NMRA, and FQR boundaries without recipient fanout. The m53 timestamped Update Attribute Values queue/retraction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59032` is green with 68 HLA_EVOKED assertions and verifies an internal MOM-queue drain before Time Regulation Enabled, pre-grant retraction at timestamp 6, and reliable/best-effort timestamp-7 reflections before the matching grant. The m54 mixed update-rate subscription case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59332` is green with 37 HLA_EVOKED assertions and is mapped to 8 Requirements-Lab anchors and 2 canonical 2025 sections. The m55 federation-teardown update-rate-history case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59428` is green with 46 HLA_EVOKED assertions and is mapped to 9 Requirements-Lab anchors and 5 canonical 2025 sections. The m56 regional best-effort attribute-rate case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59566` is green with 47 HLA_EVOKED assertions and is mapped to 19 Requirements-Lab anchors and 11 canonical 2025 sections. The m57 regional best-effort timestamped-rate case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59710` is green with 57 HLA_EVOKED assertions and maps to 30 Requirements-Lab anchors and 19 canonical 2025 sections; it verifies exact regional overlap, timestamped Low-rate admission at time 2, and suppression at time 3 through the matching grant. The completed m58 directed-interaction Delay Subscription Evaluation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61005` is green with 120 assertions, three Requirements-Lab anchors, and one canonical Section 8.1.10 mapping. The m59 timestamped directed-interaction Delay Subscription Evaluation case is green in its focused C++ target at cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp:129 with 166 assertions under HLA_EVOKED and HLA_IMMEDIATE; query its m59 mapping and keep it bounded to Section 8.1.10 development-profile evidence. The m60 timestamped directed-interaction TSO/retraction case is green in its focused C++ target at cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp:150 with 56 HLA_EVOKED assertions; query its m60 mapping and keep TSO/retraction evidence bounded to the mapped 2025 clauses. The completed m61 immediate timestamped directed-interaction source-resignation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:62516` is green with 45 HLA_EVOKED assertions. The m62 #if 0 malformed transport-loss declaration at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:63554` is indexed as a disabled source artifact with no executable assertions or normative evidence. The completed m63 evoked regional-interaction source-region snapshot case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:69776` is green with 42 HLA_EVOKED assertions; the next source-backed action is the unplanned timestamped regional interaction TSO/retraction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:75428`, emitted by `next --pointer`; the source-only queue is ordered by numeric declaration line. Keep package evidence, protected review, interoperability, and conformance promotion separate without rescanning the unchanged Requirements Lab.",
@@ -23250,7 +24710,7 @@
         "tso-attribute-update-no-fanout-designator",
         "tso-object-deletion-retraction-reconstitution"
       ],
-      "next_action": "Use the indexed execution queue instead of rescanning the unchanged Requirements Lab. The live plan has 1,285 Catch2 rows: 1,221 mapped, 64 explicit dispositions, 0 unclassified, and one non-actionable source-unlocated row. The process-boundary pointer is evidence-complete (155 mapped cases, 6,717 indexed assertions, and 6,869 recorded assertions, with generated CTest/JUnit counts refreshed from the process-boundary artifact), so do not reopen it. Select the next bounded family from ready or work, then run the emitted lane check and focused CTest handle."
+      "next_action": "Use the indexed execution queue instead of rescanning the unchanged Requirements Lab. The live plan has 1,294 Catch2 rows: 1,230 mapped, 64 explicit dispositions, 0 unclassified, and one non-actionable source-unlocated row. The process-boundary pointer is evidence-complete (163 mapped cases, 6,799 indexed assertions, and 7,040 recorded plan-row assertions, with generated CTest/JUnit counts refreshed from the process-boundary artifact). The latest active/passive update-rate subscription lane is queryable by exact plan, title, focus tag, and CTest filter; select the next bounded family from ready or work, then run the emitted lane check and focused CTest handle."
     },
     {
       "id": "flush-queue-request-optimistic-time",
@@ -23381,8 +24841,11 @@
       "roadmap_anchor": "MOM services after the corresponding base service behavior is stable.",
       "query_tags": [
         "mom",
+        "mom-service-invocation-parameters",
+        "mom-service-report-interaction-baseline",
         "service-reporting",
         "service-report-store",
+        "service-report-file-multifederate",
         "join-lifecycle",
         "service-report-file-lifecycle",
         "joined-federate-mom-report-file",
@@ -23413,8 +24876,11 @@
         "federation-mom-content-reports"
       ],
       "focused_lane_tags": [
+        "mom-service-invocation-parameters",
+        "mom-service-report-interaction-baseline",
         "ordinary-regional-attribute-update-service-report",
-        "join-lifecycle"
+        "join-lifecycle",
+        "service-report-file-multifederate"
       ],
       "next_lane": "federation-mom-content-reports",
       "next_test_role": "baseline",
@@ -23425,7 +24891,7 @@
       "next_standard_sections": [
         "hla-1516.1-2025:clause-4"
       ],
-      "next_action": "The source-located MOM lane is independently buildable and green. The service-report family has three native HLA_EVOKED cases totaling 45 assertions, and the joined-federate HLAsetSwitches family adds one 45-assertion case: all nine getter surfaces, sender-only subset mutation, promoted predefined subclasses, ignored extension parameters, malformed resign rejection, empty-map rejection, and the Service Reporting/subscription interlock. The focused federation-mom-content-reports case adds 55 native assertions for federation-scoped FOM-module/MIM request/report delivery, HLA_EVOKED gating, callback-time subscription revalidation, and strict malformed-request rejection; use its exact focus/trace/matrix/check/CTest handles next. Keep the full MOM failure-record matrix, production permission/full-disk, external deletion, abrupt-failure, cross-process, package/JUnit/protected-review, validation, interoperability, and conformance evidence separate; do not rescan the unchanged Requirements Lab."
+      "next_action": "The federation-mom-content-reports case is a green 55-assertion baseline; its exact focus/trace/matrix/check/CTest handles remain queryable. The service-report-store lane now contains 17 cases and 103 assertions (13 requirement-mapped, 4 explicitly dispositioned); use `python tools/query_rti_work.py focus service-report-store --summary --compact` for the exact source and CTest filter. This increment adds Join-time filesystem-creation failure, verifies RTIinternalError and membership rollback, then retries the same federate name after directory repair; this is explicit embedded-profile policy evidence, not a conformance claim. Next, continue the full MOM failure-record matrix as bounded API-operation slices with source-located C++ Catch2 cases and direct requirement-to-subsection mappings. Keep production permission/full-disk, external deletion, abrupt-failure, cross-process, package/JUnit/protected-review, validation, interoperability, and conformance evidence separate; do not rescan the unchanged Requirements Lab."
     },
     {
       "id": "transport-and-conformance",
@@ -23434,9 +24900,36 @@
       "priority": 6,
       "title": "Complete embedded and remote transports, interoperability, and independently reviewed conformance evidence",
       "roadmap_anchor": "Embedded and remote transports, multi-process interoperability, and",
-      "query_tags": [
-        "transport",
-        "process-boundary",
+  "query_tags": [
+    "transport",
+    "summary-rule-3",
+    "process-boundary",
+    "process-update-rate-query",
+    "process-update-rate-query-named",
+    "process-update-rate-subscription",
+    "process-update-attribute-delivery-reduction",
+    "timestamped-process-regional-update",
+    "process-service-report-file-switch-cycle",
+    "process-mom-set-switches",
+    "process-mom-service-report-interlock",
+    "process-mom-exception-report",
+    "process-mom-malformed-exception",
+    "process-mom-malformed-parameter",
+    "process-mom-malformed-value",
+    "process-mom-malformed-resign-action",
+    "process-mom-extension-parameter",
+    "process-mom-exception-reporting-switch",
+    "process-mom-service-exception-report",
+    "process-mom-exception-report-parameters",
+    "process-exception-report-concurrency",
+    "process-exception-report-projection-lifetime",
+    "process-client-close-exception-recheck",
+    "process-exception-reporting-switch-gates",
+    "process-exception-report-codec",
+    "process-service-report-file-rejoin",
+    "process-service-report-file-multifederate",
+    "process-service-report-file-failure",
+    "process-service-report-file-loss",
         "process-time-role",
         "process-time-advance",
         "process-time-advance-rejection",
@@ -23535,8 +25028,30 @@
         "connection-lost-automatic-cancel-delete-divest",
         "connection-lost-automatic-cancel-delete-divest-immediate"
       ],
-    "focused_lane_tags": [
-      "configuration-fallback",
+  "focused_lane_tags": [
+    "process-exception-report-concurrency",
+    "process-exception-report-projection-lifetime",
+    "process-client-close-exception-recheck",
+    "summary-rule-3",
+    "process-service-report-file-switch-cycle",
+    "process-mom-set-switches",
+    "process-mom-service-report-interlock",
+    "process-mom-exception-report",
+    "process-mom-malformed-exception",
+    "process-mom-malformed-parameter",
+    "process-mom-malformed-value",
+    "process-mom-malformed-resign-action",
+    "process-mom-extension-parameter",
+    "process-mom-exception-reporting-switch",
+    "process-mom-service-exception-report",
+    "process-mom-exception-report-parameters",
+    "process-exception-reporting-switch-gates",
+    "process-exception-report-codec",
+    "process-service-report-file-rejoin",
+    "process-service-report-file-multifederate",
+    "process-service-report-file-failure",
+    "process-service-report-file-loss",
+    "configuration-fallback",
       "configuration-additional-settings",
       "process-directed-interaction-routing",
       "process-directed-interaction-multi-recipient",
@@ -23569,6 +25084,11 @@
       "process-transportation-timestamped-regional-interaction-control",
       "process-directed-interaction-transportation",
       "process-directed-interaction-transportation-query",
+      "process-update-rate-query",
+      "process-update-rate-query-named",
+      "process-update-rate-subscription",
+      "process-update-attribute-delivery-reduction",
+      "timestamped-process-regional-update",
       "process-synchronization-point",
       "process-synchronization-point-explicit-failure",
       "process-synchronization-point-explicit-failure-immediate",
@@ -23615,7 +25135,7 @@
     ],
       "latest_completed_slice_id": "umbra-cpp-process-endpoint-federation-restore-abort-immediate-integration",
       "latest_completed_slice_lane": "process-federation-restore-abort-immediate",
-      "next_action": "The indexed HLA_IMMEDIATE restore-work-item boundary is complete, independently mapped, and queryable. No source-located transport candidate remains open in this profile; use the focused lane and queue commands to select the next bounded slice (a new case, remote/package/JUnit/protected review, interoperability, or conformance) without resyncing the unchanged Requirements Lab."
+      "next_action": "The public process exception-report concurrency lane and private client close/recheck regression are complete and independently queryable. The uncovered ConfigurationResult Table 5 row remains in clause 11.5.1's coverage inventory, but the corpus says table structure is not itself a callable API mapping; it is not a new-case task. No executable C++ implementation slice is currently queued in this family. Use the indexed queue to distinguish backlog shaping from runnable work, and add a Catch2 row only for a concrete API-backed behavior with direct requirement-to-subsection mapping. Keep package/JUnit/protected review, interoperability, and conformance promotion separate, and do not resync the unchanged Requirements Lab."
     },
     {
       "id": "annex-c-and-reference-resolution",

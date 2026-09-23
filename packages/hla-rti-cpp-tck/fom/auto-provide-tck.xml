@@ -21,6 +21,9 @@
             <objectClass>
                 <name>TckAutoProvideObject</name>
                 <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>TckDimensionX</dimension>
+                </dimensions>
                 <attribute>
                     <name>ProviderAValue</name>
                     <dataType>HLAbyte</dataType>
@@ -48,6 +51,19 @@
             </objectClass>
         </objectClass>
     </objects>
+    <dimensions>
+        <dimension>
+            <name>TckDimensionX</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Portable Auto Provide routing coordinate.</inputDataDescription>
+            <upperBound>10</upperBound>
+            <normalization>Portable Auto Provide routing normalization.</normalization>
+            <outputDataSemantics>Portable Auto Provide routing coordinate.</outputDataSemantics>
+            <value>[0..10)</value>
+        </dimension>
+    </dimensions>
     <switches>
         <autoProvide isEnabled="true"/>
     </switches>

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for inherited interaction-class delivery and per-subscriber received-class projection. It uses only the official C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, selected rich FOM, endpoint, and callback configuration, while this TCK package defines the fixture class and parameter names. When a derived interaction is sent, the active base subscription receives it with the closest subscribed base class and only that class's available parameters, while the derived subscription receives the derived class and both inherited and derived parameters. A derived-only subscription does not receive an interaction sent on the base class. Normative traceability is supplied by the IEEE 1516.1-2025 receive-order interaction, publication, subscription, and withdrawal requirement contracts and the IEEE 1516.2-2025 interaction-class hierarchy contract referenced by the scenario catalog. This is public-API test traceability, not certification or a conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-inherited-interaction-class-delivery",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador interaction-class lookup, publication, subscription, Send Interaction, and FederateAmbassador receiveInteraction callback",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador interaction-class declaration and send services with FederateAmbassador receiveInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioInheritedInteractionClassDeliveryContract"
+      ]
+    }
+  ]
+}
