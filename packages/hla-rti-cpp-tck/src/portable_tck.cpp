@@ -510,6 +510,10 @@ constexpr char federateMomEmptySubscriptionQueryScenario[] =
     "cpp-tck.federate-mom-empty-subscription-query";
 constexpr char federateMomEmptySubscriptionQueryContractId[] =
     "cpp-tck.federate-mom-empty-subscription-query-contract";
+constexpr char federateMomDirectedSubscriptionQueryScenario[] =
+    "cpp-tck.federate-mom-directed-subscription-query";
+constexpr char federateMomDirectedSubscriptionQueryContractId[] =
+    "cpp-tck.federate-mom-directed-subscription-query-contract";
 constexpr char federateMomExceptionReportServicePreconditionScenario[] =
     "cpp-tck.federate-mom-exception-report-service-precondition";
 constexpr char federateMomExceptionReportServicePreconditionContractId[] =
@@ -11698,7 +11702,8 @@ void scenarioFederateMomSubscriptionQueryState(
     bool hasObjectSubscription,
     bool activeObjectSubscription,
     bool hasInteractionSubscription,
-    bool activeInteractionSubscription) {
+    bool activeInteractionSubscription,
+    bool hasDirectedSubscription) {
   require(
       !options.fom.empty() && !options.mimFom.empty() &&
           !options.rateFom.empty() &&
@@ -11712,7 +11717,9 @@ void scenarioFederateMomSubscriptionQueryState(
   Session requester(options, model, "member");
   auto const scenarioSuffix = !hasObjectSubscription &&
           !hasInteractionSubscription
-      ? "federate-mom-empty-subscription-query"
+      ? (hasDirectedSubscription
+             ? "federate-mom-directed-subscription-query"
+             : "federate-mom-empty-subscription-query")
       : activeObjectSubscription
           ? (activeInteractionSubscription
                  ? "federate-mom-subscription-query"
@@ -11722,7 +11729,9 @@ void scenarioFederateMomSubscriptionQueryState(
                  : "federate-mom-passive-object-and-interaction-subscription-query");
   auto const federateNameSuffix = !hasObjectSubscription &&
           !hasInteractionSubscription
-      ? L"-mom-empty-subscription-query"
+      ? (hasDirectedSubscription
+             ? L"-mom-directed-subscription-query"
+             : L"-mom-empty-subscription-query")
       : activeObjectSubscription
           ? (activeInteractionSubscription
                  ? L"-mom-subscription-query"
@@ -11830,6 +11839,12 @@ void scenarioFederateMomSubscriptionQueryState(
     subjectAmbassador.subscribeInteractionClass(
         subjectInteractionClass,
         activeInteractionSubscription);
+  }
+  if (hasDirectedSubscription) {
+    subjectAmbassador.subscribeObjectClassDirectedInteractions(
+        subjectObjectClass,
+        rti::InteractionClassHandleSet{subjectInteractionClass},
+        false);
   }
 
   struct InteractionSubscription {
@@ -12005,21 +12020,43 @@ void scenarioFederateMomSubscriptionQueryState(
         "Empty interaction subscription report did not use the standard empty class-list NULL response shape");
   }
 
-  require(
-      directedReport->parameters.size() == 2U &&
-          directedReport->parameters.count(directedReportCountParameter) == 1U &&
-          directedReport->parameters.count(directedReportObjectClassParameter) ==
-              0U &&
-          directedReport->parameters.count(directedReportListParameter) == 1U,
-      "Empty directed-interaction subscription report did not use the standard NULL response parameter shape");
   rti::HLAinteger32BE directedClassCount;
+  require(
+      directedReport->parameters.count(directedReportCountParameter) == 1U,
+      "Directed-interaction subscription report omitted its MIM-defined class count");
   directedClassCount.decode(
       directedReport->parameters.at(directedReportCountParameter));
-  require(
-      directedClassCount.get() == 0 &&
-          decodeInteractionClassHandleList(
-              directedReport->parameters.at(directedReportListParameter)).empty(),
-      "Empty directed-interaction subscription report did not report zero classes and an empty list");
+  if (hasDirectedSubscription) {
+    require(
+        directedReport->parameters.size() == 3U &&
+            directedReport->parameters.count(
+                directedReportObjectClassParameter) == 1U &&
+            directedReport->parameters.count(directedReportListParameter) == 1U,
+        "Populated directed-interaction subscription report did not contain its three MIM-defined parameters");
+    auto const directedInteractions = decodeInteractionClassHandleList(
+        directedReport->parameters.at(directedReportListParameter));
+    require(
+        directedClassCount.get() == 1 &&
+            requesterAmbassador.decodeObjectClassHandle(
+                    directedReport->parameters.at(
+                        directedReportObjectClassParameter)) ==
+                requesterObjectClass &&
+            directedInteractions.size() == 1U &&
+            directedInteractions.front() == requesterInteractionClass,
+        "Populated directed-interaction subscription report did not identify the adapter-selected object and interaction classes");
+  } else {
+    require(
+        directedReport->parameters.size() == 2U &&
+            directedReport->parameters.count(
+                directedReportObjectClassParameter) == 0U &&
+            directedReport->parameters.count(directedReportListParameter) == 1U,
+        "Empty directed-interaction subscription report did not use the standard NULL response parameter shape");
+    require(
+        directedClassCount.get() == 0 &&
+            decodeInteractionClassHandleList(
+                directedReport->parameters.at(directedReportListParameter)).empty(),
+        "Empty directed-interaction subscription report did not report zero classes and an empty list");
+  }
 
   if (hasObjectSubscription) {
     subjectAmbassador.unsubscribeObjectClassAttributes(
@@ -12028,6 +12065,11 @@ void scenarioFederateMomSubscriptionQueryState(
   }
   if (hasInteractionSubscription) {
     subjectAmbassador.unsubscribeInteractionClass(subjectInteractionClass);
+  }
+  if (hasDirectedSubscription) {
+    subjectAmbassador.unsubscribeObjectClassDirectedInteractions(
+        subjectObjectClass,
+        rti::InteractionClassHandleSet{subjectInteractionClass});
   }
   requesterAmbassador.unsubscribeInteractionClass(objectReportClass);
   requesterAmbassador.unsubscribeInteractionClass(interactionReportClass);
@@ -12042,25 +12084,36 @@ void scenarioFederateMomSubscriptionQueryState(
 void scenarioFederateMomSubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
-  scenarioFederateMomSubscriptionQueryState(options, model, true, true, true, true);
+  scenarioFederateMomSubscriptionQueryState(
+      options, model, true, true, true, true, false);
 }
 
 void scenarioFederateMomPassiveSubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
-  scenarioFederateMomSubscriptionQueryState(options, model, true, false, true, true);
+  scenarioFederateMomSubscriptionQueryState(
+      options, model, true, false, true, true, false);
 }
 
 void scenarioFederateMomPassiveInteractionSubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
-  scenarioFederateMomSubscriptionQueryState(options, model, true, true, true, false);
+  scenarioFederateMomSubscriptionQueryState(
+      options, model, true, true, true, false, false);
 }
 
 void scenarioFederateMomEmptySubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
-  scenarioFederateMomSubscriptionQueryState(options, model, false, false, false, false);
+  scenarioFederateMomSubscriptionQueryState(
+      options, model, false, false, false, false, false);
+}
+
+void scenarioFederateMomDirectedSubscriptionQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(
+      options, model, false, false, false, false, true);
 }
 
 void scenarioFederateMomSubscriptionQueryContract(
@@ -12085,6 +12138,12 @@ void scenarioFederateMomEmptySubscriptionQueryContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederateMomEmptySubscriptionQuery(options, model);
+}
+
+void scenarioFederateMomDirectedSubscriptionQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomDirectedSubscriptionQuery(options, model);
 }
 
 void scenarioFederateMomExceptionReportServicePrecondition(
@@ -31402,6 +31461,16 @@ int runFederateMomEmptySubscriptionQueryScenarios(int argc, char** argv) {
       scenarioFederateMomEmptySubscriptionQueryContract);
 }
 
+int runFederateMomDirectedSubscriptionQueryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomDirectedSubscriptionQueryScenario,
+      federateMomDirectedSubscriptionQueryContractId,
+      scenarioFederateMomDirectedSubscriptionQuery,
+      scenarioFederateMomDirectedSubscriptionQueryContract);
+}
+
 int runFederateMomExceptionReportServicePreconditionScenarios(
     int argc,
     char** argv) {
@@ -35629,6 +35698,20 @@ bool hasFederateMomEmptySubscriptionQueryScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasFederateMomDirectedSubscriptionQueryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomDirectedSubscriptionQueryScenario ||
+        scenario == federateMomDirectedSubscriptionQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasFederateMomExceptionReportServicePreconditionScenario(
     int argc,
     char** argv) {
@@ -36835,6 +36918,9 @@ int main(int argc, char** argv) {
     }
     if (hasFederateMomEmptySubscriptionQueryScenario(argc, argv)) {
       return runFederateMomEmptySubscriptionQueryScenarios(argc, argv);
+    }
+    if (hasFederateMomDirectedSubscriptionQueryScenario(argc, argv)) {
+      return runFederateMomDirectedSubscriptionQueryScenarios(argc, argv);
     }
     if (hasFederateMomExceptionReportServicePreconditionScenario(argc, argv)) {
       return runFederateMomExceptionReportServicePreconditionScenarios(argc, argv);

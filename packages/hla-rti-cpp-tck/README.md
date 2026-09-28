@@ -4409,10 +4409,20 @@ callback models. Evidence is in
 `.build/cpp-tck-federate-mom-empty-subscription-query-candidate-a-clean-20260928/`
 and
 `.build/cpp-tck-federate-mom-empty-subscription-query-candidate-b-clean-20260928/`.
-The pair is promoted. The catalog now contains 958 IDs (956 promoted, 2
+The next promoted pair verifies one populated directed-interaction subscription
+through standard `HLArequestSubscriptions`: exactly one object class and one
+interaction class are decoded and matched to adapter-selected FOM handles; the
+empty NULL response remains covered by its prior scenario. Two independent
+installed-package consumer trees passed 20/20 focused CTest regressions across
+the active, passive-object, passive-interaction, empty, and populated-directed
+states in both callback models. Direct evidence passed all ten scenario IDs in
+both callback models. Evidence is in
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-a-clean-20260928/`
+and
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-b-clean-20260928/`.
+The pair is promoted. The catalog now contains 960 IDs (958 promoted, 2
 candidates); Java parity remains 21/21. The API-surface audit still accounts
 for all 164 official RTIambassador methods and 56 FederateAmbassador callbacks.
-Next bounded handoff: add populated directed-interaction subscription reports.
-The native `requestSubscriptions` case verifies one object class and one
-interaction class in that report; a search of the portable catalog found no
-matching populated directed-subscription scenario yet.
+Next bounded handoff: survey standard MIM and native evidence for multiple
+directed-subscription object classes or multiple interaction classes before
+adding broader populated-report cases.

@@ -1,0 +1,74 @@
+{
+    "schema_version": 1,
+    "kind": "requirements-reference",
+    "document_id": "hla-1516.1-2025",
+    "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+    "notes": "The queried subject has one non-universal directed interaction subscription and no ordinary object-attribute or ordinary interaction subscriptions. A separate requester uses standard APIs to request and receive the subject's subscription reports. The test verifies the MIM-defined populated directed-interaction report for one object class and one interaction class, while the ordinary object and interaction reports retain their empty NULL response shapes. It does not cover multiple object classes, multiple directed interaction classes, universal subscriptions, DDM, delivery, or overall MOM conformance.",
+    "requirements": [
+        {
+            "id": "cpp-tck-federate-mom-directed-subscription-query-send",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-123-l145-40",
+            "clause_id": "clause-6.12",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "750-764",
+            "source_symbol": "sendInteraction",
+            "statement": "The requester sends HLArequestSubscriptions through the standard sendInteraction service and identifies the joined subject with the inherited HLAfederate parameter.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomDirectedSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomDirectedSubscriptionQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-directed-subscription-query-report-subscriptions",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-099-l75-20",
+            "clause_id": "clause-5.10",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "577-579",
+            "source_symbol": "subscribeInteractionClass",
+            "statement": "The requester subscribes through the standard API to the three MIM report interaction classes so it can receive the requested object, ordinary-interaction, and directed-interaction subscription reports.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomDirectedSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomDirectedSubscriptionQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-directed-subscription-query-declaration",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+            "clause_id": "clause-5.12",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "593-606",
+            "source_symbol": "subscribeObjectClassDirectedInteractions",
+            "statement": "The subject declares one non-universal directed-interaction subscription using the adapter-selected object-class handle and interaction-class handle set.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomDirectedSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomDirectedSubscriptionQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-directed-subscription-query-cleanup",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-102-l172-49",
+            "clause_id": "clause-5.13",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "620-632",
+            "source_symbol": "unsubscribeObjectClassDirectedInteractions",
+            "statement": "After the report is checked, the subject removes the adapter-selected directed-interaction subscription using the standard interaction-set overload.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomDirectedSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomDirectedSubscriptionQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-directed-subscription-query-reports",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+            "clause_id": "clause-11.4.1",
+            "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+            "source_lines": "909-918, 1077-1090, 1316-1426, 3625-3638, 3718-3733",
+            "source_symbol": "HLArequestSubscriptions",
+            "statement": "With one directed interaction class subscribed under one object class, the MIM directed-interaction report has HLAnumberOfClasses equal to one, identifies the adapter-selected HLAobjectClass, and contains exactly the adapter-selected interaction class in HLAinteractionClassList. The ordinary object and interaction reports remain their standard empty NULL responses.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomDirectedSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomDirectedSubscriptionQueryContract"
+            ]
+        }
+    ]
+}
