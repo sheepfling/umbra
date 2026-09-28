@@ -1,0 +1,21 @@
+{
+    "schema_version": 1,
+    "kind": "api-reference",
+    "document_id": "hla-1516.1-2025",
+    "status": "experimental-public-api-not-conformance-evidence",
+    "notes": "This portable C++ TCK slice composes adapter-supplied application and update-rate FOM modules. A subject federate subscribes to one object-class attribute and one application interaction class; a separate requester subscribes to the three standard MIM report interactions, then names the subject with the inherited HLAfederate parameter of HLArequestSubscriptions. The test validates the standard object-class, interaction-class, and empty directed-interaction subscription reports. It uses only official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard MIM, public handle decoders, standard encoding DataElements, and the C++ standard library. The provider package, FOM modules, names, endpoint, callback configuration, update-rate name, and logical-time implementation come from the adapter. It does not use DDM regions, private headers, provider registries, or vendor-specific names.",
+    "api_surfaces": [
+        {
+            "id": "standard-cpp-federate-mom-subscription-query",
+            "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+            "language": "cpp",
+            "signature": "RTIambassador object-attribute and interaction subscriptions, targeted federate MOM request/report interactions, public handle decoding, and callback delivery",
+            "source": "third_party/ieee1516.1-2025/include/RTI",
+            "source_symbol": "RTIambassador::subscribeObjectClassAttributes, subscribeInteractionClass, getFederateHandle, getParameterHandle, sendInteraction, decodeAttributeHandle, decodeObjectClassHandle, and decodeInteractionClassHandle; FederateAmbassador::receiveInteraction",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomSubscriptionQueryContract"
+            ]
+        }
+    ]
+}

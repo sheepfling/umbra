@@ -1,5 +1,6 @@
 #define main hla_rti_cpp_tck_original_main
 #include <RTI/encoding/BasicDataElements.h>
+#include <RTI/encoding/HLAfixedRecord.h>
 #include <RTI/encoding/HLAvariableArray.h>
 
 #include "main.cpp"
@@ -493,6 +494,10 @@ constexpr char federateMomPublicationQueryScenario[] =
     "cpp-tck.federate-mom-publication-query";
 constexpr char federateMomPublicationQueryContractId[] =
     "cpp-tck.federate-mom-publication-query-contract";
+constexpr char federateMomSubscriptionQueryScenario[] =
+    "cpp-tck.federate-mom-subscription-query";
+constexpr char federateMomSubscriptionQueryContractId[] =
+    "cpp-tck.federate-mom-subscription-query-contract";
 constexpr char federateMomExceptionReportServicePreconditionScenario[] =
     "cpp-tck.federate-mom-exception-report-service-precondition";
 constexpr char federateMomExceptionReportServicePreconditionContractId[] =
@@ -11673,6 +11678,315 @@ void scenarioFederateMomPublicationQueryContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederateMomPublicationQuery(options, model);
+}
+
+void scenarioFederateMomSubscriptionQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.rateFom.empty() &&
+          !options.logicalTimeImplementationName.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty() &&
+          !options.interactionClassName.empty() &&
+          !options.fomUpdateRateName.empty(),
+      "Federate MOM subscription-query reporting requires adapter-supplied application FOM, rate FOM, standard MIM, object class, attribute, interaction class, update-rate name, and logical-time configuration");
+
+  Session subject(options, model, "owner");
+  Session requester(options, model, "member");
+  auto const federation =
+      federationName(options, "federate-mom-subscription-query");
+  subject.connect();
+  requester.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{
+          options.fom.wstring(),
+          options.rateFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  auto const subjectName =
+      options.ownerFederateName + L"-mom-subscription-query-subject";
+  auto const requesterName =
+      options.memberFederateName + L"-mom-subscription-query-requester";
+  subject.join(subjectName, options.federateType, federation);
+  requester.join(requesterName, options.federateType, federation);
+
+  auto& subjectAmbassador = subject.rtiAmbassador();
+  auto& requesterAmbassador = requester.rtiAmbassador();
+  auto const subjectObjectClass =
+      subjectAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const subjectAttribute = subjectAmbassador.getAttributeHandle(
+      subjectObjectClass,
+      options.attributeName);
+  auto const subjectInteractionClass =
+      subjectAmbassador.getInteractionClassHandle(options.interactionClassName);
+  auto const requesterObjectClass =
+      requesterAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const requesterAttribute = requesterAmbassador.getAttributeHandle(
+      requesterObjectClass,
+      options.attributeName);
+  auto const requesterInteractionClass =
+      requesterAmbassador.getInteractionClassHandle(options.interactionClassName);
+  auto const targetFederate = requesterAmbassador.getFederateHandle(subjectName);
+  auto const reliable =
+      requesterAmbassador.getTransportationTypeHandle(L"HLAreliable");
+  auto const requestClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestSubscriptions");
+  auto const requestFederateParameter =
+      requesterAmbassador.getParameterHandle(requestClass, L"HLAfederate");
+  auto const objectReportClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectClassSubscription");
+  auto const objectReportCountParameter =
+      requesterAmbassador.getParameterHandle(objectReportClass, L"HLAnumberOfClasses");
+  auto const objectReportClassParameter =
+      requesterAmbassador.getParameterHandle(objectReportClass, L"HLAobjectClass");
+  auto const objectReportActiveParameter =
+      requesterAmbassador.getParameterHandle(objectReportClass, L"HLAactive");
+  auto const objectReportUpdateRateParameter =
+      requesterAmbassador.getParameterHandle(objectReportClass, L"HLAmaxUpdateRate");
+  auto const objectReportAttributesParameter =
+      requesterAmbassador.getParameterHandle(objectReportClass, L"HLAattributeList");
+  auto const interactionReportClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportInteractionSubscription");
+  auto const interactionReportListParameter = requesterAmbassador.getParameterHandle(
+      interactionReportClass,
+      L"HLAinteractionClassList");
+  auto const directedReportClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportDirectedInteractionSubscription");
+  auto const directedReportCountParameter =
+      requesterAmbassador.getParameterHandle(directedReportClass, L"HLAnumberOfClasses");
+  auto const directedReportObjectClassParameter =
+      requesterAmbassador.getParameterHandle(directedReportClass, L"HLAobjectClass");
+  auto const directedReportListParameter = requesterAmbassador.getParameterHandle(
+      directedReportClass,
+      L"HLAinteractionClassList");
+  require(
+      subjectObjectClass.isValid() && subjectAttribute.isValid() &&
+          subjectInteractionClass.isValid() &&
+          requesterObjectClass.isValid() && requesterAttribute.isValid() &&
+          requesterInteractionClass.isValid() && targetFederate.isValid() &&
+          reliable.isValid() && requestClass.isValid() &&
+          requestFederateParameter.isValid() && objectReportClass.isValid() &&
+          objectReportCountParameter.isValid() &&
+          objectReportClassParameter.isValid() &&
+          objectReportActiveParameter.isValid() &&
+          objectReportUpdateRateParameter.isValid() &&
+          objectReportAttributesParameter.isValid() &&
+          interactionReportClass.isValid() &&
+          interactionReportListParameter.isValid() &&
+          directedReportClass.isValid() &&
+          directedReportCountParameter.isValid() &&
+          directedReportObjectClassParameter.isValid() &&
+          directedReportListParameter.isValid(),
+      "Adapter-supplied application handles or standard MIM subscription request/report handles were invalid");
+
+  requesterAmbassador.subscribeInteractionClass(objectReportClass);
+  requesterAmbassador.subscribeInteractionClass(interactionReportClass);
+  requesterAmbassador.subscribeInteractionClass(directedReportClass);
+  subjectAmbassador.subscribeObjectClassAttributes(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute},
+      true,
+      options.fomUpdateRateName);
+  subjectAmbassador.subscribeInteractionClass(subjectInteractionClass);
+
+  struct InteractionSubscription {
+    rti::InteractionClassHandle interactionClass;
+    bool active;
+  };
+  auto decodeAttributeHandleList = [&](rti::VariableLengthData const& encoded) {
+    rti::HLAvariableArray const handlePrototype{rti::HLAoctet{}};
+    rti::HLAvariableArray handles{
+        static_cast<rti::DataElement const&>(handlePrototype)};
+    handles.decode(encoded);
+    std::vector<rti::AttributeHandle> decoded;
+    decoded.reserve(handles.size());
+    for (std::size_t index = 0; index != handles.size(); ++index) {
+      auto const& encodedHandle =
+          dynamic_cast<rti::HLAvariableArray const&>(handles.get(index));
+      decoded.push_back(
+          requesterAmbassador.decodeAttributeHandle(encodedHandle.encode()));
+    }
+    return decoded;
+  };
+  auto decodeInteractionClassHandleList =
+      [&](rti::VariableLengthData const& encoded) {
+        rti::HLAvariableArray const handlePrototype{rti::HLAoctet{}};
+        rti::HLAvariableArray handles{
+            static_cast<rti::DataElement const&>(handlePrototype)};
+        handles.decode(encoded);
+        std::vector<rti::InteractionClassHandle> decoded;
+        decoded.reserve(handles.size());
+        for (std::size_t index = 0; index != handles.size(); ++index) {
+          auto const& encodedHandle =
+              dynamic_cast<rti::HLAvariableArray const&>(handles.get(index));
+          decoded.push_back(
+              requesterAmbassador.decodeInteractionClassHandle(
+                  encodedHandle.encode()));
+        }
+        return decoded;
+      };
+  auto decodeInteractionSubscriptions =
+      [&](rti::VariableLengthData const& encoded) {
+        rti::HLAvariableArray const handlePrototype{rti::HLAoctet{}};
+        rti::HLAfixedRecord subscriptionPrototype;
+        subscriptionPrototype.appendElement(handlePrototype);
+        subscriptionPrototype.appendElement(rti::HLAboolean{});
+        rti::HLAvariableArray subscriptions{
+            static_cast<rti::DataElement const&>(subscriptionPrototype)};
+        subscriptions.decode(encoded);
+        std::vector<InteractionSubscription> decoded;
+        decoded.reserve(subscriptions.size());
+        for (std::size_t index = 0; index != subscriptions.size(); ++index) {
+          auto const& record =
+              dynamic_cast<rti::HLAfixedRecord const&>(subscriptions.get(index));
+          auto const& encodedHandle =
+              dynamic_cast<rti::HLAvariableArray const&>(record.get(0));
+          auto const& active =
+              dynamic_cast<rti::HLAboolean const&>(record.get(1));
+          decoded.push_back(
+              InteractionSubscription{
+                  requesterAmbassador.decodeInteractionClassHandle(
+                      encodedHandle.encode()),
+                  active.get()});
+        }
+        return decoded;
+      };
+
+  rti::ParameterHandleValueMap const requestParameters{
+      {requestFederateParameter, targetFederate.encode()}};
+  requesterAmbassador.sendInteraction(
+      requestClass,
+      requestParameters,
+      rti::VariableLengthData{});
+  waitFor(
+      requester,
+      [&] { return requester.recorder().interactions().size() >= 3U; },
+      options,
+      "the standard federate MOM subscription reports");
+  auto const reports = requester.recorder().interactions();
+  require(
+      reports.size() == 3U,
+      "A populated subscription request did not deliver exactly the object, interaction, and required empty directed-interaction reports");
+
+  InteractionRecord const* objectReport = nullptr;
+  InteractionRecord const* interactionReport = nullptr;
+  InteractionRecord const* directedReport = nullptr;
+  for (auto const& report : reports) {
+    require(
+        report.present && report.transportation == reliable,
+        "A standard MIM subscription report was absent or did not use reliable transportation");
+    if (report.interaction == objectReportClass) {
+      require(objectReport == nullptr, "Duplicate object-class subscription report");
+      objectReport = &report;
+    } else if (report.interaction == interactionReportClass) {
+      require(interactionReport == nullptr, "Duplicate interaction subscription report");
+      interactionReport = &report;
+    } else if (report.interaction == directedReportClass) {
+      require(
+          directedReport == nullptr,
+          "Duplicate directed-interaction subscription report");
+      directedReport = &report;
+    } else {
+      require(false, "Subscription query delivered an unrequested interaction class");
+    }
+  }
+  require(
+      objectReport != nullptr && interactionReport != nullptr &&
+          directedReport != nullptr,
+      "Subscription query omitted one of the three standard MIM report classes");
+
+  require(
+      objectReport->parameters.size() == 5U &&
+          objectReport->parameters.count(objectReportCountParameter) == 1U &&
+          objectReport->parameters.count(objectReportClassParameter) == 1U &&
+          objectReport->parameters.count(objectReportActiveParameter) == 1U &&
+          objectReport->parameters.count(objectReportUpdateRateParameter) == 1U &&
+          objectReport->parameters.count(objectReportAttributesParameter) == 1U,
+      "Object-class subscription report did not contain its five MIM-defined parameters");
+  rti::HLAinteger32BE objectClassCount;
+  objectClassCount.decode(objectReport->parameters.at(objectReportCountParameter));
+  rti::HLAboolean objectSubscriptionActive;
+  objectSubscriptionActive.decode(
+      objectReport->parameters.at(objectReportActiveParameter));
+  rti::HLAunicodeString objectSubscriptionUpdateRate;
+  objectSubscriptionUpdateRate.decode(
+      objectReport->parameters.at(objectReportUpdateRateParameter));
+  require(
+      objectClassCount.get() == 1 &&
+      requesterAmbassador.decodeObjectClassHandle(
+              objectReport->parameters.at(objectReportClassParameter)) ==
+              requesterObjectClass &&
+          objectSubscriptionActive.get() &&
+          objectSubscriptionUpdateRate.get() == options.fomUpdateRateName,
+      "Object-class subscription report did not identify the active adapter-selected subscription and update-rate name");
+  auto const subscribedAttributes = decodeAttributeHandleList(
+      objectReport->parameters.at(objectReportAttributesParameter));
+  require(
+      subscribedAttributes.size() == 1U &&
+          subscribedAttributes.front() == requesterAttribute,
+      "Object-class subscription report did not contain exactly the adapter-selected attribute");
+
+  require(
+      interactionReport->parameters.size() == 1U &&
+          interactionReport->parameters.count(interactionReportListParameter) ==
+              1U,
+      "Interaction subscription report did not contain its MIM-defined class list");
+  auto const subscribedInteractions = decodeInteractionSubscriptions(
+      interactionReport->parameters.at(interactionReportListParameter));
+  std::vector<rti::InteractionClassHandle> const expectedSubscriptions{
+      requesterInteractionClass};
+  require(
+      subscribedInteractions.size() == expectedSubscriptions.size(),
+      "Interaction subscription report did not contain exactly the adapter-selected interaction subscription");
+  for (auto const& expected : expectedSubscriptions) {
+    auto const matchingSubscription = std::find_if(
+        subscribedInteractions.begin(),
+        subscribedInteractions.end(),
+        [&](auto const& subscription) {
+          return subscription.interactionClass == expected;
+        });
+    require(
+        matchingSubscription != subscribedInteractions.end() &&
+            matchingSubscription->active,
+        "Interaction subscription report omitted the expected active application subscription");
+  }
+
+  require(
+      directedReport->parameters.size() == 2U &&
+          directedReport->parameters.count(directedReportCountParameter) == 1U &&
+          directedReport->parameters.count(directedReportObjectClassParameter) ==
+              0U &&
+          directedReport->parameters.count(directedReportListParameter) == 1U,
+      "Empty directed-interaction subscription report did not use the standard NULL response parameter shape");
+  rti::HLAinteger32BE directedClassCount;
+  directedClassCount.decode(
+      directedReport->parameters.at(directedReportCountParameter));
+  require(
+      directedClassCount.get() == 0 &&
+          decodeInteractionClassHandleList(
+              directedReport->parameters.at(directedReportListParameter)).empty(),
+      "Empty directed-interaction subscription report did not report zero classes and an empty list");
+
+  subjectAmbassador.unsubscribeObjectClassAttributes(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute});
+  subjectAmbassador.unsubscribeInteractionClass(subjectInteractionClass);
+  requesterAmbassador.unsubscribeInteractionClass(objectReportClass);
+  requesterAmbassador.unsubscribeInteractionClass(interactionReportClass);
+  requesterAmbassador.unsubscribeInteractionClass(directedReportClass);
+  requester.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subjectAmbassador.destroyFederationExecution(federation);
+  requester.disconnect();
+  subject.disconnect();
+}
+
+void scenarioFederateMomSubscriptionQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQuery(options, model);
 }
 
 void scenarioFederateMomExceptionReportServicePrecondition(
@@ -30948,6 +31262,16 @@ int runFederateMomPublicationQueryScenarios(int argc, char** argv) {
       scenarioFederateMomPublicationQueryContract);
 }
 
+int runFederateMomSubscriptionQueryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomSubscriptionQueryScenario,
+      federateMomSubscriptionQueryContractId,
+      scenarioFederateMomSubscriptionQuery,
+      scenarioFederateMomSubscriptionQueryContract);
+}
+
 int runFederateMomExceptionReportServicePreconditionScenarios(
     int argc,
     char** argv) {
@@ -35117,6 +35441,20 @@ bool hasFederateMomPublicationQueryScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasFederateMomSubscriptionQueryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomSubscriptionQueryScenario ||
+        scenario == federateMomSubscriptionQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasFederateMomExceptionReportServicePreconditionScenario(
     int argc,
     char** argv) {
@@ -36311,6 +36649,9 @@ int main(int argc, char** argv) {
     }
     if (hasFederateMomPublicationQueryScenario(argc, argv)) {
       return runFederateMomPublicationQueryScenarios(argc, argv);
+    }
+    if (hasFederateMomSubscriptionQueryScenario(argc, argv)) {
+      return runFederateMomSubscriptionQueryScenarios(argc, argv);
     }
     if (hasFederateMomExceptionReportServicePreconditionScenario(argc, argv)) {
       return runFederateMomExceptionReportServicePreconditionScenarios(argc, argv);

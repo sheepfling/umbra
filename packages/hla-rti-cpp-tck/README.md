@@ -245,6 +245,8 @@ The executable covers these ordinary public-API workflows, under both
   | `cpp-tck.federate-mom-object-instance-information-contract` | Pure standard C++ contract for object-information MOM reports before and after local deletion |
   | `cpp-tck.federate-mom-publication-query` | Verifies published object class/attribute and interaction class reports plus the required empty directed-interaction publication report |
   | `cpp-tck.federate-mom-publication-query-contract` | Pure standard C++ contract for federate MOM publication reports and the directed-publication NULL response |
+  | `cpp-tck.federate-mom-subscription-query` | Verifies an active object-attribute subscription, active interaction subscriptions, and the required empty directed-interaction subscription report |
+  | `cpp-tck.federate-mom-subscription-query-contract` | Pure standard C++ contract for federate MOM subscription reports |
   | `cpp-tck.federate-mom-exception-report-service-precondition` | Service Reporting enablement failure while subscribed to HLAreportServiceInvocation reports HLAparameterError false |
   | `cpp-tck.federate-mom-exception-report-service-precondition-contract` | Pure standard C++ contract for the Service Reporting MOM precondition report |
   | `cpp-tck.federate-send-service-reports-to-file-mom-switch` | Standard federate-level HLAsetSwitches changes for the service-report destination switch without activating report emission |
@@ -4350,12 +4352,27 @@ adds an adapter-supplied module, then confirms a direct request agrees. It uses
 the standard `HLAvariableArray` and `HLAunicodeString` encoders and compares the
 set without assuming ordering. The focused four-pair federation-MOM attribute lane
 passed 16/16 focused CTest cases in each independent installed-package build
-tree under evoked and immediate callback models. The catalog now contains 950
-IDs (948 promoted, 2 candidates); Java parity remains 21/21. The promoted
-`cpp-tck.joined-federate-mom-object-lifecycle` pair now also checks the required
-static `HLAfederateHost` Unicode value for non-emptiness without asserting
-platform-specific hostname spelling. Its focused 4/4 callback-model matrix
-passed in both independent installed-package trees. Next bounded step: compare
-the remaining `HLAfederate` MIM attributes against the catalog and select one
-portable gap; keep DDM-region reporting and implementation-defined
-service-report file locations out of this slice.
+tree under evoked and immediate callback models.
+
+The promoted `cpp-tck.federate-mom-subscription-query` pair uses the
+adapter-selected application FOM and update-rate FOM with the standard MIM to
+report one active object-attribute subscription and one active interaction
+subscription for a named subject federate. It also verifies the zero-count
+directed-interaction NULL response, including its omitted object-class
+parameter and empty interaction-class list. The scenario uses no DDM regions
+or provider-specific interfaces. Two independent installed-package consumer
+builds each passed all 4 focused CTest cases across both callback models; the
+regression with the existing publication-query pair passed 8/8. Evidence is in
+`.build/cpp-tck-federate-mom-subscription-query-candidate-a-clean-20260928/`
+and `.build/cpp-tck-federate-mom-subscription-query-candidate-b-clean-20260928/`.
+
+The catalog now contains 952 IDs (950 promoted, 2 candidates); Java parity
+remains 21/21. The promoted `cpp-tck.joined-federate-mom-object-lifecycle` pair
+also checks the required static `HLAfederateHost` Unicode value for
+non-emptiness without asserting platform-specific hostname spelling. Its
+focused 4/4 callback-model matrix passed in both independent installed-package
+trees. Next bounded handoff: survey the remaining standard `HLAfederate` MIM
+request/report interactions against the pinned MIM and portable catalog, then
+select one uncovered non-DDM report family for a focused candidate slice with
+a direct Requirements Lab mapping and two clean installed-package evidence
+runs.
