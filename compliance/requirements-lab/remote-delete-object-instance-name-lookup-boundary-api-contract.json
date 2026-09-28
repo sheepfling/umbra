@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable C++ scenario uses only the official IEEE 1516.1 C++ API and standard library. It verifies the deleting federate's object-name-to-handle lookup is unknown when deletion returns and the subscriber's handle-to-name lookup is unknown after Remove Object Instance is delivered.",
+  "api_surfaces": [
+    {
+      "id": "portable-delete-object-instance-receive-order",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void deleteObjectInstance(ObjectInstanceHandle const& objectInstance, VariableLengthData const& userSuppliedTag) = 0",
+      "exception_types": [
+        "DeletePrivilegeNotHeld",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::deleteObjectInstance",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteObjectInstanceNameLookupBoundaryPortable"
+      ]
+    },
+    {
+      "id": "portable-remove-object-instance-callback",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void removeObjectInstance(ObjectInstanceHandle const& objectInstance, VariableLengthData const& userSuppliedTag, FederateHandle const& producingFederate) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::removeObjectInstance",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteObjectInstanceNameLookupBoundaryPortable"
+      ]
+    },
+    {
+      "id": "portable-object-instance-handle-to-name-lookup-after-removal",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual std::wstring getObjectInstanceName(ObjectInstanceHandle const& objectInstance) = 0",
+      "exception_types": [
+        "ObjectInstanceNotKnown",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceName",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteObjectInstanceNameLookupBoundaryPortable"
+      ]
+    },
+    {
+      "id": "portable-object-instance-name-to-handle-lookup-after-deletion",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual ObjectInstanceHandle getObjectInstanceHandle(std::wstring const& objectInstanceName) = 0",
+      "exception_types": [
+        "ObjectInstanceNotKnown",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceHandle",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteObjectInstanceNameLookupBoundaryPortable"
+      ]
+    }
+  ]
+}

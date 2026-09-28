@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This trace is limited to the standard MIM object-instance-information query/report response shapes. It checks the owned-attribute list and registered/known class fields for owned and known instances, then verifies the NULL form after the requester removes local knowledge. It does not claim complete joined-federate MOM or object-management conformance.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-federate-mom-object-information-send",
+      "clause_id": "clause-6.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "761-764",
+      "source_symbol": "RTIambassador::sendInteraction",
+      "statement": "The test uses the standard sendInteraction service and parameter map to request information about an object instance known to the requesting federate.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectInstanceInformation",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectInstanceInformationContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-standard-federate-mom-object-instance-information",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "1184-1197, 1702-1743, 3626-3631",
+      "source_symbol": "HLArequestObjectInstanceInformation; HLAreportObjectInstanceInformation; HLAattributeHandleList",
+      "statement": "The request identifies one object instance and results in one HLAreportObjectInstanceInformation. For an object known by the joined federate, the report carries its owned instance-attribute list, registered class, and known class. If the joined federate does not know the instance, the report is a NULL response with an empty owned-attribute list and omitted registered/known classes. The test checks all three states and decodes the standard nested attribute-handle list using public RTIambassador handle decoding.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectInstanceInformation",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectInstanceInformationContract"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard MIM, HLAinteger32BE, and the C++ standard library. The adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and federate configuration. A monitor subscribes to HLAexceptionReporting, directly requests its standard-MIM value, and verifies the conditional reliable reflection after the subject changes and restores its public Exception Reporting switch. It does not generate service exceptions or depend on provider-specific headers, names, registries, or internal APIs.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-exception-reporting-mim-attribute",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador federation lifecycle, standard-MIM object-class subscription and attribute-value requests, Exception Reporting switch getter/setter, and FederateAmbassador reflection callback",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes, RTIambassador::requestAttributeValueUpdate, RTIambassador::getExceptionReportingSwitch, RTIambassador::setExceptionReportingSwitch, FederateAmbassador::reflectAttributeValues, HLAinteger32BE",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateExceptionReportingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateExceptionReportingMomAttributeContract"
+      ]
+    }
+  ]
+}

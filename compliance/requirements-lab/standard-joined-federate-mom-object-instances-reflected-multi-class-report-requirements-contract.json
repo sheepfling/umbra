@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This portable slice uses two adapter-supplied FOM modules, two distinct object classes, and one standard HLAbyte attribute per class. The subject registers two instances of each class and sends six receive-order updates; the target actively subscribes and validates four discoveries and six reflections. A separate joined requester queries the target's standard MOM reflected-object report. The decoded report must contain exactly two instances for each of the two tested classes, regardless of repeated updates to the first instance in each class. The test does not invoke DDM region services and does not claim overall conformance or untested MOM statistics.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-subscription",
+      "clause_id": "clause-5.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "525-539",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes",
+      "statement": "The joined target actively subscribes to the adapter-supplied attribute in each of two distinct object classes; a different joined federate issues the MOM query.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-registration",
+      "clause_id": "clause-6.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "687-698",
+      "source_symbol": "RTIambassador::registerObjectInstance",
+      "statement": "The subject registers two distinct instances of each published adapter-supplied class, and the actively subscribed target discovers all four with their registered classes.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-update",
+      "clause_id": "clause-6.10",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "716-730",
+      "source_symbol": "RTIambassador::updateAttributeValues",
+      "statement": "The subject sends six receive-order updates across the four instances, including repeated updates to the first instance of each class; the target observes the corresponding HLAbyte values.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-callback",
+      "clause_id": "clause-6.11",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "235-244",
+      "source_symbol": "FederateAmbassador::reflectAttributeValues",
+      "statement": "The joined target validates all six receive-order reflect callbacks, including the object, class-specific attribute, value, reliable transportation, producing federate, tag, and absence of sent regions.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-request-report",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "1112-1119, 1474-1494, 3647-3659, 3735-3747",
+      "source_symbol": "HLArequestObjectInstancesReflected; HLAreportObjectInstancesReflected; HLAobjectClassBasedCounts; HLAobjectClassBasedCount",
+      "statement": "The distinct requester selects the joined target with the standard HLAfederate parameter. The standard MIM report groups reflected instances by object class. The test decodes the standard variable array of fixed records using official data elements and the public object-class handle decoder, then verifies exactly two instances for each of the two tested classes. Repeated reflections of one instance do not increase that class's distinct-instance count.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReportContract"
+      ]
+    }
+  ]
+}

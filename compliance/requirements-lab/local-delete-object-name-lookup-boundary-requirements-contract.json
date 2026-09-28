@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The direct mapping is limited to the official 2025 C++ API declarations: section 6.18 for Local Delete Object Instance and section 10.8 for Get Object Instance Name. The test verifies the declared unknown-instance exception after the subscriber has locally forgotten the discovered object; it does not claim provider-independent conformance from one provider run.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-local-object-instance-deletion",
+      "clause_id": "clause-6.18.1",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::localDeleteObjectInstance",
+      "source_lines": "852-864",
+      "statement": "The scenario invokes the standard Local Delete Object Instance service for a discovered object. It then probes the resulting local identity state without deleting the federation-wide object.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-instance-name-lifecycle",
+      "clause_id": "clause-10.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceName",
+      "source_lines": "1742-1750",
+      "statement": "Section 10.8 declares ObjectInstanceNotKnown for getObjectInstanceName when the handle is not known. The test confirms the discovered handle resolves before local deletion, expects ObjectInstanceNotKnown afterward for the forgetting federate, and confirms the publisher still resolves that handle.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryContractPortable"
+      ]
+    }
+  ]
+}

@@ -2,53 +2,55 @@
   "schema_version": 1,
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
-  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only Umbra's bounded Attribute Ownership Divestiture If Wanted path in the opt-in, non-installable IEEE 1516.1-2025 development profile. It validates the divesting federate's current ownership for the whole supplied set, returns only attributes with a real still-pending regular or If Available acquirer, moves each returned attribute synchronously to that acquirer, and delivers Attribute Ownership Acquisition Notification with the divestiture tag. The selected acquirer's publication remains protected until that notification begins; obsolete callbacks to the former owner are made stale, while later regular requests are replanned against the new owner. If a regular acquirer has already accepted cancellation, a competing transfer consumes that cancellation reservation so the transfer notification remains the sole terminal reply. Where several eligible pending requests exist, the profile uses a deterministic earliest-accepted private sequence across the two acquisition forms; IEEE 1516.1-2025 does not make that local arbitration policy a standards priority rule. There is no Request Attribute Ownership Assumption search, unconditional or negotiated divestiture, cancellation of negotiated divestiture, RTI-owned state, full resign-action ownership disposition, save/restore behavior, DDM, timestamped/retraction behavior, FOM sharing policy, remote transport, packaging, catalog evidence, or conformance claim. The contract uses immutable candidate IDs and exported clause IDs from the Requirements Lab; RL-015 and RL-016 record relevant ownership attribution and state-chart-export limitations.",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "These mappings use the exact ownership-service section labels and declarations in the pinned IEEE 1516.1-2025 C++ API headers. The test is limited to one ordinary object attribute and one pending acquirer; it excludes multi-recipient arbitration, DDM, timestamped delivery, and provider-specific behavior. This is candidate API traceability, not a conformance claim.",
   "requirements": [
     {
-      "id": "umbra-divestiture-if-wanted-reports-only-actually-divested-attributes",
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-168-l35-7",
+      "id": "cpp-1516.1-tck-ordinary-acquisition-for-if-wanted-divestiture",
+      "clause_id": "clause-7.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::attributeOwnershipAcquisition",
+      "source_lines": "1030-1045",
+      "statement": "The prospective owner requests the adapter-supplied object attribute through ordinary Attribute Ownership Acquisition and supplies a user tag that is checked on the owner's release-request callback.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipDivestitureIfWanted",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipDivestitureIfWantedContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-if-wanted-divestiture-returns-transferred-set",
       "clause_id": "clause-7.13",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
-      "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipDivestitureIfWanted",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::attributeOwnershipDivestitureIfWanted",
+      "source_lines": "1082-1097",
+      "statement": "The owner invokes Divestiture If Wanted for the pending acquisition and the RTI-returned divested-attribute set exactly matches the attribute transferred by this one-attribute case.",
       "tests": [
-        "cpp/tests/attribute_ownership_divestiture_if_wanted_pending_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted transfers only to 2025 pending acquirers",
-        "cpp/tests/attribute_ownership_divestiture_if_wanted_mixed_acquirer_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted orders mixed 2025 acquirers by request",
-        "cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer"
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipDivestitureIfWanted",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipDivestitureIfWantedContract"
       ]
     },
     {
-      "id": "umbra-divestiture-if-wanted-concludes-nontransferred-attributes",
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-168-l38-8",
-      "clause_id": "clause-7.13",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
-      "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipDivestitureIfWanted",
+      "id": "cpp-1516.1-tck-if-wanted-release-request-callback",
+      "clause_id": "clause-7.11",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::requestAttributeOwnershipRelease",
+      "source_lines": "446-451",
+      "statement": "The owner receives the pending acquisition's object, candidate attribute set, and acquisition request tag before divesting the requested attribute.",
       "tests": [
-        "cpp/tests/attribute_ownership_divestiture_if_wanted_pending_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted transfers only to 2025 pending acquirers"
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipDivestitureIfWanted",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipDivestitureIfWantedContract"
       ]
     },
     {
-      "id": "umbra-divestiture-if-wanted-transfers-to-a-selected-joined-acquirer",
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-151-l141-46",
-      "clause_id": "clause-7.1.2.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
-      "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipDivestitureIfWanted",
+      "id": "cpp-1516.1-tck-if-wanted-acquisition-notification",
+      "clause_id": "clause-7.7",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::attributeOwnershipAcquisitionNotification",
+      "source_lines": "430-435",
+      "statement": "The pending acquirer receives the transferred object and attribute set with the Divestiture If Wanted user tag, and the test verifies ownership has moved from the former owner.",
       "tests": [
-        "cpp/tests/attribute_ownership_divestiture_if_wanted_pending_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted transfers only to 2025 pending acquirers",
-        "cpp/tests/attribute_ownership_divestiture_if_wanted_mixed_acquirer_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted orders mixed 2025 acquirers by request",
-        "cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer"
-      ]
-    },
-    {
-      "id": "umbra-divestiture-if-wanted-propagates-the-divestiture-tag",
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l66-21",
-      "clause_id": "clause-7.1.4",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
-      "source_symbol": "queueAttributeOwnershipDivestitureIfWantedNotifications",
-      "tests": [
-        "cpp/tests/attribute_ownership_divestiture_if_wanted_pending_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted transfers only to 2025 pending acquirers",
-        "cpp/tests/attribute_ownership_divestiture_if_wanted_mixed_acquirer_catch2.cpp::Embedded Attribute Ownership Divestiture If Wanted orders mixed 2025 acquirers by request",
-        "cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer"
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipDivestitureIfWanted",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipDivestitureIfWantedContract"
       ]
     }
   ]

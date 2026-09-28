@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This focused trace covers the standard Service Reporting subscriber precondition and the corresponding HLAreportMOMexception payload. It does not normalize HLAexception wording, require a particular synchronous API exception, or claim complete Service Reporting or MOM conformance.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-federate-service-reporting-mom-precondition",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches.HLAserviceReporting",
+      "source_lines": "984-989, 1028-1037",
+      "statement": "The standard MIM specifies that attempts to enable Service Reporting for a joined federate shall fail while that federate is subscribed to HLAreportServiceInvocation. Once that subscription is removed, the same well-formed switch adjustment is permitted.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportServicePrecondition",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportServicePreconditionContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-standard-hla-report-mom-exception-precondition",
+      "clause_id": "clause-11.5.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception",
+      "source_lines": "909-918, 1745-1767, 1847-1875",
+      "statement": "The standard MIM requires HLAreportMOMexception when a service-mimicking interaction is sent without satisfying its preconditions. For a well-formed parameter set, HLAparameterError is HLAfalse; HLAservice identifies the fully qualified interaction, HLAexception provides a textual problem depiction, and inherited HLAfederate identifies the joined federate.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportServicePrecondition",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportServicePreconditionContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-federate-service-reporting-public-query",
+      "clause_id": "clause-10.46",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getServiceReportingSwitch",
+      "source_lines": "2149-2157",
+      "statement": "The public API returns the joined federate's Service Reporting switch; the test observes that a rejected enablement leaves it disabled and that enablement succeeds after the stated MIM precondition is removed.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportServicePrecondition",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportServicePreconditionContract"
+      ]
+    }
+  ]
+}

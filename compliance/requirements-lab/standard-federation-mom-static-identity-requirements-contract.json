@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The mappings cite the pinned HLAfederation MOM definitions in the IEEE 1516.2-2025 standard MIM under the federation MOM requirements. Installed-package results are bounded provider evidence and do not establish provider-independent conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck.federation-mom-static-identity-object",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "658-669",
+      "source_symbol": "HLAobjectRoot.HLAmanager.HLAfederation object-class semantics",
+      "statement": "The standard HLAfederation MOM object class is published with one RTI-registered instance per federation execution, and the RTI supplies attribute values through the ordinary instance-attribute update mechanism when requested. The scenario discovers the standard HLAfederation instance and obtains its requested static identity values through the public request/reflection path.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentity",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentityContract"
+      ]
+    },
+    {
+      "id": "cpp-tck.federation-mom-static-identity-federation-name",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "671-682",
+      "source_symbol": "HLAfederation.HLAfederationName",
+      "statement": "HLAfederationName is a required static HLAunicodeString attribute with HLAreliable transportation and receive order. Its value is the name of the federation execution to which the joined federate belongs; the scenario verifies the reflected value equals the federation name it created.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentity",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentityContract"
+      ]
+    },
+    {
+      "id": "cpp-tck.federation-mom-static-identity-rti-version",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "696-706",
+      "source_symbol": "HLAfederation.HLARTIversion",
+      "statement": "HLARTIversion is a required static HLAunicodeString attribute with HLAreliable transportation and receive order and represents the RTI software version. The scenario checks that its requested value is supplied and non-empty while deliberately imposing no provider-specific version syntax or value.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentity",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentityContract"
+      ]
+    },
+    {
+      "id": "cpp-tck.federation-mom-static-identity-mim-designator",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "708-720",
+      "source_symbol": "HLAfederation.HLAMIMdesignator",
+      "statement": "HLAMIMdesignator is a required static HLAunicodeString attribute with HLAreliable transportation and receive order. When the RTI supplies the standard MIM, its value is HLAstandardMIM; the scenario requests and decodes the value and checks this prescribed designator.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentity",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentityContract"
+      ]
+    },
+    {
+      "id": "cpp-tck.federation-mom-static-identity-time-implementation",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "756-768",
+      "source_symbol": "HLAfederation.HLAtimeImplementationName",
+      "statement": "HLAtimeImplementationName is a required static HLAunicodeString attribute with HLAreliable transportation and receive order. Its value is the time-implementation name supplied at federation creation; the scenario verifies the reflected value equals the adapter-supplied creation argument.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentity",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentityContract"
+      ]
+    }
+  ]
+}

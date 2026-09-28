@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard library, and adapter-supplied application FOM, standard MIM, provider package, endpoint, and callback configuration. It subscribes to standard HLAreportException, triggers a typed NameNotFound with an undefined object-class lookup, toggles Exception Reporting through standard HLAsetSwitches, and verifies enabled delivery, disabled suppression, reliable RTI-originated callback metadata, the textual service/exception parameters, and the reported federate handle. It uses no provider-specific name, registry, header, or internal state.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-exception-report-delivery",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador standard-MIM lookup, subscription, receive-order failure reporting, callback service, and lifecycle; FederateAmbassador.receiveInteraction report observation",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::getInteractionClassHandle, RTIambassador::getParameterHandle, RTIambassador::getTransportationTypeHandle, RTIambassador::getFederateHandle, RTIambassador::subscribeInteractionClass, RTIambassador::getObjectClassHandle, RTIambassador::getExceptionReportingSwitch, RTIambassador::sendInteraction, RTIambassador::evokeCallback, FederateAmbassador::receiveInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateExceptionReportDeliveryContract"
+      ]
+    }
+  ]
+}

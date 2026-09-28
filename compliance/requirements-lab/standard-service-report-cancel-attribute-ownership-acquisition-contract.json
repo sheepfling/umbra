@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "standard_sections": [
+    "hla-1516.1-2025:clause-7.15",
+    "hla-1516.1-2025:clause-7.16",
+    "hla-1516.1-2025:clause-11.5",
+    "hla-1516.1-2025:clause-11.5.2",
+    "hla-1516.1-2025:clause-11.5.2.1"
+  ],
+  "notes": "This contract records a portable C++ TCK check for a successful CancelAttributeOwnershipAcquisition service report through the standard HLAreportServiceInvocation interaction. The adapter supplies the provider package, multi-attribute FOM, standard MIM, endpoint, callback model, and logical-time configuration. The requester starts an acquisition while reporting is disabled, enables reporting for cancellation, and the scenario verifies the service name/type, success, type-37 object-designator and type-1 attribute-set arguments, type-34 null return marker, empty exception, serial zero, reliable delivery, and the exact standard cancellation-confirmation callback. It checks that all eight standard report parameters are present, but does not decode the inherited HLAfederate parameter value or assert ordering between the MOM report and confirmation callback. The source uses only official IEEE 1516.1 C++ RTIambassador/FederateAmbassador APIs, standard MIM data elements, and the C++ standard library; it makes no provider-specific or implementation-state assertion.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-service-report-cancel-attribute-ownership-acquisition",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador::attributeOwnershipAcquisition, RTIambassador::cancelAttributeOwnershipAcquisition, standard service-reporting controls, and FederateAmbassador cancellation-confirmation/receiveInteraction callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::cancelAttributeOwnershipAcquisition; standard MIM HLAreportServiceInvocation",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioServiceReportCancelAttributeOwnershipAcquisition"
+      ]
+    }
+  ]
+}

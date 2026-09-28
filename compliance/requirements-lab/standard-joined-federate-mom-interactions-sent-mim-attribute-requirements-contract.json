@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This contract directly traces the portable ordinary-interaction slice to the pinned standard MIM entry and IEEE 1516.1 clause 11.4.1. It does not claim to test the MIM entry's separate DDM-accounting semantic. An installed-package run is bounded provider evidence, not proof of provider-independent behavior or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-interactions-sent-mim-attribute-ordinary",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "362-373",
+      "source_symbol": "HLAinteractionsSent",
+      "statement": "The standard MIM declares HLAinteractionsSent as an HLAcount updated periodically according to HLAsetTiming.HLAreportPeriod using reliable receive-order delivery. This focused scenario checks the ordinary application Send Interaction contribution: after capturing a direct baseline with periodic reporting enabled, three accepted application sends must raise the direct and periodic values by exactly three. The MIM's additional DDM-accounting semantic is explicitly outside this case.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomInteractionsSentAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomInteractionsSentAttributeContract"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The exact subsection mappings below come from the canonical IEEE 1516.1-2025 C++ RTIambassador API header. The scenario uses the valid standard SUPPORT_SERVICES group and valid handles from a joined peer so it isolates the declared connection and execution-membership exception boundaries before join and after resignation while connected. It does not claim handle encoding, normalized-coordinate semantics, cross-provider identity, or callback behavior.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-normalize-service-group-membership-boundaries",
+      "clause_id": "clause-10.29",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::normalizeServiceGroup",
+      "source_lines": "1977-1985",
+      "statement": "The standard API declares NotConnected and FederateNotExecutionMember among the exceptions for normalizeServiceGroup. The test passes the valid standard SUPPORT_SERVICES group and checks NotConnected before connect plus FederateNotExecutionMember before join and after resignation while connected.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-normalize-federate-handle-membership-boundaries",
+      "clause_id": "clause-10.30",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::normalizeFederateHandle",
+      "source_lines": "1987-1995",
+      "statement": "The standard API declares NotConnected and FederateNotExecutionMember among the exceptions for normalizeFederateHandle. The test passes a valid joined-peer handle and checks NotConnected before connect plus FederateNotExecutionMember both after connect but before join and after resigning while connected.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-normalize-object-class-handle-membership-boundaries",
+      "clause_id": "clause-10.31",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::normalizeObjectClassHandle",
+      "source_lines": "1997-2005",
+      "statement": "The standard API declares NotConnected and FederateNotExecutionMember among the exceptions for normalizeObjectClassHandle. The test passes a valid FOM class handle from a joined peer and checks NotConnected before connect plus FederateNotExecutionMember before join and after resignation while connected.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-normalize-interaction-class-handle-membership-boundaries",
+      "clause_id": "clause-10.32",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::normalizeInteractionClassHandle",
+      "source_lines": "2007-2015",
+      "statement": "The standard API declares NotConnected and FederateNotExecutionMember among the exceptions for normalizeInteractionClassHandle. The test passes a valid FOM interaction handle from a joined peer and checks NotConnected before connect plus FederateNotExecutionMember before join and after resignation while connected.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-normalize-object-instance-handle-membership-boundaries",
+      "clause_id": "clause-10.33",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::normalizeObjectInstanceHandle",
+      "source_lines": "2017-2025",
+      "statement": "The standard API declares NotConnected and FederateNotExecutionMember among the exceptions for normalizeObjectInstanceHandle. The test passes a live object handle from a joined peer and checks NotConnected before connect plus FederateNotExecutionMember before join and after resignation while connected.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesContractPortable"
+      ]
+    }
+  ]
+}

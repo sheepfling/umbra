@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This contract traces HLAreflectionsReceived to its pinned standard MIM definition, receive-order attribute update and reflection, object registration, and direct MOM value requests. Installed-package runs are bounded provider evidence, not proof of provider-independent behavior or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-reflections-received-mim-attribute",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "320-331",
+      "source_symbol": "HLAreflectionsReceived",
+      "statement": "The standard MIM defines HLAreflectionsReceived as the total number of Reflect Attribute Values service invocations at the joined federate, distinguishing invocation count from the number of reflected object-attribute values. The scenario verifies one increment for each of three ordinary callbacks, including two callbacks for repeated updates to one object, then checks the final periodic value.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomReflectionsReceivedAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomReflectionsReceivedAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-reflections-received-registration",
+      "clause_id": "clause-6.8.4",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "697-712",
+      "source_symbol": "RTIambassador::registerObjectInstance",
+      "statement": "The publisher registers two application objects using the standard API; the receiving federate discovers both before updates are sent.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomReflectionsReceivedAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomReflectionsReceivedAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-reflections-received-update",
+      "clause_id": "clause-6.10",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "727-732",
+      "source_symbol": "RTIambassador::updateAttributeValues(ObjectInstanceHandle, AttributeHandleValueMap, VariableLengthData)",
+      "statement": "The publisher invokes receive-order Update Attribute Values three times. The test waits for a separate ordinary reflection callback after each invocation and requires HLAreflectionsReceived to advance by exactly one each time, even for two updates to the same object.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomReflectionsReceivedAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomReflectionsReceivedAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-reflections-received-direct-request",
+      "clause_id": "clause-6.21",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "876-889",
+      "source_symbol": "RTIambassador::requestAttributeValueUpdate(ObjectInstanceHandle, AttributeHandleSet, VariableLengthData)",
+      "statement": "The monitor requests the standard scalar value from the subject federate's known MOM object and decodes the returned HLAinteger32BE value after each committed reflection callback.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomReflectionsReceivedAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomReflectionsReceivedAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-reflections-received-callback",
+      "clause_id": "clause-6.9.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "238-260",
+      "source_symbol": "FederateAmbassador::reflectAttributeValues",
+      "statement": "The receiver records one distinct standard reflection callback per application update and validates object, typed attribute value, reliable transport, empty tag, producer federate, and the absence of DDM-region metadata.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomReflectionsReceivedAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomReflectionsReceivedAttributeContract"
+      ]
+    }
+  ]
+}

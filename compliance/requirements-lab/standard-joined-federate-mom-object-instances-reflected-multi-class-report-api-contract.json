@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice composes two adapter-supplied FOM modules and the standard MIM. A joined target actively subscribes to one HLAbyte attribute in each of two distinct object classes. A subject registers two instances per class and sends six receive-order updates, including repeated updates to one instance of each class. The target verifies all four discoveries and all six standard reflect callbacks. A distinct joined requester asks for the target's HLAreportObjectInstancesReflected and decodes the standard class-based counts, requiring exactly two instances for each tested class. The count records use standard HLAinteger32BE, HLAoctet, HLAfixedRecord, and HLAvariableArray elements with the public object-class handle decoder. Provider package, FOM modules, application class and attribute names, endpoint, callback configuration, and logical-time implementation are adapter inputs. The test invokes no region or other DDM services, uses only official IEEE 1516.1 RTIambassador and FederateAmbassador APIs and the C++ standard library, and contains no private headers, provider registry access, or vendor-specific names.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-object-instances-reflected-multi-class-report",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador publication, active subscription to two object classes, registration and receive-order update, distinct-requester joined-federate MOM query/report, public object-class handle decoding, and callback delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::publishObjectClassAttributes, subscribeObjectClassAttributes, registerObjectInstance, updateAttributeValues, subscribeInteractionClass, sendInteraction, decodeObjectClassHandle, and standard lifecycle services; FederateAmbassador::discoverObjectInstance, reflectAttributeValues, and receiveInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReportContract"
+      ]
+    }
+  ]
+}

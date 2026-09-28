@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable C++ scenario uses only the official IEEE 1516.1 RTIambassador API and standard library. It proves the mandatory Receive/TimeStamp order values and HLAreliable/HLAbestEffort transportation handles round-trip while joined, then checks the declared membership exception for each valid standard name/value after resignation while connected.",
+  "api_surfaces": [
+    {
+      "id": "portable-order-type-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual OrderType getOrderType(std::wstring const& orderTypeName) = 0",
+      "exception_types": ["InvalidOrderName", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getOrderType",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioStandardOrderTransportLookupsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-order-name-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual std::wstring getOrderName(OrderType orderType) = 0",
+      "exception_types": ["InvalidOrderType", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getOrderName",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioStandardOrderTransportLookupsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-transportation-type-handle-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual TransportationTypeHandle getTransportationTypeHandle(std::wstring const& transportationTypeName) = 0",
+      "exception_types": ["InvalidTransportationName", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getTransportationTypeHandle",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioStandardOrderTransportLookupsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-transportation-type-name-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual std::wstring getTransportationTypeName(TransportationTypeHandle const& transportationType) = 0",
+      "exception_types": ["InvalidTransportationTypeHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getTransportationTypeName",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioStandardOrderTransportLookupsAfterResignationPortable"]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This focused trace covers malformed HLAresignAction and HLAswitch values in standard HLAsetSwitches parameters and their HLAreportMOMexception delivery. It does not normalize HLAexception wording, require a particular synchronous API exception, or claim complete MOM error-reporting conformance.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-standard-hla-report-mom-exception-delivery",
+      "clause_id": "clause-11.5.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception",
+      "source_lines": "909-918, 1745-1767, 1847-1875",
+      "statement": "The standard MIM requires HLAreportMOMexception when a MOM interaction is sent with an incorrectly formatted parameter. The report is reliable and carries HLAservice, HLAexception, HLAparameterError, and the joined-federate identity; HLAparameterError is HLAtrue for an incorrectly formatted parameter, and the reported MOM interaction name is fully qualified.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportDelivery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportDeliveryContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-federate-automatic-resign-action-enumeration-domain",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches.HLAautomaticResignAction; HLAresignAction",
+      "source_lines": "984-989, 1022-1025, 3102-3128",
+      "statement": "The standard federate-level HLAsetSwitches interaction declares HLAautomaticResignAction as HLAresignAction, represented by HLAinteger32BE with enumerated values zero through five; the test uses six as an invalid enumerator and verifies that it does not alter the public directive.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportDelivery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportDeliveryContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-federate-service-reporting-switch-enumeration-domain",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches.HLAserviceReporting; HLAswitch",
+      "source_lines": "984-989, 1028-1037, 3143-3155",
+      "statement": "The standard MIM declares HLAserviceReporting as HLAswitch represented by HLAinteger32BE with values zero and one; the test uses two as an invalid enumerator, verifies HLAparameterError is true, and confirms the Service Reporting switch is unchanged.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportDelivery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportDeliveryContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-federate-automatic-resign-action-query",
+      "clause_id": "clause-10.44",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAutomaticResignDirective",
+      "source_lines": "2127-2135",
+      "statement": "The public API returns the joined federate's current automatic-resign directive; the test compares it before and after the malformed MOM parameter processing.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportDelivery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionReportDeliveryContract"
+      ]
+    }
+  ]
+}

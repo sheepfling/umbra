@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "The portable C++ source exercises HLAreportFederateLost using only official IEEE 1516.1 RTIambassador and FederateAmbassador APIs plus the C++ standard library. The adapter supplies the provider, application FOM, standard MIM, endpoint, callback model, and external process fault fixture. The application FOM supplies a valid non-empty FOM module list for federation creation; no application-class behavior is asserted. The portable source contains no Umbra headers, private registry access, provider-specific transport code, or fault-injection hook. The report producer designator is intentionally not asserted because the TCK does not claim a standard producer mapping for RTI-originated MOM interactions.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-lost-mim-report",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+  "signature": "RTIambassador createFederationExecutionWithMIM with an empty application FOM module list and adapter-supplied MIM, join, subscribe, resign, and destroy services with FederateAmbassador connectionLost and receiveInteraction callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador standard declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLostMomReportPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLostMomReportContractPortable"
+      ]
+    }
+  ]
+}

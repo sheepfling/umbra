@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records a portable installed-package C++ TCK case for querying ownership of one known, owned attribute. The scenario uses only official IEEE 1516.1 RTIambassador and FederateAmbassador declarations plus the C++ standard library. The adapter supplies provider library, FOM, endpoint, and callback configuration. It verifies one Inform Attribute Ownership callback with the queried object, attribute set, and current owner handle; unowned and RTI-owned results, invalid handles, MOM, and save/restore are outside this case.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-attribute-ownership-query-owner-report",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador queryAttributeOwnership and isAttributeOwnedByFederate with FederateAmbassador informAttributeOwnership",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-query declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryOwnerReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryOwnerReportContract"
+      ]
+    }
+  ]
+}

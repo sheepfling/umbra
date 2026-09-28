@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "The portable C++ scenario uses only the official IEEE 1516.1 API and standard library. One federate registers an object and divests its attribute; a second federate acquires that attribute and registers a different object. It then resigns with DELETE_OBJECTS_THEN_DIVEST. The other members verify removal of the departing federate's object, continued lookup of the first object, and successful acquisition of the released attribute.",
+  "api_surfaces": [
+    {
+      "id": "portable-resign-delete-objects-then-divest",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void resignFederationExecution(ResignAction resignAction) = 0",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::resignFederationExecution and ResignAction::DELETE_OBJECTS_THEN_DIVEST",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectsThenDivestCrossObjectEffectsPortable"
+      ]
+    },
+    {
+      "id": "portable-resign-delete-objects-then-divest-ownership-fixture",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::unconditionalAttributeOwnershipDivestiture and RTIambassador::attributeOwnershipAcquisitionIfAvailable",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unconditionalAttributeOwnershipDivestiture and RTIambassador::attributeOwnershipAcquisitionIfAvailable",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectsThenDivestCrossObjectEffectsPortable"
+      ]
+    },
+    {
+      "id": "portable-resign-delete-objects-then-divest-object-effects",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::registerObjectInstance and RTIambassador::getObjectInstanceHandle",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador object-management and object-instance lookup services",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectsThenDivestCrossObjectEffectsPortable"
+      ]
+    },
+    {
+      "id": "portable-resign-delete-objects-then-divest-callback-effects",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "FederateAmbassador::removeObjectInstance and FederateAmbassador::attributeOwnershipAcquisitionNotification",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador standard object-removal and ownership-acquisition callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectsThenDivestCrossObjectEffectsPortable"
+      ]
+    }
+  ]
+}

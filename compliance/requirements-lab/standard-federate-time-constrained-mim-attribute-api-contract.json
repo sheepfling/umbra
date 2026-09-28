@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard MIM, HLAboolean, the adapter-selected logical-time configuration, and the C++ standard library. The adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and federate configuration. The test reads the subject's initial standard HLAtimeConstrained value through the MIM, invokes the opposite standard service, checks the conditional value and the timeConstrainedEnabled callback when enabling, and restores the observed state. No provider-specific headers, names, registries, or internal APIs are used.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-time-constrained-mim-attribute",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador federation lifecycle, standard-MIM subscription and attribute-value requests, Enable/Disable Time Constrained services, and FederateAmbassador reflection and timeConstrainedEnabled callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::createFederationExecutionWithMIM, RTIambassador::joinFederationExecution, RTIambassador::subscribeObjectClassAttributes, RTIambassador::requestAttributeValueUpdate, RTIambassador::enableTimeConstrained, RTIambassador::disableTimeConstrained, FederateAmbassador::reflectAttributeValues, FederateAmbassador::timeConstrainedEnabled, HLAboolean",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeConstrainedMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeConstrainedMomAttributeContract"
+      ]
+    }
+  ]
+}

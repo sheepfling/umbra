@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable C++ scenario uses only the official IEEE 1516.1 RTIambassador API and standard library. It confirms that a federate name resolves within its own execution and that lookup through another execution's ambassador reports the API-declared NameNotFound boundary.",
+  "api_surfaces": [
+    {
+      "id": "portable-foreign-federate-name-lookup",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual FederateHandle getFederateHandle(std::wstring const& federateName) = 0",
+      "exception_types": [
+        "NameNotFound",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getFederateHandle",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioForeignFederateNameLookupBoundaryPortable"
+      ]
+    }
+  ]
+}

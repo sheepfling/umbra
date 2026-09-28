@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This candidate scenario samples the joined-federate Delete Object Instance service-call count before application deletions, after each of two successful deletion calls, and through the standard periodic MOM report. It correlates those calls with ordinary removal callbacks at a second federate. This is one installed-provider test result, not evidence of provider-independent behavior or IEEE conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-deleted-object-count-mim-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "444-456",
+      "source_symbol": "HLAobjectInstancesDeleted",
+      "statement": "The standard MIM defines HLAobjectInstancesDeleted as the number of Delete Object Instance service invocations by the represented joined federate since Join and declares the attribute periodic under HLAsetTiming. The scenario verifies two direct count increments and a periodic value preserving that total.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDeletedObjectCountPeriodic",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDeletedObjectCountPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-deleted-object-count-delete-service",
+      "clause_id": "clause-6.17",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "832-847",
+      "source_symbol": "RTIambassador::deleteObjectInstance(ObjectInstanceHandle, VariableLengthData)",
+      "statement": "The joined owner invokes the standard receive-order Delete Object Instance service for each registered application instance; the scenario checks each call against its corresponding receiver-side removal callback and MOM count change.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDeletedObjectCountPeriodic",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDeletedObjectCountPeriodicContract"
+      ]
+    }
+  ]
+}

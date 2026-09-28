@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This mapping points to the official IEEE 1516.1-2025 named joinFederationExecution API clause and overload declaration. The scenario retries with an adapter-derived distinct name after the duplicate-name exception; it does not assert exception precedence among unrelated join failures.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-federate-name-already-in-use-join-boundary",
+      "clause_id": "clause-4.11",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::joinFederationExecution(federateName, federateType, federationName, additionalFomModules)",
+      "source_lines": "217-238",
+      "statement": "The API declares FederateNameAlreadyInUse for the named join overload. After one member joins with a name, the test requires a second connected federate using that same name to receive FederateNameAlreadyInUse.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDuplicateFederateNameJoinBoundaryPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDuplicateFederateNameJoinBoundaryContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-join-after-duplicate-name-rejection",
+      "clause_id": "clause-4.11",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::joinFederationExecution(federateName, federateType, federationName, additionalFomModules)",
+      "source_lines": "217-238",
+      "statement": "After the duplicate-name failure, the same connected federate joins successfully with a distinct name and obtains a FederateHandle distinct from the existing member.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDuplicateFederateNameJoinBoundaryPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDuplicateFederateNameJoinBoundaryContractPortable"]
+    }
+  ]
+}

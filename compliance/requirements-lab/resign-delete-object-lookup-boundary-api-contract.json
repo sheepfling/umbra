@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable C++ scenario uses only the official IEEE 1516.1 C++ API and standard library. It resigns the object-owning federate with DELETE_OBJECTS, waits for the surviving federate's standard removal callback, and checks that all three object identity/class lookups reject the removed instance. Provider-specific implementation behavior is not asserted.",
+  "api_surfaces": [
+    {
+      "id": "portable-resign-delete-objects",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void resignFederationExecution(ResignAction resignAction) = 0",
+      "exception_types": [
+        "InvalidResignAction",
+        "OwnershipAcquisitionPending",
+        "FederateOwnsAttributes",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "CallNotAllowedFromWithinCallback",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::resignFederationExecution",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryPortable"
+      ]
+    },
+    {
+      "id": "portable-remove-object-instance-callback-after-resign",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void removeObjectInstance(ObjectInstanceHandle const& objectInstance, VariableLengthData const& userSuppliedTag, FederateHandle const& producingFederate) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::removeObjectInstance",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryPortable"
+      ]
+    },
+    {
+      "id": "portable-known-object-class-lookup-after-resign-delete-objects",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual ObjectClassHandle getKnownObjectClassHandle(ObjectInstanceHandle const& objectInstance) = 0",
+      "exception_types": [
+        "ObjectInstanceNotKnown",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getKnownObjectClassHandle",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryPortable"
+      ]
+    },
+    {
+      "id": "portable-object-instance-name-to-handle-lookup-after-resign-delete-objects",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual ObjectInstanceHandle getObjectInstanceHandle(std::wstring const& objectInstanceName) = 0",
+      "exception_types": [
+        "ObjectInstanceNotKnown",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceHandle",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryPortable"
+      ]
+    },
+    {
+      "id": "portable-object-instance-handle-to-name-lookup-after-resign-delete-objects",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual std::wstring getObjectInstanceName(ObjectInstanceHandle const& objectInstance) = 0",
+      "exception_types": [
+        "ObjectInstanceNotKnown",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceName",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryPortable"
+      ]
+    }
+  ]
+}

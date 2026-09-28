@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This candidate maps the tested control interaction to the canonical IEEE 1516.1-2025 management-object-model clause and the pinned official IEEE 1516.2-2025 standard MIM resource. It checks federation-wide false/true/false effects through public callbacks and does not claim complete MOM or Auto Provide conformance.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-federation-auto-provide-mom-switch",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederation.HLAadjust.HLAsetSwitches.HLAautoProvide",
+      "source_lines": "2521-2548",
+      "statement": "The standard federation HLAsetSwitches interaction permits a joined federate to send individual declared parameters, and HLAautoProvide sets the federation-wide Auto-Provide Switch to the provided value.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationAutoProvideMomSwitch",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationAutoProvideMomSwitchContract"
+      ]
+    }
+  ]
+}

@@ -26,7 +26,7 @@
         "cpp/tests/object_instance_registration_discovery_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry allocates 2025 object identities only from current publication",
         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry",
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador publishes object-class attributes and registers an object through a configured process endpoint"
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador publishes and unpublishes object-class attributes and registers an object through a configured process endpoint"
       ]
     },
     {

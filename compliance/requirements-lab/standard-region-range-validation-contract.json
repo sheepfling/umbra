@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "standard_sections": [
+    "hla-1516.1-2025:clause-9.1.2"
+  ],
+  "notes": "This contract records a portable C++ TCK check of RTIambassador::setRangeBounds validation on an adapter-supplied one-dimension region. It first accepts and commits [0, dimension upper bound], then requires InvalidRangeBound for equal and reversed bounds. These are public IEEE API exception assertions, not assertions about provider diagnostics, MOM failure payloads, or state after a failed call. The region/range service maps to clause 9.1.2 through the Requirements Lab region-lifecycle mapping. The source uses only official IEEE 1516.1 C++ RTIambassador APIs and the C++ standard library; the adapter supplies the provider package, model FOM and dimension, standard MIM, endpoint, callback model, and logical-time configuration. It performs no region-based publication, subscription, or routing assertion.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-region-range-validation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::createRegion(DimensionHandleSet), RTIambassador::setRangeBounds(RegionHandle, DimensionHandle, RangeBounds), RTIambassador::commitRegionModifications(RegionHandleSet), and RTIambassador::getRangeBounds(RegionHandle, DimensionHandle)",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setRangeBounds; standard InvalidRangeBound exception",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionRangeValidation",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionRangeValidationContract"
+      ]
+    }
+  ]
+}

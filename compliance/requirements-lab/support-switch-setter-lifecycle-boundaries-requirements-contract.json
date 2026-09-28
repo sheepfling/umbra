@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Each mapping points to the official IEEE 1516.1-2025 RTIambassador API clause comment and exact setter declaration. For each writable support switch, the portable scenario invokes the setter while joined with the value returned by the corresponding getter, expects FederateNotExecutionMember after resignation while connected, and expects NotConnected after disconnect. It makes no claim about provider-specific defaults or other switch behavior. Set Service Reporting retains its separately declared ReportServiceInvocationsAreSubscribed condition; the adapter fixture for this slice does not subscribe to service-report interactions.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-object-class-relevance-advisory-switch-setter-lifecycle-boundary",
+      "clause_id": "clause-10.35",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setObjectClassRelevanceAdvisorySwitch",
+      "source_lines": "2037-2045",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this setter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-attribute-relevance-advisory-switch-setter-lifecycle-boundary",
+      "clause_id": "clause-10.37",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setAttributeRelevanceAdvisorySwitch",
+      "source_lines": "2057-2065",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this setter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-attribute-scope-advisory-switch-setter-lifecycle-boundary",
+      "clause_id": "clause-10.39",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setAttributeScopeAdvisorySwitch",
+      "source_lines": "2077-2085",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this setter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-interaction-relevance-advisory-switch-setter-lifecycle-boundary",
+      "clause_id": "clause-10.41",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setInteractionRelevanceAdvisorySwitch",
+      "source_lines": "2097-2105",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this setter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-convey-region-designator-sets-switch-setter-lifecycle-boundary",
+      "clause_id": "clause-10.43",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setConveyRegionDesignatorSetsSwitch",
+      "source_lines": "2117-2125",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this setter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception; no region behavior is exercised.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-service-reporting-switch-setter-lifecycle-boundary",
+      "clause_id": "clause-10.47",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setServiceReportingSwitch",
+      "source_lines": "2160-2168",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this setter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception. The adapter fixture excludes the separate ReportServiceInvocationsAreSubscribed condition.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-exception-reporting-switch-setter-lifecycle-boundary",
+      "clause_id": "clause-10.49",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setExceptionReportingSwitch",
+      "source_lines": "2180-2188",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this setter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-send-service-reports-to-file-switch-setter-lifecycle-boundary",
+      "clause_id": "clause-10.51",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setSendServiceReportsToFileSwitch",
+      "source_lines": "2200-2208",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this setter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchSetterLifecycleBoundariesContractPortable"]
+    }
+  ]
+}

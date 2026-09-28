@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This contract directly traces the portable test to the pinned standard MIM entry. Passing an installed-package run is bounded provider evidence, not proof of provider-independent behavior or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-ro-length-mim-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "296-305",
+      "source_symbol": "HLAROlength",
+      "statement": "The standard MIM declares HLAROlength as an HLAcount, updated periodically under HLAsetTiming.HLAreportPeriod, using reliable receive-order delivery, and defines it as the number of receive-order messages queued for delivery to the joined federate. The scenario obtains a positive direct value and a positive periodic value while ordinary receive-order interactions remain queued, then verifies that the count returns to zero after callback delivery.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomRoLengthPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomRoLengthPeriodicContract"
+      ]
+    }
+  ]
+}

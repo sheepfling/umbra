@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "standard_sections": [
+    "hla-1516.1-2025:clause-9.1.2",
+    "hla-1516.1-2025:clause-11.5",
+    "hla-1516.1-2025:clause-11.5.1"
+  ],
+  "notes": "This contract records the portable C++ TCK check for RTIambassador::getDimensionHandleSet on a standard one-dimension region and the successful HLAreportServiceInvocation delivered through the standard MIM. The region dimension-set result maps to IEEE 1516.1-2025 clause 9.1.2; successful service-report content maps to clauses 11.5 and 11.5.1. Federation setup reuses the existing federation execution API contract. The source uses only official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard 1516.2 MIM data elements, and the C++ standard library. The adapter supplies the provider package, model FOM and configured dimension, standard MIM, endpoint, callback model, and logical-time configuration. It verifies the queried dimension set and all eight standard report parameters, including the inherited HLAfederate reporter identity, supplied region handle, returned dimension set, service classification, reliable delivery, success/exception state, and serial. It performs no region-based subscription, publication, update, interaction routing, or provider-specific inspection.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-service-report-dimension-handle-set",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador::createRegion(DimensionHandleSet), RTIambassador::getDimensionHandleSet(RegionHandle), and FederateAmbassador HLAreportServiceInvocation delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::createRegion; RTIambassador::getDimensionHandleSet; standard MIM HLAreportServiceInvocation",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioServiceReportDimensionHandleSet",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioServiceReportDimensionHandleSetContract"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The test maps the standard MIM conditional HLAboolean attribute, the public Enable/Disable Time Regulation services, the timeRegulationEnabled callback, and public MIM request/subscription/reflection APIs. It obtains the initial state from the standard MOM rather than assuming a default. The lookahead interval comes from the adapter-selected standard logical-time factory. Installed-package results are bounded provider evidence only, not proof of provider-independent behavior or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-time-regulating-mim-attribute",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "168-182, 3046-3056",
+      "source_symbol": "HLAobjectRoot.HLAmanager.HLAfederate.HLAtimeRegulating; HLAboolean",
+      "statement": "The standard MIM declares HLAtimeRegulating as a conditional HLAboolean updated whenever Enable Time Regulation or Disable Time Regulation succeeds. HLAboolean is represented by HLAinteger32BE with HLAfalse=0 and HLAtrue=1. The scenario reads the starting state from the MIM, checks one conditional value after each opposite-state operation, and restores the observed starting state.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-time-regulating-enable",
+      "clause_id": "clause-8.2",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1164-1176",
+      "source_symbol": "RTIambassador::enableTimeRegulation(LogicalTimeInterval const&)",
+      "statement": "When the observed MIM value is false, the subject invokes Enable Time Regulation with the standard factory's epsilon lookahead, and the monitor checks the conditional HLAtrue value; the test does not assume the initial state is false.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-time-regulating-enable-callback",
+      "clause_id": "clause-8.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "486-490",
+      "source_symbol": "FederateAmbassador::timeRegulationEnabled(LogicalTime const&)",
+      "statement": "After a successful Enable Time Regulation invocation, the subject services callbacks until exactly one timeRegulationEnabled callback is observed. The test allows the standard callback to be delivered asynchronously and does not require one on disable.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-time-regulating-disable",
+      "clause_id": "clause-8.4",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1178-1187",
+      "source_symbol": "RTIambassador::disableTimeRegulation",
+      "statement": "When the observed MIM value is true, the subject invokes Disable Time Regulation and the monitor checks the conditional HLAfalse value; the test then restores the previously observed state.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-time-regulating-direct-request",
+      "clause_id": "clause-6.21",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "876-889",
+      "source_symbol": "RTIambassador::requestAttributeValueUpdate(ObjectInstanceHandle, AttributeHandleSet, VariableLengthData)",
+      "statement": "The monitor directly requests the standard HLAtimeRegulating value before and after each successful service transition and checks it against the transition target.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-time-regulating-subscription",
+      "clause_id": "clause-5.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "525-539",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes",
+      "statement": "The monitor subscribes to the standard HLAfederate MOM object's HLAfederateHandle and HLAtimeRegulating attributes to identify the subject object and receive its conditional updates.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-time-regulating-reflection-callback",
+      "clause_id": "clause-6.9.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "238-260",
+      "source_symbol": "FederateAmbassador::reflectAttributeValues",
+      "statement": "The monitor validates exactly one conditional reflection for each successful transition, including the HLAboolean value, reliable transport, empty tag, invalid producer handle, and absent DDM-region metadata.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateTimeRegulatingMomAttributeContract"
+      ]
+    }
+  ]
+}

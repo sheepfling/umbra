@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only the official IEEE 1516.1 RTIambassador API, the standard library, and adapter-supplied application FOM, standard MIM, provider package, endpoint, and callback configuration. It sends the standard federate-level HLAsetSwitches interaction with HLAsendServiceReportsToFile false and true, restores the observed starting value, and checks the public destination-switch getter plus neighboring public switches. Service Reporting remains disabled; the scenario does not assert report routing or file creation and does not rely on provider-specific names, registries, headers, or internal switch state.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-send-service-reports-to-file-mom-switch",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador standard-MIM interaction and parameter lookup, receive-order sendInteraction, report-destination and neighboring switch queries, and federation lifecycle",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::getInteractionClassHandle, RTIambassador::getParameterHandle, RTIambassador::sendInteraction, RTIambassador::getSendServiceReportsToFileSwitch, RTIambassador::getServiceReportingSwitch, RTIambassador::getExceptionReportingSwitch, RTIambassador::getAutomaticResignDirective",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateSendServiceReportsToFileMomSwitchContract"
+      ]
+    }
+  ]
+}

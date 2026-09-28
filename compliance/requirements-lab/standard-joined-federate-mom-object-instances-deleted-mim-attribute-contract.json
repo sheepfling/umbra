@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records a portable C++ TCK check for the standard joined-federate MOM HLAobjectInstancesDeleted value. It uses only official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, the standard MIM, HLAinteger32BE, and the C++ standard library. The adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and application class/member names. Three application objects are registered; each successful receive-order Delete Object Instance call is paired with exactly one ordinary removal callback carrying the submitted tag and producer. The direct count is checked before deletion, after each of the first two calls, and after the periodic count of three before any post-delete direct request. Periodic reporting is disabled and the value is checked once more. The FOM uses no DDM regions, and no DDM-accounting claim is made. No provider-specific headers, registries, names, or diagnostics are used.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-object-instances-deleted-mim-attribute",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador joined-federate MOM value requests, object-class publication/subscription, object registration and receive-order deletion, HLAsetTiming control, with FederateAmbassador discovery, reflection, and removal callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador MOM, object-management, deletion, callback, and HLAinteger32BE declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesDeletedAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesDeletedAttributeContract"
+      ]
+    }
+  ]
+}

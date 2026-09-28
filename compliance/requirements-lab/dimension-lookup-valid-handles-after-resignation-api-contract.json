@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable C++ scenario uses only the official IEEE 1516.1 RTIambassador API and standard library. It first proves that its dimension and class handles are valid in the adapter-supplied dimensional FOM, then calls four dimension lookup services on the same ambassador after resignation while still connected. It asserts FederateNotExecutionMember and does not inspect provider diagnostics or implementation state.",
+  "api_surfaces": [
+    {
+      "id": "portable-dimension-name-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual std::wstring getDimensionName(DimensionHandle const& dimension) = 0",
+      "exception_types": ["InvalidDimensionHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getDimensionName",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDimensionLookupValidHandlesAfterResignationPortable"]
+    },
+    {
+      "id": "portable-dimension-upper-bound-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual unsigned long getDimensionUpperBound(DimensionHandle const& dimension) = 0",
+      "exception_types": ["InvalidDimensionHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getDimensionUpperBound",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDimensionLookupValidHandlesAfterResignationPortable"]
+    },
+    {
+      "id": "portable-object-class-dimensions-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual DimensionHandleSet getAvailableDimensionsForObjectClass(ObjectClassHandle const& objectClass) = 0",
+      "exception_types": ["InvalidObjectClassHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAvailableDimensionsForObjectClass",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDimensionLookupValidHandlesAfterResignationPortable"]
+    },
+    {
+      "id": "portable-interaction-class-dimensions-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual DimensionHandleSet getAvailableDimensionsForInteractionClass(InteractionClassHandle const& interactionClass) = 0",
+      "exception_types": ["InvalidInteractionClassHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAvailableDimensionsForInteractionClass",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDimensionLookupValidHandlesAfterResignationPortable"]
+    }
+  ]
+}

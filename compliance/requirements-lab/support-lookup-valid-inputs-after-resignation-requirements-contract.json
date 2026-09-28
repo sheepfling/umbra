@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The exact mappings below follow the canonical IEEE 1516.1-2025 C++ RTIambassador API header. The scenario resolves each adapter-supplied class/member name and handle successfully while joined, then checks FederateNotExecutionMember for the same valid inputs after resignation with the connection still open.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-object-class-handle-membership-boundary-after-resignation",
+      "clause_id": "clause-10.4",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectClassHandle",
+      "source_lines": "1702-1710",
+      "statement": "The standard API declares FederateNotExecutionMember for getObjectClassHandle. The test first resolves an adapter-supplied object-class name while joined, then verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-object-class-name-membership-boundary-after-resignation",
+      "clause_id": "clause-10.5",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectClassName",
+      "source_lines": "1712-1720",
+      "statement": "The standard API declares FederateNotExecutionMember for getObjectClassName. The test supplies an object-class handle first proven valid by a successful joined lookup and verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-attribute-handle-membership-boundary-after-resignation",
+      "clause_id": "clause-10.9",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAttributeHandle",
+      "source_lines": "1752-1762",
+      "statement": "The standard API declares FederateNotExecutionMember for getAttributeHandle. The test resolves an adapter-supplied defined attribute on a valid object class while joined and verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-attribute-name-membership-boundary-after-resignation",
+      "clause_id": "clause-10.10",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAttributeName",
+      "source_lines": "1765-1775",
+      "statement": "The standard API declares FederateNotExecutionMember for getAttributeName. The test supplies an object-class/attribute pair first proven valid by a successful joined round trip and verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-interaction-class-handle-membership-boundary-after-resignation",
+      "clause_id": "clause-10.13",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getInteractionClassHandle",
+      "source_lines": "1799-1807",
+      "statement": "The standard API declares FederateNotExecutionMember for getInteractionClassHandle. The test first resolves an adapter-supplied interaction-class name while joined, then verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-interaction-class-name-membership-boundary-after-resignation",
+      "clause_id": "clause-10.14",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getInteractionClassName",
+      "source_lines": "1810-1817",
+      "statement": "The standard API declares FederateNotExecutionMember for getInteractionClassName. The test supplies an interaction-class handle first proven valid by a successful joined lookup and verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-parameter-handle-membership-boundary-after-resignation",
+      "clause_id": "clause-10.15",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getParameterHandle",
+      "source_lines": "1819-1829",
+      "statement": "The standard API declares FederateNotExecutionMember for getParameterHandle. The test resolves an adapter-supplied defined parameter on a valid interaction class while joined and verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-parameter-name-membership-boundary-after-resignation",
+      "clause_id": "clause-10.16",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getParameterName",
+      "source_lines": "1832-1842",
+      "statement": "The standard API declares FederateNotExecutionMember for getParameterName. The test supplies an interaction-class/parameter pair first proven valid by a successful joined round trip and verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationContractPortable"]
+    }
+  ]
+}

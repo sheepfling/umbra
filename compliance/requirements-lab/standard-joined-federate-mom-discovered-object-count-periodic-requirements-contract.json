@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This portable scenario exercises the MIM HLAobjectInstancesDiscovered count through ordinary application-object discovery, local deletion, eligible rediscovery, direct requests, and periodic reflection. The direct baseline is taken after both joined-federate MOM objects have been discovered, so the test makes no provider-specific assertion about setup-time MOM discoveries. One installed package run is evidence for this scenario only, not proof of provider-independent behavior or IEEE conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-discovered-object-count-mim-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "486-500",
+      "source_symbol": "HLAobjectInstancesDiscovered",
+      "statement": "The standard MIM defines HLAobjectInstancesDiscovered as the total Discover Object Instance invocations for the represented joined federate since Join and explicitly requires repeated discovery of the same object after Local Delete Object Instance to contribute again. This scenario checks the count delta for two delivered application discoveries, the repeated discovery after local deletion, and a periodic report carrying the final value.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDiscoveredObjectCountPeriodic",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDiscoveredObjectCountPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-discovered-object-count-registration",
+      "clause_id": "clause-6.8.4",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "697-712",
+      "source_symbol": "RTIambassador::registerObjectInstance",
+      "statement": "The owner registers two application object instances through the standard API, which arrange the corresponding subscribed receiver-side discoveries checked by this scenario.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDiscoveredObjectCountPeriodic",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDiscoveredObjectCountPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-discovered-object-count-local-delete",
+      "clause_id": "clause-6.18",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "863-864",
+      "source_symbol": "RTIambassador::localDeleteObjectInstance",
+      "statement": "The receiver locally forgets one discovered object, verifies that its known-object lookup no longer succeeds, and then makes the still-registered object eligible for rediscovery through an active subscription.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDiscoveredObjectCountPeriodic",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDiscoveredObjectCountPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-discovered-object-count-direct-request",
+      "clause_id": "clause-6.21",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "876-889",
+      "source_symbol": "RTIambassador::requestAttributeValueUpdate(ObjectInstanceHandle, AttributeHandleSet, VariableLengthData)",
+      "statement": "The observer requests the standard MOM count directly from its known joined-federate MOM object and validates the resulting typed reflection before comparing the count delta.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDiscoveredObjectCountPeriodic",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDiscoveredObjectCountPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-discovered-object-count-callback",
+      "clause_id": "clause-6.9.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::discoverObjectInstance; FederateAmbassador::reflectAttributeValues",
+      "statement": "Application object count changes are correlated with successful standard discovery callbacks, including the eligible rediscovery after the receiver has locally deleted its prior known-object state.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDiscoveredObjectCountPeriodic",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDiscoveredObjectCountPeriodicContract"
+      ]
+    }
+  ]
+}

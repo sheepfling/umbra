@@ -318,6 +318,8 @@ if(NOT _tck_test_scenarios)
     foreach(_tck_filtered_scenario IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FILTER)
       if(NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-cleanup" AND
          NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-cleanup-contract" AND
+         NOT _tck_filtered_scenario STREQUAL "cpp-tck.federate-lost-mom-report" AND
+         NOT _tck_filtered_scenario STREQUAL "cpp-tck.federate-lost-mom-report-contract" AND
          NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-unconditional-divestiture" AND
          NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract" AND
          NOT _tck_filtered_scenario STREQUAL "cpp-tck.connection-loss-automatic-cancel-pending-acquisition" AND

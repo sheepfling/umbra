@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This candidate covers timestamped attribute-update and reflect delivery for two instances of one adapter-supplied class, standard time-regulation and time-constrained setup, Time Advance Request grants, and one standard MIM report of two distinct updated instances. It does not claim broader MOM statistics, alternate time-advance services, or overall conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-timestamp-order",
+      "clause_id": "clause-8.25",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1400-1413",
+      "source_symbol": "RTIambassador::changeDefaultAttributeOrderType",
+      "statement": "Before registration, the subject sets the published attribute's default order type to timestamp order for the test objects.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-timestamped-update",
+      "clause_id": "clause-6.10",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "733-748",
+      "source_symbol": "RTIambassador::updateAttributeValues timestamped overload",
+      "statement": "The subject invokes the standard timestamped Update Attribute Values service once for each of two registered instances and receives valid message retraction handles.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-timestamped-reflection",
+      "clause_id": "clause-6.11",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "247-260",
+      "source_symbol": "FederateAmbassador::reflectAttributeValues timestamped callback",
+      "statement": "The constrained observer validates one timestamped reflection for each registered instance, including the standard value, tag, logical time, producing federate, sent and received order, transportation, and retraction metadata.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-time-management",
+      "clause_id": "clause-8.2",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1163-1176",
+      "source_symbol": "RTIambassador::enableTimeRegulation",
+      "statement": "The subject enables time regulation and the observer enables time constrained operation before the timestamped updates are issued.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-regulation-callback",
+      "clause_id": "clause-8.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "486-490",
+      "source_symbol": "FederateAmbassador::timeRegulationEnabled",
+      "statement": "The subject services and observes its standard time-regulation-enabled callback before sending timestamped updates.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-time-constrained-service",
+      "clause_id": "clause-8.5",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1189-1200",
+      "source_symbol": "RTIambassador::enableTimeConstrained",
+      "statement": "The observer enables standard time-constrained operation before receiving timestamped attribute updates.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-time-constrained-callback",
+      "clause_id": "clause-8.6",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "492-496",
+      "source_symbol": "FederateAmbassador::timeConstrainedEnabled",
+      "statement": "The observer services and observes its standard time-constrained-enabled callback before the timestamped updates are issued.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-time-advance-grants",
+      "clause_id": "clause-8.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1213-1227",
+      "source_symbol": "RTIambassador::timeAdvanceRequest",
+      "statement": "The subject and constrained observer request advancement to their adapter-created logical times, and the test validates the corresponding standard Time Advance Grant values alongside delivery of both timestamped reflections.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-grant-callback",
+      "clause_id": "clause-8.14",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "504-509",
+      "source_symbol": "FederateAmbassador::timeAdvanceGrant",
+      "statement": "The subject and observer receive one standard grant each, and the test validates both grant logical times together with delivery of the timestamped reflections.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-request-report",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "1102-1109, 1450-1471, 3647-3659, 3735-3747",
+      "source_symbol": "HLArequestObjectInstancesUpdated; HLAreportObjectInstancesUpdated; HLAobjectClassBasedCounts; HLAobjectClassBasedCount",
+      "statement": "A distinct joined requester selects the subject with the standard HLAfederate request parameter. The standard MIM report groups updated object-instance counts by registered class; the test decodes the variable array of fixed records using standard data elements and the public object-class handle decoder, then verifies one reliable report entry with a count of two.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReportContract"
+      ]
+    }
+  ]
+}

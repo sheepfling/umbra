@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard HLAfederation MIM object, standard variable-array data elements, and the C++ standard library. The adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and logical-time implementation. It requests the standard joined-federate roster and verifies conditional values after one federate joins and resigns, without depending on roster order or provider-specific behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-mom-federate-roster",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador MIM federation creation, join/resign, standard MOM lookup and subscription, attribute value request, federate-handle decoding, and federation destruction with FederateAmbassador discovery and reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::createFederationExecutionWithMIM, RTIambassador::joinFederationExecution, RTIambassador::resignFederationExecution, RTIambassador::getObjectClassHandle, RTIambassador::getAttributeHandle, RTIambassador::subscribeObjectClassAttributes, RTIambassador::requestAttributeValueUpdate, RTIambassador::decodeFederateHandle, RTIambassador::destroyFederationExecution, FederateAmbassador::discoverObjectInstance, FederateAmbassador::reflectAttributeValues, HLAvariableArray, HLAbyte",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomFederatesInFederation",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomFederatesInFederationContract"
+      ]
+    }
+  ]
+}

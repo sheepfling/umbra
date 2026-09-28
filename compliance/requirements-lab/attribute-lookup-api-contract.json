@@ -24,7 +24,7 @@
         "cpp/tests/attribute_lookup_catch2.cpp::Embedded attribute lookup resolves inherited definitions in the joined federation FOM",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded attribute lookup resolves inherited definitions in the joined federation FOM",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers object, attribute, and update-rate lookup return arguments through MOM interaction",
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador publishes object-class attributes and registers an object through a configured process endpoint"
+        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador publishes and unpublishes object-class attributes and registers an object through a configured process endpoint"
       ]
     },
     {

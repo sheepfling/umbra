@@ -13,7 +13,8 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador timestamped regional interaction declarations",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedRegionalInteractionContract"
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedRegionalInteractionContract",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDelaySubscriptionEvaluationTimestampedRegionalInteractionContract"
       ]
     }
   ]

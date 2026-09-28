@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard MIM, HLAinteger32BE, and the C++ standard library. The adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and federate configuration. A monitor subscribes to the standard HLAfederate MOM attributes, directly requests HLAautomaticResignAction, and verifies its conditional reliable reflection after the subject changes and restores its directive through setAutomaticResignDirective. No provider-specific headers, names, registries, or internal APIs are used.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-automatic-resign-action-mim-attribute",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador federation lifecycle, standard-MIM object-class subscription and attribute-value requests, automatic-resign directive getter/setter, and FederateAmbassador reflection callback",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes, RTIambassador::requestAttributeValueUpdate, RTIambassador::getAutomaticResignDirective, RTIambassador::setAutomaticResignDirective, FederateAmbassador::reflectAttributeValues, HLAinteger32BE",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttributeContract"
+      ]
+    }
+  ]
+}

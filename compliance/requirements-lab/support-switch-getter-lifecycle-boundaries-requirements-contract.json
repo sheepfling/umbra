@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Each mapping points to the official IEEE 1516.1-2025 RTIambassador API clause comment and the exact getter declaration. The portable scenario calls each getter while joined, expects FederateNotExecutionMember after resignation while still connected, then expects NotConnected after federation destruction and disconnect. Boolean values are observed only to prove the joined calls return; defaults are not constrained.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-object-class-relevance-advisory-switch-membership-boundary",
+      "clause_id": "clause-10.34",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectClassRelevanceAdvisorySwitch",
+      "source_lines": "2027-2035",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-attribute-relevance-advisory-switch-membership-boundary",
+      "clause_id": "clause-10.36",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAttributeRelevanceAdvisorySwitch",
+      "source_lines": "2047-2055",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-attribute-scope-advisory-switch-membership-boundary",
+      "clause_id": "clause-10.38",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAttributeScopeAdvisorySwitch",
+      "source_lines": "2067-2075",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-interaction-relevance-advisory-switch-membership-boundary",
+      "clause_id": "clause-10.40",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getInteractionRelevanceAdvisorySwitch",
+      "source_lines": "2087-2095",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-convey-region-designator-sets-switch-membership-boundary",
+      "clause_id": "clause-10.42",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getConveyRegionDesignatorSetsSwitch",
+      "source_lines": "2107-2115",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. The test calls it without exercising region behavior, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-service-reporting-switch-membership-boundary",
+      "clause_id": "clause-10.46",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getServiceReportingSwitch",
+      "source_lines": "2149-2157",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-exception-reporting-switch-membership-boundary",
+      "clause_id": "clause-10.48",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getExceptionReportingSwitch",
+      "source_lines": "2170-2178",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-send-service-reports-to-file-switch-membership-boundary",
+      "clause_id": "clause-10.50",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getSendServiceReportsToFileSwitch",
+      "source_lines": "2190-2198",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-auto-provide-switch-membership-boundary",
+      "clause_id": "clause-10.52",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAutoProvideSwitch",
+      "source_lines": "2210-2218",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-delay-subscription-evaluation-switch-membership-boundary",
+      "clause_id": "clause-10.53",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getDelaySubscriptionEvaluationSwitch",
+      "source_lines": "2220-2228",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-advisories-use-known-class-switch-membership-boundary",
+      "clause_id": "clause-10.54",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAdvisoriesUseKnownClassSwitch",
+      "source_lines": "2230-2238",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-allow-relaxed-ddm-switch-membership-boundary",
+      "clause_id": "clause-10.55",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAllowRelaxedDDMSwitch",
+      "source_lines": "2240-2248",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. No DDM operation is exercised; only the standard getter lifecycle is checked.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-non-regulated-grant-switch-membership-boundary",
+      "clause_id": "clause-10.56",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getNonRegulatedGrantSwitch",
+      "source_lines": "2250-2258",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. The test calls it while joined, after resignation while connected, and after disconnect, expecting the corresponding lifecycle exception.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesContractPortable"]
+    }
+  ]
+}

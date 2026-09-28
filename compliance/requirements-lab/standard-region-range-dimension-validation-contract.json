@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "standard_sections": [
+    "hla-1516.1-2025:clause-9.1.2"
+  ],
+  "notes": "This contract records a portable C++ TCK check that GetRangeBounds and SetRangeBounds reject a DimensionHandle absent from a valid one-dimension region with RegionDoesNotContainSpecifiedDimension. The tested boundary maps to clause 9.1.2 through the Requirements Lab region-lifecycle mapping. Assertions cover only the official API exception type; they do not inspect diagnostics, MOM failure payloads, or provider state. The source uses only official IEEE 1516.1 C++ RTIambassador APIs and the C++ standard library. The adapter supplies the provider package, model FOM and configured dimension, standard MIM, endpoint, callback model, and logical-time configuration. No region-based publication, subscription, or routing is asserted.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-region-range-dimension-validation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::createRegion(DimensionHandleSet), RTIambassador::getRangeBounds(RegionHandle, DimensionHandle), and RTIambassador::setRangeBounds(RegionHandle, DimensionHandle, RangeBounds)",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getRangeBounds; RTIambassador::setRangeBounds; standard RegionDoesNotContainSpecifiedDimension exception",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionRangeDimensionValidation",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRegionRangeDimensionValidationContract"
+      ]
+    }
+  ]
+}

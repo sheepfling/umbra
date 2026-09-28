@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The exact mappings below follow the canonical IEEE 1516.1-2025 C++ RTIambassador API header. The test confirms the designator and object/attribute are valid while joined, then checks each declared membership exception after resignation with the connection still open.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-update-rate-value-membership-boundary-after-resignation",
+      "clause_id": "clause-10.11",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getUpdateRateValue",
+      "source_lines": "1777-1785",
+      "statement": "The standard API declares FederateNotExecutionMember for getUpdateRateValue. The test first resolves an adapter-supplied valid update-rate designator while joined, then verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioUpdateRateLookupValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioUpdateRateLookupValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-update-rate-value-for-attribute-membership-boundary-after-resignation",
+      "clause_id": "clause-10.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getUpdateRateValueForAttribute",
+      "source_lines": "1787-1797",
+      "statement": "The standard API declares FederateNotExecutionMember for getUpdateRateValueForAttribute. The test first resolves an adapter-supplied known object and defined attribute under an active named subscription while joined, then verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioUpdateRateLookupValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioUpdateRateLookupValidInputsAfterResignationContractPortable"]
+    }
+  ]
+}

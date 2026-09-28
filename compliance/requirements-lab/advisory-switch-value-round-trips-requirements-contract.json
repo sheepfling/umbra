@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Mappings use the official IEEE 1516.1-2025 RTIambassador API service clauses and exact setter declarations. Each test observes the existing Boolean value, sets its opposite, confirms the getter reflects that value, then restores and confirms the observed original value. No default value is assumed.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-object-class-relevance-advisory-switch-standard-value-round-trip",
+      "clause_id": "clause-10.35",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setObjectClassRelevanceAdvisorySwitch",
+      "source_lines": "2037-2045",
+      "statement": "The test calls the standard setter with the Boolean opposite of the observed value, verifies the standard getter returns that value, then restores and verifies the original value.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-attribute-relevance-advisory-switch-standard-value-round-trip",
+      "clause_id": "clause-10.37",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setAttributeRelevanceAdvisorySwitch",
+      "source_lines": "2057-2065",
+      "statement": "The test calls the standard setter with the Boolean opposite of the observed value, verifies the standard getter returns that value, then restores and verifies the original value.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-attribute-scope-advisory-switch-standard-value-round-trip",
+      "clause_id": "clause-10.39",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setAttributeScopeAdvisorySwitch",
+      "source_lines": "2077-2085",
+      "statement": "The test calls the standard setter with the Boolean opposite of the observed value, verifies the standard getter returns that value, then restores and verifies the original value.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-interaction-relevance-advisory-switch-standard-value-round-trip",
+      "clause_id": "clause-10.41",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setInteractionRelevanceAdvisorySwitch",
+      "source_lines": "2097-2105",
+      "statement": "The test calls the standard setter with the Boolean opposite of the observed value, verifies the standard getter returns that value, then restores and verifies the original value.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsContractPortable"]
+    }
+  ]
+}

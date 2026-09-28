@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This contract directly maps periodic HLAlogicalTime and the standard time-management services exercised by the portable scenario to the pinned 2025 MIM and public C++ API clauses. Installed-package runs are bounded provider evidence, not proof of provider-independent behavior or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-logical-time-mim-periodic",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "53-70, 240-252, 914-944, 3602-3609",
+      "source_symbol": "HLAobjectRoot.HLAmanager.HLAfederate.HLAlogicalTime; HLAmanager.HLAfederate.HLAadjust.HLAsetTiming.HLAreportPeriod; HLAlogicalTime",
+      "statement": "The standard MIM declares HLAlogicalTime as a periodic encoded logical-time value controlled by HLAsetTiming.HLAreportPeriod and defines it as the joined federate's logical time, initially the federation's initial time. HLAsetTiming specifies the report period in seconds and a zero period stops periodic updates. The scenario checks the initial periodic value, then checks periodic values after two successful time advances against both their Time Advance Grant callbacks and Query Logical Time results, decoding the MIM bytes with the adapter-selected standard LogicalTimeFactory.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-logical-time-enable-constrained",
+      "clause_id": "clause-8.5",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1190-1200",
+      "source_symbol": "RTIambassador::enableTimeConstrained()",
+      "statement": "The subject enables the standard time-constrained role before issuing Time Advance Requests and waits for its corresponding asynchronous callback.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-logical-time-constrained-callback",
+      "clause_id": "clause-8.6",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "492-496",
+      "source_symbol": "FederateAmbassador::timeConstrainedEnabled(LogicalTime const&)",
+      "statement": "The test services callbacks until exactly one timeConstrainedEnabled callback is delivered before requesting time advances.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodicContract"
+      ]
+    },
+        {
+            "id": "cpp-tck-federate-logical-time-enable-regulation",
+            "clause_id": "clause-8.2",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "1163-1176",
+            "source_symbol": "RTIambassador::enableTimeRegulation(LogicalTimeInterval const&)",
+            "statement": "The monitor enables the standard time-regulating role with the adapter-selected logical-time epsilon before it advances alongside the constrained subject.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodic",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodicContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-logical-time-regulation-callback",
+            "clause_id": "clause-8.3",
+            "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+            "source_lines": "486-490",
+            "source_symbol": "FederateAmbassador::timeRegulationEnabled(LogicalTime const&)",
+            "statement": "The test services callbacks until exactly one timeRegulationEnabled callback confirms the monitor's time-regulating role before it requests advances.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodic",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodicContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-logical-time-disable-regulation",
+            "clause_id": "clause-8.4",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "1178-1187",
+            "source_symbol": "RTIambassador::disableTimeRegulation()",
+            "statement": "After periodic reporting has been stopped and both grants checked, the monitor disables its standard time-regulating role before resignation.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodic",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodicContract"
+            ]
+        },
+    {
+      "id": "cpp-tck-federate-logical-time-time-advance-request",
+      "clause_id": "clause-8.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1214-1227",
+      "source_symbol": "RTIambassador::timeAdvanceRequest(LogicalTime const&)",
+      "statement": "The subject makes two strictly increasing standard Time Advance Requests and checks that each completes with exactly one grant at the requested time.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-logical-time-query",
+      "clause_id": "clause-8.18",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1326-1333",
+      "source_symbol": "RTIambassador::queryLogicalTime(LogicalTime&)",
+      "statement": "After the initial condition and each successful grant, the subject queries its logical time and compares that standard API value with the grant and the later periodic HLAlogicalTime reflection.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-logical-time-grant-callback",
+      "clause_id": "clause-8.14",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "504-508",
+      "source_symbol": "FederateAmbassador::timeAdvanceGrant(LogicalTime const&)",
+      "statement": "The test verifies one Time Advance Grant at each requested target before checking the corresponding MOM report.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-logical-time-set-timing",
+      "clause_id": "clause-6.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "750-764",
+      "source_symbol": "RTIambassador::sendInteraction(InteractionClassHandle const&, ParameterHandleValueMap const&, VariableLengthData const&)",
+      "statement": "The monitor starts periodic reporting and stops it during cleanup by sending standard HLAsetTiming interactions with standard-encoded HLAfederate and HLAreportPeriod parameters.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-logical-time-subscription",
+      "clause_id": "clause-5.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "532-539",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes(ObjectClassHandle const&, AttributeHandleSet const&, bool, std::wstring const&)",
+      "statement": "The monitor subscribes to the standard HLAfederate class's handle and logical-time attributes to identify the subject object and receive periodic values.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-logical-time-reflection",
+      "clause_id": "clause-6.11",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "236-244",
+      "source_symbol": "FederateAmbassador::reflectAttributeValues(ObjectInstanceHandle const&, AttributeHandleValueMap const&, VariableLengthData const&, TransportationTypeHandle const&, FederateHandle const&, RegionHandleSet const*)",
+      "statement": "The monitor services standard reflection callbacks and checks the periodic HLAlogicalTime value, reliable transport, empty tag, invalid producer handle, and absence of DDM-region metadata.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodicContract"
+      ]
+    }
+  ]
+}

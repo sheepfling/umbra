@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The direct mappings are to the official 2025 C++ API clauses for Delete Object Instance, Remove Object Instance, getObjectInstanceHandle, and getObjectInstanceName. The test covers the inverse lookup directions not exercised by the existing deletion scenario; it does not claim provider-independent conformance from a single provider run.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-object-instance-deletion",
+      "clause_id": "clause-6.16",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::deleteObjectInstance",
+      "source_lines": "824-834",
+      "statement": "The owner issues receive-order Delete Object Instance for a discovered object, driving the deleting and surviving federates' object-name lookup boundaries.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteObjectInstanceNameLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteObjectInstanceNameLookupBoundaryContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-instance-deletion",
+      "clause_id": "clause-6.17",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::removeObjectInstance",
+      "source_lines": "313-319",
+      "statement": "The scenario waits for Remove Object Instance on the subscriber before checking its handle-to-name lookup, making the removal boundary explicit.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteObjectInstanceNameLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteObjectInstanceNameLookupBoundaryContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-instance-name-lifecycle",
+      "clause_id": "clause-10.7",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceHandle",
+      "source_lines": "1732-1740",
+      "statement": "Section 10.7 declares ObjectInstanceNotKnown when the named object instance is not known. The scenario expects that exception for the deleted name on the deleting federate.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteObjectInstanceNameLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteObjectInstanceNameLookupBoundaryContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-instance-name-lifecycle",
+      "clause_id": "clause-10.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceName",
+      "source_lines": "1742-1750",
+      "statement": "Section 10.8 declares ObjectInstanceNotKnown when the handle is not known. The scenario expects that exception for the removed handle on the subscriber after its removal callback.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteObjectInstanceNameLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteObjectInstanceNameLookupBoundaryContractPortable"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "These mappings use the exact ownership-service section labels and declarations in the pinned IEEE 1516.1-2025 C++ API headers. The test is a standard-API scenario, not an implementation or conformance claim; provider, FOM, endpoint, and callback configuration come from its adapter.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-ordinary-ownership-acquisition-request",
+      "clause_id": "clause-7.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::attributeOwnershipAcquisition",
+      "source_lines": "1030-1045",
+      "statement": "The requester issues ordinary Attribute Ownership Acquisition with its user tag; the test checks that the owner's Request Attribute Ownership Release callback identifies the object and attributes and carries that tag.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipReleaseDenied",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipReleaseDeniedContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-ownership-release-request-callback",
+      "clause_id": "clause-7.11",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::requestAttributeOwnershipRelease",
+      "source_lines": "446-451",
+      "statement": "The owner receives the release request with the exact object, candidate attribute set, and acquisition request tag before deciding whether to release ownership.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipReleaseDenied",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipReleaseDeniedContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-owner-denies-attribute-release",
+      "clause_id": "clause-7.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::attributeOwnershipReleaseDenied",
+      "source_lines": "1067-1080",
+      "statement": "The current owner denies release for the requested object and attribute set using a distinct owner-supplied tag; ownership does not transfer.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipReleaseDenied",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipReleaseDeniedContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-denial-delivers-ownership-unavailable",
+      "clause_id": "clause-7.10",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::attributeOwnershipUnavailable",
+      "source_lines": "438-443",
+      "statement": "The requester receives Attribute Ownership Unavailable with the object and requested attribute set and the owner's denial tag; the requester remains a non-owner.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipReleaseDenied",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipReleaseDeniedContract"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The six recognized ResignAction values are taken directly from the official IEEE 1516.1-2025 C++ API Enums.h. The setter's declared InvalidResignAction exception and service clause are taken from RTIambassador.h §10.45. This slice does not exercise automatic resignation, object deletion, or ownership cleanup.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-automatic-resign-directive-standard-enumerator-values",
+      "clause_id": "clause-10.45",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setAutomaticResignDirective",
+      "source_lines": "2137-2147",
+      "statement": "The setter accepts the standard ResignAction type. The test sets each enumerator listed in RTI/Enums.h lines 34-42 and confirms that getAutomaticResignDirective returns the same value.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAutomaticResignDirectiveEnumValuesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAutomaticResignDirectiveEnumValuesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-automatic-resign-directive-invalid-enumerator-rejection",
+      "clause_id": "clause-10.45",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setAutomaticResignDirective",
+      "source_lines": "2137-2147",
+      "statement": "The API declares InvalidResignAction for the setter. After testing the six standard enumerators from RTI/Enums.h lines 34-42, the test passes the next representable enumerator value and requires InvalidResignAction.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAutomaticResignDirectiveEnumValuesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAutomaticResignDirectiveEnumValuesContractPortable"]
+    }
+  ]
+}

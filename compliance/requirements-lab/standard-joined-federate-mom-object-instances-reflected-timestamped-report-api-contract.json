@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice registers two objects, sends three timestamped Update Attribute Values invocations (two to one instance and one to another), advances a time-regulating subject and time-constrained target, verifies all timestamped Reflect Attribute Values callbacks and their delivery metadata, then has a distinct joined requester ask the standard MIM for the target's HLAreportObjectInstancesReflected count. The report must count two distinct instances in the adapter-supplied registered class. It uses only official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, standard MIM names and data elements, the public object-class handle decoder, HLAbyte, HLAinteger32BE, HLAoctet, HLAfixedRecord, HLAvariableArray, and the C++ standard library. The adapter supplies the provider package, FOM, MIM, endpoint, callback configuration, and logical-time implementation. It uses no private headers, provider registry, or vendor-specific names.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-object-instances-reflected-timestamped-report",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped object attribute update, timestamp-order declaration, time-management, distinct-requester federate MOM query/report, public object-class handle decoding, and callback delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::publishObjectClassAttributes, changeDefaultAttributeOrderType, subscribeObjectClassAttributes, registerObjectInstance, updateAttributeValues, enableTimeRegulation, enableTimeConstrained, timeAdvanceRequest, subscribeInteractionClass, sendInteraction, decodeObjectClassHandle, and standard lifecycle services; FederateAmbassador::discoverObjectInstance, reflectAttributeValues, timeRegulationEnabled, timeConstrainedEnabled, timeAdvanceGrant, and receiveInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    }
+  ]
+}

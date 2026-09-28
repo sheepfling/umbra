@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Direct traceability is to the official IEEE 1516.1-2025 C++ API clause labels and standard callback declarations. The scenario creates a pending regular ownership acquisition, resigns the requester with CANCEL_PENDING_OWNERSHIP_ACQUISITIONS, then verifies that the current owner retains ownership until divestiture and a different member can acquire the released attribute. This does not claim broader resignation-action coverage.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-federation-create-join-resign-destroy",
+      "clause_id": "clause-4.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::resignFederationExecution with ResignAction::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS",
+      "source_lines": "240-251",
+      "statement": "With the current owner and a successor remaining joined, the test resigns the pending requester using the standard cancellation action and checks that the requester did not acquire the attribute.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-federation-create-join-resign-destroy",
+      "clause_id": "clause-4.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/Enums.h",
+      "source_symbol": "ResignAction::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS",
+      "source_lines": "34-42",
+      "statement": "The test selects the named standard ResignAction enumerator and passes it to the standard resignation service.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-management",
+      "clause_id": "clause-6.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::registerObjectInstance",
+      "source_lines": "687-698",
+      "statement": "The current owner registers the ordinary object instance used by the acquisition fixture.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-management",
+      "clause_id": "clause-6.9",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::discoverObjectInstance",
+      "source_lines": "226-233",
+      "statement": "The requester and successor wait until they know the object instance before using its standard handle.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-ownership-management",
+      "clause_id": "clause-7.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::attributeOwnershipAcquisition",
+      "source_lines": "1026-1045",
+      "statement": "The requester issues a regular acquisition request; before the owner divests, the requester has received no acquisition notification and the owner still owns the attribute.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-ownership-management",
+      "clause_id": "clause-7.2",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unconditionalAttributeOwnershipDivestiture",
+      "source_lines": "978-992",
+      "statement": "After requester resignation, the owner divests the attribute to expose any stale requester reservation or allow the successor's new acquisition.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-ownership-management",
+      "clause_id": "clause-7.9",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::attributeOwnershipAcquisitionIfAvailable",
+      "source_lines": "1047-1064",
+      "statement": "The successor uses If Available acquisition and verifies the callback metadata and resulting ownership state after the pending requester resigns.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-ownership-management",
+      "clause_id": "clause-7.7",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::attributeOwnershipAcquisitionNotification",
+      "source_lines": "429-435",
+      "statement": "The test verifies the ordinary acquisition-notification callback delivered to the successor and its user tag.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsContractPortable"
+      ]
+    }
+  ]
+}

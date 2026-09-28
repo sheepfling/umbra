@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This contract directly traces both scalar values checked by the portable test to their pinned standard MIM entries and IEEE 1516.1 clause 11.4.1. Installed-package runs are bounded provider evidence, not proof of provider-independent behavior or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-directed-interactions-received-mim-attribute-directed",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "376-386",
+      "source_symbol": "HLAdirectedInteractionsReceived",
+      "statement": "The standard MIM declares HLAdirectedInteractionsReceived as an HLAcount updated periodically according to HLAsetTiming.HLAreportPeriod using reliable receive-order delivery, and defines it as the total number of directed interactions received by the joined federate. The scenario checks zero before traffic and after one delivered ordinary interaction, three after three delivered directed callbacks, five after two further directed callbacks, and the unchanged final direct value after periodic reporting is disabled.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomDirectedInteractionsReceivedAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomDirectedInteractionsReceivedAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-directed-interactions-received-mim-attribute-total",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "350-359",
+      "source_symbol": "HLAinteractionsReceived",
+      "statement": "The standard MIM defines HLAinteractionsReceived as the total number of interactions received by the joined federate. The scenario cross-checks that one ordinary callback contributes to this total without changing HLAdirectedInteractionsReceived, while each of five delivered directed callbacks contributes to both values.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomDirectedInteractionsReceivedAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomDirectedInteractionsReceivedAttributeContract"
+      ]
+    }
+  ]
+}

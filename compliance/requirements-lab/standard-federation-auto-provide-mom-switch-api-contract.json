@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard library, and the adapter-supplied application FOM, standard MIM, endpoint, provider package, and callback configuration. It sends the standard federation-level HLAsetSwitches interaction from joined federates and observes the standard discovery and provideAttributeValueUpdate callbacks around ordinary object registration. It asserts no provider-specific names, registries, headers, transport details, or internal switch state.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-auto-provide-mom-switch",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador standard-MIM interaction and parameter lookup, receive-order sendInteraction, ordinary object publication/subscription/registration, callback servicing, and federation lifecycle with FederateAmbassador discovery and provideAttributeValueUpdate callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::getInteractionClassHandle, RTIambassador::getParameterHandle, RTIambassador::sendInteraction, RTIambassador::registerObjectInstance, FederateAmbassador::discoverObjectInstance, FederateAmbassador::provideAttributeValueUpdate",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationAutoProvideMomSwitchContract"
+      ]
+    }
+  ]
+}

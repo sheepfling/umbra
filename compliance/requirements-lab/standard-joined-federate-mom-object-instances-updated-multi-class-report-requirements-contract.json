@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This slice exercises standard object-class publication and active subscription for two adapter-supplied classes. The joined subject registers two instances per class and sends six receive-order HLAbyte updates; a third joined federate validates discovery and reflection delivery, while a distinct requester queries the subject's standard MIM update-count report. The report must map two distinct successfully updated instances to each class despite repeated updates to one instance in each class. The test does not invoke DDM region services or claim overall conformance or untested MOM statistics.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-multi-class-publication",
+      "clause_id": "clause-5.2",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "418-431",
+      "source_symbol": "RTIambassador::publishObjectClassAttributes",
+      "statement": "The subject publishes the adapter-supplied HLAbyte attribute in each of two distinct object classes before registration and update.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-multi-class-subscription",
+      "clause_id": "clause-5.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "525-539",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes",
+      "statement": "The joined observer actively subscribes to the adapter-supplied attribute in both distinct classes before the subject registers its instances.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-multi-class-registration",
+      "clause_id": "clause-6.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "687-698",
+      "source_symbol": "RTIambassador::registerObjectInstance",
+      "statement": "The subject registers two distinct instances of each published class, and the observer discovers all four instances with the class mapping confirmed through standard known-object-class lookup.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-multi-class-values",
+      "clause_id": "clause-6.10",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "716-730",
+      "source_symbol": "RTIambassador::updateAttributeValues",
+      "statement": "The subject successfully invokes six receive-order attribute updates across four instances, repeating an update on one instance in each class; the observer receives the corresponding HLAbyte values.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-multi-class-callback",
+      "clause_id": "clause-6.11",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "235-244",
+      "source_symbol": "FederateAmbassador::reflectAttributeValues",
+      "statement": "The observer validates the object, class-specific attribute, value, reliable transportation, producing federate, tag, and absence of sent regions for all six receive-order reflections.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-multi-class-request",
+      "clause_id": "clause-6.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "750-764",
+      "source_symbol": "RTIambassador::sendInteraction",
+      "statement": "The distinct joined requester uses the standard sendInteraction parameter map to identify the subject whose updated-instance count is requested.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-multi-class-mim-report",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "1102-1109, 1450-1471, 3647-3659, 3735-3747",
+      "source_symbol": "HLArequestObjectInstancesUpdated; HLAreportObjectInstancesUpdated; HLAobjectClassBasedCounts; HLAobjectClassBasedCount",
+      "statement": "The MIM report counts distinct object instances, grouped by registered class, for which the subject successfully invoked Update Attribute Values. The requester decodes the standard variable array of fixed records with official data elements and the public object-class handle decoder, then verifies exactly two updated instances in each tested class; repeated updates to an instance do not increase its distinct-instance count.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReportContract"
+      ]
+    }
+  ]
+}

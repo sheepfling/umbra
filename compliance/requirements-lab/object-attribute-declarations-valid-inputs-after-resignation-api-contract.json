@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable C++ scenario uses only the official IEEE 1516.1 RTIambassador API and standard library. It resolves an adapter-supplied object class and attribute from the adapter FOM, successfully exercises all six ordinary object publication/subscription declaration services while joined, then checks the declared membership exception for the same valid class/attribute inputs after resignation while connected.",
+  "api_surfaces": [
+    {
+      "id": "portable-publish-object-class-attributes-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void publishObjectClassAttributes(ObjectClassHandle const& objectClass, AttributeHandleSet const& attributes) = 0",
+      "exception_types": ["AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::publishObjectClassAttributes",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-unpublish-object-class-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void unpublishObjectClass(ObjectClassHandle const& objectClass) = 0",
+      "exception_types": ["OwnershipAcquisitionPending", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unpublishObjectClass",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-unpublish-object-class-attributes-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void unpublishObjectClassAttributes(ObjectClassHandle const& objectClass, AttributeHandleSet const& attributes) = 0",
+      "exception_types": ["OwnershipAcquisitionPending", "AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unpublishObjectClassAttributes",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-subscribe-object-class-attributes-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void subscribeObjectClassAttributes(ObjectClassHandle const& objectClass, AttributeHandleSet const& attributes, bool active = true, std::wstring const& updateRateDesignator = L\"\") = 0",
+      "exception_types": ["AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-unsubscribe-object-class-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeObjectClass(ObjectClassHandle const& objectClass) = 0",
+      "exception_types": ["ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unsubscribeObjectClass",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-unsubscribe-object-class-attributes-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeObjectClassAttributes(ObjectClassHandle const& objectClass, AttributeHandleSet const& attributes) = 0",
+      "exception_types": ["AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unsubscribeObjectClassAttributes",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable"]
+    }
+  ]
+}

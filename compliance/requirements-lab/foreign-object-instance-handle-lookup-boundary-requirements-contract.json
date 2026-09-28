@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The exact mapping below follows the canonical IEEE 1516.1-2025 C++ RTIambassador API header. Two foreign object handles are registered so the test can choose one that is unequal to the sole local object handle; this avoids treating an equal opaque handle value from another execution as evidence of foreign identity.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-object-instance-name-lifecycle",
+      "clause_id": "clause-10.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceName",
+      "source_lines": "1742-1750",
+      "statement": "Section 10.8 declares getObjectInstanceName(ObjectInstanceHandle const&) and ObjectInstanceNotKnown. The scenario verifies a selected foreign execution handle resolves in that execution but is not known to the local execution.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioForeignObjectInstanceHandleLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioForeignObjectInstanceHandleLookupBoundaryContractPortable"
+      ]
+    }
+  ]
+}

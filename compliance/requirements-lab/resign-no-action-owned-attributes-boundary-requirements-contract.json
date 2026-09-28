@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Direct mappings are to the official IEEE 1516.1-2025 C++ API clauses for object registration, object-name lookup, and resignation. The behavior assertion is limited to the FederateOwnsAttributes rejection boundary for NO_ACTION while the federate owns an instance attribute; it does not claim a broader resignation-action matrix.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-federation-create-join-resign-destroy",
+      "clause_id": "clause-4.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::resignFederationExecution",
+      "source_lines": "240-251",
+      "statement": "The standard resignation service declares FederateOwnsAttributes. With a second federate remaining joined so the final-federate rule does not apply, the test expects this exception when the object-owning federate requests NO_ACTION, then verifies the object remains queryable before a subsequent DELETE_OBJECTS resignation.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignNoActionOwnedAttributesBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignNoActionOwnedAttributesBoundaryContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-registration-discovery",
+      "clause_id": "clause-6.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::registerObjectInstance",
+      "source_lines": "687-698",
+      "statement": "The test registers a published object instance to establish the owned-attribute precondition for the resignation rejection check.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignNoActionOwnedAttributesBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignNoActionOwnedAttributesBoundaryContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-instance-name-lifecycle",
+      "clause_id": "clause-10.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceName",
+      "source_lines": "1742-1750",
+      "statement": "After the rejected resignation, a successful standard name lookup confirms the federate remains a member and still knows the registered object.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignNoActionOwnedAttributesBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignNoActionOwnedAttributesBoundaryContractPortable"
+      ]
+    }
+  ]
+}

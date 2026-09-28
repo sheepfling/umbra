@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The exact mappings below follow the canonical IEEE 1516.1-2025 C++ RTIambassador API header. The scenario resolves a valid adapter-supplied object class and attribute, successfully invokes each service while joined, then checks FederateNotExecutionMember with the same handles and attribute set after resignation while the connection remains open.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-publish-object-class-attributes-membership-boundary-after-resignation",
+      "clause_id": "clause-5.2",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::publishObjectClassAttributes",
+      "source_lines": "419-431",
+      "statement": "The standard API declares FederateNotExecutionMember for publishObjectClassAttributes. The test first successfully publishes an adapter-FOM-defined class/attribute set while joined, then verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-unpublish-object-class-membership-boundary-after-resignation",
+      "clause_id": "clause-5.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unpublishObjectClass",
+      "source_lines": "433-444",
+      "statement": "The standard API declares FederateNotExecutionMember for unpublishObjectClass. The test first successfully publishes the class and successfully unpublishes it while joined, then verifies the membership exception after resignation with the same valid class handle.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-unpublish-object-class-attributes-membership-boundary-after-resignation",
+      "clause_id": "clause-5.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unpublishObjectClassAttributes",
+      "source_lines": "447-459",
+      "statement": "The standard API declares FederateNotExecutionMember for unpublishObjectClassAttributes. The test first successfully publishes and unpublishes a valid adapter-FOM-defined attribute set while joined, then verifies the membership exception after resignation with the same inputs.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-subscribe-object-class-attributes-membership-boundary-after-resignation",
+      "clause_id": "clause-5.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes",
+      "source_lines": "525-539",
+      "statement": "The standard API declares FederateNotExecutionMember for subscribeObjectClassAttributes. The test first successfully subscribes to a valid adapter-FOM-defined attribute set while joined, then verifies the membership exception after resignation with the same inputs.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-unsubscribe-object-class-membership-boundary-after-resignation",
+      "clause_id": "clause-5.9",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unsubscribeObjectClass",
+      "source_lines": "541-551",
+      "statement": "The standard API declares FederateNotExecutionMember for unsubscribeObjectClass. The test first successfully subscribes to and unsubscribes from a valid class while joined, then verifies the membership exception after resignation with the same valid class handle.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-unsubscribe-object-class-attributes-membership-boundary-after-resignation",
+      "clause_id": "clause-5.9",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unsubscribeObjectClassAttributes",
+      "source_lines": "553-565",
+      "statement": "The standard API declares FederateNotExecutionMember for unsubscribeObjectClassAttributes. The test first successfully subscribes to and unsubscribes from a valid adapter-FOM-defined attribute set while joined, then verifies the membership exception after resignation with the same inputs.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectAttributeDeclarationsValidInputsAfterResignationContractPortable"]
+    }
+  ]
+}

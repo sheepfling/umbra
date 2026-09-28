@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "standard_sections": [
+    "hla-1516.1-2025:clause-11.5",
+    "hla-1516.1-2025:clause-11.5.1"
+  ],
+  "notes": "This contract records the portable C++ TCK check for a successful RTIambassador::getAvailableDimensionsForInteractionClass invocation reported through the standard HLAreportServiceInvocation interaction. The report content maps directly to IEEE 1516.1-2025 sections 11.5 and 11.5.1; federation setup reuses the existing federation execution API contract. The source uses only official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard 1516.2 MIM data elements, and the C++ standard library. The adapter supplies the provider package, model FOM (including the typed interaction and its configured dimension), standard MIM, endpoint, callback model, and logical-time configuration. It verifies the API's one-dimension result set, service classification, typed interaction-handle and dimension-set arguments, reliable report delivery, reporter identity, success/exception state, and report serial. Provider-private headers, registries, routing, file sinks, names, and diagnostics are outside this contract.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-service-report-interaction-dimensions",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador::getAvailableDimensionsForInteractionClass(InteractionClassHandle) and FederateAmbassador HLAreportServiceInvocation delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAvailableDimensionsForInteractionClass; standard MIM HLAreportServiceInvocation",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportInteractionDimensions",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportInteractionDimensionsContract"
+      ]
+    }
+  ]
+}

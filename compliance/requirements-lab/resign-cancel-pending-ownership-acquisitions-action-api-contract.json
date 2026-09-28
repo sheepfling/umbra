@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "The portable C++ scenario uses only the official IEEE 1516.1 API and standard library. A requester issues a regular attribute-ownership acquisition, the owner receives the standard assumption callback, and the requester resigns with CANCEL_PENDING_OWNERSHIP_ACQUISITIONS. The owner remains the owner; after it divests, a different joined federate acquires the attribute, checking that the resigned request did not leave stale acquisition state.",
+  "api_surfaces": [
+    {
+      "id": "portable-resign-cancel-pending-acquisitions",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void resignFederationExecution(ResignAction resignAction) = 0",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::resignFederationExecution with ResignAction::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsPortable"
+      ]
+    },
+    {
+      "id": "portable-resign-cancel-pending-acquisitions-request",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::attributeOwnershipAcquisition",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::attributeOwnershipAcquisition",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsPortable"
+      ]
+    },
+    {
+      "id": "portable-resign-cancel-pending-acquisitions-stale-state-check",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::unconditionalAttributeOwnershipDivestiture and RTIambassador::attributeOwnershipAcquisitionIfAvailable",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador ordinary ownership divestiture and If Available acquisition",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelPendingOwnershipAcquisitionsPortable"
+      ]
+    }
+  ]
+}

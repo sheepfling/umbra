@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The test maps the standard MIM conditional HLAswitch attribute and the public C++ APIs used to request, change, restore, and receive its value. Installed-package results are bounded provider evidence only; they are not proof of provider-independent behavior or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-service-reporting-mim-attribute",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "607-616, 3143-3155",
+      "source_symbol": "HLAobjectRoot.HLAmanager.HLAfederate.HLAserviceReporting; HLAswitch",
+      "statement": "The standard MIM declares HLAserviceReporting as a conditional, reliably received HLAswitch attribute that updates whenever the joined federate's Service Reporting switch changes. HLAswitch is represented by HLAinteger32BE with Disabled=0 and Enabled=1. The scenario checks direct and conditional values after a change and restoration.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-service-reporting-getter",
+      "clause_id": "clause-10.46",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "2149-2157",
+      "source_symbol": "RTIambassador::getServiceReportingSwitch",
+      "statement": "The subject reads the switch before and after each change and confirms restoration; the monitor's HLAinteger32BE MOM value must represent the same Enabled or Disabled state.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-service-reporting-setter",
+      "clause_id": "clause-10.47",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "2159-2168",
+      "source_symbol": "RTIambassador::setServiceReportingSwitch",
+      "statement": "The subject toggles the standard switch through its public setter and restores the initially observed value. The monitor does not subscribe to HLAreportServiceInvocation, avoiding the standard setter precondition that prevents enabling Service Reporting when such reports are subscribed.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-service-reporting-direct-request",
+      "clause_id": "clause-6.21",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "876-889",
+      "source_symbol": "RTIambassador::requestAttributeValueUpdate(ObjectInstanceHandle, AttributeHandleSet, VariableLengthData)",
+      "statement": "The monitor directly requests HLAserviceReporting before and after the conditional update and validates each returned HLAinteger32BE value against the subject's public switch getter.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-service-reporting-subscription",
+      "clause_id": "clause-5.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "525-539",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes",
+      "statement": "The monitor subscribes to the standard HLAfederate MOM object's HLAfederateHandle and HLAserviceReporting attributes to identify the subject object and receive its conditional updates.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-service-reporting-reflection-callback",
+      "clause_id": "clause-6.9.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "238-260",
+      "source_symbol": "FederateAmbassador::reflectAttributeValues",
+      "statement": "The monitor validates exactly one conditional reflection for each switch change, including the expected HLAinteger32BE value, reliable transport, empty tag, invalid producer handle, and absent DDM-region metadata.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomAttributeContract"
+      ]
+    }
+  ]
+}

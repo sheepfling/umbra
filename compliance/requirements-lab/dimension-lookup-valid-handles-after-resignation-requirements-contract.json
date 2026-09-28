@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The exact mappings below follow the canonical IEEE 1516.1-2025 C++ RTIambassador API header. The test obtains valid dimension and class handles from an adapter-supplied dimensional FOM before resignation, then checks the membership exception after resignation with the connection still open.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-object-class-dimension-lookup-membership-boundary-after-resignation",
+      "clause_id": "clause-10.21",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAvailableDimensionsForObjectClass",
+      "source_lines": "1884-1892",
+      "statement": "The standard API declares FederateNotExecutionMember for getAvailableDimensionsForObjectClass. The test supplies a valid object-class handle from the adapter FOM and verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDimensionLookupValidHandlesAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDimensionLookupValidHandlesAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-interaction-class-dimension-lookup-membership-boundary-after-resignation",
+      "clause_id": "clause-10.22",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAvailableDimensionsForInteractionClass",
+      "source_lines": "1894-1902",
+      "statement": "The standard API declares FederateNotExecutionMember for getAvailableDimensionsForInteractionClass. The test supplies a valid interaction-class handle from the adapter FOM and verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDimensionLookupValidHandlesAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDimensionLookupValidHandlesAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-dimension-name-membership-boundary-after-resignation",
+      "clause_id": "clause-10.24",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getDimensionName",
+      "source_lines": "1914-1922",
+      "statement": "The standard API declares FederateNotExecutionMember for getDimensionName. The test supplies a valid dimension handle from the adapter FOM and verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDimensionLookupValidHandlesAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDimensionLookupValidHandlesAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-dimension-upper-bound-membership-boundary-after-resignation",
+      "clause_id": "clause-10.25",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getDimensionUpperBound",
+      "source_lines": "1924-1932",
+      "statement": "The standard API declares FederateNotExecutionMember for getDimensionUpperBound. The test supplies a valid dimension handle from the adapter FOM and verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDimensionLookupValidHandlesAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDimensionLookupValidHandlesAfterResignationContractPortable"]
+    }
+  ]
+}

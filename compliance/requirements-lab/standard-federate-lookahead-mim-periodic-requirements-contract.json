@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The contract maps the portable periodic HLAlookahead case directly to the pinned 2025 MIM and public C++ API clauses. Installed-package results are bounded provider evidence, not proof of provider-independent behavior or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-lookahead-mim-periodic",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "54-70, 254-265, 914-944, 3611-3616",
+      "source_symbol": "HLAobjectRoot.HLAmanager.HLAfederate.HLAlookahead; HLAmanager.HLAfederate.HLAadjust.HLAsetTiming.HLAreportPeriod; HLAtimeInterval",
+      "statement": "The standard MIM declares HLAlookahead as a periodic HLAtimeInterval controlled by HLAsetTiming.HLAreportPeriod, defines it as the minimum future duration for TSO scheduling, and leaves it undefined when the represented federate is not time-regulating. HLAsetTiming specifies the report period in seconds and a zero period stops periodic updates; HLAtimeInterval is the MIM's variable-length byte representation of an encoded logical-time interval. The scenario enables time regulation with the adapter-selected factory epsilon, requests a one-second reporting period, decodes the reported interval with the selected standard LogicalTimeFactory, and checks periodic reports against Query Lookahead both before and after an increased Modify Lookahead value.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-lookahead-enable-time-regulation",
+      "clause_id": "clause-8.2",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1172-1176",
+      "source_symbol": "RTIambassador::enableTimeRegulation(LogicalTimeInterval const&)",
+      "statement": "The subject enters the standard regulating role with the adapter-selected logical-time factory's epsilon interval before relying on the MIM lookahead value.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-lookahead-regulation-callback",
+      "clause_id": "clause-8.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "486-490",
+      "source_symbol": "FederateAmbassador::timeRegulationEnabled(LogicalTime const&)",
+      "statement": "After Enable Time Regulation, the subject services callbacks until exactly one timeRegulationEnabled callback is observed before the periodic MIM report is interpreted.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-lookahead-modify-query",
+      "clause_id": "clause-8.20",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1345-1357",
+      "source_symbol": "RTIambassador::modifyLookahead(LogicalTimeInterval const&)",
+      "statement": "The regulating subject raises its lookahead to a distinct standard interval and queries the current value; the monitor then verifies a later periodic HLAlookahead reflection encodes that same interval.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-lookahead-query",
+      "clause_id": "clause-8.21",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1360-1368",
+      "source_symbol": "RTIambassador::queryLookahead(LogicalTimeInterval&)",
+      "statement": "The test obtains the enabled and modified service-side lookahead values through Query Lookahead and uses those standard interval encodings as the expected HLAlookahead reports.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-lookahead-set-timing",
+      "clause_id": "clause-6.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "750-764",
+      "source_symbol": "RTIambassador::sendInteraction(InteractionClassHandle const&, ParameterHandleValueMap const&, VariableLengthData const&)",
+      "statement": "The monitor uses the standard Send Interaction service and standard-encoded HLAfederate/HLAreportPeriod MIM parameters to start periodic reporting and sets the period to zero for cleanup.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-lookahead-subscription",
+      "clause_id": "clause-5.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "532-539",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes(ObjectClassHandle const&, AttributeHandleSet const&, bool, std::wstring const&)",
+      "statement": "The monitor subscribes to the standard HLAfederate MIM class's handle and lookahead attributes to identify the subject object and receive periodic lookahead reports.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodicContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-lookahead-reflection",
+      "clause_id": "clause-6.11",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "236-244",
+      "source_symbol": "FederateAmbassador::reflectAttributeValues(ObjectInstanceHandle const&, AttributeHandleValueMap const&, VariableLengthData const&, TransportationTypeHandle const&, FederateHandle const&, RegionHandleSet const*)",
+      "statement": "The monitor services standard reflection callbacks and checks the periodic HLAlookahead value, reliable transport, empty tag, invalid producer handle, and absence of DDM-region metadata.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodicContract"
+      ]
+    }
+  ]
+}

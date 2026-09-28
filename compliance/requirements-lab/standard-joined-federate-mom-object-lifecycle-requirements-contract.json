@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "The portable TCK scenario is mapped only to the cited standard clauses and standard MIM object/attribute definitions. Its filesystem, host, RTI-version, private-snapshot, and provider-specific behaviors are excluded rather than treated as normative requirements. The resignation-triggered removal observation is included in the paired lifecycle test, but is not assigned a separate Requirements Lab normative ID because the available native mapping does not independently map that edge.",
+  "requirements": [
+    {
+      "id": "standard-joined-federate-mom-active-subscription-discovery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l51-13",
+      "clause_id": "clause-6.1.2",
+      "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
+      "source_symbol": "scenarioJoinedFederateMomObjectLifecycle",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectLifecycle"
+      ]
+    },
+    {
+      "id": "standard-joined-federate-mom-discovery-eligibility",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
+      "clause_id": "clause-6.1.2",
+      "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
+      "source_symbol": "scenarioJoinedFederateMomObjectLifecycle",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectLifecycle"
+      ]
+    },
+    {
+      "id": "standard-joined-federate-mom-discovery-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l94-26",
+      "clause_id": "clause-6.9.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::discoverObjectInstance",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectLifecycle"
+      ]
+    },
+    {
+      "id": "standard-joined-federate-mom-join-fom-designators",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-048-l150-49",
+      "clause_id": "clause-4",
+      "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
+      "source_symbol": "scenarioJoinedFederateMomObjectLifecycle",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectLifecycle"
+      ]
+    },
+    {
+      "id": "standard-known-mom-object-attribute-value-request",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l155-42",
+      "clause_id": "clause-6.21",
+      "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
+      "source_symbol": "scenarioJoinedFederateMomObjectLifecycle",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectLifecycle"
+      ]
+    },
+    {
+      "id": "standard-joined-federate-mom-static-attributes",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l122-40",
+      "clause_id": "clause-11.5.2",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_symbol": "HLAfederate.HLAFOMmoduleDesignatorList",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectLifecycle"
+      ]
+    },
+    {
+      "id": "standard-joined-federate-mom-host-static-attribute",
+      "clause_id": "clause-11.5.2",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "114-124",
+      "source_symbol": "HLAfederate.HLAfederateHost",
+      "statement": "HLAfederateHost is a required static HLAunicodeString attribute with reliable receive-order transportation and denotes the host computer on which the joined federate executes. The scenario verifies that the attribute is present and non-empty in initial and requested reflections, while intentionally not asserting platform-specific hostname spelling or the location of a remote provider process.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectLifecycle"
+      ]
+    }
+  ]
+}

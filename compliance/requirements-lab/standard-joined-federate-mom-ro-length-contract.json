@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for joined-federate MOM HLAROlength. The test uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, the standard MIM, HLAinteger32BE, and the C++ standard library. The adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and application interaction and parameter names. It checks an empty queue, positive direct and HLAsetTiming-periodic values while ordinary receive-order interactions are queued, callback delivery, and a return to zero without provider-specific headers, registries, names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-ro-length",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador joined-federate MOM attribute request and HLAsetTiming control with FederateAmbassador reflectAttributeValues and receiveInteraction callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador MOM, callback-control, object-management, interaction, and HLAinteger32BE declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomRoLengthPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomRoLengthPeriodicContract"
+      ]
+    }
+  ]
+}

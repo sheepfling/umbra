@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice checks the standard HLAobjectInstancesDiscovered MOM attribute with only official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, the adapter-supplied application FOM and standard MIM, HLAsetTiming, HLAinteger32BE, and the C++ standard library. Provider package, FOM, MIM, endpoint, callback model, logical-time implementation, and application object/attribute names remain adapter inputs. The test checks direct count deltas for two application Discover Object Instance callbacks and for rediscovery after Local Delete Object Instance, then checks the periodic report and standard reflection metadata. It does not assume whether a provider includes setup-time MOM discoveries in the initial total, and it does not use provider headers, private registries, vendor names, or diagnostics.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-discovered-object-count-periodic",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador joined-federate MOM lookup, subscription, direct update request, object registration, local deletion, resubscription, and standard HLAsetTiming interaction, with FederateAmbassador discovery and reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador MOM, object, attribute, interaction, callback, and data-element declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioJoinedFederateMomDiscoveredObjectCountPeriodicContract"
+      ]
+    }
+  ]
+}

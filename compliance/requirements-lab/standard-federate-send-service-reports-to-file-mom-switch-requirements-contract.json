@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This narrow trace maps only the joined-federate switch update and public getter checks to IEEE 1516.1-2025 MOM clause 11.4.1 and the pinned IEEE 1516.2-2025 standard MIM. It does not claim that service reports are delivered to subscribers or written to a file.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-federate-send-service-reports-to-file-mom-switch",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches.HLAsendServiceReportsToFile",
+      "source_lines": "984-989, 1047-1052",
+      "statement": "The standard federate-level HLAsetSwitches interaction permits a joined federate to send individual declared parameters; HLAsendServiceReportsToFile sets that joined federate's destination switch to the provided value and selects whether service-report interactions are sent to subscribers or logged to a file.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateSendServiceReportsToFileMomSwitch",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateSendServiceReportsToFileMomSwitchContract"
+      ]
+    }
+  ]
+}

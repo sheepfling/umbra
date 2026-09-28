@@ -28,6 +28,14 @@ DEFAULT_FOM = (
     / "examples"
     / "RestaurantFOMmodule-2025.xml"
 )
+DEFAULT_MIM = (
+    Path(__file__).resolve().parents[4]
+    / "third_party"
+    / "ieee1516.2-2025"
+    / "resources"
+    / "mim"
+    / "HLAstandardMIM-2025.xml"
+)
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -37,11 +45,15 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--tck-executable", type=Path, required=True)
     parser.add_argument("--process-fixture", type=Path, required=True)
     parser.add_argument("--fom-path", type=Path, default=DEFAULT_FOM)
+    parser.add_argument("--mim-fom", type=Path, default=DEFAULT_MIM)
+    parser.add_argument("--time-implementation", default="HLAinteger64Time")
     parser.add_argument(
         "--scenario",
         choices=(
             "cpp-tck.connection-loss-cleanup",
             "cpp-tck.connection-loss-cleanup-contract",
+            "cpp-tck.federate-lost-mom-report",
+            "cpp-tck.federate-lost-mom-report-contract",
             "cpp-tck.connection-loss-automatic-unconditional-divestiture",
             "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
             "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
@@ -122,6 +134,10 @@ def tck_command(
         str(arguments.tck_executable),
         "--fom",
         str(arguments.fom_path),
+        "--mim-fom",
+        str(arguments.mim_fom),
+        "--time-implementation",
+        arguments.time_implementation,
         "--scenario",
         scenario_id,
         "--callback-model",
@@ -203,6 +219,13 @@ def run_one(
         (marker_directory / "automatic-cancel-pending-acquisition.mode").write_text(
             "enabled\n", encoding="utf-8"
         )
+    if scenario_id in {
+        "cpp-tck.federate-lost-mom-report",
+        "cpp-tck.federate-lost-mom-report-contract",
+    }:
+        (marker_directory / "federate-lost-mom-report.mode").write_text(
+            "enabled\n", encoding="utf-8"
+        )
     fixture: subprocess.Popen[bytes] | None = None
     try:
         fixture = subprocess.Popen(
@@ -225,6 +248,28 @@ def run_one(
         payload = json.loads(results.read_text(encoding="utf-8")) if results.is_file() else {}
         junit_root = ET.parse(junit).getroot() if junit.is_file() else ET.Element("testsuite")
         if tck_result.returncode != 0:
+            fixture_error = marker_directory / "public-server-loss.error"
+            receiver_closed = marker_directory / "receiver-closed.ok"
+            if fixture_error.is_file():
+                detail = fixture_error.read_text(encoding="utf-8").strip()
+                print(f"connection-loss fixture failed: {detail}", file=sys.stderr)
+            elif ready_marker.is_file() and not receiver_closed.is_file():
+                fixture_status = fixture.poll()
+                if fixture_status is None:
+                    detail = "fixture is still running"
+                else:
+                    detail = f"fixture exited with code {fixture_status}"
+                print(
+                    "connection-loss fixture did not close the receiver after the TCK readiness signal ("
+                    + detail
+                    + ")",
+                    file=sys.stderr,
+                )
+            elif receiver_closed.is_file():
+                print(
+                    "connection-loss fixture closed the receiver; the TCK failed during post-loss assertions (see the preceding TCK result for the specific failure)",
+                    file=sys.stderr,
+                )
             return int(tck_result.returncode), payload, junit_root
         if not marker.is_file():
             raise RuntimeError("The TCK did not write the connection-loss completion marker")
@@ -285,6 +330,7 @@ def run(arguments: argparse.Namespace) -> int:
         (arguments.tck_executable, "TCK executable"),
         (arguments.process_fixture, "process fixture"),
         (arguments.fom_path, "FOM"),
+        (arguments.mim_fom, "MIM"),
     ):
         if not path.is_file():
             raise FileNotFoundError(f"{description} does not exist: {path}")

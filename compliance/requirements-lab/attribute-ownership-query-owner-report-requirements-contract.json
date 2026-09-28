@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "These candidate mappings use the exact IEEE 1516.1-2025 C++ RTIambassador and FederateAmbassador declarations and their canonical clause labels. The scenario queries one known owned attribute and checks its ordinary federate owner; it does not claim the complete ownership-query result space or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-query-attribute-ownership",
+      "clause_id": "clause-7.17",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::queryAttributeOwnership",
+      "source_lines": "1132-1143",
+      "statement": "A joined observer queries ownership of the adapter-supplied known object attribute; the test checks the resulting report without changing ownership.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryOwnerReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryOwnerReportContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-inform-attribute-ownership-owner-report",
+      "clause_id": "clause-7.18",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::informAttributeOwnership",
+      "source_lines": "461-466",
+      "statement": "The observer receives exactly one callback identifying the queried object, queried attribute set, and current owner's FederateHandle.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryOwnerReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryOwnerReportContract"
+      ]
+    }
+  ]
+}

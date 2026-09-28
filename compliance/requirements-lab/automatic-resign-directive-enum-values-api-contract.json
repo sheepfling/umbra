@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable scenario calls the official RTIambassador automatic-resign getter/setter for all six ResignAction enumerators listed by the IEEE 1516.1-2025 C++ API, verifies each accepted value through the getter, and checks InvalidResignAction for the next value outside that enumerator set. The test restores NO_ACTION before resigning so object or ownership cleanup is not part of its oracle. It uses only the official IEEE C++ API and standard library.",
+  "api_surfaces": [
+    {
+      "id": "portable-automatic-resign-directive-enum-values",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void setAutomaticResignDirective(ResignAction resignAction) = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "InvalidResignAction", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setAutomaticResignDirective",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAutomaticResignDirectiveEnumValuesPortable"]
+    }
+  ]
+}

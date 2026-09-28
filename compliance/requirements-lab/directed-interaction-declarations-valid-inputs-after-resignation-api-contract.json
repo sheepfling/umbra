@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable C++ scenario uses only the official IEEE 1516.1 RTIambassador API. It resolves an adapter-supplied object class and an interaction class associated with it in the adapter FOM, successfully exercises both set and whole-class declaration overloads while joined, then checks the declared membership exception for the same valid handles after resignation while connected. It excludes all region-qualified overloads.",
+  "api_surfaces": [
+    {
+      "id": "portable-publish-object-class-directed-interactions-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void publishObjectClassDirectedInteractions(ObjectClassHandle const& objectClass, InteractionClassHandleSet const& interactionClasses) = 0",
+      "exception_types": ["InteractionClassNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::publishObjectClassDirectedInteractions",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDirectedInteractionDeclarationsValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-unpublish-object-class-directed-interactions-whole-class-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void unpublishObjectClassDirectedInteractions(ObjectClassHandle const& objectClass) = 0",
+      "exception_types": ["ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unpublishObjectClassDirectedInteractions",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDirectedInteractionDeclarationsValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-unpublish-object-class-directed-interactions-set-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void unpublishObjectClassDirectedInteractions(ObjectClassHandle const& objectClass, InteractionClassHandleSet const& interactionClasses) = 0",
+      "exception_types": ["InteractionClassNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unpublishObjectClassDirectedInteractions",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDirectedInteractionDeclarationsValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-subscribe-object-class-directed-interactions-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void subscribeObjectClassDirectedInteractions(ObjectClassHandle const& objectClass, InteractionClassHandleSet const& interactionClasses, bool universally = false) = 0",
+      "exception_types": ["InteractionClassNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::subscribeObjectClassDirectedInteractions",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDirectedInteractionDeclarationsValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-unsubscribe-object-class-directed-interactions-whole-class-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeObjectClassDirectedInteractions(ObjectClassHandle const& objectClass) = 0",
+      "exception_types": ["ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unsubscribeObjectClassDirectedInteractions",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDirectedInteractionDeclarationsValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-unsubscribe-object-class-directed-interactions-set-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeObjectClassDirectedInteractions(ObjectClassHandle const& objectClass, InteractionClassHandleSet const& interactionClasses) = 0",
+      "exception_types": ["InteractionClassNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unsubscribeObjectClassDirectedInteractions",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDirectedInteractionDeclarationsValidInputsAfterResignationPortable"]
+    }
+  ]
+}

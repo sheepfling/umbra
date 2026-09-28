@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice registers two instances of an adapter-supplied object class, sends one timestamped Update Attribute Values invocation for each instance, advances the subject and constrained observer, verifies the standard timestamped reflection metadata, and asks a distinct joined federate for the subject's standard HLAreportObjectInstancesUpdated count. The report must contain one class entry with two distinct updated instances. The test uses only official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard MIM, public object-class handle decoding, HLAbyte, HLAinteger32BE, HLAoctet, HLAfixedRecord, HLAvariableArray, and the C++ standard library. Provider package, FOM, MIM, application names, endpoint, callback configuration, and logical-time implementation come from the adapter; there are no private headers, provider registries, or vendor-specific names.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-object-instances-updated-timestamped-report",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped object attribute update, timestamp-order declaration, time-management, federate MOM request/report, public object-class handle decoding, and callback delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::publishObjectClassAttributes, changeDefaultAttributeOrderType, subscribeObjectClassAttributes, registerObjectInstance, updateAttributeValues, enableTimeRegulation, enableTimeConstrained, timeAdvanceRequest, subscribeInteractionClass, sendInteraction, decodeObjectClassHandle, and standard lifecycle services; FederateAmbassador::discoverObjectInstance, reflectAttributeValues, timeRegulationEnabled, timeConstrainedEnabled, timeAdvanceGrant, and receiveInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReportContract"
+      ]
+    }
+  ]
+}

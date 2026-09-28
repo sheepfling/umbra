@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This focused trace separates the standard-MIM switch update from the public C++ getter used to observe it. It verifies NO_ACTION and DELETE_OBJECTS values and restores the starting directive; it does not exercise resignation side effects or claim complete automatic-resignation conformance.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-federate-automatic-resign-action-mom-switch",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches.HLAautomaticResignAction; HLAresignAction",
+      "source_lines": "984-989, 1022-1025, 3102-3128",
+      "statement": "The standard federate-level HLAsetSwitches interaction permits a joined federate to send individual declared parameters; HLAautomaticResignAction sets that federate's automatic-resign action using the HLAresignAction enumeration represented by HLAinteger32BE.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomSwitch",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomSwitchContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-federate-automatic-resign-action-mom-getter",
+      "clause_id": "clause-10.44",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAutomaticResignDirective",
+      "source_lines": "2127-2135",
+      "statement": "The public API returns the joined federate's current ResignAction directive; the test verifies the getter after each standard-MIM update and after restoring the observed initial value.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomSwitch",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomSwitchContract"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable C++ scenario uses only the official IEEE 1516.1 RTIambassador API and standard library. It resolves an adapter-supplied interaction class from the adapter FOM, successfully exercises publish/unpublish/subscribe/unsubscribe while joined, then checks the declared membership exception for the same valid handle after resignation while connected.",
+  "api_surfaces": [
+    {
+      "id": "portable-publish-interaction-class-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void publishInteractionClass(InteractionClassHandle const& interactionClass) = 0",
+      "exception_types": ["InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::publishInteractionClass",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionDeclarationsValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-unpublish-interaction-class-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void unpublishInteractionClass(InteractionClassHandle const& interactionClass) = 0",
+      "exception_types": ["InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unpublishInteractionClass",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionDeclarationsValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-subscribe-interaction-class-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void subscribeInteractionClass(InteractionClassHandle const& interactionClass, bool active = true) = 0",
+      "exception_types": ["FederateServiceInvocationsAreBeingReportedViaMOM", "InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::subscribeInteractionClass",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionDeclarationsValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-unsubscribe-interaction-class-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeInteractionClass(InteractionClassHandle const& interactionClass) = 0",
+      "exception_types": ["InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unsubscribeInteractionClass",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionDeclarationsValidInputsAfterResignationPortable"]
+    }
+  ]
+}

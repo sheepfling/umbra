@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This pure standard C++ scenario verifies direct HLAobjectInstancesThatCanBeDeleted values across registration and deletion, then verifies the same statistic through its periodic HLAsetTiming update. Provider execution is bounded test evidence and does not establish provider-independent behavior or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-deletable-object-count-mim-value",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "402-414",
+      "source_symbol": "HLAobjectInstancesThatCanBeDeleted",
+      "statement": "The standard MIM defines HLAobjectInstancesThatCanBeDeleted as the count of object instances whose HLAprivilegeToDeleteObject is owned by the joined federate and declares the attribute periodic under HLAsetTiming.HLAreportPeriod. The scenario checks direct values at zero, one, and two live registrations and after each deletion, then checks that a periodic reflection reports the same count while two objects remain deletable.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomDeletableObjectCount",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomDeletableObjectCountContract"
+      ]
+    }
+  ]
+}

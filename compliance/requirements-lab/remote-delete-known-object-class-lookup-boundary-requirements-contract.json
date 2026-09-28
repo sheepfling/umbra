@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The mapping is limited to official IEEE 1516.1-2025 C++ API declarations. The test waits for the standard removal callback before probing object-class lookup, so the assertion is about a removed known instance rather than callback timing. A single installed provider's passing result is evidence for this test run, not a portability or conformance claim.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-object-instance-deletion",
+      "clause_id": "clause-6.16",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::deleteObjectInstance",
+      "source_lines": "824-834",
+      "statement": "The owner issues the standard receive-order Delete Object Instance service for a discovered object. After the service returns, the deleting federate's known-class query is expected to report the declared unknown-instance boundary.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteKnownObjectClassLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteKnownObjectClassLookupBoundaryContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-instance-deletion",
+      "clause_id": "clause-6.17",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::removeObjectInstance",
+      "source_lines": "313-319",
+      "statement": "The test waits for Remove Object Instance on the subscriber before querying the handle, ensuring the local removal boundary has occurred.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteKnownObjectClassLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteKnownObjectClassLookupBoundaryContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-registration-discovery",
+      "clause_id": "clause-10.6",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getKnownObjectClassHandle",
+      "source_lines": "1722-1730",
+      "statement": "Section 10.6 declares ObjectInstanceNotKnown when getKnownObjectClassHandle is called for an instance not known to the federate. The test confirms lookup succeeds before deletion and expects the declared exception both after deletion returns to the owner and after the subscriber receives its removal callback.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteKnownObjectClassLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRemoteDeleteKnownObjectClassLookupBoundaryContractPortable"
+      ]
+    }
+  ]
+}

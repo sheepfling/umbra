@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard MIM, the adapter-selected LogicalTimeFactory and LogicalTimeInterval, the standard logical-time interval decoder and HLAinteger32BE encoding, and the C++ standard library. The adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, logical-time configuration, and federate configuration. The monitor selects the subject's HLAfederate MIM report period with standard HLAsetTiming; the regulating subject verifies periodic HLAlookahead before and after Modify Lookahead using Query Lookahead as the service-side reference. The test makes no assumption about an implementation-specific logical-time representation and uses no provider-specific headers, names, registries, or internal APIs.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-lookahead-mim-periodic",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador standard-MIM subscription and HLAsetTiming interaction, Enable/Modify/Query Time Lookahead, federation lifecycle, and FederateAmbassador reflection and timeRegulationEnabled callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::createFederationExecutionWithMIM, RTIambassador::joinFederationExecution, RTIambassador::getObjectClassHandle, RTIambassador::getAttributeHandle, RTIambassador::subscribeObjectClassAttributes, RTIambassador::sendInteraction, RTIambassador::getTimeFactory, LogicalTimeFactory::decodeLogicalTimeInterval, RTIambassador::enableTimeRegulation, RTIambassador::modifyLookahead, RTIambassador::queryLookahead, FederateAmbassador::reflectAttributeValues, FederateAmbassador::timeRegulationEnabled, HLAinteger32BE",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLookaheadMomPeriodicContract"
+      ]
+    }
+  ]
+}

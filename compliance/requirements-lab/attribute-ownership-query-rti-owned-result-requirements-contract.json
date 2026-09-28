@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "These candidate mappings use the canonical IEEE 1516.1-2025 C++ API clauses and the official IEEE 1516.2-2025 standard MIM resource. The test uses the joined-federate HLAfederateHandle attribute, queries its ownership, and requires exactly the RTI-owned callback with no federate-owner or not-owned callback. The test isolates this result and does not claim full MOM or ownership conformance.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-query-attribute-ownership-rti-owned-result",
+      "clause_id": "clause-7.17",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::queryAttributeOwnership",
+      "source_lines": "1132-1143",
+      "statement": "The joined federate queries ownership of its discovered standard-MIM object attribute.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryRtiOwnedResult",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryRtiOwnedResultContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-attribute-is-owned-by-rti",
+      "clause_id": "clause-7.18",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::attributeIsOwnedByRTI",
+      "source_lines": "475-480",
+      "statement": "The query result identifies exactly the queried object and HLAfederateHandle attribute through Attribute Is Owned By RTI, not through Inform Attribute Ownership or Attribute Is Not Owned.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryRtiOwnedResult",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryRtiOwnedResultContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-joined-federate-mom-handle-attribute",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_symbol": "HLAobjectRoot.HLAmanager.HLAfederate.HLAfederateHandle",
+      "source_lines": "73-84",
+      "statement": "The adapter-supplied official standard MIM defines HLAfederateHandle as the static joined-federate handle attribute queried by this scenario.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryRtiOwnedResult",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryRtiOwnedResultContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-rti-owned-query-not-federate-owned",
+      "clause_id": "clause-7.19",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::isAttributeOwnedByFederate",
+      "source_lines": "1146-1157",
+      "statement": "Neither joined federate is reported as owning the RTI-owned MIM attribute.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryRtiOwnedResult",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryRtiOwnedResultContract"
+      ]
+    }
+  ]
+}

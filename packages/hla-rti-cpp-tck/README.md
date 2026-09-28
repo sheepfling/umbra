@@ -34,7 +34,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.standard-exception-boundaries-contract` | Pure standard C++ contract twin for deterministic service-level exception boundaries, using only adapter-supplied provider, baseline FOM, endpoint, logical-time, and callback configuration |
 | `cpp-tck.enum-contract` | Provider- and FOM-independent official C++ enumeration contract: distinct standard values for settings, callback, order, resign, save, restore, service-group, synchronization, and authorization-result families |
 | `cpp-tck.handle-and-collection-contract` | Provider- and FOM-independent official C++ handle and collection contract: invalid-handle identity, hashing/order, handle sets, handle-value maps, `RangeBounds`, region-pair vectors, and federation/restore record vectors |
-| `cpp-tck.configuration-and-authorization-contract` | Provider- and FOM-independent official C++ configuration, federation-record, credential, authorization, and local `Authorizer`/`AuthorizerFactory` contract: builder/accessor behavior, copy/assignment independence, credential decoding/storage, authorization results, and polymorphic dispatch |
+| `cpp-tck.configuration-and-authorization-contract` | Provider- and FOM-independent official C++ configuration, federation-record, credential, authorization, and local `Authorizer`/`AuthorizerFactory` contract: builder/accessor behavior, copy/assignment independence, ASCII and BMP Unicode plaintext-password encoding/decoding, authorization results, and polymorphic dispatch |
 | `cpp-tck.authorizer-factory-factory-contract` | Provider- and FOM-independent official C++ `HLAauthorizerFactoryFactory` contract: standard-authorizer selection, factory and authorizer naming/creation, and unsupported-name rejection |
 | `cpp-tck.runtime-identity-contract` | Provider-neutral official C++ `rtiName()`/`rtiVersion()` contract: callable, non-empty, process-stable runtime identity without asserting vendor-specific strings |
 | `cpp-tck.rti-ambassador-factory-contract` | Provider- and FOM-independent official C++ `RTIambassadorFactory` construction contract: repeatable creation of usable standard `RTIambassador` objects without provider, endpoint, or FOM assumptions |
@@ -46,6 +46,34 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.connection-service-boundaries` | Standard connect overloads, callback-model validation, pre-connect service boundaries, callback controls, disconnect, and reconnect |
 | `cpp-tck.connection-service-boundaries-contract` | Pure standard C++ contract for connection and callback-service boundaries |
 | `cpp-tck.federation-lifecycle-contract` | Standard adapter-backed federation lifecycle contract: create/join/resign/destroy, automatic-resign directives, federation/member reports, federate handle lookups, duplicate-membership failures, and missing-federation boundaries |
+| `cpp-tck.duplicate-federate-name-join-boundary` | Named join rejects a name already used by an active member, then allows that federate to retry with a distinct name; shares the `java-tck.federation-membership` parity anchor |
+| `cpp-tck.duplicate-federate-name-join-boundary-contract` | Standard contract twin for duplicate federate-name rejection and distinct-name retry |
+| `cpp-tck.repeated-join-by-member-boundary` | Repeating the named join through an already joined ambassador returns `FederateAlreadyExecutionMember`; the original member can still resign; shares the Java federation-membership parity anchor |
+| `cpp-tck.repeated-join-by-member-boundary-contract` | Standard contract twin for the repeated membership join boundary |
+| `cpp-tck.foreign-federate-name-lookup-boundary` | Each federate name resolves within its own execution; querying a name from a different execution returns `NameNotFound` (§10.2) |
+| `cpp-tck.foreign-federate-name-lookup-boundary-contract` | Standard contract twin for the foreign federate-name lookup boundary |
+| `cpp-tck.foreign-object-instance-name-lookup-boundary` | Each named object resolves in its own execution; querying the other execution's object name returns `ObjectInstanceNotKnown` (§10.7) |
+| `cpp-tck.foreign-object-instance-name-lookup-boundary-contract` | Standard contract twin for the foreign object-instance name lookup boundary |
+| `cpp-tck.foreign-object-instance-handle-lookup-boundary` | A handle known in another execution is rejected by `getObjectInstanceName` with `ObjectInstanceNotKnown` (§10.8), with unequal opaque values used to avoid cross-execution alias ambiguity |
+| `cpp-tck.foreign-object-instance-handle-lookup-boundary-contract` | Standard contract twin for the foreign object-instance handle lookup boundary |
+| `cpp-tck.local-delete-object-instance-name-lookup-boundary` | A subscriber's handle-to-name lookup returns `ObjectInstanceNotKnown` after local deletion, while the publisher still resolves the object (§6.18, §10.8) |
+| `cpp-tck.local-delete-object-instance-name-lookup-boundary-contract` | Standard contract twin for handle-to-name lookup after local object forgetting |
+| `cpp-tck.remote-delete-known-object-class-lookup-boundary` | The deleting federate and, after `removeObjectInstance`, a subscriber both get `ObjectInstanceNotKnown` from known-class lookup (§6.16, §6.17, §10.6) |
+| `cpp-tck.remote-delete-known-object-class-lookup-boundary-contract` | Standard contract twin for known-class lookup after remote removal |
+| `cpp-tck.remote-delete-object-instance-name-lookup-boundary` | The deleting federate's name-to-handle and the subscriber's handle-to-name lookups both return `ObjectInstanceNotKnown` after remote deletion (§6.16–6.17, §10.7–10.8) |
+| `cpp-tck.remote-delete-object-instance-name-lookup-boundary-contract` | Standard contract twin for both object-name lookup directions after remote deletion |
+| `cpp-tck.resign-delete-object-lookup-boundary` | After resign-time `DELETE_OBJECTS` and the removal callback, the surviving federate gets `ObjectInstanceNotKnown` for name-to-handle, handle-to-name, and known-class lookup (§4.12, §6.17, §§10.6–10.8) |
+| `cpp-tck.resign-delete-object-lookup-boundary-contract` | Standard contract twin for all three object lookups after resign-time deletion |
+| `cpp-tck.resign-no-action-owned-attributes-rejection-boundary` | `NO_ACTION` resignation returns `FederateOwnsAttributes` while an object attribute is still owned; the federate remains joined and can then resign with `DELETE_OBJECTS` (§4.12) |
+| `cpp-tck.resign-no-action-owned-attributes-rejection-boundary-contract` | Standard contract twin for the owned-attributes resignation rejection |
+| `cpp-tck.resign-delete-objects-then-divest-cross-object-effects` | `DELETE_OBJECTS_THEN_DIVEST` removes the departing member's registered object, releases its attribute on another member's object, and leaves that other object registered (§4.12, §6.17, §§7.2, 7.7, 7.9, 10.7–10.8) |
+| `cpp-tck.resign-delete-objects-then-divest-cross-object-effects-contract` | Standard contract twin for the cross-object deletion and divestiture effects |
+| `cpp-tck.resign-unconditionally-divest-attributes-preserves-objects` | `UNCONDITIONALLY_DIVEST_ATTRIBUTES` leaves another member's registered object known and releases its attribute for acquisition by a remaining federate (§4.12, §§6.8–6.9, 7.2, 7.7, 7.9, 10.7–10.8) |
+| `cpp-tck.resign-unconditionally-divest-attributes-preserves-objects-contract` | Standard contract twin for resignation divestiture with retained objects |
+| `cpp-tck.resign-cancel-pending-ownership-acquisitions-action` | Cancels a pending ordinary ownership request on resignation; after the owner divests, another member successfully acquires the attribute with no stale requester reservation (§4.12, §§7.2, 7.7–7.9) |
+| `cpp-tck.resign-cancel-pending-ownership-acquisitions-action-contract` | Standard contract twin for pending-acquisition cleanup on resignation |
+| `cpp-tck.resign-cancel-then-delete-then-divest-cross-object-effects` | Checks compound resignation cancellation, divestiture on a retained object, and removal of the departing member's separate object (§4.12, §§6.8–6.9, 6.17, 7.2, 7.7–7.9, 10.7–10.8) |
+| `cpp-tck.resign-cancel-then-delete-then-divest-cross-object-effects-contract` | Standard contract twin for all three compound resignation effects |
 | `cpp-tck.automatic-resign-directive-delete-objects` | Promoted standard automatic-resign contract after a joined federate is lost: `DELETE_OBJECTS`, `connectionLost`, ordinary object removal, and object-name lookup cleanup |
 | `cpp-tck.automatic-resign-directive-delete-objects-contract` | Promoted adapter-backed contract for automatic resignation on connection loss using only standard callbacks, lookups, and lifecycle calls |
 | `java-tck.overloads-and-exceptions` | Pre-connect `NotConnected` boundaries for listing, lookup, name reservation, and disconnect; all four official Connect overloads, unsupported callback-model rejection, duplicate-connect handling, reconnect-after-disconnect, empty-queue callback servicing, Disable/Enable Callbacks, and Disconnect |
@@ -63,6 +91,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.explicit-mim-creation-contract` | Pure standard C++ contract for adapter-supplied MIM composition, reserved standard designators, shared MOM declarations, and ordinary FOM preservation |
 | `cpp-tck.federation-mom-current-fdd` | Standard federation MOM discovery, `HLAcurrentFDD` request/reflection, reliable transportation reporting, and refresh after an additional-FOM join |
 | `cpp-tck.federation-mom-current-fdd-contract` | Pure standard C++ contract for federation-MOM `HLAcurrentFDD` discovery, request/reflection, transportation reporting, and additional-FOM refresh |
+| `cpp-tck.federation-mom-fom-module-designator-list` | Standard `HLAFOMmoduleDesignatorList` initial request and conditional refresh after an additional-module join, compared without list-order assumptions |
+| `cpp-tck.federation-mom-fom-module-designator-list-contract` | Pure standard C++ contract for federation FOM-module designator reflection and composition |
  | `cpp-tck.federation-mom-content-reports` | Standard federation MOM FOM-module and MIM content requests/reports, typed data decoding, callback-boundary behavior, and malformed-request failure |
  | `cpp-tck.federation-mom-content-reports-contract` | Pure standard C++ contract for federation MOM FOM-module and MIM content reports using adapter-supplied provider, FOM, endpoint, and callback configuration |
 | `cpp-tck.federation-mom-save-status` | Standard federation MOM save-status response for every joined federate under both callback models |
@@ -71,9 +101,35 @@ The executable covers these ordinary public-API workflows, under both
  | `cpp-tck.federation-mom-synchronization-queries-contract` | Pure standard C++ contract for federation MOM synchronization-point list/status queries using adapter-supplied MIM, FOM, endpoint, and callbacks |
  | `cpp-tck.service-report-order-transportation-lookups` | Standard MOM service reports for order and transportation lookup return values, typed arguments, reliable metadata, and serial progression |
  | `cpp-tck.service-report-order-transportation-lookups-contract` | Standard adapter-backed order/transportation lookup service-report contract using the official MIM and public APIs |
- | `cpp-tck.service-report-order-transportation-lookup-failures` | Standard MOM failure reports for invalid order and transportation lookups, including typed null returns, exception classes, and serial progression |
- | `cpp-tck.service-report-order-transportation-lookup-failures-contract` | Standard adapter-backed order/transportation lookup failure-report contract using provider-neutral invalid inputs |
- | `cpp-tck.service-report-federate-object-class-lookups` | Standard MOM service reports for federate and object-class lookup return values, typed arguments, reliable metadata, and serial progression |
+| `cpp-tck.service-report-order-transportation-lookup-failures` | Standard MOM failure reports for invalid order and transportation lookups, including typed null returns, exception classes, and serial progression |
+| `cpp-tck.service-report-order-transportation-lookup-failures-contract` | Standard adapter-backed order/transportation lookup failure-report contract using provider-neutral invalid inputs |
+| `cpp-tck.service-report-dimension-handle` | Standard-MIM `GetDimensionHandle` result and typed success report, including reliable delivery and reporter identity |
+| `cpp-tck.service-report-dimension-handle-contract` | Adapter-backed standard C++ contract for dimension-handle lookup and its standard-MIM success report |
+| `cpp-tck.service-report-dimension-handle-set` | Standard-MIM `GetDimensionHandleSet` result and success report for a one-dimension region; no regional routing assertion |
+| `cpp-tck.service-report-dimension-handle-set-contract` | Adapter-backed standard C++ contract for region dimension-set lookup and its typed report |
+| `cpp-tck.service-report-range-bounds` | Standard-MIM `GetRangeBounds` committed result and typed success report for a one-dimension region; no regional routing assertion |
+| `cpp-tck.service-report-range-bounds-contract` | Adapter-backed standard C++ contract for committed region range lookup and its typed report |
+| `cpp-tck.service-report-set-range-bounds` | Standard-MIM successful `SetRangeBounds` report with typed region/dimension/bound arguments and inherited federate identity |
+| `cpp-tck.service-report-set-range-bounds-contract` | Adapter-backed standard C++ contract for the successful `SetRangeBounds` service report |
+| `cpp-tck.service-report-commit-region-modifications` | Standard-MIM successful region-commit report with the region-set argument and inherited federate identity |
+| `cpp-tck.service-report-commit-region-modifications-contract` | Adapter-backed standard C++ contract for the successful region-commit report |
+| `cpp-tck.service-report-delete-region` | Standard-MIM successful region-deletion report with the region-designator argument and inherited federate identity |
+| `cpp-tck.service-report-delete-region-contract` | Adapter-backed standard C++ contract for the successful region-deletion report |
+| `cpp-tck.service-report-create-region` | Standard-MIM successful region-creation report with the dimension-set argument, returned region designator, and inherited federate identity |
+| `cpp-tck.service-report-create-region-contract` | Adapter-backed standard C++ contract for the successful region-creation report |
+| `cpp-tck.region-range-validation` | Standard `SetRangeBounds` accepts the inclusive dimension upper bound and rejects equal and reversed ranges with `InvalidRangeBound` |
+| `cpp-tck.region-range-validation-contract` | Adapter-backed standard C++ contract for region range-bound validation |
+| `cpp-tck.region-range-dimension-validation` | Standard `GetRangeBounds` and `SetRangeBounds` reject a dimension absent from the region with `RegionDoesNotContainSpecifiedDimension` |
+| `cpp-tck.region-range-dimension-validation-contract` | Adapter-backed standard C++ contract for region range dimension membership |
+| `cpp-tck.service-report-dimension-name` | Standard-MIM `GetDimensionName` result and typed success report, including reliable delivery and reporter identity |
+| `cpp-tck.service-report-dimension-name-contract` | Adapter-backed standard C++ contract for dimension-name lookup and its standard-MIM success report |
+| `cpp-tck.service-report-dimension-upper-bound` | Standard-MIM `GetDimensionUpperBound` result and typed success report |
+| `cpp-tck.service-report-dimension-upper-bound-contract` | Adapter-backed standard C++ contract for dimension upper-bound lookup and its standard-MIM success report |
+| `cpp-tck.service-report-interaction-dimensions` | Standard-MIM available interaction dimensions and typed success report |
+| `cpp-tck.service-report-interaction-dimensions-contract` | Adapter-backed standard C++ contract for available interaction dimensions and their typed report |
+| `cpp-tck.service-report-object-dimensions` | Standard-MIM available object-class dimensions and typed success report |
+| `cpp-tck.service-report-object-dimensions-contract` | Adapter-backed standard C++ contract for available object-class dimensions and their typed report |
+| `cpp-tck.service-report-federate-object-class-lookups` | Standard MOM service reports for federate and object-class lookup return values, typed arguments, reliable metadata, and serial progression |
  | `cpp-tck.service-report-federate-object-class-lookups-contract` | Standard adapter-backed federate/object-class lookup service-report contract using the official MIM and public APIs |
  | `cpp-tck.service-report-interaction-parameter-lookups` | Standard MOM service reports for interaction-class and parameter lookup return values, typed arguments, reliable metadata, and serial progression |
  | `cpp-tck.service-report-interaction-parameter-lookups-contract` | Standard adapter-backed interaction/parameter lookup service-report contract using the official MIM and public APIs |
@@ -90,15 +146,56 @@ The executable covers these ordinary public-API workflows, under both
  | `cpp-tck.joined-federate-mom-federate-state-save-restore-contract` | Pure standard C++ contract for joined-federate MOM save/restore state transitions using adapter-supplied provider, FOM, endpoint, callback, and logical-time configuration |
  | `cpp-tck.joined-federate-mom-galt-lits-periodic-contract` | Pure standard C++ contract for joined-federate MOM `HLAGALT`/`HLALITS` direct and periodic reporting, active-regulator values, and undefined-value cleanup |
  | `cpp-tck.joined-federate-mom-tso-length-periodic-contract` | Pure standard C++ contract for joined-federate MOM `HLATSOlength` reporting around queued timestamped delivery, periodic reporting, and post-grant cleanup |
- | `cpp-tck.joined-federate-mom-removed-object-count-contract` | Pure standard C++ contract for RTI-owned joined-federate `HLAobjectInstancesRemoved` counts, object-removal callbacks, and service-report cleanup |
- | `cpp-tck.joined-federate-mom-registered-object-count` | Standard joined-federate MOM `HLAobjectInstancesRegistered` count at zero, one, and two successful adapter-supplied object registrations |
- | `cpp-tck.joined-federate-mom-registered-object-count-contract` | Pure standard C++ contract for joined-federate MOM registration counts, direct reliable reflections, and standard teardown |
+ | `cpp-tck.joined-federate-mom-ro-length-periodic` | Standard MOM test for direct and periodic `HLAROlength` values while receive-order interactions remain queued in both callback models |
+ | `cpp-tck.joined-federate-mom-ro-length-periodic-contract` | Pure standard C++ contract for direct/periodic receive-order queue counts and post-delivery cleanup |
+ | `cpp-tck.joined-federate-mom-removed-object-count` | Direct and `HLAsetTiming`-periodic joined-federate `HLAobjectInstancesRemoved` values after receive-order object removal, plus RTI ownership and service-report behavior |
+ | `cpp-tck.joined-federate-mom-removed-object-count-contract` | Pure standard C++ contract for direct and periodic RTI-owned joined-federate removal counts, object-removal callbacks, service reporting, and cleanup |
+ | `cpp-tck.joined-federate-mom-registered-object-count` | Direct and periodic joined-federate MOM `HLAobjectInstancesRegistered` counts after zero, one, and two successful adapter-supplied registrations |
+ | `cpp-tck.joined-federate-mom-registered-object-count-contract` | Pure standard C++ contract for direct/periodic registration counts, reliable reflections, and standard teardown |
+ | `cpp-tck.joined-federate-mom-object-lifecycle` | Standard `HLAmanager.HLAfederate` discovery, reflected identity and non-empty `HLAfederateHost`, Join-scoped FOM-designator reflection, known-object value requests, and removal on resign |
+ | `cpp-tck.joined-federate-mom-object-lifecycle-contract` | Pure standard C++ contract for the joined-federate MOM object lifecycle using adapter-supplied provider, FOM, MIM, additional FOM, endpoint, and callback configuration |
   | `cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report` | Standard joined-federate MOM request/report for deletable object-instance counts grouped by object class, verified at two, one, and zero live instances |
   | `cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report-contract` | Pure standard C++ contract for the joined-federate MOM deletable-object report, including public data-element decoding and standard teardown |
-  | `cpp-tck.joined-federate-mom-deletable-object-count` | Standard joined-federate MOM `HLAobjectInstancesThatCanBeDeleted` request/reflection count at zero, one, and two live objects and after deletion |
-  | `cpp-tck.joined-federate-mom-deletable-object-count-contract` | Pure standard C++ contract for the joined-federate MOM deletable-object attribute, typed integer decoding, reflection metadata, and teardown |
+  | `cpp-tck.joined-federate-mom-object-instances-updated-report` | Standard joined-federate MOM request/report for updated object-instance counts, with repeated updates counted once per instance |
+  | `cpp-tck.joined-federate-mom-object-instances-updated-report-contract` | Pure standard C++ contract for decoding the MIM's class-grouped update-count records |
+  | `cpp-tck.joined-federate-mom-updated-object-count-periodic` | Direct and periodic MOM counts for successful object registrations, distinct updated instances, and update invocations |
+  | `cpp-tck.joined-federate-mom-updated-object-count-periodic-contract` | Pure standard contract for direct and periodic registration/update-count values and MOM reflection metadata |
+  | `cpp-tck.joined-federate-mom-updates-sent-mim-attribute` | Portable direct and periodic `HLAupdatesSent` count, including repeated updates to one object |
+  | `cpp-tck.joined-federate-mom-updates-sent-mim-attribute-contract` | Pure standard contract for successful update invocations, callback delivery, and periodic values |
+  | `cpp-tck.joined-federate-mom-object-instances-updated-mim-attribute` | Direct and periodic `HLAobjectInstancesUpdated` count, proving repeated updates count once per distinct object |
+  | `cpp-tck.joined-federate-mom-object-instances-updated-mim-attribute-contract` | Pure standard contract for distinct-object counts and periodic MOM reflection |
+  | `cpp-tck.joined-federate-mom-object-instances-reflected-mim-attribute` | Direct and periodic `HLAobjectInstancesReflected` count once per distinct application object receiving a reflection |
+  | `cpp-tck.joined-federate-mom-object-instances-reflected-mim-attribute-contract` | Pure standard contract for distinct reflected-object counts, callback delivery, and periodic MOM reflection |
+   | `cpp-tck.joined-federate-mom-reflections-received-mim-attribute` | Direct and periodic `HLAreflectionsReceived` increments once per ordinary reflection callback, including repeated updates to one object |
+   | `cpp-tck.joined-federate-mom-reflections-received-mim-attribute-contract` | Pure standard contract for baseline-relative invocation counts, callback metadata, and periodic MOM reflection |
+  | `cpp-tck.joined-federate-mom-object-instances-discovered-mim-attribute` | Direct and periodic `HLAobjectInstancesDiscovered` counts, including rediscovery after local deletion |
+  | `cpp-tck.joined-federate-mom-object-instances-discovered-mim-attribute-contract` | Pure-standard contract for discovery-count deltas, local-delete rediscovery, and reflection metadata |
+  | `cpp-tck.joined-federate-mom-object-instances-removed-mim-attribute` | Recipient `HLAobjectInstancesRemoved` counts correlated with committed receive-order removal callbacks and periodic reporting |
+  | `cpp-tck.joined-federate-mom-object-instances-removed-mim-attribute-contract` | Pure-standard contract for recipient removal-count deltas, callback metadata, and periodic reflection |
+  | `cpp-tck.joined-federate-mom-object-instances-deleted-mim-attribute` | Direct and periodic `HLAobjectInstancesDeleted` counts correlated with receive-order removal callbacks |
+  | `cpp-tck.joined-federate-mom-object-instances-deleted-mim-attribute-contract` | Pure standard contract for deletion-call counts, periodic reflection, and exact removal metadata |
+  | `cpp-tck.joined-federate-mom-discovered-object-count-periodic` | Direct and periodic MOM discovery count deltas, including rediscovery after local deletion |
+  | `cpp-tck.joined-federate-mom-discovered-object-count-periodic-contract` | Pure standard contract for discovery-count delta, local-delete rediscovery, typed values, and reflection metadata |
+  | `cpp-tck.joined-federate-mom-deleted-object-count-periodic` | Direct and periodic MOM Delete Object Instance invocation counts correlated with receiver-side removals |
+  | `cpp-tck.joined-federate-mom-deleted-object-count-periodic-contract` | Pure standard contract for direct and periodic deletion counts, removal callbacks, typed values, and reflection metadata |
+  | `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report` | Standard MOM updated-instance count after two timestamped updates are reflected to a constrained observer |
+  | `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report-contract` | Pure standard contract for timestamped update/reflect metadata, time grants, and class-grouped updated-object report decoding |
+  | `cpp-tck.joined-federate-mom-object-instances-reflected-report` | Standard MOM reflected-instance count query from a distinct requester targeting an active subscriber, with repeated reflections counted once per instance |
+  | `cpp-tck.joined-federate-mom-object-instances-reflected-report-contract` | Pure standard C++ contract for target-handle selection, reflection callbacks, and class-grouped reflected-instance count decoding |
+  | `cpp-tck.joined-federate-mom-object-instances-reflected-timestamped-report` | Standard MOM reflected-instance count after three timestamped reflections to two instances |
+  | `cpp-tck.joined-federate-mom-object-instances-reflected-timestamped-report-contract` | Pure standard contract for timestamped reflection metadata, time-grant ordering, and class-grouped report decoding |
+  | `cpp-tck.joined-federate-mom-deletable-object-count` | Direct and periodic `HLAobjectInstancesThatCanBeDeleted` counts at zero, one, and two live objects and after deletion |
+  | `cpp-tck.joined-federate-mom-deletable-object-count-contract` | Pure standard C++ contract for direct/periodic deletable-object counts, typed decoding, reflection metadata, and teardown |
   | `cpp-tck.joined-federate-mom-updates-sent-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestUpdatesSent`/`HLAreportUpdatesSent` buckets, nested counts, and transportation-change confirmation |
  | `cpp-tck.joined-federate-mom-interactions-received-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestInteractionsReceived`/`HLAreportInteractionsReceived` buckets, nested counts, and transportation-change confirmation |
+ | `cpp-tck.joined-federate-mom-interactions-received-mim-attribute` | Direct and periodic standard MIM `HLAinteractionsReceived` values tied to exact application interaction callback counts in both callback models |
+ | `cpp-tck.joined-federate-mom-interactions-received-mim-attribute-contract` | Pure standard contract for initial, direct, periodic, and post-disable joined-federate interactions-received attribute values |
+ | `cpp-tck.joined-federate-mom-interactions-sent-mim-attribute` | Direct and periodic standard MIM `HLAinteractionsSent` values; three accepted ordinary application sends add exactly three without claiming DDM coverage |
+ | `cpp-tck.joined-federate-mom-interactions-sent-mim-attribute-contract` | Pure standard contract for initial, baseline-relative direct, and periodic joined-federate interactions-sent values |
+ | `cpp-tck.joined-federate-mom-directed-interactions-received-mim-attribute` | Direct and periodic `HLAdirectedInteractionsReceived` checks distinguish an ordinary callback from directed callbacks and cross-check `HLAinteractionsReceived` |
+ | `cpp-tck.joined-federate-mom-directed-interactions-received-mim-attribute-contract` | Pure standard contract for the directed receive subset, total interaction count, ordinary exclusion, periodic values, and teardown |
+ | `cpp-tck.joined-federate-mom-directed-interactions-sent-mim-attribute` | Direct and periodic `HLAdirectedInteractionsSent` values distinguish ordinary from directed sends and cross-check `HLAinteractionsSent` |
+ | `cpp-tck.joined-federate-mom-directed-interactions-sent-mim-attribute-contract` | Pure standard contract for the directed-send scalar, total-send cross-check, periodic reports, and no-region scope |
  | `cpp-tck.joined-federate-mom-directed-interactions-received-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestDirectedInteractionsReceived`/`HLAreportDirectedInteractionsReceived` buckets, directed-versus-ordinary filtering, nested counts, and transportation-change confirmation |
  | `cpp-tck.joined-federate-mom-directed-interactions-sent-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestDirectedInteractionsSent`/`HLAreportDirectedInteractionsSent` buckets, directed-versus-ordinary filtering, nested counts, and transportation-change confirmation |
  | `cpp-tck.joined-federate-mom-reflections-received-counts-contract` | Pure standard C++ contract for joined-federate `HLArequestReflectionsReceived`/`HLAreportReflectionsReceived` buckets, nested counts, and attribute-transportation confirmation |
@@ -117,8 +214,46 @@ The executable covers these ordinary public-API workflows, under both
     | `cpp-tck.service-report-timestamped-delete-object-instance` | Standard MOM service report paired with time-regulated timestamped `DeleteObjectInstance`, typed timestamp/retraction arguments, and removal-before-grant ordering |
     | `cpp-tck.service-report-timestamped-delete-object-instance-contract` | Standard adapter-backed timestamped object-deletion service-report contract using the official MIM, logical-time API, and separate application/report callbacks |
    | `cpp-tck.service-report-interlock` | Standard MOM service-reporting switch and HLAreportServiceInvocation active/passive subscription interlocks, including recovery after unsubscribe |
- | `cpp-tck.service-report-interlock-contract` | Standard adapter-backed service-reporting interlock contract using the official MIM and public switch/subscription APIs |
- | `cpp-tck.service-report-synchronization` | Standard MOM service reports for synchronization-point registration, confirmation, announcement, achievement, and completion callbacks |
+  | `cpp-tck.service-report-interlock-contract` | Standard adapter-backed service-reporting interlock contract using the official MIM and public switch/subscription APIs |
+  | `cpp-tck.federate-service-reporting-mom-switch` | Standard federate-level HLAsetSwitches changes for Service Reporting, read back through the public switch getter |
+  | `cpp-tck.federate-service-reporting-mom-switch-contract` | Pure standard C++ contract for the federate MOM Service Reporting switch |
+  | `cpp-tck.federate-service-reporting-mim-attribute` | Direct requests and conditional MOM reflections for `HLAserviceReporting` after standard API change and restoration |
+  | `cpp-tck.federate-service-reporting-mim-attribute-contract` | Pure standard contract for typed switch values and conditional reflection metadata |
+  | `cpp-tck.federate-object-class-relevance-advisory-mim-attribute` | Direct requests and conditional MOM reflections for `HLAobjectClassRelevanceAdvisory` after standard API change and restoration |
+  | `cpp-tck.federate-object-class-relevance-advisory-mim-attribute-contract` | Pure standard contract for typed object-class advisory values and conditional reflection metadata |
+  | `cpp-tck.federate-attribute-relevance-advisory-mim-attribute` | Direct requests and conditional MOM reflections for `HLAattributeRelevanceAdvisory` after standard API change and restoration |
+  | `cpp-tck.federate-attribute-relevance-advisory-mim-attribute-contract` | Pure standard contract for typed attribute advisory values and conditional reflection metadata |
+  | `cpp-tck.federate-attribute-scope-advisory-mim-attribute` | Direct requests and conditional MOM reflections for `HLAattributeScopeAdvisory` after standard API change and restoration |
+  | `cpp-tck.federate-attribute-scope-advisory-mim-attribute-contract` | Pure standard contract for typed scope advisory values and conditional reflection metadata |
+  | `cpp-tck.federate-interaction-relevance-advisory-mim-attribute` | Direct requests and conditional MOM reflections for `HLAinteractionRelevanceAdvisory` after standard API change and restoration |
+  | `cpp-tck.federate-interaction-relevance-advisory-mim-attribute-contract` | Pure standard contract for typed interaction advisory values and conditional reflection metadata |
+  | `cpp-tck.federate-exception-reporting-mom-switch` | Standard federate-level HLAsetSwitches changes for Exception Reporting, with neighboring switch isolation |
+  | `cpp-tck.federate-exception-reporting-mom-switch-contract` | Pure standard C++ contract for the federate MOM Exception Reporting switch |
+  | `cpp-tck.federate-exception-reporting-mim-attribute` | Direct requests and conditional MOM reflections for `HLAexceptionReporting` after standard API change and restoration |
+  | `cpp-tck.federate-exception-reporting-mim-attribute-contract` | Pure standard contract for typed switch values and conditional reflection metadata |
+  | `cpp-tck.federate-exception-report-delivery` | Standard HLAreportException callback when enabled, suppression when disabled, exact member handle, typed payloads, and reliable RTI origin |
+  | `cpp-tck.federate-exception-report-delivery-contract` | Pure standard C++ contract for standard MIM Exception Reporting delivery and switch gating |
+  | `cpp-tck.federate-mom-exception-report-delivery` | Malformed HLAresignAction and HLAswitch values each report through standard HLAreportMOMexception with HLAparameterError true |
+  | `cpp-tck.federate-mom-exception-report-delivery-contract` | Pure standard C++ contract for malformed-parameter HLAreportMOMexception cases |
+  | `cpp-tck.federate-mom-exception-missing-parameter` | Omission of HLAsyncPointName from HLArequestSynchronizationPointStatus produces HLAreportMOMexception with HLAparameterError true |
+  | `cpp-tck.federate-mom-exception-missing-parameter-contract` | Pure standard C++ contract for missing-parameter HLAreportMOMexception delivery |
+  | `cpp-tck.federation-mom-exception-missing-fom-module-indicator` | Omission of HLAFOMmoduleIndicator from federation-level HLArequestFOMmoduleData produces HLAreportMOMexception with HLAparameterError true |
+  | `cpp-tck.federation-mom-exception-missing-fom-module-indicator-contract` | Pure standard C++ contract for missing-indicator HLAreportMOMexception delivery |
+  | `cpp-tck.federate-mom-fom-module-content-report` | Requests an adapter-supplied FOM module from a distinct joined federate and verifies the standard module indicator, XML content, and reliable report |
+  | `cpp-tck.federate-mom-fom-module-content-report-contract` | Pure standard C++ contract for federate-scoped HLArequestFOMmoduleData/HLAreportFOMmoduleData |
+  | `cpp-tck.federate-mom-object-instance-information` | Verifies owned, known-but-unowned, and NULL HLAreportObjectInstanceInformation response shapes, including nested attribute-handle-list decoding |
+  | `cpp-tck.federate-mom-object-instance-information-contract` | Pure standard C++ contract for object-information MOM reports before and after local deletion |
+  | `cpp-tck.federate-mom-publication-query` | Verifies published object class/attribute and interaction class reports plus the required empty directed-interaction publication report |
+  | `cpp-tck.federate-mom-publication-query-contract` | Pure standard C++ contract for federate MOM publication reports and the directed-publication NULL response |
+  | `cpp-tck.federate-mom-exception-report-service-precondition` | Service Reporting enablement failure while subscribed to HLAreportServiceInvocation reports HLAparameterError false |
+  | `cpp-tck.federate-mom-exception-report-service-precondition-contract` | Pure standard C++ contract for the Service Reporting MOM precondition report |
+  | `cpp-tck.federate-send-service-reports-to-file-mom-switch` | Standard federate-level HLAsetSwitches changes for the service-report destination switch without activating report emission |
+  | `cpp-tck.federate-send-service-reports-to-file-mom-switch-contract` | Pure standard C++ contract for the federate MOM Send Service Reports to File switch |
+  | `cpp-tck.federate-automatic-resign-action-mom-switch` | Standard federate-level HLAsetSwitches updates for HLAautomaticResignAction using official enum encoding and restoring the initial directive |
+  | `cpp-tck.federate-automatic-resign-action-mom-switch-contract` | Pure standard C++ contract for the federate MOM Automatic Resign Action switch |
+  | `cpp-tck.federate-automatic-resign-action-mim-attribute` | Direct requests and conditional MOM reflections for `HLAautomaticResignAction` after standard API change and restoration |
+  | `cpp-tck.federate-automatic-resign-action-mim-attribute-contract` | Pure standard contract for typed resign-action values and conditional reflection metadata |
+  | `cpp-tck.service-report-synchronization` | Standard MOM service reports for synchronization-point registration, confirmation, announcement, achievement, and completion callbacks |
 | `cpp-tck.service-report-synchronization-contract` | Standard adapter-backed synchronization service-report contract using the official MIM and synchronization callbacks |
 | `cpp-tck.service-report-regional-interaction` | Standard MOM service-report callback for regional `SendInteractionWithRegions`, paired with overlap-qualified regional application delivery and conveyed source-region metadata |
 | `cpp-tck.service-report-regional-interaction-contract` | Pure standard C++ contract for successful regional interaction service reporting, typed MOM invocation metadata, and overlap-qualified delivery using adapter-supplied MIM/DDM inputs |
@@ -181,6 +316,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.modify-lookahead-contract` | Pure standard C++ contract for Query Lookahead and Modify Lookahead across the deferred-decrease boundary |
 | `java-tck.support-services` | Full public federate, object, attribute, interaction, parameter, object-instance, and dimension name/handle lookup in both directions with pre-connect/pre-join lifecycle boundaries, standard invalid-name/handle boundaries, order/transport/update-rate/normalization lookup lifecycle boundaries, all public handle decoder lifecycle boundaries, ordinary handle encode/decode, direct-buffer and `VariableLengthData&` handle encoding, encoded-length and truncated-buffer checks, copied-handle equality/hash/ordering stability, valid `AttributeHandleSet` copy/assignment/lookup/erase semantics, independent `AttributeHandleValueMap` and `ParameterHandleValueMap` value storage, normalization stability, available-dimension boundaries, and order/transportation handles |
 | `cpp-tck.support-services-contract` | Standard adapter-backed support-service contract for public lookup, normalization, handle encoding/decoding, available dimensions, order, transportation, update-rate, and lifecycle-boundary behavior |
+| `cpp-tck.handle-normalization-membership-boundaries` | For the standard service-group normalizer and all four handle-normalization services, checks `NotConnected` before connect and `FederateNotExecutionMember` before join and after resignation while connected; peer handles are valid (§§10.29–10.33) |
+| `cpp-tck.handle-normalization-membership-boundaries-contract` | Standard contract twin for the five normalization-service call-state boundaries; does not assert provider-specific normalized values or encodings |
 | `cpp-tck.standard-order-and-transportation-lookups` | Independently selectable portable mandatory order and transportation lookup lifecycle, round-trip, cross-federate stability, invalid-input, and cleanup slice |
 | `cpp-tck.standard-order-and-transportation-lookups-contract` | Standard adapter-backed mandatory order and transportation lookup contract across lifecycle admission, round trips, invalid inputs, and cleanup |
 | `java-tck.declaration-management` | Pre-connect and pre-join lifecycle boundaries for object and interaction declarations, ordinary object publication/subscription, active and passive declarations, interaction publication/subscription, withdrawal, and invalid-class/attribute failure boundaries |
@@ -411,6 +548,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.auto-provide-disabled-discovery-only-contract` | Pure standard C++ contract for disabled Auto Provide discovery and callback suppression |
 | `cpp-tck.auto-provide-disabled-explicit-request` | Standard object-instance and object-class `requestAttributeValueUpdate` overloads still solicit the provider when Auto Provide is disabled |
 | `cpp-tck.auto-provide-disabled-explicit-request-contract` | Pure standard C++ contract for explicit attribute-value requests with Auto Provide disabled |
+| `cpp-tck.federation-auto-provide-mom-switch` | Standard federation MOM `HLAsetSwitches` false/true/false transitions observed through object discovery and provider callbacks |
+| `cpp-tck.federation-auto-provide-mom-switch-contract` | Pure standard C++ contract for federation-wide Auto Provide changes through the standard MOM |
 | `cpp-tck.allow-relaxed-ddm` | Adapter-supplied `Allow Relaxed DDM` switch composition, touching-region admission for ordinary regional object updates and interactions, strict positive-gap suppression, and conveyed source-region metadata |
 | `cpp-tck.allow-relaxed-ddm-contract` | Pure standard contract for Allow Relaxed DDM switch composition, touching-region admission, and strict positive-gap suppression |
 | `cpp-tck.regional-multi-attribute-update` | Adapter-supplied multi-attribute DDM FOM, independent per-attribute source regions, X-only/Y-only filtering, restoration, and conveyed source-region metadata |
@@ -457,6 +596,8 @@ The executable covers these ordinary public-API workflows, under both
 | `java-tck.synchronization` | Standard synchronization-point registration, announcement, late-join participation, achievement, completion metadata, and invalid-member/duplicate-label boundaries shared with the Java TCK |
 | `cpp-tck.synchronization-points` | Pre-connect and pre-join synchronization-service boundaries, global and explicit-set registration, late-join announcement, invalid-member failure, duplicate-label failure, achievement, and federation synchronization completion |
 | `cpp-tck.synchronization-point-contract` | Standard adapter-backed federation synchronization-point contract for global and explicit-set registration, announcement, achievement, completion, callback delivery, and lifecycle boundaries |
+| `cpp-tck.synchronization-point-explicit-set-late-join` | Reject `synchronizationPointAchieved` by a federate that joins after an explicit set is registered and is not included in that set |
+| `cpp-tck.synchronization-point-explicit-set-late-join-contract` | Standard API contract for explicit-set late-join achievement rejection and completion by the included member |
 | `cpp-tck.callback-controls` | Callback disable/enable gating around a delivered interaction under both callback models |
 | `cpp-tck.callback-controls-contract` | Standard adapter-backed callback enable and disable contract for interaction delivery, callback servicing, and lifecycle cleanup |
 | `cpp-tck.callback-controls-attribute-update` | Callback disable/enable gating around ordinary attribute reflection under both callback models |
@@ -527,6 +668,16 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.callback-controls-time-role-enablement-contract` | Standard adapter-backed callback-control contract for time-role enablement, initial-time metadata, suppression, release, and cleanup |
 | `cpp-tck.asynchronous-delivery` | Asynchronous-delivery enable/disable boundaries, receive-order callback gating, `evokeCallback`, `evokeMultipleCallbacks`, and time-advance release |
 | `cpp-tck.asynchronous-delivery-contract` | Standard adapter-backed asynchronous-delivery and callback-servicing contract for enable/disable, callback gating, explicit servicing, and time-advance release |
+| `cpp-tck.federate-asynchronous-delivery-mim-attribute` | Standard-MIM `HLAboolean` state and conditional reflection across Enable/Disable Asynchronous Delivery |
+| `cpp-tck.federate-asynchronous-delivery-mim-attribute-contract` | Pure standard contract for asynchronous-delivery MOM values without assuming a default or public getter |
+| `cpp-tck.federate-time-constrained-mim-attribute` | Standard-MIM `HLAtimeConstrained` state, conditional reflection, direct request, and the asynchronous enable callback across Enable/Disable Time Constrained |
+| `cpp-tck.federate-time-constrained-mim-attribute-contract` | Pure standard contract for time-constrained MOM values without assuming an initial state |
+| `cpp-tck.federate-time-regulating-mim-attribute` | Standard-MIM `HLAtimeRegulating` state, conditional reflection, direct request, and the asynchronous enable callback across Enable/Disable Time Regulation |
+| `cpp-tck.federate-time-regulating-mim-attribute-contract` | Pure standard contract for time-regulating MOM values with adapter-selected logical-time lookahead |
+| `cpp-tck.federate-lookahead-mim-periodic` | Standard-MIM periodic `HLAlookahead` reports decoded as `HLAtimeInterval` before and after standard Modify/Query Lookahead |
+| `cpp-tck.federate-lookahead-mim-periodic-contract` | Pure standard contract for `HLAsetTiming` report cadence and periodic lookahead value changes |
+| `cpp-tck.federate-logical-time-mim-periodic` | Compare periodic standard-MIM `HLAlogicalTime` reports for a constrained federate with its successful Time Advance Grants and Query Logical Time |
+| `cpp-tck.federate-logical-time-mim-periodic-contract` | Pure standard contract for periodic logical-time reports across two grants, using the adapter-selected logical-time factory |
 | `cpp-tck.federation-save-restore` | Pre-connect and pre-join save/restore-service boundaries, including timestamped save request, untimed federation save/restore lifecycle, status responses, completion and failure boundaries, abort, and post-restore handle rebinding |
 | `cpp-tck.federation-save-restore-contract` | Standard adapter-backed untimed federation save/restore contract for admission, lifecycle, status, completion/failure, abort, restore callbacks, handle rebinding, and lifecycle boundaries |
 | `cpp-tck.federation-restore-abort` | Start a standard federation restore, abort it, and verify `RESTORE_ABORTED` callbacks and terminal status under both callback models |
@@ -563,10 +714,14 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.delay-subscription-evaluation-timestamped-directed-interaction` | Standard Delay Subscription Evaluation switch composition, timestamped directed-interaction retention until a time-constrained grant, target/order metadata, and suppression after unsubscribe at the next grant |
 | `cpp-tck.delay-subscription-evaluation-directed-interaction-contract` | Pure standard C++ contract twin for directed interaction subscription re-evaluation at the callback boundary |
 | `cpp-tck.delay-subscription-evaluation-timestamped-attribute-update` | Standard Delay Subscription Evaluation switch composition, timestamped attribute-update retention until a time-constrained grant, timestamp/order/retraction metadata, and suppression after unsubscribe at the next grant |
+| `cpp-tck.delay-subscription-evaluation-timestamped-regional-attribute-update` | Timestamped regional attribute re-evaluation at the constrained grant, including source-region metadata and suppression after unsubscribe |
+| `cpp-tck.delay-subscription-evaluation-timestamped-regional-interaction` | Timestamped regional interaction re-evaluation at the constrained grant, including source-region metadata and suppression after unsubscribe |
 | `cpp-tck.delay-subscription-evaluation-attribute-update-contract` | Pure standard C++ contract twin for ordinary attribute subscription re-evaluation at the callback boundary |
 | `cpp-tck.delay-subscription-evaluation-timestamped-interaction-contract` | Pure standard C++ contract twin for timestamped interaction subscription re-evaluation at the time-constrained grant boundary |
 | `cpp-tck.delay-subscription-evaluation-timestamped-directed-interaction-contract` | Pure standard C++ contract twin for timestamped directed interaction subscription re-evaluation at the time-constrained grant boundary |
 | `cpp-tck.delay-subscription-evaluation-timestamped-attribute-update-contract` | Pure standard C++ contract twin for timestamped attribute subscription re-evaluation at the time-constrained grant boundary |
+| `cpp-tck.delay-subscription-evaluation-timestamped-regional-attribute-update-contract` | Pure standard C++ contract twin for timestamped regional attribute subscription re-evaluation |
+| `cpp-tck.delay-subscription-evaluation-timestamped-regional-interaction-contract` | Pure standard C++ contract twin for timestamped regional interaction subscription re-evaluation |
 | `cpp-tck.update-rate-queries` | Named-rate lookup, active/passive/default subscription effects, unsubscribe reset, per-federate isolation, and invalid rate/object/attribute boundaries |
 | `cpp-tck.update-rate-queries-contract` | Standard adapter-backed update-rate query contract |
 | `cpp-tck.federation-teardown-isolation` | Two similarly named live executions keep independent named update-rate admission history when one execution is resigned and destroyed |
@@ -593,10 +748,22 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.ownership-acquisition-if-available-contract` | Pure standard C++ contract for If Available acquisition, unavailable metadata, ownership transfer, and lifecycle cleanup |
 | `cpp-tck.attribute-ownership-acquisition-cancellation` | Cancel a pending ordinary attribute ownership acquisition without transferring ownership |
 | `cpp-tck.attribute-ownership-acquisition-cancellation-contract` | Pure standard C++ contract for ordinary attribute ownership-acquisition cancellation, confirmation metadata, and stable ownership |
+| `cpp-tck.attribute-ownership-release-denied` | Deny a pending ordinary ownership-acquisition request and verify the unavailable callback, exact tags, and unchanged ownership |
+| `cpp-tck.attribute-ownership-release-denied-contract` | Pure standard C++ contract for ownership-release denial and unavailable notification |
+| `cpp-tck.attribute-ownership-divestiture-if-wanted` | Complete a one-attribute pending regular acquisition through Divestiture If Wanted and verify its returned set, callback tag, and ownership transfer |
+| `cpp-tck.attribute-ownership-divestiture-if-wanted-contract` | Pure standard C++ contract for Divestiture If Wanted and its acquisition handoff |
+| `cpp-tck.attribute-ownership-query-owner-report` | Query one known owned attribute and verify the standard owner handle in Inform Attribute Ownership |
+| `cpp-tck.attribute-ownership-query-owner-report-contract` | Pure standard C++ contract for the owner-report path of Attribute Ownership Query |
+| `cpp-tck.attribute-ownership-query-unowned-result` | Query a mixed-ownership object and verify the owned and not-owned callback partitions |
+| `cpp-tck.attribute-ownership-query-unowned-result-contract` | Pure standard C++ contract for the ordinary owned and not-owned query-result partitions |
+| `cpp-tck.attribute-ownership-query-rti-owned-result` | Query the standard joined-federate MIM handle attribute and verify the RTI-owned callback |
+| `cpp-tck.attribute-ownership-query-rti-owned-result-contract` | Pure standard C++ contract for the RTI-owned ownership-query result |
 | `cpp-tck.unconditional-attribute-ownership-divestiture` | Standard unconditional divestiture with regular acquisition, initial If Available rejection, ownership-assumption eligibility, exact tags, and post-divestiture If Available retry |
 | `cpp-tck.unconditional-attribute-ownership-divestiture-contract` | Pure standard C++ contract for multi-recipient unconditional attribute ownership divestiture |
 | `cpp-tck.ownership-query-partition-cleanup` | Partition mixed owned/unowned attribute-query results, reject invalid query handles, and suppress stale query results after object removal |
 | `cpp-tck.ownership-query-partition-cleanup-contract` | Standard adapter-backed ownership-query partition and cleanup contract using only the official API and adapter-supplied multi-attribute FOM |
+| `cpp-tck.ownership-query-save-restore-results` | Restore the saved federate owner after a post-save negotiated transfer, then distinguish federate-owned, unowned, and RTI-owned query results |
+| `cpp-tck.ownership-query-save-restore-results-contract` | Pure standard API contract twin for all three ownership-query result kinds after federation restore |
 | `cpp-tck.divestiture-if-wanted-mixed-acquirers` | Transfers independently pending attributes to mixed regular and If Available acquirers with Divestiture If Wanted; immediate mode uses regular pending acquisition to preserve the standard pending boundary |
 | `cpp-tck.divestiture-if-wanted-mixed-acquirers-contract` | Standard adapter-backed mixed-acquirer Divestiture If Wanted contract with exact attribute-set transfer, callback tags, ownership state, and cleanup |
 | `cpp-tck.ownership-acquisition-cancellation-transfer-race` | Standard two-model ownership transfer: evoked cancellation begins from the owner release callback and Divestiture If Wanted wins the terminal race; immediate mode verifies the same transfer through a deterministic pending acquisition |
@@ -605,6 +772,8 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.negotiated-divestiture-partial-acquisition-cancellation-contract` | Standard adapter-backed partial negotiated-divestiture cancellation contract for exact retained-attribute transfer, tags, callbacks, ownership state, and cleanup |
 | `cpp-tck.negotiated-divestiture-cancellation` | Negotiated divestiture confirmation for a pending acquisition, cancellation back to the ordinary release path, ownership preservation, and acquisition-cancellation confirmation |
 | `cpp-tck.negotiated-divestiture-cancellation-contract` | Standard adapter-backed negotiated divestiture cancellation contract |
+| `cpp-tck.negotiated-divestiture-confirmation-flow` | Ordinary negotiated divestiture request, acquisition-tagged owner confirmation request, owner confirmation, confirmation-tagged acquisition callback, and before/after ownership queries |
+| `cpp-tck.negotiated-divestiture-confirmation-flow-contract` | Pure standard C++ contract for the negotiated-divestiture confirmation and acquisition handoff |
 | `cpp-tck.negotiated-divestiture-pre-delivery-cancellation` | Cancels a pending acquisition before evoked negotiated-divestiture callback delivery, suppressing stale owner callbacks and preserving ownership |
 | `cpp-tck.negotiated-divestiture-pre-delivery-cancellation-contract` | Standard adapter-backed pre-delivery negotiated cancellation contract |
 | `cpp-tck.negotiated-willing-to-acquire-continuation` | Negotiated divestiture continuation to the second candidate after the first candidate cancels, preserving tags and ownership state; evoked mode uses Willing-to-Acquire reservations and immediate mode verifies the standard unavailable boundary with a regular pending continuation |
@@ -677,6 +846,32 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.parameter-lookup-lifecycle-contract` | Pure standard C++ contract for inherited base/derived parameter handles, name round trips, and standard lookup exceptions using an adapter-supplied rich FOM model |
 | `cpp-tck.dimension-lookup-lifecycle` | Standard adapter-supplied dimension handle/name/upper-bound and available-dimension lookup across pre-connect, pre-join, invalid-input, resign, and cross-federate identity boundaries |
 | `cpp-tck.dimension-lookup-lifecycle-contract` | Pure standard C++ contract for dimensional metadata and class-association lookup using an adapter-supplied dimensional FOM |
+| `cpp-tck.dimension-lookup-valid-handles-after-resignation` | After resigning while connected, checks `FederateNotExecutionMember` for dimension name/upper-bound and available object/interaction-class dimensions using handles proven valid in the adapter-supplied FOM (§§10.21–10.25) |
+| `cpp-tck.dimension-lookup-valid-handles-after-resignation-contract` | Standard contract twin for the four dimension lookup services after resignation; adapter-supplied dimensional FOM only |
+| `cpp-tck.update-rate-lookup-valid-inputs-after-resignation` | After resigning while connected, checks `FederateNotExecutionMember` for valid update-rate designator and object/attribute queries (§§10.11–10.12) |
+| `cpp-tck.update-rate-lookup-valid-inputs-after-resignation-contract` | Standard contract twin for both update-rate lookup services after resignation, using adapter-supplied rate FOM and designator |
+| `cpp-tck.support-lookup-valid-inputs-after-resignation` | After resigning while connected, checks valid object/interaction class, attribute, and parameter handle/name lookups (§§10.4–10.5, 10.9–10.10, 10.13–10.16) |
+| `cpp-tck.support-lookup-valid-inputs-after-resignation-contract` | Standard contract twin for the eight class/member lookup directions using adapter-supplied FOM and names |
+| `cpp-tck.support-switch-getter-lifecycle-boundaries` | Calls all 13 standard support-switch getters while joined, then checks `FederateNotExecutionMember` after resignation and `NotConnected` after disconnect; no switch defaults are assumed (§§10.34, 10.36, 10.38, 10.40, 10.42, 10.46, 10.48, 10.50, 10.52–10.56) |
+| `cpp-tck.support-switch-getter-lifecycle-boundaries-contract` | Standard contract twin for every boolean support-switch getter lifecycle boundary |
+| `cpp-tck.support-switch-setter-lifecycle-boundaries` | Calls all eight writable support-switch setters with each getter's observed value while joined, then checks `FederateNotExecutionMember` after resignation and `NotConnected` after disconnect (§§10.35, 10.37, 10.39, 10.41, 10.43, 10.47, 10.49, 10.51) |
+| `cpp-tck.support-switch-setter-lifecycle-boundaries-contract` | Standard contract twin for all writable support-switch setter lifecycle boundaries |
+| `cpp-tck.advisory-switch-value-round-trips` | Toggles the four relevance/scope advisory switches from their observed values and verifies each value and restoration (§§10.34–10.41) |
+| `cpp-tck.advisory-switch-value-round-trips-contract` | Standard contract twin for relevance/scope advisory switch Boolean behavior |
+| `cpp-tck.automatic-resign-directive-lifecycle-boundaries` | Round-trips valid automatic-resign directive values while joined, then checks `FederateNotExecutionMember` after resignation and `NotConnected` after disconnect (§§10.44–10.45) |
+| `cpp-tck.automatic-resign-directive-lifecycle-boundaries-contract` | Standard contract twin for automatic-resign directive getter/setter lifecycle boundaries |
+| `cpp-tck.automatic-resign-directive-enum-values` | Round-trips all six standard `ResignAction` values and requires `InvalidResignAction` for the next enum value (§10.45) |
+| `cpp-tck.automatic-resign-directive-enum-values-contract` | Standard contract twin for automatic-resign directive value validation |
+| `cpp-tck.object-attribute-declarations-valid-inputs-after-resignation` | After resigning while connected, checks valid object/attribute publication and subscription declaration services (§§5.2–5.3, 5.8–5.9) |
+| `cpp-tck.object-attribute-declarations-valid-inputs-after-resignation-contract` | Standard contract twin for the six object/attribute declaration services using adapter-supplied FOM handles |
+| `cpp-tck.interaction-declarations-valid-inputs-after-resignation` | After resigning while connected, checks valid interaction publication and subscription declaration services (§§5.4–5.5, 5.10–5.11) |
+| `cpp-tck.interaction-declarations-valid-inputs-after-resignation-contract` | Standard contract twin for interaction publish/unpublish/subscribe/unsubscribe using adapter-supplied FOM handles |
+| `cpp-tck.directed-interaction-declarations-valid-inputs-after-resignation` | After resigning while connected, checks valid class-scoped directed-interaction publication/subscription set and whole-class overloads (§§5.6–5.7, 5.12–5.13); excludes region-qualified forms |
+| `cpp-tck.directed-interaction-declarations-valid-inputs-after-resignation-contract` | Standard contract twin for all six non-region directed-interaction declaration overloads using an adapter-FOM object-class/interaction-class association |
+| `cpp-tck.interaction-transportation-query-valid-inputs-after-resignation` | Checks the standard interaction transportation report for a valid active peer and FOM interaction class, then `FederateNotExecutionMember` after requester resignation (§§6.32–6.33) |
+| `cpp-tck.interaction-transportation-query-valid-inputs-after-resignation-contract` | Standard contract twin for the interaction transportation query and report callback, using the adapter-supplied FOM and active peer |
+| `cpp-tck.standard-order-transport-lookups-after-resignation` | After resigning while connected, checks mandatory Receive/TimeStamp and HLAreliable/HLAbestEffort lookups with valid names and handles (§§10.17–10.20) |
+| `cpp-tck.standard-order-transport-lookups-after-resignation-contract` | Standard contract twin for mandatory order and transportation lookups after resignation |
 | `cpp-tck.fom-invalid-create-atomicity` | Reject invalid single-module FOM creates without reserving the federation name, then recover through a valid lifecycle |
 | `cpp-tck.fom-invalid-create-atomicity-contract` | Standard adapter-backed invalid-FOM create atomicity contract |
 | `cpp-tck.fom-invalid-composite-join-atomicity` | Reject mixed valid and invalid additional FOM modules atomically, then recover through a valid follow-up join |
@@ -766,10 +961,11 @@ endpoint, and callback configuration; the source uses only the official C++
 API and standard library. The focused installed-package lane passed all 4/4
 callback-model cases, and the merged verified installed-package gate passed
 all 632 promoted scenario IDs (1,264 callback-model cases when both models
-were selected). The current catalog contains 651 promoted IDs and 651 inventory
-entries. The fresh all-catalog installed-package matrix passed all 1,302
-callback-model cases with the adapter-managed current-process connection-loss
-fixture and zero failures. The evidence is recorded in
+were selected). At the 2026-09-18 checkpoint, the catalog contained 651
+promoted IDs and 651 inventory entries; that dated all-catalog
+installed-package matrix passed all 1,302 callback-model cases with the
+adapter-managed current-process connection-loss fixture and zero failures.
+The historical evidence is recorded in
 `compliance/requirements-lab/cpp-tck-verification-checkpoint-2026-09-18.json`.
 The transport-change duplicate-request assertion is strict in evoked mode;
 immediate mode verifies the already-committed confirmation and delivery state,
@@ -796,6 +992,22 @@ configuration.
 The automatic connection-loss ownership-cleanup scenarios are adapter-required
 and are covered by the same process-loss fixture contract; the portable TCK
 still observes only standard callbacks and services.
+
+Fresh installed-package evidence from 2026-09-26 expands that adapter lane:
+the cleanup, automatic unconditional-divestiture, and pending-acquisition-
+cancellation base/contract pairs passed 12/12 cases across both callback
+models. The `automatic-resign-directive-delete-objects` pair failed 4/4 cases:
+post-resign object-name lookup returned `RTIinternalError` instead of the
+standard `ObjectInstanceNotKnown`. Its JSON/JUnit evidence is retained per
+scenario in `.build/`.
+
+The same date's fresh in-process `verified` sweep covered all 772 promoted
+scenario IDs under both callback models (1,544 CTest cases). Eight cases
+failed in two service-report families: timestamped delete-failure reporting
+could not reserve its report interaction, and the reporting interlock returned
+`RTIinternalError` instead of `FederateServiceInvocationsAreBeingReportedViaMOM`.
+These failures are provider-conformance evidence from the standard API tests;
+adapter-managed connection-loss scenarios are covered separately above.
 
 The promoted `cpp-tck.federation-mom-content-reports` scenario and its pure
 standard contract twin request and decode the standard federation MOM
@@ -856,6 +1068,17 @@ cases with two expected adapter-managed connection-loss skips and zero
 failures. The portable source uses only the official IEEE C++ API and standard
 library; provider, multi-attribute FOM, endpoint, and callback configuration
 remain adapter inputs.
+The promoted `cpp-tck.ownership-query-save-restore-results` pair carries that
+query surface across federation save/restore. After saving a federate-owned
+attribute beside an unowned one, it transfers ownership in the live execution,
+restores, and verifies the exact federate-owned and unowned callback subsets.
+It also queries the restored joined-federate MOM object to assert the distinct
+RTI-owned callback. The installed-package run passed 4/4 CTest cases and 4/4
+direct callback-model results; artifacts are
+`.build/cpp-tck-ownership-query-restore-all-results-20260926.json` and
+`.build/cpp-tck-ownership-query-restore-all-results-20260926.xml`. Its source uses only the
+official IEEE C++ API and standard library, with provider, multi-attribute FOM,
+MIM, endpoint, and callback configuration supplied by the adapter.
 
 The promoted `cpp-tck.default-region-interaction-routing` scenario and its
 pure standard contract twin cover ordinary interaction routing across explicit
@@ -1659,17 +1882,154 @@ The installed-package CMake adapter exposes
 settings; they remain disabled by default because fault injection is outside
 the IEEE API.
 
-The installed-package adapter defaults to the verified scenario set: entries
-  whose catalog promotion is `promoted`. With the default `--callback-model both`,
-  that is 651 promoted scenario IDs and 1302 matrix cases. `--scenario-set all`
-  selects the same 651 inventory IDs. The current checkpoint's fresh
-  installed-package matrix passed 1302/1302 cases with the adapter-managed
-  current-process connection-loss fixture and zero skips or failures. Without
-  that optional fixture, the connection-loss cases remain explicit expected
-  skips rather than being treated as passes. Evidence is recorded in
-  `compliance/requirements-lab/cpp-tck-verification-checkpoint-2026-09-18.json`.
-  The aggregate `hla_rti_cpp_tck_installed` CTest
-remains available for a single full-run check.
+The installed-package adapter defaults to the promoted scenario set. The
+current catalog has 774 promoted IDs and no candidates; with
+`--callback-model both`, that selects 1,548 callback-model runs.
+`--scenario-set all` selects the same 774 inventory IDs. The latest
+per-scenario installed-package audit has complete two-model evidence: 768 IDs
+pass both callback models and six known provider failures fail both models, so
+the full gate is not green. There are no unverified promoted IDs. See the
+current checkpoint in `docs/testing/CPP-RTI-CONFORMANCE-TCK.md` for the failure
+oracles and evidence details. A fresh `hla_rti_cpp_tck` source build succeeded
+on 2026-09-26 after explicitly selecting the installed Windows SDK root/version
+and target SDK path while retaining normal Visual Studio toolset discovery.
+On that rebuilt executable, the connection/callback and
+configuration/authorization baselines plus their Java-parity IDs passed both
+callback models (8/8). The artifacts are
+`.build/cpp-tck-current-credential-baseline.json` and
+`.build/cpp-tck-current-credential-parity.json`. Fresh split evidence now covers
+all 774 IDs, including the verified explicit-set late-join and ownership
+save/restore pairs, the standard-MIM dimension query/report set, the
+QueryAttributeOwnership/CancelAttributeOwnershipAcquisition report-and-callback
+pairs, and the resignation service-report pair. The new
+`GetDimensionHandleSet` base/contract pair passed all four CTest cases and all
+four direct callback-model results against `.build/package-tck-current`; the
+consolidated six-operation dimension query/report slice passed 24/24 CTest and
+24/24 direct callback-model runs. The `GetRangeBounds` base/contract pair also
+passed all four focused CTest cases and all four direct callback-model results
+against `.build/package-tck-current`; see
+`.build/cpp-tck-service-report-range-bounds-corrected-20260926.json` and its
+JUnit sibling. Together these seven dimension/range query-report operations
+cover 14 scenario IDs, 28 focused CTest cases, and 28 direct callback-model
+results. The new `SetRangeBounds` validation pair compiled against
+`.build/package-tck-current` and passed all four focused CTest cases and all
+four direct callback-model results; it verifies the valid inclusive upper-bound
+case and the standard `InvalidRangeBound` exception for equal and reversed
+bounds without asserting MOM failure payloads. Evidence is in
+`.build/cpp-tck-region-range-validation-candidate-20260926.json` and its JUnit
+sibling. The range-dimension membership pair passed its focused installed-
+package CTest lane (4/4) and direct callback-model run (4/4), requiring the
+standard `RegionDoesNotContainSpecifiedDimension` exception from both query and
+setter calls. It makes no MOM failure-payload assertion; evidence is in
+`.build/cpp-tck-region-range-dimension-validation-candidate-20260926.json` and
+its JUnit sibling. The
+successful `SetRangeBounds` service-report base/contract pair passed all four
+focused CTest cases and all four direct callback-model runs against
+`.build/package-tck-current`. It checks the standard region service type,
+argument records, null return marker, serial, reliable delivery, and inherited
+`HLAfederate` identity; failure-report details remain excluded. Evidence is in
+`.build/cpp-tck-service-report-set-range-bounds-candidate-20260926.json` and its
+JUnit sibling. The successful `CommitRegionModifications` service-report
+base/contract pair passed all four focused CTest cases and all four direct
+callback-model runs against `.build/package-tck-current`. It verifies the
+standard region-set argument, null return marker, success state, serial zero,
+reliable delivery, and inherited `HLAfederate` identity; it makes no
+region-routing or failure-payload assertion. Evidence is in
+`.build/cpp-tck-service-report-commit-region-modifications-candidate-20260926.json`
+and its JUnit sibling. The successful `DeleteRegion` service-report
+base/contract pair passed all four focused CTest cases and all four direct
+callback-model runs against `.build/package-tck-current`. It verifies the
+standard region-designator argument, null return marker, success state, serial
+zero, reliable delivery, inherited `HLAfederate` identity, and post-delete
+invalid-region behavior through the standard API; failure-payload assertions
+remain excluded. Evidence is in
+`.build/cpp-tck-service-report-delete-region-candidate-20260926.json` and its
+JUnit sibling. The successful `CreateRegion` service-report base/contract pair
+passed all four focused CTest cases and all four direct callback-model runs
+against `.build/package-tck-current`. It verifies the type-11 dimension-set
+argument, type-42 returned region designator, success state, serial zero,
+reliable delivery, inherited `HLAfederate` identity, and standard-API cleanup;
+failure-payload assertions remain excluded. Evidence is in
+`.build/cpp-tck-service-report-create-region-candidate-20260926.json` and its
+JUnit sibling. The
+registered installed-package CTest matrix ran
+720 IDs (1,440 callback-model cases): 716 IDs passed in both models and four
+existing service-report IDs failed in both. The Python process adapter covered
+the eight connection-loss IDs omitted by CTest: six passed both models (12/12),
+while the two automatic-resign deletion IDs failed both (4/4). See the CTest
+transcript at `.build/cpp-tck-current-registered-matrix-20260926.log` and the
+connection-loss result artifacts listed in the main TCK checkpoint. The prior
+combined evidence had 726 IDs passing both models and six known failures. Three
+additional ownership save/restore base/contract pairs—pending negotiated
+ownership, acquisition cancellation, and If Available unavailable-callback
+delivery—then passed both callback models, bringing the evidence set to 734
+passing IDs and six known failures, with no unverified promoted IDs. The
+combined four-pair ownership lane passed 16/16 CTest and direct cases; see
+`.build/cpp-tck-ownership-save-restore-slices-20260926.json`. A later focused
+rerun after adding a BMP
+non-ASCII `HLAplainTextPassword` round-trip rebuilt the installed-package TCK
+consumer and passed `cpp-tck.configuration-and-authorization-contract` in both
+callback models (2/2); see
+`.build/cpp-tck-current-password-unicode-20260926.json`. A header/catalog
+cross-check also corrected the callback name for four ownership save/restore
+scenarios to the official
+`FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation`; the
+four IDs passed both models (8/8) in
+`.build/cpp-tck-current-ownership-callback-labels-20260926.json`. The ordinary
+acquisition-cancellation base/contract pair now maps to `java-tck.ownership`
+and passed both models (4/4) in
+`.build/cpp-tck-current-acquisition-cancellation-parity-20260926.json`. The
+directed-interaction overload audit made whole-class and explicit-set
+unpublication and unsubscription signatures explicit in the service-report
+catalog rows and their contract twins. All 15 overloaded official
+`RTIambassador` methods now have distinct catalog variants. The ordinary
+directed-interaction pair passed both models (4/4), and the four directed
+service-report base/contract scenarios passed both models (8/8), recorded in
+`.build/cpp-tck-current-directed-declaration-overloads-20260926.json` and
+`.build/cpp-tck-current-directed-overloads-service-reports-20260926.json`.
+The pure C++ synchronization-point explicit-set late-join scenario verifies
+that an excluded late member receives the standard
+`SynchronizationPointLabelNotAnnounced` exception and that the registered
+member can still complete the point. Its base/contract pair passed both callback
+models (4/4) against the installed package in
+`.build/cpp-tck-current-sync-explicit-late-join-20260926.json`. It is not yet
+classified as Java parity: the Java scenario covers an already-joined excluded
+member, and this workspace has no current 2025 Java API JAR to verify the exact
+late-join companion.
+
+The pure ownership-state save/restore base and contract cases preserve a
+completed negotiated transfer across the standard federation save/restore
+lifecycle, then resolve the restored object by name and verify its owner through
+`isAttributeOwnedByFederate` and `queryAttributeOwnership`. All four focused
+CTest cases and both direct callback-model runs passed against the installed
+package; evidence is in
+`.build/cpp-tck-ownership-state-save-restore-20260926.json` and
+`.build/cpp-tck-ownership-state-save-restore-20260926.xml`.
+The pending negotiated-ownership save/restore base and contract pair preserve
+an outstanding acquisition request and owner confirmation across federation
+save/restore, then complete the transfer after restore and verify its callback,
+ownership state, and query result. The evoked model uses
+`attributeOwnershipAcquisitionIfAvailable`; the immediate model uses the
+regular pending acquisition service because the unavailable If Available
+callback is reported inline there. Both IDs passed both callback models (4/4
+CTest and direct cases) against the installed package; evidence is in
+`.build/cpp-tck-pending-ownership-save-restore-20260926.json` and
+`.build/cpp-tck-pending-ownership-save-restore-20260926.xml`.
+The ownership-acquisition-cancellation pair verifies the cancellation
+confirmation is delivered exactly once across federation save/restore without
+transferring ownership. The If Available restore pair checks the standard
+`attributeOwnershipUnavailable` callback when the owner retains the attribute.
+Both pairs passed 4/4 callback-model cases against the installed package. The
+combined four-pair ownership lane passed 16/16 cases; its JSON/XML evidence is
+`.build/cpp-tck-ownership-save-restore-slices-20260926.json` and
+`.build/cpp-tck-ownership-save-restore-slices-20260926.xml`.
+Focused follow-ups passed six
+update-rate/advisory scenarios under both callback models (12/12), recorded
+in `.build/cpp-tck-current-update-rate-callback.json` and
+`.build/cpp-tck-current-update-rate-callback-followup.json`; this does not add
+IDs. Without the optional connection-loss fixture, those cases remain explicit
+expected skips rather than passes. The aggregate `hla_rti_cpp_tck_installed`
+CTest remains available for a single full-run check.
 
 The newly promoted `cpp-tck.zero-dimensional-regional-interaction` scenario
 and its pure standard contract twin establish ordinary interaction delivery,
@@ -1746,6 +2106,10 @@ lookup before connection, before membership, after resign, for invalid inputs,
 and across federates. The dimension pair passed 4/4 callback-model cases in its
 focused installed-package lane using only official IEEE C++ API headers and the
 standard library; the dimensional FOM and dimension names remain adapter inputs.
+The separately selectable `cpp-tck.dimension-lookup-valid-handles-after-resignation`
+pair adds valid-input post-resignation checks for both class-dimension queries,
+dimension-name lookup, and upper-bound lookup. Both IDs passed evoked and
+immediate callback models (4/4) against the installed package.
 The promoted `cpp-tck.fom-update-rate-value-stability` scenario and its contract
 twin verify that a positive base update-rate value remains stable while a new
 adapter-supplied update-rate designator is composed through an additional-FOM
@@ -2136,6 +2500,52 @@ The promoted `cpp-tck.composite-data-elements-contract` runner exposes the
 composite array, record, and variant-record wire and validation contract as an
 independently selectable, provider- and FOM-independent slice.
 
+The promoted `cpp-tck.directed-interaction-declarations-valid-inputs-after-resignation`
+scenario and contract twin cover all six non-region class-scoped directed-
+interaction publication/subscription overloads. They resolve the valid
+object-class/interaction-class association from the adapter FOM, verify each
+declaration succeeds while joined, and then verify
+`FederateNotExecutionMember` after resignation with the same handles under both
+callback models. The direct installed-package JSON/JUnit evidence is in
+`.build/cpp-tck-directed-interaction-declarations-candidate/`, and the focused
+verified CTest pair passed 4/4.
+
+The promoted `cpp-tck.interaction-transportation-query-valid-inputs-after-resignation`
+scenario and contract twin query a valid active peer's published adapter-FOM
+interaction class, verify the `reportInteractionTransportationType` callback
+and resolvable type handle, then verify `FederateNotExecutionMember` after the
+requester resigns while the peer remains active. The direct installed-package
+JSON/JUnit evidence is in
+`.build/cpp-tck-interaction-transportation-query-candidate/`, and the focused
+verified CTest pair passed 4/4.
+
+The promoted `cpp-tck.support-switch-getter-lifecycle-boundaries` scenario and
+contract twin call all 13 standard boolean support-switch getters while joined,
+then verify `FederateNotExecutionMember` after resignation and `NotConnected`
+after the federation is destroyed and the connection is closed. They do not
+assume any provider-specific getter defaults or exercise region behavior. The
+direct installed-package JSON/JUnit evidence is in
+`.build/cpp-tck-support-switch-getters-candidate/`; focused candidate and
+verified CTest runs passed 4/4 each for both callback models. At that checkpoint,
+the catalog contained 796 scenario IDs (794 promoted, 2 candidates).
+
+The promoted `cpp-tck.automatic-resign-directive-lifecycle-boundaries` pair
+round-trips `DELETE_OBJECTS` while joined, restores `NO_ACTION` before resigning,
+then verifies the standard membership and connection exceptions for both the
+getter and setter (§§10.44–10.45). Direct installed-package JSON/JUnit evidence
+and the focused candidate and verified CTest runs each passed 4/4 across both
+callback models.
+
+At that checkpoint, the catalog contained 798 scenario IDs (796 promoted, 2 candidates). One
+remaining candidate is `cpp-tck.federate-lost-mom-report`. An initial adapter
+attempt used an older install prefix and failed during federation creation;
+fresh-prefix follow-up and the current blocker are recorded in the handoff below.
+The pair remains unpromoted. Separately, the
+publication-dependent order/transportation change cases still need a
+canonical-clause precedence check; the official API header lists their
+publication and membership exceptions without specifying precedence, so no
+membership-only assertion has been added.
+
 The promoted `cpp-tck.federation-mom-save-conditionals` scenario observes the
 standard `HLAfederation` MOM object's `HLAnextSaveName/Time` and
 `HLAlastSaveName/Time` conditionals. It verifies empty initial values, a
@@ -2160,18 +2570,22 @@ the standard `HLAobjectRoot.HLAmanager.HLAfederate` MOM object to observe
 first queries `HLAfederateHandle` and verifies the standard
 `FederateAmbassador::attributeIsOwnedByRTI` result for the RTI-owned MOM
 object, then checks reliable RTI-originated reflection metadata, the
-removed-object counter, and the ordinary removal callback. It then exercises
-the same RTI-owned MOM object through `RequestAttributeValueUpdate` with a
-standard `HLAreportServiceInvocation` report, using only the adapter-supplied
-standard MIM/FOM and official IEEE C++ API.
+removed-object counter, and the ordinary removal callback. It requests a
+one-second `HLAsetTiming` period for the observer and verifies that the
+periodic reflection preserves the count, then disables periodic reporting. It
+also exercises the same RTI-owned MOM object through
+`RequestAttributeValueUpdate` with a standard `HLAreportServiceInvocation`
+report, checking the MIM-defined report parameters without treating the
+`HLAfederate` routing dimension as a parameter. The scenario uses only the
+adapter-supplied standard MIM/FOM and official IEEE C++ API.
 
 The promoted `cpp-tck.joined-federate-mom-removed-object-count-contract` runner
 exposes that RTI-owned joined-federate MOM object-removal route as an
 independently selectable pure standard C++ contract. It keeps the
 `HLAfederateHandle`/`HLAobjectInstancesRemoved` ownership and reflection checks,
-receive-order removal callback, standard service report, and cleanup while
-taking the provider, FOM, MIM, endpoint, callback, and logical-time
-configuration from the adapter.
+the direct and periodic count values, receive-order removal callback, standard
+service report, and cleanup while taking the provider, FOM, MIM, endpoint,
+callback, and logical-time configuration from the adapter.
 
 The promoted `cpp-tck.joined-federate-mom-registered-object-count` scenario uses
 the standard joined-federate MOM object to request
@@ -2179,14 +2593,29 @@ the standard joined-federate MOM object to request
 count at zero before registration, one after the first successful adapter-supplied
 object registration, and two after the second, along with standard handle/name
 lookups, reliable RTI-originated reflection metadata, and provider-neutral
-cleanup in both callback models.
+cleanup in both callback models. It also configures the standard `HLAsetTiming`
+period for the represented owner and checks a periodic reflection of two after
+the second registration before disabling periodic reporting.
 
 The promoted `cpp-tck.joined-federate-mom-registered-object-count-contract`
-runner exposes that direct MOM registration-count route as an independently
-selectable pure standard C++ contract. It takes the provider, FOM, standard MIM,
-endpoint, callback, logical-time, and application object configuration from the
-adapter and has no periodic timer, wall-clock, private header, registry, or
-diagnostic dependency.
+runner exposes the direct and periodic MOM registration-count route as an
+independently selectable pure standard C++ contract. It takes the provider,
+FOM, standard MIM, endpoint, callback, logical-time, and application object
+configuration from the adapter; periodic delivery is enabled and disabled
+through standard `HLAsetTiming` interactions, without private headers,
+registries, or diagnostics.
+
+The promoted `cpp-tck.joined-federate-mom-object-lifecycle` pair observes the
+standard `HLAmanager.HLAfederate` object through ordinary active subscription.
+It checks discovery and public object-name/class lookups, verifies the reflected
+federate handle/name/type, a non-empty required `HLAfederateHost` Unicode value,
+and `HLAFOMmoduleDesignatorList` without asserting a platform-specific hostname
+spelling, requests the values again through the discovered object handle, and
+confirms removal when two joined-federate lifetimes resign. One Join supplies
+the adapter's additional FOM module and the other supplies none, so the
+expected designator lists are adapter-derived rather than provider-specific.
+The scenario passes in both callback models against the installed package. It is currently a C++-only
+extension; the Java TCK has no matching lifecycle scenario yet.
 
 The promoted `cpp-tck.joined-federate-mom-time-state-durations` scenario uses
 the standard joined-federate MOM object to observe `HLAtimeGrantedTime` and
@@ -2228,6 +2657,23 @@ selectable pure standard C++ contract. It keeps the direct and periodic
 `HLATSOlength` reflections, queued timestamped interaction and post-grant
 cleanup checks, and standard teardown while taking the provider, FOM, MIM,
 endpoint, callback, and logical-time configuration from the adapter.
+
+The TSO-length traceability follow-up maps the standard MIM declaration at
+`HLAstandardMIM-2025.xml` lines 308-317 to IEEE 1516.1-2025 clause 11.4.1.
+Two clean installed-package consumer builds passed the base and contract IDs
+under both callback models; the second build also passed the corresponding
+`HLAROlength` pair. This is repeated evidence against the same installed
+provider, not independent-provider or conformance evidence.
+
+The promoted `cpp-tck.joined-federate-mom-ro-length-periodic` scenario uses
+the adapter-supplied ordinary interaction to hold receive-order deliveries,
+checks direct and `HLAsetTiming`-periodic `HLAROlength` values, and verifies the
+queue returns to zero after callback delivery. It exercises evoked and
+immediate callback models using only the official C++ API. Two independent
+installed-package consumer builds each passed all four focused CTest entries
+(two scenario IDs across both callback models) and direct runs for both IDs
+across both models. These are repeated runs against the same installed provider,
+not independent-provider or conformance evidence.
 
 The promoted `cpp-tck.joined-federate-mom-updates-sent-counts` scenario uses the
 adapter-supplied ordinary object class and attribute with standard reliable and
@@ -2814,11 +3260,98 @@ only official `RTIambassador`/`FederateAmbassador` APIs, standard MIM names and
 data elements, the C++ standard library, and adapter-supplied provider, FOM,
 endpoint, callback, and logical-time configuration.
 
+The promoted `cpp-tck.joined-federate-mom-object-instances-updated-report`
+scenario requests the standard update-responsibility report for a subject that
+updates two adapter-supplied object instances, repeating one instance's update.
+It decodes the standard `HLAobjectClassBasedCounts` fixed records through public
+standard APIs and verifies that the result is one class entry with a count of
+two—not three update invocations. The adapter's selected attribute is declared
+as standard `HLAbyte`, matching the portable P0 FOM. Combined candidate and
+separate fresh verified installed-package builds of both MOM count pairs passed
+8/8 CTest cases across evoked and immediate callback models. Direct results are
+in
+`.build/cpp-tck-joined-federate-mom-object-count-reports-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-joined-federate-mom-object-count-reports-verified-20260927/verified-results.json`
+(with matching JUnit XML files).
+
+The promoted `cpp-tck.joined-federate-mom-object-instances-reflected-report`
+scenario uses three joined federates: a subject registers two instances and
+sends three receive-order updates, one target actively subscribes and receives
+all three reflect callbacks, and a distinct requester addresses that target
+through the standard `HLAfederate` request parameter. The requester decodes
+`HLAobjectClassBasedCounts` with public APIs and verifies one reliable class
+entry for two distinct instances despite the repeated reflection. The
+adapter-selected attribute is standard `HLAbyte`; no region APIs are used.
+The combined candidate and separate installed-package verification builds each
+passed 8/8 CTest cases across evoked and immediate callback models. Direct
+results are in
+`.build/cpp-tck-joined-federate-mom-object-count-reports-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-joined-federate-mom-object-count-reports-verified-20260927/verified-results.json`
+(with matching JUnit XML files).
+
+The promoted `cpp-tck.joined-federate-mom-object-instances-reflected-timestamped-report`
+checks the pinned MIM rule that counts instances for which the target has had a
+Reflect Attribute Values invocation, with no exclusion for timestamp order. A
+subject sends three timestamped updates—two for one object and one for another—
+to a time-constrained target; the target validates each callback and its
+delivery-before-grant ordering. A distinct requester queries that target and
+the test expects one reliable class-count record for two distinct instances.
+
+The promoted `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`
+extends the updated-object MOM report through standard timestamped delivery. A
+subject registers two objects, sends a timestamped update for each, and the
+constrained observer validates both `reflectAttributeValues` records, including
+logical time and retraction metadata. A third federate requests the standard
+`HLAreportObjectInstancesUpdated`; the test decodes the MIM's class-based counts
+with public standard APIs and expects two distinct updated instances. A fresh
+candidate build passed 4/4 focused CTest cases across evoked and immediate
+callbacks; an independent fresh installed-package build passed 28/28 cases for
+the updated/reflected MOM regression family. Candidate and verification evidence
+is in
+`.build/cpp-tck-mom-updated-tso-candidate-20260927-a/candidate-results.json`
+and
+`.build/cpp-tck-mom-updated-tso-verified-20260927-b/verified-candidate-only-results.json`;
+both scenario-isolated evidence checks passed.
+
+The promoted `cpp-tck.joined-federate-mom-updated-object-count-periodic` pair
+checks direct and `HLAsetTiming`-periodic values for
+`HLAobjectInstancesRegistered`, `HLAobjectInstancesUpdated`, and
+`HLAupdatesSent`. It samples the counts before and after two registrations,
+repeated updates to one object, and an update to a second object; the final
+snapshot is 2 registered objects, 2 distinct updated objects, and 3 update
+invocations. Two fresh installed-package builds passed the focused 4/4 CTest
+matrix under evoked and immediate callbacks, and direct evidence passed for both
+callback models.
+
+The promoted `cpp-tck.joined-federate-mom-discovered-object-count-periodic`
+pair checks direct count deltas for two application object discoveries and a
+third discovery after the receiver locally deletes and then rediscovers the
+first object. It also verifies the standard `HLAsetTiming` periodic report and
+MOM reflection metadata. The direct baseline is sampled after joined-federate
+MOM discovery setup, avoiding an assumption about whether the provider includes
+those setup discoveries. Two fresh installed-package consumer builds each
+passed the focused 4/4 CTest matrix under evoked and immediate callbacks; direct
+evidence also passed for both scenarios and callback models in each build.
+
+The promoted `cpp-tck.joined-federate-mom-deleted-object-count-periodic` pair
+checks direct `HLAobjectInstancesDeleted` count deltas after two successful
+Delete Object Instance calls and its final `HLAsetTiming` periodic value. Each
+deletion is correlated with an ordinary removal callback at a second federate;
+the initial count is treated as a baseline rather than assuming provider-
+specific setup accounting. Two fresh installed-package consumer builds each
+passed the focused 4/4 CTest matrix under evoked and immediate callbacks, and
+direct evidence passed for both scenarios and callback models in each build.
+
 The promoted `cpp-tck.joined-federate-mom-deletable-object-count` scenario
 exercises the standard joined-federate MOM
 `HLAobjectInstancesThatCanBeDeleted` attribute through
 `requestAttributeValueUpdate`. It verifies typed reliable reflections for
 zero, one, and two live objects, then one and zero after ordinary deletion.
+At the two-object state it sends the standard `HLAsetTiming` interaction for
+the represented owner and verifies the periodic MOM reflection preserves the
+count before disabling the period.
 Its contract twin uses only official `RTIambassador`/`FederateAmbassador`
 APIs, standard MIM names and data elements, the C++ standard library, and
 adapter-supplied provider, FOM, endpoint, callback, and logical-time
@@ -2959,3 +3492,870 @@ and retained in `java-tck.encoder-round-trip` for cross-language parity.
 The promoted `cpp-tck.composite-data-elements-contract` runner exposes the
 composite array, record, and variant-record wire and validation contract as an
 independently selectable, provider- and FOM-independent slice.
+
+The promoted `cpp-tck.support-switch-setter-lifecycle-boundaries` scenario and
+contract twin exercise all eight writable standard support-switch setters,
+using observed getter values while joined and checking the declared membership
+and connection exceptions after resignation and disconnect. No provider
+defaults are assumed; the adapter avoids service-report subscriptions for the
+Set Service Reporting call. Candidate and verified CTest runs each passed 4/4
+across evoked and immediate callback models, and the installed-package JSON and
+JUnit evidence is in
+`.build/cpp-tck-support-switch-setters-verified/`. At that checkpoint the catalog had 800
+scenario IDs (798 promoted, 2 candidates). API-surface and Java-parity audits
+remain valid; the two remaining candidate IDs are the federate-lost report
+scenario and its contract twin.
+
+The promoted `cpp-tck.automatic-resign-directive-enum-values` scenario and
+contract twin round-trip all six `ResignAction` enumerators and verify
+`InvalidResignAction` for the next value. They restore `NO_ACTION` before
+resignation and do not test object or ownership cleanup. Candidate and verified
+CTest runs each passed 4/4 across evoked and immediate callback models; direct
+installed-package JSON/JUnit evidence is in
+`.build/cpp-tck-automatic-resign-values-verified/`. At that checkpoint, the catalog had 802
+scenario IDs (800 promoted, 2 candidates).
+
+The promoted `cpp-tck.advisory-switch-value-round-trips` scenario and contract
+twin toggle each of the four core relevance/scope advisory switches from its
+observed value, verify the changed value, and restore it. They generate no
+object, interaction, or region traffic. Candidate and verified CTest runs each
+passed 4/4 across evoked and immediate callback models; installed-package
+JSON/JUnit evidence is in
+`.build/cpp-tck-advisory-switch-values-verified/`. At that checkpoint, the catalog had 804
+scenario IDs (802 promoted, 2 candidates).
+
+The promoted `cpp-tck.duplicate-federate-name-join-boundary` scenario and
+contract twin verify the standard `FederateNameAlreadyInUse` response for an
+active name, followed by a successful join under a distinct name. The scenario
+reuses the `java-tck.federation-membership` parity target. Candidate and
+verified CTest runs each passed 4/4 across evoked and immediate callback models;
+installed-package JSON/JUnit evidence is in
+`.build/cpp-tck-duplicate-federate-name-verified/`. At that checkpoint, the catalog had 806
+scenario IDs (804 promoted, 2 candidates).
+
+The promoted `cpp-tck.repeated-join-by-member-boundary` scenario and contract
+twin require `FederateAlreadyExecutionMember` when one joined ambassador repeats
+the named join, then confirm the original membership can resign normally. It
+reuses `java-tck.federation-membership`. Candidate and verified CTest runs each
+passed 4/4 across evoked and immediate callback models; installed-package
+JSON/JUnit evidence is in `.build/cpp-tck-repeated-join-verified/`. At that
+checkpoint, the catalog had 808 scenario IDs (806 promoted, 2 candidates).
+
+The promoted `cpp-tck.foreign-federate-name-lookup-boundary` scenario and
+contract twin join federates in separate executions, confirm each name resolves
+through its own execution, and require `NameNotFound` when the other execution's
+name is queried (§10.2). This is a C++ TCK extension with no direct Java parity
+target. Candidate and verified installed-package CTest runs each passed 4/4
+across evoked and immediate callback models; direct JSON/JUnit evidence is in
+`.build/cpp-tck-foreign-federate-name-verified/`. The catalog now has 810
+scenario IDs (808 promoted, 2 candidates).
+
+The promoted `cpp-tck.foreign-object-instance-name-lookup-boundary` scenario and
+contract twin reserve and register a named object in each of two executions,
+confirm each name resolves locally, and require `ObjectInstanceNotKnown` for a
+name belonging only to the other execution (§10.7). The standard name-reservation
+callback is serviced in both callback models. This is a C++ TCK extension with
+no direct Java parity target. Candidate and verified installed-package CTest
+runs each passed 4/4; direct JSON/JUnit evidence is in
+`.build/cpp-tck-foreign-object-name-verified/`. At that checkpoint, the catalog
+had 812 scenario IDs (810 promoted, 2 candidates).
+
+The promoted `cpp-tck.foreign-object-instance-handle-lookup-boundary` scenario
+and contract twin register one local object and two objects in another
+execution. Selecting a foreign handle unequal to the local handle avoids
+assuming handles are globally unique; `getObjectInstanceName` resolves it in
+the foreign execution and returns `ObjectInstanceNotKnown` locally (§10.8).
+This C++ extension has no direct Java parity target. Candidate and verified
+installed-package CTest runs each passed 4/4 across both callback models; direct
+JSON/JUnit evidence is in
+`.build/cpp-tck-foreign-object-handle-verified/`. The catalog now has 814
+scenario IDs (812 promoted, 2 candidates).
+
+The promoted `cpp-tck.local-delete-object-instance-name-lookup-boundary`
+scenario and contract twin confirm that a subscriber's `getObjectInstanceName`
+returns `ObjectInstanceNotKnown` after that federate locally forgets a discovered
+object, while the publishing federate can still resolve it (§6.18 and §10.8).
+This C++ extension has no direct Java parity target. Candidate and verified
+installed-package CTest runs each passed 4/4 across evoked/immediate callback
+models; direct JSON/JUnit evidence is in
+`.build/cpp-tck-local-delete-name-candidate/` and
+`.build/cpp-tck-local-delete-name-verified/`. The catalog now has 816 scenario
+IDs (814 promoted, 2 candidates).
+
+The promoted `cpp-tck.remote-delete-known-object-class-lookup-boundary` scenario
+and contract twin wait for the standard `removeObjectInstance` callback after
+ordinary remote deletion, then verify `getKnownObjectClassHandle` reports
+`ObjectInstanceNotKnown` for the removed handle both to the deleting federate
+and the subscriber (§6.16, §6.17, §10.6). This C++
+extension has no direct Java parity target. Candidate and verified
+installed-package CTest runs each passed 4/4 across evoked/immediate callback
+models; direct JSON/JUnit evidence is in
+`.build/cpp-tck-remote-delete-class-candidate/` and
+`.build/cpp-tck-remote-delete-class-verified/`.
+
+The promoted `cpp-tck.remote-delete-object-instance-name-lookup-boundary`
+scenario and contract twin cover the inverse directions left out by the
+existing deletion scenario: the deleting federate's `getObjectInstanceHandle`
+after delete returns, and the subscriber's `getObjectInstanceName` after its
+removal callback, both report `ObjectInstanceNotKnown` (§6.16–6.17, §10.7–10.8).
+This C++ extension has no direct Java parity target. Candidate and verified
+installed-package CTest runs each passed 4/4 across evoked/immediate callback
+models; direct JSON/JUnit evidence is in
+`.build/cpp-tck-remote-delete-name-candidate/` and
+`.build/cpp-tck-remote-delete-name-verified/`. The catalog now has 820 scenario
+IDs (818 promoted, 2 candidates).
+
+The promoted `cpp-tck.resign-delete-object-lookup-boundary` scenario and
+contract twin resign the object owner with `DELETE_OBJECTS`, wait until the
+surviving federate receives `removeObjectInstance`, and verify that
+`getObjectInstanceHandle`, `getObjectInstanceName`, and
+`getKnownObjectClassHandle` all report `ObjectInstanceNotKnown` for the removed
+object (§4.12, §6.17, §§10.6–10.8). This C++ extension has no direct Java parity
+target. Candidate and verified installed-package CTest runs each passed 4/4
+across evoked/immediate callback models; direct JSON/JUnit evidence is in
+`.build/cpp-tck-resign-delete-lookup-candidate/` and
+`.build/cpp-tck-resign-delete-lookup-verified/`. The catalog now has 822
+scenario IDs (820 promoted, 2 candidates).
+
+The promoted `cpp-tck.resign-no-action-owned-attributes-rejection-boundary`
+scenario and contract twin confirm §4.12's `FederateOwnsAttributes` rejection
+when an owner requests `NO_ACTION` while another federate remains joined. The
+test also confirms the rejected resignation leaves the object queryable, then
+performs a successful `DELETE_OBJECTS` resignation. Keeping a second member in
+the federation avoids the separate final-federate rule. No direct Java TCK case
+currently covers this exception boundary. Candidate and verified
+installed-package CTest runs each passed 4/4 across evoked/immediate callback
+models; direct JSON/JUnit evidence is in
+`.build/cpp-tck-resign-no-action-two-member-candidate/` and
+`.build/cpp-tck-resign-no-action-two-member-verified/`. The catalog has 824
+scenario IDs at that checkpoint (822 promoted, 2 candidates).
+
+The promoted `cpp-tck.resign-delete-objects-then-divest-cross-object-effects`
+scenario and contract twin exercise `DELETE_OBJECTS_THEN_DIVEST` across distinct
+object instances: both surviving subscribers observe removal of the departing
+federate's registered object, while the other federate's object remains
+queryable and its formerly owned attribute can be acquired. Candidate and
+independent installed-package builds each passed 4/4 tests across evoked and
+immediate callback models. Direct JSON/JUnit evidence is in
+`.build/cpp-tck-resign-delete-then-divest-candidate/` and
+`.build/cpp-tck-resign-delete-then-divest-verified/`. This C++ extension has no
+direct Java counterpart. The catalog now has 826 scenario IDs (824 promoted,
+2 candidates).
+
+The promoted `cpp-tck.resign-unconditionally-divest-attributes-preserves-objects`
+scenario and contract twin verify that a member can resign with
+`UNCONDITIONALLY_DIVEST_ATTRIBUTES` while owning an attribute on another
+member's registered object. The object remains known, no removal callback is
+observed, and a surviving federate acquires the released attribute with the
+expected callback tag. Candidate and independent installed-package builds each
+passed 4/4 tests across evoked and immediate callback models. Direct JSON/JUnit
+evidence is in `.build/cpp-tck-resign-unconditional-divest-candidate/` and
+`.build/cpp-tck-resign-unconditional-divest-verified/`. The catalog now has 828
+scenario IDs (826 promoted, 2 candidates).
+
+The promoted `cpp-tck.resign-cancel-pending-ownership-acquisitions-action`
+scenario and contract twin issue a regular ownership request, resign its
+requester with `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS`, and then release the
+attribute from the original owner. A different joined federate acquires it,
+showing the resigned request left no stale acquisition state. Candidate and
+independent installed-package builds each passed 4/4 tests across evoked and
+immediate callback models. Direct JSON/JUnit evidence is in
+`.build/cpp-tck-resign-cancel-pending-acq-candidate/` and
+`.build/cpp-tck-resign-cancel-pending-acq-verified/`. The catalog now has 830
+scenario IDs (828 promoted, 2 candidates). This C++ extension has no direct
+Java counterpart.
+
+The promoted `cpp-tck.resign-cancel-then-delete-then-divest-cross-object-effects`
+scenario and contract twin exercise all three effects of the compound action.
+The departing member has a pending regular acquisition on the owner's second
+object, owns an attribute on the owner's retained object, and has registered a
+separate object. Both surviving subscribers observe exactly one removal for
+the departing object; both owner objects remain known; a successor acquires
+the divested attribute and then acquires the other attribute after its owner
+releases it, showing the resigned request left no stale reservation. Candidate
+and independent fresh installed-package builds each passed 4/4 tests across
+evoked and immediate callback models. Direct JSON/JUnit evidence is in
+`.build/cpp-tck-resign-cancel-delete-divest-candidate/corrected-results.json`
+and `.build/cpp-tck-resign-cancel-delete-divest-verified/results.json`. This
+C++ extension has no direct Java counterpart. The catalog now has 844 scenario
+IDs (842 promoted, 2 candidates).
+
+The portable ownership suite now has the isolated positive negotiated-
+divestiture slice `cpp-tck.negotiated-divestiture-confirmation-flow` and its
+contract twin. They check the acquisition tag on the owner's confirmation
+request, retained ownership before confirmation, the owner's confirmation tag
+on the successor's acquisition notification, and ownership at both federates
+after transfer. The pair maps to the existing Java parity ID
+`java-tck.ownership`; provider, FOM, endpoint, and callback configuration remain
+adapter inputs. Both the candidate and fresh promoted `verified` installed-
+package lanes passed 4/4 cases across evoked and immediate callback models. The
+promoted evidence is in
+`.build/cpp-tck-negotiated-divestiture-verified/results.json` and
+`.build/cpp-tck-negotiated-divestiture-verified/results.xml`.
+
+The ordinary release-denial route is now isolated as
+`cpp-tck.attribute-ownership-release-denied` and its contract twin. They check
+the requester tag on Request Attribute Ownership Release, the denial tag on
+Attribute Ownership Unavailable, and unchanged ownership after the denial. The
+pair maps to Java parity ID `java-tck.ownership` and passed both the candidate
+and fresh promoted `verified` installed-package lanes (4/4 callback-model
+cases). Evidence is in `.build/cpp-tck-release-denied-verified/results.json`
+and `.build/cpp-tck-release-denied-verified/results.xml`.
+
+The ordinary one-acquirer Divestiture If Wanted route is now isolated as
+`cpp-tck.attribute-ownership-divestiture-if-wanted` and its contract twin. They
+check the pending acquisition tag, exact RTI-returned transferred set, the
+owner-supplied divestiture tag on the acquisition notification, and ownership
+transfer. This parity-linked pair passed both candidate and fresh promoted
+`verified` installed-package lanes (4/4 callback-model cases). Evidence is in
+`.build/cpp-tck-if-wanted-verified/results.json` and
+`.build/cpp-tck-if-wanted-verified/results.xml`.
+
+The ordinary Attribute Ownership Query owner-report path is isolated as
+`cpp-tck.attribute-ownership-query-owner-report` and its contract twin. They
+check the exact object, queried attribute set, and federate handle delivered by
+Inform Attribute Ownership without changing ownership. The pair maps to
+`java-tck.ownership` and passed the candidate and fresh promoted `verified`
+installed-package lanes (4/4 callback-model cases). Evidence is in
+`.build/cpp-tck-query-owner-verified/results.json` and
+`.build/cpp-tck-query-owner-verified/results.xml`.
+
+The mixed ownership-query result is isolated as
+`cpp-tck.attribute-ownership-query-unowned-result` and its contract twin. With
+all FOM names supplied by the adapter, the owner publishes one of two
+attributes; the observer's query must return exact owned and not-owned subsets,
+must not classify the ordinary unowned attribute as RTI-owned, and must leave
+ownership unchanged. This pair also maps to `java-tck.ownership` and passed
+candidate and fresh promoted `verified` installed-package lanes (4/4
+callback-model cases). Evidence is in
+`.build/cpp-tck-query-unowned-verified/results.json` and
+`.build/cpp-tck-query-unowned-verified/results.xml`.
+
+The distinct RTI-owned query result is isolated as
+`cpp-tck.attribute-ownership-query-rti-owned-result` and its contract twin.
+Using only the standard MIM's joined-federate object and adapter-supplied model,
+MIM, and logical-time configuration, it verifies the exact
+`attributeIsOwnedByRTI` callback and that the attribute is not owned by the
+querying federate. This is a C++ extension with no Java counterpart. Candidate
+and fresh promoted `verified` installed-package lanes both passed 4/4
+callback-model cases; evidence is in
+`.build/cpp-tck-query-rti-owned-verified/results.json` and
+`.build/cpp-tck-query-rti-owned-verified/results.xml`.
+
+The parity audit reports all 21 Java scenario IDs represented in the portable
+C++ catalog. Java ownership's final negotiated-divestiture cancellation is
+covered by the promoted `cpp-tck.negotiated-divestiture-cancellation` standard
+API scenario, which verifies the transition back to the ordinary release
+callback and ownership retention.
+
+The federation-wide Auto Provide MOM setter is now covered by the promoted pair
+`cpp-tck.federation-auto-provide-mom-switch` and
+`cpp-tck.federation-auto-provide-mom-switch-contract`. The standard-MIM
+`HLAsetSwitches` interaction is sent by joined federates to turn the switch off,
+on, then off; discovery persists while disabled and exactly one correctly
+scoped `provideAttributeValueUpdate` callback arrives while enabled. Candidate
+and separate verified builds both passed 4/4 CTest cases across evoked and
+immediate callback models. Direct results are in
+`.build/cpp-tck-federation-auto-provide-mom-switch-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-federation-auto-provide-mom-switch-verified-20260927/verified-results.json`
+(with matching JUnit XML files).
+
+The joined-federate Service Reporting switch is covered by the promoted pair
+`cpp-tck.federate-service-reporting-mom-switch` and its contract twin. The
+standard `HLAsetSwitches` parameter is sent false-to-true-to-false and checked
+through the public getter. Candidate and separate verified installed-package
+builds both passed 4/4 CTest cases across evoked and immediate callback models;
+direct results are in
+`.build/cpp-tck-federate-service-reporting-mom-switch-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-federate-service-reporting-mom-switch-verified-20260927/verified-results.json`
+(with matching JUnit XML files).
+
+The joined-federate Exception Reporting switch is covered by the promoted pair
+`cpp-tck.federate-exception-reporting-mom-switch` and its contract twin. The
+standard MIM parameter is sent false-to-true-to-false; the public getter
+confirms each transition and three neighboring switch values remain unchanged.
+`HLAreportException` delivery is tested separately by
+`cpp-tck.federate-exception-report-delivery`. Candidate and separate verified
+installed-package builds both passed 4/4 CTest cases across evoked and
+immediate callback models. Direct results are in
+`.build/cpp-tck-federate-exception-reporting-mom-switch-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-federate-exception-reporting-mom-switch-verified-20260927/verified-results.json`
+(with matching JUnit XML files).
+
+Standard `HLAreportException` delivery and Exception Reporting switch gating
+are covered by the promoted pair `cpp-tck.federate-exception-report-delivery`
+and its contract twin. With the switch at its standard false default, a typed
+`NameNotFound` produces no report; enabling the switch through standard
+`HLAsetSwitches` yields exactly one reliable RTI-originated report with service
+and exception text and the exact joined-federate handle; disabling it suppresses
+the next report. Candidate and separate verified installed-package builds both
+passed 4/4 CTest cases across evoked and immediate callback models. Direct
+results are in
+`.build/cpp-tck-federate-exception-report-delivery-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-federate-exception-report-delivery-verified-20260927/verified-results.json`
+(with matching JUnit XML files).
+
+Malformed standard MOM parameter reporting is covered by the promoted pair
+`cpp-tck.federate-mom-exception-report-delivery` and its contract twin. The test
+sends an out-of-range `HLAresignAction` value and an invalid `HLAswitch` value;
+each produces one reliable `HLAreportMOMexception`, identifies the fully
+qualified `HLAsetSwitches` interaction, and sets `HLAparameterError` true. Both
+public switch values remain unchanged. The test does not constrain the
+synchronous exception type or the provider-generated exception wording.
+Candidate and combined fresh verified installed-package builds passed 4/4 CTest
+cases for this pair across evoked and immediate callback models. Direct results are in
+`.build/cpp-tck-federate-mom-exception-report-delivery-candidate-2-20260927/candidate-results.json`
+and
+`.build/cpp-tck-federate-mom-exception-reporting-verified-20260927/verified-results.json`
+(with matching JUnit XML files).
+
+The standard Service Reporting precondition is covered by the promoted pair
+`cpp-tck.federate-mom-exception-report-service-precondition` and its contract
+twin. While subscribed to `HLAreportServiceInvocation`, a well-formed request to
+enable Service Reporting produces one reliable `HLAreportMOMexception` with
+`HLAparameterError` false and leaves the switch disabled. After removing that
+subscription, the same request succeeds and the switch can be restored. The
+test does not constrain synchronous exception type or wording. Candidate and
+combined fresh verified installed-package builds passed 4/4 CTest cases for
+this pair across evoked and immediate callback models. Direct results are in
+`.build/cpp-tck-federate-mom-exception-report-service-precondition-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-federate-mom-exception-reporting-verified-20260927/verified-results.json`
+(with matching JUnit XML files).
+
+Missing-parameter standard MOM reporting is covered by the promoted pair
+`cpp-tck.federate-mom-exception-missing-parameter` and its contract twin. The
+test sends `HLArequestSynchronizationPointStatus` without its declared
+`HLAsyncPointName`, receives one reliable `HLAreportMOMexception` identifying
+the fully qualified request class, verifies `HLAparameterError` is true, and
+confirms no synchronization-status response was generated. It does not constrain
+synchronous exception type or provider-generated wording. Candidate and fresh
+verified installed-package builds passed 4/4 CTest cases across evoked and
+immediate callback models. Direct results are in
+`.build/cpp-tck-federate-mom-exception-missing-parameter-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-federate-mom-exception-missing-parameter-verified-20260927/verified-results.json`.
+
+Federation-level missing-parameter MOM reporting is covered by the promoted pair
+`cpp-tck.federation-mom-exception-missing-fom-module-indicator` and its contract
+twin. The test sends `HLArequestFOMmoduleData` without its declared
+`HLAFOMmoduleIndicator`, receives one reliable `HLAreportMOMexception` with the
+fully qualified request class and `HLAparameterError` true, and confirms no
+FOM-module content report was generated. It does not constrain synchronous
+exception type or provider-generated wording. Candidate and fresh verified
+installed-package builds passed 4/4 CTest cases across evoked and immediate
+callback models. Direct results are in
+`.build/cpp-tck-federation-mom-exception-missing-fom-module-indicator-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-federation-mom-exception-missing-fom-module-indicator-verified-20260927/verified-results.json`.
+
+Federate-scoped FOM-module retrieval is covered by the promoted pair
+`cpp-tck.federate-mom-fom-module-content-report` and its contract twin. A subject
+federate joins the adapter-supplied additional FOM module; a distinct requester
+addresses it through the inherited standard `HLAfederate` parameter and requests
+module index 0. The test verifies reliable `HLAreportFOMmoduleData` delivery,
+the module indicator, standard FOM XML content, and the target handle if the
+report includes that inherited parameter. Candidate and fresh verified
+installed-package builds each passed 4/4 CTest cases across evoked and immediate
+callback models. Direct results are in
+`.build/cpp-tck-federate-mom-fom-module-content-report-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-federate-mom-fom-module-content-report-verified-20260927/verified-results.json`
+(with matching JUnit XML files).
+
+The standard object-instance-information query is covered by the promoted pair
+`cpp-tck.federate-mom-object-instance-information` and its contract twin. It
+checks the requesting federate's owned object, another object it knows but does
+not own, and the NULL report after local deletion. The test decodes the MIM's
+nested `HLAattributeHandleList` with public RTIambassador handle decoders and
+verifies the MIM-required class omission for the NULL response. Candidate and
+fresh verified installed-package builds both passed 4/4 CTest cases across
+evoked and immediate callback models. Direct results are in
+`.build/cpp-tck-federate-mom-object-instance-information-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-federate-mom-object-instance-information-verified-20260927/verified-results.json`
+(with matching JUnit XML files).
+
+The federate-level publication query is covered by the promoted pair
+`cpp-tck.federate-mom-publication-query` and its contract twin. A distinct
+requester asks about a subject that publishes one adapter-selected object
+class/attribute and interaction class. The test decodes and checks both ordinary
+publication reports, then verifies the standard zero-count/omitted-class/empty-
+list response for directed interactions, which the subject did not publish.
+It uses no directed-publication service or DDM regions. Candidate and fresh
+verified installed-package builds both passed 4/4 CTest cases across evoked and
+immediate callback models. Direct results are in
+`.build/cpp-tck-federate-mom-publication-query-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-federate-mom-publication-query-verified-20260927/verified-results.json`
+(with matching JUnit XML files).
+
+The Send Service Reports to File switch is covered by the promoted pair
+`cpp-tck.federate-send-service-reports-to-file-mom-switch` and its contract
+twin. The test sets false and true, restores the observed starting value, reads
+back the public switch, and confirms neighboring switches stay unchanged while
+Service Reporting remains off. It does not claim report routing or file
+creation. Candidate and separate verified installed-package builds both passed
+4/4 CTest cases across evoked and immediate callback models. Direct results are
+in
+`.build/cpp-tck-federate-send-service-reports-to-file-mom-switch-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-federate-send-service-reports-to-file-mom-switch-verified-20260927/verified-results.json`
+(with matching JUnit XML files).
+
+The Automatic Resign Action MOM switch is covered by the promoted pair
+`cpp-tck.federate-automatic-resign-action-mom-switch` and its contract twin.
+It sends standard `HLAresignAction` values `NO_ACTION` and `DELETE_OBJECTS`
+encoded as `HLAinteger32BE`, verifies each through the public directive getter,
+and restores the observed initial value before resignation. It does not test
+resignation side effects. Candidate and separate verified installed-package
+builds both passed 4/4 CTest cases across evoked and immediate callback models.
+Direct results are in
+`.build/cpp-tck-federate-automatic-resign-action-mom-switch-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-federate-automatic-resign-action-mom-switch-verified-20260927/verified-results.json`
+(with matching JUnit XML files). At that prior checkpoint the catalog contained
+874 IDs (872 promoted, 2 candidates).
+
+The promoted `cpp-tck.joined-federate-mom-object-instances-reflected-multi-class-report`
+scenario and contract twin extend the class-based report to two adapter-supplied
+object classes. A distinct requester verifies the decoded standard MIM report
+maps two reflected instances to each class, while repeated updates to one
+instance per class do not inflate the counts. The application attributes are
+standard `HLAbyte`; the report uses standard MIM data elements and the public
+object-class handle decoder. No DDM region services are invoked. Separate fresh
+candidate and verification builds each passed all 12 focused CTest cases across
+evoked and immediate callback models; direct results are in
+`.build/cpp-tck-joined-federate-mom-reflected-multi-class-candidate2-20260927/candidate-results.json`
+and
+`.build/cpp-tck-joined-federate-mom-reflected-multi-class-verified-20260927/verified-results.json`
+(with matching JUnit XML files). Candidate-only direct evidence passed the TCK
+evidence validator before promotion.
+
+The promoted `cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report`
+scenario and contract twin apply the same two-class mapping to the standard
+`HLAreportObjectInstancesUpdated` report. A subject registers two instances per
+class, performs six ordinary receive-order updates with repeated updates to one
+instance per class, and a subscribed observer confirms all callbacks. A distinct
+requester verifies the decoded standard MIM count is exactly two for each
+registered class. No DDM region services are called. Separate fresh candidate
+and verification builds each passed all 16 focused CTest cases across evoked
+and immediate callback models; direct results are in
+`.build/cpp-tck-joined-federate-mom-updated-multi-class-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-joined-federate-mom-updated-multi-class-verified-20260927/verified-results.json`
+(with matching JUnit XML files). Candidate-only direct evidence passed the TCK
+evidence validator before promotion.
+
+Before zero-update response promotion, the catalog contained 878 IDs (876
+promoted, 2 candidates).
+
+The promoted `cpp-tck.joined-federate-mom-object-instances-updated-null-report`
+scenario and contract twin join a subject with no successful updates and a
+distinct requester. The requester receives exactly one reliable standard
+`HLAreportObjectInstancesUpdated` and verifies its `HLAobjectInstanceCounts`
+parameter is undefined or decodes as an empty standard variable array, matching
+the MIM NULL-response shape. Separate fresh candidate and verification builds
+each passed all 20 focused CTest cases across evoked and immediate callback
+models; direct results are in
+`.build/cpp-tck-joined-federate-mom-updated-null-candidate-20260927/candidate-results.json`
+and
+`.build/cpp-tck-joined-federate-mom-updated-null-verified-20260927/verified-results.json`
+(with matching JUnit XML files). Candidate-only evidence passed the TCK
+evidence validator before promotion.
+
+The no-reflections response is now promoted as the symmetric NULL-report case.
+The subject performs no standard Reflect Attribute Values invocations; the
+distinct requester receives exactly one reliable
+`HLAreportObjectInstancesReflected` and checks that `HLAobjectInstanceCounts`
+is undefined or decodes as an empty standard variable array. Two fresh
+installed-package builds each passed all 24 focused CTest cases across evoked
+and immediate callback models. Candidate-only evidence is in
+`.build/cpp-tck-joined-federate-mom-reflected-null-candidate-20260927/candidate-only-results.json`;
+the fresh verification evidence is in
+`.build/cpp-tck-joined-federate-mom-reflected-null-verified-20260927/verified-results.json`.
+A fresh installed-package consumer build passed 32/32 CTest cases across the
+promoted MOM report regression and both timestamped report pairs. Direct
+evoked/immediate evidence passed separately for all 14 promoted scenarios and
+both candidates; both evidence validators passed.
+
+The promoted `cpp-tck.joined-federate-mom-interactions-received-mim-attribute`
+pair checks the initial zero, a direct value of three after three delivered
+application interactions, a periodic value of five after two more callbacks,
+and the unchanged direct value after periodic reporting is disabled. It maps
+the standard MIM attribute at lines 350-359 directly to clause 11.4.1 and uses
+only the adapter-backed official C++ API surface. Two independent installed-
+package consumer builds each passed all four focused CTest cases, and direct
+runs passed for both scenario IDs under both callback models.
+
+The promoted `cpp-tck.joined-federate-mom-interactions-sent-mim-attribute`
+pair captures a direct baseline after enabling periodic reporting, then checks
+that three accepted ordinary application sends add exactly three and that the
+periodic value matches. It maps to the standard MIM entry at lines 362-373 and
+clause 11.4.1; DDM accounting is explicitly outside this ordinary-send slice.
+Two independent installed-package consumer builds each passed all four
+focused CTest cases, with direct runs of both IDs under both callback models.
+
+The promoted `cpp-tck.joined-federate-mom-directed-interactions-received-mim-attribute`
+pair checks zero initially, confirms one ordinary callback raises only
+`HLAinteractionsReceived`, then checks three and five delivered directed
+callbacks in `HLAdirectedInteractionsReceived` alongside total counts four and
+six. It maps the two standard MIM attributes to clause 11.4.1 (lines 376-386
+and 350-359 respectively), and keeps the P0 directed target free of DDM regions.
+Two independent installed-package consumer builds each passed all four focused
+CTest cases and direct runs of both IDs under both callback models:
+`.build/cpp-tck-directed-received-verify-a-20260927/` and
+`.build/cpp-tck-directed-received-verify-b-20260927/`.
+
+The promoted `cpp-tck.joined-federate-mom-directed-interactions-sent-mim-attribute`
+pair checks zero initially, confirms one ordinary send increments only
+`HLAinteractionsSent`, then checks three and five directed sends in
+`HLAdirectedInteractionsSent` alongside total counts four and six. The two MIM
+entries map to clause 11.4.1 (lines 389-400 and 362-373); the no-region test
+does not claim DDM-related `HLAinteractionsSent` accounting. Two independent
+installed-package consumer builds each passed all four focused CTest cases and
+direct runs of both IDs under both callback models:
+`.build/cpp-tck-directed-sent-verify-a-20260927/` and
+`.build/cpp-tck-directed-sent-verify-b-20260927/`.
+
+The promoted `cpp-tck.joined-federate-mom-updates-sent-mim-attribute` pair
+checks zero before application updates, three after three successful invocations
+(including two updates to the same object), and five after two further updates
+under `HLAsetTiming` periodic reporting. Each call is correlated with exactly one
+ordinary reflection callback. The standard MIM entry maps to clause 11.4.1
+(lines 335-347). Two independent installed-package builds each passed all four
+focused CTest cases and direct runs of both IDs under both callback models:
+`.build/cpp-tck-updates-sent-verify-a-20260927/` and
+`.build/cpp-tck-updates-sent-verify-b-20260927/`.
+
+The promoted `cpp-tck.joined-federate-mom-object-instances-updated-mim-attribute`
+pair checks zero before updates, one after two updates to the first object, two
+after updating a second object, and three after updating a third object twice.
+Its periodic value is observed before any post-update direct query.
+
+The promoted `cpp-tck.joined-federate-mom-object-instances-reflected-mim-attribute`
+pair checks one reflection for the first application object, no increment for a
+second reflection to that same object, then one increment for each new object.
+A separate monitor federate observes the subject's MOM value so MOM
+self-reflections cannot contaminate the application reflection count. Both
+attributes map to IEEE 1516.1-2025 clause 11.4.1; the MIM entries are at lines
+416-428 for `HLAobjectInstancesUpdated` and 430-442 for
+`HLAobjectInstancesReflected`. Two independent installed-package verification
+builds each passed 20/20 focused CTest cases across the ten scenario IDs and
+both callback models, with direct evidence also passing for each ID in both
+callback models:
+`.build/cpp-tck-object-instances-reflected-candidate-a-20260927/` and
+`.build/cpp-tck-object-instances-reflected-candidate-b-20260927/`.
+
+The promoted `cpp-tck.joined-federate-mom-object-instances-deleted-mim-attribute`
+pair checks zero before deletion, values one and two after the first two
+successful receive-order calls, and an actual periodic value of three after the
+third call before any post-traffic direct request. Every delete is paired with
+exactly one observer-side removal callback carrying the submitted tag and
+publisher handle. The MIM mapping is clause 11.4.1, lines 444-456;
+`deleteObjectInstance` maps to clause 6.17, lines 832-847. Two independent
+installed-package builds each passed all four focused CTest cases under evoked
+and immediate callbacks, and direct evidence passed for both IDs and both
+callback models:
+`.build/cpp-tck-object-instances-deleted-candidate-a-20260927/` and
+`.build/cpp-tck-object-instances-deleted-candidate-b-20260927/`.
+
+The promoted `cpp-tck.joined-federate-mom-object-instances-discovered-mim-attribute`
+pair checks the post-join baseline, two distinct object discoveries, and a
+third discovery when an observer locally deletes and then becomes eligible to
+discover the same object again. Direct values and an actual `HLAsetTiming`
+periodic reflection agree at each checked total, including after reporting is
+disabled. The scalar maps to IEEE 1516.1-2025 clause 11.4.1, lines 486-500;
+`localDeleteObjectInstance` maps to clause 6.18. Both fresh installed-package
+candidate builds passed all four focused CTest cases and direct evidence for
+both scenarios under both callback models:
+`.build/cpp-tck-object-instances-discovered-candidate-a-20260927/` and
+`.build/cpp-tck-object-instances-discovered-candidate-b-20260927/`.
+After promotion, the seven-pair verified regression passed 28/28 CTest cases
+and direct evidence for all 14 IDs under both callback models in each build:
+`.build/cpp-tck-object-instances-discovered-candidate-a-20260927/` and
+`.build/cpp-tck-object-instances-discovered-candidate-b-20260927/`.
+
+The promoted `cpp-tck.joined-federate-mom-object-instances-removed-mim-attribute`
+pair checks a baseline-relative `HLAobjectInstancesRemoved` count after each of
+three successful receive-order deletions, requiring exactly one matching
+receiver removal callback with the sent tag and publisher handle for each
+object. An actual periodic reflection after the third callback reports the
+same total, and a direct request after disabling the period preserves it. The
+MIM maps to IEEE 1516.1-2025 clause 11.4.1, lines 458-469; deletion maps to
+clause 6.17, lines 832-847, and the callback to clause 6.9.3. Timestamped
+removal/retraction and service-reporting variants remain separate. Two fresh
+installed-package candidate builds each passed 4/4 focused CTest cases and
+direct evidence for both scenarios under both callback models:
+`.build/cpp-tck-object-instances-removed-candidate-a-20260927/` and
+`.build/cpp-tck-object-instances-removed-candidate-b-20260927/`.
+After promotion, the combined eight-pair verified regression passed 32/32
+CTest cases and direct evidence for all 16 IDs under both callback models in
+each build:
+`.build/cpp-tck-object-instances-removed-candidate-a-20260927/` and
+`.build/cpp-tck-object-instances-removed-candidate-b-20260927/`.
+
+The promoted `cpp-tck.joined-federate-mom-reflections-received-mim-attribute`
+pair checks a post-join baseline, then requires `HLAreflectionsReceived` to
+advance once after each of three receive-order Reflect Attribute Values
+callbacks. Two updates target the same object to distinguish callback
+invocations from distinct object instances. Direct values and the final actual
+`HLAsetTiming` periodic reflection agree, and the direct count is unchanged
+after periodic reporting is disabled. The standard MIM (IEEE 1516.2-2025)
+maps to clause 11.4.1, lines 320-331; the IEEE 1516.1-2025 update, direct
+request, and reflection callback map to clauses 6.10, 6.21, and 6.9.3.
+Timestamped updates and DDM remain out of scope.
+Two fresh installed-package candidate builds each passed 4/4 focused CTest
+cases and direct evidence for both scenarios under both callback models:
+`.build/cpp-tck-reflections-received-candidate-a-20260927/` and
+`.build/cpp-tck-reflections-received-candidate-b-20260927/`.
+After promotion, the combined nine-pair verified regression passed 36/36
+CTest cases and direct evidence for all 18 IDs under both callback models in
+each independent build:
+`.build/cpp-tck-reflections-received-candidate-a-20260927/` and
+`.build/cpp-tck-reflections-received-candidate-b-20260927/`.
+
+The catalog now contains 920 IDs (918 promoted, 2 candidates).
+
+Keep `cpp-tck.federate-lost-mom-report` and its contract twin as candidates. A
+fresh package install at
+`.build/package-smoke-install-current-20260927/` confirmed both federates select
+the adapter endpoint; the ownership anchor passed in both callback models. The
+candidate reaches transport-loss cleanup and observes `ConnectionLost`, but
+times out waiting for the subscribed standard `HLAreportFederateLost` report.
+The current process-service fixture does not project that RTI-originated MOM
+interaction, so do not synthesize it in the fixture or promote the case. Resume
+this slice when server-side report delivery is available.
+
+The promoted `cpp-tck.federate-automatic-resign-action-mim-attribute` pair
+verifies the standard MIM's conditional `HLAautomaticResignAction` value. The
+monitor subscribes to the standard federate MOM object, checks the initial
+direct `HLAinteger32BE` value against `getAutomaticResignDirective`, then checks
+one conditional reflection after `setAutomaticResignDirective` changes the
+action and another after it restores the initial value. It also verifies
+reliable receive-order reflection metadata and does not use `HLAsetSwitches`.
+Two independent fresh builds against the installed package each passed all
+4/4 focused CTest cases and both scenario IDs in evoked and immediate callback
+modes. Build evidence is in
+`.build/cpp-tck-federate-automatic-resign-action-mim-attribute-candidate-a-20260927/`
+and
+`.build/cpp-tck-federate-automatic-resign-action-mim-attribute-candidate-b-20260927/`.
+
+The promoted `cpp-tck.federate-exception-reporting-mim-attribute` pair checks
+the standard MIM's conditional `HLAexceptionReporting` value. The direct
+`HLAinteger32BE` value agrees with the public getter before a standard setter
+change and after restoring the initial state; exactly one reliable MOM
+reflection accompanies each change. It does not generate service exceptions.
+The MIM mapping is IEEE 1516.2-2025 clause 11.4.1, lines 619-627 and 3143-3155;
+the public setter/getter and request/callback paths map to IEEE 1516.1-2025
+clauses 10.48, 10.49, 6.21, 5.8, and 6.9.3. Two independent fresh candidate
+builds each passed 4/4 focused CTest cases and both IDs in both callback models.
+The post-promotion regression of both MOM-attribute pairs and their switch
+counterparts passed 16/16 CTest cases and all eight IDs in evoked and immediate
+modes. Evidence is in
+`.build/cpp-tck-federate-exception-reporting-mim-attribute-candidate-a-20260928/`,
+`.build/cpp-tck-federate-exception-reporting-mim-attribute-candidate-b-20260928/`,
+and `.build/cpp-tck-conditional-federate-mom-attributes-verified-20260928/`.
+
+The promoted `cpp-tck.federate-service-reporting-mim-attribute` pair covers the
+conditional `HLAserviceReporting` MIM scalar. It compares direct `HLAinteger32BE`
+requests with the public switch getter, checks exactly one reliable conditional
+reflection after changing and restoring the switch, and deliberately does not
+subscribe to service-invocation reports. Two independent fresh installed-package
+builds passed 4/4 focused CTest cases, and the combined post-promotion regression
+passed 24/24 cases for the three scalar MOM-attribute pairs and their switch
+counterparts. Evidence is in
+`.build/cpp-tck-federate-service-reporting-mim-attribute-candidate-a-20260928/`,
+`.build/cpp-tck-federate-service-reporting-mim-attribute-candidate-b-20260928/`,
+and `.build/cpp-tck-conditional-federate-mom-attributes-service-reporting-verified-20260928/`.
+
+The promoted `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`
+pair applies the same conditional MOM value checks to
+`HLAobjectClassRelevanceAdvisory`, mapped to MIM clause 11.4.1 lines 535-544
+and API clauses 10.34/10.35, 6.21, 5.8, and 6.9.3. Two independent fresh
+installed-package builds passed 4/4 focused CTest cases; its post-promotion
+regression with the advisory-switch pair also passed.
+
+The promoted `cpp-tck.federate-attribute-relevance-advisory-mim-attribute` pair
+checks `HLAattributeRelevanceAdvisory` through direct standard-MIM requests, the
+public getter/setter, and conditional reflections. Its exact mappings are MIM
+clause 11.4.1 lines 547-556 and API clauses 10.36, 10.37, 6.21, 5.8, and 6.9.3.
+Two independent fresh installed-package builds each passed 4/4 focused CTest
+cases across both callback models; evidence is in
+`.build/cpp-tck-federate-attribute-relevance-advisory-mim-attribute-candidate-a-clean-20260928/`
+and
+`.build/cpp-tck-federate-attribute-relevance-advisory-mim-attribute-candidate-b-clean-20260928/`.
+The post-promotion regression of the advisory-switch pair and both conditional
+MOM-attribute pairs passed 12/12 CTest cases across evoked and immediate models;
+evidence is in `.build/cpp-tck-relevance-advisory-mom-verified-clean-20260928/`.
+At that checkpoint the catalog contained 926 scenario IDs (924 promoted, 2
+candidates). The promoted `cpp-tck.federate-attribute-scope-advisory-mim-attribute`
+pair checks the conditional `HLAattributeScopeAdvisory` value, mapped to MIM
+clause 11.4.1 lines 559-568 and API clauses 10.38, 10.39, 6.21, 5.8, and 6.9.3.
+Two independent fresh installed-package builds each passed 4/4 focused CTest
+cases across both callback models, and the post-promotion advisory regression
+passed 16/16 cases across the core switch pair and all three conditional MOM
+attribute pairs. Evidence is in
+`.build/cpp-tck-federate-attribute-scope-advisory-mim-attribute-candidate-a-clean-20260928/`,
+`.build/cpp-tck-federate-attribute-scope-advisory-mim-attribute-candidate-b-clean-20260928/`,
+and `.build/cpp-tck-relevance-advisory-mom-regression-verified-clean-20260928/`.
+The promoted `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`
+pair checks conditional `HLAinteractionRelevanceAdvisory`, mapped to MIM clause
+11.4.1 lines 571-580 and API clauses 10.40, 10.41, 6.21, 5.8, and 6.9.3. Two
+independent fresh installed-package builds passed 4/4 focused cases each across
+both callback models. The post-promotion regression covering the core advisory
+switch pair and all four conditional MOM-attribute pairs passed 20/20 cases;
+evidence is in
+`.build/cpp-tck-federate-interaction-relevance-advisory-mim-attribute-candidate-a-clean-20260928/`,
+`.build/cpp-tck-federate-interaction-relevance-advisory-mim-attribute-candidate-b-clean-20260928/`,
+and `.build/cpp-tck-advisory-mom-regression-verified-clean-20260928/`.
+The promoted `cpp-tck.federate-asynchronous-delivery-mim-attribute` pair reads
+the initial `HLAboolean` from the standard MIM rather than assuming a default,
+uses Enable/Disable Asynchronous Delivery to change and restore that observed
+state, and verifies the conditional reflection and direct-request value. It
+maps MIM clause 11.4.1 lines 185-200 and the HLAboolean representation at
+3046-3056 to API clauses 8.15, 8.16, 6.21, 5.8, and 6.9.3. Two independent
+fresh installed-package builds passed 4/4 focused cases each across both
+callback models; the post-promotion regression with the existing asynchronous-
+delivery/callback-servicing pair passed 8/8 cases. Evidence is in
+`.build/cpp-tck-federate-asynchronous-delivery-mim-attribute-candidate-a-clean-20260928/`,
+`.build/cpp-tck-federate-asynchronous-delivery-mim-attribute-candidate-b-clean-20260928/`,
+and `.build/cpp-tck-asynchronous-delivery-mom-regression-verified-clean-20260928/`.
+The promoted `cpp-tck.federate-time-constrained-mim-attribute` pair reads the
+initial `HLAtimeConstrained` value from the standard MIM, changes and restores
+that observed state through Enable/Disable Time Constrained, and verifies one
+conditional reflection and a direct request after each transition. It also
+waits for exactly one `timeConstrainedEnabled` callback per enable. Two
+independent fresh installed-package builds passed 4/4 focused cases each; the
+post-promotion regression across the time-role callback, asynchronous-delivery,
+and time-constrained MOM pairs passed 16/16. Evidence is in
+`.build/cpp-tck-federate-time-constrained-mim-attribute-candidate-a-clean-20260928/`,
+`.build/cpp-tck-federate-time-constrained-mim-attribute-candidate-b-clean-20260928/`,
+and `.build/cpp-tck-time-constrained-mom-regression-verified-clean-20260928/`.
+The promoted `cpp-tck.federate-time-regulating-mim-attribute` pair reads the
+initial `HLAtimeRegulating` value from the standard MIM, changes and restores
+that observed state through Enable/Disable Time Regulation using the
+adapter-selected standard factory's epsilon lookahead, and verifies one
+conditional reflection and a direct request after each transition. It also
+waits for exactly one `timeRegulationEnabled` callback per enable. Two
+independent fresh installed-package builds passed 4/4 focused cases each; the
+post-promotion regression across time-role callbacks, asynchronous delivery,
+and both conditional time-role MOM pairs passed 20/20. Evidence is in
+`.build/cpp-tck-federate-time-regulating-mim-attribute-candidate-a-clean-20260928/`,
+`.build/cpp-tck-federate-time-regulating-mim-attribute-candidate-b-clean-20260928/`,
+and `.build/cpp-tck-time-regulating-mom-regression-verified-clean-20260928/`.
+The promoted `cpp-tck.federate-lookahead-mim-periodic` pair checks the standard
+MIM `HLAlookahead` report after `HLAsetTiming`, then again after a standard
+Modify Lookahead increase verified by Query Lookahead. It decodes the
+`HLAtimeInterval` bytes with the adapter-selected standard logical-time
+factory, so no implementation-specific time encoding or array framing is
+assumed. Two independent installed-package consumer builds passed 4/4 focused
+cases each; the regression across both time-role MOM pairs, callback-controls
+time role, asynchronous delivery, and the new lookahead pair passed 24/24.
+Evidence is in
+`.build/cpp-tck-federate-lookahead-mim-periodic-candidate-a-clean-20260928/`,
+`.build/cpp-tck-federate-lookahead-mim-periodic-candidate-b-clean-20260928/`,
+and `.build/cpp-tck-federate-lookahead-mim-periodic-regression-clean-20260928/`.
+The portable Java parity catalog has no periodic `HLAlookahead` scenario, so
+the pair is recorded as a C++ extension. At that promotion, the catalog
+contained 938 scenario IDs (936 promoted, 2 candidates). The connection-loss
+MOM report pair remains unpromoted until RTI-originated report delivery is
+observable.
+
+The promoted `cpp-tck.federate-logical-time-mim-periodic` pair checks the
+standard-MIM `HLAlogicalTime` value before and after two successful grants. A
+standard time-regulating monitor advances alongside the time-constrained
+subject; each reported logical time is decoded with the adapter-selected
+`LogicalTimeFactory` and compared with both the grant and Query Logical Time.
+The portable Java parity catalog has no equivalent periodic logical-time
+scenario, so this pair is recorded as a C++ extension. Two independent clean
+installed-package consumer builds passed 4/4 focused CTest cases each, and the
+related time-management regression passed 24/24. Evidence is in
+`.build/cpp-tck-federate-logical-time-mim-periodic-candidate-a-clean-20260928/`,
+`.build/cpp-tck-federate-logical-time-mim-periodic-candidate-b-clean-20260928/`,
+and
+`.build/cpp-tck-federate-logical-time-mim-periodic-regression-clean-20260928/`.
+The promoted `cpp-tck.federate-time-manager-state-mim-attribute` pair checks
+the conditional standard MIM `HLAtimeManagerState` values (`TimeAdvancing=1`,
+`TimeGranted=0`) for Time Advance Request, Time Advance Request Available, Next
+Message Request, Next Message Request Available, and Flush Queue Request. It
+uses the adapter-selected standard logical-time factory and validates the
+request's matching standard grant callback and reflection metadata. The flush
+path specifically checks `flushQueueGrant`, not `timeAdvanceGrant`. A first
+clean installed-package consumer build passed 4/4 focused CTest cases and the
+direct run in both callback models; an independent clean regression build
+passed 20/20 across the pair and adjacent time-role/periodic MOM scenarios, with
+direct evidence for all ten selected IDs. Evidence is in
+`.build/cpp-tck-federate-time-manager-state-a-clean-20260928/` and
+`.build/cpp-tck-federate-time-manager-state-b-regression-20260928/`. There is no
+Java counterpart for this conditional MIM attribute, so the pair is recorded
+as a C++ extension.
+The Java parity audit still represents all 21 Java scenario IDs. The catalog
+now contains 942 IDs (940 promoted, 2 candidates). The standard periodic
+`HLAGALT`/`HLALITS` and Query GALT/LITS route already has a promoted portable
+pair, including its undefined-value boundary, so no duplicate was added. Next
+bounded handoff: the adapter-managed process-loss fixture is now configured,
+and a clean installed-package consumer build reaches the focused report test.
+The base `cpp-tck.federate-lost-mom-report` scenario and contract twin were
+tested separately; each times out waiting for the subscribed standard
+`HLAreportFederateLost` interaction in both evoked and immediate callback
+models. The fixture's subsequent observer-Resign error is cleanup fallout from
+that TCK failure. The process fixture currently does not project the
+RTI-originated MOM report, so keep this pair as candidates and do not synthesize
+the callback in the fixture. The CMake fixture-only selection guard now
+recognizes both candidate IDs. The native-gap survey found no directly portable
+candidate among 297 Catch2 stems, while the API-surface audit confirms all 164
+official `RTIambassador` methods and 56 callbacks are referenced and Java
+parity remains 21/21. Next, identify an unasserted normative requirement before
+translating another native test; do not treat internal-only native cases as
+portable HLA evidence.
+
+The promoted `cpp-tck.federation-mom-static-identity` pair verifies the
+standard `HLAfederation` MOM object and all four required static identity
+strings: `HLAfederationName`, `HLARTIversion`, `HLAMIMdesignator`, and
+`HLAtimeImplementationName`. It checks the created federation name, a non-empty
+RTI version without prescribing its format, `HLAstandardMIM`, the exact
+adapter-supplied time-implementation name, reliable callback metadata, and
+standard Unicode encoding without provider-specific assertions. Two
+independent installed-package build trees each passed all 4 focused CTest
+cases across the scenario and contract IDs under evoked and immediate callback
+models:
+`.build/cpp-tck-federate-time-manager-state-a-clean-20260928/` and
+`.build/cpp-tck-federate-time-manager-state-b-regression-20260928/`. The pair
+has no Java counterpart and is recorded as a C++ extension. The new promoted
+`cpp-tck.federation-mom-static-switches` pair covers the four required static
+federation switch attributes. It decodes each standard `HLAswitch` through
+`HLAinteger32BE` and accepts only `Disabled=0` or `Enabled=1`, without asserting
+provider-specific defaults. The promoted
+`cpp-tck.federation-mom-federates-in-federation` pair covers the required
+conditional federation roster: the requested initial value includes the
+creator and observer, a join reflection includes the third member, and a resign
+reflection returns to the two-member roster. Roster order is deliberately
+ignored; each standard federate-handle reference is decoded through the official
+`RTIambassador::decodeFederateHandle`. Two independent installed-package builds
+each passed all 12 focused CTest cases across the three federation MOM scenario
+pairs and both callback models:
+`.build/cpp-tck-federate-time-manager-state-a-clean-20260928/` and
+`.build/cpp-tck-federate-time-manager-state-b-regression-20260928/`. The roster
+array is traversed using the standard `HLAinteger32BE` and `HLAvariableArray`
+decode APIs because the nested-array convenience decoder stopped before the end
+of this valid MIM value. The promoted
+`cpp-tck.federation-mom-fom-module-designator-list` pair requests the federation's
+initial FOM-module designators, observes their conditional refresh after a join
+adds an adapter-supplied module, then confirms a direct request agrees. It uses
+the standard `HLAvariableArray` and `HLAunicodeString` encoders and compares the
+set without assuming ordering. The focused four-pair federation-MOM attribute lane
+passed 16/16 focused CTest cases in each independent installed-package build
+tree under evoked and immediate callback models. The catalog now contains 950
+IDs (948 promoted, 2 candidates); Java parity remains 21/21. The promoted
+`cpp-tck.joined-federate-mom-object-lifecycle` pair now also checks the required
+static `HLAfederateHost` Unicode value for non-emptiness without asserting
+platform-specific hostname spelling. Its focused 4/4 callback-model matrix
+passed in both independent installed-package trees. Next bounded step: compare
+the remaining `HLAfederate` MIM attributes against the catalog and select one
+portable gap; keep DDM-region reporting and implementation-defined
+service-report file locations out of this slice.

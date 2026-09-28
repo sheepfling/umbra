@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice exercises the standard MIM HLArequestObjectInstanceInformation/HLAreportObjectInstanceInformation path for an owned object, a known object with no requester-owned attributes, and the NULL response after Local Delete Object Instance. The test uses only official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, standard MIM declarations, public handle decoders, HLAoctet/HLAvariableArray, and the C++ standard library. Provider package, FOM, object-class and attribute names, endpoint, callback configuration, and logical-time implementation come from the adapter. It avoids private handle codecs, provider headers, registries, and vendor-specific names.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-mom-object-instance-information",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador object registration, publication, subscription, local deletion, public handle decoding, and standard federate MOM request/report interaction services",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador object-management, interaction-management, callback, handle-decoding, and MIM declarations; FederateAmbassador::discoverObjectInstance and receiveInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectInstanceInformation",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectInstanceInformationContract"
+      ]
+    }
+  ]
+}

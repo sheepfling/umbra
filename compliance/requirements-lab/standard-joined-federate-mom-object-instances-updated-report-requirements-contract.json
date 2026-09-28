@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This portable slice covers one adapter-supplied published object class and HLAbyte attribute. The joined subject registers two instances, updates the first twice and the second once, and is queried through the standard MIM. The test verifies one reliable report with a single class/count record for two instances. It does not claim the remaining federate MOM statistics, empty update-count responses, timestamped updates, or overall conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-service",
+      "clause_id": "clause-6.10",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "716-730",
+      "source_symbol": "RTIambassador::updateAttributeValues",
+      "statement": "The subject performs receive-order updates to two registered instances through the standard Update Attribute Values service. Repeating an update on one instance leaves the distinct-instance count unchanged.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-request",
+      "clause_id": "clause-6.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "750-764",
+      "source_symbol": "RTIambassador::sendInteraction",
+      "statement": "The requester uses the standard sendInteraction parameter map to identify the joined subject whose update responsibility is queried.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-mim-report",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "1102-1109, 1450-1471, 3647-3659, 3735-3747",
+      "source_symbol": "HLArequestObjectInstancesUpdated; HLAreportObjectInstancesUpdated; HLAobjectClassBasedCounts; HLAobjectClassBasedCount",
+      "statement": "The standard MIM report groups updated object-instance counts by registered object class. HLAobjectClassBasedCounts is a variable array of fixed records containing an object-class handle and HLAcount; zero-count entries are omitted. The test decodes that standard shape with official data-element classes and the public object-class handle decoder, then verifies the sole reported class count is two.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedReportContract"
+      ]
+    }
+  ]
+}

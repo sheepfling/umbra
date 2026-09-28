@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "standard_sections": [
+    "hla-1516.1-2025:clause-9.1.2",
+    "hla-1516.1-2025:clause-11.5",
+    "hla-1516.1-2025:clause-11.5.1"
+  ],
+  "notes": "This contract records a portable C++ TCK check for RTIambassador::commitRegionModifications and its successful HLAreportServiceInvocation delivery through the standard MIM. Region lifecycle behavior maps to clause 9.1.2; successful service invocation reporting and its interaction content map to clauses 11.5 and 11.5.1. The scenario stages an adapter-valid range with reporting disabled, enables service reporting, commits the region, and checks the standard set-of-region-designators argument, null return marker, success and empty-exception fields, serial zero, region service type 5, reliable delivery, and inherited HLAfederate reporter identity. It then checks the committed range through the standard API with reporting disabled. It makes no region-based routing assertion and does not assert conditional failure-report payloads. The source uses only official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard 1516.2 MIM data elements, and the C++ standard library. The adapter supplies the provider package, model FOM and configured dimension, standard MIM, endpoint, callback model, and logical-time configuration.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-service-report-commit-region-modifications",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador::createRegion(DimensionHandleSet), RTIambassador::setRangeBounds(RegionHandle, DimensionHandle, RangeBounds), RTIambassador::commitRegionModifications(RegionHandleSet), RTIambassador::setServiceReportingSwitch(Boolean), and FederateAmbassador::receiveInteraction for HLAreportServiceInvocation",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::commitRegionModifications; standard MIM HLAreportServiceInvocation",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioServiceReportCommitRegionModifications",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioServiceReportCommitRegionModificationsContract"
+      ]
+    }
+  ]
+}

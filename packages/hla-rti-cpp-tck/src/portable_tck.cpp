@@ -1,4 +1,7 @@
 #define main hla_rti_cpp_tck_original_main
+#include <RTI/encoding/BasicDataElements.h>
+#include <RTI/encoding/HLAvariableArray.h>
+
 #include "main.cpp"
 #undef main
 
@@ -66,6 +69,22 @@ constexpr char federationMomCurrentFddScenario[] =
     "cpp-tck.federation-mom-current-fdd";
 constexpr char federationMomCurrentFddContractScenario[] =
     "cpp-tck.federation-mom-current-fdd-contract";
+constexpr char federationMomStaticIdentityScenario[] =
+    "cpp-tck.federation-mom-static-identity";
+constexpr char federationMomStaticIdentityContractScenario[] =
+    "cpp-tck.federation-mom-static-identity-contract";
+constexpr char federationMomStaticSwitchesScenario[] =
+    "cpp-tck.federation-mom-static-switches";
+constexpr char federationMomStaticSwitchesContractScenario[] =
+    "cpp-tck.federation-mom-static-switches-contract";
+constexpr char federationMomFederatesInFederationScenario[] =
+    "cpp-tck.federation-mom-federates-in-federation";
+constexpr char federationMomFederatesInFederationContractScenario[] =
+    "cpp-tck.federation-mom-federates-in-federation-contract";
+constexpr char federationMomFomModuleDesignatorListScenario[] =
+    "cpp-tck.federation-mom-fom-module-designator-list";
+constexpr char federationMomFomModuleDesignatorListContractScenario[] =
+    "cpp-tck.federation-mom-fom-module-designator-list-contract";
 constexpr char federationMomContentReportsScenario[] =
     "cpp-tck.federation-mom-content-reports";
 constexpr char federationMomContentReportsContractScenario[] =
@@ -74,6 +93,58 @@ constexpr char serviceReportOrderTransportationLookupsScenario[] =
     "cpp-tck.service-report-order-transportation-lookups";
 constexpr char serviceReportOrderTransportationLookupsContractScenario[] =
     "cpp-tck.service-report-order-transportation-lookups-contract";
+constexpr char serviceReportDimensionUpperBoundScenario[] =
+    "cpp-tck.service-report-dimension-upper-bound";
+constexpr char serviceReportDimensionUpperBoundContractScenario[] =
+    "cpp-tck.service-report-dimension-upper-bound-contract";
+constexpr char serviceReportDimensionHandleSetScenario[] =
+    "cpp-tck.service-report-dimension-handle-set";
+constexpr char serviceReportDimensionHandleSetContractScenario[] =
+    "cpp-tck.service-report-dimension-handle-set-contract";
+constexpr char serviceReportRangeBoundsScenario[] =
+    "cpp-tck.service-report-range-bounds";
+constexpr char serviceReportRangeBoundsContractScenario[] =
+    "cpp-tck.service-report-range-bounds-contract";
+constexpr char serviceReportSetRangeBoundsScenario[] =
+    "cpp-tck.service-report-set-range-bounds";
+constexpr char serviceReportSetRangeBoundsContractScenario[] =
+    "cpp-tck.service-report-set-range-bounds-contract";
+constexpr char serviceReportCommitRegionModificationsScenario[] =
+    "cpp-tck.service-report-commit-region-modifications";
+constexpr char serviceReportCommitRegionModificationsContractScenario[] =
+    "cpp-tck.service-report-commit-region-modifications-contract";
+constexpr char serviceReportDeleteRegionScenario[] =
+    "cpp-tck.service-report-delete-region";
+constexpr char serviceReportDeleteRegionContractScenario[] =
+    "cpp-tck.service-report-delete-region-contract";
+constexpr char serviceReportCreateRegionScenario[] =
+    "cpp-tck.service-report-create-region";
+constexpr char serviceReportCreateRegionContractScenario[] =
+    "cpp-tck.service-report-create-region-contract";
+constexpr char regionRangeValidationScenario[] =
+    "cpp-tck.region-range-validation";
+constexpr char regionRangeValidationContractScenario[] =
+    "cpp-tck.region-range-validation-contract";
+constexpr char regionRangeDimensionValidationScenario[] =
+    "cpp-tck.region-range-dimension-validation";
+constexpr char regionRangeDimensionValidationContractScenario[] =
+    "cpp-tck.region-range-dimension-validation-contract";
+constexpr char serviceReportDimensionNameScenario[] =
+    "cpp-tck.service-report-dimension-name";
+constexpr char serviceReportDimensionNameContractScenario[] =
+    "cpp-tck.service-report-dimension-name-contract";
+constexpr char serviceReportDimensionHandleScenario[] =
+    "cpp-tck.service-report-dimension-handle";
+constexpr char serviceReportDimensionHandleContractScenario[] =
+    "cpp-tck.service-report-dimension-handle-contract";
+constexpr char serviceReportInteractionDimensionsScenario[] =
+    "cpp-tck.service-report-interaction-dimensions";
+constexpr char serviceReportInteractionDimensionsContractScenario[] =
+    "cpp-tck.service-report-interaction-dimensions-contract";
+constexpr char serviceReportObjectDimensionsScenario[] =
+    "cpp-tck.service-report-object-dimensions";
+constexpr char serviceReportObjectDimensionsContractScenario[] =
+    "cpp-tck.service-report-object-dimensions-contract";
 constexpr char serviceReportOrderTransportationLookupFailuresScenario[] =
     "cpp-tck.service-report-order-transportation-lookup-failures";
 constexpr char serviceReportOrderTransportationLookupFailuresContractScenario[] =
@@ -98,6 +169,126 @@ constexpr char serviceReportInteractionScenario[] =
     "cpp-tck.service-report-interaction";
 constexpr char serviceReportInteractionContractScenario[] =
     "cpp-tck.service-report-interaction-contract";
+constexpr char serviceReportResignFederationExecutionScenario[] =
+    "cpp-tck.service-report-resign-federation-execution";
+constexpr char serviceReportResignFederationExecutionContractScenario[] =
+    "cpp-tck.service-report-resign-federation-execution-contract";
+constexpr char federateLostReportScenario[] =
+    "cpp-tck.federate-lost-mom-report";
+constexpr char federateLostReportContractScenario[] =
+    "cpp-tck.federate-lost-mom-report-contract";
+constexpr char handleNormalizationMembershipBoundariesScenario[] =
+    "cpp-tck.handle-normalization-membership-boundaries";
+constexpr char handleNormalizationMembershipBoundariesContractScenario[] =
+    "cpp-tck.handle-normalization-membership-boundaries-contract";
+constexpr char dimensionLookupValidHandlesAfterResignationScenario[] =
+    "cpp-tck.dimension-lookup-valid-handles-after-resignation";
+constexpr char dimensionLookupValidHandlesAfterResignationContractScenario[] =
+    "cpp-tck.dimension-lookup-valid-handles-after-resignation-contract";
+constexpr char updateRateLookupValidInputsAfterResignationScenario[] =
+    "cpp-tck.update-rate-lookup-valid-inputs-after-resignation";
+constexpr char updateRateLookupValidInputsAfterResignationContractScenario[] =
+    "cpp-tck.update-rate-lookup-valid-inputs-after-resignation-contract";
+constexpr char supportLookupValidInputsAfterResignationScenario[] =
+    "cpp-tck.support-lookup-valid-inputs-after-resignation";
+constexpr char supportLookupValidInputsAfterResignationContractScenario[] =
+    "cpp-tck.support-lookup-valid-inputs-after-resignation-contract";
+constexpr char supportSwitchGetterLifecycleBoundariesScenario[] =
+    "cpp-tck.support-switch-getter-lifecycle-boundaries";
+constexpr char supportSwitchGetterLifecycleBoundariesContractScenario[] =
+    "cpp-tck.support-switch-getter-lifecycle-boundaries-contract";
+constexpr char supportSwitchSetterLifecycleBoundariesScenario[] =
+    "cpp-tck.support-switch-setter-lifecycle-boundaries";
+constexpr char supportSwitchSetterLifecycleBoundariesContractScenario[] =
+    "cpp-tck.support-switch-setter-lifecycle-boundaries-contract";
+constexpr char automaticResignDirectiveLifecycleBoundariesScenario[] =
+    "cpp-tck.automatic-resign-directive-lifecycle-boundaries";
+constexpr char automaticResignDirectiveLifecycleBoundariesContractScenario[] =
+    "cpp-tck.automatic-resign-directive-lifecycle-boundaries-contract";
+constexpr char automaticResignDirectiveEnumValuesScenario[] =
+    "cpp-tck.automatic-resign-directive-enum-values";
+constexpr char automaticResignDirectiveEnumValuesContractScenario[] =
+    "cpp-tck.automatic-resign-directive-enum-values-contract";
+constexpr char advisorySwitchValueRoundTripsScenario[] =
+    "cpp-tck.advisory-switch-value-round-trips";
+constexpr char advisorySwitchValueRoundTripsContractScenario[] =
+    "cpp-tck.advisory-switch-value-round-trips-contract";
+constexpr char duplicateFederateNameJoinScenario[] =
+    "cpp-tck.duplicate-federate-name-join-boundary";
+constexpr char duplicateFederateNameJoinContractScenario[] =
+    "cpp-tck.duplicate-federate-name-join-boundary-contract";
+constexpr char repeatedJoinByMemberScenario[] =
+    "cpp-tck.repeated-join-by-member-boundary";
+constexpr char repeatedJoinByMemberContractScenario[] =
+    "cpp-tck.repeated-join-by-member-boundary-contract";
+constexpr char foreignFederateNameLookupScenario[] =
+    "cpp-tck.foreign-federate-name-lookup-boundary";
+constexpr char foreignFederateNameLookupContractScenario[] =
+    "cpp-tck.foreign-federate-name-lookup-boundary-contract";
+constexpr char foreignObjectInstanceNameLookupScenario[] =
+    "cpp-tck.foreign-object-instance-name-lookup-boundary";
+constexpr char foreignObjectInstanceNameLookupContractScenario[] =
+    "cpp-tck.foreign-object-instance-name-lookup-boundary-contract";
+constexpr char foreignObjectInstanceHandleLookupScenario[] =
+    "cpp-tck.foreign-object-instance-handle-lookup-boundary";
+constexpr char foreignObjectInstanceHandleLookupContractScenario[] =
+    "cpp-tck.foreign-object-instance-handle-lookup-boundary-contract";
+constexpr char localDeleteObjectInstanceNameLookupScenario[] =
+    "cpp-tck.local-delete-object-instance-name-lookup-boundary";
+constexpr char localDeleteObjectInstanceNameLookupContractScenario[] =
+    "cpp-tck.local-delete-object-instance-name-lookup-boundary-contract";
+constexpr char remoteDeleteKnownObjectClassLookupScenario[] =
+    "cpp-tck.remote-delete-known-object-class-lookup-boundary";
+constexpr char remoteDeleteKnownObjectClassLookupContractScenario[] =
+    "cpp-tck.remote-delete-known-object-class-lookup-boundary-contract";
+constexpr char remoteDeleteObjectInstanceNameLookupScenario[] =
+    "cpp-tck.remote-delete-object-instance-name-lookup-boundary";
+constexpr char remoteDeleteObjectInstanceNameLookupContractScenario[] =
+    "cpp-tck.remote-delete-object-instance-name-lookup-boundary-contract";
+constexpr char resignDeleteObjectLookupScenario[] =
+    "cpp-tck.resign-delete-object-lookup-boundary";
+constexpr char resignDeleteObjectLookupContractScenario[] =
+    "cpp-tck.resign-delete-object-lookup-boundary-contract";
+constexpr char resignNoActionOwnedAttributesScenario[] =
+    "cpp-tck.resign-no-action-owned-attributes-rejection-boundary";
+constexpr char resignNoActionOwnedAttributesContractScenario[] =
+    "cpp-tck.resign-no-action-owned-attributes-rejection-boundary-contract";
+constexpr char resignDeleteObjectsThenDivestCrossObjectEffectsScenario[] =
+    "cpp-tck.resign-delete-objects-then-divest-cross-object-effects";
+constexpr char resignDeleteObjectsThenDivestCrossObjectEffectsContractScenario[] =
+    "cpp-tck.resign-delete-objects-then-divest-cross-object-effects-contract";
+constexpr char resignUnconditionallyDivestAttributesPreservesObjectsScenario[] =
+    "cpp-tck.resign-unconditionally-divest-attributes-preserves-objects";
+constexpr char resignUnconditionallyDivestAttributesPreservesObjectsContractScenario[] =
+    "cpp-tck.resign-unconditionally-divest-attributes-preserves-objects-contract";
+constexpr char resignCancelPendingOwnershipAcquisitionsScenario[] =
+    "cpp-tck.resign-cancel-pending-ownership-acquisitions-action";
+constexpr char resignCancelPendingOwnershipAcquisitionsContractScenario[] =
+    "cpp-tck.resign-cancel-pending-ownership-acquisitions-action-contract";
+constexpr char resignCancelThenDeleteThenDivestCrossObjectEffectsScenario[] =
+    "cpp-tck.resign-cancel-then-delete-then-divest-cross-object-effects";
+constexpr char resignCancelThenDeleteThenDivestCrossObjectEffectsContractScenario[] =
+    "cpp-tck.resign-cancel-then-delete-then-divest-cross-object-effects-contract";
+constexpr char standardOrderTransportLookupsAfterResignationScenario[] =
+    "cpp-tck.standard-order-transport-lookups-after-resignation";
+constexpr char standardOrderTransportLookupsAfterResignationContractScenario[] =
+    "cpp-tck.standard-order-transport-lookups-after-resignation-contract";
+constexpr char objectAttributeDeclarationsValidInputsAfterResignationScenario[] =
+    "cpp-tck.object-attribute-declarations-valid-inputs-after-resignation";
+constexpr char objectAttributeDeclarationsValidInputsAfterResignationContractScenario[] =
+    "cpp-tck.object-attribute-declarations-valid-inputs-after-resignation-contract";
+constexpr char interactionDeclarationsValidInputsAfterResignationScenario[] =
+    "cpp-tck.interaction-declarations-valid-inputs-after-resignation";
+constexpr char interactionDeclarationsValidInputsAfterResignationContractScenario[] =
+    "cpp-tck.interaction-declarations-valid-inputs-after-resignation-contract";
+constexpr char directedInteractionDeclarationsValidInputsAfterResignationScenario[] =
+    "cpp-tck.directed-interaction-declarations-valid-inputs-after-resignation";
+constexpr char directedInteractionDeclarationsValidInputsAfterResignationContractScenario[] =
+    "cpp-tck.directed-interaction-declarations-valid-inputs-after-resignation-contract";
+constexpr char interactionTransportationQueryValidInputsAfterResignationScenario[] =
+    "cpp-tck.interaction-transportation-query-valid-inputs-after-resignation";
+constexpr char interactionTransportationQueryValidInputsAfterResignationContractScenario[] =
+    "cpp-tck.interaction-transportation-query-valid-inputs-after-resignation-contract";
 constexpr char serviceReportReceiveOrderInteractionScenario[] =
     "cpp-tck.service-report-receive-order-interaction";
 constexpr char serviceReportReceiveOrderInteractionContractScenario[] =
@@ -198,6 +389,14 @@ constexpr char serviceReportReleaseMultipleObjectInstanceNamesScenario[] =
     "cpp-tck.service-report-release-multiple-object-instance-names";
 constexpr char serviceReportReleaseMultipleObjectInstanceNamesContractScenario[] =
     "cpp-tck.service-report-release-multiple-object-instance-names-contract";
+constexpr char serviceReportQueryAttributeOwnershipScenario[] =
+    "cpp-tck.service-report-query-attribute-ownership";
+constexpr char serviceReportQueryAttributeOwnershipContractScenario[] =
+    "cpp-tck.service-report-query-attribute-ownership-contract";
+constexpr char serviceReportCancelAttributeOwnershipAcquisitionScenario[] =
+    "cpp-tck.service-report-cancel-attribute-ownership-acquisition";
+constexpr char serviceReportCancelAttributeOwnershipAcquisitionContractScenario[] =
+    "cpp-tck.service-report-cancel-attribute-ownership-acquisition-contract";
 constexpr char serviceReportLocalDeleteObjectInstanceScenario[] =
     "cpp-tck.service-report-local-delete-object-instance";
 constexpr char serviceReportLocalDeleteObjectInstanceContractScenario[] =
@@ -210,6 +409,106 @@ constexpr char serviceReportInterlockScenario[] =
     "cpp-tck.service-report-interlock";
 constexpr char serviceReportInterlockContractScenario[] =
     "cpp-tck.service-report-interlock-contract";
+constexpr char federateServiceReportingMomSwitchScenario[] =
+    "cpp-tck.federate-service-reporting-mom-switch";
+constexpr char federateServiceReportingMomSwitchContractId[] =
+    "cpp-tck.federate-service-reporting-mom-switch-contract";
+constexpr char federateServiceReportingMomAttributeScenario[] =
+    "cpp-tck.federate-service-reporting-mim-attribute";
+constexpr char federateServiceReportingMomAttributeContractId[] =
+    "cpp-tck.federate-service-reporting-mim-attribute-contract";
+constexpr char federateObjectClassRelevanceAdvisoryMomAttributeScenario[] =
+    "cpp-tck.federate-object-class-relevance-advisory-mim-attribute";
+constexpr char federateObjectClassRelevanceAdvisoryMomAttributeContractId[] =
+    "cpp-tck.federate-object-class-relevance-advisory-mim-attribute-contract";
+constexpr char federateAttributeRelevanceAdvisoryMomAttributeScenario[] =
+    "cpp-tck.federate-attribute-relevance-advisory-mim-attribute";
+constexpr char federateAttributeRelevanceAdvisoryMomAttributeContractId[] =
+    "cpp-tck.federate-attribute-relevance-advisory-mim-attribute-contract";
+constexpr char federateAttributeScopeAdvisoryMomAttributeScenario[] =
+    "cpp-tck.federate-attribute-scope-advisory-mim-attribute";
+constexpr char federateAttributeScopeAdvisoryMomAttributeContractId[] =
+    "cpp-tck.federate-attribute-scope-advisory-mim-attribute-contract";
+constexpr char federateInteractionRelevanceAdvisoryMomAttributeScenario[] =
+    "cpp-tck.federate-interaction-relevance-advisory-mim-attribute";
+constexpr char federateInteractionRelevanceAdvisoryMomAttributeContractId[] =
+    "cpp-tck.federate-interaction-relevance-advisory-mim-attribute-contract";
+constexpr char federateAsynchronousDeliveryMomAttributeScenario[] =
+    "cpp-tck.federate-asynchronous-delivery-mim-attribute";
+constexpr char federateAsynchronousDeliveryMomAttributeContractId[] =
+    "cpp-tck.federate-asynchronous-delivery-mim-attribute-contract";
+constexpr char federateTimeConstrainedMomAttributeScenario[] =
+    "cpp-tck.federate-time-constrained-mim-attribute";
+constexpr char federateTimeConstrainedMomAttributeContractId[] =
+    "cpp-tck.federate-time-constrained-mim-attribute-contract";
+constexpr char federateTimeRegulatingMomAttributeScenario[] =
+    "cpp-tck.federate-time-regulating-mim-attribute";
+constexpr char federateTimeRegulatingMomAttributeContractId[] =
+    "cpp-tck.federate-time-regulating-mim-attribute-contract";
+constexpr char federateLookaheadMomPeriodicScenario[] =
+    "cpp-tck.federate-lookahead-mim-periodic";
+constexpr char federateLookaheadMomPeriodicContractId[] =
+    "cpp-tck.federate-lookahead-mim-periodic-contract";
+constexpr char federateLogicalTimeMomPeriodicScenario[] =
+    "cpp-tck.federate-logical-time-mim-periodic";
+constexpr char federateLogicalTimeMomPeriodicContractId[] =
+    "cpp-tck.federate-logical-time-mim-periodic-contract";
+constexpr char federateTimeManagerStateMomAttributeScenario[] =
+    "cpp-tck.federate-time-manager-state-mim-attribute";
+constexpr char federateTimeManagerStateMomAttributeContractId[] =
+    "cpp-tck.federate-time-manager-state-mim-attribute-contract";
+constexpr char federateExceptionReportingMomSwitchScenario[] =
+    "cpp-tck.federate-exception-reporting-mom-switch";
+constexpr char federateExceptionReportingMomSwitchContractId[] =
+    "cpp-tck.federate-exception-reporting-mom-switch-contract";
+constexpr char federateExceptionReportingMomAttributeScenario[] =
+    "cpp-tck.federate-exception-reporting-mim-attribute";
+constexpr char federateExceptionReportingMomAttributeContractId[] =
+    "cpp-tck.federate-exception-reporting-mim-attribute-contract";
+constexpr char federateExceptionReportDeliveryScenario[] =
+    "cpp-tck.federate-exception-report-delivery";
+constexpr char federateExceptionReportDeliveryContractId[] =
+    "cpp-tck.federate-exception-report-delivery-contract";
+constexpr char federateMomExceptionReportDeliveryScenario[] =
+    "cpp-tck.federate-mom-exception-report-delivery";
+constexpr char federateMomExceptionReportDeliveryContractId[] =
+    "cpp-tck.federate-mom-exception-report-delivery-contract";
+constexpr char federateMomExceptionMissingParameterScenario[] =
+    "cpp-tck.federate-mom-exception-missing-parameter";
+constexpr char federateMomExceptionMissingParameterContractId[] =
+    "cpp-tck.federate-mom-exception-missing-parameter-contract";
+constexpr char federationMomExceptionMissingFomModuleIndicatorScenario[] =
+    "cpp-tck.federation-mom-exception-missing-fom-module-indicator";
+constexpr char federationMomExceptionMissingFomModuleIndicatorContractId[] =
+    "cpp-tck.federation-mom-exception-missing-fom-module-indicator-contract";
+constexpr char federateMomFomModuleContentReportScenario[] =
+    "cpp-tck.federate-mom-fom-module-content-report";
+constexpr char federateMomFomModuleContentReportContractId[] =
+    "cpp-tck.federate-mom-fom-module-content-report-contract";
+constexpr char federateMomObjectInstanceInformationScenario[] =
+    "cpp-tck.federate-mom-object-instance-information";
+constexpr char federateMomObjectInstanceInformationContractId[] =
+    "cpp-tck.federate-mom-object-instance-information-contract";
+constexpr char federateMomPublicationQueryScenario[] =
+    "cpp-tck.federate-mom-publication-query";
+constexpr char federateMomPublicationQueryContractId[] =
+    "cpp-tck.federate-mom-publication-query-contract";
+constexpr char federateMomExceptionReportServicePreconditionScenario[] =
+    "cpp-tck.federate-mom-exception-report-service-precondition";
+constexpr char federateMomExceptionReportServicePreconditionContractId[] =
+    "cpp-tck.federate-mom-exception-report-service-precondition-contract";
+constexpr char federateSendServiceReportsToFileMomSwitchScenario[] =
+    "cpp-tck.federate-send-service-reports-to-file-mom-switch";
+constexpr char federateSendServiceReportsToFileMomSwitchContractId[] =
+    "cpp-tck.federate-send-service-reports-to-file-mom-switch-contract";
+constexpr char federateAutomaticResignActionMomSwitchScenario[] =
+    "cpp-tck.federate-automatic-resign-action-mom-switch";
+constexpr char federateAutomaticResignActionMomSwitchContractId[] =
+    "cpp-tck.federate-automatic-resign-action-mom-switch-contract";
+constexpr char federateAutomaticResignActionMomAttributeScenario[] =
+    "cpp-tck.federate-automatic-resign-action-mim-attribute";
+constexpr char federateAutomaticResignActionMomAttributeContractId[] =
+    "cpp-tck.federate-automatic-resign-action-mim-attribute-contract";
 constexpr char serviceReportSynchronizationScenario[] =
     "cpp-tck.service-report-synchronization";
 constexpr char serviceReportSynchronizationContractScenario[] =
@@ -273,6 +572,14 @@ constexpr char delaySubscriptionEvaluationTimestampedAttributeUpdateScenario[] =
     "cpp-tck.delay-subscription-evaluation-timestamped-attribute-update";
 constexpr char delaySubscriptionEvaluationTimestampedAttributeUpdateContractId[] =
     "cpp-tck.delay-subscription-evaluation-timestamped-attribute-update-contract";
+constexpr char delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateScenario[] =
+    "cpp-tck.delay-subscription-evaluation-timestamped-regional-attribute-update";
+constexpr char delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateContractId[] =
+    "cpp-tck.delay-subscription-evaluation-timestamped-regional-attribute-update-contract";
+constexpr char delaySubscriptionEvaluationTimestampedRegionalInteractionScenario[] =
+    "cpp-tck.delay-subscription-evaluation-timestamped-regional-interaction";
+constexpr char delaySubscriptionEvaluationTimestampedRegionalInteractionContractId[] =
+    "cpp-tck.delay-subscription-evaluation-timestamped-regional-interaction-contract";
 constexpr char federationSaveRestoreInterlocksScenario[] =
     "cpp-tck.federation-save-restore-interlocks";
 constexpr char federationSaveRestoreInterlocksContractId[] =
@@ -331,14 +638,102 @@ constexpr char joinedFederateMomRegisteredObjectCountScenario[] =
     "cpp-tck.joined-federate-mom-registered-object-count";
 constexpr char joinedFederateMomRegisteredObjectCountContractId[] =
     "cpp-tck.joined-federate-mom-registered-object-count-contract";
+constexpr char joinedFederateMomObjectLifecycleScenario[] =
+    "cpp-tck.joined-federate-mom-object-lifecycle";
+constexpr char joinedFederateMomObjectLifecycleContractId[] =
+    "cpp-tck.joined-federate-mom-object-lifecycle-contract";
 constexpr char joinedFederateMomDeletableObjectReportScenario[] =
     "cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report";
 constexpr char joinedFederateMomDeletableObjectReportContractId[] =
     "cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report-contract";
+constexpr char joinedFederateMomObjectInstancesUpdatedReportScenario[] =
+    "cpp-tck.joined-federate-mom-object-instances-updated-report";
+constexpr char joinedFederateMomObjectInstancesUpdatedReportContractId[] =
+    "cpp-tck.joined-federate-mom-object-instances-updated-report-contract";
+constexpr char joinedFederateMomObjectInstancesUpdatedTimestampedReportScenario[] =
+    "cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report";
+constexpr char joinedFederateMomObjectInstancesUpdatedTimestampedReportContractId[] =
+    "cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report-contract";
+constexpr char joinedFederateMomObjectInstancesUpdatedMultiClassReportScenario[] =
+    "cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report";
+constexpr char joinedFederateMomObjectInstancesUpdatedMultiClassReportContractId[] =
+    "cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report-contract";
+constexpr char joinedFederateMomObjectInstancesUpdatedNullReportScenario[] =
+    "cpp-tck.joined-federate-mom-object-instances-updated-null-report";
+constexpr char joinedFederateMomObjectInstancesUpdatedNullReportContractId[] =
+    "cpp-tck.joined-federate-mom-object-instances-updated-null-report-contract";
+constexpr char joinedFederateMomObjectInstancesReflectedNullReportScenario[] =
+    "cpp-tck.joined-federate-mom-object-instances-reflected-null-report";
+constexpr char joinedFederateMomObjectInstancesReflectedNullReportContractId[] =
+    "cpp-tck.joined-federate-mom-object-instances-reflected-null-report-contract";
+constexpr char joinedFederateMomObjectInstancesReflectedReportScenario[] =
+    "cpp-tck.joined-federate-mom-object-instances-reflected-report";
+constexpr char joinedFederateMomObjectInstancesReflectedReportContractId[] =
+    "cpp-tck.joined-federate-mom-object-instances-reflected-report-contract";
+constexpr char joinedFederateMomObjectInstancesReflectedTimestampedReportScenario[] =
+    "cpp-tck.joined-federate-mom-object-instances-reflected-timestamped-report";
+constexpr char joinedFederateMomObjectInstancesReflectedTimestampedReportContractId[] =
+    "cpp-tck.joined-federate-mom-object-instances-reflected-timestamped-report-contract";
+constexpr char joinedFederateMomObjectInstancesReflectedMultiClassReportScenario[] =
+    "cpp-tck.joined-federate-mom-object-instances-reflected-multi-class-report";
+constexpr char joinedFederateMomObjectInstancesReflectedMultiClassReportContractId[] =
+    "cpp-tck.joined-federate-mom-object-instances-reflected-multi-class-report-contract";
 constexpr char joinedFederateMomDeletableObjectCountScenario[] =
     "cpp-tck.joined-federate-mom-deletable-object-count";
 constexpr char joinedFederateMomDeletableObjectCountContractId[] =
     "cpp-tck.joined-federate-mom-deletable-object-count-contract";
+constexpr char joinedFederateMomRoLengthPeriodicScenario[] =
+    "cpp-tck.joined-federate-mom-ro-length-periodic";
+constexpr char joinedFederateMomRoLengthPeriodicContractId[] =
+    "cpp-tck.joined-federate-mom-ro-length-periodic-contract";
+constexpr char joinedFederateMomTsoLengthPeriodicScenario[] =
+    "cpp-tck.joined-federate-mom-tso-length-periodic";
+constexpr char joinedFederateMomTsoLengthPeriodicContractId[] =
+    "cpp-tck.joined-federate-mom-tso-length-periodic-contract";
+constexpr char joinedFederateMomInteractionsReceivedAttributeScenario[] =
+    "cpp-tck.joined-federate-mom-interactions-received-mim-attribute";
+constexpr char joinedFederateMomInteractionsReceivedAttributeContractId[] =
+    "cpp-tck.joined-federate-mom-interactions-received-mim-attribute-contract";
+constexpr char joinedFederateMomInteractionsSentAttributeScenario[] =
+    "cpp-tck.joined-federate-mom-interactions-sent-mim-attribute";
+constexpr char joinedFederateMomInteractionsSentAttributeContractId[] =
+    "cpp-tck.joined-federate-mom-interactions-sent-mim-attribute-contract";
+constexpr char joinedFederateMomDirectedInteractionsReceivedAttributeScenario[] =
+    "cpp-tck.joined-federate-mom-directed-interactions-received-mim-attribute";
+constexpr char joinedFederateMomDirectedInteractionsReceivedAttributeContractId[] =
+    "cpp-tck.joined-federate-mom-directed-interactions-received-mim-attribute-contract";
+constexpr char joinedFederateMomDirectedInteractionsSentAttributeScenario[] =
+    "cpp-tck.joined-federate-mom-directed-interactions-sent-mim-attribute";
+constexpr char joinedFederateMomDirectedInteractionsSentAttributeContractId[] =
+    "cpp-tck.joined-federate-mom-directed-interactions-sent-mim-attribute-contract";
+constexpr char joinedFederateMomUpdatesSentAttributeScenario[] =
+    "cpp-tck.joined-federate-mom-updates-sent-mim-attribute";
+constexpr char joinedFederateMomUpdatesSentAttributeContractId[] =
+    "cpp-tck.joined-federate-mom-updates-sent-mim-attribute-contract";
+constexpr char joinedFederateMomObjectInstancesUpdatedAttributeScenario[] =
+    "cpp-tck.joined-federate-mom-object-instances-updated-mim-attribute";
+constexpr char joinedFederateMomObjectInstancesUpdatedAttributeContractId[] =
+    "cpp-tck.joined-federate-mom-object-instances-updated-mim-attribute-contract";
+constexpr char joinedFederateMomObjectInstancesReflectedAttributeScenario[] =
+    "cpp-tck.joined-federate-mom-object-instances-reflected-mim-attribute";
+constexpr char joinedFederateMomObjectInstancesReflectedAttributeContractId[] =
+    "cpp-tck.joined-federate-mom-object-instances-reflected-mim-attribute-contract";
+constexpr char joinedFederateMomReflectionsReceivedAttributeScenario[] =
+    "cpp-tck.joined-federate-mom-reflections-received-mim-attribute";
+constexpr char joinedFederateMomReflectionsReceivedAttributeContractId[] =
+    "cpp-tck.joined-federate-mom-reflections-received-mim-attribute-contract";
+constexpr char joinedFederateMomObjectInstancesDiscoveredAttributeScenario[] =
+    "cpp-tck.joined-federate-mom-object-instances-discovered-mim-attribute";
+constexpr char joinedFederateMomObjectInstancesDiscoveredAttributeContractId[] =
+    "cpp-tck.joined-federate-mom-object-instances-discovered-mim-attribute-contract";
+constexpr char joinedFederateMomObjectInstancesDeletedAttributeScenario[] =
+    "cpp-tck.joined-federate-mom-object-instances-deleted-mim-attribute";
+constexpr char joinedFederateMomObjectInstancesDeletedAttributeContractId[] =
+    "cpp-tck.joined-federate-mom-object-instances-deleted-mim-attribute-contract";
+constexpr char joinedFederateMomObjectInstancesRemovedAttributeScenario[] =
+    "cpp-tck.joined-federate-mom-object-instances-removed-mim-attribute";
+constexpr char joinedFederateMomObjectInstancesRemovedAttributeContractId[] =
+    "cpp-tck.joined-federate-mom-object-instances-removed-mim-attribute-contract";
 constexpr char receiveOrderAttributeUpdateScenario[] =
     "cpp-tck.receive-order-attribute-update";
 constexpr char receiveOrderAttributeUpdateContractId[] =
@@ -367,6 +762,30 @@ constexpr char attributeOwnershipAcquisitionCancellationScenario[] =
     "cpp-tck.attribute-ownership-acquisition-cancellation";
 constexpr char attributeOwnershipAcquisitionCancellationContractId[] =
     "cpp-tck.attribute-ownership-acquisition-cancellation-contract";
+constexpr char negotiatedDivestitureConfirmationFlowScenario[] =
+    "cpp-tck.negotiated-divestiture-confirmation-flow";
+constexpr char negotiatedDivestitureConfirmationFlowContractId[] =
+    "cpp-tck.negotiated-divestiture-confirmation-flow-contract";
+constexpr char attributeOwnershipReleaseDeniedScenario[] =
+    "cpp-tck.attribute-ownership-release-denied";
+constexpr char attributeOwnershipReleaseDeniedContractId[] =
+    "cpp-tck.attribute-ownership-release-denied-contract";
+constexpr char attributeOwnershipDivestitureIfWantedScenario[] =
+    "cpp-tck.attribute-ownership-divestiture-if-wanted";
+constexpr char attributeOwnershipDivestitureIfWantedContractId[] =
+    "cpp-tck.attribute-ownership-divestiture-if-wanted-contract";
+constexpr char attributeOwnershipQueryOwnerReportScenario[] =
+    "cpp-tck.attribute-ownership-query-owner-report";
+constexpr char attributeOwnershipQueryOwnerReportContractId[] =
+    "cpp-tck.attribute-ownership-query-owner-report-contract";
+constexpr char attributeOwnershipQueryUnownedResultScenario[] =
+    "cpp-tck.attribute-ownership-query-unowned-result";
+constexpr char attributeOwnershipQueryUnownedResultContractId[] =
+    "cpp-tck.attribute-ownership-query-unowned-result-contract";
+constexpr char attributeOwnershipQueryRtiOwnedResultScenario[] =
+    "cpp-tck.attribute-ownership-query-rti-owned-result";
+constexpr char attributeOwnershipQueryRtiOwnedResultContractId[] =
+    "cpp-tck.attribute-ownership-query-rti-owned-result-contract";
 constexpr char timestampedDirectedInteractionRetractionScenario[] =
     "cpp-tck.timestamped-directed-interaction-retraction";
 constexpr char timestampedDirectedInteractionRetractionContractId[] =
@@ -563,6 +982,10 @@ constexpr char autoProvideDisabledExplicitRequestScenario[] =
     "cpp-tck.auto-provide-disabled-explicit-request";
 constexpr char autoProvideDisabledExplicitRequestContractId[] =
     "cpp-tck.auto-provide-disabled-explicit-request-contract";
+constexpr char federationAutoProvideMomSwitchScenario[] =
+    "cpp-tck.federation-auto-provide-mom-switch";
+constexpr char federationAutoProvideMomSwitchContractId[] =
+    "cpp-tck.federation-auto-provide-mom-switch-contract";
 constexpr char regionalAutoProvideResponseScenario[] =
     "cpp-tck.regional-auto-provide-response";
 constexpr char regionalAutoProvideResponseContractId[] =
@@ -1027,6 +1450,1188 @@ void scenarioServiceReportOrderTransportationLookupsContractPortable(
   scenarioServiceReportOrderTransportationLookupsContract(options, model);
 }
 
+void scenarioServiceReportDimensionHandleSet(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Dimension-handle-set service-report testing requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "Dimension-handle-set service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-dimension-handle-set-subject");
+  Session observer(options, model, "service-report-dimension-handle-set-observer");
+  auto const federation =
+      federationName(options, "service-report-dimension-handle-set");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-dimension-handle-set-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-dimension-handle-set-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Dimension-handle-set service-report lookup returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber",
+             L"HLAfederate"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(
+          reportClass,
+          name);
+      require(
+          parameter.isValid(),
+          "Dimension-handle-set service-report lookup returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const dimension = subject.rtiAmbassador().getDimensionHandle(
+      options.fomDimensionName);
+  require(
+      dimension.isValid(),
+      "Dimension-handle-set service-report lookup returned an invalid dimension handle");
+  auto const region = subject.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{dimension});
+  require(
+      region.isValid(),
+      "Dimension-handle-set service-report setup returned an invalid region handle");
+  require(
+      !subject.rtiAmbassador().getSendServiceReportsToFileSwitch(),
+      "Dimension-handle-set service-report test could not select MOM delivery");
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  auto const dimensions = subject.rtiAmbassador().getDimensionHandleSet(region);
+  require(
+      dimensions == rti::DimensionHandleSet{dimension},
+      "GetDimensionHandleSet did not return the adapter region's single dimension");
+
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() >= 1U; },
+      options,
+      "successful GetDimensionHandleSet service-report callback");
+  auto const reports = observer.recorder().interactions();
+  require(
+      reports.size() == 1U,
+      "GetDimensionHandleSet delivered an unexpected number of service reports");
+  auto const& report = reports.front();
+  require(
+      report.interaction == reportClass,
+      "GetDimensionHandleSet service report used the wrong interaction class");
+  require(
+      report.parameters.size() == reportParameters.size(),
+      "GetDimensionHandleSet service report had " +
+          std::to_string(report.parameters.size()) + " parameters; expected " +
+          std::to_string(reportParameters.size()));
+  require(
+      report.tag.empty(),
+      "GetDimensionHandleSet service report carried an unexpected tag");
+  require(
+      !report.producer.isValid(),
+      "GetDimensionHandleSet service report carried an unexpected producer handle");
+  require(
+      !report.regions.has_value(),
+      "GetDimensionHandleSet service report carried unexpected region designators");
+  require(
+      report.transportation ==
+          observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable"),
+      "GetDimensionHandleSet service report did not use reliable transportation");
+  auto const reportedFederate = observer.rtiAmbassador().decodeFederateHandle(
+      report.parameters.at(reportParameters.at(7U)));
+  require(
+      reportedFederate == subject.federateHandle(),
+      "GetDimensionHandleSet service report identified the wrong joined federate");
+  auto const quotedRegion =
+      std::wstring{L"\""} + region.toString() + L"\"";
+  auto const dimensionSetText =
+      std::wstring{L"[\""} + dimension.toString() + L"\"]";
+  requirePortableServiceReport(
+      observer,
+      reports.front(),
+      reportClass,
+      reportParameters,
+      L"GetDimensionHandleSet",
+      {{42, L"Region handle", quotedRegion}},
+      {11, L"A set of dimensions", dimensionSetText},
+      0,
+      "GetDimensionHandleSet service report");
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().deleteRegion(region);
+  subject.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportDimensionHandleSetContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDimensionHandleSet(options, model);
+}
+
+void scenarioServiceReportRangeBounds(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Range-bounds service-report testing requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "Range-bounds service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-range-bounds-subject");
+  Session observer(options, model, "service-report-range-bounds-observer");
+  auto const federation = federationName(options, "service-report-range-bounds");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-range-bounds-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-range-bounds-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Range-bounds service-report lookup returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber",
+             L"HLAfederate"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(
+          reportClass,
+          name);
+      require(
+          parameter.isValid(),
+          "Range-bounds service-report lookup returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const dimension = subject.rtiAmbassador().getDimensionHandle(
+      options.fomDimensionName);
+  require(
+      dimension.isValid(),
+      "Range-bounds service-report setup returned an invalid dimension handle");
+  auto const dimensionUpperBound =
+      subject.rtiAmbassador().getDimensionUpperBound(dimension);
+  require(
+      dimensionUpperBound > 0UL,
+      "Range-bounds service-report testing requires a positive adapter dimension upper bound");
+  auto const region = subject.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{dimension});
+  require(
+      region.isValid(),
+      "Range-bounds service-report setup returned an invalid region handle");
+  auto const lowerBound = dimensionUpperBound > 1UL ? 1UL : 0UL;
+  subject.rtiAmbassador().setRangeBounds(
+      region,
+      dimension,
+      rti::RangeBounds{lowerBound, dimensionUpperBound});
+  subject.rtiAmbassador().commitRegionModifications(rti::RegionHandleSet{region});
+  require(
+      !subject.rtiAmbassador().getSendServiceReportsToFileSwitch(),
+      "Range-bounds service-report test could not select MOM delivery");
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  auto const bounds = subject.rtiAmbassador().getRangeBounds(region, dimension);
+  require(
+      bounds.getLowerBound() == lowerBound &&
+          bounds.getUpperBound() == dimensionUpperBound,
+      "GetRangeBounds did not return the adapter region's committed bounds");
+
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() >= 1U; },
+      options,
+      "successful GetRangeBounds service-report callback");
+  auto const reports = observer.recorder().interactions();
+  require(
+      reports.size() == 1U,
+      "GetRangeBounds delivered an unexpected number of service reports");
+  auto const& report = reports.front();
+  require(
+      report.interaction == reportClass,
+      "GetRangeBounds service report used the wrong interaction class");
+  require(
+      report.parameters.size() == reportParameters.size(),
+      "GetRangeBounds service report had " +
+          std::to_string(report.parameters.size()) + " parameters; expected " +
+          std::to_string(reportParameters.size()));
+  require(
+      report.tag.empty(),
+      "GetRangeBounds service report carried an unexpected tag");
+  require(
+      !report.producer.isValid(),
+      "GetRangeBounds service report carried an unexpected producer handle");
+  require(
+      !report.regions.has_value(),
+      "GetRangeBounds service report carried unexpected region designators");
+  require(
+      report.transportation ==
+          observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable"),
+      "GetRangeBounds service report did not use reliable transportation");
+  auto const reportedFederate = observer.rtiAmbassador().decodeFederateHandle(
+      report.parameters.at(reportParameters.at(7U)));
+  require(
+      reportedFederate == subject.federateHandle(),
+      "GetRangeBounds service report identified the wrong joined federate");
+  auto const quotedRegion =
+      std::wstring{L"\""} + region.toString() + L"\"";
+  auto const quotedDimension =
+      std::wstring{L"\""} + dimension.toString() + L"\"";
+  auto const boundsText = L"{\"lower\":" + std::to_wstring(lowerBound) +
+      L",\"upper\":" + std::to_wstring(dimensionUpperBound) + L"}";
+  requirePortableServiceReport(
+      observer,
+      reports.front(),
+      reportClass,
+      reportParameters,
+      L"GetRangeBounds",
+      {{42, L"Region handle", quotedRegion},
+       {10, L"Dimension handle", quotedDimension}},
+      {41, L"Range bounds", boundsText},
+      0,
+      "GetRangeBounds service report",
+      5);
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().deleteRegion(region);
+  subject.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportRangeBoundsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportRangeBounds(options, model);
+}
+
+void scenarioServiceReportSetRangeBounds(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "SetRangeBounds service-report testing requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "SetRangeBounds service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-set-range-bounds-subject");
+  Session observer(options, model, "service-report-set-range-bounds-observer");
+  auto const federation = federationName(options, "service-report-set-range-bounds");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-set-range-bounds-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-set-range-bounds-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "SetRangeBounds service-report lookup returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber",
+             L"HLAfederate"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(
+          reportClass,
+          name);
+      require(
+          parameter.isValid(),
+          "SetRangeBounds service-report lookup returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const dimension = subject.rtiAmbassador().getDimensionHandle(
+      options.fomDimensionName);
+  require(
+      dimension.isValid(),
+      "SetRangeBounds service-report setup returned an invalid dimension handle");
+  auto const upperBound =
+      subject.rtiAmbassador().getDimensionUpperBound(dimension);
+  require(
+      upperBound > 0UL,
+      "SetRangeBounds service-report testing requires a positive adapter dimension upper bound");
+  auto const region = subject.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{dimension});
+  require(
+      region.isValid(),
+      "SetRangeBounds service-report setup returned an invalid region handle");
+  subject.rtiAmbassador().setRangeBounds(
+      region,
+      dimension,
+      rti::RangeBounds{0UL, upperBound});
+  subject.rtiAmbassador().commitRegionModifications(rti::RegionHandleSet{region});
+  require(
+      !subject.rtiAmbassador().getSendServiceReportsToFileSwitch(),
+      "SetRangeBounds service-report test could not select MOM delivery");
+
+  auto const lowerBound = upperBound > 1UL ? 1UL : 0UL;
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  subject.rtiAmbassador().setRangeBounds(
+      region,
+      dimension,
+      rti::RangeBounds{lowerBound, upperBound});
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() >= 1U; },
+      options,
+      "successful SetRangeBounds service-report callback");
+  auto const reports = observer.recorder().interactions();
+  require(
+      reports.size() == 1U,
+      "SetRangeBounds delivered an unexpected number of service reports");
+  auto const& report = reports.front();
+  auto const quotedRegion =
+      std::wstring{L"\""} + region.toString() + L"\"";
+  auto const quotedDimension =
+      std::wstring{L"\""} + dimension.toString() + L"\"";
+  requirePortableServiceReport(
+      observer,
+      report,
+      reportClass,
+      reportParameters,
+      L"SetRangeBounds",
+      {{42, L"Region handle", quotedRegion},
+       {10, L"Dimension handle", quotedDimension},
+       {35, L"Range lower bound", std::to_wstring(lowerBound)},
+       {35, L"Range upper bound", std::to_wstring(upperBound)}},
+      {34, L"", L"null"},
+      0,
+      "SetRangeBounds service report",
+      5);
+  auto const reportedFederate = observer.rtiAmbassador().decodeFederateHandle(
+      report.parameters.at(reportParameters.at(7U)));
+  require(
+      reportedFederate == subject.federateHandle(),
+      "SetRangeBounds service report identified the wrong joined federate");
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  auto const updatedBounds = subject.rtiAmbassador().getRangeBounds(region, dimension);
+  require(
+      updatedBounds.getLowerBound() == lowerBound &&
+          updatedBounds.getUpperBound() == upperBound,
+      "SetRangeBounds did not retain the adapter-valid bounds");
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().deleteRegion(region);
+  subject.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportSetRangeBoundsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportSetRangeBounds(options, model);
+}
+
+void scenarioServiceReportCommitRegionModifications(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "CommitRegionModifications service-report testing requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "CommitRegionModifications service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-commit-region-subject");
+  Session observer(options, model, "service-report-commit-region-observer");
+  auto const federation =
+      federationName(options, "service-report-commit-region-modifications");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-commit-region-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-commit-region-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "CommitRegionModifications service-report lookup returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber",
+             L"HLAfederate"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(
+          reportClass,
+          name);
+      require(
+          parameter.isValid(),
+          "CommitRegionModifications service-report lookup returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const dimension = subject.rtiAmbassador().getDimensionHandle(
+      options.fomDimensionName);
+  require(
+      dimension.isValid(),
+      "CommitRegionModifications service-report setup returned an invalid dimension handle");
+  auto const upperBound =
+      subject.rtiAmbassador().getDimensionUpperBound(dimension);
+  require(
+      upperBound > 0UL,
+      "CommitRegionModifications service-report testing requires a positive adapter dimension upper bound");
+  auto const region = subject.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{dimension});
+  require(
+      region.isValid(),
+      "CommitRegionModifications service-report setup returned an invalid region handle");
+  subject.rtiAmbassador().setRangeBounds(
+      region,
+      dimension,
+      rti::RangeBounds{0UL, upperBound});
+  require(
+      !subject.rtiAmbassador().getSendServiceReportsToFileSwitch(),
+      "CommitRegionModifications service-report test could not select MOM delivery");
+
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  subject.rtiAmbassador().commitRegionModifications(rti::RegionHandleSet{region});
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() >= 1U; },
+      options,
+      "successful CommitRegionModifications service-report callback");
+  auto const reports = observer.recorder().interactions();
+  require(
+      reports.size() == 1U,
+      "CommitRegionModifications delivered an unexpected number of service reports");
+  auto const& report = reports.front();
+  auto const regionSetText =
+      std::wstring{L"[\""} + region.toString() + L"\"]";
+  requirePortableServiceReport(
+      observer,
+      report,
+      reportClass,
+      reportParameters,
+      L"CommitRegionModifications",
+      {{43, L"Set of region designators", regionSetText}},
+      {34, L"", L"null"},
+      0,
+      "CommitRegionModifications service report",
+      5);
+  auto const reportedFederate = observer.rtiAmbassador().decodeFederateHandle(
+      report.parameters.at(reportParameters.at(7U)));
+  require(
+      reportedFederate == subject.federateHandle(),
+      "CommitRegionModifications service report identified the wrong joined federate");
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  auto const committedBounds = subject.rtiAmbassador().getRangeBounds(region, dimension);
+  require(
+      committedBounds.getLowerBound() == 0UL &&
+          committedBounds.getUpperBound() == upperBound,
+      "CommitRegionModifications did not commit the adapter-valid bounds");
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().deleteRegion(region);
+  subject.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportCommitRegionModificationsContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportCommitRegionModifications(options, model);
+}
+
+void scenarioServiceReportDeleteRegion(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "DeleteRegion service-report testing requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "DeleteRegion service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-delete-region-subject");
+  Session observer(options, model, "service-report-delete-region-observer");
+  auto const federation = federationName(options, "service-report-delete-region");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-delete-region-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-delete-region-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "DeleteRegion service-report lookup returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber",
+             L"HLAfederate"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(
+          reportClass,
+          name);
+      require(
+          parameter.isValid(),
+          "DeleteRegion service-report lookup returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const dimension = subject.rtiAmbassador().getDimensionHandle(
+      options.fomDimensionName);
+  require(
+      dimension.isValid(),
+      "DeleteRegion service-report setup returned an invalid dimension handle");
+  auto const region = subject.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{dimension});
+  require(
+      region.isValid(),
+      "DeleteRegion service-report setup returned an invalid region handle");
+  require(
+      !subject.rtiAmbassador().getSendServiceReportsToFileSwitch(),
+      "DeleteRegion service-report test could not select MOM delivery");
+
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  subject.rtiAmbassador().deleteRegion(region);
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() >= 1U; },
+      options,
+      "successful DeleteRegion service-report callback");
+  auto const reports = observer.recorder().interactions();
+  require(
+      reports.size() == 1U,
+      "DeleteRegion delivered an unexpected number of service reports");
+  auto const& report = reports.front();
+  auto const quotedRegion =
+      std::wstring{L"\""} + region.toString() + L"\"";
+  requirePortableServiceReport(
+      observer,
+      report,
+      reportClass,
+      reportParameters,
+      L"DeleteRegion",
+      {{42, L"Region designator", quotedRegion}},
+      {34, L"", L"null"},
+      0,
+      "DeleteRegion service report",
+      5);
+  auto const reportedFederate = observer.rtiAmbassador().decodeFederateHandle(
+      report.parameters.at(reportParameters.at(7U)));
+  require(
+      reportedFederate == subject.federateHandle(),
+      "DeleteRegion service report identified the wrong joined federate");
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  bool deletedRegionRejected = false;
+  try {
+    static_cast<void>(subject.rtiAmbassador().getDimensionHandleSet(region));
+  } catch (rti::InvalidRegion const&) {
+    deletedRegionRejected = true;
+  }
+  require(
+      deletedRegionRejected,
+      "GetDimensionHandleSet did not reject the deleted region with InvalidRegion");
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportDeleteRegionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDeleteRegion(options, model);
+}
+
+void scenarioServiceReportCreateRegion(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "CreateRegion service-report testing requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "CreateRegion service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-create-region-subject");
+  Session observer(options, model, "service-report-create-region-observer");
+  auto const federation = federationName(options, "service-report-create-region");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-create-region-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-create-region-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "CreateRegion service-report lookup returned an invalid report class handle");
+  std::vector<rti::ParameterHandle> const reportParameters = [&] {
+    std::vector<rti::ParameterHandle> result;
+    for (auto const& name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber",
+             L"HLAfederate"}) {
+      auto const parameter = observer.rtiAmbassador().getParameterHandle(
+          reportClass,
+          name);
+      require(
+          parameter.isValid(),
+          "CreateRegion service-report lookup returned an invalid parameter handle");
+      result.push_back(parameter);
+    }
+    return result;
+  }();
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const dimension = subject.rtiAmbassador().getDimensionHandle(
+      options.fomDimensionName);
+  require(
+      dimension.isValid(),
+      "CreateRegion service-report setup returned an invalid dimension handle");
+  require(
+      !subject.rtiAmbassador().getSendServiceReportsToFileSwitch(),
+      "CreateRegion service-report test could not select MOM delivery");
+
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  auto const region = subject.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{dimension});
+  require(region.isValid(), "CreateRegion returned an invalid region handle");
+  waitFor(
+      subject,
+      observer,
+      [&] { return observer.recorder().interactions().size() >= 1U; },
+      options,
+      "successful CreateRegion service-report callback");
+  auto const reports = observer.recorder().interactions();
+  require(
+      reports.size() == 1U,
+      "CreateRegion delivered an unexpected number of service reports");
+  auto const& report = reports.front();
+  auto const dimensionSetValue =
+      std::wstring{L"[\""} + dimension.toString() + L"\"]";
+  auto const quotedRegion =
+      std::wstring{L"\""} + region.toString() + L"\"";
+  requirePortableServiceReport(
+      observer,
+      report,
+      reportClass,
+      reportParameters,
+      L"CreateRegion",
+      {{11, L"Set of dimension designators", dimensionSetValue}},
+      {42, L"Region designator", quotedRegion},
+      0,
+      "CreateRegion service report",
+      5);
+  auto const reportedFederate = observer.rtiAmbassador().decodeFederateHandle(
+      report.parameters.at(reportParameters.at(7U)));
+  require(
+      reportedFederate == subject.federateHandle(),
+      "CreateRegion service report identified the wrong joined federate");
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().deleteRegion(region);
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  subject.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportCreateRegionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportCreateRegion(options, model);
+}
+
+void scenarioRegionRangeValidation(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Region range validation requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "Region range validation requires an adapter-supplied standard MIM");
+
+  Session participant(options, model, "region-range-validation");
+  auto const federation = federationName(options, "region-range-validation");
+  participant.connect();
+  participant.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  participant.join(
+      options.ownerFederateName + L"-region-range-validation",
+      options.federateType,
+      federation);
+
+  auto const dimension = participant.rtiAmbassador().getDimensionHandle(
+      options.fomDimensionName);
+  require(
+      dimension.isValid(),
+      "Region range validation setup returned an invalid dimension handle");
+  auto const upperBound =
+      participant.rtiAmbassador().getDimensionUpperBound(dimension);
+  require(
+      upperBound > 0UL,
+      "Region range validation requires a positive adapter dimension upper bound");
+  auto const region = participant.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{dimension});
+  require(
+      region.isValid(),
+      "Region range validation setup returned an invalid region handle");
+
+  participant.rtiAmbassador().setRangeBounds(
+      region,
+      dimension,
+      rti::RangeBounds{0UL, upperBound});
+  participant.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{region});
+  auto const validBounds =
+      participant.rtiAmbassador().getRangeBounds(region, dimension);
+  require(
+      validBounds.getLowerBound() == 0UL &&
+          validBounds.getUpperBound() == upperBound,
+      "A range ending at the dimension upper bound was not accepted");
+
+  auto const requireInvalidRange = [&](rti::RangeBounds const& invalidBounds,
+                                       char const* description) {
+    bool rejected = false;
+    try {
+      participant.rtiAmbassador().setRangeBounds(
+          region,
+          dimension,
+          invalidBounds);
+    } catch (rti::InvalidRangeBound const&) {
+      rejected = true;
+    }
+    require(
+        rejected,
+        "SetRangeBounds did not throw InvalidRangeBound for " +
+            std::string{description});
+  };
+  requireInvalidRange(
+      rti::RangeBounds{upperBound, upperBound},
+      "equal lower and upper bounds");
+  requireInvalidRange(
+      rti::RangeBounds{upperBound, 0UL},
+      "a lower bound greater than the upper bound");
+
+  participant.rtiAmbassador().deleteRegion(region);
+  participant.resign(rti::NO_ACTION);
+  participant.rtiAmbassador().destroyFederationExecution(federation);
+  participant.disconnect();
+}
+
+void scenarioRegionRangeValidationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionRangeValidation(options, model);
+}
+
+void scenarioRegionRangeDimensionValidation(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "Region dimension-membership validation requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "Region dimension-membership validation requires an adapter-supplied standard MIM");
+
+  Session participant(options, model, "region-range-dimension-validation");
+  auto const federation =
+      federationName(options, "region-range-dimension-validation");
+  participant.connect();
+  participant.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  participant.join(
+      options.ownerFederateName + L"-region-range-dimension-validation",
+      options.federateType,
+      federation);
+
+  auto const dimension = participant.rtiAmbassador().getDimensionHandle(
+      options.fomDimensionName);
+  require(
+      dimension.isValid(),
+      "Region dimension-membership setup returned an invalid dimension handle");
+  auto const upperBound =
+      participant.rtiAmbassador().getDimensionUpperBound(dimension);
+  require(
+      upperBound > 0UL,
+      "Region dimension-membership validation requires a positive dimension upper bound");
+  auto const region = participant.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{dimension});
+  participant.rtiAmbassador().setRangeBounds(
+      region,
+      dimension,
+      rti::RangeBounds{0UL, upperBound});
+  participant.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{region});
+
+  auto const absentDimension = rti::DimensionHandle{};
+  bool getRejected = false;
+  try {
+    static_cast<void>(
+        participant.rtiAmbassador().getRangeBounds(region, absentDimension));
+  } catch (rti::RegionDoesNotContainSpecifiedDimension const&) {
+    getRejected = true;
+  }
+  require(
+      getRejected,
+      "GetRangeBounds did not reject a dimension absent from the region with "
+      "RegionDoesNotContainSpecifiedDimension");
+
+  bool setRejected = false;
+  try {
+    participant.rtiAmbassador().setRangeBounds(
+        region,
+        absentDimension,
+        rti::RangeBounds{0UL, upperBound});
+  } catch (rti::RegionDoesNotContainSpecifiedDimension const&) {
+    setRejected = true;
+  }
+  require(
+      setRejected,
+      "SetRangeBounds did not reject a dimension absent from the region with "
+      "RegionDoesNotContainSpecifiedDimension");
+
+  participant.rtiAmbassador().deleteRegion(region);
+  participant.resign(rti::NO_ACTION);
+  participant.rtiAmbassador().destroyFederationExecution(federation);
+  participant.disconnect();
+}
+
+void scenarioRegionRangeDimensionValidationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionRangeDimensionValidation(options, model);
+}
+
+void scenarioServiceReportDimensionUpperBoundPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDimensionUpperBound(options, model);
+}
+
+void scenarioServiceReportDimensionUpperBoundContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDimensionUpperBoundContract(options, model);
+}
+
+void scenarioServiceReportDimensionHandleSetPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDimensionHandleSet(options, model);
+}
+
+void scenarioServiceReportDimensionHandleSetContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDimensionHandleSetContract(options, model);
+}
+
+void scenarioServiceReportRangeBoundsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportRangeBounds(options, model);
+}
+
+void scenarioServiceReportRangeBoundsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportRangeBoundsContract(options, model);
+}
+
+void scenarioServiceReportSetRangeBoundsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportSetRangeBounds(options, model);
+}
+
+void scenarioServiceReportSetRangeBoundsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportSetRangeBoundsContract(options, model);
+}
+
+void scenarioServiceReportCommitRegionModificationsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportCommitRegionModifications(options, model);
+}
+
+void scenarioServiceReportCommitRegionModificationsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportCommitRegionModificationsContract(options, model);
+}
+
+void scenarioServiceReportDeleteRegionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDeleteRegion(options, model);
+}
+
+void scenarioServiceReportDeleteRegionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDeleteRegionContract(options, model);
+}
+
+void scenarioServiceReportCreateRegionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportCreateRegion(options, model);
+}
+
+void scenarioServiceReportCreateRegionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportCreateRegionContract(options, model);
+}
+
+void scenarioRegionRangeValidationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionRangeValidation(options, model);
+}
+
+void scenarioRegionRangeValidationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionRangeValidationContract(options, model);
+}
+
+void scenarioRegionRangeDimensionValidationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionRangeDimensionValidation(options, model);
+}
+
+void scenarioRegionRangeDimensionValidationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRegionRangeDimensionValidationContract(options, model);
+}
+
+void scenarioServiceReportDimensionNamePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDimensionName(options, model);
+}
+
+void scenarioServiceReportDimensionNameContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDimensionNameContract(options, model);
+}
+
+void scenarioServiceReportDimensionHandlePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDimensionHandle(options, model);
+}
+
+void scenarioServiceReportDimensionHandleContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportDimensionHandleContract(options, model);
+}
+
+void scenarioServiceReportInteractionDimensionsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInteractionDimensions(options, model);
+}
+
+void scenarioServiceReportInteractionDimensionsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportInteractionDimensionsContract(options, model);
+}
+
+void scenarioServiceReportObjectDimensionsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportObjectDimensions(options, model);
+}
+
+void scenarioServiceReportObjectDimensionsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportObjectDimensionsContract(options, model);
+}
+
 void scenarioServiceReportOrderTransportationLookupFailuresPortable(
     Options const& options,
     rti::CallbackModel model) {
@@ -1097,6 +2702,3400 @@ void scenarioServiceReportInteractionContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioServiceReportInteractionContract(options, model);
+}
+
+void scenarioServiceReportResignFederationExecutionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.mimFom.empty(),
+      "Resignation service-report testing requires an adapter-supplied standard MIM");
+
+  Session subject(options, model, "service-report-resignation-subject");
+  Session observer(options, model, "service-report-resignation-observer");
+  auto const federation =
+      federationName(options, "service-report-resign-federation-execution");
+  subject.connect();
+  observer.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-service-report-resignation-subject",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-resignation-observer",
+      options.federateType,
+      federation);
+  auto const subjectFederate = subject.federateHandle();
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Resignation service-report lookup returned an invalid HLAreportServiceInvocation handle");
+  std::vector<rti::ParameterHandle> reportParameters;
+  for (auto const& name : {
+           L"HLAservice",
+           L"HLAserviceType",
+           L"HLAsuccessIndicator",
+           L"HLAsuppliedArguments",
+           L"HLAreturnedArgument",
+           L"HLAexception",
+           L"HLAserialNumber",
+           L"HLAfederate"}) {
+    auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+    require(
+        parameter.isValid(),
+        "Resignation service-report parameter lookup returned an invalid handle");
+    reportParameters.push_back(parameter);
+  }
+
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  subject.rtiAmbassador().resignFederationExecution(rti::NO_ACTION);
+
+  waitFor(
+      observer,
+      [&] { return observer.recorder().interaction().present; },
+      options,
+      "the ResignFederationExecution HLAreportServiceInvocation callback");
+  auto const report = observer.recorder().interaction();
+  require(
+      report.interaction == reportClass &&
+          report.parameters.size() == reportParameters.size() &&
+          !report.producer.isValid(),
+      "Resignation service-report callback returned the wrong interaction identity or producer metadata");
+  require(
+      report.tag.empty() && !report.regions.has_value(),
+      "Resignation service-report callback returned user tag or region metadata");
+  require(
+      report.transportation ==
+          observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable"),
+      "Resignation service-report callback returned the wrong transportation type");
+  for (auto const parameterHandle : reportParameters) {
+    require(
+        report.parameters.count(parameterHandle) == 1U,
+        "Resignation service-report callback omitted a standard report parameter");
+  }
+
+  auto const reportedFederate = observer.rtiAmbassador().decodeFederateHandle(
+      report.parameters.at(reportParameters.at(7U)));
+  require(
+      reportedFederate == subjectFederate,
+      "Resignation service-report callback identified the wrong joined federate");
+  rti::HLAunicodeString service;
+  service.decode(report.parameters.at(reportParameters[0]));
+  require(
+      service.get() == L"ResignFederationExecution",
+      "Resignation service-report callback returned the wrong service name");
+  rti::HLAinteger16BE serviceType;
+  serviceType.decode(report.parameters.at(reportParameters[1]));
+  require(
+      serviceType.get() == 0,
+      "Resignation service-report callback returned the wrong service type");
+  rti::HLAboolean success;
+  success.decode(report.parameters.at(reportParameters[2]));
+  require(
+      success.get(),
+      "Resignation service-report callback did not report a successful invocation");
+  rti::HLAunicodeString exception;
+  exception.decode(report.parameters.at(reportParameters[5]));
+  require(
+      exception.get().empty(),
+      "Successful resignation service report carried an exception");
+  rti::HLAinteger32BE serial;
+  serial.decode(report.parameters.at(reportParameters[6]));
+  require(
+      serial.get() >= 0,
+      "Resignation service-report callback returned a negative serial number");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  observer.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioServiceReportResignFederationExecutionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportResignFederationExecutionPortable(options, model);
+}
+
+void scenarioFederateLostMomReportPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      options.connectionLossServerManaged,
+      "Federate-lost MOM reporting requires an adapter-managed fault fixture");
+  require(
+      !options.fom.empty(),
+      "Federate-lost MOM reporting requires an adapter-supplied application FOM module");
+  require(
+      !options.mimFom.empty(),
+      "Federate-lost MOM reporting requires an adapter-supplied standard MIM");
+  auto withStage = [](char const* stage, auto&& operation) -> decltype(operation()) {
+    try {
+      return operation();
+    } catch (rti::Exception const& error) {
+      throw std::runtime_error(
+          std::string("HLAreportFederateLost ") + stage + ": " +
+          toNarrow(error.name()) + ": " + toNarrow(error.what()));
+    } catch (std::exception const& error) {
+      throw std::runtime_error(
+          std::string("HLAreportFederateLost ") + stage + ": " + error.what());
+    }
+  };
+
+  Session observer(options, model, "owner");
+  Session lost(options, model, "member");
+  auto const federation = federationName(options, "federate-lost-mom-report");
+  auto const observerConnection = withStage(
+      "observer connect failed", [&] { return observer.connect(); });
+  auto const lostConnection = withStage(
+      "lost-member connect failed", [&] { return lost.connect(); });
+  require(
+      observerConnection.addressUsed && lostConnection.addressUsed,
+      "The adapter rtiAddress was not selected for both federates: " +
+          options.rtiAddress);
+  // The application module supplies the non-empty FOM module list required
+  // for a valid federation create; the tested interaction remains defined by
+  // the standard MIM and no application-class behavior is asserted.
+  withStage("federation creation failed", [&] {
+    observer.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  });
+
+  auto const observerName = options.ownerFederateName;
+  auto const lostName = options.memberFederateName;
+  withStage("observer join failed", [&] {
+    observer.join(observerName, options.federateType, federation);
+  });
+  withStage("lost-member join failed", [&] {
+    lost.join(lostName, options.federateType, federation);
+  });
+  auto const lostFederate = lost.federateHandle();
+
+  auto const reportClass = withStage("interaction-class lookup failed", [&] {
+    return observer.rtiAmbassador().getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportFederateLost");
+  });
+  require(reportClass.isValid(), "HLAreportFederateLost lookup returned an invalid handle");
+  auto const federateParameter = withStage("HLAfederate parameter lookup failed", [&] {
+    return observer.rtiAmbassador().getParameterHandle(reportClass, L"HLAfederate");
+  });
+  auto const nameParameter = withStage("HLAfederateName parameter lookup failed", [&] {
+    return observer.rtiAmbassador().getParameterHandle(reportClass, L"HLAfederateName");
+  });
+  auto const timeParameter = withStage("HLAtimeStamp parameter lookup failed", [&] {
+    return observer.rtiAmbassador().getParameterHandle(reportClass, L"HLAtimeStamp");
+  });
+  auto const faultParameter = withStage("HLAfaultDescription parameter lookup failed", [&] {
+    return observer.rtiAmbassador().getParameterHandle(reportClass, L"HLAfaultDescription");
+  });
+  require(
+      federateParameter.isValid() && nameParameter.isValid() &&
+          timeParameter.isValid() && faultParameter.isValid(),
+      "HLAreportFederateLost parameter lookup returned an invalid handle");
+  withStage("subscription failed", [&] {
+    observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+  });
+
+  if (!options.connectionLossReadyMarker.empty()) {
+    std::ofstream readyMarker(
+        options.connectionLossReadyMarker,
+        std::ios::binary | std::ios::trunc);
+    require(
+        static_cast<bool>(readyMarker),
+        "Could not write the connection-loss readiness marker");
+    readyMarker << "ready\n";
+    require(
+        static_cast<bool>(readyMarker),
+        "Could not flush the connection-loss readiness marker");
+  }
+  auto const lossDeadline = std::chrono::steady_clock::now() +
+      std::chrono::milliseconds(options.timeoutMilliseconds);
+  while (std::chrono::steady_clock::now() < lossDeadline &&
+         (!lost.recorder().hasConnectionLost() ||
+          !observer.recorder().interaction().present)) {
+    for (Session* federate : {&lost, &observer}) {
+      try {
+        static_cast<void>(
+            federate->rtiAmbassador().evokeMultipleCallbacks(0.0, 0.05));
+      } catch (...) {
+        // A provider may surface the socket fault on an evoke operation before
+        // queuing ConnectionLost; continue servicing both federates.
+      }
+    }
+    if (!lost.recorder().hasConnectionLost() ||
+        !observer.recorder().interaction().present) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+  }
+  require(
+      lost.recorder().hasConnectionLost(),
+      "Timed out waiting for HLAreportFederateLost delivery connectionLost callback");
+  require(
+      !lost.recorder().connectionLostDescription().empty(),
+      "HLAreportFederateLost delivery connectionLost did not provide a fault description");
+  require(
+      observer.recorder().interaction().present,
+      "Timed out waiting for the subscribed HLAreportFederateLost callback");
+  if (!options.connectionLossMarker.empty()) {
+    std::ofstream marker(
+        options.connectionLossMarker,
+        std::ios::binary | std::ios::trunc);
+    require(
+        static_cast<bool>(marker),
+        "Could not write the connection-loss completion marker");
+    marker << "callback-ok\n";
+    require(
+        static_cast<bool>(marker),
+        "Could not flush the connection-loss completion marker");
+  }
+
+  auto const report = observer.recorder().interaction();
+  require(
+      report.interaction == reportClass &&
+          report.parameters.size() == 4U &&
+          report.parameters.count(federateParameter) == 1U &&
+          report.parameters.count(nameParameter) == 1U &&
+          report.parameters.count(timeParameter) == 1U &&
+          report.parameters.count(faultParameter) == 1U,
+      "HLAreportFederateLost callback returned the wrong identity or parameter set");
+  auto const reliable = withStage("HLAreliable lookup failed", [&] {
+    return observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  });
+  require(
+      report.transportation == reliable,
+      "HLAreportFederateLost callback did not use reliable transportation");
+
+  auto const reportedFederate = withStage("federate-handle decoding failed", [&] {
+    return observer.rtiAmbassador().decodeFederateHandle(
+        report.parameters.at(federateParameter));
+  });
+  require(
+      reportedFederate == lostFederate,
+      "HLAreportFederateLost identified the wrong joined federate");
+  rti::HLAunicodeString reportedName;
+  withStage("federate-name decoding failed", [&] {
+    reportedName.decode(report.parameters.at(nameParameter));
+  });
+  require(
+      reportedName.get() == lostName,
+      "HLAreportFederateLost returned the wrong federate name");
+  auto timeFactory = withStage("logical-time factory creation failed", [&] {
+    return rti::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
+        options.logicalTimeImplementationName);
+  });
+  require(timeFactory != nullptr, "The adapter logical-time factory was unavailable");
+  auto reportedTime = withStage("logical timestamp decoding failed", [&] {
+    return timeFactory->decodeLogicalTime(report.parameters.at(timeParameter));
+  });
+  require(
+      reportedTime != nullptr && !reportedTime->toString().empty(),
+      "HLAreportFederateLost did not encode a standard logical timestamp");
+  rti::HLAunicodeString faultDescription;
+  withStage("fault-description decoding failed", [&] {
+    faultDescription.decode(report.parameters.at(faultParameter));
+  });
+
+  try {
+    lost.disconnect();
+  } catch (...) {
+    // The connection-loss callback may follow an implementation's forced disconnect.
+  }
+  withStage("observer resignation failed", [&] {
+    observer.resign(rti::NO_ACTION);
+  });
+  withStage("federation destruction failed", [&] {
+    observer.rtiAmbassador().destroyFederationExecution(federation);
+  });
+  withStage("observer disconnect failed", [&] { observer.disconnect(); });
+}
+
+void scenarioFederateLostMomReportContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateLostMomReportPortable(options, model);
+}
+
+void scenarioHandleNormalizationMembershipBoundariesPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "handle-normalization-boundary-owner");
+  Session member(options, model, "handle-normalization-boundary-member");
+  Session probe(options, model, "handle-normalization-boundary-probe");
+  auto const federation =
+      federationName(options, "handle-normalization-membership-boundaries");
+  connectAndJoin(owner, member, options, federation, options.fom);
+
+  rti::ObjectClassHandle objectClass;
+  rti::AttributeHandle attribute;
+  rti::InteractionClassHandle interactionClass;
+  rti::ParameterHandle parameter;
+  handles(owner, options, objectClass, attribute, interactionClass, parameter);
+  rti::AttributeHandleSet publishedAttributes;
+  publishedAttributes.insert(attribute);
+  owner.rtiAmbassador().publishObjectClassAttributes(objectClass, publishedAttributes);
+  auto const object = owner.rtiAmbassador().registerObjectInstance(objectClass);
+  require(
+      object.isValid(),
+      "Handle-normalization boundary fixture returned an invalid object handle");
+
+  auto requireNormalizationState = [&](Session& caller,
+                                       std::wstring const& expected,
+                                       std::string const& phase) {
+    requireException(
+        [&] {
+          static_cast<void>(caller.rtiAmbassador().normalizeServiceGroup(
+              rti::SUPPORT_SERVICES));
+        },
+        expected,
+        "normalize support service group " + phase);
+    requireException(
+        [&] {
+          static_cast<void>(caller.rtiAmbassador().normalizeFederateHandle(
+              owner.federateHandle()));
+        },
+        expected,
+        "normalize federate handle " + phase);
+    requireException(
+        [&] {
+          static_cast<void>(caller.rtiAmbassador().normalizeObjectClassHandle(objectClass));
+        },
+        expected,
+        "normalize object-class handle " + phase);
+    requireException(
+        [&] {
+          static_cast<void>(caller.rtiAmbassador().normalizeInteractionClassHandle(
+              interactionClass));
+        },
+        expected,
+        "normalize interaction-class handle " + phase);
+    requireException(
+        [&] {
+          static_cast<void>(caller.rtiAmbassador().normalizeObjectInstanceHandle(object));
+        },
+        expected,
+        "normalize object-instance handle " + phase);
+  };
+
+  requireNormalizationState(probe, L"NotConnected", "before connect");
+  probe.connect();
+  requireNormalizationState(
+      probe,
+      L"FederateNotExecutionMember",
+      "after connect before join");
+  probe.join(
+      options.memberFederateName + L"-handle-normalization-probe",
+      options.federateType,
+      federation);
+  probe.resign(rti::NO_ACTION);
+  requireNormalizationState(
+      probe,
+      L"FederateNotExecutionMember",
+      "after resignation while connected");
+  probe.disconnect();
+
+  member.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  owner.disconnect();
+}
+
+void scenarioHandleNormalizationMembershipBoundariesContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioHandleNormalizationMembershipBoundariesPortable(options, model);
+}
+
+void scenarioDimensionLookupValidHandlesAfterResignationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.ddmFom.empty(),
+      "Post-resignation dimension lookup requires an adapter-supplied dimensional FOM");
+  require(
+      !options.ddmDimensionNames.empty(),
+      "Post-resignation dimension lookup requires an adapter-supplied dimension name");
+
+  Session owner(options, model, "dimension-lookup-resigned-owner");
+  Session member(options, model, "dimension-lookup-resigned-member");
+  auto const federation =
+      federationName(options, "dimension-lookup-valid-handles-after-resignation");
+  connectAndJoin(owner, member, options, federation, options.ddmFom);
+
+  auto const objectClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const interactionClass = owner.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const dimension = owner.rtiAmbassador().getDimensionHandle(
+      options.ddmDimensionNames.front());
+  require(
+      objectClass.isValid() && interactionClass.isValid() && dimension.isValid(),
+      "Post-resignation dimension lookup fixture returned an invalid standard handle");
+  require(
+      owner.rtiAmbassador().getDimensionName(dimension) ==
+              options.ddmDimensionNames.front() &&
+          owner.rtiAmbassador().getDimensionUpperBound(dimension) > 0U,
+      "Post-resignation dimension lookup fixture did not verify its live dimension handle");
+
+  owner.resign(rti::NO_ACTION);
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getDimensionName(dimension));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a valid dimension name after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getDimensionUpperBound(dimension));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a valid dimension upper bound after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getAvailableDimensionsForObjectClass(
+            objectClass));
+      },
+      L"FederateNotExecutionMember",
+      "looking up valid object-class dimensions after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getAvailableDimensionsForInteractionClass(
+            interactionClass));
+      },
+      L"FederateNotExecutionMember",
+      "looking up valid interaction-class dimensions after resignation");
+
+  member.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  owner.disconnect();
+}
+
+void scenarioDimensionLookupValidHandlesAfterResignationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDimensionLookupValidHandlesAfterResignationPortable(options, model);
+}
+
+void scenarioUpdateRateLookupValidInputsAfterResignationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.rateFom.empty(),
+      "Post-resignation update-rate lookup requires an adapter-supplied rate FOM");
+  require(
+      !options.rateDesignatorName.empty(),
+      "Post-resignation update-rate lookup requires an adapter-supplied designator");
+
+  Session owner(options, model, "update-rate-resigned-owner");
+  Session member(options, model, "update-rate-resigned-member");
+  auto const federation =
+      federationName(options, "update-rate-lookup-valid-inputs-after-resignation");
+  connectAndJoin(owner, member, options, federation, options.rateFom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.rateObjectClassName);
+  auto const memberClass = member.rtiAmbassador().getObjectClassHandle(
+      options.rateObjectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.rateBestEffortAttributeName);
+  auto const memberAttribute = member.rtiAmbassador().getAttributeHandle(
+      memberClass,
+      options.rateBestEffortAttributeName);
+  require(
+      ownerClass.isValid() && memberClass.isValid() && ownerAttribute.isValid() &&
+          memberAttribute.isValid(),
+      "Post-resignation update-rate fixture returned an invalid standard handle");
+
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      rti::AttributeHandleSet{ownerAttribute});
+  member.rtiAmbassador().subscribeObjectClassAttributes(
+      memberClass,
+      rti::AttributeHandleSet{memberAttribute},
+      true,
+      options.rateDesignatorName);
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "Post-resignation update-rate fixture returned an invalid object handle");
+  waitFor(
+      member,
+      [&] { return member.recorder().hasDiscovery(object); },
+      options,
+      "post-resignation update-rate object discovery");
+
+  auto const namedRate = member.rtiAmbassador().getUpdateRateValue(
+      options.rateDesignatorName);
+  require(namedRate > 0.0, "Adapter-supplied update-rate designator was not valid");
+  require(
+      member.rtiAmbassador().getUpdateRateValueForAttribute(object, memberAttribute) ==
+          namedRate,
+      "Valid object/attribute did not resolve the active update-rate designator");
+
+  member.resign(rti::NO_ACTION);
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getUpdateRateValue(
+            options.rateDesignatorName));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a valid update-rate designator after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getUpdateRateValueForAttribute(
+            object,
+            memberAttribute));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a valid object-attribute update rate after resignation");
+
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  owner.disconnect();
+}
+
+void scenarioUpdateRateLookupValidInputsAfterResignationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioUpdateRateLookupValidInputsAfterResignationPortable(options, model);
+}
+
+void scenarioSupportLookupValidInputsAfterResignationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Post-resignation support lookup testing requires an adapter-supplied FOM");
+  require(
+      !options.objectClassName.empty() && !options.attributeName.empty() &&
+          !options.interactionClassName.empty() && !options.parameterName.empty(),
+      "Post-resignation support lookup testing requires adapter-supplied class and member names");
+
+  Session subject(options, model, "support-lookup-resigned-subject");
+  auto const federation =
+      federationName(options, "support-lookup-valid-inputs-after-resignation");
+  subject.connect();
+  subject.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-support-lookup-resigned-subject",
+      options.federateType,
+      federation);
+
+  auto const objectClass = subject.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const attribute = subject.rtiAmbassador().getAttributeHandle(
+      objectClass,
+      options.attributeName);
+  auto const interactionClass = subject.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const parameter = subject.rtiAmbassador().getParameterHandle(
+      interactionClass,
+      options.parameterName);
+  require(
+      objectClass.isValid() && attribute.isValid() && interactionClass.isValid() &&
+          parameter.isValid(),
+      "Adapter-supplied FOM returned an invalid support-service lookup handle");
+  require(
+      subject.rtiAmbassador().getObjectClassName(objectClass) ==
+              options.objectClassName &&
+          subject.rtiAmbassador().getAttributeName(objectClass, attribute) ==
+              options.attributeName &&
+          subject.rtiAmbassador().getInteractionClassName(interactionClass) ==
+              options.interactionClassName &&
+          subject.rtiAmbassador().getParameterName(interactionClass, parameter) ==
+              options.parameterName,
+      "Adapter-supplied FOM support-service lookups did not round-trip while joined");
+
+  subject.resign(rti::NO_ACTION);
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getObjectClassHandle(
+            options.objectClassName));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a valid object class after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getObjectClassName(objectClass));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a valid object-class name after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getAttributeHandle(
+            objectClass,
+            options.attributeName));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a valid attribute after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getAttributeName(
+            objectClass,
+            attribute));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a valid attribute name after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getInteractionClassHandle(
+            options.interactionClassName));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a valid interaction class after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getInteractionClassName(
+            interactionClass));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a valid interaction-class name after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getParameterHandle(
+            interactionClass,
+            options.parameterName));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a valid parameter after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getParameterName(
+            interactionClass,
+            parameter));
+      },
+      L"FederateNotExecutionMember",
+      "looking up a valid parameter name after resignation");
+
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+}
+
+void scenarioSupportLookupValidInputsAfterResignationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioSupportLookupValidInputsAfterResignationPortable(options, model);
+}
+
+void scenarioSupportSwitchGetterLifecycleBoundariesPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Support-switch getter lifecycle testing requires an adapter-supplied FOM");
+
+  Session subject(options, model, "support-switch-getters-lifecycle-subject");
+  auto const federation =
+      federationName(options, "support-switch-getter-lifecycle-boundaries");
+  subject.connect();
+  subject.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-support-switch-getter-lifecycle-subject",
+      options.federateType,
+      federation);
+
+  auto& ambassador = subject.rtiAmbassador();
+  static_cast<void>(ambassador.getObjectClassRelevanceAdvisorySwitch());
+  static_cast<void>(ambassador.getAttributeRelevanceAdvisorySwitch());
+  static_cast<void>(ambassador.getAttributeScopeAdvisorySwitch());
+  static_cast<void>(ambassador.getInteractionRelevanceAdvisorySwitch());
+  static_cast<void>(ambassador.getConveyRegionDesignatorSetsSwitch());
+  static_cast<void>(ambassador.getServiceReportingSwitch());
+  static_cast<void>(ambassador.getExceptionReportingSwitch());
+  static_cast<void>(ambassador.getSendServiceReportsToFileSwitch());
+  static_cast<void>(ambassador.getAutoProvideSwitch());
+  static_cast<void>(ambassador.getDelaySubscriptionEvaluationSwitch());
+  static_cast<void>(ambassador.getAdvisoriesUseKnownClassSwitch());
+  static_cast<void>(ambassador.getAllowRelaxedDDMSwitch());
+  static_cast<void>(ambassador.getNonRegulatedGrantSwitch());
+
+  auto requireBoundary = [&](auto&& getter,
+                             wchar_t const* exceptionName,
+                             char const* context) {
+    requireException(getter, exceptionName, context);
+  };
+  subject.resign(rti::NO_ACTION);
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getObjectClassRelevanceAdvisorySwitch()); },
+      L"FederateNotExecutionMember",
+      "reading getObjectClassRelevanceAdvisorySwitch after resignation");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getAttributeRelevanceAdvisorySwitch()); },
+      L"FederateNotExecutionMember",
+      "reading getAttributeRelevanceAdvisorySwitch after resignation");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getAttributeScopeAdvisorySwitch()); },
+      L"FederateNotExecutionMember",
+      "reading getAttributeScopeAdvisorySwitch after resignation");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getInteractionRelevanceAdvisorySwitch()); },
+      L"FederateNotExecutionMember",
+      "reading getInteractionRelevanceAdvisorySwitch after resignation");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getConveyRegionDesignatorSetsSwitch()); },
+      L"FederateNotExecutionMember",
+      "reading getConveyRegionDesignatorSetsSwitch after resignation");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getServiceReportingSwitch()); },
+      L"FederateNotExecutionMember",
+      "reading getServiceReportingSwitch after resignation");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getExceptionReportingSwitch()); },
+      L"FederateNotExecutionMember",
+      "reading getExceptionReportingSwitch after resignation");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getSendServiceReportsToFileSwitch()); },
+      L"FederateNotExecutionMember",
+      "reading getSendServiceReportsToFileSwitch after resignation");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getAutoProvideSwitch()); },
+      L"FederateNotExecutionMember",
+      "reading getAutoProvideSwitch after resignation");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getDelaySubscriptionEvaluationSwitch()); },
+      L"FederateNotExecutionMember",
+      "reading getDelaySubscriptionEvaluationSwitch after resignation");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getAdvisoriesUseKnownClassSwitch()); },
+      L"FederateNotExecutionMember",
+      "reading getAdvisoriesUseKnownClassSwitch after resignation");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getAllowRelaxedDDMSwitch()); },
+      L"FederateNotExecutionMember",
+      "reading getAllowRelaxedDDMSwitch after resignation");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getNonRegulatedGrantSwitch()); },
+      L"FederateNotExecutionMember",
+      "reading getNonRegulatedGrantSwitch after resignation");
+
+  ambassador.destroyFederationExecution(federation);
+  subject.disconnect();
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getObjectClassRelevanceAdvisorySwitch()); },
+      L"NotConnected",
+      "reading getObjectClassRelevanceAdvisorySwitch after disconnect");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getAttributeRelevanceAdvisorySwitch()); },
+      L"NotConnected",
+      "reading getAttributeRelevanceAdvisorySwitch after disconnect");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getAttributeScopeAdvisorySwitch()); },
+      L"NotConnected",
+      "reading getAttributeScopeAdvisorySwitch after disconnect");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getInteractionRelevanceAdvisorySwitch()); },
+      L"NotConnected",
+      "reading getInteractionRelevanceAdvisorySwitch after disconnect");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getConveyRegionDesignatorSetsSwitch()); },
+      L"NotConnected",
+      "reading getConveyRegionDesignatorSetsSwitch after disconnect");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getServiceReportingSwitch()); },
+      L"NotConnected",
+      "reading getServiceReportingSwitch after disconnect");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getExceptionReportingSwitch()); },
+      L"NotConnected",
+      "reading getExceptionReportingSwitch after disconnect");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getSendServiceReportsToFileSwitch()); },
+      L"NotConnected",
+      "reading getSendServiceReportsToFileSwitch after disconnect");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getAutoProvideSwitch()); },
+      L"NotConnected",
+      "reading getAutoProvideSwitch after disconnect");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getDelaySubscriptionEvaluationSwitch()); },
+      L"NotConnected",
+      "reading getDelaySubscriptionEvaluationSwitch after disconnect");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getAdvisoriesUseKnownClassSwitch()); },
+      L"NotConnected",
+      "reading getAdvisoriesUseKnownClassSwitch after disconnect");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getAllowRelaxedDDMSwitch()); },
+      L"NotConnected",
+      "reading getAllowRelaxedDDMSwitch after disconnect");
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getNonRegulatedGrantSwitch()); },
+      L"NotConnected",
+      "reading getNonRegulatedGrantSwitch after disconnect");
+}
+
+void scenarioSupportSwitchGetterLifecycleBoundariesContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioSupportSwitchGetterLifecycleBoundariesPortable(options, model);
+}
+
+void scenarioSupportSwitchSetterLifecycleBoundariesPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Support-switch setter lifecycle testing requires an adapter-supplied FOM");
+
+  Session subject(options, model, "support-switch-setters-lifecycle-subject");
+  auto const federation =
+      federationName(options, "support-switch-setter-lifecycle-boundaries");
+  subject.connect();
+  subject.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-support-switch-setter-lifecycle-subject",
+      options.federateType,
+      federation);
+
+  auto& ambassador = subject.rtiAmbassador();
+  auto requireAccepted = [&](auto&& getter, auto&& setter, char const* context) {
+    auto const value = getter();
+    setter(value);
+    require(getter() == value, context);
+  };
+  requireAccepted(
+      [&] { return ambassador.getObjectClassRelevanceAdvisorySwitch(); },
+      [&](bool value) { ambassador.setObjectClassRelevanceAdvisorySwitch(value); },
+      "Object Class Relevance Advisory setter did not preserve its observed value");
+  requireAccepted(
+      [&] { return ambassador.getAttributeRelevanceAdvisorySwitch(); },
+      [&](bool value) { ambassador.setAttributeRelevanceAdvisorySwitch(value); },
+      "Attribute Relevance Advisory setter did not preserve its observed value");
+  requireAccepted(
+      [&] { return ambassador.getAttributeScopeAdvisorySwitch(); },
+      [&](bool value) { ambassador.setAttributeScopeAdvisorySwitch(value); },
+      "Attribute Scope Advisory setter did not preserve its observed value");
+  requireAccepted(
+      [&] { return ambassador.getInteractionRelevanceAdvisorySwitch(); },
+      [&](bool value) { ambassador.setInteractionRelevanceAdvisorySwitch(value); },
+      "Interaction Relevance Advisory setter did not preserve its observed value");
+  requireAccepted(
+      [&] { return ambassador.getConveyRegionDesignatorSetsSwitch(); },
+      [&](bool value) { ambassador.setConveyRegionDesignatorSetsSwitch(value); },
+      "Convey Region Designator Sets setter did not preserve its observed value");
+  requireAccepted(
+      [&] { return ambassador.getServiceReportingSwitch(); },
+      [&](bool value) { ambassador.setServiceReportingSwitch(value); },
+      "Service Reporting setter did not preserve its observed value");
+  requireAccepted(
+      [&] { return ambassador.getExceptionReportingSwitch(); },
+      [&](bool value) { ambassador.setExceptionReportingSwitch(value); },
+      "Exception Reporting setter did not preserve its observed value");
+  requireAccepted(
+      [&] { return ambassador.getSendServiceReportsToFileSwitch(); },
+      [&](bool value) { ambassador.setSendServiceReportsToFileSwitch(value); },
+      "Send Service Reports to File setter did not preserve its observed value");
+
+  auto requireBoundary = [&](auto&& setter,
+                             wchar_t const* exceptionName,
+                             char const* context) {
+    requireException([&] { setter(false); }, exceptionName, context);
+  };
+  subject.resign(rti::NO_ACTION);
+  requireBoundary(
+      [&](bool value) { ambassador.setObjectClassRelevanceAdvisorySwitch(value); },
+      L"FederateNotExecutionMember",
+      "setting Object Class Relevance Advisory after resignation");
+  requireBoundary(
+      [&](bool value) { ambassador.setAttributeRelevanceAdvisorySwitch(value); },
+      L"FederateNotExecutionMember",
+      "setting Attribute Relevance Advisory after resignation");
+  requireBoundary(
+      [&](bool value) { ambassador.setAttributeScopeAdvisorySwitch(value); },
+      L"FederateNotExecutionMember",
+      "setting Attribute Scope Advisory after resignation");
+  requireBoundary(
+      [&](bool value) { ambassador.setInteractionRelevanceAdvisorySwitch(value); },
+      L"FederateNotExecutionMember",
+      "setting Interaction Relevance Advisory after resignation");
+  requireBoundary(
+      [&](bool value) { ambassador.setConveyRegionDesignatorSetsSwitch(value); },
+      L"FederateNotExecutionMember",
+      "setting Convey Region Designator Sets after resignation");
+  requireBoundary(
+      [&](bool value) { ambassador.setServiceReportingSwitch(value); },
+      L"FederateNotExecutionMember",
+      "setting Service Reporting after resignation");
+  requireBoundary(
+      [&](bool value) { ambassador.setExceptionReportingSwitch(value); },
+      L"FederateNotExecutionMember",
+      "setting Exception Reporting after resignation");
+  requireBoundary(
+      [&](bool value) { ambassador.setSendServiceReportsToFileSwitch(value); },
+      L"FederateNotExecutionMember",
+      "setting Send Service Reports to File after resignation");
+
+  ambassador.destroyFederationExecution(federation);
+  subject.disconnect();
+  requireBoundary(
+      [&](bool value) { ambassador.setObjectClassRelevanceAdvisorySwitch(value); },
+      L"NotConnected",
+      "setting Object Class Relevance Advisory after disconnect");
+  requireBoundary(
+      [&](bool value) { ambassador.setAttributeRelevanceAdvisorySwitch(value); },
+      L"NotConnected",
+      "setting Attribute Relevance Advisory after disconnect");
+  requireBoundary(
+      [&](bool value) { ambassador.setAttributeScopeAdvisorySwitch(value); },
+      L"NotConnected",
+      "setting Attribute Scope Advisory after disconnect");
+  requireBoundary(
+      [&](bool value) { ambassador.setInteractionRelevanceAdvisorySwitch(value); },
+      L"NotConnected",
+      "setting Interaction Relevance Advisory after disconnect");
+  requireBoundary(
+      [&](bool value) { ambassador.setConveyRegionDesignatorSetsSwitch(value); },
+      L"NotConnected",
+      "setting Convey Region Designator Sets after disconnect");
+  requireBoundary(
+      [&](bool value) { ambassador.setServiceReportingSwitch(value); },
+      L"NotConnected",
+      "setting Service Reporting after disconnect");
+  requireBoundary(
+      [&](bool value) { ambassador.setExceptionReportingSwitch(value); },
+      L"NotConnected",
+      "setting Exception Reporting after disconnect");
+  requireBoundary(
+      [&](bool value) { ambassador.setSendServiceReportsToFileSwitch(value); },
+      L"NotConnected",
+      "setting Send Service Reports to File after disconnect");
+}
+
+void scenarioSupportSwitchSetterLifecycleBoundariesContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioSupportSwitchSetterLifecycleBoundariesPortable(options, model);
+}
+
+void scenarioAutomaticResignDirectiveLifecycleBoundariesPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Automatic-resign-directive lifecycle testing requires an adapter-supplied FOM");
+
+  Session subject(options, model, "automatic-resign-directive-lifecycle-subject");
+  auto const federation =
+      federationName(options, "automatic-resign-directive-lifecycle-boundaries");
+  subject.connect();
+  subject.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-automatic-resign-directive-lifecycle-subject",
+      options.federateType,
+      federation);
+
+  auto& ambassador = subject.rtiAmbassador();
+  ambassador.setAutomaticResignDirective(rti::DELETE_OBJECTS);
+  require(
+      ambassador.getAutomaticResignDirective() == rti::DELETE_OBJECTS,
+      "Automatic resign directive did not round-trip while joined");
+  ambassador.setAutomaticResignDirective(rti::NO_ACTION);
+
+  auto requireBoundary = [&](auto&& operation,
+                             wchar_t const* exceptionName,
+                             char const* context) {
+    requireException(operation, exceptionName, context);
+  };
+  subject.resign(rti::NO_ACTION);
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getAutomaticResignDirective()); },
+      L"FederateNotExecutionMember",
+      "reading the automatic resign directive after resignation");
+  requireBoundary(
+      [&] { ambassador.setAutomaticResignDirective(rti::NO_ACTION); },
+      L"FederateNotExecutionMember",
+      "setting the automatic resign directive after resignation");
+
+  ambassador.destroyFederationExecution(federation);
+  subject.disconnect();
+  requireBoundary(
+      [&] { static_cast<void>(ambassador.getAutomaticResignDirective()); },
+      L"NotConnected",
+      "reading the automatic resign directive after disconnect");
+  requireBoundary(
+      [&] { ambassador.setAutomaticResignDirective(rti::NO_ACTION); },
+      L"NotConnected",
+      "setting the automatic resign directive after disconnect");
+}
+
+void scenarioAutomaticResignDirectiveLifecycleBoundariesContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAutomaticResignDirectiveLifecycleBoundariesPortable(options, model);
+}
+
+void scenarioAutomaticResignDirectiveEnumValuesPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Automatic-resign-directive value testing requires an adapter-supplied FOM");
+
+  Session subject(options, model, "automatic-resign-directive-values-subject");
+  auto const federation =
+      federationName(options, "automatic-resign-directive-standard-values");
+  subject.connect();
+  subject.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-automatic-resign-directive-values-subject",
+      options.federateType,
+      federation);
+
+  auto& ambassador = subject.rtiAmbassador();
+  rti::ResignAction const validActions[] = {
+      rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES,
+      rti::DELETE_OBJECTS,
+      rti::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS,
+      rti::DELETE_OBJECTS_THEN_DIVEST,
+      rti::CANCEL_THEN_DELETE_THEN_DIVEST,
+      rti::NO_ACTION};
+  for (rti::ResignAction action : validActions) {
+    ambassador.setAutomaticResignDirective(action);
+    require(
+        ambassador.getAutomaticResignDirective() == action,
+        "A standard ResignAction value did not round-trip through its getter and setter");
+  }
+
+  auto const invalidAction = static_cast<rti::ResignAction>(
+      static_cast<int>(rti::NO_ACTION) + 1);
+  requireException(
+      [&] { ambassador.setAutomaticResignDirective(invalidAction); },
+      L"InvalidResignAction",
+      "setting a value outside the standard ResignAction enumerators");
+
+  ambassador.setAutomaticResignDirective(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  ambassador.destroyFederationExecution(federation);
+  subject.disconnect();
+}
+
+void scenarioAutomaticResignDirectiveEnumValuesContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAutomaticResignDirectiveEnumValuesPortable(options, model);
+}
+
+void scenarioAdvisorySwitchValueRoundTripsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Advisory-switch value testing requires an adapter-supplied FOM");
+
+  Session subject(options, model, "advisory-switch-values-subject");
+  auto const federation =
+      federationName(options, "advisory-switch-standard-value-round-trips");
+  subject.connect();
+  subject.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-advisory-switch-values-subject",
+      options.federateType,
+      federation);
+
+  auto& ambassador = subject.rtiAmbassador();
+  auto requireToggle = [&](auto&& getter,
+                           auto&& setter,
+                           char const* context) {
+    bool const original = getter();
+    bool const changed = !original;
+    setter(changed);
+    require(getter() == changed, context);
+    setter(original);
+    require(getter() == original, context);
+  };
+  requireToggle(
+      [&] { return ambassador.getObjectClassRelevanceAdvisorySwitch(); },
+      [&](bool value) { ambassador.setObjectClassRelevanceAdvisorySwitch(value); },
+      "Object Class Relevance Advisory switch did not follow the value set");
+  requireToggle(
+      [&] { return ambassador.getAttributeRelevanceAdvisorySwitch(); },
+      [&](bool value) { ambassador.setAttributeRelevanceAdvisorySwitch(value); },
+      "Attribute Relevance Advisory switch did not follow the value set");
+  requireToggle(
+      [&] { return ambassador.getAttributeScopeAdvisorySwitch(); },
+      [&](bool value) { ambassador.setAttributeScopeAdvisorySwitch(value); },
+      "Attribute Scope Advisory switch did not follow the value set");
+  requireToggle(
+      [&] { return ambassador.getInteractionRelevanceAdvisorySwitch(); },
+      [&](bool value) { ambassador.setInteractionRelevanceAdvisorySwitch(value); },
+      "Interaction Relevance Advisory switch did not follow the value set");
+
+  subject.resign(rti::NO_ACTION);
+  ambassador.destroyFederationExecution(federation);
+  subject.disconnect();
+}
+
+void scenarioAdvisorySwitchValueRoundTripsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAdvisorySwitchValueRoundTripsPortable(options, model);
+}
+
+void scenarioDuplicateFederateNameJoinBoundaryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Duplicate federate-name join testing requires an adapter-supplied FOM");
+
+  Session owner(options, model, "duplicate-federate-name-owner");
+  Session joiner(options, model, "duplicate-federate-name-joiner");
+  auto const federation =
+      federationName(options, "duplicate-federate-name-join-boundary");
+  auto const ownerName = options.ownerFederateName + L"-duplicate-name-owner";
+  auto const joinerName = options.memberFederateName + L"-duplicate-name-joiner";
+  require(ownerName != joinerName, "Adapter federate names must be distinct");
+
+  owner.connect();
+  joiner.connect();
+  owner.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(ownerName, options.federateType, federation);
+
+  requireException(
+      [&] {
+        static_cast<void>(joiner.rtiAmbassador().joinFederationExecution(
+            ownerName,
+            options.federateType,
+            federation));
+      },
+      L"FederateNameAlreadyInUse",
+      "joining with a name already used by an execution member");
+
+  joiner.join(joinerName, options.federateType, federation);
+  require(
+      owner.federateHandle() != joiner.federateHandle(),
+      "Distinct federate names did not produce distinct federate handles");
+
+  owner.resign(rti::NO_ACTION);
+  joiner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  joiner.disconnect();
+  owner.disconnect();
+}
+
+void scenarioDuplicateFederateNameJoinBoundaryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDuplicateFederateNameJoinBoundaryPortable(options, model);
+}
+
+void scenarioRepeatedJoinByMemberBoundaryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Repeated-join testing requires an adapter-supplied FOM");
+
+  Session subject(options, model, "repeated-join-by-member-subject");
+  auto const federation =
+      federationName(options, "repeated-join-by-member-boundary");
+  auto const federateName = options.ownerFederateName + L"-repeated-join-member";
+  subject.connect();
+  subject.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(federateName, options.federateType, federation);
+
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().joinFederationExecution(
+            federateName,
+            options.federateType,
+            federation));
+      },
+      L"FederateAlreadyExecutionMember",
+      "joining an execution a second time through an existing member ambassador");
+
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+}
+
+void scenarioRepeatedJoinByMemberBoundaryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRepeatedJoinByMemberBoundaryPortable(options, model);
+}
+
+void scenarioForeignFederateNameLookupBoundaryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Federate-name execution-scope testing requires an adapter-supplied FOM");
+
+  Session local(options, model, "foreign-federate-name-local");
+  Session foreign(options, model, "foreign-federate-name-foreign");
+  auto const localFederation =
+      federationName(options, "federate-name-lookup-local-execution");
+  auto const foreignFederation =
+      federationName(options, "federate-name-lookup-foreign-execution");
+  auto const localName = options.ownerFederateName + L"-name-lookup-local";
+  auto const foreignName = options.memberFederateName + L"-name-lookup-foreign";
+  require(localName != foreignName, "Adapter federate names must be distinct");
+
+  local.connect();
+  foreign.connect();
+  local.rtiAmbassador().createFederationExecution(
+      localFederation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  foreign.rtiAmbassador().createFederationExecution(
+      foreignFederation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  local.join(localName, options.federateType, localFederation);
+  foreign.join(foreignName, options.federateType, foreignFederation);
+
+  require(
+      local.rtiAmbassador().getFederateHandle(localName) ==
+          local.federateHandle(),
+      "Federate-handle lookup did not resolve the local execution member");
+  requireException(
+      [&] {
+        static_cast<void>(
+            local.rtiAmbassador().getFederateHandle(foreignName));
+      },
+      L"NameNotFound",
+      "looking up a name belonging to a different federation execution");
+  require(
+      foreign.rtiAmbassador().getFederateHandle(foreignName) ==
+          foreign.federateHandle(),
+      "Federate-handle lookup did not resolve the foreign execution's own member");
+
+  local.resign(rti::NO_ACTION);
+  foreign.resign(rti::NO_ACTION);
+  local.rtiAmbassador().destroyFederationExecution(localFederation);
+  foreign.rtiAmbassador().destroyFederationExecution(foreignFederation);
+  local.disconnect();
+  foreign.disconnect();
+}
+
+void scenarioForeignFederateNameLookupBoundaryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioForeignFederateNameLookupBoundaryPortable(options, model);
+}
+
+void scenarioForeignObjectInstanceNameLookupBoundaryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Object-name execution-scope testing requires an adapter-supplied FOM");
+
+  Session local(options, model, "foreign-object-name-local");
+  Session foreign(options, model, "foreign-object-name-foreign");
+  auto const localFederation =
+      federationName(options, "object-name-lookup-local-execution");
+  auto const foreignFederation = options.federationOverride.empty()
+      ? federationName(options, "object-name-lookup-foreign-execution")
+      : localFederation + L"-foreign";
+  auto const localFederateName =
+      options.ownerFederateName + L"-object-name-lookup-local";
+  auto const foreignFederateName =
+      options.memberFederateName + L"-object-name-lookup-foreign";
+  auto const localObjectName =
+      options.ownerFederateName + L"-object-name-local";
+  auto const foreignObjectName =
+      options.memberFederateName + L"-object-name-foreign";
+  require(
+      localFederateName != foreignFederateName &&
+          localObjectName != foreignObjectName,
+      "Adapter-supplied federate and object names must be distinct");
+
+  local.connect();
+  foreign.connect();
+  local.rtiAmbassador().createFederationExecution(
+      localFederation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  foreign.rtiAmbassador().createFederationExecution(
+      foreignFederation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  local.join(localFederateName, options.federateType, localFederation);
+  foreign.join(foreignFederateName, options.federateType, foreignFederation);
+
+  auto const localClass =
+      local.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const localAttribute = local.rtiAmbassador().getAttributeHandle(
+      localClass,
+      options.attributeName);
+  rti::AttributeHandleSet const localAttributes{localAttribute};
+  local.rtiAmbassador().publishObjectClassAttributes(localClass, localAttributes);
+  local.recorder().clearReservations();
+  local.rtiAmbassador().reserveObjectInstanceName(localObjectName);
+  waitFor(
+      local,
+      [&] { return local.recorder().reservationSucceeded(localObjectName); },
+      options,
+      "local object-instance name reservation");
+  auto const localObject = local.rtiAmbassador().registerObjectInstance(
+      localClass,
+      localObjectName);
+
+  auto const foreignClass =
+      foreign.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const foreignAttribute = foreign.rtiAmbassador().getAttributeHandle(
+      foreignClass,
+      options.attributeName);
+  rti::AttributeHandleSet const foreignAttributes{foreignAttribute};
+  foreign.rtiAmbassador().publishObjectClassAttributes(
+      foreignClass,
+      foreignAttributes);
+  foreign.recorder().clearReservations();
+  foreign.rtiAmbassador().reserveObjectInstanceName(foreignObjectName);
+  waitFor(
+      foreign,
+      [&] {
+        return foreign.recorder().reservationSucceeded(foreignObjectName);
+      },
+      options,
+      "foreign object-instance name reservation");
+  auto const foreignObject = foreign.rtiAmbassador().registerObjectInstance(
+      foreignClass,
+      foreignObjectName);
+
+  require(
+      local.rtiAmbassador().getObjectInstanceHandle(localObjectName) ==
+          localObject,
+      "Object-name lookup did not resolve the local execution's object");
+  require(
+      foreign.rtiAmbassador().getObjectInstanceHandle(foreignObjectName) ==
+          foreignObject,
+      "Object-name lookup did not resolve the foreign execution's object");
+  requireException(
+      [&] {
+        static_cast<void>(
+            local.rtiAmbassador().getObjectInstanceHandle(foreignObjectName));
+      },
+      L"ObjectInstanceNotKnown",
+      "looking up an object name belonging to a different execution");
+
+  local.rtiAmbassador().deleteObjectInstance(
+      localObject,
+      rti::VariableLengthData{});
+  foreign.rtiAmbassador().deleteObjectInstance(
+      foreignObject,
+      rti::VariableLengthData{});
+  local.rtiAmbassador().unpublishObjectClassAttributes(
+      localClass,
+      localAttributes);
+  foreign.rtiAmbassador().unpublishObjectClassAttributes(
+      foreignClass,
+      foreignAttributes);
+  local.resign(rti::NO_ACTION);
+  foreign.resign(rti::NO_ACTION);
+  local.rtiAmbassador().destroyFederationExecution(localFederation);
+  foreign.rtiAmbassador().destroyFederationExecution(foreignFederation);
+  local.disconnect();
+  foreign.disconnect();
+}
+
+void scenarioForeignObjectInstanceNameLookupBoundaryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioForeignObjectInstanceNameLookupBoundaryPortable(options, model);
+}
+
+void scenarioForeignObjectInstanceHandleLookupBoundaryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Object-handle execution-scope testing requires an adapter-supplied FOM");
+
+  Session local(options, model, "foreign-object-handle-local");
+  Session foreign(options, model, "foreign-object-handle-foreign");
+  auto const localFederation =
+      federationName(options, "object-handle-lookup-local-execution");
+  auto const foreignFederation = options.federationOverride.empty()
+      ? federationName(options, "object-handle-lookup-foreign-execution")
+      : localFederation + L"-foreign";
+  auto const localFederateName =
+      options.ownerFederateName + L"-object-handle-lookup-local";
+  auto const foreignFederateName =
+      options.memberFederateName + L"-object-handle-lookup-foreign";
+  auto const localObjectName =
+      options.ownerFederateName + L"-object-handle-local";
+  auto const foreignFirstObjectName =
+      options.memberFederateName + L"-object-handle-foreign-first";
+  auto const foreignSecondObjectName =
+      options.memberFederateName + L"-object-handle-foreign-second";
+
+  local.connect();
+  foreign.connect();
+  local.rtiAmbassador().createFederationExecution(
+      localFederation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  foreign.rtiAmbassador().createFederationExecution(
+      foreignFederation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  local.join(localFederateName, options.federateType, localFederation);
+  foreign.join(foreignFederateName, options.federateType, foreignFederation);
+
+  auto const localClass =
+      local.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const localAttribute = local.rtiAmbassador().getAttributeHandle(
+      localClass,
+      options.attributeName);
+  rti::AttributeHandleSet const localAttributes{localAttribute};
+  local.rtiAmbassador().publishObjectClassAttributes(localClass, localAttributes);
+  auto const foreignClass =
+      foreign.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const foreignAttribute = foreign.rtiAmbassador().getAttributeHandle(
+      foreignClass,
+      options.attributeName);
+  rti::AttributeHandleSet const foreignAttributes{foreignAttribute};
+  foreign.rtiAmbassador().publishObjectClassAttributes(
+      foreignClass,
+      foreignAttributes);
+
+  auto registerNamedObject = [&](Session& session,
+                                 rti::ObjectClassHandle const& objectClass,
+                                 std::wstring const& objectName,
+                                 std::string const& phase) {
+    session.recorder().clearReservations();
+    session.rtiAmbassador().reserveObjectInstanceName(objectName);
+    waitFor(
+        session,
+        [&] { return session.recorder().reservationSucceeded(objectName); },
+        options,
+        phase + " name reservation");
+    return session.rtiAmbassador().registerObjectInstance(
+        objectClass,
+        objectName);
+  };
+
+  auto const localObject = registerNamedObject(
+      local,
+      localClass,
+      localObjectName,
+      "local object");
+  auto const foreignFirstObject = registerNamedObject(
+      foreign,
+      foreignClass,
+      foreignFirstObjectName,
+      "first foreign object");
+  auto const foreignSecondObject = registerNamedObject(
+      foreign,
+      foreignClass,
+      foreignSecondObjectName,
+      "second foreign object");
+  require(
+      foreignFirstObject != foreignSecondObject,
+      "Distinct foreign objects did not receive distinct object handles");
+
+  auto const foreignObject = foreignFirstObject != localObject
+      ? foreignFirstObject
+      : foreignSecondObject;
+  auto const foreignObjectName = foreignFirstObject != localObject
+      ? foreignFirstObjectName
+      : foreignSecondObjectName;
+  require(
+      foreignObject != localObject,
+      "Could not select a foreign object handle distinct from the local handle");
+  require(
+      local.rtiAmbassador().getObjectInstanceName(localObject) == localObjectName,
+      "Local object-handle lookup did not resolve its object name");
+  require(
+      foreign.rtiAmbassador().getObjectInstanceName(foreignObject) ==
+          foreignObjectName,
+      "Foreign object-handle lookup did not resolve its own execution's name");
+  requireException(
+      [&] {
+        static_cast<void>(
+            local.rtiAmbassador().getObjectInstanceName(foreignObject));
+      },
+      L"ObjectInstanceNotKnown",
+      "looking up an object handle not present in the local execution");
+
+  local.rtiAmbassador().deleteObjectInstance(
+      localObject,
+      rti::VariableLengthData{});
+  foreign.rtiAmbassador().deleteObjectInstance(
+      foreignFirstObject,
+      rti::VariableLengthData{});
+  foreign.rtiAmbassador().deleteObjectInstance(
+      foreignSecondObject,
+      rti::VariableLengthData{});
+  local.rtiAmbassador().unpublishObjectClassAttributes(
+      localClass,
+      localAttributes);
+  foreign.rtiAmbassador().unpublishObjectClassAttributes(
+      foreignClass,
+      foreignAttributes);
+  local.resign(rti::NO_ACTION);
+  foreign.resign(rti::NO_ACTION);
+  local.rtiAmbassador().destroyFederationExecution(localFederation);
+  foreign.rtiAmbassador().destroyFederationExecution(foreignFederation);
+  local.disconnect();
+  foreign.disconnect();
+}
+
+void scenarioForeignObjectInstanceHandleLookupBoundaryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioForeignObjectInstanceHandleLookupBoundaryPortable(options, model);
+}
+
+void scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Local-delete object-name lookup testing requires an adapter-supplied FOM");
+
+  Session owner(options, model, "local-delete-name-owner");
+  Session member(options, model, "local-delete-name-member");
+  auto const federation =
+      federationName(options, "local-delete-object-name-lookup-boundary");
+  connectAndJoin(owner, member, options, federation, options.fom);
+
+  auto const ownerClass =
+      owner.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+
+  auto const memberClass =
+      member.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const memberAttribute = member.rtiAmbassador().getAttributeHandle(
+      memberClass,
+      options.attributeName);
+  rti::AttributeHandleSet const memberAttributes{memberAttribute};
+  member.rtiAmbassador().subscribeObjectClassAttributes(
+      memberClass,
+      memberAttributes);
+
+  member.recorder().clearDiscovery();
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(object.isValid(), "Local-delete name-lookup setup returned an invalid object handle");
+  auto const objectName = owner.rtiAmbassador().getObjectInstanceName(object);
+  require(!objectName.empty(), "Local-delete name-lookup setup returned an empty object name");
+  waitFor(
+      member,
+      [&] { return member.recorder().hasDiscovery(object); },
+      options,
+      "local-delete name-lookup object discovery");
+  auto const discovery = member.recorder().discovery();
+  require(
+      discovery.object == object &&
+          member.rtiAmbassador().getObjectInstanceName(discovery.object) == objectName,
+      "Discovered object identity did not resolve before local deletion");
+
+  member.rtiAmbassador().localDeleteObjectInstance(discovery.object);
+  requireException(
+      [&] {
+        static_cast<void>(
+            member.rtiAmbassador().getObjectInstanceName(discovery.object));
+      },
+      L"ObjectInstanceNotKnown",
+      "looking up the name of a locally forgotten object instance");
+  require(
+      owner.rtiAmbassador().getObjectInstanceName(object) == objectName,
+      "Local deletion changed the publishing federate's object identity");
+
+  owner.rtiAmbassador().deleteObjectInstance(object, rti::VariableLengthData{});
+  member.rtiAmbassador().unsubscribeObjectClassAttributes(
+      memberClass,
+      memberAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  owner.resign(rti::NO_ACTION);
+  member.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  owner.disconnect();
+  member.disconnect();
+}
+
+void scenarioLocalDeleteObjectInstanceNameLookupBoundaryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable(options, model);
+}
+
+void scenarioRemoteDeleteKnownObjectClassLookupBoundaryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Remote-delete known-class lookup testing requires an adapter-supplied FOM");
+
+  Session owner(options, model, "remote-delete-known-class-owner");
+  Session member(options, model, "remote-delete-known-class-member");
+  auto const federation =
+      federationName(options, "remote-delete-known-class-lookup-boundary");
+  connectAndJoin(owner, member, options, federation, options.fom);
+
+  auto const ownerClass =
+      owner.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+
+  auto const memberClass =
+      member.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const memberAttribute = member.rtiAmbassador().getAttributeHandle(
+      memberClass,
+      options.attributeName);
+  rti::AttributeHandleSet const memberAttributes{memberAttribute};
+  member.rtiAmbassador().subscribeObjectClassAttributes(
+      memberClass,
+      memberAttributes);
+
+  member.recorder().clearDiscovery();
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(object.isValid(), "Remote-delete known-class setup returned an invalid object handle");
+  waitFor(
+      member,
+      [&] { return member.recorder().hasDiscovery(object); },
+      options,
+      "remote-delete known-class object discovery");
+  auto const discovery = member.recorder().discovery();
+  require(
+      discovery.object == object &&
+          member.rtiAmbassador().getKnownObjectClassHandle(discovery.object) == memberClass,
+      "Discovered object did not resolve its known class before remote deletion");
+
+  member.recorder().clearRemovals();
+  owner.rtiAmbassador().deleteObjectInstance(object, rti::VariableLengthData{});
+  requireException(
+      [&] {
+        static_cast<void>(
+            owner.rtiAmbassador().getKnownObjectClassHandle(object));
+      },
+      L"ObjectInstanceNotKnown",
+      "querying the deleting federate's known object class after deletion");
+  waitFor(
+      member,
+      [&] {
+        return member.recorder().hasRemoval(
+            object,
+            {},
+            owner.federateHandle());
+      },
+      options,
+      "remote-delete known-class removal callback");
+  requireException(
+      [&] {
+        static_cast<void>(
+            member.rtiAmbassador().getKnownObjectClassHandle(discovery.object));
+      },
+      L"ObjectInstanceNotKnown",
+      "querying the known object class after remote removal");
+
+  member.rtiAmbassador().unsubscribeObjectClassAttributes(
+      memberClass,
+      memberAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  owner.resign(rti::NO_ACTION);
+  member.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  owner.disconnect();
+  member.disconnect();
+}
+
+void scenarioRemoteDeleteKnownObjectClassLookupBoundaryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRemoteDeleteKnownObjectClassLookupBoundaryPortable(options, model);
+}
+
+void scenarioRemoteDeleteObjectInstanceNameLookupBoundaryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Remote-delete object-name lookup testing requires an adapter-supplied FOM");
+
+  Session owner(options, model, "remote-delete-name-owner");
+  Session member(options, model, "remote-delete-name-member");
+  auto const federation =
+      federationName(options, "remote-delete-object-name-lookup-boundary");
+  connectAndJoin(owner, member, options, federation, options.fom);
+
+  auto const ownerClass =
+      owner.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+
+  auto const memberClass =
+      member.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const memberAttribute = member.rtiAmbassador().getAttributeHandle(
+      memberClass,
+      options.attributeName);
+  rti::AttributeHandleSet const memberAttributes{memberAttribute};
+  member.rtiAmbassador().subscribeObjectClassAttributes(
+      memberClass,
+      memberAttributes);
+
+  member.recorder().clearDiscovery();
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(object.isValid(), "Remote-delete name-lookup setup returned an invalid object handle");
+  auto const objectName = owner.rtiAmbassador().getObjectInstanceName(object);
+  require(!objectName.empty(), "Remote-delete name-lookup setup returned an empty object name");
+  waitFor(
+      member,
+      [&] { return member.recorder().hasDiscovery(object); },
+      options,
+      "remote-delete object-name lookup discovery");
+  auto const discovery = member.recorder().discovery();
+  require(
+      discovery.object == object &&
+          member.rtiAmbassador().getObjectInstanceName(discovery.object) == objectName &&
+          owner.rtiAmbassador().getObjectInstanceHandle(objectName) == object,
+      "Object name and handle did not resolve on both federates before deletion");
+
+  member.recorder().clearRemovals();
+  owner.rtiAmbassador().deleteObjectInstance(object, rti::VariableLengthData{});
+  requireException(
+      [&] {
+        static_cast<void>(
+            owner.rtiAmbassador().getObjectInstanceHandle(objectName));
+      },
+      L"ObjectInstanceNotKnown",
+      "looking up the deleted object by name on the deleting federate");
+  waitFor(
+      member,
+      [&] {
+        return member.recorder().hasRemoval(
+            object,
+            {},
+            owner.federateHandle());
+      },
+      options,
+      "remote-delete object-name lookup removal callback");
+  requireException(
+      [&] {
+        static_cast<void>(
+            member.rtiAmbassador().getObjectInstanceName(discovery.object));
+      },
+      L"ObjectInstanceNotKnown",
+      "looking up the name of an object after remote removal");
+
+  member.rtiAmbassador().unsubscribeObjectClassAttributes(
+      memberClass,
+      memberAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  owner.resign(rti::NO_ACTION);
+  member.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  owner.disconnect();
+  member.disconnect();
+}
+
+void scenarioRemoteDeleteObjectInstanceNameLookupBoundaryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioRemoteDeleteObjectInstanceNameLookupBoundaryPortable(options, model);
+}
+
+void scenarioResignDeleteObjectLookupBoundaryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Resign-delete object lookup testing requires an adapter-supplied FOM");
+
+  Session owner(options, model, "resign-delete-lookup-owner");
+  Session member(options, model, "resign-delete-lookup-member");
+  auto const federation =
+      federationName(options, "resign-delete-object-lookup-boundary");
+  connectAndJoin(owner, member, options, federation, options.fom);
+
+  auto const ownerClass =
+      owner.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+
+  auto const memberClass =
+      member.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const memberAttribute = member.rtiAmbassador().getAttributeHandle(
+      memberClass,
+      options.attributeName);
+  rti::AttributeHandleSet const memberAttributes{memberAttribute};
+  member.rtiAmbassador().subscribeObjectClassAttributes(
+      memberClass,
+      memberAttributes);
+
+  member.recorder().clearDiscovery();
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(object.isValid(), "Resign-delete lookup setup returned an invalid object handle");
+  auto const objectName = owner.rtiAmbassador().getObjectInstanceName(object);
+  require(!objectName.empty(), "Resign-delete lookup setup returned an empty object name");
+  waitFor(
+      member,
+      [&] { return member.recorder().hasDiscovery(object); },
+      options,
+      "resign-delete lookup object discovery");
+  auto const discovery = member.recorder().discovery();
+  require(
+      discovery.object == object && discovery.objectClass == memberClass &&
+          discovery.name == objectName &&
+          member.rtiAmbassador().getObjectInstanceHandle(objectName) == object &&
+          member.rtiAmbassador().getObjectInstanceName(discovery.object) == objectName &&
+          member.rtiAmbassador().getKnownObjectClassHandle(discovery.object) == memberClass,
+      "Discovered object name, handle, and class did not resolve before resign-time deletion");
+
+  member.recorder().clearRemovals();
+  owner.resign(rti::DELETE_OBJECTS);
+  waitFor(
+      member,
+      [&] {
+        return member.recorder().hasRemoval(
+            object,
+            {},
+            owner.federateHandle());
+      },
+      options,
+      "resign-delete lookup removal callback");
+  requireException(
+      [&] {
+        static_cast<void>(
+            member.rtiAmbassador().getObjectInstanceHandle(objectName));
+      },
+      L"ObjectInstanceNotKnown",
+      "looking up the name after resign-time object deletion");
+  requireException(
+      [&] {
+        static_cast<void>(
+            member.rtiAmbassador().getObjectInstanceName(discovery.object));
+      },
+      L"ObjectInstanceNotKnown",
+      "looking up the handle's name after resign-time object deletion");
+  requireException(
+      [&] {
+        static_cast<void>(
+            member.rtiAmbassador().getKnownObjectClassHandle(discovery.object));
+      },
+      L"ObjectInstanceNotKnown",
+      "querying the known class after resign-time object deletion");
+
+  member.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  owner.disconnect();
+  member.disconnect();
+}
+
+void scenarioResignDeleteObjectLookupBoundaryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioResignDeleteObjectLookupBoundaryPortable(options, model);
+}
+
+void scenarioResignNoActionOwnedAttributesBoundaryPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "NO_ACTION resignation testing requires an adapter-supplied FOM");
+  require(
+      !options.objectClassName.empty() && !options.attributeName.empty(),
+      "NO_ACTION resignation testing requires adapter-supplied object and attribute names");
+
+  Session owner(options, model, "resign-no-action-owned-attributes-owner");
+  Session member(options, model, "resign-no-action-owned-attributes-member");
+  auto const federation =
+      federationName(options, "resign-no-action-owned-attributes-boundary");
+  connectAndJoin(owner, member, options, federation, options.fom);
+
+  auto const objectClass =
+      owner.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const attribute = owner.rtiAmbassador().getAttributeHandle(
+      objectClass,
+      options.attributeName);
+  require(
+      objectClass.isValid() && attribute.isValid(),
+      "NO_ACTION resignation fixture lookup returned an invalid standard handle");
+  rti::AttributeHandleSet const attributes{attribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(objectClass, attributes);
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(objectClass);
+  require(
+      object.isValid(),
+      "NO_ACTION resignation fixture returned an invalid object handle");
+  auto const objectName = owner.rtiAmbassador().getObjectInstanceName(object);
+  require(!objectName.empty(), "NO_ACTION resignation fixture returned an empty object name");
+
+  requireException(
+      [&] { owner.resign(rti::NO_ACTION); },
+      L"FederateOwnsAttributes",
+      "resigning with NO_ACTION while owning an object's attributes");
+  require(
+      owner.rtiAmbassador().getObjectInstanceName(object) == objectName,
+      "rejected NO_ACTION resignation changed membership or object identity");
+
+  owner.resign(rti::DELETE_OBJECTS);
+  member.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  owner.disconnect();
+  member.disconnect();
+}
+
+void scenarioResignNoActionOwnedAttributesBoundaryContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioResignNoActionOwnedAttributesBoundaryPortable(options, model);
+}
+
+void scenarioResignDeleteObjectsThenDivestCrossObjectEffectsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "DELETE_OBJECTS_THEN_DIVEST testing requires an adapter-supplied FOM");
+  require(
+      !options.objectClassName.empty() && !options.attributeName.empty(),
+      "DELETE_OBJECTS_THEN_DIVEST testing requires adapter-supplied object and attribute names");
+
+  Session registrar(options, model, "resign-delete-then-divest-registrar");
+  Session departing(options, model, "resign-delete-then-divest-departing");
+  Session recipient(options, model, "resign-delete-then-divest-recipient");
+  auto const federation =
+      federationName(options, "resign-delete-objects-then-divest-cross-object-effects");
+  connectAndJoin(registrar, departing, options, federation, options.fom);
+  recipient.connect();
+  recipient.join(
+      options.memberFederateName + L"-resign-delete-then-divest-recipient",
+      options.federateType,
+      federation);
+
+  auto const registrarClass =
+      registrar.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const departingClass =
+      departing.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const recipientClass =
+      recipient.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const registrarAttribute = registrar.rtiAmbassador().getAttributeHandle(
+      registrarClass,
+      options.attributeName);
+  auto const departingAttribute = departing.rtiAmbassador().getAttributeHandle(
+      departingClass,
+      options.attributeName);
+  auto const recipientAttribute = recipient.rtiAmbassador().getAttributeHandle(
+      recipientClass,
+      options.attributeName);
+  require(
+      registrarClass.isValid() && departingClass.isValid() &&
+          recipientClass.isValid() && registrarAttribute.isValid() &&
+          departingAttribute.isValid() && recipientAttribute.isValid(),
+      "DELETE_OBJECTS_THEN_DIVEST fixture lookup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const registrarAttributes{registrarAttribute};
+  rti::AttributeHandleSet const departingAttributes{departingAttribute};
+  rti::AttributeHandleSet const recipientAttributes{recipientAttribute};
+  registrar.rtiAmbassador().publishObjectClassAttributes(
+      registrarClass,
+      registrarAttributes);
+  departing.rtiAmbassador().publishObjectClassAttributes(
+      departingClass,
+      departingAttributes);
+  recipient.rtiAmbassador().publishObjectClassAttributes(
+      recipientClass,
+      recipientAttributes);
+  registrar.rtiAmbassador().subscribeObjectClassAttributes(
+      registrarClass,
+      registrarAttributes,
+      true,
+      L"");
+  departing.rtiAmbassador().subscribeObjectClassAttributes(
+      departingClass,
+      departingAttributes,
+      true,
+      L"");
+  recipient.rtiAmbassador().subscribeObjectClassAttributes(
+      recipientClass,
+      recipientAttributes,
+      true,
+      L"");
+
+  auto const retainedObject =
+      registrar.rtiAmbassador().registerObjectInstance(registrarClass);
+  require(
+      retainedObject.isValid(),
+      "DELETE_OBJECTS_THEN_DIVEST fixture returned an invalid retained-object handle");
+  auto const retainedObjectName =
+      registrar.rtiAmbassador().getObjectInstanceName(retainedObject);
+  require(
+      !retainedObjectName.empty(),
+      "DELETE_OBJECTS_THEN_DIVEST fixture returned an empty retained-object name");
+  waitForSessions(
+      {&departing, &recipient},
+      [&] {
+        return departing.recorder().hasDiscovery(retainedObject) &&
+            recipient.recorder().hasDiscovery(retainedObject);
+      },
+      options,
+      "DELETE_OBJECTS_THEN_DIVEST retained-object discovery");
+
+  registrar.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+      retainedObject,
+      registrarAttributes,
+      rti::VariableLengthData{});
+  std::vector<std::uint8_t> const departingAcquisitionTagBytes{
+      0xD7U,
+      0x25U,
+      0x01U};
+  rti::VariableLengthData const departingAcquisitionTag(
+      departingAcquisitionTagBytes.data(),
+      departingAcquisitionTagBytes.size());
+  departing.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+      retainedObject,
+      departingAttributes,
+      departingAcquisitionTag);
+  waitFor(
+      departing,
+      [&] { return departing.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "DELETE_OBJECTS_THEN_DIVEST setup ownership acquisition");
+  auto const departingAcquisition =
+      departing.recorder().ownershipAcquisition();
+  require(
+      departingAcquisition->object == retainedObject &&
+          departingAcquisition->attributes == departingAttributes &&
+          departingAcquisition->tag == departingAcquisitionTagBytes &&
+          departing.rtiAmbassador().isAttributeOwnedByFederate(
+              retainedObject,
+              departingAttribute),
+      "DELETE_OBJECTS_THEN_DIVEST setup did not transfer the retained-object attribute");
+
+  auto const deletedObject =
+      departing.rtiAmbassador().registerObjectInstance(departingClass);
+  require(
+      deletedObject.isValid() && deletedObject != retainedObject,
+      "DELETE_OBJECTS_THEN_DIVEST fixture returned an invalid or duplicate departing-object handle");
+  auto const deletedObjectName =
+      departing.rtiAmbassador().getObjectInstanceName(deletedObject);
+  require(
+      !deletedObjectName.empty() && deletedObjectName != retainedObjectName,
+      "DELETE_OBJECTS_THEN_DIVEST fixture returned an invalid or duplicate departing-object name");
+  waitForSessions(
+      {&registrar, &recipient},
+      [&] {
+        return registrar.recorder().hasDiscovery(deletedObject) &&
+            recipient.recorder().hasDiscovery(deletedObject);
+      },
+      options,
+      "DELETE_OBJECTS_THEN_DIVEST departing-object discovery");
+  require(
+      departing.rtiAmbassador().isAttributeOwnedByFederate(
+          deletedObject,
+          departingAttribute),
+      "DELETE_OBJECTS_THEN_DIVEST fixture did not establish departing-object attribute ownership");
+
+  auto const departingFederateHandle = departing.federateHandle();
+  registrar.recorder().clearRemovals();
+  recipient.recorder().clearRemovals();
+  departing.resign(rti::DELETE_OBJECTS_THEN_DIVEST);
+  waitForSessions(
+      {&registrar, &recipient},
+      [&] {
+        return registrar.recorder().hasRemoval(
+                   deletedObject,
+                   {},
+                   departingFederateHandle) &&
+            recipient.recorder().hasRemoval(
+                deletedObject,
+                {},
+                departingFederateHandle);
+      },
+      options,
+      "DELETE_OBJECTS_THEN_DIVEST object removal callbacks");
+
+  auto const registrarRemovals = registrar.recorder().removals();
+  auto const recipientRemovals = recipient.recorder().removals();
+  require(
+      registrarRemovals.size() == 1U &&
+          registrarRemovals.front().object == deletedObject &&
+          registrarRemovals.front().tag.empty() &&
+          registrarRemovals.front().producer == departingFederateHandle &&
+          recipientRemovals.size() == 1U &&
+          recipientRemovals.front().object == deletedObject &&
+          recipientRemovals.front().tag.empty() &&
+          recipientRemovals.front().producer == departingFederateHandle,
+      "DELETE_OBJECTS_THEN_DIVEST returned incorrect or duplicate object-removal metadata");
+  require(
+      registrar.rtiAmbassador().getObjectInstanceHandle(retainedObjectName) ==
+              retainedObject &&
+          recipient.rtiAmbassador().getObjectInstanceHandle(retainedObjectName) ==
+              retainedObject,
+      "DELETE_OBJECTS_THEN_DIVEST removed an object registered by another federate");
+  requireException(
+      [&] {
+        static_cast<void>(
+            recipient.rtiAmbassador().getObjectInstanceHandle(deletedObjectName));
+      },
+      L"ObjectInstanceNotKnown",
+      "looking up the departing federate's object after DELETE_OBJECTS_THEN_DIVEST");
+
+  recipient.recorder().clearOwnershipRecords();
+  std::vector<std::uint8_t> const recipientAcquisitionTagBytes{
+      0xD7U,
+      0x25U,
+      0x02U};
+  rti::VariableLengthData const recipientAcquisitionTag(
+      recipientAcquisitionTagBytes.data(),
+      recipientAcquisitionTagBytes.size());
+  recipient.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+      retainedObject,
+      recipientAttributes,
+      recipientAcquisitionTag);
+  waitFor(
+      recipient,
+      [&] { return recipient.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "DELETE_OBJECTS_THEN_DIVEST released-attribute acquisition");
+  auto const recipientAcquisition = recipient.recorder().ownershipAcquisition();
+  require(
+      recipientAcquisition->object == retainedObject &&
+          recipientAcquisition->attributes == recipientAttributes &&
+          recipientAcquisition->tag == recipientAcquisitionTagBytes &&
+          !registrar.rtiAmbassador().isAttributeOwnedByFederate(
+              retainedObject,
+              registrarAttribute) &&
+          recipient.rtiAmbassador().isAttributeOwnedByFederate(
+              retainedObject,
+              recipientAttribute),
+      "DELETE_OBJECTS_THEN_DIVEST did not release the retained-object attribute for acquisition");
+
+  auto const registrarFederateHandle = registrar.federateHandle();
+  registrar.resign(rti::DELETE_OBJECTS);
+  waitFor(
+      recipient,
+      [&] {
+        return recipient.recorder().hasRemoval(
+            retainedObject,
+            {},
+            registrarFederateHandle);
+      },
+      options,
+      "DELETE_OBJECTS_THEN_DIVEST fixture cleanup removal");
+  recipient.resign(rti::NO_ACTION);
+  registrar.rtiAmbassador().destroyFederationExecution(federation);
+  registrar.disconnect();
+  departing.disconnect();
+  recipient.disconnect();
+}
+
+void scenarioResignDeleteObjectsThenDivestCrossObjectEffectsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioResignDeleteObjectsThenDivestCrossObjectEffectsPortable(options, model);
+}
+
+void scenarioResignUnconditionallyDivestAttributesPreservesObjectsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "UNCONDITIONALLY_DIVEST_ATTRIBUTES testing requires an adapter-supplied FOM");
+  require(
+      !options.objectClassName.empty() && !options.attributeName.empty(),
+      "UNCONDITIONALLY_DIVEST_ATTRIBUTES testing requires adapter-supplied object and attribute names");
+
+  Session registrar(options, model, "resign-unconditional-divest-registrar");
+  Session departing(options, model, "resign-unconditional-divest-departing");
+  Session recipient(options, model, "resign-unconditional-divest-recipient");
+  auto const federation = federationName(
+      options,
+      "resign-unconditionally-divest-attributes-preserves-objects");
+  connectAndJoin(registrar, departing, options, federation, options.fom);
+  recipient.connect();
+  recipient.join(
+      options.memberFederateName + L"-resign-unconditional-divest-recipient",
+      options.federateType,
+      federation);
+
+  auto const registrarClass =
+      registrar.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const departingClass =
+      departing.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const recipientClass =
+      recipient.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const registrarAttribute = registrar.rtiAmbassador().getAttributeHandle(
+      registrarClass,
+      options.attributeName);
+  auto const departingAttribute = departing.rtiAmbassador().getAttributeHandle(
+      departingClass,
+      options.attributeName);
+  auto const recipientAttribute = recipient.rtiAmbassador().getAttributeHandle(
+      recipientClass,
+      options.attributeName);
+  require(
+      registrarClass.isValid() && departingClass.isValid() &&
+          recipientClass.isValid() && registrarAttribute.isValid() &&
+          departingAttribute.isValid() && recipientAttribute.isValid(),
+      "UNCONDITIONALLY_DIVEST_ATTRIBUTES fixture lookup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const registrarAttributes{registrarAttribute};
+  rti::AttributeHandleSet const departingAttributes{departingAttribute};
+  rti::AttributeHandleSet const recipientAttributes{recipientAttribute};
+  registrar.rtiAmbassador().publishObjectClassAttributes(
+      registrarClass,
+      registrarAttributes);
+  departing.rtiAmbassador().publishObjectClassAttributes(
+      departingClass,
+      departingAttributes);
+  recipient.rtiAmbassador().publishObjectClassAttributes(
+      recipientClass,
+      recipientAttributes);
+  registrar.rtiAmbassador().subscribeObjectClassAttributes(
+      registrarClass,
+      registrarAttributes,
+      true,
+      L"");
+  departing.rtiAmbassador().subscribeObjectClassAttributes(
+      departingClass,
+      departingAttributes,
+      true,
+      L"");
+  recipient.rtiAmbassador().subscribeObjectClassAttributes(
+      recipientClass,
+      recipientAttributes,
+      true,
+      L"");
+
+  auto const retainedObject =
+      registrar.rtiAmbassador().registerObjectInstance(registrarClass);
+  require(
+      retainedObject.isValid(),
+      "UNCONDITIONALLY_DIVEST_ATTRIBUTES fixture returned an invalid retained-object handle");
+  auto const retainedObjectName =
+      registrar.rtiAmbassador().getObjectInstanceName(retainedObject);
+  require(
+      !retainedObjectName.empty(),
+      "UNCONDITIONALLY_DIVEST_ATTRIBUTES fixture returned an empty retained-object name");
+  waitForSessions(
+      {&departing, &recipient},
+      [&] {
+        return departing.recorder().hasDiscovery(retainedObject) &&
+            recipient.recorder().hasDiscovery(retainedObject);
+      },
+      options,
+      "UNCONDITIONALLY_DIVEST_ATTRIBUTES retained-object discovery");
+
+  registrar.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+      retainedObject,
+      registrarAttributes,
+      rti::VariableLengthData{});
+  std::vector<std::uint8_t> const setupTagBytes{0xD7U, 0x25U, 0x11U};
+  rti::VariableLengthData const setupTag(setupTagBytes.data(), setupTagBytes.size());
+  departing.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+      retainedObject,
+      departingAttributes,
+      setupTag);
+  waitFor(
+      departing,
+      [&] { return departing.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "UNCONDITIONALLY_DIVEST_ATTRIBUTES setup acquisition");
+  auto const setupAcquisition = departing.recorder().ownershipAcquisition();
+  require(
+      setupAcquisition->object == retainedObject &&
+          setupAcquisition->attributes == departingAttributes &&
+          setupAcquisition->tag == setupTagBytes &&
+          departing.rtiAmbassador().isAttributeOwnedByFederate(
+              retainedObject,
+              departingAttribute),
+      "UNCONDITIONALLY_DIVEST_ATTRIBUTES setup did not establish foreign-object ownership");
+
+  registrar.recorder().clearRemovals();
+  recipient.recorder().clearRemovals();
+  departing.resign(rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+  require(
+      registrar.rtiAmbassador().getObjectInstanceHandle(retainedObjectName) ==
+              retainedObject &&
+          recipient.rtiAmbassador().getObjectInstanceHandle(retainedObjectName) ==
+              retainedObject,
+      "UNCONDITIONALLY_DIVEST_ATTRIBUTES removed the surviving federate's registered object");
+
+  auto acquireReleasedAttribute = [&](rti::ObjectInstanceHandle const& object,
+                                      std::vector<std::uint8_t> const& tagBytes,
+                                      char const* context) {
+    recipient.recorder().clearOwnershipRecords();
+    rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+    recipient.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+        object,
+        recipientAttributes,
+        tag);
+    waitForSessions(
+        {&registrar, &recipient},
+        [&] { return recipient.recorder().ownershipAcquisition().has_value(); },
+        options,
+        context);
+    auto const acquisition = recipient.recorder().ownershipAcquisition();
+    require(
+        acquisition->object == object &&
+            acquisition->attributes == recipientAttributes &&
+            acquisition->tag == tagBytes &&
+            recipient.rtiAmbassador().isAttributeOwnedByFederate(
+                object,
+                recipientAttribute),
+        std::string(context) + " returned incorrect acquisition metadata or ownership");
+  };
+  acquireReleasedAttribute(
+      retainedObject,
+      {0xD7U, 0x25U, 0x12U},
+      "UNCONDITIONALLY_DIVEST_ATTRIBUTES retained-object acquisition");
+  require(
+      registrar.recorder().removals().empty() &&
+          recipient.recorder().removals().empty() &&
+          !registrar.rtiAmbassador().isAttributeOwnedByFederate(
+              retainedObject,
+              registrarAttribute),
+      "UNCONDITIONALLY_DIVEST_ATTRIBUTES removed the surviving object or retained its original attribute owner");
+
+  auto const registrarFederateHandle = registrar.federateHandle();
+  registrar.resign(rti::DELETE_OBJECTS);
+  waitFor(
+      recipient,
+      [&] {
+        return recipient.recorder().hasRemoval(
+            retainedObject,
+            {},
+            registrarFederateHandle);
+      },
+      options,
+      "UNCONDITIONALLY_DIVEST_ATTRIBUTES fixture cleanup removal");
+  recipient.resign(rti::NO_ACTION);
+  registrar.rtiAmbassador().destroyFederationExecution(federation);
+  registrar.disconnect();
+  departing.disconnect();
+  recipient.disconnect();
+}
+
+void scenarioResignUnconditionallyDivestAttributesPreservesObjectsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioResignUnconditionallyDivestAttributesPreservesObjectsPortable(options, model);
+}
+
+void scenarioResignCancelPendingOwnershipAcquisitionsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "CANCEL_PENDING_OWNERSHIP_ACQUISITIONS testing requires an adapter-supplied FOM");
+  require(
+      !options.objectClassName.empty() && !options.attributeName.empty(),
+      "CANCEL_PENDING_OWNERSHIP_ACQUISITIONS testing requires adapter-supplied object and attribute names");
+
+  Session owner(options, model, "resign-cancel-pending-acquisitions-owner");
+  Session requester(options, model, "resign-cancel-pending-acquisitions-requester");
+  Session successor(options, model, "resign-cancel-pending-acquisitions-successor");
+  auto const federation =
+      federationName(options, "resign-cancel-pending-ownership-acquisitions-action");
+  connectAndJoin(owner, requester, options, federation, options.fom);
+  successor.connect();
+  successor.join(
+      options.memberFederateName + L"-resign-cancel-pending-acquisitions-successor",
+      options.federateType,
+      federation);
+
+  auto const ownerClass =
+      owner.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const requesterClass =
+      requester.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const successorClass =
+      successor.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const requesterAttribute = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.attributeName);
+  auto const successorAttribute = successor.rtiAmbassador().getAttributeHandle(
+      successorClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && requesterClass.isValid() &&
+          successorClass.isValid() && ownerAttribute.isValid() &&
+          requesterAttribute.isValid() && successorAttribute.isValid(),
+      "CANCEL_PENDING_OWNERSHIP_ACQUISITIONS fixture lookup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const requesterAttributes{requesterAttribute};
+  rti::AttributeHandleSet const successorAttributes{successorAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  successor.rtiAmbassador().publishObjectClassAttributes(
+      successorClass,
+      successorAttributes);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes,
+      true,
+      L"");
+  successor.rtiAmbassador().subscribeObjectClassAttributes(
+      successorClass,
+      successorAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "CANCEL_PENDING_OWNERSHIP_ACQUISITIONS fixture returned an invalid object handle");
+  auto const objectName = owner.rtiAmbassador().getObjectInstanceName(object);
+  require(
+      !objectName.empty(),
+      "CANCEL_PENDING_OWNERSHIP_ACQUISITIONS fixture returned an empty object name");
+  waitForSessions(
+      {&requester, &successor},
+      [&] {
+        return requester.recorder().hasDiscovery(object) &&
+            successor.recorder().hasDiscovery(object);
+      },
+      options,
+      "CANCEL_PENDING_OWNERSHIP_ACQUISITIONS object discovery");
+
+  owner.recorder().clearOwnershipRecords();
+  requester.recorder().clearOwnershipRecords();
+  std::vector<std::uint8_t> const requestTagBytes{0xD7U, 0x25U, 0x21U};
+  rti::VariableLengthData const requestTag(requestTagBytes.data(), requestTagBytes.size());
+  requester.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      requesterAttributes,
+      requestTag);
+  require(
+      !requester.recorder().ownershipAcquisition().has_value() &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute),
+      "CANCEL_PENDING_OWNERSHIP_ACQUISITIONS setup did not retain the owner's pending transfer");
+
+  requester.resign(rti::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS);
+  require(
+      owner.rtiAmbassador().getObjectInstanceName(object) == objectName &&
+          successor.rtiAmbassador().getObjectInstanceHandle(objectName) == object &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute),
+      "CANCEL_PENDING_OWNERSHIP_ACQUISITIONS resignation changed object identity or transferred ownership");
+
+  owner.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+      object,
+      ownerAttributes,
+      rti::VariableLengthData{});
+  successor.recorder().clearOwnershipRecords();
+  std::vector<std::uint8_t> const successorTagBytes{0xD7U, 0x25U, 0x22U};
+  rti::VariableLengthData const successorTag(
+      successorTagBytes.data(),
+      successorTagBytes.size());
+  successor.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+      object,
+      successorAttributes,
+      successorTag);
+  waitFor(
+      successor,
+      [&] { return successor.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "CANCEL_PENDING_OWNERSHIP_ACQUISITIONS subsequent acquisition");
+  auto const acquisition = successor.recorder().ownershipAcquisition();
+  require(
+      acquisition->object == object &&
+          acquisition->attributes == successorAttributes &&
+          acquisition->tag == successorTagBytes &&
+          !successor.recorder().ownershipUnavailable().has_value() &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          successor.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              successorAttribute),
+      "CANCEL_PENDING_OWNERSHIP_ACQUISITIONS left stale acquisition state or returned incorrect ownership");
+
+  auto const ownerFederateHandle = owner.federateHandle();
+  owner.resign(rti::DELETE_OBJECTS);
+  waitFor(
+      successor,
+      [&] {
+        return successor.recorder().hasRemoval(object, {}, ownerFederateHandle);
+      },
+      options,
+      "CANCEL_PENDING_OWNERSHIP_ACQUISITIONS fixture cleanup removal");
+  successor.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  owner.disconnect();
+  requester.disconnect();
+  successor.disconnect();
+}
+
+void scenarioResignCancelPendingOwnershipAcquisitionsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioResignCancelPendingOwnershipAcquisitionsPortable(options, model);
+}
+
+void scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "CANCEL_THEN_DELETE_THEN_DIVEST testing requires an adapter-supplied FOM");
+  require(
+      !options.objectClassName.empty() && !options.attributeName.empty(),
+      "CANCEL_THEN_DELETE_THEN_DIVEST testing requires adapter-supplied object and attribute names");
+
+  Session owner(options, model, "resign-cancel-delete-divest-owner");
+  Session departing(options, model, "resign-cancel-delete-divest-departing");
+  Session successor(options, model, "resign-cancel-delete-divest-successor");
+  auto const federation = federationName(
+      options,
+      "resign-cancel-then-delete-then-divest-cross-object-effects");
+  connectAndJoin(owner, departing, options, federation, options.fom);
+  successor.connect();
+  successor.join(
+      options.memberFederateName + L"-resign-cancel-delete-divest-successor",
+      options.federateType,
+      federation);
+
+  auto const ownerClass =
+      owner.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const departingClass =
+      departing.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const successorClass =
+      successor.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const departingAttribute = departing.rtiAmbassador().getAttributeHandle(
+      departingClass,
+      options.attributeName);
+  auto const successorAttribute = successor.rtiAmbassador().getAttributeHandle(
+      successorClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && departingClass.isValid() &&
+          successorClass.isValid() && ownerAttribute.isValid() &&
+          departingAttribute.isValid() && successorAttribute.isValid(),
+      "CANCEL_THEN_DELETE_THEN_DIVEST fixture lookup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const departingAttributes{departingAttribute};
+  rti::AttributeHandleSet const successorAttributes{successorAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  departing.rtiAmbassador().publishObjectClassAttributes(
+      departingClass,
+      departingAttributes);
+  successor.rtiAmbassador().publishObjectClassAttributes(
+      successorClass,
+      successorAttributes);
+  owner.rtiAmbassador().subscribeObjectClassAttributes(
+      ownerClass,
+      ownerAttributes,
+      true,
+      L"");
+  departing.rtiAmbassador().subscribeObjectClassAttributes(
+      departingClass,
+      departingAttributes,
+      true,
+      L"");
+  successor.rtiAmbassador().subscribeObjectClassAttributes(
+      successorClass,
+      successorAttributes,
+      true,
+      L"");
+
+  auto const retainedObject = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  auto const pendingObject = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      retainedObject.isValid() && pendingObject.isValid() &&
+          retainedObject != pendingObject,
+      "CANCEL_THEN_DELETE_THEN_DIVEST fixture returned invalid or duplicate owner objects");
+  auto const retainedObjectName =
+      owner.rtiAmbassador().getObjectInstanceName(retainedObject);
+  auto const pendingObjectName =
+      owner.rtiAmbassador().getObjectInstanceName(pendingObject);
+  require(
+      !retainedObjectName.empty() && !pendingObjectName.empty() &&
+          retainedObjectName != pendingObjectName,
+      "CANCEL_THEN_DELETE_THEN_DIVEST fixture returned invalid owner object names");
+  waitForSessions(
+      {&departing, &successor},
+      [&] {
+        return departing.recorder().hasDiscovery(retainedObject) &&
+            departing.recorder().hasDiscovery(pendingObject) &&
+            successor.recorder().hasDiscovery(retainedObject) &&
+            successor.recorder().hasDiscovery(pendingObject);
+      },
+      options,
+      "CANCEL_THEN_DELETE_THEN_DIVEST owner-object discovery");
+
+  owner.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+      retainedObject,
+      ownerAttributes,
+      rti::VariableLengthData{});
+  std::vector<std::uint8_t> const retainedTagBytes{0xD7U, 0x25U, 0x31U};
+  rti::VariableLengthData const retainedTag(
+      retainedTagBytes.data(),
+      retainedTagBytes.size());
+  departing.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+      retainedObject,
+      departingAttributes,
+      retainedTag);
+  waitFor(
+      departing,
+      [&] { return departing.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "CANCEL_THEN_DELETE_THEN_DIVEST retained-object ownership setup");
+  auto const retainedAcquisition = departing.recorder().ownershipAcquisition();
+  require(
+      retainedAcquisition->object == retainedObject &&
+          retainedAcquisition->attributes == departingAttributes &&
+          retainedAcquisition->tag == retainedTagBytes &&
+          departing.rtiAmbassador().isAttributeOwnedByFederate(
+              retainedObject,
+              departingAttribute),
+      "CANCEL_THEN_DELETE_THEN_DIVEST setup did not transfer the retained-object attribute");
+
+  auto const deletedObject =
+      departing.rtiAmbassador().registerObjectInstance(departingClass);
+  require(
+      deletedObject.isValid() && deletedObject != retainedObject &&
+          deletedObject != pendingObject,
+      "CANCEL_THEN_DELETE_THEN_DIVEST fixture returned an invalid departing object");
+  auto const deletedObjectName =
+      departing.rtiAmbassador().getObjectInstanceName(deletedObject);
+  require(
+      !deletedObjectName.empty() && deletedObjectName != retainedObjectName &&
+          deletedObjectName != pendingObjectName,
+      "CANCEL_THEN_DELETE_THEN_DIVEST fixture returned an invalid departing-object name");
+  waitForSessions(
+      {&owner, &successor},
+      [&] {
+        return owner.recorder().hasDiscovery(deletedObject) &&
+            successor.recorder().hasDiscovery(deletedObject);
+      },
+      options,
+      "CANCEL_THEN_DELETE_THEN_DIVEST departing-object discovery");
+  require(
+      departing.rtiAmbassador().isAttributeOwnedByFederate(
+          deletedObject,
+          departingAttribute),
+      "CANCEL_THEN_DELETE_THEN_DIVEST setup did not establish departing-object ownership");
+
+  departing.recorder().clearOwnershipRecords();
+  std::vector<std::uint8_t> const pendingTagBytes{0xD7U, 0x25U, 0x32U};
+  rti::VariableLengthData const pendingTag(
+      pendingTagBytes.data(),
+      pendingTagBytes.size());
+  departing.rtiAmbassador().attributeOwnershipAcquisition(
+      pendingObject,
+      departingAttributes,
+      pendingTag);
+  require(
+      !departing.recorder().ownershipAcquisition().has_value() &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(
+              pendingObject,
+              ownerAttribute),
+      "CANCEL_THEN_DELETE_THEN_DIVEST setup did not retain the pending request at its owner");
+
+  auto const departingFederateHandle = departing.federateHandle();
+  owner.recorder().clearRemovals();
+  successor.recorder().clearRemovals();
+  departing.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  waitForSessions(
+      {&owner, &successor},
+      [&] {
+        return owner.recorder().hasRemoval(
+                   deletedObject,
+                   {},
+                   departingFederateHandle) &&
+            successor.recorder().hasRemoval(
+                deletedObject,
+                {},
+                departingFederateHandle);
+      },
+      options,
+      "CANCEL_THEN_DELETE_THEN_DIVEST object-removal callbacks");
+  auto const ownerRemovals = owner.recorder().removals();
+  auto const successorRemovals = successor.recorder().removals();
+  require(
+      ownerRemovals.size() == 1U &&
+          ownerRemovals.front().object == deletedObject &&
+          ownerRemovals.front().tag.empty() &&
+          ownerRemovals.front().producer == departingFederateHandle &&
+          successorRemovals.size() == 1U &&
+          successorRemovals.front().object == deletedObject &&
+          successorRemovals.front().tag.empty() &&
+          successorRemovals.front().producer == departingFederateHandle,
+      "CANCEL_THEN_DELETE_THEN_DIVEST returned incorrect or duplicate removal metadata");
+  require(
+      owner.rtiAmbassador().getObjectInstanceHandle(retainedObjectName) ==
+              retainedObject &&
+          owner.rtiAmbassador().getObjectInstanceHandle(pendingObjectName) ==
+              pendingObject &&
+          successor.rtiAmbassador().getObjectInstanceHandle(retainedObjectName) ==
+              retainedObject &&
+          successor.rtiAmbassador().getObjectInstanceHandle(pendingObjectName) ==
+              pendingObject &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(
+              pendingObject,
+              ownerAttribute) &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(
+              retainedObject,
+              ownerAttribute),
+      "CANCEL_THEN_DELETE_THEN_DIVEST changed retained objects or ownership unexpectedly");
+  requireException(
+      [&] {
+        static_cast<void>(
+            successor.rtiAmbassador().getObjectInstanceHandle(deletedObjectName));
+      },
+      L"ObjectInstanceNotKnown",
+      "looking up the departing object after CANCEL_THEN_DELETE_THEN_DIVEST");
+
+  auto acquireReleasedAttribute = [&](rti::ObjectInstanceHandle const& object,
+                                      std::vector<std::uint8_t> const& tagBytes,
+                                      char const* context) {
+    successor.recorder().clearOwnershipRecords();
+    rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+    successor.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+        object,
+        successorAttributes,
+        tag);
+    waitFor(
+        successor,
+        [&] { return successor.recorder().ownershipAcquisition().has_value(); },
+        options,
+        context);
+    auto const acquisition = successor.recorder().ownershipAcquisition();
+    require(
+        acquisition->object == object &&
+            acquisition->attributes == successorAttributes &&
+            acquisition->tag == tagBytes &&
+            !successor.recorder().ownershipUnavailable().has_value() &&
+            successor.rtiAmbassador().isAttributeOwnedByFederate(
+                object,
+                successorAttribute),
+        std::string(context) + " returned incorrect acquisition metadata or ownership");
+  };
+  acquireReleasedAttribute(
+      retainedObject,
+      {0xD7U, 0x25U, 0x33U},
+      "CANCEL_THEN_DELETE_THEN_DIVEST retained-object acquisition");
+
+  owner.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+      pendingObject,
+      ownerAttributes,
+      rti::VariableLengthData{});
+  acquireReleasedAttribute(
+      pendingObject,
+      {0xD7U, 0x25U, 0x34U},
+      "CANCEL_THEN_DELETE_THEN_DIVEST pending-object successor acquisition");
+  require(
+      !owner.rtiAmbassador().isAttributeOwnedByFederate(
+          pendingObject,
+          ownerAttribute),
+      "CANCEL_THEN_DELETE_THEN_DIVEST left the pending-object attribute with its owner");
+
+  successor.recorder().clearRemovals();
+  auto const ownerFederateHandle = owner.federateHandle();
+  owner.resign(rti::DELETE_OBJECTS);
+  waitForSessions(
+      {&successor},
+      [&] {
+        return successor.recorder().hasRemoval(
+                   retainedObject,
+                   {},
+                   ownerFederateHandle) &&
+            successor.recorder().hasRemoval(
+                pendingObject,
+                {},
+                ownerFederateHandle);
+      },
+      options,
+      "CANCEL_THEN_DELETE_THEN_DIVEST fixture cleanup removals");
+  auto const cleanupRemovals = successor.recorder().removals();
+  require(
+      cleanupRemovals.size() == 2U &&
+          std::all_of(
+              cleanupRemovals.begin(),
+              cleanupRemovals.end(),
+              [&](auto const& removal) {
+                return removal.tag.empty() &&
+                    removal.producer == ownerFederateHandle;
+              }) &&
+          std::count_if(
+              cleanupRemovals.begin(),
+              cleanupRemovals.end(),
+              [&](auto const& removal) { return removal.object == retainedObject; }) ==
+              1 &&
+          std::count_if(
+              cleanupRemovals.begin(),
+              cleanupRemovals.end(),
+              [&](auto const& removal) { return removal.object == pendingObject; }) ==
+              1,
+      "CANCEL_THEN_DELETE_THEN_DIVEST cleanup returned incorrect owner-object removals");
+
+  successor.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  owner.disconnect();
+  departing.disconnect();
+  successor.disconnect();
+}
+
+void scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable(options, model);
+}
+
+void scenarioStandardOrderTransportLookupsAfterResignationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Post-resignation standard order/transport lookup requires an adapter-supplied FOM");
+
+  Session subject(options, model, "standard-order-transport-resigned-subject");
+  auto const federation =
+      federationName(options, "standard-order-transport-lookups-after-resignation");
+  subject.connect();
+  subject.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-standard-order-transport-subject",
+      options.federateType,
+      federation);
+
+  auto const receiveOrder = subject.rtiAmbassador().getOrderType(L"Receive");
+  auto const timestampOrder = subject.rtiAmbassador().getOrderType(L"TimeStamp");
+  auto const reliable = subject.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  auto const bestEffort = subject.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAbestEffort");
+  require(
+      receiveOrder == rti::RECEIVE && timestampOrder == rti::TIMESTAMP &&
+          reliable.isValid() && bestEffort.isValid() && reliable != bestEffort,
+      "Mandatory standard order/transport lookup returned unexpected values");
+  require(
+      subject.rtiAmbassador().getOrderName(receiveOrder) == L"Receive" &&
+          subject.rtiAmbassador().getOrderName(timestampOrder) == L"TimeStamp" &&
+          subject.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable" &&
+          subject.rtiAmbassador().getTransportationTypeName(bestEffort) ==
+              L"HLAbestEffort",
+      "Mandatory standard order/transport lookup did not round-trip while joined");
+
+  subject.resign(rti::NO_ACTION);
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getOrderType(L"Receive"));
+      },
+      L"FederateNotExecutionMember",
+      "looking up the valid Receive order type after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getOrderName(receiveOrder));
+      },
+      L"FederateNotExecutionMember",
+      "looking up the valid Receive order name after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getOrderType(L"TimeStamp"));
+      },
+      L"FederateNotExecutionMember",
+      "looking up the valid TimeStamp order type after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getOrderName(timestampOrder));
+      },
+      L"FederateNotExecutionMember",
+      "looking up the valid TimeStamp order name after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getTransportationTypeHandle(
+            L"HLAreliable"));
+      },
+      L"FederateNotExecutionMember",
+      "looking up the valid reliable transportation handle after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getTransportationTypeName(
+            reliable));
+      },
+      L"FederateNotExecutionMember",
+      "looking up the valid reliable transportation name after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getTransportationTypeHandle(
+            L"HLAbestEffort"));
+      },
+      L"FederateNotExecutionMember",
+      "looking up the valid best-effort transportation handle after resignation");
+  requireException(
+      [&] {
+        static_cast<void>(subject.rtiAmbassador().getTransportationTypeName(
+            bestEffort));
+      },
+      L"FederateNotExecutionMember",
+      "looking up the valid best-effort transportation name after resignation");
+
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+}
+
+void scenarioStandardOrderTransportLookupsAfterResignationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioStandardOrderTransportLookupsAfterResignationPortable(options, model);
+}
+
+void scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Post-resignation object declaration testing requires an adapter-supplied FOM");
+  require(
+      !options.objectClassName.empty() && !options.attributeName.empty(),
+      "Post-resignation object declaration testing requires adapter-supplied class and attribute names");
+
+  Session subject(options, model, "object-attribute-declarations-resigned-subject");
+  auto const federation = federationName(
+      options,
+      "object-attribute-declarations-valid-inputs-after-resignation");
+  subject.connect();
+  subject.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-object-attribute-declarations-subject",
+      options.federateType,
+      federation);
+
+  auto const objectClass = subject.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const attribute = subject.rtiAmbassador().getAttributeHandle(
+      objectClass,
+      options.attributeName);
+  require(
+      objectClass.isValid() && attribute.isValid() &&
+          subject.rtiAmbassador().getObjectClassName(objectClass) ==
+              options.objectClassName &&
+          subject.rtiAmbassador().getAttributeName(objectClass, attribute) ==
+              options.attributeName,
+      "Adapter-supplied object/attribute fixture did not provide valid lookup handles");
+  rti::AttributeHandleSet const attributes{attribute};
+
+  subject.rtiAmbassador().publishObjectClassAttributes(objectClass, attributes);
+  subject.rtiAmbassador().unpublishObjectClassAttributes(objectClass, attributes);
+  subject.rtiAmbassador().publishObjectClassAttributes(objectClass, attributes);
+  subject.rtiAmbassador().unpublishObjectClass(objectClass);
+  subject.rtiAmbassador().subscribeObjectClassAttributes(objectClass, attributes);
+  subject.rtiAmbassador().unsubscribeObjectClassAttributes(objectClass, attributes);
+  subject.rtiAmbassador().subscribeObjectClassAttributes(objectClass, attributes);
+  subject.rtiAmbassador().unsubscribeObjectClass(objectClass);
+
+  subject.resign(rti::NO_ACTION);
+  requireException(
+      [&] {
+        subject.rtiAmbassador().publishObjectClassAttributes(
+            objectClass,
+            attributes);
+      },
+      L"FederateNotExecutionMember",
+      "publishing valid object attributes after resignation");
+  requireException(
+      [&] { subject.rtiAmbassador().unpublishObjectClass(objectClass); },
+      L"FederateNotExecutionMember",
+      "unpublishing a valid object class after resignation");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().unpublishObjectClassAttributes(
+            objectClass,
+            attributes);
+      },
+      L"FederateNotExecutionMember",
+      "unpublishing valid object attributes after resignation");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().subscribeObjectClassAttributes(
+            objectClass,
+            attributes);
+      },
+      L"FederateNotExecutionMember",
+      "subscribing to valid object attributes after resignation");
+  requireException(
+      [&] { subject.rtiAmbassador().unsubscribeObjectClass(objectClass); },
+      L"FederateNotExecutionMember",
+      "unsubscribing a valid object class after resignation");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().unsubscribeObjectClassAttributes(
+            objectClass,
+            attributes);
+      },
+      L"FederateNotExecutionMember",
+      "unsubscribing valid object attributes after resignation");
+
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+}
+
+void scenarioObjectAttributeDeclarationsValidInputsAfterResignationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable(
+      options,
+      model);
+}
+
+void scenarioInteractionDeclarationsValidInputsAfterResignationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Post-resignation interaction declaration testing requires an adapter-supplied FOM");
+  require(
+      !options.interactionClassName.empty(),
+      "Post-resignation interaction declaration testing requires an adapter-supplied class name");
+
+  Session subject(options, model, "interaction-declarations-resigned-subject");
+  auto const federation = federationName(
+      options,
+      "interaction-declarations-valid-inputs-after-resignation");
+  subject.connect();
+  subject.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-interaction-declarations-subject",
+      options.federateType,
+      federation);
+
+  auto const interactionClass =
+      subject.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  require(
+      interactionClass.isValid() &&
+          subject.rtiAmbassador().getInteractionClassName(interactionClass) ==
+              options.interactionClassName,
+      "Adapter-supplied interaction fixture did not provide a valid lookup handle");
+
+  subject.rtiAmbassador().publishInteractionClass(interactionClass);
+  subject.rtiAmbassador().unpublishInteractionClass(interactionClass);
+  subject.rtiAmbassador().publishInteractionClass(interactionClass);
+  subject.rtiAmbassador().unpublishInteractionClass(interactionClass);
+  subject.rtiAmbassador().subscribeInteractionClass(interactionClass);
+  subject.rtiAmbassador().unsubscribeInteractionClass(interactionClass);
+  subject.rtiAmbassador().subscribeInteractionClass(interactionClass);
+  subject.rtiAmbassador().unsubscribeInteractionClass(interactionClass);
+
+  subject.resign(rti::NO_ACTION);
+  requireException(
+      [&] { subject.rtiAmbassador().publishInteractionClass(interactionClass); },
+      L"FederateNotExecutionMember",
+      "publishing a valid interaction class after resignation");
+  requireException(
+      [&] { subject.rtiAmbassador().unpublishInteractionClass(interactionClass); },
+      L"FederateNotExecutionMember",
+      "unpublishing a valid interaction class after resignation");
+  requireException(
+      [&] { subject.rtiAmbassador().subscribeInteractionClass(interactionClass); },
+      L"FederateNotExecutionMember",
+      "subscribing to a valid interaction class after resignation");
+  requireException(
+      [&] { subject.rtiAmbassador().unsubscribeInteractionClass(interactionClass); },
+      L"FederateNotExecutionMember",
+      "unsubscribing a valid interaction class after resignation");
+
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+}
+
+void scenarioInteractionDeclarationsValidInputsAfterResignationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioInteractionDeclarationsValidInputsAfterResignationPortable(
+      options,
+      model);
+}
+
+void scenarioDirectedInteractionDeclarationsValidInputsAfterResignationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Post-resignation directed-interaction declaration testing requires an adapter-supplied FOM");
+  require(
+      !options.objectClassName.empty() && !options.interactionClassName.empty(),
+      "Post-resignation directed-interaction declaration testing requires adapter-supplied object and interaction class names");
+
+  Session subject(options, model, "directed-interaction-declarations-resigned-subject");
+  auto const federation = federationName(
+      options,
+      "directed-interaction-declarations-valid-inputs-after-resignation");
+  subject.connect();
+  subject.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-directed-interaction-declarations-subject",
+      options.federateType,
+      federation);
+
+  auto const objectClass = subject.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const interactionClass =
+      subject.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  require(
+      objectClass.isValid() && interactionClass.isValid() &&
+          subject.rtiAmbassador().getObjectClassName(objectClass) ==
+              options.objectClassName &&
+          subject.rtiAmbassador().getInteractionClassName(interactionClass) ==
+              options.interactionClassName,
+      "Adapter-supplied directed-interaction FOM fixture did not provide valid class lookup handles");
+
+  rti::InteractionClassHandleSet const interactions{interactionClass};
+  subject.rtiAmbassador().publishObjectClassDirectedInteractions(
+      objectClass,
+      interactions);
+  subject.rtiAmbassador().unpublishObjectClassDirectedInteractions(
+      objectClass,
+      interactions);
+  subject.rtiAmbassador().publishObjectClassDirectedInteractions(
+      objectClass,
+      interactions);
+  subject.rtiAmbassador().unpublishObjectClassDirectedInteractions(objectClass);
+  subject.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      objectClass,
+      interactions,
+      false);
+  subject.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(
+      objectClass,
+      interactions);
+  subject.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      objectClass,
+      interactions,
+      false);
+  subject.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(objectClass);
+
+  subject.resign(rti::NO_ACTION);
+  requireException(
+      [&] {
+        subject.rtiAmbassador().publishObjectClassDirectedInteractions(
+            objectClass,
+            interactions);
+      },
+      L"FederateNotExecutionMember",
+      "publishing valid class-scoped directed interactions after resignation");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().unpublishObjectClassDirectedInteractions(
+            objectClass,
+            interactions);
+      },
+      L"FederateNotExecutionMember",
+      "unpublishing a valid directed-interaction set after resignation");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().unpublishObjectClassDirectedInteractions(
+            objectClass);
+      },
+      L"FederateNotExecutionMember",
+      "unpublishing a valid object class for directed interactions after resignation");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+            objectClass,
+            interactions,
+            false);
+      },
+      L"FederateNotExecutionMember",
+      "subscribing to valid class-scoped directed interactions after resignation");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(
+            objectClass,
+            interactions);
+      },
+      L"FederateNotExecutionMember",
+      "unsubscribing from a valid directed-interaction set after resignation");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(
+            objectClass);
+      },
+      L"FederateNotExecutionMember",
+      "unsubscribing a valid object class from directed interactions after resignation");
+
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+}
+
+void scenarioDirectedInteractionDeclarationsValidInputsAfterResignationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDirectedInteractionDeclarationsValidInputsAfterResignationPortable(
+      options,
+      model);
+}
+
+void scenarioInteractionTransportationQueryValidInputsAfterResignationPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.interactionClassName.empty(),
+      "Post-resignation interaction transportation query testing requires an adapter-supplied FOM and interaction class");
+
+  Session requester(options, model, "interaction-transportation-query-requester");
+  Session publisher(options, model, "interaction-transportation-query-publisher");
+  auto const federation = federationName(
+      options,
+      "interaction-transportation-query-valid-inputs-after-resignation");
+  requester.connect();
+  publisher.connect();
+  requester.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  requester.join(
+      options.ownerFederateName + L"-transportation-query-requester",
+      options.federateType,
+      federation);
+  publisher.join(
+      options.ownerFederateName + L"-transportation-query-publisher",
+      options.federateType,
+      federation);
+
+  auto const interactionClass =
+      requester.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const publisherInteractionClass =
+      publisher.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const publisherFederate = publisher.federateHandle();
+  require(
+      interactionClass.isValid() && publisherInteractionClass.isValid() &&
+          requester.rtiAmbassador().getInteractionClassName(interactionClass) ==
+              options.interactionClassName &&
+          publisher.rtiAmbassador().getInteractionClassName(
+              publisherInteractionClass) == options.interactionClassName &&
+          publisherFederate.isValid(),
+      "Adapter-supplied interaction transportation query fixture did not provide valid class and peer handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(
+      publisherInteractionClass);
+  requester.rtiAmbassador().queryInteractionTransportationType(
+      publisherFederate,
+      interactionClass);
+  waitFor(
+      requester,
+      [&] {
+        return !requester.recorder().interactionTransportationReports().empty();
+      },
+      options,
+      "valid interaction transportation query report");
+  auto const reports = requester.recorder().interactionTransportationReports();
+  auto const report = std::find_if(
+      reports.begin(),
+      reports.end(),
+      [&](auto const& value) {
+        return value.federate == publisherFederate &&
+            value.interaction == interactionClass;
+      });
+  require(
+      report != reports.end() && report->transportation.isValid() &&
+          !requester.rtiAmbassador().getTransportationTypeName(
+              report->transportation).empty(),
+      "Valid interaction transportation query did not report the active peer and adapter-FOM class with a resolvable standard type");
+
+  requester.resign(rti::NO_ACTION);
+  requireException(
+      [&] {
+        requester.rtiAmbassador().queryInteractionTransportationType(
+            publisherFederate,
+            interactionClass);
+      },
+      L"FederateNotExecutionMember",
+      "querying transportation for a valid active peer and interaction class after resignation");
+
+  publisher.rtiAmbassador().unpublishInteractionClass(
+      publisherInteractionClass);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioInteractionTransportationQueryValidInputsAfterResignationContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioInteractionTransportationQueryValidInputsAfterResignationPortable(
+      options,
+      model);
 }
 
 void scenarioServiceReportReceiveOrderInteractionPortable(
@@ -1325,6 +6324,522 @@ void scenarioServiceReportReleaseMultipleObjectInstanceNamesContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioServiceReportReleaseMultipleObjectInstanceNamesContract(options, model);
+}
+
+void scenarioServiceReportQueryAttributeOwnership(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.multiAttributeFom.empty(),
+      "Query Attribute Ownership service-report testing requires an adapter-supplied multi-attribute FOM");
+  require(
+      !options.mimFom.empty(),
+      "Query Attribute Ownership service-report testing requires an adapter-supplied standard MIM");
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Query Attribute Ownership service-report testing requires an adapter-supplied logical-time implementation");
+
+  Session owner(options, model, "service-report-ownership-owner");
+  Session requester(options, model, "service-report-ownership-requester");
+  auto const federation =
+      federationName(options, "service-report-query-attribute-ownership");
+  owner.connect();
+  requester.connect();
+  owner.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.multiAttributeFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(
+      options.ownerFederateName + L"-service-report-ownership-owner",
+      options.federateType,
+      federation);
+  requester.join(
+      options.memberFederateName + L"-service-report-ownership-requester",
+      options.federateType,
+      federation);
+
+  auto const reportClass = owner.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Query Attribute Ownership service-report lookup returned an invalid HLAreportServiceInvocation handle");
+  std::vector<rti::ParameterHandle> reportParameters;
+  for (auto const& name : {
+           L"HLAservice",
+           L"HLAserviceType",
+           L"HLAsuccessIndicator",
+           L"HLAsuppliedArguments",
+           L"HLAreturnedArgument",
+           L"HLAexception",
+           L"HLAserialNumber",
+           L"HLAfederate"}) {
+    auto const parameter = owner.rtiAmbassador().getParameterHandle(reportClass, name);
+    require(
+        parameter.isValid(),
+        "Query Attribute Ownership service-report lookup returned an invalid parameter handle");
+    reportParameters.push_back(parameter);
+  }
+
+  // Suppress setup-service reports so QueryAttributeOwnership is serial zero.
+  owner.rtiAmbassador().setServiceReportingSwitch(false);
+  owner.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  requester.rtiAmbassador().setServiceReportingSwitch(false);
+  requester.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  owner.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerFirst = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeFirstName);
+  auto const ownerSecond = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeSecondName);
+  auto const requesterFirst = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.multiAttributeFirstName);
+  auto const requesterSecond = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.multiAttributeSecondName);
+  require(
+      ownerClass.isValid() && requesterClass.isValid() && ownerFirst.isValid() &&
+          ownerSecond.isValid() && requesterFirst.isValid() &&
+          requesterSecond.isValid() && ownerFirst != ownerSecond &&
+          requesterFirst != requesterSecond,
+      "Query Attribute Ownership service-report lookup returned invalid or inconsistent object/attribute handles");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerFirst};
+  rti::AttributeHandleSet const requesterAttributes{requesterFirst, requesterSecond};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  auto const registeredObject = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      registeredObject.isValid(),
+      "Query Attribute Ownership service-report registration returned an invalid object handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(registeredObject); },
+      options,
+      "the object discovery callback before the ownership query");
+  auto const object = requester.recorder().discovery().object;
+  require(
+      object == registeredObject,
+      "Query Attribute Ownership service-report discovery returned the wrong object handle");
+
+  owner.recorder().clearInteraction();
+  requester.recorder().clearOwnershipRecords();
+  requester.rtiAmbassador().setServiceReportingSwitch(true);
+  requester.rtiAmbassador().queryAttributeOwnership(object, requesterAttributes);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().interaction().present; },
+      options,
+      "the QueryAttributeOwnership HLAreportServiceInvocation callback");
+  waitFor(
+      requester,
+      [&] {
+        return requester.recorder().ownershipInformationEvents().size() == 1U &&
+            requester.recorder().ownershipNotOwnedEvents().size() == 1U;
+      },
+      options,
+      "the mixed owned and unowned attribute-query callbacks");
+
+  auto const report = owner.recorder().interaction();
+  require(
+      report.interaction == reportClass &&
+          report.parameters.size() == reportParameters.size() &&
+          !report.producer.isValid(),
+      "Query Attribute Ownership service-report callback returned the wrong interaction identity or producer metadata");
+  require(
+      report.tag.empty() && !report.regions.has_value(),
+      "Query Attribute Ownership service-report callback returned user tag or region metadata");
+  require(
+      report.transportation ==
+          owner.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable"),
+      "Query Attribute Ownership service-report callback returned the wrong transportation type");
+  for (auto const parameterHandle : reportParameters) {
+    require(
+        report.parameters.count(parameterHandle) == 1U,
+        "Query Attribute Ownership service-report callback omitted a standard report parameter");
+  }
+
+  rti::HLAunicodeString service;
+  service.decode(report.parameters.at(reportParameters[0]));
+  require(
+      service.get() == L"QueryAttributeOwnership",
+      "Query Attribute Ownership service-report callback returned the wrong service name");
+  rti::HLAinteger16BE serviceType;
+  serviceType.decode(report.parameters.at(reportParameters[1]));
+  require(
+      serviceType.get() == 3,
+      "Query Attribute Ownership service-report callback returned the wrong object-management service type");
+  rti::HLAboolean success;
+  success.decode(report.parameters.at(reportParameters[2]));
+  require(
+      success.get(),
+      "Query Attribute Ownership service-report callback did not report a successful invocation");
+
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype
+      .appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters[3]));
+  require(
+      suppliedArguments.size() == 2U,
+      "Query Attribute Ownership service report returned the wrong supplied-argument count");
+  auto const& objectArgument =
+      dynamic_cast<rti::HLAfixedRecord const&>(suppliedArguments.get(0U));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(objectArgument.get(0U)).get() == 37 &&
+          dynamic_cast<rti::HLAunicodeString const&>(objectArgument.get(1U)).get() ==
+              L"Object instance designator" &&
+          dynamic_cast<rti::HLAunicodeString const&>(objectArgument.get(2U)).get() ==
+              L"\"" + object.toString() + L"\"",
+      "Query Attribute Ownership service report returned the wrong object designator argument");
+
+  std::wstring attributeValues{L"["};
+  for (auto iterator = requesterAttributes.begin();
+       iterator != requesterAttributes.end();
+       ++iterator) {
+    if (iterator != requesterAttributes.begin()) {
+      attributeValues.push_back(L',');
+    }
+    attributeValues += L"\"" + iterator->toString() + L"\"";
+  }
+  attributeValues.push_back(L']');
+  auto const& setArgument =
+      dynamic_cast<rti::HLAfixedRecord const&>(suppliedArguments.get(1U));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(setArgument.get(0U)).get() == 1 &&
+          dynamic_cast<rti::HLAunicodeString const&>(setArgument.get(1U)).get() ==
+              L"Set of attribute designators" &&
+          dynamic_cast<rti::HLAunicodeString const&>(setArgument.get(2U)).get() ==
+              attributeValues,
+      "Query Attribute Ownership service report returned the wrong attribute-set argument");
+
+  rti::HLAfixedRecord returnedArgument;
+  returnedArgument
+      .appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  returnedArgument.decode(report.parameters.at(reportParameters[4]));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 34 &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get().empty() &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(2U)).get() ==
+              L"null",
+      "Query Attribute Ownership service report returned the wrong void-result marker");
+  rti::HLAunicodeString exception;
+  exception.decode(report.parameters.at(reportParameters[5]));
+  require(
+      exception.get().empty(),
+      "Successful Query Attribute Ownership service report carried an exception");
+  rti::HLAinteger32BE serial;
+  serial.decode(report.parameters.at(reportParameters[6]));
+  require(
+      serial.get() == 0,
+      "First Query Attribute Ownership service report did not use serial number zero");
+
+  auto const ownershipInformation = requester.recorder().ownershipInformationEvents();
+  auto const ownershipNotOwned = requester.recorder().ownershipNotOwnedEvents();
+  require(
+      ownershipInformation.front().object == object &&
+          ownershipInformation.front().attributes ==
+              rti::AttributeHandleSet{requesterFirst} &&
+          ownershipInformation.front().owner == owner.federateHandle(),
+      "Query Attribute Ownership did not report the exact federate-owned subset");
+  require(
+      ownershipNotOwned.front().object == object &&
+          ownershipNotOwned.front().attributes ==
+              rti::AttributeHandleSet{requesterSecond},
+      "Query Attribute Ownership did not report the exact unowned subset");
+
+  owner.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  requester.rtiAmbassador().setServiceReportingSwitch(false);
+  requester.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioServiceReportQueryAttributeOwnershipPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportQueryAttributeOwnership(options, model);
+}
+
+void scenarioServiceReportQueryAttributeOwnershipContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportQueryAttributeOwnership(options, model);
+}
+
+void scenarioServiceReportCancelAttributeOwnershipAcquisition(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.multiAttributeFom.empty(),
+      "Cancel Attribute Ownership Acquisition service-report testing requires an adapter-supplied multi-attribute FOM");
+  require(
+      !options.mimFom.empty(),
+      "Cancel Attribute Ownership Acquisition service-report testing requires an adapter-supplied standard MIM");
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Cancel Attribute Ownership Acquisition service-report testing requires an adapter-supplied logical-time implementation");
+
+  Session owner(options, model, "service-report-cancel-ownership-owner");
+  Session requester(options, model, "service-report-cancel-ownership-requester");
+  Session observer(options, model, "service-report-cancel-ownership-observer");
+  auto const federation =
+      federationName(options, "service-report-cancel-attribute-ownership-acquisition");
+  owner.connect();
+  requester.connect();
+  observer.connect();
+  owner.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.multiAttributeFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(
+      options.ownerFederateName + L"-service-report-cancel-ownership-owner",
+      options.federateType,
+      federation);
+  requester.join(
+      options.memberFederateName + L"-service-report-cancel-ownership-requester",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-cancel-ownership-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Cancel Attribute Ownership Acquisition service-report lookup returned an invalid HLAreportServiceInvocation handle");
+  std::vector<rti::ParameterHandle> reportParameters;
+  for (auto const& name : {
+           L"HLAservice",
+           L"HLAserviceType",
+           L"HLAsuccessIndicator",
+           L"HLAsuppliedArguments",
+           L"HLAreturnedArgument",
+           L"HLAexception",
+           L"HLAserialNumber",
+           L"HLAfederate"}) {
+    auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
+    require(
+        parameter.isValid(),
+        "Cancel Attribute Ownership Acquisition service-report lookup returned an invalid parameter handle");
+    reportParameters.push_back(parameter);
+  }
+  owner.rtiAmbassador().setServiceReportingSwitch(false);
+  owner.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  requester.rtiAmbassador().setServiceReportingSwitch(false);
+  requester.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeFirstName);
+  auto const requesterAttribute = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.multiAttributeFirstName);
+  require(
+      ownerClass.isValid() && requesterClass.isValid() && ownerAttribute.isValid() &&
+          requesterAttribute.isValid(),
+      "Cancel Attribute Ownership Acquisition service-report lookup returned invalid object or attribute handles");
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const requesterAttributes{requesterAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  auto const registeredObject = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      registeredObject.isValid(),
+      "Cancel Attribute Ownership Acquisition service-report registration returned an invalid object handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(registeredObject); },
+      options,
+      "object discovery before the ownership-acquisition cancellation");
+  auto const object = requester.recorder().discovery().object;
+  require(
+      object == registeredObject,
+      "Cancel Attribute Ownership Acquisition discovery returned the wrong object handle");
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+
+  rti::Octet const acquisitionTagBytes[]{
+      static_cast<rti::Octet>(0xc0U),
+      static_cast<rti::Octet>(0xdeU),
+      static_cast<rti::Octet>(0x25U)};
+  rti::VariableLengthData const acquisitionTag{
+      acquisitionTagBytes, sizeof(acquisitionTagBytes)};
+  observer.recorder().clearInteraction();
+  owner.recorder().clearOwnershipRecords();
+  requester.recorder().clearOwnershipRecords();
+  requester.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      requesterAttributes,
+      acquisitionTag);
+  require(
+      !observer.recorder().interaction().present,
+      "Disabled service reporting exposed the setup acquisition through MOM");
+
+  // Cancellation is the first service reported by the requester, so its
+  // standard success report begins at serial zero.
+  requester.rtiAmbassador().setServiceReportingSwitch(true);
+  requester.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+      object,
+      requesterAttributes);
+  waitFor(
+      observer,
+      [&] { return observer.recorder().interaction().present; },
+      options,
+      "the CancelAttributeOwnershipAcquisition HLAreportServiceInvocation callback");
+  waitFor(
+      requester,
+      [&] {
+        return requester.recorder().ownershipAcquisitionCancellationEvents().size() == 1U;
+      },
+      options,
+      "the ownership-acquisition cancellation confirmation callback");
+
+  auto const report = observer.recorder().interaction();
+  require(
+      report.interaction == reportClass &&
+          report.parameters.size() == reportParameters.size() &&
+          !report.producer.isValid(),
+      "Cancel Attribute Ownership Acquisition service-report callback returned the wrong interaction identity or producer metadata");
+  require(
+      report.tag.empty() && !report.regions.has_value(),
+      "Cancel Attribute Ownership Acquisition service-report callback returned user tag or region metadata");
+  require(
+      report.transportation ==
+          observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable"),
+      "Cancel Attribute Ownership Acquisition service-report callback returned the wrong transportation type");
+  for (auto const parameterHandle : reportParameters) {
+    require(
+        report.parameters.count(parameterHandle) == 1U,
+        "Cancel Attribute Ownership Acquisition service-report callback omitted a standard report parameter");
+  }
+
+  rti::HLAunicodeString service;
+  service.decode(report.parameters.at(reportParameters[0]));
+  require(
+      service.get() == L"CancelAttributeOwnershipAcquisition",
+      "Cancel Attribute Ownership Acquisition service-report callback returned the wrong service name");
+  rti::HLAinteger16BE serviceType;
+  serviceType.decode(report.parameters.at(reportParameters[1]));
+  require(
+      serviceType.get() == 3,
+      "Cancel Attribute Ownership Acquisition service-report callback returned the wrong object-management service type");
+  rti::HLAboolean success;
+  success.decode(report.parameters.at(reportParameters[2]));
+  require(
+      success.get(),
+      "Cancel Attribute Ownership Acquisition service-report callback did not report a successful invocation");
+
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype
+      .appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters[3]));
+  require(
+      suppliedArguments.size() == 2U,
+      "Cancel Attribute Ownership Acquisition service report returned the wrong supplied-argument count");
+  auto const& objectArgument =
+      dynamic_cast<rti::HLAfixedRecord const&>(suppliedArguments.get(0U));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(objectArgument.get(0U)).get() == 37 &&
+          dynamic_cast<rti::HLAunicodeString const&>(objectArgument.get(1U)).get() ==
+              L"Object instance designator" &&
+          dynamic_cast<rti::HLAunicodeString const&>(objectArgument.get(2U)).get() ==
+              L"\"" + object.toString() + L"\"",
+      "Cancel Attribute Ownership Acquisition service report returned the wrong object designator argument");
+  auto const& setArgument =
+      dynamic_cast<rti::HLAfixedRecord const&>(suppliedArguments.get(1U));
+  std::wstring const attributeValues =
+      L"[\"" + requesterAttribute.toString() + L"\"]";
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(setArgument.get(0U)).get() == 1 &&
+          dynamic_cast<rti::HLAunicodeString const&>(setArgument.get(1U)).get() ==
+              L"Set of attribute designators" &&
+          dynamic_cast<rti::HLAunicodeString const&>(setArgument.get(2U)).get() ==
+              attributeValues,
+      "Cancel Attribute Ownership Acquisition service report returned the wrong attribute-set argument");
+
+  rti::HLAfixedRecord returnedArgument;
+  returnedArgument
+      .appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  returnedArgument.decode(report.parameters.at(reportParameters[4]));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 34 &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get().empty() &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(2U)).get() ==
+              L"null",
+      "Cancel Attribute Ownership Acquisition service report returned the wrong void-result marker");
+  rti::HLAunicodeString exception;
+  exception.decode(report.parameters.at(reportParameters[5]));
+  require(
+      exception.get().empty(),
+      "Successful Cancel Attribute Ownership Acquisition service report carried an exception");
+  rti::HLAinteger32BE serial;
+  serial.decode(report.parameters.at(reportParameters[6]));
+  require(
+      serial.get() == 0,
+      "First Cancel Attribute Ownership Acquisition service report did not use serial number zero");
+
+  auto const cancellation =
+      requester.recorder().ownershipAcquisitionCancellationEvents();
+  require(
+      cancellation.front().object == object &&
+          cancellation.front().attributes == requesterAttributes,
+      "Cancel Attribute Ownership Acquisition returned the wrong cancellation confirmation");
+
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  requester.rtiAmbassador().setServiceReportingSwitch(false);
+  owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  requester.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioServiceReportCancelAttributeOwnershipAcquisitionPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportCancelAttributeOwnershipAcquisition(options, model);
+}
+
+void scenarioServiceReportCancelAttributeOwnershipAcquisitionContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportCancelAttributeOwnershipAcquisition(options, model);
 }
 
 void scenarioServiceReportLocalDeleteObjectInstancePortable(
@@ -2343,6 +7858,4338 @@ void scenarioAutoProvideDisabledExplicitRequestContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioAutoProvideDisabledExplicitRequest(options, model);
+}
+
+void scenarioFederationAutoProvideMomSwitch(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federation MOM Auto Provide testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session owner(options, model, "owner");
+  Session requester(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "federation-auto-provide-mom-switch");
+  owner.connect();
+  requester.connect();
+  owner.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName, options.federateType, federation);
+  requester.join(options.memberFederateName, options.federateType, federation);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const requesterAttribute = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.attributeName);
+  auto const ownerSetSwitches = owner.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLAadjust.HLAsetSwitches");
+  auto const requesterSetSwitches =
+      requester.rtiAmbassador().getInteractionClassHandle(
+          L"HLAinteractionRoot.HLAmanager.HLAfederation.HLAadjust.HLAsetSwitches");
+  auto const ownerAutoProvide = owner.rtiAmbassador().getParameterHandle(
+      ownerSetSwitches,
+      L"HLAautoProvide");
+  auto const requesterAutoProvide = requester.rtiAmbassador().getParameterHandle(
+      requesterSetSwitches,
+      L"HLAautoProvide");
+  require(
+      ownerClass.isValid() && requesterClass.isValid() &&
+          ownerAttribute.isValid() && requesterAttribute.isValid() &&
+          ownerSetSwitches.isValid() && requesterSetSwitches.isValid() &&
+          ownerAutoProvide.isValid() && requesterAutoProvide.isValid(),
+      "Standard application or federation-MOM lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const requesterAttributes{requesterAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes,
+      true,
+      L"");
+
+  auto sendAutoProvideSwitch = [](
+      Session& setter,
+      auto const& setSwitches,
+      auto const& autoProvideParameter,
+      bool const enabled) {
+    rti::ParameterHandleValueMap const parameters{
+        {autoProvideParameter, rti::HLAinteger32BE{enabled ? 1 : 0}.encode()}};
+    setter.rtiAmbassador().sendInteraction(
+        setSwitches,
+        parameters,
+        rti::VariableLengthData{});
+  };
+  auto registerAndObserveDiscovery = [&](char const* stage) {
+    requester.recorder().clearDiscovery();
+    auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+    require(object.isValid(), std::string(stage) + " returned an invalid object handle");
+    waitFor(
+        owner,
+        requester,
+        [&] { return requester.recorder().hasDiscovery(object); },
+        options,
+        stage);
+    auto const discovery = requester.recorder().discovery();
+    require(
+        discovery.present && discovery.object == object &&
+            discovery.objectClass == requesterClass,
+        std::string(stage) + " delivered the wrong standard discovery data");
+    return object;
+  };
+  auto drainOwnerCallbacks = [&] {
+    if (model == rti::HLA_EVOKED) {
+      static_cast<void>(owner.evokeMultipleCallbacks(0.0, 1.0));
+    } else {
+      static_cast<void>(owner.rtiAmbassador().getObjectClassHandle(
+          options.objectClassName));
+    }
+  };
+
+  // A joined non-owner federate sets the switch. Discovery remains active, but
+  // the registered publisher must not receive a provide-value request.
+  sendAutoProvideSwitch(
+      requester,
+      requesterSetSwitches,
+      requesterAutoProvide,
+      false);
+  static_cast<void>(registerAndObserveDiscovery(
+      "federation MOM Auto Provide disabled discovery"));
+  drainOwnerCallbacks();
+  require(
+      owner.recorder().providedUpdates().empty(),
+      "federation MOM Auto Provide false still solicited the provider");
+
+  // The member enables the federation-wide switch. The next ordinary object
+  // registration must request exactly its published attribute from the owner.
+  sendAutoProvideSwitch(
+      requester,
+      requesterSetSwitches,
+      requesterAutoProvide,
+      true);
+  auto const enabledObject = registerAndObserveDiscovery(
+      "federation MOM Auto Provide enabled discovery");
+  waitFor(
+      owner,
+      requester,
+      [&] {
+        return requester.recorder().hasDiscovery(enabledObject) &&
+            owner.recorder().providedUpdates().size() == 1U;
+      },
+      options,
+      "federation MOM Auto Provide provider request");
+  auto const enabledRequests = owner.recorder().providedUpdates();
+  require(
+      enabledRequests.size() == 1U &&
+          enabledRequests.front().object == enabledObject &&
+          enabledRequests.front().attributes == ownerAttributes &&
+          enabledRequests.front().tag.empty(),
+      "federation MOM Auto Provide true returned the wrong provider callback data");
+
+  // The owner disables it; a third object is still discovered without another
+  // provider request, demonstrating federation-wide off behavior as well.
+  sendAutoProvideSwitch(
+      owner,
+      ownerSetSwitches,
+      ownerAutoProvide,
+      false);
+  static_cast<void>(registerAndObserveDiscovery(
+      "federation MOM Auto Provide disabled-again discovery"));
+  drainOwnerCallbacks();
+  require(
+      owner.recorder().providedUpdates().size() == 1U,
+      "federation MOM Auto Provide false generated an additional provider request");
+
+  requester.rtiAmbassador().unsubscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester.resign(rti::NO_ACTION);
+  owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioFederationAutoProvideMomSwitchContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationAutoProvideMomSwitch(options, model);
+}
+
+void scenarioFederateServiceReportingMomSwitch(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federate MOM Service Reporting testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session federate(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "federate-service-reporting-mom-switch");
+  federate.connect();
+  federate.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  federate.join(
+      options.ownerFederateName + L"-service-reporting-mom-switch",
+      options.federateType,
+      federation);
+
+  auto const setSwitches = federate.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+  auto const serviceReporting = federate.rtiAmbassador().getParameterHandle(
+      setSwitches,
+      L"HLAserviceReporting");
+  require(
+      setSwitches.isValid() && serviceReporting.isValid(),
+      "Standard federate-MOM Service Reporting lookup returned an invalid handle");
+  require(
+      !federate.rtiAmbassador().getServiceReportingSwitch(),
+      "Standard MIM Service Reporting switch did not start false");
+
+  auto setReportingThroughMom = [&](bool const enabled) {
+    rti::ParameterHandleValueMap const parameters{
+        {serviceReporting, rti::HLAinteger32BE{enabled ? 1 : 0}.encode()}};
+    federate.rtiAmbassador().sendInteraction(
+        setSwitches,
+        parameters,
+        rti::VariableLengthData{});
+    require(
+        federate.rtiAmbassador().getServiceReportingSwitch() == enabled,
+        std::string("HLAsetSwitches HLAserviceReporting did not set the switch to ") +
+            (enabled ? "true" : "false"));
+  };
+  setReportingThroughMom(true);
+  setReportingThroughMom(false);
+
+  federate.resign(rti::NO_ACTION);
+  federate.rtiAmbassador().destroyFederationExecution(federation);
+  federate.disconnect();
+}
+
+void scenarioFederateServiceReportingMomSwitchContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateServiceReportingMomSwitch(options, model);
+}
+
+void scenarioFederateExceptionReportingMomSwitch(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federate MOM Exception Reporting testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session federate(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "federate-exception-reporting-mom-switch");
+  federate.connect();
+  federate.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  federate.join(
+      options.ownerFederateName + L"-exception-reporting-mom-switch",
+      options.federateType,
+      federation);
+
+  auto const setSwitches = federate.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+  auto const exceptionReporting = federate.rtiAmbassador().getParameterHandle(
+      setSwitches,
+      L"HLAexceptionReporting");
+  require(
+      setSwitches.isValid() && exceptionReporting.isValid(),
+      "Standard federate-MOM Exception Reporting lookup returned an invalid handle");
+  require(
+      !federate.rtiAmbassador().getExceptionReportingSwitch(),
+      "Standard MIM Exception Reporting switch did not start false");
+
+  auto const initialServiceReporting =
+      federate.rtiAmbassador().getServiceReportingSwitch();
+  auto const initialResignAction =
+      federate.rtiAmbassador().getAutomaticResignDirective();
+  auto const initialFileReporting =
+      federate.rtiAmbassador().getSendServiceReportsToFileSwitch();
+  auto setReportingThroughMom = [&](bool const enabled) {
+    rti::ParameterHandleValueMap const parameters{
+        {exceptionReporting, rti::HLAinteger32BE{enabled ? 1 : 0}.encode()}};
+    federate.rtiAmbassador().sendInteraction(
+        setSwitches,
+        parameters,
+        rti::VariableLengthData{});
+    require(
+        federate.rtiAmbassador().getExceptionReportingSwitch() == enabled,
+        std::string("HLAsetSwitches HLAexceptionReporting did not set the switch to ") +
+            (enabled ? "true" : "false"));
+    require(
+        federate.rtiAmbassador().getServiceReportingSwitch() ==
+                initialServiceReporting &&
+            federate.rtiAmbassador().getAutomaticResignDirective() ==
+                initialResignAction &&
+            federate.rtiAmbassador().getSendServiceReportsToFileSwitch() ==
+                initialFileReporting,
+        "HLAsetSwitches HLAexceptionReporting changed a neighboring federate switch");
+  };
+  setReportingThroughMom(true);
+  setReportingThroughMom(false);
+
+  federate.resign(rti::NO_ACTION);
+  federate.rtiAmbassador().destroyFederationExecution(federation);
+  federate.disconnect();
+}
+
+void scenarioFederateExceptionReportingMomSwitchContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateExceptionReportingMomSwitch(options, model);
+}
+
+template <typename Getter, typename Setter>
+void runBooleanFederateMomAttributeScenario(
+    Options const& options,
+    rti::CallbackModel model,
+    char const* federationSuffix,
+    wchar_t const* attributeName,
+    char const* attributeDisplayName,
+    Getter getter,
+    Setter setter) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty(),
+      std::string(attributeDisplayName) +
+          " MOM attribute testing requires adapter-supplied FOM and standard MIM");
+
+  Session monitor(options, model, "boolean-federate-mom-attribute-monitor");
+  Session subject(options, model, "boolean-federate-mom-attribute-subject");
+  auto const federation = federationName(options, federationSuffix);
+  monitor.connect();
+  subject.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    monitor.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    monitor.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+  monitor.join(
+      options.memberFederateName + L"-boolean-mom-monitor",
+      options.federateType,
+      federation);
+
+  auto const momClass = monitor.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const valueAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      attributeName);
+  auto const reliable = monitor.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          valueAttribute.isValid() && reliable.isValid() &&
+          monitor.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          monitor.rtiAmbassador().getAttributeName(momClass, valueAttribute) ==
+              attributeName &&
+          monitor.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      std::string(attributeDisplayName) +
+          " MOM lookup did not round-trip standard MIM handles");
+  monitor.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{federateHandleAttribute, valueAttribute},
+      true,
+      L"");
+
+  subject.join(
+      options.ownerFederateName + L"-boolean-mom-subject",
+      options.federateType,
+      federation);
+  auto const subjectFederate = subject.federateHandle();
+  auto findSubjectMomObject = [&]()
+      -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const expectedHandle = copyBytes(subjectFederate.encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      monitor,
+      [&] { return findSubjectMomObject().has_value(); },
+      options,
+      std::string(attributeDisplayName) + " subject MOM discovery");
+  auto const subjectMomObject = findSubjectMomObject();
+  require(
+      subjectMomObject.has_value() && subjectMomObject->isValid() &&
+          monitor.rtiAmbassador().getKnownObjectClassHandle(*subjectMomObject) ==
+              momClass,
+      std::string(attributeDisplayName) +
+          " discovery returned the wrong standard MOM object");
+
+  auto valueReflectionsSince = [&](std::size_t firstReflection) {
+    auto const reflections = monitor.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    std::vector<ReflectionRecord> result;
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (iterator->present && iterator->object == *subjectMomObject &&
+          iterator->values.count(valueAttribute) == 1U) {
+        result.push_back(*iterator);
+      }
+    }
+    return result;
+  };
+  auto validateValueReflection = [&](ReflectionRecord const& reflection,
+                                     bool const expected,
+                                     char const* description) {
+    require(
+        reflection.values.size() == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        std::string(description) + " had non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(valueAttribute));
+    require(
+        value.get() == (expected ? 1 : 0),
+        std::string(description) + " returned the wrong HLAswitch value");
+  };
+  auto requestValue = [&](bool const expected, char const* description) {
+    auto const before = monitor.recorder().reflections().size();
+    monitor.rtiAmbassador().requestAttributeValueUpdate(
+        *subjectMomObject,
+        rti::AttributeHandleSet{valueAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        monitor,
+        [&] { return !valueReflectionsSince(before).empty(); },
+        options,
+        description);
+    auto const reflections = valueReflectionsSince(before);
+    require(
+        reflections.size() == 1U,
+        std::string(description) +
+            " delivered an unexpected number of direct MOM reflections");
+    validateValueReflection(reflections.front(), expected, description);
+  };
+
+  auto& subjectAmbassador = subject.rtiAmbassador();
+  bool const initialValue = getter(subjectAmbassador);
+  requestValue(initialValue, "initial direct MOM attribute value request");
+
+  bool const changedValue = !initialValue;
+  auto beforeChange = monitor.recorder().reflections().size();
+  setter(subjectAmbassador, changedValue);
+  require(
+      getter(subjectAmbassador) == changedValue,
+      std::string(attributeDisplayName) +
+          " public setter did not retain the changed value");
+  waitFor(
+      monitor,
+      [&] { return !valueReflectionsSince(beforeChange).empty(); },
+      options,
+      std::string(attributeDisplayName) + " conditional MOM reflection");
+  auto const changedReflections = valueReflectionsSince(beforeChange);
+  require(
+      changedReflections.size() == 1U,
+      std::string(attributeDisplayName) +
+          " change did not produce exactly one conditional MOM reflection");
+  validateValueReflection(
+      changedReflections.front(),
+      changedValue,
+      "conditional MOM attribute reflection");
+  requestValue(changedValue, "changed direct MOM attribute value request");
+
+  beforeChange = monitor.recorder().reflections().size();
+  setter(subjectAmbassador, initialValue);
+  require(
+      getter(subjectAmbassador) == initialValue,
+      std::string(attributeDisplayName) +
+          " public setter did not restore the initial value");
+  waitFor(
+      monitor,
+      [&] { return !valueReflectionsSince(beforeChange).empty(); },
+      options,
+      std::string(attributeDisplayName) + " restored conditional MOM reflection");
+  auto const restoredReflections = valueReflectionsSince(beforeChange);
+  require(
+      restoredReflections.size() == 1U,
+      std::string(attributeDisplayName) +
+          " restoration did not produce exactly one conditional MOM reflection");
+  validateValueReflection(
+      restoredReflections.front(),
+      initialValue,
+      "restored conditional MOM attribute reflection");
+  requestValue(initialValue, "restored direct MOM attribute value request");
+
+  subject.resign(rti::NO_ACTION);
+  monitor.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+  monitor.disconnect();
+}
+
+void runAsynchronousDeliveryMomAttributeScenario(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty(),
+      "Asynchronous Delivery MOM attribute testing requires adapter-supplied FOM and standard MIM");
+
+  Session monitor(options, model, "asynchronous-delivery-mom-attribute-monitor");
+  Session subject(options, model, "asynchronous-delivery-mom-attribute-subject");
+  auto const federation = federationName(
+      options,
+      "federate-asynchronous-delivery-mim-attribute");
+  monitor.connect();
+  subject.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    monitor.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    monitor.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+  monitor.join(
+      options.memberFederateName + L"-async-delivery-mom-monitor",
+      options.federateType,
+      federation);
+
+  auto const momClass = monitor.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const valueAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAasynchronousDelivery");
+  auto const reliable = monitor.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          valueAttribute.isValid() && reliable.isValid() &&
+          monitor.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          monitor.rtiAmbassador().getAttributeName(momClass, valueAttribute) ==
+              L"HLAasynchronousDelivery" &&
+          monitor.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Asynchronous Delivery MOM lookup did not round-trip standard MIM handles");
+  monitor.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{federateHandleAttribute, valueAttribute},
+      true,
+      L"");
+
+  subject.join(
+      options.ownerFederateName + L"-async-delivery-mom-subject",
+      options.federateType,
+      federation);
+  auto const subjectFederate = subject.federateHandle();
+  auto findSubjectMomObject = [&]()
+      -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const expectedHandle = copyBytes(subjectFederate.encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      monitor,
+      [&] { return findSubjectMomObject().has_value(); },
+      options,
+      "Asynchronous Delivery subject MOM discovery");
+  auto const subjectMomObject = findSubjectMomObject();
+  require(
+      subjectMomObject.has_value() && subjectMomObject->isValid() &&
+          monitor.rtiAmbassador().getKnownObjectClassHandle(*subjectMomObject) ==
+              momClass,
+      "Asynchronous Delivery discovery returned the wrong standard MOM object");
+
+  auto valueReflectionsSince = [&](std::size_t firstReflection) {
+    auto const reflections = monitor.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    std::vector<ReflectionRecord> result;
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (iterator->present && iterator->object == *subjectMomObject &&
+          iterator->values.count(valueAttribute) == 1U) {
+        result.push_back(*iterator);
+      }
+    }
+    return result;
+  };
+  auto validateValueReflection = [&](ReflectionRecord const& reflection,
+                                     bool const expected,
+                                     char const* description) {
+    require(
+        reflection.values.size() == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        std::string(description) +
+            " had non-standard asynchronous-delivery MOM reflection metadata");
+    rti::HLAboolean value;
+    value.decode(reflection.values.at(valueAttribute));
+    require(
+        value.get() == expected,
+        std::string(description) + " returned the wrong HLAboolean value");
+  };
+  auto requestValue = [&](char const* description) {
+    auto const before = monitor.recorder().reflections().size();
+    monitor.rtiAmbassador().requestAttributeValueUpdate(
+        *subjectMomObject,
+        rti::AttributeHandleSet{valueAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        monitor,
+        [&] { return !valueReflectionsSince(before).empty(); },
+        options,
+        description);
+    auto const reflections = valueReflectionsSince(before);
+    require(
+        reflections.size() == 1U,
+        std::string(description) +
+            " delivered an unexpected number of direct MOM reflections");
+    rti::HLAboolean value;
+    value.decode(reflections.front().values.at(valueAttribute));
+    validateValueReflection(reflections.front(), value.get(), description);
+    return value.get();
+  };
+
+  auto transitionTo = [&](bool const enabled, char const* description) {
+    auto const before = monitor.recorder().reflections().size();
+    if (enabled) {
+      subject.rtiAmbassador().enableAsynchronousDelivery();
+    } else {
+      subject.rtiAmbassador().disableAsynchronousDelivery();
+    }
+    waitFor(
+        monitor,
+        [&] { return !valueReflectionsSince(before).empty(); },
+        options,
+        description);
+    auto const reflections = valueReflectionsSince(before);
+    require(
+        reflections.size() == 1U,
+        std::string(description) +
+            " did not produce exactly one conditional MOM reflection");
+    validateValueReflection(
+        reflections.front(),
+        enabled,
+        "conditional asynchronous-delivery MOM reflection");
+    require(
+        requestValue("direct asynchronous-delivery MOM value request") ==
+            enabled,
+        "Direct HLAasynchronousDelivery value disagreed with the service transition");
+  };
+
+  bool const initialValue =
+      requestValue("initial asynchronous-delivery MOM value request");
+  transitionTo(
+      !initialValue,
+      "asynchronous-delivery state-change MOM reflection");
+  transitionTo(
+      initialValue,
+      "restored asynchronous-delivery MOM reflection");
+
+  subject.resign(rti::NO_ACTION);
+  monitor.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+  monitor.disconnect();
+}
+
+void runTimeConstrainedMomAttributeScenario(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty(),
+      "Time Constrained MOM attribute testing requires adapter-supplied FOM and standard MIM");
+
+  Session monitor(options, model, "time-constrained-mom-attribute-monitor");
+  Session subject(options, model, "time-constrained-mom-attribute-subject");
+  auto const federation = federationName(
+      options,
+      "federate-time-constrained-mim-attribute");
+  monitor.connect();
+  subject.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    monitor.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    monitor.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+  monitor.join(
+      options.memberFederateName + L"-time-constrained-mom-monitor",
+      options.federateType,
+      federation);
+
+  auto const momClass = monitor.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const valueAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAtimeConstrained");
+  auto const reliable = monitor.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          valueAttribute.isValid() && reliable.isValid() &&
+          monitor.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          monitor.rtiAmbassador().getAttributeName(momClass, valueAttribute) ==
+              L"HLAtimeConstrained" &&
+          monitor.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Time Constrained MOM lookup did not round-trip standard MIM handles");
+  monitor.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{federateHandleAttribute, valueAttribute},
+      true,
+      L"");
+
+  subject.join(
+      options.ownerFederateName + L"-time-constrained-mom-subject",
+      options.federateType,
+      federation);
+  auto const subjectFederate = subject.federateHandle();
+  auto findSubjectMomObject = [&]()
+      -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const expectedHandle = copyBytes(subjectFederate.encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      monitor,
+      [&] { return findSubjectMomObject().has_value(); },
+      options,
+      "Time Constrained subject MOM discovery");
+  auto const subjectMomObject = findSubjectMomObject();
+  require(
+      subjectMomObject.has_value() && subjectMomObject->isValid() &&
+          monitor.rtiAmbassador().getKnownObjectClassHandle(*subjectMomObject) ==
+              momClass,
+      "Time Constrained discovery returned the wrong standard MOM object");
+
+  auto valueReflectionsSince = [&](std::size_t firstReflection) {
+    auto const reflections = monitor.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    std::vector<ReflectionRecord> result;
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (iterator->present && iterator->object == *subjectMomObject &&
+          iterator->values.count(valueAttribute) == 1U) {
+        result.push_back(*iterator);
+      }
+    }
+    return result;
+  };
+  auto validateValueReflection = [&](ReflectionRecord const& reflection,
+                                     bool const expected,
+                                     char const* description) {
+    require(
+        reflection.values.size() == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        std::string(description) +
+            " had non-standard time-constrained MOM reflection metadata");
+    rti::HLAboolean value;
+    value.decode(reflection.values.at(valueAttribute));
+    require(
+        value.get() == expected,
+        std::string(description) + " returned the wrong HLAboolean value");
+  };
+  auto requestValue = [&](char const* description) {
+    auto const before = monitor.recorder().reflections().size();
+    monitor.rtiAmbassador().requestAttributeValueUpdate(
+        *subjectMomObject,
+        rti::AttributeHandleSet{valueAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        monitor,
+        [&] { return !valueReflectionsSince(before).empty(); },
+        options,
+        description);
+    auto const reflections = valueReflectionsSince(before);
+    require(
+        reflections.size() == 1U,
+        std::string(description) +
+            " delivered an unexpected number of direct MOM reflections");
+    rti::HLAboolean value;
+    value.decode(reflections.front().values.at(valueAttribute));
+    validateValueReflection(reflections.front(), value.get(), description);
+    return value.get();
+  };
+
+  auto transitionTo = [&](bool const enabled, char const* description) {
+    auto const before = monitor.recorder().reflections().size();
+    auto const callbacksBefore =
+        subject.recorder().timeConstrainedEnabled().size();
+    if (enabled) {
+      subject.rtiAmbassador().enableTimeConstrained();
+      waitFor(
+          subject,
+          [&] {
+            return subject.recorder().timeConstrainedEnabled().size() >=
+                callbacksBefore + 1U;
+          },
+          options,
+          "timeConstrainedEnabled callback after Enable Time Constrained");
+      require(
+          subject.recorder().timeConstrainedEnabled().size() ==
+              callbacksBefore + 1U,
+          "Enable Time Constrained delivered an unexpected number of callbacks");
+    } else {
+      subject.rtiAmbassador().disableTimeConstrained();
+      require(
+          subject.recorder().timeConstrainedEnabled().size() == callbacksBefore,
+          "Disable Time Constrained delivered a timeConstrainedEnabled callback");
+    }
+    waitFor(
+        monitor,
+        [&] { return !valueReflectionsSince(before).empty(); },
+        options,
+        description);
+    auto const reflections = valueReflectionsSince(before);
+    require(
+        reflections.size() == 1U,
+        std::string(description) +
+            " did not produce exactly one conditional MOM reflection");
+    validateValueReflection(
+        reflections.front(),
+        enabled,
+        "conditional time-constrained MOM reflection");
+    require(
+        requestValue("direct time-constrained MOM value request") == enabled,
+        "Direct HLAtimeConstrained value disagreed with the service transition");
+  };
+
+  bool const initialValue =
+      requestValue("initial time-constrained MOM value request");
+  transitionTo(
+      !initialValue,
+      "time-constrained state-change MOM reflection");
+  transitionTo(
+      initialValue,
+      "restored time-constrained MOM reflection");
+
+  subject.resign(rti::NO_ACTION);
+  monitor.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+  monitor.disconnect();
+}
+
+void runTimeRegulatingMomAttributeScenario(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Time Regulation MOM attribute testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session monitor(options, model, "time-regulating-mom-attribute-monitor");
+  Session subject(options, model, "time-regulating-mom-attribute-subject");
+  auto const federation = federationName(
+      options,
+      "federate-time-regulating-mim-attribute");
+  monitor.connect();
+  subject.connect();
+  monitor.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  monitor.join(
+      options.memberFederateName + L"-time-regulating-mom-monitor",
+      options.federateType,
+      federation);
+
+  auto const momClass = monitor.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const valueAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAtimeRegulating");
+  auto const reliable = monitor.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          valueAttribute.isValid() && reliable.isValid() &&
+          monitor.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          monitor.rtiAmbassador().getAttributeName(momClass, valueAttribute) ==
+              L"HLAtimeRegulating" &&
+          monitor.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Time Regulation MOM lookup did not round-trip standard MIM handles");
+  monitor.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{federateHandleAttribute, valueAttribute},
+      true,
+      L"");
+
+  subject.join(
+      options.ownerFederateName + L"-time-regulating-mom-subject",
+      options.federateType,
+      federation);
+  auto const subjectTime = makeTimeContext(subject);
+  auto const subjectFederate = subject.federateHandle();
+  auto findSubjectMomObject = [&]()
+      -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const expectedHandle = copyBytes(subjectFederate.encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      monitor,
+      [&] { return findSubjectMomObject().has_value(); },
+      options,
+      "Time Regulation subject MOM discovery");
+  auto const subjectMomObject = findSubjectMomObject();
+  require(
+      subjectMomObject.has_value() && subjectMomObject->isValid() &&
+          monitor.rtiAmbassador().getKnownObjectClassHandle(*subjectMomObject) ==
+              momClass,
+      "Time Regulation discovery returned the wrong standard MOM object");
+
+  auto valueReflectionsSince = [&](std::size_t firstReflection) {
+    auto const reflections = monitor.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    std::vector<ReflectionRecord> result;
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (iterator->present && iterator->object == *subjectMomObject &&
+          iterator->values.count(valueAttribute) == 1U) {
+        result.push_back(*iterator);
+      }
+    }
+    return result;
+  };
+  auto validateValueReflection = [&](ReflectionRecord const& reflection,
+                                     bool const expected,
+                                     char const* description) {
+    require(
+        reflection.values.size() == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        std::string(description) +
+            " had non-standard time-regulating MOM reflection metadata");
+    rti::HLAboolean value;
+    value.decode(reflection.values.at(valueAttribute));
+    require(
+        value.get() == expected,
+        std::string(description) + " returned the wrong HLAboolean value");
+  };
+  auto requestValue = [&](char const* description) {
+    auto const before = monitor.recorder().reflections().size();
+    monitor.rtiAmbassador().requestAttributeValueUpdate(
+        *subjectMomObject,
+        rti::AttributeHandleSet{valueAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        monitor,
+        [&] { return !valueReflectionsSince(before).empty(); },
+        options,
+        description);
+    auto const reflections = valueReflectionsSince(before);
+    require(
+        reflections.size() == 1U,
+        std::string(description) +
+            " delivered an unexpected number of direct MOM reflections");
+    rti::HLAboolean value;
+    value.decode(reflections.front().values.at(valueAttribute));
+    validateValueReflection(reflections.front(), value.get(), description);
+    return value.get();
+  };
+
+  auto transitionTo = [&](bool const enabled, char const* description) {
+    auto const before = monitor.recorder().reflections().size();
+    auto const callbacksBefore = subject.recorder().timeRegulationEnabled().size();
+    if (enabled) {
+      subject.rtiAmbassador().enableTimeRegulation(*subjectTime.epsilon);
+      waitFor(
+          subject,
+          [&] {
+            return subject.recorder().timeRegulationEnabled().size() >=
+                callbacksBefore + 1U;
+          },
+          options,
+          "timeRegulationEnabled callback after Enable Time Regulation");
+      require(
+          subject.recorder().timeRegulationEnabled().size() ==
+              callbacksBefore + 1U,
+          "Enable Time Regulation delivered an unexpected number of callbacks");
+    } else {
+      subject.rtiAmbassador().disableTimeRegulation();
+      require(
+          subject.recorder().timeRegulationEnabled().size() == callbacksBefore,
+          "Disable Time Regulation delivered a timeRegulationEnabled callback");
+    }
+    waitFor(
+        monitor,
+        [&] { return !valueReflectionsSince(before).empty(); },
+        options,
+        description);
+    auto const reflections = valueReflectionsSince(before);
+    require(
+        reflections.size() == 1U,
+        std::string(description) +
+            " did not produce exactly one conditional MOM reflection");
+    validateValueReflection(
+        reflections.front(),
+        enabled,
+        "conditional time-regulating MOM reflection");
+    require(
+        requestValue("direct time-regulating MOM value request") == enabled,
+        "Direct HLAtimeRegulating value disagreed with the service transition");
+  };
+
+  bool const initialValue =
+      requestValue("initial time-regulating MOM value request");
+  transitionTo(
+      !initialValue,
+      "time-regulating state-change MOM reflection");
+  transitionTo(
+      initialValue,
+      "restored time-regulating MOM reflection");
+
+  subject.resign(rti::NO_ACTION);
+  monitor.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+  monitor.disconnect();
+}
+
+void runFederateLookaheadMomPeriodicScenario(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federate HLAlookahead MOM testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session monitor(options, model, "federate-lookahead-mom-periodic-monitor");
+  Session subject(options, model, "federate-lookahead-mom-periodic-subject");
+  auto const federation = federationName(
+      options,
+      "federate-lookahead-mim-periodic");
+  monitor.connect();
+  subject.connect();
+  monitor.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  monitor.join(
+      options.memberFederateName + L"-lookahead-mom-periodic-monitor",
+      options.federateType,
+      federation);
+
+  auto const momClass = monitor.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const lookaheadAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAlookahead");
+  auto const reliable = monitor.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          lookaheadAttribute.isValid() && reliable.isValid() &&
+          monitor.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          monitor.rtiAmbassador().getAttributeName(momClass, lookaheadAttribute) ==
+              L"HLAlookahead" &&
+          monitor.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Federate HLAlookahead MOM lookup did not round-trip standard MIM handles");
+  monitor.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{federateHandleAttribute, lookaheadAttribute},
+      true,
+      L"");
+
+  subject.join(
+      options.ownerFederateName + L"-lookahead-mom-periodic-subject",
+      options.federateType,
+      federation);
+  auto const subjectTime = makeTimeContext(subject);
+  auto const subjectFederate = subject.federateHandle();
+  auto findSubjectMomObject = [&]()
+      -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const expectedHandle = copyBytes(subjectFederate.encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      monitor,
+      [&] { return findSubjectMomObject().has_value(); },
+      options,
+      "Federate HLAlookahead subject MOM discovery");
+  auto const subjectMomObject = findSubjectMomObject();
+  require(
+      subjectMomObject.has_value() && subjectMomObject->isValid() &&
+          monitor.rtiAmbassador().getKnownObjectClassHandle(*subjectMomObject) ==
+              momClass,
+      "Federate HLAlookahead discovery returned the wrong standard MOM object");
+
+  auto valueReflectionsSince = [&](std::size_t firstReflection) {
+    auto const reflections = monitor.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    std::vector<ReflectionRecord> result;
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (iterator->present && iterator->object == *subjectMomObject &&
+          iterator->values.count(lookaheadAttribute) == 1U) {
+        result.push_back(*iterator);
+      }
+    }
+    return result;
+  };
+  auto matchesLookahead = [&](ReflectionRecord const& reflection,
+                              rti::LogicalTimeInterval const& expected) {
+    auto const value = reflection.values.find(lookaheadAttribute);
+    if (!reflection.present || reflection.object != *subjectMomObject ||
+        value == reflection.values.end()) {
+      return false;
+    }
+    auto const decodedInterval =
+        subjectTime.factory->decodeLogicalTimeInterval(value->second);
+    return decodedInterval != nullptr && *decodedInterval == expected;
+  };
+  auto validateLookaheadReflection = [&](ReflectionRecord const& reflection,
+                                         rti::LogicalTimeInterval const& expected,
+                                         char const* description) {
+    require(
+        reflection.values.size() == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        std::string(description) +
+            " had non-standard HLAlookahead reflection metadata");
+    require(
+        matchesLookahead(reflection, expected),
+        std::string(description) +
+            " did not contain the encoded standard logical-time interval");
+  };
+  auto waitForLookaheadReflection = [&](std::size_t firstReflection,
+                                       rti::LogicalTimeInterval const& expected,
+                                       char const* description) {
+    waitFor(
+        monitor,
+        [&] {
+          auto const reflections = valueReflectionsSince(firstReflection);
+          return std::any_of(
+              reflections.begin(),
+              reflections.end(),
+              [&](ReflectionRecord const& reflection) {
+                return matchesLookahead(reflection, expected);
+              });
+        },
+        options,
+        description);
+    auto const reflections = valueReflectionsSince(firstReflection);
+    auto const matched = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return matchesLookahead(reflection, expected);
+        });
+    require(
+        matched != reflections.end(),
+        std::string(description) + " was not recorded after callback servicing");
+    validateLookaheadReflection(*matched, expected, description);
+  };
+
+  auto const enableCallbacksBefore =
+      subject.recorder().timeRegulationEnabled().size();
+  subject.rtiAmbassador().enableTimeRegulation(*subjectTime.epsilon);
+  waitFor(
+      subject,
+      [&] {
+        return subject.recorder().timeRegulationEnabled().size() >=
+            enableCallbacksBefore + 1U;
+      },
+      options,
+      "Federate HLAlookahead timeRegulationEnabled callback");
+  require(
+      subject.recorder().timeRegulationEnabled().size() ==
+          enableCallbacksBefore + 1U,
+      "Enable Time Regulation delivered an unexpected number of callbacks");
+
+  auto initialLookahead = subjectTime.factory->makeZero();
+  require(
+      initialLookahead != nullptr,
+      "Federate HLAlookahead could not allocate an initial Query Lookahead interval");
+  subject.rtiAmbassador().queryLookahead(*initialLookahead);
+  require(
+      *initialLookahead == *subjectTime.epsilon,
+      "initial Query Lookahead did not match the enabled epsilon");
+
+  auto const setTiming = monitor.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const timingFederate = monitor.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriod = monitor.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && timingFederate.isValid() && reportPeriod.isValid() &&
+          monitor.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          monitor.rtiAmbassador().getParameterName(setTiming, timingFederate) ==
+              L"HLAfederate" &&
+          monitor.rtiAmbassador().getParameterName(setTiming, reportPeriod) ==
+              L"HLAreportPeriod",
+      "Federate HLAlookahead HLAsetTiming lookup did not round-trip standard MIM handles");
+  auto setReportPeriod = [&](std::int32_t seconds) {
+    monitor.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {timingFederate, subjectFederate.encode()},
+            {reportPeriod, rti::HLAinteger32BE{seconds}.encode()}},
+        rti::VariableLengthData{});
+  };
+
+  auto const beforeInitialReport = monitor.recorder().reflections().size();
+  setReportPeriod(1);
+  waitForLookaheadReflection(
+      beforeInitialReport,
+      *subjectTime.epsilon,
+      "periodic HLAlookahead reflection after HLAsetTiming");
+
+  auto const beforeChangedReport = monitor.recorder().reflections().size();
+  auto changedLookaheadTime = timeAfter(
+      *subjectTime.factory,
+      *subjectTime.initial,
+      *subjectTime.epsilon,
+      3U);
+  auto changedLookahead = subjectTime.factory->makeZero();
+  require(
+      changedLookahead != nullptr,
+      "Federate HLAlookahead could not allocate the changed interval");
+  changedLookahead->setToDifference(
+      *changedLookaheadTime,
+      *subjectTime.initial);
+  subject.rtiAmbassador().modifyLookahead(*changedLookahead);
+
+  auto queriedChanged = subjectTime.factory->makeZero();
+  require(
+      queriedChanged != nullptr,
+      "Federate HLAlookahead could not allocate the changed Query Lookahead interval");
+  subject.rtiAmbassador().queryLookahead(*queriedChanged);
+  require(
+      *queriedChanged == *changedLookahead,
+      "Modify Lookahead did not cross the Query Lookahead boundary");
+  waitForLookaheadReflection(
+      beforeChangedReport,
+      *changedLookahead,
+      "periodic HLAlookahead reflection after Modify Lookahead");
+
+  setReportPeriod(0);
+  subject.rtiAmbassador().disableTimeRegulation();
+  monitor.rtiAmbassador().unsubscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{federateHandleAttribute, lookaheadAttribute});
+  subject.resign(rti::NO_ACTION);
+  monitor.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+  monitor.disconnect();
+}
+
+void scenarioFederateExceptionReportingMomAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  runBooleanFederateMomAttributeScenario(
+      options,
+      model,
+      "federate-exception-reporting-mim-attribute",
+      L"HLAexceptionReporting",
+      "HLAexceptionReporting",
+      [](rti::RTIambassador& ambassador) {
+        return ambassador.getExceptionReportingSwitch();
+      },
+      [](rti::RTIambassador& ambassador, bool const value) {
+        ambassador.setExceptionReportingSwitch(value);
+      });
+}
+
+void scenarioFederateServiceReportingMomAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  runBooleanFederateMomAttributeScenario(
+      options,
+      model,
+      "federate-service-reporting-mim-attribute",
+      L"HLAserviceReporting",
+      "HLAserviceReporting",
+      [](rti::RTIambassador& ambassador) {
+        return ambassador.getServiceReportingSwitch();
+      },
+      [](rti::RTIambassador& ambassador, bool const value) {
+        ambassador.setServiceReportingSwitch(value);
+      });
+}
+
+void scenarioFederateServiceReportingMomAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateServiceReportingMomAttribute(options, model);
+}
+
+void scenarioFederateObjectClassRelevanceAdvisoryMomAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  runBooleanFederateMomAttributeScenario(
+      options,
+      model,
+      "federate-object-class-relevance-advisory-mim-attribute",
+      L"HLAobjectClassRelevanceAdvisory",
+      "HLAobjectClassRelevanceAdvisory",
+      [](rti::RTIambassador& ambassador) {
+        return ambassador.getObjectClassRelevanceAdvisorySwitch();
+      },
+      [](rti::RTIambassador& ambassador, bool const value) {
+        ambassador.setObjectClassRelevanceAdvisorySwitch(value);
+      });
+}
+
+void scenarioFederateObjectClassRelevanceAdvisoryMomAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateObjectClassRelevanceAdvisoryMomAttribute(options, model);
+}
+
+void scenarioFederateAttributeRelevanceAdvisoryMomAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  runBooleanFederateMomAttributeScenario(
+      options,
+      model,
+      "federate-attribute-relevance-advisory-mim-attribute",
+      L"HLAattributeRelevanceAdvisory",
+      "HLAattributeRelevanceAdvisory",
+      [](rti::RTIambassador& ambassador) {
+        return ambassador.getAttributeRelevanceAdvisorySwitch();
+      },
+      [](rti::RTIambassador& ambassador, bool const value) {
+        ambassador.setAttributeRelevanceAdvisorySwitch(value);
+      });
+}
+
+void scenarioFederateAttributeRelevanceAdvisoryMomAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateAttributeRelevanceAdvisoryMomAttribute(options, model);
+}
+
+void scenarioFederateAttributeScopeAdvisoryMomAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  runBooleanFederateMomAttributeScenario(
+      options,
+      model,
+      "federate-attribute-scope-advisory-mim-attribute",
+      L"HLAattributeScopeAdvisory",
+      "HLAattributeScopeAdvisory",
+      [](rti::RTIambassador& ambassador) {
+        return ambassador.getAttributeScopeAdvisorySwitch();
+      },
+      [](rti::RTIambassador& ambassador, bool const value) {
+        ambassador.setAttributeScopeAdvisorySwitch(value);
+      });
+}
+
+void scenarioFederateAttributeScopeAdvisoryMomAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateAttributeScopeAdvisoryMomAttribute(options, model);
+}
+
+void scenarioFederateInteractionRelevanceAdvisoryMomAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  runBooleanFederateMomAttributeScenario(
+      options,
+      model,
+      "federate-interaction-relevance-advisory-mim-attribute",
+      L"HLAinteractionRelevanceAdvisory",
+      "HLAinteractionRelevanceAdvisory",
+      [](rti::RTIambassador& ambassador) {
+        return ambassador.getInteractionRelevanceAdvisorySwitch();
+      },
+      [](rti::RTIambassador& ambassador, bool const value) {
+        ambassador.setInteractionRelevanceAdvisorySwitch(value);
+      });
+}
+
+void scenarioFederateInteractionRelevanceAdvisoryMomAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateInteractionRelevanceAdvisoryMomAttribute(options, model);
+}
+
+void scenarioFederateAsynchronousDeliveryMomAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  runAsynchronousDeliveryMomAttributeScenario(options, model);
+}
+
+void scenarioFederateAsynchronousDeliveryMomAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateAsynchronousDeliveryMomAttribute(options, model);
+}
+
+void scenarioFederateTimeConstrainedMomAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  runTimeConstrainedMomAttributeScenario(options, model);
+}
+
+void scenarioFederateTimeConstrainedMomAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateTimeConstrainedMomAttribute(options, model);
+}
+
+void scenarioFederateTimeRegulatingMomAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  runTimeRegulatingMomAttributeScenario(options, model);
+}
+
+void scenarioFederateTimeRegulatingMomAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateTimeRegulatingMomAttribute(options, model);
+}
+
+void runFederateLogicalTimeMomPeriodicScenario(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federate HLAlogicalTime MOM testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session monitor(options, model, "federate-logical-time-mom-periodic-monitor");
+  Session subject(options, model, "federate-logical-time-mom-periodic-subject");
+  auto const federation = federationName(
+      options,
+      "federate-logical-time-mim-periodic");
+  monitor.connect();
+  subject.connect();
+  monitor.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  monitor.join(
+      options.memberFederateName + L"-logical-time-mom-periodic-monitor",
+      options.federateType,
+      federation);
+
+  auto const momClass = monitor.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const logicalTimeAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAlogicalTime");
+  auto const reliable = monitor.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          logicalTimeAttribute.isValid() && reliable.isValid() &&
+          monitor.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          monitor.rtiAmbassador().getAttributeName(momClass, logicalTimeAttribute) ==
+              L"HLAlogicalTime" &&
+          monitor.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Federate HLAlogicalTime MOM lookup did not round-trip standard MIM handles");
+  monitor.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{federateHandleAttribute, logicalTimeAttribute},
+      true,
+      L"");
+
+  subject.join(
+      options.ownerFederateName + L"-logical-time-mom-periodic-subject",
+      options.federateType,
+      federation);
+  auto const monitorTime = makeTimeContext(monitor);
+  auto const subjectTime = makeTimeContext(subject);
+  require(
+      monitorTime.factory->getName() == subjectTime.factory->getName() &&
+          *monitorTime.initial == *subjectTime.initial,
+      "Federate HLAlogicalTime participants selected incompatible standard logical-time configurations");
+  auto const subjectFederate = subject.federateHandle();
+  auto findSubjectMomObject = [&]()
+      -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const expectedHandle = copyBytes(subjectFederate.encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      monitor,
+      [&] { return findSubjectMomObject().has_value(); },
+      options,
+      "Federate HLAlogicalTime subject MOM discovery");
+  auto const subjectMomObject = findSubjectMomObject();
+  require(
+      subjectMomObject.has_value() && subjectMomObject->isValid() &&
+          monitor.rtiAmbassador().getKnownObjectClassHandle(*subjectMomObject) ==
+              momClass,
+      "Federate HLAlogicalTime discovery returned the wrong standard MOM object");
+
+  auto valueReflectionsSince = [&](std::size_t firstReflection) {
+    auto const reflections = monitor.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    std::vector<ReflectionRecord> result;
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (iterator->present && iterator->object == *subjectMomObject &&
+          iterator->values.count(logicalTimeAttribute) == 1U) {
+        result.push_back(*iterator);
+      }
+    }
+    return result;
+  };
+  auto matchesLogicalTime = [&](ReflectionRecord const& reflection,
+                                rti::LogicalTime const& expected) {
+    auto const value = reflection.values.find(logicalTimeAttribute);
+    if (!reflection.present || reflection.object != *subjectMomObject ||
+        value == reflection.values.end()) {
+      return false;
+    }
+    auto const decodedTime = subjectTime.factory->decodeLogicalTime(value->second);
+    return decodedTime != nullptr && *decodedTime == expected;
+  };
+  auto validateLogicalTimeReflection = [&](ReflectionRecord const& reflection,
+                                           rti::LogicalTime const& expected,
+                                           char const* description) {
+    require(
+        reflection.values.size() == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        std::string(description) +
+            " had non-standard HLAlogicalTime reflection metadata");
+    require(
+        matchesLogicalTime(reflection, expected),
+        std::string(description) +
+            " did not contain the encoded standard logical time");
+  };
+  auto waitForLogicalTimeReflection = [&](std::size_t firstReflection,
+                                         rti::LogicalTime const& expected,
+                                         char const* description) {
+    waitFor(
+        monitor,
+        [&] {
+          auto const reflections = valueReflectionsSince(firstReflection);
+          return std::any_of(
+              reflections.begin(),
+              reflections.end(),
+              [&](ReflectionRecord const& reflection) {
+                return matchesLogicalTime(reflection, expected);
+              });
+        },
+        options,
+        description);
+    auto const reflections = valueReflectionsSince(firstReflection);
+    auto const matched = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return matchesLogicalTime(reflection, expected);
+        });
+    require(
+        matched != reflections.end(),
+        std::string(description) + " was not recorded after callback servicing");
+    validateLogicalTimeReflection(*matched, expected, description);
+  };
+
+  auto const constrainedCallbacksBefore =
+      subject.recorder().timeConstrainedEnabled().size();
+  subject.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      subject,
+      [&] {
+        return subject.recorder().timeConstrainedEnabled().size() >=
+            constrainedCallbacksBefore + 1U;
+      },
+      options,
+      "Federate HLAlogicalTime timeConstrainedEnabled callback");
+  require(
+      subject.recorder().timeConstrainedEnabled().size() ==
+          constrainedCallbacksBefore + 1U,
+      "Enable Time Constrained delivered an unexpected number of callbacks");
+
+  auto const regulationCallbacksBefore =
+      monitor.recorder().timeRegulationEnabled().size();
+  monitor.rtiAmbassador().enableTimeRegulation(*monitorTime.epsilon);
+  waitFor(
+      monitor,
+      [&] {
+        return monitor.recorder().timeRegulationEnabled().size() >=
+            regulationCallbacksBefore + 1U;
+      },
+      options,
+      "Federate HLAlogicalTime monitor timeRegulationEnabled callback");
+  require(
+      monitor.recorder().timeRegulationEnabled().size() ==
+          regulationCallbacksBefore + 1U,
+      "Enable Time Regulation delivered an unexpected number of monitor callbacks");
+
+  auto queryLogicalTime = [&] {
+    auto result = subjectTime.factory->makeInitial();
+    require(
+        result != nullptr,
+        "Federate HLAlogicalTime could not allocate a Query Logical Time result");
+    subject.rtiAmbassador().queryLogicalTime(*result);
+    return result;
+  };
+  auto const initialLogicalTime = queryLogicalTime();
+  require(
+      *initialLogicalTime == *subjectTime.initial,
+      "initial Query Logical Time did not match the federation initial time");
+
+  auto const setTiming = monitor.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const timingFederate = monitor.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriod = monitor.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && timingFederate.isValid() && reportPeriod.isValid() &&
+          monitor.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          monitor.rtiAmbassador().getParameterName(setTiming, timingFederate) ==
+              L"HLAfederate" &&
+          monitor.rtiAmbassador().getParameterName(setTiming, reportPeriod) ==
+              L"HLAreportPeriod",
+      "Federate HLAlogicalTime HLAsetTiming lookup did not round-trip standard MIM handles");
+  auto setReportPeriod = [&](std::int32_t seconds) {
+    monitor.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {timingFederate, subjectFederate.encode()},
+            {reportPeriod, rti::HLAinteger32BE{seconds}.encode()}},
+        rti::VariableLengthData{});
+  };
+
+  auto const beforeInitialReport = monitor.recorder().reflections().size();
+  setReportPeriod(1);
+  waitForLogicalTimeReflection(
+      beforeInitialReport,
+      *initialLogicalTime,
+      "periodic HLAlogicalTime reflection after HLAsetTiming");
+
+  auto const firstMonitorTarget = timeAfter(
+      *monitorTime.factory,
+      *monitorTime.initial,
+      *monitorTime.epsilon,
+      2U);
+  auto const firstTarget = timeAfter(
+      *subjectTime.factory,
+      *subjectTime.initial,
+      *subjectTime.epsilon,
+      2U);
+  require(
+      *firstMonitorTarget == *firstTarget,
+      "first HLAlogicalTime regulator and subject targets did not agree");
+  auto const beforeFirstGrantReport = monitor.recorder().reflections().size();
+  auto const firstMonitorGrantCount =
+      monitor.recorder().timeAdvanceGrants().size();
+  auto const firstGrantCount = subject.recorder().timeAdvanceGrants().size();
+  monitor.rtiAmbassador().timeAdvanceRequest(*firstMonitorTarget);
+  subject.rtiAmbassador().timeAdvanceRequest(*firstTarget);
+  waitForSessions(
+      {&monitor, &subject},
+      [&] {
+        return monitor.recorder().timeAdvanceGrants().size() >=
+                firstMonitorGrantCount + 1U &&
+            subject.recorder().timeAdvanceGrants().size() >= firstGrantCount + 1U;
+      },
+      options,
+      "first HLAlogicalTime regulator and subject Time Advance Grants");
+  auto const firstMonitorGrants = monitor.recorder().timeAdvanceGrants();
+  auto const firstGrants = subject.recorder().timeAdvanceGrants();
+  require(
+      firstMonitorGrants.size() == firstMonitorGrantCount + 1U &&
+          firstMonitorGrants.back().encoded == encodeTime(*firstMonitorTarget) &&
+          firstGrants.size() == firstGrantCount + 1U &&
+          firstGrants.back().encoded == encodeTime(*firstTarget),
+      "first HLAlogicalTime regulator or subject grant returned the wrong time");
+  auto const firstQueriedTime = queryLogicalTime();
+  require(
+      *firstQueriedTime == *firstTarget,
+      "Query Logical Time did not match the first successful grant");
+  waitForLogicalTimeReflection(
+      beforeFirstGrantReport,
+      *firstQueriedTime,
+      "periodic HLAlogicalTime reflection after the first grant");
+
+  auto const secondMonitorTarget = timeAfter(
+      *monitorTime.factory,
+      *monitorTime.initial,
+      *monitorTime.epsilon,
+      4U);
+  auto const secondTarget = timeAfter(
+      *subjectTime.factory,
+      *subjectTime.initial,
+      *subjectTime.epsilon,
+      4U);
+  require(
+      *secondMonitorTarget == *secondTarget && *secondTarget > *firstTarget,
+      "second HLAlogicalTime regulator and subject targets did not agree or advance");
+  auto const beforeSecondGrantReport = monitor.recorder().reflections().size();
+  auto const secondMonitorGrantCount =
+      monitor.recorder().timeAdvanceGrants().size();
+  auto const secondGrantCount = subject.recorder().timeAdvanceGrants().size();
+  monitor.rtiAmbassador().timeAdvanceRequest(*secondMonitorTarget);
+  subject.rtiAmbassador().timeAdvanceRequest(*secondTarget);
+  waitForSessions(
+      {&monitor, &subject},
+      [&] {
+        return monitor.recorder().timeAdvanceGrants().size() >=
+                secondMonitorGrantCount + 1U &&
+            subject.recorder().timeAdvanceGrants().size() >= secondGrantCount + 1U;
+      },
+      options,
+      "second HLAlogicalTime regulator and subject Time Advance Grants");
+  auto const secondMonitorGrants = monitor.recorder().timeAdvanceGrants();
+  auto const secondGrants = subject.recorder().timeAdvanceGrants();
+  require(
+      secondMonitorGrants.size() == secondMonitorGrantCount + 1U &&
+          secondMonitorGrants.back().encoded == encodeTime(*secondMonitorTarget) &&
+          secondGrants.size() == secondGrantCount + 1U &&
+          secondGrants.back().encoded == encodeTime(*secondTarget),
+      "second HLAlogicalTime regulator or subject grant returned the wrong time");
+  auto const secondQueriedTime = queryLogicalTime();
+  require(
+      *secondQueriedTime == *secondTarget,
+      "Query Logical Time did not match the second successful grant");
+  waitForLogicalTimeReflection(
+      beforeSecondGrantReport,
+      *secondQueriedTime,
+      "periodic HLAlogicalTime reflection after the second grant");
+
+  setReportPeriod(0);
+  subject.rtiAmbassador().disableTimeConstrained();
+  monitor.rtiAmbassador().disableTimeRegulation();
+  monitor.rtiAmbassador().unsubscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{federateHandleAttribute, logicalTimeAttribute});
+  subject.resign(rti::NO_ACTION);
+  monitor.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+  monitor.disconnect();
+}
+
+void scenarioFederateLookaheadMomPeriodic(
+    Options const& options,
+    rti::CallbackModel model) {
+  runFederateLookaheadMomPeriodicScenario(options, model);
+}
+
+void scenarioFederateLookaheadMomPeriodicContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateLookaheadMomPeriodic(options, model);
+}
+
+void scenarioFederateLogicalTimeMomPeriodic(
+    Options const& options,
+    rti::CallbackModel model) {
+  runFederateLogicalTimeMomPeriodicScenario(options, model);
+}
+
+void scenarioFederateLogicalTimeMomPeriodicContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateLogicalTimeMomPeriodic(options, model);
+}
+
+void runFederateTimeManagerStateMomAttributeScenario(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federate HLAtimeManagerState MOM testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session monitor(options, model, "federate-time-manager-state-mom-monitor");
+  Session subject(options, model, "federate-time-manager-state-mom-subject");
+  auto const federation = federationName(
+      options,
+      "federate-time-manager-state-mom");
+  monitor.connect();
+  subject.connect();
+  monitor.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  monitor.join(
+      options.memberFederateName + L"-time-manager-state-mom-monitor",
+      options.federateType,
+      federation);
+
+  auto const momClass = monitor.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const timeManagerStateAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAtimeManagerState");
+  auto const reliable = monitor.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          timeManagerStateAttribute.isValid() && reliable.isValid() &&
+          monitor.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              timeManagerStateAttribute) == L"HLAtimeManagerState" &&
+          monitor.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Federate HLAtimeManagerState MOM lookup did not round-trip standard MIM handles");
+  monitor.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{
+          federateHandleAttribute,
+          timeManagerStateAttribute},
+      true,
+      L"");
+
+  subject.join(
+      options.ownerFederateName + L"-time-manager-state-mom-subject",
+      options.federateType,
+      federation);
+  auto const subjectTime = makeTimeContext(subject);
+  auto const subjectFederate = subject.federateHandle();
+  auto findSubjectMomObject = [&]()
+      -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const expectedHandle = copyBytes(subjectFederate.encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      monitor,
+      [&] { return findSubjectMomObject().has_value(); },
+      options,
+      "Federate HLAtimeManagerState subject MOM discovery");
+  auto const subjectMomObject = findSubjectMomObject();
+  require(
+      subjectMomObject.has_value() && subjectMomObject->isValid() &&
+          monitor.rtiAmbassador().getKnownObjectClassHandle(*subjectMomObject) ==
+              momClass,
+      "Federate HLAtimeManagerState discovery returned the wrong standard MOM object");
+
+  auto stateReflectionsSince = [&](std::size_t firstReflection) {
+    auto const reflections = monitor.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    std::vector<ReflectionRecord> result;
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (iterator->present && iterator->object == *subjectMomObject &&
+          iterator->values.count(timeManagerStateAttribute) == 1U) {
+        result.push_back(*iterator);
+      }
+    }
+    return result;
+  };
+  auto decodeTimeManagerState = [&](ReflectionRecord const& reflection,
+                                    char const* description) {
+    require(
+        reflection.values.size() == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        std::string(description) +
+            " had non-standard HLAtimeManagerState reflection metadata");
+    rti::HLAinteger32BE state;
+    state.decode(reflection.values.at(timeManagerStateAttribute));
+    return state.get();
+  };
+  auto applyTimeAdvanceAndCheck = [&](auto request,
+                                     rti::LogicalTime const& target,
+                                     bool flushQueueGrantExpected,
+                                     char const* description) {
+    auto const beforeReflection = monitor.recorder().reflections().size();
+    auto const beforeTimeAdvanceGrant =
+        subject.recorder().timeAdvanceGrants().size();
+    auto const beforeFlushQueueGrant =
+        subject.recorder().flushQueueGrants().size();
+    request(target);
+    waitForSessions(
+        {&subject, &monitor},
+        [&] {
+          auto const grantReceived = flushQueueGrantExpected
+              ? subject.recorder().flushQueueGrants().size() >=
+                  beforeFlushQueueGrant + 1U
+              : subject.recorder().timeAdvanceGrants().size() >=
+                  beforeTimeAdvanceGrant + 1U;
+          return grantReceived &&
+              stateReflectionsSince(beforeReflection).size() >= 2U;
+        },
+        options,
+        description);
+
+    if (flushQueueGrantExpected) {
+      auto const flushGrants = subject.recorder().flushQueueGrants();
+      require(
+          flushGrants.size() == beforeFlushQueueGrant + 1U &&
+              subject.recorder().timeAdvanceGrants().size() ==
+                  beforeTimeAdvanceGrant &&
+              !flushGrants.back().time.empty() &&
+              !flushGrants.back().optimisticTime.empty(),
+          std::string(description) +
+              " did not return exactly one standard Flush Queue Grant");
+    } else {
+      auto const grants = subject.recorder().timeAdvanceGrants();
+      require(
+          grants.size() == beforeTimeAdvanceGrant + 1U &&
+              grants.back().encoded == encodeTime(target),
+          std::string(description) + " returned the wrong Time Advance Grant");
+    }
+
+    bool sawTimeAdvancing = false;
+    bool sawTimeGranted = false;
+    for (auto const& reflection : stateReflectionsSince(beforeReflection)) {
+      auto const state = decodeTimeManagerState(reflection, description);
+      require(
+          state == 0 || state == 1,
+          std::string(description) +
+              " returned a value outside the standard HLAtimeState enumeration");
+      sawTimeAdvancing = sawTimeAdvancing || state == 1;
+      sawTimeGranted = sawTimeGranted || state == 0;
+    }
+    require(
+        sawTimeAdvancing && sawTimeGranted,
+        std::string(description) +
+            " did not report both TimeAdvancing and TimeGranted");
+  };
+
+  for (std::size_t step = 1U; step <= 5U; ++step) {
+    auto const target = timeAfter(
+        *subjectTime.factory,
+        *subjectTime.initial,
+        *subjectTime.epsilon,
+        step);
+    switch (step) {
+      case 1U:
+        applyTimeAdvanceAndCheck(
+            [&](rti::LogicalTime const& time) {
+              subject.rtiAmbassador().timeAdvanceRequest(time);
+            },
+            *target,
+            false,
+            "HLAtimeManagerState after Time Advance Request and grant");
+        break;
+      case 2U:
+        applyTimeAdvanceAndCheck(
+            [&](rti::LogicalTime const& time) {
+              subject.rtiAmbassador().timeAdvanceRequestAvailable(time);
+            },
+            *target,
+            false,
+            "HLAtimeManagerState after Time Advance Request Available and grant");
+        break;
+      case 3U:
+        applyTimeAdvanceAndCheck(
+            [&](rti::LogicalTime const& time) {
+              subject.rtiAmbassador().nextMessageRequest(time);
+            },
+            *target,
+            false,
+            "HLAtimeManagerState after Next Message Request and grant");
+        break;
+      case 4U:
+        applyTimeAdvanceAndCheck(
+            [&](rti::LogicalTime const& time) {
+              subject.rtiAmbassador().nextMessageRequestAvailable(time);
+            },
+            *target,
+            false,
+            "HLAtimeManagerState after Next Message Request Available and grant");
+        break;
+      case 5U:
+        applyTimeAdvanceAndCheck(
+            [&](rti::LogicalTime const& time) {
+              subject.rtiAmbassador().flushQueueRequest(time);
+            },
+            *target,
+            true,
+            "HLAtimeManagerState after Flush Queue Request and grant");
+        break;
+      default:
+        throw std::logic_error("Unexpected HLAtimeManagerState request selector");
+    }
+  }
+
+  monitor.rtiAmbassador().unsubscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{
+          federateHandleAttribute,
+          timeManagerStateAttribute});
+  subject.resign(rti::NO_ACTION);
+  monitor.resign(rti::NO_ACTION);
+  monitor.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+  monitor.disconnect();
+}
+
+void runFederationMomStaticIdentityScenario(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federation MOM static-identity testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session creator(options, model, "federation-mom-static-identity-creator");
+  Session observer(options, model, "federation-mom-static-identity-observer");
+  auto const federation = federationName(options, "federation-mom-static-identity");
+  creator.connect();
+  observer.connect();
+  creator.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  creator.join(
+      options.ownerFederateName + L"-static-identity-creator",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-static-identity-observer",
+      options.federateType,
+      federation);
+
+  auto const federationClass = observer.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederation");
+  auto const federationNameAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federationClass,
+      L"HLAfederationName");
+  auto const rtiVersionAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federationClass,
+      L"HLARTIversion");
+  auto const mimDesignatorAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federationClass,
+      L"HLAMIMdesignator");
+  auto const timeImplementationAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federationClass,
+      L"HLAtimeImplementationName");
+  auto const reliable = observer.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      federationClass.isValid() && federationNameAttribute.isValid() &&
+          rtiVersionAttribute.isValid() && mimDesignatorAttribute.isValid() &&
+          timeImplementationAttribute.isValid() && reliable.isValid() &&
+          observer.rtiAmbassador().getObjectClassName(federationClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederation" &&
+          observer.rtiAmbassador().getAttributeName(
+              federationClass,
+              federationNameAttribute) == L"HLAfederationName" &&
+          observer.rtiAmbassador().getAttributeName(
+              federationClass,
+              rtiVersionAttribute) == L"HLARTIversion" &&
+          observer.rtiAmbassador().getAttributeName(
+              federationClass,
+              mimDesignatorAttribute) == L"HLAMIMdesignator" &&
+          observer.rtiAmbassador().getAttributeName(
+              federationClass,
+              timeImplementationAttribute) == L"HLAtimeImplementationName" &&
+          observer.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Federation MOM static-identity lookup did not round-trip standard MIM handles");
+
+  rti::AttributeHandleSet const identityAttributes{
+      federationNameAttribute,
+      rtiVersionAttribute,
+      mimDesignatorAttribute,
+      timeImplementationAttribute};
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      federationClass,
+      identityAttributes,
+      true,
+      L"");
+  waitFor(
+      observer,
+      [&] {
+        auto const discovery = observer.recorder().discovery();
+        return discovery.present && discovery.objectClass == federationClass &&
+            discovery.name == L"HLAfederation";
+      },
+      options,
+      "the standard federation MOM object discovery");
+
+  auto const federationObject = observer.recorder().discovery().object;
+  require(
+      observer.rtiAmbassador().getKnownObjectClassHandle(federationObject) ==
+              federationClass &&
+          observer.rtiAmbassador().getObjectInstanceName(federationObject) ==
+              L"HLAfederation" &&
+          observer.rtiAmbassador().getObjectInstanceHandle(L"HLAfederation") ==
+              federationObject,
+      "Federation MOM static-identity discovery did not preserve standard object identity");
+
+  observer.recorder().clearReflection();
+  observer.rtiAmbassador().requestAttributeValueUpdate(
+      federationObject,
+      identityAttributes,
+      rti::VariableLengthData{});
+  waitFor(
+      observer,
+      [&] {
+        auto const reflection = observer.recorder().reflection();
+        return reflection.present && reflection.object == federationObject &&
+            reflection.values.count(federationNameAttribute) == 1U &&
+            reflection.values.count(rtiVersionAttribute) == 1U &&
+            reflection.values.count(mimDesignatorAttribute) == 1U &&
+            reflection.values.count(timeImplementationAttribute) == 1U;
+      },
+      options,
+      "the requested standard federation identity reflection");
+
+  auto const reflection = observer.recorder().reflection();
+  require(
+      reflection.transportation == reliable && reflection.tag.empty() &&
+          !reflection.producer.isValid() && !reflection.regions.has_value(),
+      "Federation MOM static-identity reflection returned non-standard callback metadata");
+  rti::HLAunicodeString federationNameValue;
+  federationNameValue.decode(reflection.values.at(federationNameAttribute));
+  rti::HLAunicodeString rtiVersionValue;
+  rtiVersionValue.decode(reflection.values.at(rtiVersionAttribute));
+  rti::HLAunicodeString mimDesignator;
+  mimDesignator.decode(reflection.values.at(mimDesignatorAttribute));
+  rti::HLAunicodeString timeImplementationName;
+  timeImplementationName.decode(reflection.values.at(timeImplementationAttribute));
+  require(
+      federationNameValue.get() == federation,
+      "Federation MOM federation name did not match the created federation execution");
+  require(
+      !rtiVersionValue.get().empty(),
+      "Federation MOM RTI version was empty despite being a required static value");
+  require(
+      mimDesignator.get() == L"HLAstandardMIM",
+      "Federation MOM reported a MIM designator other than HLAstandardMIM for the supplied standard MIM");
+  require(
+      timeImplementationName.get() == options.logicalTimeImplementationName,
+      "Federation MOM time-implementation name did not match the Create Federation Execution argument");
+
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      federationClass,
+      identityAttributes);
+  observer.resign(rti::NO_ACTION);
+  creator.resign(rti::NO_ACTION);
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  creator.disconnect();
+}
+
+void runFederationMomStaticSwitchesScenario(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federation MOM static-switch testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session creator(options, model, "federation-mom-static-switches-creator");
+  Session observer(options, model, "federation-mom-static-switches-observer");
+  auto const federation = federationName(options, "federation-mom-static-switches");
+  creator.connect();
+  observer.connect();
+  creator.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  creator.join(
+      options.ownerFederateName + L"-static-switches-creator",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-static-switches-observer",
+      options.federateType,
+      federation);
+
+  auto const federationClass = observer.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederation");
+  auto const advisoriesUseKnownClassAttribute =
+      observer.rtiAmbassador().getAttributeHandle(
+          federationClass,
+          L"HLAadvisoriesUseKnownClass");
+  auto const delaySubscriptionEvaluationAttribute =
+      observer.rtiAmbassador().getAttributeHandle(
+          federationClass,
+          L"HLAdelaySubscriptionEvaluation");
+  auto const nonRegulatedGrantAttribute =
+      observer.rtiAmbassador().getAttributeHandle(
+          federationClass,
+          L"HLAnonRegulatedGrant");
+  auto const allowRelaxedDdmAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federationClass,
+      L"HLAallowRelaxedDDM");
+  auto const reliable = observer.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      federationClass.isValid() && advisoriesUseKnownClassAttribute.isValid() &&
+          delaySubscriptionEvaluationAttribute.isValid() &&
+          nonRegulatedGrantAttribute.isValid() && allowRelaxedDdmAttribute.isValid() &&
+          reliable.isValid() &&
+          observer.rtiAmbassador().getObjectClassName(federationClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederation" &&
+          observer.rtiAmbassador().getAttributeName(
+              federationClass,
+              advisoriesUseKnownClassAttribute) == L"HLAadvisoriesUseKnownClass" &&
+          observer.rtiAmbassador().getAttributeName(
+              federationClass,
+              delaySubscriptionEvaluationAttribute) ==
+              L"HLAdelaySubscriptionEvaluation" &&
+          observer.rtiAmbassador().getAttributeName(
+              federationClass,
+              nonRegulatedGrantAttribute) == L"HLAnonRegulatedGrant" &&
+          observer.rtiAmbassador().getAttributeName(
+              federationClass,
+              allowRelaxedDdmAttribute) == L"HLAallowRelaxedDDM" &&
+          observer.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Federation MOM static-switch lookup did not round-trip standard MIM handles");
+
+  rti::AttributeHandleSet const switchAttributes{
+      advisoriesUseKnownClassAttribute,
+      delaySubscriptionEvaluationAttribute,
+      nonRegulatedGrantAttribute,
+      allowRelaxedDdmAttribute};
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      federationClass,
+      switchAttributes,
+      true,
+      L"");
+  waitFor(
+      observer,
+      [&] {
+        auto const discovery = observer.recorder().discovery();
+        return discovery.present && discovery.objectClass == federationClass &&
+            discovery.name == L"HLAfederation";
+      },
+      options,
+      "the standard federation MOM object discovery for static switches");
+
+  auto const federationObject = observer.recorder().discovery().object;
+  require(
+      observer.rtiAmbassador().getKnownObjectClassHandle(federationObject) ==
+              federationClass &&
+          observer.rtiAmbassador().getObjectInstanceName(federationObject) ==
+              L"HLAfederation" &&
+          observer.rtiAmbassador().getObjectInstanceHandle(L"HLAfederation") ==
+              federationObject,
+      "Federation MOM static-switch discovery did not preserve standard object identity");
+
+  observer.recorder().clearReflection();
+  observer.rtiAmbassador().requestAttributeValueUpdate(
+      federationObject,
+      switchAttributes,
+      rti::VariableLengthData{});
+  waitFor(
+      observer,
+      [&] {
+        auto const reflection = observer.recorder().reflection();
+        return reflection.present && reflection.object == federationObject &&
+            reflection.values.count(advisoriesUseKnownClassAttribute) == 1U &&
+            reflection.values.count(delaySubscriptionEvaluationAttribute) == 1U &&
+            reflection.values.count(nonRegulatedGrantAttribute) == 1U &&
+            reflection.values.count(allowRelaxedDdmAttribute) == 1U;
+      },
+      options,
+      "the requested standard federation static-switch reflection");
+
+  auto const reflection = observer.recorder().reflection();
+  require(
+      reflection.transportation == reliable && reflection.tag.empty() &&
+          !reflection.producer.isValid() && !reflection.regions.has_value(),
+      "Federation MOM static-switch reflection returned non-standard callback metadata");
+  auto checkSwitch = [&](rti::AttributeHandle const& attribute,
+                         std::string const& name) {
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(attribute));
+    require(
+        value.get() == 0 || value.get() == 1,
+        "Federation MOM " + name +
+            " was not a standard HLAswitch enumerator (Disabled=0, Enabled=1)");
+  };
+  checkSwitch(advisoriesUseKnownClassAttribute, "HLAadvisoriesUseKnownClass");
+  checkSwitch(delaySubscriptionEvaluationAttribute, "HLAdelaySubscriptionEvaluation");
+  checkSwitch(nonRegulatedGrantAttribute, "HLAnonRegulatedGrant");
+  checkSwitch(allowRelaxedDdmAttribute, "HLAallowRelaxedDDM");
+
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      federationClass,
+      switchAttributes);
+  observer.resign(rti::NO_ACTION);
+  creator.resign(rti::NO_ACTION);
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  creator.disconnect();
+}
+
+void runFederationMomFederatesInFederationScenario(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federation MOM roster testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session creator(options, model, "federation-mom-roster-creator");
+  Session observer(options, model, "federation-mom-roster-observer");
+  Session entrant(options, model, "federation-mom-roster-entrant");
+  auto const federation = federationName(options, "federation-mom-roster");
+  creator.connect();
+  observer.connect();
+  entrant.connect();
+  creator.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  auto const creatorName = options.ownerFederateName + L"-roster-creator";
+  auto const observerName = options.memberFederateName + L"-roster-observer";
+  auto const entrantName = options.memberFederateName + L"-roster-entrant";
+  creator.join(creatorName, options.federateType, federation);
+  observer.join(observerName, options.federateType, federation);
+
+  auto const federationClass = observer.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederation");
+  auto const federatesInFederationAttribute =
+      observer.rtiAmbassador().getAttributeHandle(
+          federationClass,
+          L"HLAfederatesInFederation");
+  auto const reliable = observer.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      federationClass.isValid() && federatesInFederationAttribute.isValid() &&
+          reliable.isValid() &&
+          observer.rtiAmbassador().getObjectClassName(federationClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederation" &&
+          observer.rtiAmbassador().getAttributeName(
+              federationClass,
+              federatesInFederationAttribute) == L"HLAfederatesInFederation" &&
+          observer.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Federation MOM roster lookup did not round-trip standard MIM handles");
+  rti::AttributeHandleSet const rosterAttributes{
+      federatesInFederationAttribute};
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      federationClass,
+      rosterAttributes,
+      true,
+      L"");
+  waitFor(
+      observer,
+      [&] {
+        auto const discovery = observer.recorder().discovery();
+        return discovery.present && discovery.objectClass == federationClass &&
+            discovery.name == L"HLAfederation";
+      },
+      options,
+      "the standard federation MOM object discovery for the roster");
+  auto const federationObject = observer.recorder().discovery().object;
+  require(
+      observer.rtiAmbassador().getKnownObjectClassHandle(federationObject) ==
+              federationClass &&
+          observer.rtiAmbassador().getObjectInstanceName(federationObject) ==
+              L"HLAfederation" &&
+          observer.rtiAmbassador().getObjectInstanceHandle(L"HLAfederation") ==
+              federationObject,
+      "Federation MOM roster discovery did not preserve standard object identity");
+
+  using EncodedFederateHandle = rti::HLAvariableArrayT<rti::HLAbyte>;
+  auto decodeRoster = [&](rti::VariableLengthData const& encoded) {
+    auto const rawBytes = copyBytes(encoded);
+    std::vector<rti::Octet> bytes(rawBytes.begin(), rawBytes.end());
+    rti::HLAinteger32BE referenceCount;
+    auto cursor = referenceCount.decodeFrom(bytes, 0U);
+    require(
+        referenceCount.get() >= 0 &&
+            static_cast<std::size_t>(referenceCount.get()) <= bytes.size() / 4U,
+        "HLAfederatesInFederation has an invalid standard array count");
+
+    EncodedFederateHandle referencePrototype;
+    auto const elementBoundary = referencePrototype.getOctetBoundary();
+    require(
+        elementBoundary != 0U,
+        "The standard federate-handle array reported an invalid octet boundary");
+    auto const arrayBoundary = std::max(4U, elementBoundary);
+    auto const leadingPadding =
+        (arrayBoundary - (4U % arrayBoundary)) % arrayBoundary;
+    auto skipAndCheckPadding = [&](std::size_t padding, std::string const& description) {
+      require(
+          cursor <= bytes.size() && padding <= bytes.size() - cursor,
+          description + " is truncated");
+      for (std::size_t index = 0; index < padding; ++index) {
+        require(bytes[cursor + index] == 0U, description + " is nonzero");
+      }
+      cursor += padding;
+    };
+    skipAndCheckPadding(
+        leadingPadding,
+        "HLAfederatesInFederation leading array padding");
+
+    std::vector<rti::FederateHandle> result;
+    auto const count = static_cast<std::size_t>(referenceCount.get());
+    result.reserve(count);
+    for (std::size_t index = 0; index < count; ++index) {
+      auto const elementStart = cursor;
+      EncodedFederateHandle reference;
+      cursor = reference.decodeFrom(bytes, cursor);
+      result.push_back(
+          observer.rtiAmbassador().decodeFederateHandle(reference.encode()));
+      if (index + 1U != count) {
+        auto const encodedLength = cursor - elementStart;
+        auto const padding =
+            (elementBoundary - (encodedLength % elementBoundary)) % elementBoundary;
+        skipAndCheckPadding(
+            padding,
+            "HLAfederatesInFederation reference-array element padding");
+      }
+    }
+    require(
+        cursor == bytes.size(),
+        "HLAfederatesInFederation contains trailing bytes after its standard array");
+    return result;
+  };
+  auto const hasExactRoster = [](
+      std::vector<rti::FederateHandle> const& actual,
+      std::vector<rti::FederateHandle> const& expected) {
+    if (actual.size() != expected.size()) {
+      return false;
+    }
+    return std::all_of(
+        expected.begin(),
+        expected.end(),
+        [&](rti::FederateHandle const& handle) {
+          return std::find(actual.begin(), actual.end(), handle) != actual.end();
+        });
+  };
+  auto verifyRosterReflection = [&](std::vector<rti::FederateHandle> const& expected,
+                                    std::string const& description) {
+    waitFor(
+        observer,
+        [&] {
+          auto const reflection = observer.recorder().reflection();
+          if (!reflection.present || reflection.object != federationObject) {
+            return false;
+          }
+          auto const value = reflection.values.find(federatesInFederationAttribute);
+          return value != reflection.values.end() &&
+              hasExactRoster(decodeRoster(value->second), expected);
+        },
+        options,
+        description);
+    auto const reflection = observer.recorder().reflection();
+    require(
+        reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        description + " returned non-standard MOM callback metadata");
+    return decodeRoster(reflection.values.at(federatesInFederationAttribute));
+  };
+
+  observer.recorder().clearReflection();
+  observer.rtiAmbassador().requestAttributeValueUpdate(
+      federationObject,
+      rosterAttributes,
+      rti::VariableLengthData{});
+  auto const initialRoster = verifyRosterReflection(
+      {creator.federateHandle(), observer.federateHandle()},
+      "the requested standard federation roster");
+  require(
+      initialRoster.size() == 2U,
+      "The requested federation roster contained an unexpected number of joined federates");
+
+  observer.recorder().clearReflection();
+  entrant.join(entrantName, options.federateType, federation);
+  auto const joinedRoster = verifyRosterReflection(
+      {creator.federateHandle(), observer.federateHandle(), entrant.federateHandle()},
+      "the conditional federation roster reflection after Join Federation Execution");
+  require(
+      joinedRoster.size() == 3U,
+      "The join-triggered federation roster reflection had the wrong membership count");
+
+  observer.recorder().clearReflection();
+  entrant.resign(rti::NO_ACTION);
+  auto const resignedRoster = verifyRosterReflection(
+      {creator.federateHandle(), observer.federateHandle()},
+      "the conditional federation roster reflection after Resign Federation Execution");
+  require(
+      resignedRoster.size() == 2U,
+      "The resign-triggered federation roster reflection retained the resigned federate");
+
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      federationClass,
+      rosterAttributes);
+  observer.resign(rti::NO_ACTION);
+  creator.resign(rti::NO_ACTION);
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  entrant.disconnect();
+  observer.disconnect();
+  creator.disconnect();
+}
+
+void scenarioFederationMomStaticIdentity(
+    Options const& options,
+    rti::CallbackModel model) {
+  runFederationMomStaticIdentityScenario(options, model);
+}
+
+void scenarioFederationMomStaticIdentityContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomStaticIdentity(options, model);
+}
+
+void scenarioFederationMomStaticSwitches(
+    Options const& options,
+    rti::CallbackModel model) {
+  runFederationMomStaticSwitchesScenario(options, model);
+}
+
+void scenarioFederationMomStaticSwitchesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomStaticSwitches(options, model);
+}
+
+void scenarioFederationMomFederatesInFederation(
+    Options const& options,
+    rti::CallbackModel model) {
+  runFederationMomFederatesInFederationScenario(options, model);
+}
+
+void scenarioFederationMomFederatesInFederationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomFederatesInFederation(options, model);
+}
+
+void scenarioFederationMomFomModuleDesignatorListPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomFomModuleDesignatorList(options, model);
+}
+
+void scenarioFederationMomFomModuleDesignatorListContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomFomModuleDesignatorListContract(options, model);
+}
+
+void scenarioFederateTimeManagerStateMomAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  runFederateTimeManagerStateMomAttributeScenario(options, model);
+}
+
+void scenarioFederateTimeManagerStateMomAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateTimeManagerStateMomAttribute(options, model);
+}
+
+void scenarioFederateExceptionReportingMomAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateExceptionReportingMomAttribute(options, model);
+}
+
+void scenarioFederateExceptionReportDelivery(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federate Exception Reporting delivery testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session federate(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "federate-exception-report-delivery");
+  federate.connect();
+  federate.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  auto const federateName =
+      options.ownerFederateName + L"-exception-report-delivery";
+  federate.join(federateName, options.federateType, federation);
+
+  auto& ambassador = federate.rtiAmbassador();
+  auto const reportClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportException");
+  auto const serviceParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAservice");
+  auto const exceptionParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAexception");
+  auto const federateParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAfederate");
+  auto const reliable = ambassador.getTransportationTypeHandle(L"HLAreliable");
+  auto const joinedFederate = ambassador.getFederateHandle(federateName);
+  require(
+      reportClass.isValid() && serviceParameter.isValid() &&
+          exceptionParameter.isValid() && federateParameter.isValid() &&
+          reliable.isValid() && joinedFederate.isValid(),
+      "Standard MIM HLAreportException lookups returned an invalid handle");
+  ambassador.subscribeInteractionClass(reportClass, true);
+
+  auto drainCallbacks = [&] {
+    while (ambassador.evokeCallback(0.0)) {
+    }
+  };
+  auto failObjectClassLookup = [&] {
+    std::wstring exceptionDescription;
+    try {
+      static_cast<void>(
+          ambassador.getObjectClassHandle(L"HLAobjectRoot.UndefinedReportProbe"));
+    } catch (rti::NameNotFound const& exception) {
+      exceptionDescription = exception.name();
+      if (!exception.what().empty()) {
+        exceptionDescription += L": " + exception.what();
+      }
+    }
+    require(
+        !exceptionDescription.empty(),
+        "An undefined object-class lookup did not preserve its standard NameNotFound exception");
+    return exceptionDescription;
+  };
+  auto verifyReport = [&](InteractionRecord const& report) {
+    require(
+        report.present && report.interaction == reportClass &&
+            report.parameters.size() == 3U &&
+            report.transportation == reliable && !report.producer.isValid(),
+        "HLAreportException callback metadata or parameter set was not standard");
+    rti::HLAunicodeString serviceName;
+    rti::HLAunicodeString exceptionText;
+    require(
+        report.parameters.find(serviceParameter) != report.parameters.end() &&
+            report.parameters.find(exceptionParameter) != report.parameters.end() &&
+            report.parameters.find(federateParameter) != report.parameters.end(),
+        "HLAreportException omitted a required standard parameter");
+    serviceName.decode(report.parameters.at(serviceParameter));
+    exceptionText.decode(report.parameters.at(exceptionParameter));
+    require(
+        !serviceName.get().empty() && !exceptionText.get().empty(),
+        "HLAreportException service or exception text was empty");
+    auto const expectedFederateEncoding = copyBytes(joinedFederate.encode());
+    require(
+        copyBytes(report.parameters.at(federateParameter)) ==
+            expectedFederateEncoding,
+        "HLAreportException identified a different joined federate");
+  };
+
+  require(
+      !ambassador.getExceptionReportingSwitch() &&
+          !ambassador.getServiceReportingSwitch(),
+      "Standard MIM Exception Reporting or Service Reporting default switch value was not false");
+  static_cast<void>(failObjectClassLookup());
+  drainCallbacks();
+  require(
+      federate.recorder().interactions().empty(),
+      "HLAreportException was delivered while Exception Reporting was disabled");
+
+  auto const setSwitches = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+  auto const exceptionReportingParameter =
+      ambassador.getParameterHandle(setSwitches, L"HLAexceptionReporting");
+  require(
+      setSwitches.isValid() && exceptionReportingParameter.isValid(),
+      "Standard federate HLAsetSwitches Exception Reporting lookup returned an invalid handle");
+  auto setExceptionReportingThroughMom = [&](bool const enabled) {
+    rti::ParameterHandleValueMap const parameters{
+        {exceptionReportingParameter,
+         rti::HLAinteger32BE{enabled ? 1 : 0}.encode()}};
+    ambassador.sendInteraction(setSwitches, parameters, rti::VariableLengthData{});
+    require(
+        ambassador.getExceptionReportingSwitch() == enabled,
+        "HLAsetSwitches did not update the Exception Reporting switch");
+  };
+
+  setExceptionReportingThroughMom(true);
+  static_cast<void>(failObjectClassLookup());
+  drainCallbacks();
+  auto reports = federate.recorder().interactions();
+  require(reports.size() == 1U, "Enabled Exception Reporting did not deliver exactly one HLAreportException");
+  verifyReport(reports.front());
+
+  setExceptionReportingThroughMom(false);
+  static_cast<void>(failObjectClassLookup());
+  drainCallbacks();
+  reports = federate.recorder().interactions();
+  require(
+      reports.size() == 1U,
+      "HLAreportException was delivered after Exception Reporting was disabled");
+  verifyReport(reports.front());
+
+  ambassador.unsubscribeInteractionClass(reportClass);
+  federate.resign(rti::NO_ACTION);
+  ambassador.destroyFederationExecution(federation);
+  federate.disconnect();
+}
+
+void scenarioFederateExceptionReportDeliveryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateExceptionReportDelivery(options, model);
+}
+
+void scenarioFederateMomExceptionReportDelivery(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federate MOM exception-report testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session federate(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "federate-mom-exception-report-delivery");
+  federate.connect();
+  federate.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  auto const federateName =
+      options.ownerFederateName + L"-mom-exception-report-delivery";
+  federate.join(federateName, options.federateType, federation);
+
+  auto& ambassador = federate.rtiAmbassador();
+  auto const reportClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception");
+  auto const serviceParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAservice");
+  auto const exceptionParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAexception");
+  auto const parameterErrorParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAparameterError");
+  auto const federateParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAfederate");
+  auto const reliable = ambassador.getTransportationTypeHandle(L"HLAreliable");
+  auto const joinedFederate = ambassador.getFederateHandle(federateName);
+  require(
+      reportClass.isValid() && serviceParameter.isValid() &&
+          exceptionParameter.isValid() && parameterErrorParameter.isValid() &&
+          federateParameter.isValid() && reliable.isValid() &&
+          joinedFederate.isValid(),
+      "Standard MIM HLAreportMOMexception lookups returned an invalid handle");
+  ambassador.subscribeInteractionClass(reportClass, true);
+
+  auto const setSwitches = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+  auto const automaticResignActionParameter =
+      ambassador.getParameterHandle(setSwitches, L"HLAautomaticResignAction");
+  auto const serviceReportingParameter =
+      ambassador.getParameterHandle(setSwitches, L"HLAserviceReporting");
+  require(
+      setSwitches.isValid() && automaticResignActionParameter.isValid() &&
+          serviceReportingParameter.isValid(),
+      "Standard federate HLAsetSwitches malformed-value parameter lookup returned an invalid handle");
+  auto const initialResignAction = ambassador.getAutomaticResignDirective();
+  auto const initialServiceReporting = ambassador.getServiceReportingSwitch();
+
+  auto sendMalformedValue = [&](auto const& parameter, std::int32_t value) {
+    rti::ParameterHandleValueMap const malformedParameters{
+        {parameter, rti::HLAinteger32BE{value}.encode()}};
+    try {
+      ambassador.sendInteraction(
+          setSwitches,
+          malformedParameters,
+          rti::VariableLengthData{});
+    } catch (rti::Exception const&) {
+      // A synchronous RTI exception is permitted; the standard MIM still
+      // requires the subscribed HLAreportMOMexception notification.
+    }
+    while (ambassador.evokeCallback(0.0)) {
+    }
+  };
+
+  // HLAresignAction enumerates 0 through 5, while HLAswitch enumerates 0 and
+  // 1.  Each out-of-domain HLAinteger32BE value is malformed for its declared
+  // MIM parameter type.
+  sendMalformedValue(automaticResignActionParameter, 6);
+  auto reports = federate.recorder().interactions();
+  require(
+      reports.size() == 1U,
+      "Malformed HLAresignAction did not deliver one HLAreportMOMexception");
+  sendMalformedValue(serviceReportingParameter, 2);
+  reports = federate.recorder().interactions();
+  require(
+      reports.size() == 2U,
+      "Malformed HLAserviceReporting did not deliver a second HLAreportMOMexception");
+
+  for (auto const& report : reports) {
+    require(
+        report.present && report.interaction == reportClass &&
+            report.parameters.size() == 4U && report.transportation == reliable,
+        "HLAreportMOMexception callback metadata or parameter set was not standard");
+    require(
+        report.parameters.find(serviceParameter) != report.parameters.end() &&
+            report.parameters.find(exceptionParameter) != report.parameters.end() &&
+            report.parameters.find(parameterErrorParameter) != report.parameters.end() &&
+            report.parameters.find(federateParameter) != report.parameters.end(),
+        "HLAreportMOMexception omitted a required standard parameter");
+
+    rti::HLAunicodeString serviceName;
+    rti::HLAunicodeString exceptionText;
+    rti::HLAboolean parameterError;
+    serviceName.decode(report.parameters.at(serviceParameter));
+    exceptionText.decode(report.parameters.at(exceptionParameter));
+    parameterError.decode(report.parameters.at(parameterErrorParameter));
+    require(
+        serviceName.get() ==
+            L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches",
+        "HLAreportMOMexception did not identify the fully qualified standard MOM interaction");
+    require(
+        !exceptionText.get().empty(),
+        "HLAreportMOMexception did not provide a textual problem description");
+    require(
+        parameterError.get(),
+        "HLAreportMOMexception did not mark the incorrectly formatted parameter");
+    require(
+        copyBytes(report.parameters.at(federateParameter)) ==
+            copyBytes(joinedFederate.encode()),
+        "HLAreportMOMexception identified a different joined federate");
+  }
+  require(
+      ambassador.getAutomaticResignDirective() == initialResignAction,
+      "Malformed HLAautomaticResignAction changed the joined federate's directive");
+  require(
+      ambassador.getServiceReportingSwitch() == initialServiceReporting,
+      "Malformed HLAserviceReporting changed the joined federate's switch");
+
+  ambassador.unsubscribeInteractionClass(reportClass);
+  federate.resign(rti::NO_ACTION);
+  ambassador.destroyFederationExecution(federation);
+  federate.disconnect();
+}
+
+void scenarioFederateMomExceptionReportDeliveryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomExceptionReportDelivery(options, model);
+}
+
+void scenarioFederateMomExceptionMissingParameter(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federate MOM missing-parameter reporting requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session federate(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "federate-mom-exception-missing-parameter");
+  federate.connect();
+  federate.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  auto const federateName =
+      options.ownerFederateName + L"-mom-exception-missing-parameter";
+  federate.join(federateName, options.federateType, federation);
+
+  auto& ambassador = federate.rtiAmbassador();
+  auto const reportClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception");
+  auto const serviceParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAservice");
+  auto const exceptionParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAexception");
+  auto const parameterErrorParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAparameterError");
+  auto const federateParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAfederate");
+  auto const reliable = ambassador.getTransportationTypeHandle(L"HLAreliable");
+  auto const joinedFederate = ambassador.getFederateHandle(federateName);
+  auto const requestClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestSynchronizationPointStatus");
+  auto const statusReportClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportSynchronizationPointStatus");
+  require(
+      reportClass.isValid() && serviceParameter.isValid() &&
+          exceptionParameter.isValid() && parameterErrorParameter.isValid() &&
+          federateParameter.isValid() && reliable.isValid() &&
+          joinedFederate.isValid() && requestClass.isValid() &&
+          statusReportClass.isValid(),
+      "Standard MIM synchronization-status exception-report lookups returned an invalid handle");
+  ambassador.subscribeInteractionClass(reportClass, true);
+  ambassador.subscribeInteractionClass(statusReportClass, true);
+
+  // HLArequestSynchronizationPointStatus declares HLAsyncPointName. Sending
+  // the interaction with no parameters exercises the standard MIM missing-
+  // parameter report without depending on provider-specific exception text.
+  rti::ParameterHandleValueMap const noParameters;
+  try {
+    ambassador.sendInteraction(
+        requestClass,
+        noParameters,
+        rti::VariableLengthData{});
+  } catch (rti::Exception const&) {
+    // The required HLAreportMOMexception callback is the portable oracle.
+  }
+  while (ambassador.evokeCallback(0.0)) {
+  }
+
+  auto const reports = federate.recorder().interactions();
+  require(
+      reports.size() == 1U,
+      "A request missing HLAsyncPointName did not deliver exactly one HLAreportMOMexception");
+  auto const& report = reports.front();
+  require(
+      report.present && report.interaction == reportClass &&
+          report.parameters.size() == 4U && report.transportation == reliable,
+      "HLAreportMOMexception callback metadata or parameter set was not standard");
+  require(
+      report.parameters.find(serviceParameter) != report.parameters.end() &&
+          report.parameters.find(exceptionParameter) != report.parameters.end() &&
+          report.parameters.find(parameterErrorParameter) != report.parameters.end() &&
+          report.parameters.find(federateParameter) != report.parameters.end(),
+      "HLAreportMOMexception omitted a required standard parameter");
+
+  rti::HLAunicodeString serviceName;
+  rti::HLAunicodeString exceptionText;
+  rti::HLAboolean parameterError;
+  serviceName.decode(report.parameters.at(serviceParameter));
+  exceptionText.decode(report.parameters.at(exceptionParameter));
+  parameterError.decode(report.parameters.at(parameterErrorParameter));
+  require(
+      serviceName.get() ==
+          L"HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestSynchronizationPointStatus",
+      "HLAreportMOMexception did not identify the fully qualified standard MOM interaction");
+  require(
+      !exceptionText.get().empty(),
+      "HLAreportMOMexception did not provide a textual problem description");
+  require(
+      parameterError.get(),
+      "HLAreportMOMexception did not mark the missing interaction parameter");
+  require(
+      copyBytes(report.parameters.at(federateParameter)) ==
+          copyBytes(joinedFederate.encode()),
+      "HLAreportMOMexception identified a different joined federate");
+
+  ambassador.unsubscribeInteractionClass(statusReportClass);
+  ambassador.unsubscribeInteractionClass(reportClass);
+  federate.resign(rti::NO_ACTION);
+  ambassador.destroyFederationExecution(federation);
+  federate.disconnect();
+}
+
+void scenarioFederateMomExceptionMissingParameterContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomExceptionMissingParameter(options, model);
+}
+
+void scenarioFederationMomExceptionMissingFomModuleIndicator(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federation MOM missing-module-indicator reporting requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session federate(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "federation-mom-exception-missing-fom-module-indicator");
+  federate.connect();
+  federate.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  auto const federateName =
+      options.ownerFederateName + L"-mom-missing-fom-module-indicator";
+  federate.join(federateName, options.federateType, federation);
+
+  auto& ambassador = federate.rtiAmbassador();
+  auto const reportClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception");
+  auto const serviceParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAservice");
+  auto const exceptionParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAexception");
+  auto const parameterErrorParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAparameterError");
+  auto const federateParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAfederate");
+  auto const reliable = ambassador.getTransportationTypeHandle(L"HLAreliable");
+  auto const joinedFederate = ambassador.getFederateHandle(federateName);
+  auto const requestClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestFOMmoduleData");
+  auto const moduleIndicatorParameter =
+      ambassador.getParameterHandle(requestClass, L"HLAFOMmoduleIndicator");
+  auto const moduleReportClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportFOMmoduleData");
+  require(
+      reportClass.isValid() && serviceParameter.isValid() &&
+          exceptionParameter.isValid() && parameterErrorParameter.isValid() &&
+          federateParameter.isValid() && reliable.isValid() &&
+          joinedFederate.isValid() && requestClass.isValid() &&
+          moduleIndicatorParameter.isValid() && moduleReportClass.isValid(),
+      "Standard MIM FOM-module exception-report lookups returned an invalid handle");
+  ambassador.subscribeInteractionClass(reportClass, true);
+  ambassador.subscribeInteractionClass(moduleReportClass, true);
+
+  // The standard MIM identifies one FOM module by HLAFOMmoduleIndicator;
+  // without that parameter, the RTI cannot form the requested data report.
+  rti::ParameterHandleValueMap const noParameters;
+  try {
+    ambassador.sendInteraction(
+        requestClass,
+        noParameters,
+        rti::VariableLengthData{});
+  } catch (rti::Exception const&) {
+    // The required HLAreportMOMexception callback is the portable oracle.
+  }
+  while (ambassador.evokeCallback(0.0)) {
+  }
+
+  auto const reports = federate.recorder().interactions();
+  require(
+      reports.size() == 1U,
+      "A request missing HLAFOMmoduleIndicator did not deliver exactly one HLAreportMOMexception");
+  auto const& report = reports.front();
+  require(
+      report.present && report.interaction == reportClass &&
+          report.parameters.size() == 4U && report.transportation == reliable,
+      "HLAreportMOMexception callback metadata or parameter set was not standard");
+  require(
+      report.parameters.find(serviceParameter) != report.parameters.end() &&
+          report.parameters.find(exceptionParameter) != report.parameters.end() &&
+          report.parameters.find(parameterErrorParameter) != report.parameters.end() &&
+          report.parameters.find(federateParameter) != report.parameters.end(),
+      "HLAreportMOMexception omitted a required standard parameter");
+
+  rti::HLAunicodeString serviceName;
+  rti::HLAunicodeString exceptionText;
+  rti::HLAboolean parameterError;
+  serviceName.decode(report.parameters.at(serviceParameter));
+  exceptionText.decode(report.parameters.at(exceptionParameter));
+  parameterError.decode(report.parameters.at(parameterErrorParameter));
+  require(
+      serviceName.get() ==
+          L"HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestFOMmoduleData",
+      "HLAreportMOMexception did not identify the fully qualified standard MOM interaction");
+  require(
+      !exceptionText.get().empty(),
+      "HLAreportMOMexception did not provide a textual problem description");
+  require(
+      parameterError.get(),
+      "HLAreportMOMexception did not mark the missing FOM-module indicator");
+  require(
+      copyBytes(report.parameters.at(federateParameter)) ==
+          copyBytes(joinedFederate.encode()),
+      "HLAreportMOMexception identified a different joined federate");
+
+  ambassador.unsubscribeInteractionClass(moduleReportClass);
+  ambassador.unsubscribeInteractionClass(reportClass);
+  federate.resign(rti::NO_ACTION);
+  ambassador.destroyFederationExecution(federation);
+  federate.disconnect();
+}
+
+void scenarioFederationMomExceptionMissingFomModuleIndicatorContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederationMomExceptionMissingFomModuleIndicator(options, model);
+}
+
+void scenarioFederateMomFomModuleContentReport(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.additionalFomModules.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federate MOM FOM-module reporting requires adapter-supplied FOM, standard MIM, an additional FOM module, and logical-time configuration");
+
+  Session subject(options, model, "owner");
+  Session requester(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "federate-mom-fom-module-content-report");
+  subject.connect();
+  requester.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  auto const subjectName =
+      options.ownerFederateName + L"-federate-mom-fom-module-subject";
+  auto const requesterName =
+      options.memberFederateName + L"-federate-mom-fom-module-requester";
+  subject.join(
+      subjectName,
+      options.federateType,
+      federation,
+      fomModuleNames(options.additionalFomModules));
+  requester.join(requesterName, options.federateType, federation);
+
+  auto& ambassador = requester.rtiAmbassador();
+  auto const requestClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestFOMmoduleData");
+  auto const requestFederateParameter =
+      ambassador.getParameterHandle(requestClass, L"HLAfederate");
+  auto const requestIndicatorParameter =
+      ambassador.getParameterHandle(requestClass, L"HLAFOMmoduleIndicator");
+  auto const reportClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportFOMmoduleData");
+  auto const reportFederateParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAfederate");
+  auto const reportIndicatorParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAFOMmoduleIndicator");
+  auto const reportDataParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAFOMmoduleData");
+  auto const targetFederate = ambassador.getFederateHandle(subjectName);
+  auto const reliable = ambassador.getTransportationTypeHandle(L"HLAreliable");
+  require(
+      requestClass.isValid() && requestFederateParameter.isValid() &&
+          requestIndicatorParameter.isValid() && reportClass.isValid() &&
+          reportFederateParameter.isValid() &&
+          reportIndicatorParameter.isValid() && reportDataParameter.isValid() &&
+          targetFederate.isValid() && reliable.isValid(),
+      "Standard MIM federate FOM-module request/report lookup returned an invalid handle");
+  ambassador.subscribeInteractionClass(reportClass);
+
+  rti::ParameterHandleValueMap requestParameters;
+  requestParameters.emplace(requestFederateParameter, targetFederate.encode());
+  requestParameters.emplace(
+      requestIndicatorParameter,
+      rti::HLAinteger32BE{0}.encode());
+  ambassador.sendInteraction(
+      requestClass,
+      requestParameters,
+      rti::VariableLengthData{});
+  waitFor(
+      requester,
+      [&] { return !requester.recorder().interactions().empty(); },
+      options,
+      "the federate-scoped MOM FOM-module content report");
+
+  auto const reports = requester.recorder().interactions();
+  require(
+      reports.size() == 1U,
+      "A federate-scoped FOM-module request did not deliver exactly one report");
+  auto const& report = reports.front();
+  require(
+      report.present,
+      "Federate MOM FOM-module callback was not marked as present");
+  require(
+      report.interaction == reportClass,
+      "Federate MOM FOM-module callback used a different interaction class");
+  require(
+      report.transportation == reliable,
+      "Federate MOM FOM-module report did not use reliable transportation");
+  require(
+      report.parameters.count(reportIndicatorParameter) == 1U &&
+          report.parameters.count(reportDataParameter) == 1U,
+      "Federate MOM FOM-module report omitted one of its declared child parameters");
+  auto const inheritedTargetParameterCount =
+      report.parameters.count(reportFederateParameter);
+  require(
+      report.parameters.size() == 2U + inheritedTargetParameterCount,
+      "Federate MOM FOM-module report returned " +
+          std::to_string(report.parameters.size()) +
+          " unrecognized parameters alongside its declared child parameters");
+  if (inheritedTargetParameterCount == 1U) {
+    require(
+        copyBytes(report.parameters.at(reportFederateParameter)) ==
+            copyBytes(targetFederate.encode()),
+        "Federate MOM FOM-module report identified a different joined federate");
+  }
+
+  rti::HLAinteger32BE reportedIndicator;
+  reportedIndicator.decode(report.parameters.at(reportIndicatorParameter));
+  require(
+      reportedIndicator.get() == 0,
+      "Federate MOM FOM-module report returned a different module indicator");
+  rti::HLAunicodeString reportedModule;
+  reportedModule.decode(report.parameters.at(reportDataParameter));
+  require(
+      !reportedModule.get().empty() &&
+          reportedModule.get().find(L"<objectModel") != std::wstring::npos,
+      "Federate MOM FOM-module report did not return standard FOM XML content");
+
+  ambassador.unsubscribeInteractionClass(reportClass);
+  requester.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  subject.disconnect();
+}
+
+void scenarioFederateMomFomModuleContentReportContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomFomModuleContentReport(options, model);
+}
+
+void scenarioFederateMomObjectInstanceInformation(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty(),
+      "Federate MOM object-information reporting requires adapter-supplied FOM, standard MIM, object class, attribute, and logical-time configuration");
+
+  Session requester(options, model, "member");
+  Session owner(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "federate-mom-object-instance-information");
+  requester.connect();
+  owner.connect();
+  owner.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  auto const requesterName =
+      options.memberFederateName + L"-mom-object-information-requester";
+  auto const ownerName = options.ownerFederateName + L"-mom-object-information-owner";
+  requester.join(requesterName, options.federateType, federation);
+  owner.join(ownerName, options.federateType, federation);
+
+  auto& ambassador = requester.rtiAmbassador();
+  auto const requesterClass =
+      ambassador.getObjectClassHandle(options.objectClassName);
+  auto const requesterAttribute =
+      ambassador.getAttributeHandle(requesterClass, options.attributeName);
+  auto const requesterFederate = ambassador.getFederateHandle(requesterName);
+  auto const ownerClass =
+      owner.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  require(
+      requesterClass.isValid() && requesterAttribute.isValid() &&
+          requesterFederate.isValid() && ownerClass.isValid() &&
+          ownerAttribute.isValid(),
+      "Adapter-supplied object class or attribute lookup returned an invalid handle");
+  ambassador.publishObjectClassAttributes(
+      requesterClass,
+      rti::AttributeHandleSet{requesterAttribute});
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      rti::AttributeHandleSet{ownerAttribute});
+  ambassador.subscribeObjectClassAttributes(
+      requesterClass,
+      rti::AttributeHandleSet{requesterAttribute},
+      true);
+
+  auto const reportClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstanceInformation");
+  auto const reportObjectParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAobjectInstance");
+  auto const reportOwnedAttributesParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAownedInstanceAttributeList");
+  auto const reportRegisteredClassParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAregisteredClass");
+  auto const reportKnownClassParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAknownClass");
+  auto const reportFederateParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAfederate");
+  auto const requestClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestObjectInstanceInformation");
+  auto const requestObjectParameter =
+      ambassador.getParameterHandle(requestClass, L"HLAobjectInstance");
+  auto const reliable = ambassador.getTransportationTypeHandle(L"HLAreliable");
+  require(
+      reportClass.isValid() && reportObjectParameter.isValid() &&
+          reportOwnedAttributesParameter.isValid() &&
+          reportRegisteredClassParameter.isValid() &&
+          reportKnownClassParameter.isValid() &&
+          reportFederateParameter.isValid() && requestClass.isValid() &&
+          requestObjectParameter.isValid() && reliable.isValid(),
+      "Standard MIM object-information request/report lookup returned an invalid handle");
+  ambassador.subscribeInteractionClass(reportClass);
+
+  auto decodeOwnedAttributes = [&](rti::VariableLengthData const& encoded) {
+    // HLAattributeHandleList is a variable array whose elements are encoded
+    // attribute-handle byte arrays, as declared by the standard MIM.
+    rti::HLAvariableArray const attributeHandlePrototype{rti::HLAoctet{}};
+    rti::HLAvariableArray handles{
+        static_cast<rti::DataElement const&>(attributeHandlePrototype)};
+    handles.decode(encoded);
+    std::vector<rti::AttributeHandle> decoded;
+    decoded.reserve(handles.size());
+    for (std::size_t index = 0; index != handles.size(); ++index) {
+      auto const& encodedAttribute =
+          dynamic_cast<rti::HLAvariableArray const&>(handles.get(index));
+      decoded.push_back(
+          ambassador.decodeAttributeHandle(encodedAttribute.encode()));
+    }
+    return decoded;
+  };
+  auto requestInformation = [&](rti::ObjectInstanceHandle const& object,
+                                std::string const& description) {
+    requester.recorder().clearInteraction();
+    rti::ParameterHandleValueMap const parameters{
+        {requestObjectParameter, object.encode()}};
+    ambassador.sendInteraction(
+        requestClass,
+        parameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] { return !requester.recorder().interactions().empty(); },
+        options,
+        description);
+    auto const reports = requester.recorder().interactions();
+    require(
+        reports.size() == 1U,
+        description + " did not deliver exactly one object-information report");
+    return reports.front();
+  };
+  auto requireReportBase = [&](InteractionRecord const& report,
+                               rti::ObjectInstanceHandle const& object) {
+    require(
+        report.present && report.interaction == reportClass &&
+            report.transportation == reliable &&
+            report.parameters.find(reportObjectParameter) != report.parameters.end() &&
+            report.parameters.find(reportOwnedAttributesParameter) !=
+                report.parameters.end(),
+        "Object-information report omitted its standard identity/list fields or used non-reliable delivery");
+    auto const inheritedFederateParameterCount =
+        report.parameters.count(reportFederateParameter);
+    require(
+        report.parameters.size() == 2U +
+                (report.parameters.count(reportRegisteredClassParameter) != 0U ? 1U : 0U) +
+                (report.parameters.count(reportKnownClassParameter) != 0U ? 1U : 0U) +
+                inheritedFederateParameterCount,
+        "Object-information report included parameters outside its MIM-defined response shape");
+    require(
+        ambassador.decodeObjectInstanceHandle(
+            report.parameters.at(reportObjectParameter)) == object,
+        "Object-information report identified a different object instance");
+    if (inheritedFederateParameterCount == 1U) {
+      require(
+          copyBytes(report.parameters.at(reportFederateParameter)) ==
+              copyBytes(requesterFederate.encode()),
+          "Object-information report identified a different joined federate");
+    }
+  };
+
+  auto const ownedObject = ambassador.registerObjectInstance(requesterClass);
+  require(ownedObject.isValid(), "Object-information test registration returned an invalid handle");
+  auto const ownedReport = requestInformation(
+      ownedObject,
+      "the requesting federate's owned object-information report");
+  requireReportBase(ownedReport, ownedObject);
+  auto const ownedAttributes = decodeOwnedAttributes(
+      ownedReport.parameters.at(reportOwnedAttributesParameter));
+  require(
+      std::find(ownedAttributes.begin(), ownedAttributes.end(), requesterAttribute) !=
+          ownedAttributes.end(),
+      "Object-information report omitted the requesting federate's owned application attribute");
+  require(
+      ownedReport.parameters.count(reportRegisteredClassParameter) == 1U &&
+          ownedReport.parameters.count(reportKnownClassParameter) == 1U &&
+          ambassador.decodeObjectClassHandle(
+              ownedReport.parameters.at(reportRegisteredClassParameter)) == requesterClass &&
+          ambassador.decodeObjectClassHandle(
+              ownedReport.parameters.at(reportKnownClassParameter)) == requesterClass,
+      "Owned object-information report returned the wrong registered or known class");
+
+  auto const observedObject = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(observedObject.isValid(), "Remote object-information registration returned an invalid handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(observedObject); },
+      options,
+      "discovery of the object-information query target");
+  require(
+      ambassador.getKnownObjectClassHandle(observedObject) == requesterClass,
+      "Object-information query target was discovered with a different class");
+
+  auto const knownReport = requestInformation(
+      observedObject,
+      "the known object-information report");
+  requireReportBase(knownReport, observedObject);
+  require(
+      decodeOwnedAttributes(
+          knownReport.parameters.at(reportOwnedAttributesParameter)).empty(),
+      "Known-object information report included attributes not owned by the requesting federate");
+  require(
+      knownReport.parameters.count(reportRegisteredClassParameter) == 1U &&
+          knownReport.parameters.count(reportKnownClassParameter) == 1U &&
+          ambassador.decodeObjectClassHandle(
+              knownReport.parameters.at(reportRegisteredClassParameter)) == requesterClass &&
+          ambassador.decodeObjectClassHandle(
+              knownReport.parameters.at(reportKnownClassParameter)) == requesterClass,
+      "Known-object information report returned the wrong registered or known class");
+
+  ambassador.localDeleteObjectInstance(observedObject);
+  auto const nullReport = requestInformation(
+      observedObject,
+      "the NULL object-information report after local deletion");
+  requireReportBase(nullReport, observedObject);
+  require(
+      decodeOwnedAttributes(
+          nullReport.parameters.at(reportOwnedAttributesParameter)).empty() &&
+          nullReport.parameters.count(reportRegisteredClassParameter) == 0U &&
+          nullReport.parameters.count(reportKnownClassParameter) == 0U,
+      "NULL object-information report did not use the standard empty-list/class-omission shape");
+
+  ambassador.unsubscribeInteractionClass(reportClass);
+  ambassador.unsubscribeObjectClassAttributes(
+      requesterClass,
+      rti::AttributeHandleSet{requesterAttribute});
+  requester.resign(rti::DELETE_OBJECTS);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioFederateMomObjectInstanceInformationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomObjectInstanceInformation(options, model);
+}
+
+void scenarioFederateMomPublicationQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty() &&
+          !options.interactionClassName.empty(),
+      "Federate MOM publication-query reporting requires adapter-supplied FOM, standard MIM, application object class, attribute, interaction class, and logical-time configuration");
+
+  Session subject(options, model, "owner");
+  Session requester(options, model, "member");
+  auto const federation =
+      federationName(options, "federate-mom-publication-query");
+  subject.connect();
+  requester.connect();
+  subject.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  auto const subjectName =
+      options.ownerFederateName + L"-mom-publication-query-subject";
+  auto const requesterName =
+      options.memberFederateName + L"-mom-publication-query-requester";
+  subject.join(subjectName, options.federateType, federation);
+  requester.join(requesterName, options.federateType, federation);
+
+  auto& subjectAmbassador = subject.rtiAmbassador();
+  auto& requesterAmbassador = requester.rtiAmbassador();
+  auto const subjectObjectClass =
+      subjectAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const subjectAttribute = subjectAmbassador.getAttributeHandle(
+      subjectObjectClass,
+      options.attributeName);
+  auto const subjectInteractionClass =
+      subjectAmbassador.getInteractionClassHandle(options.interactionClassName);
+  auto const requesterObjectClass =
+      requesterAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const requesterAttribute = requesterAmbassador.getAttributeHandle(
+      requesterObjectClass,
+      options.attributeName);
+  auto const requesterInteractionClass =
+      requesterAmbassador.getInteractionClassHandle(options.interactionClassName);
+  auto const targetFederate = requesterAmbassador.getFederateHandle(subjectName);
+  auto const reliable =
+      requesterAmbassador.getTransportationTypeHandle(L"HLAreliable");
+  require(
+      subjectObjectClass.isValid() && subjectAttribute.isValid() &&
+          subjectInteractionClass.isValid() && requesterObjectClass.isValid() &&
+          requesterAttribute.isValid() &&
+          requesterInteractionClass.isValid() && targetFederate.isValid() &&
+          reliable.isValid(),
+      "Adapter-supplied publication handles or standard reliable transportation were invalid");
+
+  subjectAmbassador.publishObjectClassAttributes(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute});
+  subjectAmbassador.publishInteractionClass(subjectInteractionClass);
+
+  auto const requestClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestPublications");
+  auto const requestFederateParameter =
+      requesterAmbassador.getParameterHandle(requestClass, L"HLAfederate");
+  auto const objectReportClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectClassPublication");
+  auto const objectReportCountParameter =
+      requesterAmbassador.getParameterHandle(objectReportClass, L"HLAnumberOfClasses");
+  auto const objectReportClassParameter =
+      requesterAmbassador.getParameterHandle(objectReportClass, L"HLAobjectClass");
+  auto const objectReportAttributesParameter =
+      requesterAmbassador.getParameterHandle(objectReportClass, L"HLAattributeList");
+  auto const interactionReportClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportInteractionPublication");
+  auto const interactionReportListParameter = requesterAmbassador.getParameterHandle(
+      interactionReportClass,
+      L"HLAinteractionClassList");
+  auto const directedReportClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportDirectedInteractionPublication");
+  auto const directedReportCountParameter =
+      requesterAmbassador.getParameterHandle(directedReportClass, L"HLAnumberOfClasses");
+  auto const directedReportObjectClassParameter =
+      requesterAmbassador.getParameterHandle(directedReportClass, L"HLAobjectClass");
+  auto const directedReportListParameter = requesterAmbassador.getParameterHandle(
+      directedReportClass,
+      L"HLAinteractionClassList");
+  require(
+      requestClass.isValid() && requestFederateParameter.isValid() &&
+          objectReportClass.isValid() && objectReportCountParameter.isValid() &&
+          objectReportClassParameter.isValid() &&
+          objectReportAttributesParameter.isValid() &&
+          interactionReportClass.isValid() &&
+          interactionReportListParameter.isValid() &&
+          directedReportClass.isValid() && directedReportCountParameter.isValid() &&
+          directedReportObjectClassParameter.isValid() &&
+          directedReportListParameter.isValid(),
+      "Standard MIM publication request/report handle lookup returned an invalid handle");
+  requesterAmbassador.subscribeInteractionClass(objectReportClass);
+  requesterAmbassador.subscribeInteractionClass(interactionReportClass);
+  requesterAmbassador.subscribeInteractionClass(directedReportClass);
+
+  auto decodeAttributeHandleList = [&](rti::VariableLengthData const& encoded) {
+    rti::HLAvariableArray const handlePrototype{rti::HLAoctet{}};
+    rti::HLAvariableArray handles{
+        static_cast<rti::DataElement const&>(handlePrototype)};
+    handles.decode(encoded);
+    std::vector<rti::AttributeHandle> decoded;
+    decoded.reserve(handles.size());
+    for (std::size_t index = 0; index != handles.size(); ++index) {
+      auto const& encodedHandle =
+          dynamic_cast<rti::HLAvariableArray const&>(handles.get(index));
+      decoded.push_back(
+          requesterAmbassador.decodeAttributeHandle(encodedHandle.encode()));
+    }
+    return decoded;
+  };
+  auto decodeInteractionClassHandleList =
+      [&](rti::VariableLengthData const& encoded) {
+        rti::HLAvariableArray const handlePrototype{rti::HLAoctet{}};
+        rti::HLAvariableArray handles{
+            static_cast<rti::DataElement const&>(handlePrototype)};
+        handles.decode(encoded);
+        std::vector<rti::InteractionClassHandle> decoded;
+        decoded.reserve(handles.size());
+        for (std::size_t index = 0; index != handles.size(); ++index) {
+          auto const& encodedHandle =
+              dynamic_cast<rti::HLAvariableArray const&>(handles.get(index));
+          decoded.push_back(requesterAmbassador.decodeInteractionClassHandle(
+              encodedHandle.encode()));
+        }
+        return decoded;
+      };
+
+  rti::ParameterHandleValueMap const requestParameters{
+      {requestFederateParameter, targetFederate.encode()}};
+  requesterAmbassador.sendInteraction(
+      requestClass,
+      requestParameters,
+      rti::VariableLengthData{});
+  waitFor(
+      requester,
+      [&] { return requester.recorder().interactions().size() >= 3U; },
+      options,
+      "the populated federate MOM publication reports");
+  auto const reports = requester.recorder().interactions();
+  require(
+      reports.size() == 3U,
+      "A populated publication request did not deliver exactly the object, interaction, and required empty directed-interaction reports");
+
+  InteractionRecord const* objectReport = nullptr;
+  InteractionRecord const* interactionReport = nullptr;
+  InteractionRecord const* directedReport = nullptr;
+  for (auto const& report : reports) {
+    require(
+        report.present && report.transportation == reliable,
+        "A standard MIM publication report was absent or did not use reliable transportation");
+    if (report.interaction == objectReportClass) {
+      require(objectReport == nullptr, "Duplicate object-class publication report");
+      objectReport = &report;
+    } else if (report.interaction == interactionReportClass) {
+      require(interactionReport == nullptr, "Duplicate interaction publication report");
+      interactionReport = &report;
+    } else if (report.interaction == directedReportClass) {
+      require(
+          directedReport == nullptr,
+          "Duplicate directed-interaction publication report");
+      directedReport = &report;
+    } else {
+      require(false, "Publication query delivered an unrequested interaction class");
+    }
+  }
+  require(
+      objectReport != nullptr && interactionReport != nullptr &&
+          directedReport != nullptr,
+      "Publication query omitted one of the three standard MIM report classes");
+
+  require(
+      objectReport->parameters.size() == 3U &&
+          objectReport->parameters.count(objectReportCountParameter) == 1U &&
+          objectReport->parameters.count(objectReportClassParameter) == 1U &&
+          objectReport->parameters.count(objectReportAttributesParameter) == 1U,
+      "Object-class publication report did not contain its three MIM-defined parameters");
+  rti::HLAinteger32BE objectClassCount;
+  objectClassCount.decode(
+      objectReport->parameters.at(objectReportCountParameter));
+  require(
+      objectClassCount.get() == 1 &&
+          requesterAmbassador.decodeObjectClassHandle(
+              objectReport->parameters.at(objectReportClassParameter)) ==
+              requesterObjectClass,
+      "Object-class publication report identified a different publication set");
+  auto const publishedAttributes = decodeAttributeHandleList(
+      objectReport->parameters.at(objectReportAttributesParameter));
+  require(
+      std::find(
+          publishedAttributes.begin(),
+          publishedAttributes.end(),
+          requesterAttribute) != publishedAttributes.end(),
+      "Object-class publication report omitted the adapter-selected published attribute");
+
+  require(
+      interactionReport->parameters.size() == 1U &&
+          interactionReport->parameters.count(interactionReportListParameter) == 1U,
+      "Interaction publication report did not contain its MIM-defined class list");
+  auto const publishedInteractions = decodeInteractionClassHandleList(
+      interactionReport->parameters.at(interactionReportListParameter));
+  require(
+      publishedInteractions.size() == 1U &&
+          publishedInteractions.front() == requesterInteractionClass,
+      "Interaction publication report did not contain exactly the adapter-selected published interaction class");
+
+  require(
+      directedReport->parameters.size() == 2U &&
+          directedReport->parameters.count(directedReportCountParameter) == 1U &&
+          directedReport->parameters.count(directedReportObjectClassParameter) == 0U &&
+          directedReport->parameters.count(directedReportListParameter) == 1U,
+      "Empty directed-interaction publication report did not use the standard NULL response parameter shape");
+  rti::HLAinteger32BE directedClassCount;
+  directedClassCount.decode(
+      directedReport->parameters.at(directedReportCountParameter));
+  require(
+      directedClassCount.get() == 0 &&
+          decodeInteractionClassHandleList(
+              directedReport->parameters.at(directedReportListParameter)).empty(),
+      "Empty directed-interaction publication report did not report zero classes and an empty list");
+
+  requesterAmbassador.unsubscribeInteractionClass(objectReportClass);
+  requesterAmbassador.unsubscribeInteractionClass(interactionReportClass);
+  requesterAmbassador.unsubscribeInteractionClass(directedReportClass);
+  subjectAmbassador.unpublishObjectClassAttributes(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute});
+  subjectAmbassador.unpublishInteractionClass(subjectInteractionClass);
+  requester.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subjectAmbassador.destroyFederationExecution(federation);
+  requester.disconnect();
+  subject.disconnect();
+}
+
+void scenarioFederateMomPublicationQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPublicationQuery(options, model);
+}
+
+void scenarioFederateMomExceptionReportServicePrecondition(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federate MOM service-precondition reporting requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session federate(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "federate-mom-exception-report-service-precondition");
+  federate.connect();
+  federate.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  auto const federateName =
+      options.ownerFederateName + L"-mom-exception-report-service-precondition";
+  federate.join(federateName, options.federateType, federation);
+
+  auto& ambassador = federate.rtiAmbassador();
+  auto const reportClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception");
+  auto const serviceParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAservice");
+  auto const exceptionParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAexception");
+  auto const parameterErrorParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAparameterError");
+  auto const federateParameter =
+      ambassador.getParameterHandle(reportClass, L"HLAfederate");
+  auto const reliable = ambassador.getTransportationTypeHandle(L"HLAreliable");
+  auto const joinedFederate = ambassador.getFederateHandle(federateName);
+  require(
+      reportClass.isValid() && serviceParameter.isValid() &&
+          exceptionParameter.isValid() && parameterErrorParameter.isValid() &&
+          federateParameter.isValid() && reliable.isValid() &&
+          joinedFederate.isValid(),
+      "Standard MIM HLAreportMOMexception lookups returned an invalid handle");
+  ambassador.subscribeInteractionClass(reportClass, true);
+
+  auto const serviceInvocationClass = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      serviceInvocationClass.isValid(),
+      "Standard MIM HLAreportServiceInvocation lookup returned an invalid handle");
+  ambassador.subscribeInteractionClass(serviceInvocationClass, true);
+
+  auto const setSwitches = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+  auto const serviceReportingParameter =
+      ambassador.getParameterHandle(setSwitches, L"HLAserviceReporting");
+  require(
+      setSwitches.isValid() && serviceReportingParameter.isValid(),
+      "Standard federate HLAsetSwitches Service Reporting lookup returned an invalid handle");
+  require(
+      !ambassador.getServiceReportingSwitch(),
+      "The standard Service Reporting switch did not begin disabled");
+
+  auto setServiceReporting = [&](bool const enabled) {
+    rti::ParameterHandleValueMap const parameters{
+        {serviceReportingParameter,
+         rti::HLAinteger32BE{enabled ? 1 : 0}.encode()}};
+    ambassador.sendInteraction(
+        setSwitches,
+        parameters,
+        rti::VariableLengthData{});
+  };
+  try {
+    setServiceReporting(true);
+  } catch (rti::Exception const&) {
+    // The MIM report, not a provider-specific synchronous exception class,
+    // is the portable oracle for this rejected well-formed request.
+  }
+  while (ambassador.evokeCallback(0.0)) {
+  }
+
+  auto reports = federate.recorder().interactions();
+  require(
+      reports.size() == 1U,
+      "The HLAsetSwitches precondition failure did not deliver exactly one HLAreportMOMexception");
+  auto const& report = reports.front();
+  require(
+      report.present && report.interaction == reportClass &&
+          report.parameters.size() == 4U && report.transportation == reliable,
+      "HLAreportMOMexception callback metadata or parameter set was not standard");
+  require(
+      report.parameters.find(serviceParameter) != report.parameters.end() &&
+          report.parameters.find(exceptionParameter) != report.parameters.end() &&
+          report.parameters.find(parameterErrorParameter) != report.parameters.end() &&
+          report.parameters.find(federateParameter) != report.parameters.end(),
+      "HLAreportMOMexception omitted a required standard parameter");
+
+  rti::HLAunicodeString serviceName;
+  rti::HLAunicodeString exceptionText;
+  rti::HLAboolean parameterError;
+  serviceName.decode(report.parameters.at(serviceParameter));
+  exceptionText.decode(report.parameters.at(exceptionParameter));
+  parameterError.decode(report.parameters.at(parameterErrorParameter));
+  require(
+      serviceName.get() ==
+          L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches",
+      "HLAreportMOMexception did not identify the fully qualified standard MOM interaction");
+  require(
+      !exceptionText.get().empty(),
+      "HLAreportMOMexception did not provide a textual problem description");
+  require(
+      !parameterError.get(),
+      "HLAreportMOMexception marked a well-formed precondition failure as a parameter error");
+  require(
+      copyBytes(report.parameters.at(federateParameter)) ==
+          copyBytes(joinedFederate.encode()),
+      "HLAreportMOMexception identified a different joined federate");
+  require(
+      !ambassador.getServiceReportingSwitch(),
+      "A failed Service Reporting precondition changed the switch");
+
+  // The standard MIM permits enabling Service Reporting once this federate
+  // no longer subscribes to the report interaction that would carry it.
+  ambassador.unsubscribeInteractionClass(serviceInvocationClass);
+  setServiceReporting(true);
+  require(
+      ambassador.getServiceReportingSwitch(),
+      "Service Reporting did not enable after its MIM subscription precondition was removed");
+  while (ambassador.evokeCallback(0.0)) {
+  }
+  reports = federate.recorder().interactions();
+  require(
+      reports.size() == 1U && reports.front().interaction == reportClass,
+      "A successful Service Reporting enable produced an unexpected subscribed report");
+
+  setServiceReporting(false);
+  require(
+      !ambassador.getServiceReportingSwitch(),
+      "Service Reporting did not return to its initial disabled value");
+  ambassador.unsubscribeInteractionClass(reportClass);
+  federate.resign(rti::NO_ACTION);
+  ambassador.destroyFederationExecution(federation);
+  federate.disconnect();
+}
+
+void scenarioFederateMomExceptionReportServicePreconditionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomExceptionReportServicePrecondition(options, model);
+}
+
+void scenarioFederateSendServiceReportsToFileMomSwitch(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federate MOM report-destination testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session federate(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "federate-send-service-reports-to-file-mom-switch");
+  federate.connect();
+  federate.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  federate.join(
+      options.ownerFederateName + L"-report-file-destination-mom-switch",
+      options.federateType,
+      federation);
+
+  auto& ambassador = federate.rtiAmbassador();
+  require(
+      !ambassador.getServiceReportingSwitch(),
+      "Standard MIM Service Reporting switch did not start false; report destination must remain inactive in this state-only scenario");
+  auto const initialFileReporting =
+      ambassador.getSendServiceReportsToFileSwitch();
+  auto const initialExceptionReporting =
+      ambassador.getExceptionReportingSwitch();
+  auto const initialResignAction = ambassador.getAutomaticResignDirective();
+  auto const setSwitches = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+  auto const sendReportsToFile = ambassador.getParameterHandle(
+      setSwitches,
+      L"HLAsendServiceReportsToFile");
+  require(
+      setSwitches.isValid() && sendReportsToFile.isValid(),
+      "Standard federate-MOM report-destination lookup returned an invalid handle");
+
+  auto setReportDestinationThroughMom = [&](bool const enabled) {
+    rti::ParameterHandleValueMap const parameters{
+        {sendReportsToFile, rti::HLAinteger32BE{enabled ? 1 : 0}.encode()}};
+    ambassador.sendInteraction(
+        setSwitches,
+        parameters,
+        rti::VariableLengthData{});
+    require(
+        ambassador.getSendServiceReportsToFileSwitch() == enabled,
+        std::string("HLAsetSwitches HLAsendServiceReportsToFile did not set the switch to ") +
+            (enabled ? "true" : "false"));
+    require(
+        !ambassador.getServiceReportingSwitch() &&
+            ambassador.getExceptionReportingSwitch() ==
+                initialExceptionReporting &&
+            ambassador.getAutomaticResignDirective() == initialResignAction,
+        "HLAsetSwitches HLAsendServiceReportsToFile changed a neighboring federate switch");
+  };
+  setReportDestinationThroughMom(false);
+  setReportDestinationThroughMom(true);
+  setReportDestinationThroughMom(initialFileReporting);
+
+  federate.resign(rti::NO_ACTION);
+  federate.rtiAmbassador().destroyFederationExecution(federation);
+  federate.disconnect();
+}
+
+void scenarioFederateSendServiceReportsToFileMomSwitchContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateSendServiceReportsToFileMomSwitch(options, model);
+}
+
+void scenarioFederateAutomaticResignActionMomSwitch(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Federate MOM Automatic Resign Action testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session federate(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "federate-automatic-resign-action-mom-switch");
+  federate.connect();
+  federate.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  federate.join(
+      options.ownerFederateName + L"-automatic-resign-action-mom-switch",
+      options.federateType,
+      federation);
+
+  auto& ambassador = federate.rtiAmbassador();
+  require(
+      !ambassador.getServiceReportingSwitch(),
+      "Standard MIM Service Reporting switch did not start false for the Automatic Resign Action switch test");
+  auto const initialResignAction =
+      ambassador.getAutomaticResignDirective();
+  auto const initialExceptionReporting =
+      ambassador.getExceptionReportingSwitch();
+  auto const initialFileReporting =
+      ambassador.getSendServiceReportsToFileSwitch();
+  auto const setSwitches = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+  auto const automaticResignAction = ambassador.getParameterHandle(
+      setSwitches,
+      L"HLAautomaticResignAction");
+  require(
+      setSwitches.isValid() && automaticResignAction.isValid(),
+      "Standard federate-MOM Automatic Resign Action lookup returned an invalid handle");
+
+  auto encodeResignAction = [](rti::ResignAction const action) {
+    return rti::HLAinteger32BE{
+        static_cast<std::int32_t>(action)}.encode();
+  };
+  auto setResignActionThroughMom = [&](rti::ResignAction const action) {
+    rti::ParameterHandleValueMap const parameters{
+        {automaticResignAction, encodeResignAction(action)}};
+    ambassador.sendInteraction(
+        setSwitches,
+        parameters,
+        rti::VariableLengthData{});
+    require(
+        ambassador.getAutomaticResignDirective() == action,
+        "HLAsetSwitches HLAautomaticResignAction did not set the requested standard enum");
+    require(
+        !ambassador.getServiceReportingSwitch() &&
+            ambassador.getExceptionReportingSwitch() ==
+                initialExceptionReporting &&
+            ambassador.getSendServiceReportsToFileSwitch() ==
+                initialFileReporting,
+        "HLAsetSwitches HLAautomaticResignAction changed a neighboring federate switch");
+  };
+  setResignActionThroughMom(rti::NO_ACTION);
+  setResignActionThroughMom(rti::DELETE_OBJECTS);
+  setResignActionThroughMom(initialResignAction);
+
+  federate.resign(rti::NO_ACTION);
+  federate.rtiAmbassador().destroyFederationExecution(federation);
+  federate.disconnect();
+}
+
+void scenarioFederateAutomaticResignActionMomAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty(),
+      "Federate MOM Automatic Resign Action attribute testing requires adapter-supplied FOM and standard MIM");
+
+  Session monitor(options, model, "automatic-resign-action-mom-attribute-monitor");
+  Session subject(options, model, "automatic-resign-action-mom-attribute-subject");
+  auto const federation = federationName(
+      options,
+      "federate-automatic-resign-action-mim-attribute");
+  monitor.connect();
+  subject.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    monitor.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    monitor.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+  monitor.join(
+      options.memberFederateName + L"-automatic-resign-action-mom-monitor",
+      options.federateType,
+      federation);
+
+  auto const momClass = monitor.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const automaticResignActionAttribute =
+      monitor.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAautomaticResignAction");
+  auto const reliable = monitor.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          automaticResignActionAttribute.isValid() && reliable.isValid() &&
+          monitor.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              automaticResignActionAttribute) == L"HLAautomaticResignAction" &&
+          monitor.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Federate MOM Automatic Resign Action lookup did not round-trip standard MIM handles");
+  monitor.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{
+          federateHandleAttribute,
+          automaticResignActionAttribute},
+      true,
+      L"");
+
+  subject.join(
+      options.ownerFederateName + L"-automatic-resign-action-mom-subject",
+      options.federateType,
+      federation);
+  auto const subjectFederate = subject.federateHandle();
+  auto findSubjectMomObject = [&]()
+      -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const expectedHandle = copyBytes(subjectFederate.encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      monitor,
+      [&] { return findSubjectMomObject().has_value(); },
+      options,
+      "federate MOM Automatic Resign Action subject discovery");
+  auto const subjectMomObject = findSubjectMomObject();
+  require(
+      subjectMomObject.has_value() && subjectMomObject->isValid() &&
+          monitor.rtiAmbassador().getKnownObjectClassHandle(*subjectMomObject) ==
+              momClass,
+      "Federate MOM Automatic Resign Action discovery returned the wrong standard object");
+
+  auto actionReflectionsSince = [&](std::size_t firstReflection) {
+    auto const reflections = monitor.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    std::vector<ReflectionRecord> result;
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (iterator->present && iterator->object == *subjectMomObject &&
+          iterator->values.count(automaticResignActionAttribute) == 1U) {
+        result.push_back(*iterator);
+      }
+    }
+    return result;
+  };
+  auto requireActionReflection = [&](ReflectionRecord const& reflection,
+                                     rti::ResignAction const expected,
+                                     char const* description) {
+    require(
+        reflection.values.size() == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        std::string(description) +
+            " had non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(automaticResignActionAttribute));
+    require(
+        value.get() == static_cast<std::int32_t>(expected),
+        std::string(description) +
+            " returned the wrong HLAresignAction value");
+  };
+  auto requestAction = [&](rti::ResignAction const expected,
+                           char const* description) {
+    auto const before = monitor.recorder().reflections().size();
+    monitor.rtiAmbassador().requestAttributeValueUpdate(
+        *subjectMomObject,
+        rti::AttributeHandleSet{automaticResignActionAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        monitor,
+        [&] { return !actionReflectionsSince(before).empty(); },
+        options,
+        description);
+    auto const reflections = actionReflectionsSince(before);
+    require(
+        reflections.size() == 1U,
+        std::string(description) +
+            " delivered an unexpected number of direct MOM reflections");
+    requireActionReflection(reflections.front(), expected, description);
+  };
+
+  auto& subjectAmbassador = subject.rtiAmbassador();
+  auto const initialAction = subjectAmbassador.getAutomaticResignDirective();
+  requestAction(
+      initialAction,
+      "federate MOM Automatic Resign Action initial value request");
+
+  auto const changedAction = initialAction == rti::NO_ACTION
+      ? rti::DELETE_OBJECTS
+      : rti::NO_ACTION;
+  auto beforeChange = monitor.recorder().reflections().size();
+  subjectAmbassador.setAutomaticResignDirective(changedAction);
+  require(
+      subjectAmbassador.getAutomaticResignDirective() == changedAction,
+      "setAutomaticResignDirective did not retain the changed standard action");
+  waitFor(
+      monitor,
+      [&] { return !actionReflectionsSince(beforeChange).empty(); },
+      options,
+      "conditional federate MOM Automatic Resign Action reflection");
+  auto changedReflections = actionReflectionsSince(beforeChange);
+  require(
+      changedReflections.size() == 1U,
+      "Changing the automatic resign action did not produce exactly one conditional MOM reflection");
+  requireActionReflection(
+      changedReflections.front(),
+      changedAction,
+      "conditional federate MOM Automatic Resign Action reflection");
+  requestAction(
+      changedAction,
+      "federate MOM Automatic Resign Action changed value request");
+
+  beforeChange = monitor.recorder().reflections().size();
+  subjectAmbassador.setAutomaticResignDirective(initialAction);
+  require(
+      subjectAmbassador.getAutomaticResignDirective() == initialAction,
+      "setAutomaticResignDirective did not restore the initial standard action");
+  waitFor(
+      monitor,
+      [&] { return !actionReflectionsSince(beforeChange).empty(); },
+      options,
+      "restored conditional federate MOM Automatic Resign Action reflection");
+  auto const restoredReflections = actionReflectionsSince(beforeChange);
+  require(
+      restoredReflections.size() == 1U,
+      "Restoring the automatic resign action did not produce exactly one conditional MOM reflection");
+  requireActionReflection(
+      restoredReflections.front(),
+      initialAction,
+      "restored conditional federate MOM Automatic Resign Action reflection");
+  requestAction(
+      initialAction,
+      "federate MOM Automatic Resign Action restored value request");
+
+  subject.resign(rti::NO_ACTION);
+  monitor.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+  monitor.disconnect();
+}
+
+void scenarioFederateAutomaticResignActionMomAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateAutomaticResignActionMomAttribute(options, model);
+}
+
+void scenarioFederateAutomaticResignActionMomSwitchContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateAutomaticResignActionMomSwitch(options, model);
 }
 
 class RegionalAutoProvideAmbassador final : public rti::NullFederateAmbassador {
@@ -4534,6 +14381,76 @@ void scenarioJoinedFederateMomRegisteredObjectCount(
       2,
       "joined-federate MOM registered-object second value request");
 
+  auto const setTiming = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const timingFederate = observer.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriod = observer.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && timingFederate.isValid() && reportPeriod.isValid() &&
+          observer.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          observer.rtiAmbassador().getParameterName(setTiming, timingFederate) ==
+              L"HLAfederate" &&
+          observer.rtiAmbassador().getParameterName(setTiming, reportPeriod) ==
+              L"HLAreportPeriod",
+      "Joined-federate MOM registered-object count HLAsetTiming lookup did not round-trip");
+  auto const beforePeriodic = observer.recorder().reflections().size();
+  observer.rtiAmbassador().sendInteraction(
+      setTiming,
+      rti::ParameterHandleValueMap{
+          {timingFederate, owner.federateHandle().encode()},
+          {reportPeriod, rti::HLAinteger32BE{1}.encode()}},
+      rti::VariableLengthData{});
+  waitFor(
+      observer,
+      [&] {
+        auto const reflections = observer.recorder().reflections();
+        auto const begin = reflections.begin() +
+            static_cast<std::ptrdiff_t>(std::min(beforePeriodic, reflections.size()));
+        return std::any_of(
+            begin,
+            reflections.end(),
+            [&](ReflectionRecord const& reflection) {
+              return reflection.present && reflection.object == ownerMomObject &&
+                  reflection.values.count(observerRegisteredCountAttribute) == 1U;
+            });
+      },
+      options,
+      "joined-federate MOM registered-object periodic reflection");
+  auto const periodicReflections = observer.recorder().reflections();
+  auto const periodicBegin = periodicReflections.begin() +
+      static_cast<std::ptrdiff_t>(std::min(beforePeriodic, periodicReflections.size()));
+  auto const periodicReflection = std::find_if(
+      periodicBegin,
+      periodicReflections.end(),
+      [&](ReflectionRecord const& reflection) {
+        return reflection.present && reflection.object == ownerMomObject &&
+            reflection.values.count(observerRegisteredCountAttribute) == 1U;
+      });
+  require(
+      periodicReflection != periodicReflections.end() &&
+          periodicReflection->values.size() == 1U &&
+          periodicReflection->transportation == reliable &&
+          periodicReflection->tag.empty() && !periodicReflection->producer.isValid() &&
+          !periodicReflection->regions.has_value(),
+      "Joined-federate MOM registered-object periodic reflection metadata was incorrect");
+  rti::HLAinteger32BE periodicRegisteredCount;
+  periodicRegisteredCount.decode(
+      periodicReflection->values.at(observerRegisteredCountAttribute));
+  require(
+      periodicRegisteredCount.get() == 2,
+      "Joined-federate MOM registered-object periodic report returned the wrong count");
+  observer.rtiAmbassador().sendInteraction(
+      setTiming,
+      rti::ParameterHandleValueMap{
+          {timingFederate, owner.federateHandle().encode()},
+          {reportPeriod, rti::HLAinteger32BE{0}.encode()}},
+      rti::VariableLengthData{});
+
   observer.rtiAmbassador().unsubscribeObjectClassAttributes(
       observerFederateClass,
       rti::AttributeHandleSet{
@@ -4553,6 +14470,4950 @@ void scenarioJoinedFederateMomRegisteredObjectCountContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioJoinedFederateMomRegisteredObjectCount(options, model);
+}
+
+void scenarioJoinedFederateMomRoLengthPeriodic(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty(),
+      "Joined-federate MOM RO-length testing requires an adapter-supplied FOM and standard MIM");
+  require(
+      !options.interactionClassName.empty() && !options.parameterName.empty(),
+      "Joined-federate MOM RO-length testing requires adapter-supplied interaction and parameter names");
+
+  Session receiver(options, model, "member");
+  Session publisher(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-ro-length-periodic");
+  receiver.connect();
+  publisher.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  receiver.join(
+      options.memberFederateName + L"-mom-ro-length-receiver",
+      options.federateType,
+      federation);
+  auto const momClass = receiver.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const roLengthAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAROlength");
+  auto const reliable = receiver.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          roLengthAttribute.isValid() && reliable.isValid() &&
+          receiver.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          receiver.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          receiver.rtiAmbassador().getAttributeName(
+              momClass,
+              roLengthAttribute) == L"HLAROlength" &&
+          receiver.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Joined-federate MOM RO-length lookup did not round-trip the standard MIM handles");
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{federateHandleAttribute, roLengthAttribute},
+      true,
+      L"");
+
+  auto const receiverInteraction =
+      receiver.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      receiverInteraction.isValid() && receiverParameter.isValid() &&
+          receiver.rtiAmbassador().getInteractionClassName(receiverInteraction) ==
+              options.interactionClassName &&
+          receiver.rtiAmbassador().getParameterName(
+              receiverInteraction,
+              receiverParameter) == options.parameterName,
+      "Joined-federate MOM RO-length application interaction lookup did not round-trip");
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction);
+
+  publisher.join(
+      options.ownerFederateName + L"-mom-ro-length-publisher",
+      options.federateType,
+      federation);
+  auto const publisherInteraction =
+      publisher.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction == receiverInteraction &&
+          publisherParameter == receiverParameter,
+      "Joined-federate MOM RO-length application handles differed between federates");
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+
+  auto findMomObject = [&](rti::FederateHandle const& federate)
+      -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = receiver.recorder().reflections();
+    auto const expectedHandle = copyBytes(federate.encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      receiver,
+      [&] {
+        return findMomObject(receiver.federateHandle()).has_value() &&
+            findMomObject(publisher.federateHandle()).has_value();
+      },
+      options,
+      "joined-federate MOM RO-length object discovery and reflection");
+  auto const receiverMomObject = findMomObject(receiver.federateHandle());
+  require(
+      receiverMomObject.has_value() &&
+          receiver.rtiAmbassador().getKnownObjectClassHandle(
+              *receiverMomObject) == momClass,
+      "Joined-federate MOM RO-length lookup found the wrong receiver object");
+
+  auto findRoLengthReflection = [&](std::size_t firstReflection)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = receiver.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return reflection.present && reflection.object == *receiverMomObject &&
+              reflection.values.count(roLengthAttribute) == 1U;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto decodeRoLength = [&](ReflectionRecord const& reflection,
+                            std::string const& description) {
+    require(
+        reflection.values.count(roLengthAttribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        description + " returned non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(roLengthAttribute));
+    require(value.get() >= 0, description + " returned a negative RO length");
+    return value.get();
+  };
+  auto requestRoLength = [&](std::string const& description) {
+    auto const before = receiver.recorder().reflections().size();
+    receiver.rtiAmbassador().requestAttributeValueUpdate(
+        *receiverMomObject,
+        rti::AttributeHandleSet{roLengthAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        receiver,
+        [&] { return findRoLengthReflection(before).has_value(); },
+        options,
+        description);
+    auto const reflection = findRoLengthReflection(before);
+    require(reflection.has_value(), description + " produced no RO-length value");
+    return decodeRoLength(*reflection, description);
+  };
+  auto drainEvokedCallbacks = [&] {
+    if (model != rti::HLA_EVOKED) {
+      return;
+    }
+    for (std::size_t pass = 0; pass != 512U; ++pass) {
+      if (!receiver.rtiAmbassador().evokeCallback(0.0)) {
+        return;
+      }
+    }
+    throw std::runtime_error(
+        "Joined-federate MOM RO-length callback queue did not drain");
+  };
+  auto requireEmptyQueue = [&](std::string const& description) {
+    for (std::size_t attempt = 0; attempt != 5U; ++attempt) {
+      auto const count = requestRoLength(
+          description + " request " + std::to_string(attempt + 1U));
+      if (count == 0) {
+        return;
+      }
+      drainEvokedCallbacks();
+      std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+    throw std::runtime_error(description + " did not reach an empty RO queue");
+  };
+  drainEvokedCallbacks();
+  requireEmptyQueue("Joined-federate MOM initial RO-length value");
+
+  auto const setTiming = receiver.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const timingFederate = receiver.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriod = receiver.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && timingFederate.isValid() && reportPeriod.isValid() &&
+          receiver.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          receiver.rtiAmbassador().getParameterName(setTiming, timingFederate) ==
+              L"HLAfederate" &&
+          receiver.rtiAmbassador().getParameterName(setTiming, reportPeriod) ==
+              L"HLAreportPeriod",
+      "Joined-federate MOM RO-length HLAsetTiming lookup did not round-trip");
+  auto sendSetTiming = [&](std::int32_t period) {
+    receiver.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {timingFederate, receiver.federateHandle().encode()},
+            {reportPeriod, rti::HLAinteger32BE{period}.encode()}},
+        rti::VariableLengthData{});
+  };
+
+  std::vector<std::uint8_t> const applicationPayload{0x52U, 0x4fU};
+  rti::VariableLengthData const encodedApplicationPayload(
+      applicationPayload.data(),
+      applicationPayload.size());
+  auto sendApplicationInteraction = [&] {
+    publisher.rtiAmbassador().sendInteraction(
+        publisherInteraction,
+        rti::ParameterHandleValueMap{
+            {publisherParameter, encodedApplicationPayload}},
+        rti::VariableLengthData{});
+  };
+  auto countApplicationInteractions = [&](std::size_t firstInteraction) {
+    auto const interactions = receiver.recorder().interactions();
+    auto const begin = std::min(firstInteraction, interactions.size());
+    return static_cast<std::size_t>(std::count_if(
+        interactions.begin() + static_cast<std::ptrdiff_t>(begin),
+        interactions.end(),
+        [&](InteractionRecord const& interaction) {
+          auto const value = interaction.parameters.find(receiverParameter);
+          return interaction.present && interaction.interaction == receiverInteraction &&
+              interaction.producer == publisher.federateHandle() &&
+              value != interaction.parameters.end() &&
+              copyBytes(value->second) == applicationPayload &&
+              interaction.tag.empty() && !interaction.regions.has_value();
+        }));
+  };
+
+  std::size_t const directInteractionStart =
+      receiver.recorder().interactions().size();
+  if (model == rti::HLA_IMMEDIATE) {
+    receiver.rtiAmbassador().disableCallbacks();
+  }
+  for (std::size_t message = 0; message != 3U; ++message) {
+    sendApplicationInteraction();
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  static_cast<void>(receiver.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate"));
+  auto const directReflectionStart = receiver.recorder().reflections().size();
+  receiver.rtiAmbassador().requestAttributeValueUpdate(
+      *receiverMomObject,
+      rti::AttributeHandleSet{roLengthAttribute},
+      rti::VariableLengthData{});
+  if (model == rti::HLA_IMMEDIATE) {
+    receiver.rtiAmbassador().enableCallbacks();
+  }
+  waitFor(
+      receiver,
+      [&] {
+        return countApplicationInteractions(directInteractionStart) >= 3U &&
+            findRoLengthReflection(directReflectionStart).has_value();
+      },
+      options,
+      "joined-federate MOM positive direct RO-length value and queued interactions");
+  auto const directReflection = findRoLengthReflection(directReflectionStart);
+  require(
+      directReflection.has_value() &&
+          decodeRoLength(*directReflection,
+                         "Joined-federate MOM direct RO-length reflection") >= 1,
+      "Joined-federate MOM direct RO-length value did not report queued receive-order messages");
+  require(
+      countApplicationInteractions(directInteractionStart) == 3U,
+      "Joined-federate MOM direct RO-length phase delivered an unexpected interaction count");
+  requireEmptyQueue("Joined-federate MOM direct RO-length after delivery");
+
+  std::size_t const periodicReflectionStart =
+      receiver.recorder().reflections().size();
+  auto const periodicInteractionStart =
+      receiver.recorder().interactions().size();
+  sendSetTiming(1);
+  std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  if (model == rti::HLA_IMMEDIATE) {
+    receiver.rtiAmbassador().disableCallbacks();
+  }
+  sendApplicationInteraction();
+  std::this_thread::sleep_for(std::chrono::milliseconds(2200));
+  if (model == rti::HLA_IMMEDIATE) {
+    receiver.rtiAmbassador().enableCallbacks();
+  }
+
+  auto findPositivePeriodicReflection = [&]()
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = receiver.recorder().reflections();
+    auto const begin = std::min(periodicReflectionStart, reflections.size());
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (!iterator->present || iterator->object != *receiverMomObject ||
+          iterator->values.count(roLengthAttribute) != 1U) {
+        continue;
+      }
+      rti::HLAinteger32BE value;
+      value.decode(iterator->values.at(roLengthAttribute));
+      if (value.get() > 0) {
+        return *iterator;
+      }
+    }
+    return std::nullopt;
+  };
+  waitFor(
+      receiver,
+      [&] {
+        return countApplicationInteractions(periodicInteractionStart) >= 1U &&
+            findPositivePeriodicReflection().has_value();
+      },
+      options,
+      "joined-federate MOM periodic positive RO-length value and queued interaction");
+  auto const periodicReflection = findPositivePeriodicReflection();
+  require(
+      periodicReflection.has_value() &&
+          decodeRoLength(*periodicReflection,
+                         "Joined-federate MOM periodic RO-length reflection") >= 1,
+      "Joined-federate MOM periodic RO-length value did not report a queued receive-order message");
+  sendSetTiming(0);
+  require(
+      countApplicationInteractions(periodicInteractionStart) == 1U,
+      "Joined-federate MOM periodic RO-length phase delivered an unexpected interaction count");
+  drainEvokedCallbacks();
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  requireEmptyQueue("Joined-federate MOM periodic RO-length after delivery");
+
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{federateHandleAttribute, roLengthAttribute});
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioJoinedFederateMomRoLengthPeriodicContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomRoLengthPeriodic(options, model);
+}
+
+void scenarioJoinedFederateMomInteractionsReceivedAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty(),
+      "Joined-federate MOM interactions-received attribute testing requires an adapter-supplied FOM and standard MIM");
+  require(
+      !options.interactionClassName.empty() && !options.parameterName.empty(),
+      "Joined-federate MOM interactions-received attribute testing requires adapter-supplied interaction and parameter names");
+
+  Session receiver(options, model, "member");
+  Session publisher(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-interactions-received-mim-attribute");
+  receiver.connect();
+  publisher.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  receiver.join(
+      options.memberFederateName + L"-mom-interactions-received-receiver",
+      options.federateType,
+      federation);
+  auto const momClass = receiver.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const interactionsReceivedAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAinteractionsReceived");
+  auto const reliable = receiver.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          interactionsReceivedAttribute.isValid() && reliable.isValid() &&
+          receiver.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          receiver.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          receiver.rtiAmbassador().getAttributeName(
+              momClass,
+              interactionsReceivedAttribute) == L"HLAinteractionsReceived" &&
+          receiver.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Joined-federate MOM interactions-received lookup did not round-trip the standard MIM handles");
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{
+          federateHandleAttribute,
+          interactionsReceivedAttribute},
+      true,
+      L"");
+
+  auto const receiverInteraction =
+      receiver.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      receiverInteraction.isValid() && receiverParameter.isValid() &&
+          receiver.rtiAmbassador().getInteractionClassName(receiverInteraction) ==
+              options.interactionClassName &&
+          receiver.rtiAmbassador().getParameterName(
+              receiverInteraction,
+              receiverParameter) == options.parameterName,
+      "Joined-federate MOM interactions-received application lookup did not round-trip");
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction);
+
+  publisher.join(
+      options.ownerFederateName + L"-mom-interactions-received-publisher",
+      options.federateType,
+      federation);
+  auto const publisherInteraction =
+      publisher.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction == receiverInteraction &&
+          publisherParameter == receiverParameter,
+      "Joined-federate MOM interactions-received application handles differed between federates");
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+
+  auto findMomObject = [&]() -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = receiver.recorder().reflections();
+    auto const expectedHandle = copyBytes(receiver.federateHandle().encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      receiver,
+      [&] { return findMomObject().has_value(); },
+      options,
+      "joined-federate MOM interactions-received object discovery and reflection");
+  auto const receiverMomObject = findMomObject();
+  require(
+      receiverMomObject.has_value() &&
+          receiver.rtiAmbassador().getKnownObjectClassHandle(
+              *receiverMomObject) == momClass,
+      "Joined-federate MOM interactions-received lookup found the wrong receiver object");
+
+  auto findCountReflection = [&](std::size_t firstReflection)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = receiver.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return reflection.present && reflection.object == *receiverMomObject &&
+              reflection.values.count(interactionsReceivedAttribute) == 1U;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto decodeCount = [&](ReflectionRecord const& reflection,
+                         std::string const& description) {
+    require(
+        reflection.values.count(interactionsReceivedAttribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        description + " returned non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(interactionsReceivedAttribute));
+    require(value.get() >= 0, description + " returned a negative interaction count");
+    return value.get();
+  };
+  auto requestCount = [&](std::string const& description) {
+    auto const before = receiver.recorder().reflections().size();
+    receiver.rtiAmbassador().requestAttributeValueUpdate(
+        *receiverMomObject,
+        rti::AttributeHandleSet{interactionsReceivedAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        receiver,
+        [&] { return findCountReflection(before).has_value(); },
+        options,
+        description);
+    auto const reflection = findCountReflection(before);
+    require(reflection.has_value(), description + " produced no interactions-received value");
+    return decodeCount(*reflection, description);
+  };
+
+  auto countApplicationInteractions = [&](std::size_t firstInteraction,
+                                          std::vector<std::uint8_t> const& payload) {
+    auto const interactions = receiver.recorder().interactions();
+    auto const begin = std::min(firstInteraction, interactions.size());
+    return static_cast<std::size_t>(std::count_if(
+        interactions.begin() + static_cast<std::ptrdiff_t>(begin),
+        interactions.end(),
+        [&](InteractionRecord const& interaction) {
+          auto const value = interaction.parameters.find(receiverParameter);
+          return interaction.present && interaction.interaction == receiverInteraction &&
+              interaction.producer == publisher.federateHandle() &&
+              value != interaction.parameters.end() &&
+              copyBytes(value->second) == payload && interaction.tag.empty() &&
+              !interaction.regions.has_value();
+        }));
+  };
+
+  auto const setTiming = receiver.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const timingFederate = receiver.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriod = receiver.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && timingFederate.isValid() && reportPeriod.isValid() &&
+          receiver.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          receiver.rtiAmbassador().getParameterName(setTiming, timingFederate) ==
+              L"HLAfederate" &&
+          receiver.rtiAmbassador().getParameterName(setTiming, reportPeriod) ==
+              L"HLAreportPeriod",
+      "Joined-federate MOM interactions-received HLAsetTiming lookup did not round-trip");
+  auto sendSetTiming = [&](std::int32_t period) {
+    receiver.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {timingFederate, receiver.federateHandle().encode()},
+            {reportPeriod, rti::HLAinteger32BE{period}.encode()}},
+        rti::VariableLengthData{});
+  };
+
+  std::vector<std::uint8_t> const firstPayload{0x49U, 0x52U, 0x01U};
+  std::vector<std::uint8_t> const periodicPayload{0x49U, 0x52U, 0x02U};
+  auto sendApplicationInteraction = [&](std::vector<std::uint8_t> const& payload) {
+    publisher.rtiAmbassador().sendInteraction(
+        publisherInteraction,
+        rti::ParameterHandleValueMap{{
+            publisherParameter,
+            rti::VariableLengthData(payload.data(), payload.size())}},
+        rti::VariableLengthData{});
+  };
+
+  require(
+      requestCount("Joined-federate MOM initial interactions-received value") == 0,
+      "Joined-federate MOM initial interactions-received value was not zero");
+
+  std::size_t const directInteractionStart =
+      receiver.recorder().interactions().size();
+  for (std::size_t message = 0; message != 3U; ++message) {
+    sendApplicationInteraction(firstPayload);
+  }
+  waitFor(
+      receiver,
+      [&] {
+        return countApplicationInteractions(directInteractionStart, firstPayload) == 3U;
+      },
+      options,
+      "joined-federate MOM direct interactions-received application callbacks");
+  require(
+      requestCount("Joined-federate MOM direct interactions-received value") == 3,
+      "Joined-federate MOM direct interactions-received value did not match delivered callbacks");
+
+  std::size_t const periodicInteractionStart =
+      receiver.recorder().interactions().size();
+  std::size_t const periodicReflectionStart =
+      receiver.recorder().reflections().size();
+  sendSetTiming(1);
+  std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  for (std::size_t message = 0; message != 2U; ++message) {
+    sendApplicationInteraction(periodicPayload);
+  }
+  waitFor(
+      receiver,
+      [&] {
+        return countApplicationInteractions(periodicInteractionStart, periodicPayload) == 2U;
+      },
+      options,
+      "joined-federate MOM periodic interactions-received application callbacks");
+
+  auto findPeriodicCount = [&]() -> std::optional<ReflectionRecord> {
+    auto const reflections = receiver.recorder().reflections();
+    auto const begin = std::min(periodicReflectionStart, reflections.size());
+    for (auto iterator = reflections.begin() + static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (!iterator->present || iterator->object != *receiverMomObject ||
+          iterator->values.count(interactionsReceivedAttribute) != 1U) {
+        continue;
+      }
+      rti::HLAinteger32BE value;
+      value.decode(iterator->values.at(interactionsReceivedAttribute));
+      if (value.get() >= 5) {
+        return *iterator;
+      }
+    }
+    return std::nullopt;
+  };
+  waitFor(
+      receiver,
+      [&] { return findPeriodicCount().has_value(); },
+      options,
+      "joined-federate MOM periodic interactions-received value");
+  auto const periodicReflection = findPeriodicCount();
+  require(
+      periodicReflection.has_value() &&
+          decodeCount(*periodicReflection,
+                      "Joined-federate MOM periodic interactions-received reflection") == 5,
+      "Joined-federate MOM periodic interactions-received value did not match delivered callbacks");
+
+  sendSetTiming(0);
+  require(
+      requestCount("Joined-federate MOM final interactions-received value") == 5,
+      "Joined-federate MOM final interactions-received value changed after reporting was disabled");
+  require(
+      countApplicationInteractions(directInteractionStart, firstPayload) == 3U &&
+          countApplicationInteractions(periodicInteractionStart, periodicPayload) == 2U,
+      "Joined-federate MOM interactions-received phases delivered unexpected application callback counts");
+
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{
+          federateHandleAttribute,
+          interactionsReceivedAttribute});
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  receiver.rtiAmbassador().resignFederationExecution(rti::NO_ACTION);
+  publisher.rtiAmbassador().resignFederationExecution(
+      rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioJoinedFederateMomInteractionsReceivedAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomInteractionsReceivedAttribute(options, model);
+}
+
+void scenarioJoinedFederateMomInteractionsSentAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty(),
+      "Joined-federate MOM interactions-sent attribute testing requires an adapter-supplied FOM and standard MIM");
+  require(
+      !options.interactionClassName.empty() && !options.parameterName.empty(),
+      "Joined-federate MOM interactions-sent attribute testing requires adapter-supplied interaction and parameter names");
+
+  Session publisher(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-interactions-sent-mim-attribute");
+  publisher.connect();
+  receiver.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  publisher.join(
+      options.ownerFederateName + L"-mom-interactions-sent-publisher",
+      options.federateType,
+      federation);
+  auto const momClass = publisher.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const interactionsSentAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAinteractionsSent");
+  auto const reliable = publisher.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          interactionsSentAttribute.isValid() && reliable.isValid() &&
+          publisher.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          publisher.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          publisher.rtiAmbassador().getAttributeName(
+              momClass,
+              interactionsSentAttribute) == L"HLAinteractionsSent" &&
+          publisher.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Joined-federate MOM interactions-sent lookup did not round-trip the standard MIM handles");
+  publisher.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{
+          federateHandleAttribute,
+          interactionsSentAttribute},
+      true,
+      L"");
+
+  auto const publisherInteraction =
+      publisher.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction.isValid() && publisherParameter.isValid() &&
+          publisher.rtiAmbassador().getInteractionClassName(publisherInteraction) ==
+              options.interactionClassName &&
+          publisher.rtiAmbassador().getParameterName(
+              publisherInteraction,
+              publisherParameter) == options.parameterName,
+      "Joined-federate MOM interactions-sent application lookup did not round-trip");
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+
+  receiver.join(
+      options.memberFederateName + L"-mom-interactions-sent-receiver",
+      options.federateType,
+      federation);
+  auto const receiverInteraction =
+      receiver.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      receiverInteraction == publisherInteraction &&
+          receiverParameter == publisherParameter,
+      "Joined-federate MOM interactions-sent application handles differed between federates");
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction);
+
+  auto findMomObject = [&]() -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = publisher.recorder().reflections();
+    auto const expectedHandle = copyBytes(publisher.federateHandle().encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      publisher,
+      [&] { return findMomObject().has_value(); },
+      options,
+      "joined-federate MOM interactions-sent object discovery and reflection");
+  auto const publisherMomObject = findMomObject();
+  require(
+      publisherMomObject.has_value() &&
+          publisher.rtiAmbassador().getKnownObjectClassHandle(
+              *publisherMomObject) == momClass,
+      "Joined-federate MOM interactions-sent lookup found the wrong publisher object");
+
+  auto findCountReflection = [&](std::size_t firstReflection)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = publisher.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return reflection.present && reflection.object == *publisherMomObject &&
+              reflection.values.count(interactionsSentAttribute) == 1U;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto decodeCount = [&](ReflectionRecord const& reflection,
+                         std::string const& description) {
+    require(
+        reflection.values.count(interactionsSentAttribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        description + " returned non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(interactionsSentAttribute));
+    require(value.get() >= 0, description + " returned a negative interaction count");
+    return value.get();
+  };
+  auto requestCount = [&](std::string const& description) {
+    auto const before = publisher.recorder().reflections().size();
+    publisher.rtiAmbassador().requestAttributeValueUpdate(
+        *publisherMomObject,
+        rti::AttributeHandleSet{interactionsSentAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        publisher,
+        [&] { return findCountReflection(before).has_value(); },
+        options,
+        description);
+    auto const reflection = findCountReflection(before);
+    require(reflection.has_value(), description + " produced no interactions-sent value");
+    return decodeCount(*reflection, description);
+  };
+
+  auto countApplicationInteractions = [&](std::size_t firstInteraction,
+                                          std::vector<std::uint8_t> const& payload) {
+    auto const interactions = receiver.recorder().interactions();
+    auto const begin = std::min(firstInteraction, interactions.size());
+    return static_cast<std::size_t>(std::count_if(
+        interactions.begin() + static_cast<std::ptrdiff_t>(begin),
+        interactions.end(),
+        [&](InteractionRecord const& interaction) {
+          auto const value = interaction.parameters.find(receiverParameter);
+          return interaction.present && interaction.interaction == receiverInteraction &&
+              interaction.producer == publisher.federateHandle() &&
+              value != interaction.parameters.end() &&
+              copyBytes(value->second) == payload && interaction.tag.empty() &&
+              !interaction.regions.has_value();
+        }));
+  };
+
+  auto const setTiming = publisher.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const timingFederate = publisher.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriod = publisher.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && timingFederate.isValid() && reportPeriod.isValid() &&
+          publisher.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          publisher.rtiAmbassador().getParameterName(setTiming, timingFederate) ==
+              L"HLAfederate" &&
+          publisher.rtiAmbassador().getParameterName(setTiming, reportPeriod) ==
+              L"HLAreportPeriod",
+      "Joined-federate MOM interactions-sent HLAsetTiming lookup did not round-trip");
+  auto sendSetTiming = [&](std::int32_t period) {
+    publisher.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {timingFederate, publisher.federateHandle().encode()},
+            {reportPeriod, rti::HLAinteger32BE{period}.encode()}},
+        rti::VariableLengthData{});
+  };
+
+  std::vector<std::uint8_t> const payload{0x49U, 0x53U, 0x01U};
+  auto sendApplicationInteraction = [&] {
+    publisher.rtiAmbassador().sendInteraction(
+        publisherInteraction,
+        rti::ParameterHandleValueMap{{
+            publisherParameter,
+            rti::VariableLengthData(payload.data(), payload.size())}},
+        rti::VariableLengthData{});
+  };
+
+  require(
+      requestCount("Joined-federate MOM initial interactions-sent value") == 0,
+      "Joined-federate MOM initial interactions-sent value was not zero");
+  sendSetTiming(1);
+  std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  auto const directBaseline = requestCount(
+      "Joined-federate MOM interactions-sent baseline with periodic reporting enabled");
+  auto const periodicReflectionStart =
+      publisher.recorder().reflections().size();
+  std::size_t const interactionStart = receiver.recorder().interactions().size();
+  for (std::size_t message = 0; message != 3U; ++message) {
+    sendApplicationInteraction();
+  }
+  waitFor(
+      receiver,
+      [&] {
+        return countApplicationInteractions(interactionStart, payload) == 3U;
+      },
+      options,
+      "joined-federate MOM interactions-sent application deliveries");
+  auto const expectedCount = directBaseline + 3;
+
+  auto findPeriodicCount = [&]() -> std::optional<ReflectionRecord> {
+    auto const reflections = publisher.recorder().reflections();
+    auto const begin = std::min(periodicReflectionStart, reflections.size());
+    for (auto iterator = reflections.begin() + static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (!iterator->present || iterator->object != *publisherMomObject ||
+          iterator->values.count(interactionsSentAttribute) != 1U) {
+        continue;
+      }
+      rti::HLAinteger32BE value;
+      value.decode(iterator->values.at(interactionsSentAttribute));
+      if (value.get() >= expectedCount) {
+        return *iterator;
+      }
+    }
+    return std::nullopt;
+  };
+  waitFor(
+      publisher,
+      [&] { return findPeriodicCount().has_value(); },
+      options,
+      "joined-federate MOM periodic interactions-sent value");
+  auto const periodicReflection = findPeriodicCount();
+  require(
+      periodicReflection.has_value() &&
+          decodeCount(*periodicReflection,
+                      "Joined-federate MOM periodic interactions-sent reflection") == expectedCount,
+      "Joined-federate MOM periodic interactions-sent value did not match the direct service count");
+  require(
+      requestCount("Joined-federate MOM direct interactions-sent value") == expectedCount,
+      "Joined-federate MOM direct interactions-sent value did not increase once per accepted application send");
+
+  sendSetTiming(0);
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  publisher.rtiAmbassador().unsubscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{
+          federateHandleAttribute,
+          interactionsSentAttribute});
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().resignFederationExecution(
+      rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  receiver.rtiAmbassador().resignFederationExecution(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  publisher.disconnect();
+  receiver.disconnect();
+}
+
+void scenarioJoinedFederateMomInteractionsSentAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomInteractionsSentAttribute(options, model);
+}
+
+void scenarioJoinedFederateMomDirectedInteractionsReceivedAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty(),
+      "Joined-federate MOM directed-interactions-received testing requires an adapter-supplied FOM and standard MIM");
+  require(
+      !options.objectClassName.empty() && !options.attributeName.empty() &&
+          !options.interactionClassName.empty() && !options.parameterName.empty(),
+      "Joined-federate MOM directed-interactions-received testing requires adapter-supplied object, attribute, interaction, and parameter names");
+
+  Session receiver(options, model, "member");
+  Session publisher(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-directed-interactions-received-mim-attribute");
+  receiver.connect();
+  publisher.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  receiver.join(
+      options.memberFederateName +
+          L"-mom-directed-interactions-received-receiver",
+      options.federateType,
+      federation);
+  auto const momClass = receiver.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const interactionsReceivedAttribute =
+      receiver.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAinteractionsReceived");
+  auto const directedInteractionsReceivedAttribute =
+      receiver.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAdirectedInteractionsReceived");
+  auto const reliable = receiver.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          interactionsReceivedAttribute.isValid() &&
+          directedInteractionsReceivedAttribute.isValid() && reliable.isValid() &&
+          receiver.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          receiver.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          receiver.rtiAmbassador().getAttributeName(
+              momClass,
+              interactionsReceivedAttribute) == L"HLAinteractionsReceived" &&
+          receiver.rtiAmbassador().getAttributeName(
+              momClass,
+              directedInteractionsReceivedAttribute) ==
+              L"HLAdirectedInteractionsReceived" &&
+          receiver.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Joined-federate MOM directed-interactions-received lookup did not round-trip standard MIM handles");
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{
+          federateHandleAttribute,
+          interactionsReceivedAttribute,
+          directedInteractionsReceivedAttribute},
+      true,
+      L"");
+
+  auto const receiverObjectClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverObjectAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverObjectClass,
+      options.attributeName);
+  auto const receiverInteraction =
+      receiver.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      receiverObjectClass.isValid() && receiverObjectAttribute.isValid() &&
+          receiverInteraction.isValid() && receiverParameter.isValid() &&
+          receiver.rtiAmbassador().getObjectClassName(receiverObjectClass) ==
+              options.objectClassName &&
+          receiver.rtiAmbassador().getAttributeName(
+              receiverObjectClass,
+              receiverObjectAttribute) == options.attributeName &&
+          receiver.rtiAmbassador().getInteractionClassName(receiverInteraction) ==
+              options.interactionClassName &&
+          receiver.rtiAmbassador().getParameterName(
+              receiverInteraction,
+              receiverParameter) == options.parameterName,
+      "Joined-federate MOM directed-interactions-received application lookups did not round-trip");
+  rti::AttributeHandleSet const receiverObjectAttributes{
+      receiverObjectAttribute};
+  rti::InteractionClassHandleSet const receiverDirectedInteractions{
+      receiverInteraction};
+  receiver.rtiAmbassador().publishObjectClassAttributes(
+      receiverObjectClass,
+      receiverObjectAttributes);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction);
+  receiver.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      receiverObjectClass,
+      receiverDirectedInteractions);
+
+  publisher.join(
+      options.ownerFederateName +
+          L"-mom-directed-interactions-received-publisher",
+      options.federateType,
+      federation);
+  auto const publisherObjectClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherObjectAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherObjectClass,
+      options.attributeName);
+  auto const publisherInteraction =
+      publisher.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  require(
+      publisherObjectClass == receiverObjectClass &&
+          publisherObjectAttribute == receiverObjectAttribute &&
+          publisherInteraction == receiverInteraction &&
+          publisherParameter == receiverParameter &&
+          publisher.rtiAmbassador().getObjectClassName(publisherObjectClass) ==
+              options.objectClassName &&
+          publisher.rtiAmbassador().getAttributeName(
+              publisherObjectClass,
+              publisherObjectAttribute) == options.attributeName &&
+          publisher.rtiAmbassador().getInteractionClassName(publisherInteraction) ==
+              options.interactionClassName &&
+          publisher.rtiAmbassador().getParameterName(
+              publisherInteraction,
+              publisherParameter) == options.parameterName,
+      "Joined-federate MOM directed-interactions-received application handles differed between federates");
+  publisher.rtiAmbassador().subscribeObjectClassAttributes(
+      publisherObjectClass,
+      rti::AttributeHandleSet{publisherObjectAttribute},
+      true,
+      L"");
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().publishObjectClassDirectedInteractions(
+      publisherObjectClass,
+      rti::InteractionClassHandleSet{publisherInteraction});
+
+  auto const target = receiver.rtiAmbassador().registerObjectInstance(
+      receiverObjectClass);
+  require(
+      target.isValid(),
+      "Joined-federate MOM directed-interactions-received target registration returned an invalid object handle");
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().hasDiscovery(target); },
+      options,
+      "joined-federate MOM directed-interactions-received target discovery");
+
+  auto findMomObject = [&]() -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = receiver.recorder().reflections();
+    auto const expectedHandle = copyBytes(receiver.federateHandle().encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      receiver,
+      [&] { return findMomObject().has_value(); },
+      options,
+      "joined-federate MOM directed-interactions-received object discovery");
+  auto const receiverMomObject = findMomObject();
+  require(
+      receiverMomObject.has_value() &&
+          receiver.rtiAmbassador().getKnownObjectClassHandle(
+              *receiverMomObject) == momClass,
+      "Joined-federate MOM directed-interactions-received lookup found the wrong receiver object");
+
+  auto findCountReflection = [&](std::size_t firstReflection,
+                                 rti::AttributeHandle const& attribute)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = receiver.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return reflection.present && reflection.object == *receiverMomObject &&
+              reflection.values.count(attribute) == 1U;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto decodeCount = [&](ReflectionRecord const& reflection,
+                         rti::AttributeHandle const& attribute,
+                         std::string const& description) {
+    require(
+        reflection.values.count(attribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        description + " returned non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(attribute));
+    require(value.get() >= 0, description + " returned a negative interaction count");
+    return value.get();
+  };
+  auto requestCount = [&](rti::AttributeHandle const& attribute,
+                          std::string const& description) {
+    auto const before = receiver.recorder().reflections().size();
+    receiver.rtiAmbassador().requestAttributeValueUpdate(
+        *receiverMomObject,
+        rti::AttributeHandleSet{attribute},
+        rti::VariableLengthData{});
+    waitFor(
+        receiver,
+        [&] { return findCountReflection(before, attribute).has_value(); },
+        options,
+        description);
+    auto const reflection = findCountReflection(before, attribute);
+    require(reflection.has_value(), description + " produced no scalar value");
+    return decodeCount(*reflection, attribute, description);
+  };
+
+  auto countOrdinaryCallbacks = [&](std::size_t firstInteraction,
+                                    std::vector<std::uint8_t> const& payload) {
+    auto const interactions = receiver.recorder().interactions();
+    auto const begin = std::min(firstInteraction, interactions.size());
+    return static_cast<std::size_t>(std::count_if(
+        interactions.begin() + static_cast<std::ptrdiff_t>(begin),
+        interactions.end(),
+        [&](InteractionRecord const& interaction) {
+          auto const value = interaction.parameters.find(receiverParameter);
+          return interaction.present && interaction.interaction == receiverInteraction &&
+              interaction.producer == publisher.federateHandle() &&
+              value != interaction.parameters.end() &&
+              copyBytes(value->second) == payload && interaction.tag.empty() &&
+              interaction.transportation == reliable;
+        }));
+  };
+  auto countDirectedCallbacks = [&](std::size_t firstInteraction,
+                                    std::vector<std::uint8_t> const& payload) {
+    auto const interactions = receiver.recorder().directedInteractions();
+    auto const begin = std::min(firstInteraction, interactions.size());
+    return static_cast<std::size_t>(std::count_if(
+        interactions.begin() + static_cast<std::ptrdiff_t>(begin),
+        interactions.end(),
+        [&](DirectedInteractionRecord const& interaction) {
+          auto const value = interaction.parameters.find(receiverParameter);
+          return interaction.interaction == receiverInteraction &&
+              interaction.object == target &&
+              interaction.producer == publisher.federateHandle() &&
+              value != interaction.parameters.end() &&
+              copyBytes(value->second) == payload && interaction.tag.empty() &&
+              interaction.transportation == reliable;
+        }));
+  };
+
+  auto const setTiming = receiver.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const timingFederate = receiver.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriod = receiver.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && timingFederate.isValid() && reportPeriod.isValid() &&
+          receiver.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          receiver.rtiAmbassador().getParameterName(setTiming, timingFederate) ==
+              L"HLAfederate" &&
+          receiver.rtiAmbassador().getParameterName(setTiming, reportPeriod) ==
+              L"HLAreportPeriod",
+      "Joined-federate MOM directed-interactions-received HLAsetTiming lookup did not round-trip");
+  auto sendSetTiming = [&](std::int32_t period) {
+    receiver.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {timingFederate, receiver.federateHandle().encode()},
+            {reportPeriod, rti::HLAinteger32BE{period}.encode()}},
+        rti::VariableLengthData{});
+  };
+
+  std::vector<std::uint8_t> const ordinaryPayload{0xA1U};
+  std::vector<std::uint8_t> const directPayload{0xD1U};
+  std::vector<std::uint8_t> const periodicPayload{0xD2U};
+  auto makeParameters = [&](std::vector<std::uint8_t> const& payload) {
+    rti::ParameterHandleValueMap parameters;
+    parameters.emplace(
+        publisherParameter,
+        rti::VariableLengthData(payload.data(), payload.size()));
+    return parameters;
+  };
+  auto sendOrdinaryInteraction = [&](std::vector<std::uint8_t> const& payload) {
+    publisher.rtiAmbassador().sendInteraction(
+        publisherInteraction,
+        makeParameters(payload),
+        rti::VariableLengthData{});
+  };
+  auto sendDirectedInteraction = [&](std::vector<std::uint8_t> const& payload) {
+    publisher.rtiAmbassador().sendDirectedInteraction(
+        publisherInteraction,
+        target,
+        makeParameters(payload),
+        rti::VariableLengthData{});
+  };
+
+  require(
+      requestCount(
+          interactionsReceivedAttribute,
+          "Joined-federate MOM initial interactions-received value") == 0 &&
+          requestCount(
+              directedInteractionsReceivedAttribute,
+              "Joined-federate MOM initial directed-interactions-received value") == 0,
+      "Joined-federate MOM interaction receive counters were not initially zero");
+
+  std::size_t const ordinaryStart = receiver.recorder().interactions().size();
+  sendOrdinaryInteraction(ordinaryPayload);
+  waitFor(
+      receiver,
+      [&] { return countOrdinaryCallbacks(ordinaryStart, ordinaryPayload) >= 1U; },
+      options,
+      "joined-federate MOM ordinary interaction callback before directed delivery");
+  require(
+      countOrdinaryCallbacks(ordinaryStart, ordinaryPayload) == 1U &&
+          receiver.recorder().interactions().size() == ordinaryStart + 1U &&
+          receiver.recorder().directedInteractions().empty(),
+      "Joined-federate MOM ordinary interaction did not stay on the ordinary callback route");
+  require(
+      requestCount(
+          interactionsReceivedAttribute,
+          "Joined-federate MOM ordinary interactions-received value") == 1 &&
+          requestCount(
+              directedInteractionsReceivedAttribute,
+              "Joined-federate MOM directed count after ordinary delivery") == 0,
+      "Joined-federate MOM directed-interactions-received included an ordinary callback");
+
+  std::size_t const directStart = receiver.recorder().directedInteractions().size();
+  for (std::size_t message = 0; message != 3U; ++message) {
+    sendDirectedInteraction(directPayload);
+  }
+  waitFor(
+      receiver,
+      [&] { return countDirectedCallbacks(directStart, directPayload) >= 3U; },
+      options,
+      "joined-federate MOM direct directed-interaction callbacks");
+  require(
+      countDirectedCallbacks(directStart, directPayload) == 3U &&
+          receiver.recorder().directedInteractions().size() == directStart + 3U &&
+          countOrdinaryCallbacks(ordinaryStart, ordinaryPayload) == 1U &&
+          receiver.recorder().interactions().size() == ordinaryStart + 1U,
+      "Joined-federate MOM direct directed sends returned duplicate or ordinary callbacks");
+  require(
+      requestCount(
+          interactionsReceivedAttribute,
+          "Joined-federate MOM total value after direct directed delivery") == 4 &&
+          requestCount(
+              directedInteractionsReceivedAttribute,
+              "Joined-federate MOM direct directed-interactions-received value") == 3,
+      "Joined-federate MOM direct counters did not separate ordinary and directed callbacks");
+
+  std::size_t const periodicStart = receiver.recorder().directedInteractions().size();
+  std::size_t const periodicReflectionStart =
+      receiver.recorder().reflections().size();
+  sendSetTiming(1);
+  std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  for (std::size_t message = 0; message != 2U; ++message) {
+    sendDirectedInteraction(periodicPayload);
+  }
+  waitFor(
+      receiver,
+      [&] { return countDirectedCallbacks(periodicStart, periodicPayload) >= 2U; },
+      options,
+      "joined-federate MOM periodic directed-interaction callbacks");
+  require(
+      countDirectedCallbacks(periodicStart, periodicPayload) == 2U &&
+          receiver.recorder().directedInteractions().size() == periodicStart + 2U &&
+          countOrdinaryCallbacks(ordinaryStart, ordinaryPayload) == 1U &&
+          receiver.recorder().interactions().size() == ordinaryStart + 1U,
+      "Joined-federate MOM periodic directed sends returned duplicate or ordinary callbacks");
+
+  auto findPeriodicCount = [&](rti::AttributeHandle const& attribute,
+                               std::int32_t minimum)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = receiver.recorder().reflections();
+    auto const begin = std::min(periodicReflectionStart, reflections.size());
+    for (auto iterator = reflections.begin() + static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (!iterator->present || iterator->object != *receiverMomObject ||
+          iterator->values.count(attribute) != 1U) {
+        continue;
+      }
+      rti::HLAinteger32BE value;
+      value.decode(iterator->values.at(attribute));
+      if (value.get() >= minimum) {
+        return *iterator;
+      }
+    }
+    return std::nullopt;
+  };
+  auto awaitPeriodicCount = [&](rti::AttributeHandle const& attribute,
+                                std::int32_t expected,
+                                std::string const& description) {
+    waitFor(
+        receiver,
+        [&] { return findPeriodicCount(attribute, expected).has_value(); },
+        options,
+        description);
+    auto const reflection = findPeriodicCount(attribute, expected);
+    require(reflection.has_value(), description + " produced no periodic value");
+    require(
+        decodeCount(*reflection, attribute, description) == expected,
+        description + " did not match delivered callbacks");
+  };
+  awaitPeriodicCount(
+      directedInteractionsReceivedAttribute,
+      5,
+      "joined-federate MOM periodic directed-interactions-received value");
+  awaitPeriodicCount(
+      interactionsReceivedAttribute,
+      6,
+      "joined-federate MOM periodic interactions-received value");
+
+  sendSetTiming(0);
+  require(
+      requestCount(
+          interactionsReceivedAttribute,
+          "Joined-federate MOM final interactions-received value") == 6 &&
+          requestCount(
+              directedInteractionsReceivedAttribute,
+              "Joined-federate MOM final directed-interactions-received value") == 5,
+      "Joined-federate MOM receive counters changed after periodic reporting was disabled");
+
+  receiver.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(
+      receiverObjectClass,
+      receiverDirectedInteractions);
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{
+          federateHandleAttribute,
+          interactionsReceivedAttribute,
+          directedInteractionsReceivedAttribute});
+  publisher.rtiAmbassador().unsubscribeObjectClassAttributes(
+      publisherObjectClass,
+      rti::AttributeHandleSet{publisherObjectAttribute});
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().unpublishObjectClassDirectedInteractions(
+      publisherObjectClass,
+      rti::InteractionClassHandleSet{publisherInteraction});
+  receiver.rtiAmbassador().unpublishObjectClassAttributes(
+      receiverObjectClass,
+      receiverObjectAttributes);
+  receiver.rtiAmbassador().resignFederationExecution(
+      rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.rtiAmbassador().resignFederationExecution(
+      rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioJoinedFederateMomDirectedInteractionsReceivedAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomDirectedInteractionsReceivedAttribute(options, model);
+}
+
+void scenarioJoinedFederateMomDirectedInteractionsSentAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty(),
+      "Joined-federate MOM directed-interactions-sent testing requires an adapter-supplied FOM and standard MIM");
+  require(
+      !options.objectClassName.empty() && !options.attributeName.empty() &&
+          !options.interactionClassName.empty() && !options.parameterName.empty(),
+      "Joined-federate MOM directed-interactions-sent testing requires adapter-supplied object, attribute, interaction, and parameter names");
+
+  Session sender(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-directed-interactions-sent-mim-attribute");
+  sender.connect();
+  receiver.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    sender.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    sender.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  sender.join(
+      options.ownerFederateName +
+          L"-mom-directed-interactions-sent-sender",
+      options.federateType,
+      federation);
+  auto const momClass = sender.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = sender.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const interactionsSentAttribute = sender.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAinteractionsSent");
+  auto const directedInteractionsSentAttribute =
+      sender.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAdirectedInteractionsSent");
+  auto const reliable = sender.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          interactionsSentAttribute.isValid() &&
+          directedInteractionsSentAttribute.isValid() && reliable.isValid() &&
+          sender.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          sender.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          sender.rtiAmbassador().getAttributeName(
+              momClass,
+              interactionsSentAttribute) == L"HLAinteractionsSent" &&
+          sender.rtiAmbassador().getAttributeName(
+              momClass,
+              directedInteractionsSentAttribute) ==
+              L"HLAdirectedInteractionsSent" &&
+          sender.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Joined-federate MOM directed-interactions-sent lookup did not round-trip standard MIM handles");
+  rti::AttributeHandleSet const momAttributes{
+      federateHandleAttribute,
+      interactionsSentAttribute,
+      directedInteractionsSentAttribute};
+  sender.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      momAttributes,
+      true,
+      L"");
+
+  receiver.join(
+      options.memberFederateName +
+          L"-mom-directed-interactions-sent-receiver",
+      options.federateType,
+      federation);
+  auto const senderObjectClass = sender.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverObjectClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const senderObjectAttribute = sender.rtiAmbassador().getAttributeHandle(
+      senderObjectClass,
+      options.attributeName);
+  auto const receiverObjectAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverObjectClass,
+      options.attributeName);
+  auto const senderInteraction = sender.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverInteraction =
+      receiver.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const senderParameter = sender.rtiAmbassador().getParameterHandle(
+      senderInteraction,
+      options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      senderObjectClass.isValid() && receiverObjectClass == senderObjectClass &&
+          senderObjectAttribute.isValid() &&
+          receiverObjectAttribute == senderObjectAttribute &&
+          senderInteraction.isValid() && receiverInteraction == senderInteraction &&
+          senderParameter.isValid() && receiverParameter == senderParameter &&
+          sender.rtiAmbassador().getObjectClassName(senderObjectClass) ==
+              options.objectClassName &&
+          receiver.rtiAmbassador().getObjectClassName(receiverObjectClass) ==
+              options.objectClassName &&
+          sender.rtiAmbassador().getAttributeName(
+              senderObjectClass,
+              senderObjectAttribute) == options.attributeName &&
+          receiver.rtiAmbassador().getAttributeName(
+              receiverObjectClass,
+              receiverObjectAttribute) == options.attributeName &&
+          sender.rtiAmbassador().getInteractionClassName(senderInteraction) ==
+              options.interactionClassName &&
+          receiver.rtiAmbassador().getInteractionClassName(receiverInteraction) ==
+              options.interactionClassName &&
+          sender.rtiAmbassador().getParameterName(
+              senderInteraction,
+              senderParameter) == options.parameterName &&
+          receiver.rtiAmbassador().getParameterName(
+              receiverInteraction,
+              receiverParameter) == options.parameterName,
+      "Joined-federate MOM directed-interactions-sent application lookups did not round-trip");
+
+  rti::AttributeHandleSet const senderObjectAttributes{senderObjectAttribute};
+  rti::AttributeHandleSet const receiverObjectAttributes{receiverObjectAttribute};
+  rti::InteractionClassHandleSet const senderDirectedInteractions{
+      senderInteraction};
+  rti::InteractionClassHandleSet const receiverDirectedInteractions{
+      receiverInteraction};
+  receiver.rtiAmbassador().publishObjectClassAttributes(
+      receiverObjectClass,
+      receiverObjectAttributes);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction);
+  receiver.rtiAmbassador().subscribeObjectClassDirectedInteractions(
+      receiverObjectClass,
+      receiverDirectedInteractions);
+  sender.rtiAmbassador().subscribeObjectClassAttributes(
+      senderObjectClass,
+      senderObjectAttributes,
+      true,
+      L"");
+  sender.rtiAmbassador().publishInteractionClass(senderInteraction);
+  sender.rtiAmbassador().publishObjectClassDirectedInteractions(
+      senderObjectClass,
+      senderDirectedInteractions);
+
+  auto const target = receiver.rtiAmbassador().registerObjectInstance(
+      receiverObjectClass);
+  require(
+      target.isValid(),
+      "Joined-federate MOM directed-interactions-sent target registration returned an invalid object handle");
+  waitFor(
+      sender,
+      [&] { return sender.recorder().hasDiscovery(target); },
+      options,
+      "joined-federate MOM directed-interactions-sent target discovery");
+
+  auto findMomObject = [&]() -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = sender.recorder().reflections();
+    auto const expectedHandle = copyBytes(sender.federateHandle().encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      sender,
+      [&] { return findMomObject().has_value(); },
+      options,
+      "joined-federate MOM directed-interactions-sent object discovery");
+  auto const senderMomObject = findMomObject();
+  require(
+      senderMomObject.has_value() &&
+          sender.rtiAmbassador().getKnownObjectClassHandle(
+              *senderMomObject) == momClass,
+      "Joined-federate MOM directed-interactions-sent lookup found the wrong sender object");
+
+  auto findCountReflection = [&](std::size_t firstReflection,
+                                 rti::AttributeHandle const& attribute)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = sender.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return reflection.present && reflection.object == *senderMomObject &&
+              reflection.values.count(attribute) == 1U;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto decodeCount = [&](ReflectionRecord const& reflection,
+                         rti::AttributeHandle const& attribute,
+                         std::string const& description) {
+    require(
+        reflection.values.count(attribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        description + " returned non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(attribute));
+    require(value.get() >= 0, description + " returned a negative interaction count");
+    return value.get();
+  };
+  auto requestCount = [&](rti::AttributeHandle const& attribute,
+                          std::string const& description) {
+    auto const before = sender.recorder().reflections().size();
+    sender.rtiAmbassador().requestAttributeValueUpdate(
+        *senderMomObject,
+        rti::AttributeHandleSet{attribute},
+        rti::VariableLengthData{});
+    waitFor(
+        sender,
+        [&] { return findCountReflection(before, attribute).has_value(); },
+        options,
+        description);
+    auto const reflection = findCountReflection(before, attribute);
+    require(reflection.has_value(), description + " produced no scalar value");
+    return decodeCount(*reflection, attribute, description);
+  };
+
+  auto countOrdinaryCallbacks = [&](std::size_t firstInteraction,
+                                    std::vector<std::uint8_t> const& payload) {
+    auto const interactions = receiver.recorder().interactions();
+    auto const begin = std::min(firstInteraction, interactions.size());
+    return static_cast<std::size_t>(std::count_if(
+        interactions.begin() + static_cast<std::ptrdiff_t>(begin),
+        interactions.end(),
+        [&](InteractionRecord const& interaction) {
+          auto const value = interaction.parameters.find(receiverParameter);
+          return interaction.present && interaction.interaction == receiverInteraction &&
+              interaction.producer == sender.federateHandle() &&
+              value != interaction.parameters.end() &&
+              copyBytes(value->second) == payload && interaction.tag.empty() &&
+              interaction.transportation == reliable;
+        }));
+  };
+  auto countDirectedCallbacks = [&](std::size_t firstInteraction,
+                                    std::vector<std::uint8_t> const& payload) {
+    auto const interactions = receiver.recorder().directedInteractions();
+    auto const begin = std::min(firstInteraction, interactions.size());
+    return static_cast<std::size_t>(std::count_if(
+        interactions.begin() + static_cast<std::ptrdiff_t>(begin),
+        interactions.end(),
+        [&](DirectedInteractionRecord const& interaction) {
+          auto const value = interaction.parameters.find(receiverParameter);
+          return interaction.interaction == receiverInteraction &&
+              interaction.object == target &&
+              interaction.producer == sender.federateHandle() &&
+              value != interaction.parameters.end() &&
+              copyBytes(value->second) == payload && interaction.tag.empty() &&
+              interaction.transportation == reliable;
+        }));
+  };
+
+  auto const setTiming = sender.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const timingFederate = sender.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriod = sender.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && timingFederate.isValid() && reportPeriod.isValid() &&
+          sender.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          sender.rtiAmbassador().getParameterName(setTiming, timingFederate) ==
+              L"HLAfederate" &&
+          sender.rtiAmbassador().getParameterName(setTiming, reportPeriod) ==
+              L"HLAreportPeriod",
+      "Joined-federate MOM directed-interactions-sent HLAsetTiming lookup did not round-trip");
+  auto sendSetTiming = [&](std::int32_t period) {
+    sender.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {timingFederate, sender.federateHandle().encode()},
+            {reportPeriod, rti::HLAinteger32BE{period}.encode()}},
+        rti::VariableLengthData{});
+  };
+
+  std::vector<std::uint8_t> const ordinaryPayload{0xA2U};
+  std::vector<std::uint8_t> const directPayload{0xD3U};
+  std::vector<std::uint8_t> const periodicPayload{0xD4U};
+  auto makeParameters = [&](std::vector<std::uint8_t> const& payload) {
+    rti::ParameterHandleValueMap parameters;
+    parameters.emplace(
+        senderParameter,
+        rti::VariableLengthData(payload.data(), payload.size()));
+    return parameters;
+  };
+  auto sendOrdinaryInteraction = [&](std::vector<std::uint8_t> const& payload) {
+    sender.rtiAmbassador().sendInteraction(
+        senderInteraction,
+        makeParameters(payload),
+        rti::VariableLengthData{});
+  };
+  auto sendDirectedInteraction = [&](std::vector<std::uint8_t> const& payload) {
+    sender.rtiAmbassador().sendDirectedInteraction(
+        senderInteraction,
+        target,
+        makeParameters(payload),
+        rti::VariableLengthData{});
+  };
+
+  require(
+      requestCount(
+          interactionsSentAttribute,
+          "Joined-federate MOM initial interactions-sent value") == 0 &&
+          requestCount(
+              directedInteractionsSentAttribute,
+              "Joined-federate MOM initial directed-interactions-sent value") == 0,
+      "Joined-federate MOM interaction-send counters were not initially zero");
+  sendSetTiming(1);
+  std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  auto const totalBaseline = requestCount(
+      interactionsSentAttribute,
+      "Joined-federate MOM interactions-sent baseline with periodic reporting enabled");
+  auto const directedBaseline = requestCount(
+      directedInteractionsSentAttribute,
+      "Joined-federate MOM directed-interactions-sent baseline with periodic reporting enabled");
+  require(
+      directedBaseline == 0,
+      "Joined-federate MOM periodic-report setup changed the directed-send baseline");
+
+  std::size_t const ordinaryStart = receiver.recorder().interactions().size();
+  sendOrdinaryInteraction(ordinaryPayload);
+  waitFor(
+      receiver,
+      [&] { return countOrdinaryCallbacks(ordinaryStart, ordinaryPayload) >= 1U; },
+      options,
+      "joined-federate MOM ordinary send before directed delivery");
+  require(
+      countOrdinaryCallbacks(ordinaryStart, ordinaryPayload) == 1U &&
+          receiver.recorder().interactions().size() == ordinaryStart + 1U &&
+          receiver.recorder().directedInteractions().empty(),
+      "Joined-federate MOM ordinary send did not stay on the ordinary callback route");
+  require(
+      requestCount(
+          interactionsSentAttribute,
+          "Joined-federate MOM total after ordinary Send Interaction") ==
+              totalBaseline + 1 &&
+          requestCount(
+              directedInteractionsSentAttribute,
+              "Joined-federate MOM directed count after ordinary Send Interaction") ==
+              directedBaseline,
+      "Joined-federate MOM directed-interactions-sent included an ordinary send");
+
+  std::size_t const directStart = receiver.recorder().directedInteractions().size();
+  for (std::size_t message = 0; message != 3U; ++message) {
+    sendDirectedInteraction(directPayload);
+  }
+  waitFor(
+      receiver,
+      [&] { return countDirectedCallbacks(directStart, directPayload) >= 3U; },
+      options,
+      "joined-federate MOM direct directed-interaction deliveries");
+  require(
+      countDirectedCallbacks(directStart, directPayload) == 3U &&
+          receiver.recorder().directedInteractions().size() == directStart + 3U &&
+          countOrdinaryCallbacks(ordinaryStart, ordinaryPayload) == 1U &&
+          receiver.recorder().interactions().size() == ordinaryStart + 1U,
+      "Joined-federate MOM direct directed sends returned duplicate or ordinary callbacks");
+  require(
+      requestCount(
+          interactionsSentAttribute,
+          "Joined-federate MOM total after direct directed sends") ==
+              totalBaseline + 4 &&
+          requestCount(
+              directedInteractionsSentAttribute,
+              "Joined-federate MOM direct directed-interactions-sent value") ==
+              directedBaseline + 3,
+      "Joined-federate MOM direct send counters did not separate ordinary and directed sends");
+
+  auto const periodicTotalBaseline = requestCount(
+      interactionsSentAttribute,
+      "Joined-federate MOM total baseline before periodic directed sends");
+  auto const periodicDirectedBaseline = requestCount(
+      directedInteractionsSentAttribute,
+      "Joined-federate MOM directed baseline before periodic directed sends");
+  require(
+      periodicDirectedBaseline == directedBaseline + 3,
+      "Joined-federate MOM direct directed-send baseline changed before periodic sends");
+  std::size_t const periodicReflectionStart =
+      sender.recorder().reflections().size();
+  std::size_t const periodicStart =
+      receiver.recorder().directedInteractions().size();
+  for (std::size_t message = 0; message != 2U; ++message) {
+    sendDirectedInteraction(periodicPayload);
+  }
+  waitFor(
+      receiver,
+      [&] { return countDirectedCallbacks(periodicStart, periodicPayload) >= 2U; },
+      options,
+      "joined-federate MOM periodic directed-interaction deliveries");
+  require(
+      countDirectedCallbacks(periodicStart, periodicPayload) == 2U &&
+          receiver.recorder().directedInteractions().size() == periodicStart + 2U &&
+          countOrdinaryCallbacks(ordinaryStart, ordinaryPayload) == 1U &&
+          receiver.recorder().interactions().size() == ordinaryStart + 1U,
+      "Joined-federate MOM periodic directed sends returned duplicate or ordinary callbacks");
+  auto const expectedPeriodicTotal = periodicTotalBaseline + 2;
+  auto const expectedPeriodicDirected = periodicDirectedBaseline + 2;
+
+  auto findPeriodicCount = [&](rti::AttributeHandle const& attribute,
+                               std::int32_t minimum)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = sender.recorder().reflections();
+    auto const begin = std::min(periodicReflectionStart, reflections.size());
+    for (auto iterator = reflections.begin() + static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (!iterator->present || iterator->object != *senderMomObject ||
+          iterator->values.count(attribute) != 1U) {
+        continue;
+      }
+      rti::HLAinteger32BE value;
+      value.decode(iterator->values.at(attribute));
+      if (value.get() >= minimum) {
+        return *iterator;
+      }
+    }
+    return std::nullopt;
+  };
+  auto awaitPeriodicCount = [&](rti::AttributeHandle const& attribute,
+                                std::int32_t expected,
+                                std::string const& description) {
+    waitFor(
+        sender,
+        [&] { return findPeriodicCount(attribute, expected).has_value(); },
+        options,
+        description);
+    auto const reflection = findPeriodicCount(attribute, expected);
+    require(reflection.has_value(), description + " produced no periodic value");
+    require(
+        decodeCount(*reflection, attribute, description) == expected,
+        description + " did not match accepted send invocations");
+  };
+  awaitPeriodicCount(
+      interactionsSentAttribute,
+      expectedPeriodicTotal,
+      "joined-federate MOM periodic interactions-sent value");
+  awaitPeriodicCount(
+      directedInteractionsSentAttribute,
+      expectedPeriodicDirected,
+      "joined-federate MOM periodic directed-interactions-sent value");
+  require(
+      requestCount(
+          interactionsSentAttribute,
+          "Joined-federate MOM direct total after periodic directed sends") ==
+              expectedPeriodicTotal &&
+          requestCount(
+              directedInteractionsSentAttribute,
+              "Joined-federate MOM direct directed count after periodic sends") ==
+              expectedPeriodicDirected,
+      "Joined-federate MOM direct counters did not increase once per accepted directed send");
+
+  sendSetTiming(0);
+  require(
+      requestCount(
+          directedInteractionsSentAttribute,
+          "Joined-federate MOM final directed-interactions-sent value") ==
+          expectedPeriodicDirected,
+      "Joined-federate MOM directed-interactions-sent changed after periodic reporting was disabled");
+
+  receiver.rtiAmbassador().unsubscribeObjectClassDirectedInteractions(
+      receiverObjectClass,
+      receiverDirectedInteractions);
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  sender.rtiAmbassador().unsubscribeObjectClassAttributes(
+      senderObjectClass,
+      senderObjectAttributes);
+  sender.rtiAmbassador().unsubscribeObjectClassAttributes(momClass, momAttributes);
+  sender.rtiAmbassador().unpublishInteractionClass(senderInteraction);
+  sender.rtiAmbassador().unpublishObjectClassDirectedInteractions(
+      senderObjectClass,
+      senderDirectedInteractions);
+  receiver.rtiAmbassador().unpublishObjectClassAttributes(
+      receiverObjectClass,
+      receiverObjectAttributes);
+  receiver.rtiAmbassador().resignFederationExecution(
+      rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  sender.rtiAmbassador().resignFederationExecution(
+      rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  sender.rtiAmbassador().destroyFederationExecution(federation);
+  sender.disconnect();
+  receiver.disconnect();
+}
+
+void scenarioJoinedFederateMomDirectedInteractionsSentAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomDirectedInteractionsSentAttribute(options, model);
+}
+
+void scenarioJoinedFederateMomUpdatesSentAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty(),
+      "Joined-federate MOM updates-sent testing requires adapter-supplied FOM, standard MIM, object class, and attribute names");
+
+  Session publisher(options, model, "owner");
+  Session observer(options, model, "member");
+  auto const federation =
+      federationName(options, "joined-federate-mom-updates-sent-mim-attribute");
+  publisher.connect();
+  observer.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+  publisher.join(
+      options.ownerFederateName + L"-mom-updates-sent-publisher",
+      options.federateType,
+      federation);
+
+  auto const momClass = publisher.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const updatesSentAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAupdatesSent");
+  auto const reliable = publisher.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          updatesSentAttribute.isValid() && reliable.isValid() &&
+          publisher.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          publisher.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          publisher.rtiAmbassador().getAttributeName(
+              momClass,
+              updatesSentAttribute) == L"HLAupdatesSent" &&
+          publisher.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Joined-federate MOM updates-sent lookup did not round-trip standard MIM handles");
+  rti::AttributeHandleSet const momAttributes{
+      federateHandleAttribute,
+      updatesSentAttribute};
+  publisher.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      momAttributes,
+      true,
+      L"");
+
+  observer.join(
+      options.memberFederateName + L"-mom-updates-sent-observer",
+      options.federateType,
+      federation);
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const observerClass = observer.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const observerAttribute = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && observerClass == publisherClass &&
+          publisherAttribute.isValid() && observerAttribute == publisherAttribute &&
+          publisher.rtiAmbassador().getObjectClassName(publisherClass) ==
+              options.objectClassName &&
+          observer.rtiAmbassador().getObjectClassName(observerClass) ==
+              options.objectClassName &&
+          publisher.rtiAmbassador().getAttributeName(
+              publisherClass,
+              publisherAttribute) == options.attributeName &&
+          observer.rtiAmbassador().getAttributeName(
+              observerClass,
+              observerAttribute) == options.attributeName,
+      "Joined-federate MOM updates-sent application lookup did not round-trip");
+  rti::AttributeHandleSet const applicationAttributes{publisherAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      applicationAttributes);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      rti::AttributeHandleSet{observerAttribute},
+      true,
+      L"");
+
+  auto const firstObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  auto const secondObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  require(
+      firstObject.isValid() && secondObject.isValid() && firstObject != secondObject,
+      "Joined-federate MOM updates-sent registration returned invalid or duplicate handles");
+  waitFor(
+      observer,
+      [&] {
+        return observer.recorder().hasDiscovery(firstObject) &&
+            observer.recorder().hasDiscovery(secondObject);
+      },
+      options,
+      "joined-federate MOM updates-sent application discovery");
+
+  auto findMomObject = [&]() -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = publisher.recorder().reflections();
+    auto const expectedHandle = copyBytes(publisher.federateHandle().encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      publisher,
+      [&] { return findMomObject().has_value(); },
+      options,
+      "joined-federate MOM updates-sent self discovery");
+  auto const publisherMomObject = findMomObject();
+  require(
+      publisherMomObject.has_value() &&
+          publisher.rtiAmbassador().getKnownObjectClassHandle(
+              *publisherMomObject) == momClass,
+      "Joined-federate MOM updates-sent discovery returned the wrong object class");
+
+  auto findCountReflection = [&](std::size_t firstReflection)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = publisher.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return reflection.present && reflection.object == *publisherMomObject &&
+              reflection.values.count(updatesSentAttribute) == 1U;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto decodeCount = [&](ReflectionRecord const& reflection,
+                         std::string const& description) {
+    require(
+        reflection.values.count(updatesSentAttribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        description + " returned non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(updatesSentAttribute));
+    require(value.get() >= 0, description + " returned a negative update count");
+    return value.get();
+  };
+  auto requestCount = [&](std::string const& description) {
+    auto const before = publisher.recorder().reflections().size();
+    publisher.rtiAmbassador().requestAttributeValueUpdate(
+        *publisherMomObject,
+        rti::AttributeHandleSet{updatesSentAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        publisher,
+        [&] { return findCountReflection(before).has_value(); },
+        options,
+        description);
+    auto const reflection = findCountReflection(before);
+    require(reflection.has_value(), description + " produced no scalar value");
+    return decodeCount(*reflection, description);
+  };
+
+  auto const initialCount = requestCount(
+      "joined-federate MOM initial updates-sent value");
+  require(
+      initialCount == 0,
+      "Joined-federate MOM updates-sent was nonzero before application updates");
+
+  auto findUpdateReflection = [&](std::size_t firstReflection,
+                                  rti::ObjectInstanceHandle const& object,
+                                  std::vector<std::uint8_t> const& payload)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = observer.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const expectedValue = copyBytes(
+        rti::HLAbyte{static_cast<rti::Octet>(payload.front())}.encode());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(observerAttribute);
+          return reflection.present && reflection.object == object &&
+              value != reflection.values.end() &&
+              copyBytes(value->second) == expectedValue;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto countUpdateReflections = [&](std::size_t firstReflection,
+                                    rti::ObjectInstanceHandle const& object,
+                                    std::vector<std::uint8_t> const& payload) {
+    auto const reflections = observer.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const expectedValue = copyBytes(
+        rti::HLAbyte{static_cast<rti::Octet>(payload.front())}.encode());
+    return static_cast<std::size_t>(std::count_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(observerAttribute);
+          return reflection.present && reflection.object == object &&
+              value != reflection.values.end() &&
+              copyBytes(value->second) == expectedValue;
+        }));
+  };
+  auto sendUpdate = [&](rti::ObjectInstanceHandle const& object,
+                        std::vector<std::uint8_t> const& payload,
+                        std::string const& description) {
+    auto const before = observer.recorder().reflections().size();
+    auto const encoded = rti::HLAbyte{
+        static_cast<rti::Octet>(payload.front())}.encode();
+    publisher.rtiAmbassador().updateAttributeValues(
+        object,
+        rti::AttributeHandleValueMap{{publisherAttribute, encoded}},
+        rti::VariableLengthData{});
+    waitFor(
+        observer,
+        [&] { return findUpdateReflection(before, object, payload).has_value(); },
+        options,
+        description);
+    auto const reflection = findUpdateReflection(before, object, payload);
+    require(
+        reflection.has_value() && countUpdateReflections(before, object, payload) == 1U &&
+            reflection->values.size() == 1U &&
+            reflection->transportation == reliable && reflection->tag.empty() &&
+            reflection->producer == publisher.federateHandle() &&
+            !reflection->regions.has_value(),
+        description + " returned missing, duplicate, or non-standard reflection data");
+  };
+
+  std::vector<std::uint8_t> const firstPayload{0x61U};
+  std::vector<std::uint8_t> const repeatedPayload{0x62U};
+  std::vector<std::uint8_t> const secondObjectPayload{0x63U};
+  sendUpdate(
+      firstObject,
+      firstPayload,
+      "joined-federate MOM first receive-order attribute update");
+  require(
+      requestCount("joined-federate MOM updates-sent after first invocation") == 1,
+      "Joined-federate MOM updates-sent did not count the first update invocation");
+  sendUpdate(
+      firstObject,
+      repeatedPayload,
+      "joined-federate MOM repeated receive-order update to one object");
+  require(
+      requestCount("joined-federate MOM updates-sent after repeated invocation") == 2,
+      "Joined-federate MOM updates-sent did not count a repeated update invocation");
+  sendUpdate(
+      secondObject,
+      secondObjectPayload,
+      "joined-federate MOM receive-order update to a second object");
+  auto const directBaseline = requestCount(
+      "joined-federate MOM updates-sent direct baseline before periodic updates");
+  require(
+      directBaseline == 3,
+      "Joined-federate MOM updates-sent did not count three successful invocations");
+
+  auto const setTiming = publisher.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const timingFederate = publisher.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriod = publisher.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && timingFederate.isValid() && reportPeriod.isValid() &&
+          publisher.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          publisher.rtiAmbassador().getParameterName(setTiming, timingFederate) ==
+              L"HLAfederate" &&
+          publisher.rtiAmbassador().getParameterName(setTiming, reportPeriod) ==
+              L"HLAreportPeriod",
+      "Joined-federate MOM updates-sent HLAsetTiming lookup did not round-trip");
+  auto sendTiming = [&](std::int32_t period) {
+    publisher.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {timingFederate, publisher.federateHandle().encode()},
+            {reportPeriod, rti::HLAinteger32BE{period}.encode()}},
+        rti::VariableLengthData{});
+  };
+
+  std::size_t const periodicReflectionStart =
+      publisher.recorder().reflections().size();
+  sendTiming(1);
+  require(
+      requestCount("joined-federate MOM updates-sent after enabling periodic reports") ==
+          directBaseline,
+      "Joined-federate MOM HLAsetTiming changed the updates-sent count");
+  std::vector<std::uint8_t> const periodicFirstPayload{0x64U};
+  std::vector<std::uint8_t> const periodicSecondPayload{0x65U};
+  sendUpdate(
+      firstObject,
+      periodicFirstPayload,
+      "joined-federate MOM first periodic-phase receive-order update");
+  sendUpdate(
+      secondObject,
+      periodicSecondPayload,
+      "joined-federate MOM second periodic-phase receive-order update");
+  auto const expectedPeriodicCount = directBaseline + 2;
+
+  auto findPeriodicCount = [&]() -> std::optional<ReflectionRecord> {
+    auto const reflections = publisher.recorder().reflections();
+    auto const begin = std::min(periodicReflectionStart, reflections.size());
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (!iterator->present || iterator->object != *publisherMomObject ||
+          iterator->values.count(updatesSentAttribute) != 1U) {
+        continue;
+      }
+      rti::HLAinteger32BE value;
+      value.decode(iterator->values.at(updatesSentAttribute));
+      if (value.get() >= expectedPeriodicCount) {
+        return *iterator;
+      }
+    }
+    return std::nullopt;
+  };
+  waitFor(
+      publisher,
+      [&] { return findPeriodicCount().has_value(); },
+      options,
+      "joined-federate MOM periodic updates-sent value");
+  auto const periodicReflection = findPeriodicCount();
+  require(
+      periodicReflection.has_value() &&
+          decodeCount(*periodicReflection,
+                      "Joined-federate MOM periodic updates-sent reflection") ==
+              expectedPeriodicCount,
+      "Joined-federate MOM periodic updates-sent did not equal successful update invocations");
+  require(
+      requestCount("joined-federate MOM direct updates-sent after periodic-phase updates") ==
+          expectedPeriodicCount,
+      "Joined-federate MOM direct updates-sent value did not include both periodic-phase invocations");
+
+  sendTiming(0);
+  require(
+      requestCount("joined-federate MOM updates-sent after disabling periodic reports") ==
+          expectedPeriodicCount,
+      "Joined-federate MOM updates-sent changed after periodic reporting was disabled");
+
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      observerClass,
+      rti::AttributeHandleSet{observerAttribute});
+  publisher.rtiAmbassador().unsubscribeObjectClassAttributes(momClass, momAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      applicationAttributes);
+  observer.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  publisher.disconnect();
+  observer.disconnect();
+}
+
+void scenarioJoinedFederateMomUpdatesSentAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomUpdatesSentAttribute(options, model);
+}
+
+void scenarioJoinedFederateMomObjectInstancesUpdatedAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty(),
+      "Joined-federate MOM object-instances-updated testing requires adapter-supplied FOM, standard MIM, object class, and attribute names");
+
+  Session publisher(options, model, "owner");
+  Session observer(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-object-instances-updated-mim-attribute");
+  publisher.connect();
+  observer.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+  publisher.join(
+      options.ownerFederateName + L"-mom-object-instances-updated-publisher",
+      options.federateType,
+      federation);
+
+  auto const momClass = publisher.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute =
+      publisher.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAfederateHandle");
+  auto const instancesUpdatedAttribute =
+      publisher.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAobjectInstancesUpdated");
+  auto const reliable = publisher.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          instancesUpdatedAttribute.isValid() && reliable.isValid() &&
+          publisher.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          publisher.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          publisher.rtiAmbassador().getAttributeName(
+              momClass,
+              instancesUpdatedAttribute) == L"HLAobjectInstancesUpdated" &&
+          publisher.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Joined-federate MOM object-instances-updated lookup did not round-trip standard MIM handles");
+  rti::AttributeHandleSet const momAttributes{
+      federateHandleAttribute,
+      instancesUpdatedAttribute};
+  publisher.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      momAttributes,
+      true,
+      L"");
+
+  observer.join(
+      options.memberFederateName + L"-mom-object-instances-updated-observer",
+      options.federateType,
+      federation);
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const observerClass = observer.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const observerAttribute = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && observerClass == publisherClass &&
+          publisherAttribute.isValid() && observerAttribute == publisherAttribute &&
+          publisher.rtiAmbassador().getObjectClassName(publisherClass) ==
+              options.objectClassName &&
+          observer.rtiAmbassador().getObjectClassName(observerClass) ==
+              options.objectClassName &&
+          publisher.rtiAmbassador().getAttributeName(
+              publisherClass,
+              publisherAttribute) == options.attributeName &&
+          observer.rtiAmbassador().getAttributeName(
+              observerClass,
+              observerAttribute) == options.attributeName,
+      "Joined-federate MOM object-instances-updated application lookup did not round-trip");
+  rti::AttributeHandleSet const applicationAttributes{publisherAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      applicationAttributes);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      rti::AttributeHandleSet{observerAttribute},
+      true,
+      L"");
+
+  auto const firstObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  auto const secondObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  require(
+      firstObject.isValid() && secondObject.isValid() &&
+          firstObject != secondObject,
+      "Joined-federate MOM object-instances-updated registration returned invalid or duplicate handles");
+  waitFor(
+      observer,
+      [&] {
+        return observer.recorder().hasDiscovery(firstObject) &&
+            observer.recorder().hasDiscovery(secondObject);
+      },
+      options,
+      "joined-federate MOM object-instances-updated application discovery");
+
+  auto findMomObject = [&]() -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = publisher.recorder().reflections();
+    auto const expectedHandle = copyBytes(publisher.federateHandle().encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      publisher,
+      [&] { return findMomObject().has_value(); },
+      options,
+      "joined-federate MOM object-instances-updated self discovery");
+  auto const publisherMomObject = findMomObject();
+  require(
+      publisherMomObject.has_value() &&
+          publisher.rtiAmbassador().getKnownObjectClassHandle(
+              *publisherMomObject) == momClass,
+      "Joined-federate MOM object-instances-updated discovery returned the wrong object class");
+
+  auto findCountReflection = [&](std::size_t firstReflection)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = publisher.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return reflection.present && reflection.object == *publisherMomObject &&
+              reflection.values.count(instancesUpdatedAttribute) == 1U;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto decodeCount = [&](ReflectionRecord const& reflection,
+                         std::string const& description) {
+    require(
+        reflection.values.count(instancesUpdatedAttribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        description + " returned non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(instancesUpdatedAttribute));
+    require(value.get() >= 0, description + " returned a negative object count");
+    return value.get();
+  };
+  auto requestCount = [&](std::string const& description) {
+    auto const before = publisher.recorder().reflections().size();
+    publisher.rtiAmbassador().requestAttributeValueUpdate(
+        *publisherMomObject,
+        rti::AttributeHandleSet{instancesUpdatedAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        publisher,
+        [&] { return findCountReflection(before).has_value(); },
+        options,
+        description);
+    auto const reflection = findCountReflection(before);
+    require(reflection.has_value(), description + " produced no scalar value");
+    return decodeCount(*reflection, description);
+  };
+
+  require(
+      requestCount("joined-federate MOM initial object-instances-updated value") == 0,
+      "Joined-federate MOM object-instances-updated was nonzero before application updates");
+
+  auto findUpdateReflection = [&](std::size_t firstReflection,
+                                  rti::ObjectInstanceHandle const& object,
+                                  rti::Octet payload)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = observer.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const expectedValue = copyBytes(rti::HLAbyte{payload}.encode());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(observerAttribute);
+          return reflection.present && reflection.object == object &&
+              value != reflection.values.end() &&
+              copyBytes(value->second) == expectedValue;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto countUpdateReflections = [&](std::size_t firstReflection,
+                                    rti::ObjectInstanceHandle const& object,
+                                    rti::Octet payload) {
+    auto const reflections = observer.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const expectedValue = copyBytes(rti::HLAbyte{payload}.encode());
+    return static_cast<std::size_t>(std::count_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(observerAttribute);
+          return reflection.present && reflection.object == object &&
+              value != reflection.values.end() &&
+              copyBytes(value->second) == expectedValue;
+        }));
+  };
+  auto sendUpdate = [&](rti::ObjectInstanceHandle const& object,
+                        rti::Octet payload,
+                        std::string const& description) {
+    auto const before = observer.recorder().reflections().size();
+    publisher.rtiAmbassador().updateAttributeValues(
+        object,
+        rti::AttributeHandleValueMap{
+            {publisherAttribute, rti::HLAbyte{payload}.encode()}},
+        rti::VariableLengthData{});
+    waitFor(
+        observer,
+        [&] { return findUpdateReflection(before, object, payload).has_value(); },
+        options,
+        description);
+    auto const reflection = findUpdateReflection(before, object, payload);
+    require(
+        reflection.has_value() &&
+            countUpdateReflections(before, object, payload) == 1U &&
+            reflection->values.size() == 1U &&
+            reflection->transportation == reliable && reflection->tag.empty() &&
+            reflection->producer == publisher.federateHandle() &&
+            !reflection->regions.has_value(),
+        description + " returned missing, duplicate, or non-standard reflection data");
+  };
+
+  sendUpdate(
+      firstObject,
+      static_cast<rti::Octet>(0x41U),
+      "joined-federate MOM first object update");
+  require(
+      requestCount("joined-federate MOM count after first object update") == 1,
+      "Joined-federate MOM object-instances-updated did not count the first updated object");
+  sendUpdate(
+      firstObject,
+      static_cast<rti::Octet>(0x42U),
+      "joined-federate MOM repeated update to first object");
+  require(
+      requestCount("joined-federate MOM count after repeated first-object update") == 1,
+      "Joined-federate MOM object-instances-updated counted repeated updates to one object more than once");
+  sendUpdate(
+      secondObject,
+      static_cast<rti::Octet>(0x43U),
+      "joined-federate MOM update to second object");
+  auto const directBaseline = requestCount(
+      "joined-federate MOM direct object-instances-updated baseline");
+  require(
+      directBaseline == 2,
+      "Joined-federate MOM object-instances-updated did not count two distinct updated objects");
+
+  auto const setTiming = publisher.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const timingFederate = publisher.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriod = publisher.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && timingFederate.isValid() && reportPeriod.isValid() &&
+          publisher.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          publisher.rtiAmbassador().getParameterName(setTiming, timingFederate) ==
+              L"HLAfederate" &&
+          publisher.rtiAmbassador().getParameterName(setTiming, reportPeriod) ==
+              L"HLAreportPeriod",
+      "Joined-federate MOM HLAsetTiming lookup did not round-trip");
+  auto sendTiming = [&](std::int32_t period) {
+    publisher.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {timingFederate, publisher.federateHandle().encode()},
+            {reportPeriod, rti::HLAinteger32BE{period}.encode()}},
+        rti::VariableLengthData{});
+  };
+
+  std::size_t const periodicReflectionStart =
+      publisher.recorder().reflections().size();
+  sendTiming(1);
+  auto const thirdObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  require(
+      thirdObject.isValid() && thirdObject != firstObject &&
+          thirdObject != secondObject,
+      "Joined-federate MOM object-instances-updated third registration returned an invalid or duplicate handle");
+  waitFor(
+      observer,
+      [&] { return observer.recorder().hasDiscovery(thirdObject); },
+      options,
+      "joined-federate MOM third application object discovery");
+  sendUpdate(
+      thirdObject,
+      static_cast<rti::Octet>(0x44U),
+      "joined-federate MOM first periodic-phase update to third object");
+  sendUpdate(
+      thirdObject,
+      static_cast<rti::Octet>(0x45U),
+      "joined-federate MOM repeated periodic-phase update to third object");
+
+  auto findPeriodicCount = [&]() -> std::optional<ReflectionRecord> {
+    auto const reflections = publisher.recorder().reflections();
+    auto const begin = std::min(periodicReflectionStart, reflections.size());
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (!iterator->present || iterator->object != *publisherMomObject ||
+          iterator->values.count(instancesUpdatedAttribute) != 1U) {
+        continue;
+      }
+      rti::HLAinteger32BE value;
+      value.decode(iterator->values.at(instancesUpdatedAttribute));
+      if (value.get() >= 3) {
+        return *iterator;
+      }
+    }
+    return std::nullopt;
+  };
+  waitFor(
+      publisher,
+      [&] { return findPeriodicCount().has_value(); },
+      options,
+      "joined-federate MOM periodic object-instances-updated value");
+  auto const periodicReflection = findPeriodicCount();
+  require(
+      periodicReflection.has_value() &&
+          decodeCount(
+              *periodicReflection,
+              "Joined-federate MOM periodic object-instances-updated reflection") == 3,
+      "Joined-federate MOM periodic object-instances-updated did not count three distinct updated objects");
+  require(
+      requestCount("joined-federate MOM direct value after periodic object updates") == 3,
+      "Joined-federate MOM direct object-instances-updated value disagreed with periodic reporting");
+
+  sendTiming(0);
+  require(
+      requestCount("joined-federate MOM object-instances-updated after disabling periodic reports") == 3,
+      "Joined-federate MOM object-instances-updated changed after periodic reporting was disabled");
+
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      observerClass,
+      rti::AttributeHandleSet{observerAttribute});
+  publisher.rtiAmbassador().unsubscribeObjectClassAttributes(momClass, momAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      applicationAttributes);
+  observer.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  publisher.disconnect();
+  observer.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectInstancesUpdatedAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectInstancesUpdatedAttribute(options, model);
+}
+
+void scenarioJoinedFederateMomObjectInstancesReflectedAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty(),
+      "Joined-federate MOM object-instances-reflected testing requires adapter-supplied FOM, standard MIM, object class, and attribute names");
+
+  Session publisher(options, model, "mom-reflected-publisher");
+  Session subject(options, model, "mom-reflected-subject");
+  Session monitor(options, model, "mom-reflected-monitor");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-object-instances-reflected-mim-attribute");
+  publisher.connect();
+  subject.connect();
+  monitor.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+  publisher.join(
+      options.ownerFederateName + L"-mom-reflected-publisher",
+      options.federateType,
+      federation);
+  monitor.join(
+      options.memberFederateName + L"-mom-reflected-monitor",
+      options.federateType,
+      federation);
+
+  auto const momClass = monitor.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const instancesReflectedAttribute =
+      monitor.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAobjectInstancesReflected");
+  auto const reliable = monitor.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          instancesReflectedAttribute.isValid() && reliable.isValid() &&
+          monitor.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              instancesReflectedAttribute) == L"HLAobjectInstancesReflected" &&
+          monitor.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Joined-federate MOM object-instances-reflected lookup did not round-trip standard MIM handles");
+  rti::AttributeHandleSet const momAttributes{
+      federateHandleAttribute,
+      instancesReflectedAttribute};
+  monitor.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      momAttributes,
+      true,
+      L"");
+
+  subject.join(
+      options.ownerFederateName + L"-mom-reflected-subject",
+      options.federateType,
+      federation);
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const subjectClass = subject.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const subjectAttribute = subject.rtiAmbassador().getAttributeHandle(
+      subjectClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && subjectClass == publisherClass &&
+          publisherAttribute.isValid() && subjectAttribute == publisherAttribute &&
+          publisher.rtiAmbassador().getObjectClassName(publisherClass) ==
+              options.objectClassName &&
+          subject.rtiAmbassador().getObjectClassName(subjectClass) ==
+              options.objectClassName &&
+          publisher.rtiAmbassador().getAttributeName(
+              publisherClass,
+              publisherAttribute) == options.attributeName &&
+          subject.rtiAmbassador().getAttributeName(
+              subjectClass,
+              subjectAttribute) == options.attributeName,
+      "Joined-federate MOM object-instances-reflected application lookup did not round-trip");
+  rti::AttributeHandleSet const applicationAttributes{publisherAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      applicationAttributes);
+  subject.rtiAmbassador().subscribeObjectClassAttributes(
+      subjectClass,
+      rti::AttributeHandleSet{subjectAttribute},
+      true,
+      L"");
+
+  auto const firstObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  auto const secondObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  require(
+      firstObject.isValid() && secondObject.isValid() &&
+          firstObject != secondObject,
+      "Joined-federate MOM object-instances-reflected registration returned invalid or duplicate handles");
+  waitFor(
+      subject,
+      [&] {
+        return subject.recorder().hasDiscovery(firstObject) &&
+            subject.recorder().hasDiscovery(secondObject);
+      },
+      options,
+      "joined-federate MOM object-instances-reflected application discovery");
+
+  auto findSubjectMomObject = [&]() -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const expectedHandle = copyBytes(subject.federateHandle().encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      monitor,
+      [&] { return findSubjectMomObject().has_value(); },
+      options,
+      "joined-federate MOM object-instances-reflected subject discovery");
+  auto const subjectMomObject = findSubjectMomObject();
+  require(
+      subjectMomObject.has_value() &&
+          monitor.rtiAmbassador().getKnownObjectClassHandle(
+              *subjectMomObject) == momClass,
+      "Joined-federate MOM object-instances-reflected discovery returned the wrong standard object");
+
+  auto findCountReflection = [&](std::size_t firstReflection)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return reflection.present && reflection.object == *subjectMomObject &&
+              reflection.values.count(instancesReflectedAttribute) == 1U;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto decodeCount = [&](ReflectionRecord const& reflection,
+                         std::string const& description) {
+    require(
+        reflection.values.count(instancesReflectedAttribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        description + " returned non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(instancesReflectedAttribute));
+    require(value.get() >= 0, description + " returned a negative object count");
+    return value.get();
+  };
+  auto requestCount = [&](std::string const& description) {
+    auto const before = monitor.recorder().reflections().size();
+    monitor.rtiAmbassador().requestAttributeValueUpdate(
+        *subjectMomObject,
+        rti::AttributeHandleSet{instancesReflectedAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        monitor,
+        [&] { return findCountReflection(before).has_value(); },
+        options,
+        description);
+    auto const reflection = findCountReflection(before);
+    require(reflection.has_value(), description + " produced no scalar value");
+    return decodeCount(*reflection, description);
+  };
+
+  require(
+      requestCount("joined-federate MOM initial object-instances-reflected value") == 0,
+      "Joined-federate MOM object-instances-reflected was nonzero before application reflections");
+
+  auto findApplicationReflection = [&](std::size_t firstReflection,
+                                       rti::ObjectInstanceHandle const& object,
+                                       rti::Octet payload)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = subject.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const expectedValue = copyBytes(rti::HLAbyte{payload}.encode());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(subjectAttribute);
+          return reflection.present && reflection.object == object &&
+              value != reflection.values.end() &&
+              copyBytes(value->second) == expectedValue;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto countApplicationReflections = [&](std::size_t firstReflection,
+                                         rti::ObjectInstanceHandle const& object,
+                                         rti::Octet payload) {
+    auto const reflections = subject.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const expectedValue = copyBytes(rti::HLAbyte{payload}.encode());
+    return static_cast<std::size_t>(std::count_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(subjectAttribute);
+          return reflection.present && reflection.object == object &&
+              value != reflection.values.end() &&
+              copyBytes(value->second) == expectedValue;
+        }));
+  };
+  auto sendUpdate = [&](rti::ObjectInstanceHandle const& object,
+                        rti::Octet payload,
+                        std::string const& description) {
+    auto const before = subject.recorder().reflections().size();
+    publisher.rtiAmbassador().updateAttributeValues(
+        object,
+        rti::AttributeHandleValueMap{
+            {publisherAttribute, rti::HLAbyte{payload}.encode()}},
+        rti::VariableLengthData{});
+    waitFor(
+        subject,
+        [&] {
+          return findApplicationReflection(before, object, payload).has_value();
+        },
+        options,
+        description);
+    auto const reflection = findApplicationReflection(before, object, payload);
+    require(
+        reflection.has_value() &&
+            countApplicationReflections(before, object, payload) == 1U &&
+            reflection->values.size() == 1U &&
+            reflection->transportation == reliable && reflection->tag.empty() &&
+            reflection->producer == publisher.federateHandle() &&
+            !reflection->regions.has_value(),
+        description + " returned missing, duplicate, or non-standard reflection data");
+  };
+
+  sendUpdate(
+      firstObject,
+      static_cast<rti::Octet>(0x51U),
+      "joined-federate MOM first object reflection");
+  require(
+      requestCount("joined-federate MOM count after first object reflection") == 1,
+      "Joined-federate MOM object-instances-reflected did not count the first reflected object");
+  sendUpdate(
+      firstObject,
+      static_cast<rti::Octet>(0x52U),
+      "joined-federate MOM repeated reflection for first object");
+  require(
+      requestCount("joined-federate MOM count after repeated first-object reflection") == 1,
+      "Joined-federate MOM object-instances-reflected counted repeated reflections of one object more than once");
+  sendUpdate(
+      secondObject,
+      static_cast<rti::Octet>(0x53U),
+      "joined-federate MOM reflection for second object");
+  auto const directBaseline = requestCount(
+      "joined-federate MOM direct object-instances-reflected baseline");
+  require(
+      directBaseline == 2,
+      "Joined-federate MOM object-instances-reflected did not count two distinct reflected objects");
+
+  auto const setTiming = monitor.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const timingFederate = monitor.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriod = monitor.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && timingFederate.isValid() && reportPeriod.isValid() &&
+          monitor.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          monitor.rtiAmbassador().getParameterName(setTiming, timingFederate) ==
+              L"HLAfederate" &&
+          monitor.rtiAmbassador().getParameterName(setTiming, reportPeriod) ==
+              L"HLAreportPeriod",
+      "Joined-federate MOM HLAsetTiming lookup did not round-trip");
+  auto sendTiming = [&](std::int32_t period) {
+    monitor.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {timingFederate, subject.federateHandle().encode()},
+            {reportPeriod, rti::HLAinteger32BE{period}.encode()}},
+        rti::VariableLengthData{});
+  };
+
+  std::size_t const periodicReflectionStart =
+      monitor.recorder().reflections().size();
+  sendTiming(1);
+  auto const thirdObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  require(
+      thirdObject.isValid() && thirdObject != firstObject &&
+          thirdObject != secondObject,
+      "Joined-federate MOM object-instances-reflected third registration returned an invalid or duplicate handle");
+  waitFor(
+      subject,
+      [&] { return subject.recorder().hasDiscovery(thirdObject); },
+      options,
+      "joined-federate MOM third application object discovery");
+  sendUpdate(
+      thirdObject,
+      static_cast<rti::Octet>(0x54U),
+      "joined-federate MOM first periodic-phase reflection for third object");
+  sendUpdate(
+      thirdObject,
+      static_cast<rti::Octet>(0x55U),
+      "joined-federate MOM repeated periodic-phase reflection for third object");
+
+  auto findPeriodicCount = [&]() -> std::optional<ReflectionRecord> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const begin = std::min(periodicReflectionStart, reflections.size());
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (!iterator->present || iterator->object != *subjectMomObject ||
+          iterator->values.count(instancesReflectedAttribute) != 1U) {
+        continue;
+      }
+      rti::HLAinteger32BE value;
+      value.decode(iterator->values.at(instancesReflectedAttribute));
+      if (value.get() >= 3) {
+        return *iterator;
+      }
+    }
+    return std::nullopt;
+  };
+  waitFor(
+      monitor,
+      [&] { return findPeriodicCount().has_value(); },
+      options,
+      "joined-federate MOM periodic object-instances-reflected value");
+  auto const periodicReflection = findPeriodicCount();
+  require(
+      periodicReflection.has_value() &&
+          decodeCount(
+              *periodicReflection,
+              "Joined-federate MOM periodic object-instances-reflected report") == 3,
+      "Joined-federate MOM periodic object-instances-reflected did not count three distinct reflected objects");
+  require(
+      requestCount("joined-federate MOM direct value after periodic reflections") == 3,
+      "Joined-federate MOM direct object-instances-reflected value disagreed with periodic reporting");
+
+  sendTiming(0);
+  require(
+      requestCount("joined-federate MOM object-instances-reflected after disabling periodic reports") == 3,
+      "Joined-federate MOM object-instances-reflected changed after periodic reporting was disabled");
+
+  subject.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subjectClass,
+      rti::AttributeHandleSet{subjectAttribute});
+  monitor.rtiAmbassador().unsubscribeObjectClassAttributes(momClass, momAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      applicationAttributes);
+  subject.resign(rti::NO_ACTION);
+  monitor.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  publisher.disconnect();
+  subject.disconnect();
+  monitor.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectInstancesReflectedAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectInstancesReflectedAttribute(options, model);
+}
+
+void scenarioJoinedFederateMomReflectionsReceivedAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty(),
+      "Joined-federate MOM reflections-received testing requires adapter-supplied FOM, standard MIM, object class, and attribute names");
+
+  Session publisher(options, model, "mom-reflections-received-publisher");
+  Session subject(options, model, "mom-reflections-received-subject");
+  Session monitor(options, model, "mom-reflections-received-monitor");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-reflections-received-mim-attribute");
+  publisher.connect();
+  subject.connect();
+  monitor.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+  publisher.join(
+      options.ownerFederateName + L"-mom-reflections-received-publisher",
+      options.federateType,
+      federation);
+  monitor.join(
+      options.memberFederateName + L"-mom-reflections-received-monitor",
+      options.federateType,
+      federation);
+
+  auto const momClass = monitor.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = monitor.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const reflectionsReceivedAttribute =
+      monitor.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAreflectionsReceived");
+  auto const reliable = monitor.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          reflectionsReceivedAttribute.isValid() && reliable.isValid() &&
+          monitor.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          monitor.rtiAmbassador().getAttributeName(
+              momClass,
+              reflectionsReceivedAttribute) == L"HLAreflectionsReceived" &&
+          monitor.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Joined-federate MOM reflections-received lookup did not round-trip standard MIM handles");
+  monitor.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{
+          federateHandleAttribute,
+          reflectionsReceivedAttribute},
+      true,
+      L"");
+
+  subject.join(
+      options.ownerFederateName + L"-mom-reflections-received-subject",
+      options.federateType,
+      federation);
+  auto const subjectFederate = subject.federateHandle();
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const subjectClass = subject.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const subjectAttribute = subject.rtiAmbassador().getAttributeHandle(
+      subjectClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && subjectClass == publisherClass &&
+          publisherAttribute.isValid() && subjectAttribute == publisherAttribute &&
+          publisher.rtiAmbassador().getObjectClassName(publisherClass) ==
+              options.objectClassName &&
+          subject.rtiAmbassador().getObjectClassName(subjectClass) ==
+              options.objectClassName &&
+          publisher.rtiAmbassador().getAttributeName(
+              publisherClass,
+              publisherAttribute) == options.attributeName &&
+          subject.rtiAmbassador().getAttributeName(
+              subjectClass,
+              subjectAttribute) == options.attributeName,
+      "Joined-federate MOM reflections-received application lookup did not round-trip");
+  rti::AttributeHandleSet const applicationAttributes{publisherAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      applicationAttributes);
+  subject.rtiAmbassador().subscribeObjectClassAttributes(
+      subjectClass,
+      rti::AttributeHandleSet{subjectAttribute},
+      true,
+      L"");
+
+  auto const firstObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  auto const secondObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  require(
+      firstObject.isValid() && secondObject.isValid() &&
+          firstObject != secondObject,
+      "Joined-federate MOM reflections-received registration returned invalid or duplicate handles");
+  waitFor(
+      subject,
+      [&] {
+        return subject.recorder().hasDiscovery(firstObject) &&
+            subject.recorder().hasDiscovery(secondObject);
+      },
+      options,
+      "joined-federate MOM reflections-received application discovery");
+
+  auto findSubjectMomObject = [&]() -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const expectedHandle = copyBytes(subjectFederate.encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      monitor,
+      [&] { return findSubjectMomObject().has_value(); },
+      options,
+      "joined-federate MOM reflections-received subject discovery");
+  auto const subjectMomObject = findSubjectMomObject();
+  require(
+      subjectMomObject.has_value() && subjectMomObject->isValid() &&
+          monitor.rtiAmbassador().getKnownObjectClassHandle(*subjectMomObject) ==
+              momClass,
+      "Joined-federate MOM reflections-received discovery returned the wrong standard object");
+
+  auto findCountReflection = [&](std::size_t firstReflection)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return reflection.present && reflection.object == *subjectMomObject &&
+              reflection.values.count(reflectionsReceivedAttribute) == 1U;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto decodeCount = [&](ReflectionRecord const& reflection,
+                         std::string const& description) {
+    require(
+        reflection.values.count(reflectionsReceivedAttribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        description + " returned non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(reflectionsReceivedAttribute));
+    require(value.get() >= 0, description + " returned a negative reflection count");
+    return value.get();
+  };
+  auto requestCount = [&](std::string const& description) {
+    auto const before = monitor.recorder().reflections().size();
+    monitor.rtiAmbassador().requestAttributeValueUpdate(
+        *subjectMomObject,
+        rti::AttributeHandleSet{reflectionsReceivedAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        monitor,
+        [&] { return findCountReflection(before).has_value(); },
+        options,
+        description);
+    auto const reflection = findCountReflection(before);
+    require(reflection.has_value(), description + " produced no scalar value");
+    return decodeCount(*reflection, description);
+  };
+  auto const baseline = requestCount(
+      "joined-federate MOM reflections-received baseline");
+  require(
+      baseline <= std::numeric_limits<std::int32_t>::max() - 3,
+      "Joined-federate MOM reflections-received baseline cannot safely accommodate the tested callbacks");
+
+  auto findApplicationReflection = [&](std::size_t firstReflection,
+                                        rti::ObjectInstanceHandle const& object,
+                                        rti::Octet payload)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = subject.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const expectedValue = copyBytes(rti::HLAbyte{payload}.encode());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(subjectAttribute);
+          return reflection.present && reflection.object == object &&
+              value != reflection.values.end() &&
+              copyBytes(value->second) == expectedValue;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto countApplicationReflections = [&](std::size_t firstReflection,
+                                         rti::ObjectInstanceHandle const& object,
+                                         rti::Octet payload) {
+    auto const reflections = subject.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const expectedValue = copyBytes(rti::HLAbyte{payload}.encode());
+    return static_cast<std::size_t>(std::count_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(subjectAttribute);
+          return reflection.present && reflection.object == object &&
+              value != reflection.values.end() &&
+              copyBytes(value->second) == expectedValue;
+        }));
+  };
+  auto sendUpdate = [&](rti::ObjectInstanceHandle const& object,
+                        rti::Octet payload,
+                        std::int32_t expectedDelta,
+                        std::string const& description) {
+    auto const before = subject.recorder().reflections().size();
+    publisher.rtiAmbassador().updateAttributeValues(
+        object,
+        rti::AttributeHandleValueMap{{
+            publisherAttribute,
+            rti::HLAbyte{payload}.encode()}},
+        rti::VariableLengthData{});
+    waitFor(
+        subject,
+        [&] {
+          return findApplicationReflection(before, object, payload).has_value();
+        },
+        options,
+        description);
+    auto const reflection = findApplicationReflection(before, object, payload);
+    require(
+        reflection.has_value() &&
+            countApplicationReflections(before, object, payload) == 1U &&
+            reflection->values.size() == 1U &&
+            reflection->transportation == reliable && reflection->tag.empty() &&
+            reflection->producer == publisher.federateHandle() &&
+            !reflection->regions.has_value(),
+        description + " returned missing, duplicate, or non-standard reflection data");
+    require(
+        requestCount(description + " reflected-count direct request") ==
+            baseline + expectedDelta,
+        description + " did not increment HLAreflectionsReceived exactly once");
+  };
+
+  sendUpdate(
+      firstObject,
+      static_cast<rti::Octet>(0x61U),
+      1,
+      "joined-federate MOM first receive-order reflection");
+  sendUpdate(
+      firstObject,
+      static_cast<rti::Octet>(0x62U),
+      2,
+      "joined-federate MOM repeated reflection of the same object");
+  sendUpdate(
+      secondObject,
+      static_cast<rti::Octet>(0x63U),
+      3,
+      "joined-federate MOM reflection of a second object");
+
+  auto const setTiming = monitor.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const federateParameter = monitor.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriodParameter = monitor.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && federateParameter.isValid() &&
+          reportPeriodParameter.isValid() &&
+          monitor.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          monitor.rtiAmbassador().getParameterName(
+              setTiming,
+              federateParameter) == L"HLAfederate" &&
+          monitor.rtiAmbassador().getParameterName(
+              setTiming,
+              reportPeriodParameter) == L"HLAreportPeriod",
+      "Joined-federate MOM reflections-received HLAsetTiming lookup did not round-trip");
+  auto sendTiming = [&](std::int32_t period) {
+    monitor.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {federateParameter, subjectFederate.encode()},
+            {reportPeriodParameter, rti::HLAinteger32BE{period}.encode()}},
+        rti::VariableLengthData{});
+  };
+  auto const periodicStart = monitor.recorder().reflections().size();
+  sendTiming(1);
+  auto findPeriodicCount = [&]() -> std::optional<ReflectionRecord> {
+    auto const reflections = monitor.recorder().reflections();
+    auto const begin = std::min(periodicStart, reflections.size());
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (!iterator->present || iterator->object != *subjectMomObject ||
+          iterator->values.count(reflectionsReceivedAttribute) != 1U) {
+        continue;
+      }
+      if (decodeCount(
+              *iterator,
+              "Joined-federate MOM periodic reflections-received count") ==
+          baseline + 3) {
+        return *iterator;
+      }
+    }
+    return std::nullopt;
+  };
+  waitFor(
+      monitor,
+      [&] { return findPeriodicCount().has_value(); },
+      options,
+      "joined-federate MOM periodic reflections-received value");
+  auto const periodicReflection = findPeriodicCount();
+  require(
+      periodicReflection.has_value() &&
+          decodeCount(
+              *periodicReflection,
+              "Joined-federate MOM periodic reflections-received report") ==
+              baseline + 3,
+      "Joined-federate MOM periodic HLAreflectionsReceived did not preserve the three committed callbacks");
+  sendTiming(0);
+  require(
+      requestCount(
+          "joined-federate MOM direct value after periodic reporting was disabled") ==
+          baseline + 3,
+      "Joined-federate MOM direct HLAreflectionsReceived disagreed after periodic reporting was disabled");
+
+  subject.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subjectClass,
+      rti::AttributeHandleSet{subjectAttribute});
+  monitor.rtiAmbassador().unsubscribeObjectClassAttributes(
+      momClass,
+      rti::AttributeHandleSet{
+          federateHandleAttribute,
+          reflectionsReceivedAttribute});
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      applicationAttributes);
+  subject.resign(rti::NO_ACTION);
+  monitor.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  publisher.disconnect();
+  subject.disconnect();
+  monitor.disconnect();
+}
+
+void scenarioJoinedFederateMomReflectionsReceivedAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomReflectionsReceivedAttribute(options, model);
+}
+
+void scenarioJoinedFederateMomObjectInstancesDiscoveredAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty(),
+      "Joined-federate MOM object-instances-discovered testing requires adapter-supplied FOM, standard MIM, object class, and attribute names");
+
+  Session owner(options, model, "mom-discovered-owner");
+  Session observer(options, model, "mom-discovered-observer");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-object-instances-discovered-mim-attribute");
+  owner.connect();
+  observer.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    owner.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    owner.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+  owner.join(
+      options.ownerFederateName + L"-mom-discovered-owner",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-mom-discovered-observer",
+      options.federateType,
+      federation);
+  auto const ownerFederate = owner.federateHandle();
+  auto const observerFederate = observer.federateHandle();
+
+  auto const momClass = observer.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute =
+      observer.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAfederateHandle");
+  auto const instancesDiscoveredAttribute =
+      observer.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAobjectInstancesDiscovered");
+  auto const reliable = observer.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          instancesDiscoveredAttribute.isValid() && reliable.isValid() &&
+          observer.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          observer.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          observer.rtiAmbassador().getAttributeName(
+              momClass,
+              instancesDiscoveredAttribute) == L"HLAobjectInstancesDiscovered" &&
+          observer.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Joined-federate MOM object-instances-discovered lookup did not round-trip standard MIM handles");
+  rti::AttributeHandleSet const momAttributes{
+      federateHandleAttribute,
+      instancesDiscoveredAttribute};
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      momAttributes,
+      true,
+      L"");
+
+  auto findMomReflection = [&](rti::FederateHandle const& federate)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = observer.recorder().reflections();
+    auto const expectedHandle = copyBytes(federate.encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  waitFor(
+      observer,
+      [&] {
+        return findMomReflection(observerFederate).has_value() &&
+            findMomReflection(ownerFederate).has_value();
+      },
+      options,
+      "joined-federate MOM object-instances-discovered manager-object discoveries");
+  auto const observerMomReflection = findMomReflection(observerFederate);
+  require(
+      observerMomReflection.has_value() &&
+          observerMomReflection->object.isValid() &&
+          observer.rtiAmbassador().getKnownObjectClassHandle(
+              observerMomReflection->object) == momClass,
+      "Joined-federate MOM object-instances-discovered discovery did not identify the observer's standard MOM object");
+  auto const observerMomObject = observerMomReflection->object;
+
+  auto findCountReflection = [&](std::size_t firstReflection)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = observer.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return reflection.present && reflection.object == observerMomObject &&
+              reflection.values.count(instancesDiscoveredAttribute) == 1U;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto decodeCount = [&](ReflectionRecord const& reflection,
+                         std::string const& description) {
+    require(
+        reflection.values.size() == 1U &&
+            reflection.values.count(instancesDiscoveredAttribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        description + " returned non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(instancesDiscoveredAttribute));
+    require(value.get() >= 0, description + " returned a negative discovery count");
+    return value.get();
+  };
+  auto requestDiscoveredCount = [&](std::string const& description) {
+    auto const before = observer.recorder().reflections().size();
+    observer.rtiAmbassador().requestAttributeValueUpdate(
+        observerMomObject,
+        rti::AttributeHandleSet{instancesDiscoveredAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        observer,
+        [&] { return findCountReflection(before).has_value(); },
+        options,
+        description);
+    auto const reflection = findCountReflection(before);
+    require(reflection.has_value(), description + " produced no scalar count value");
+    return decodeCount(*reflection, description);
+  };
+
+  auto const baseline = requestDiscoveredCount(
+      "joined-federate MOM settled object-instances-discovered baseline");
+  require(
+      baseline <= std::numeric_limits<std::int32_t>::max() - 3,
+      "Joined-federate MOM discovery baseline cannot safely accommodate the tested invocations");
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const observerClass = observer.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const observerAttribute = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && observerClass == ownerClass &&
+          ownerAttribute.isValid() && observerAttribute == ownerAttribute &&
+          owner.rtiAmbassador().getObjectClassName(ownerClass) ==
+              options.objectClassName &&
+          observer.rtiAmbassador().getObjectClassName(observerClass) ==
+              options.objectClassName &&
+          owner.rtiAmbassador().getAttributeName(ownerClass, ownerAttribute) ==
+              options.attributeName &&
+          observer.rtiAmbassador().getAttributeName(
+              observerClass,
+              observerAttribute) == options.attributeName,
+      "Joined-federate MOM object-instances-discovered application lookup did not round-trip");
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const observerAttributes{observerAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes,
+      true,
+      L"");
+
+  auto const discoveriesBeforeApplications =
+      observer.recorder().discoveryCount();
+  auto const firstObject = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  auto const secondObject = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      firstObject.isValid() && secondObject.isValid() &&
+          firstObject != secondObject,
+      "Joined-federate MOM object-instances-discovered registration returned invalid or duplicate handles");
+  waitFor(
+      observer,
+      [&] {
+        return observer.recorder().discoveryCount() >=
+                discoveriesBeforeApplications + 2U &&
+            observer.recorder().hasDiscovery(firstObject) &&
+            observer.recorder().hasDiscovery(secondObject);
+      },
+      options,
+      "joined-federate MOM object-instances-discovered application discoveries");
+  require(
+      observer.rtiAmbassador().getKnownObjectClassHandle(firstObject) ==
+              observerClass &&
+          observer.rtiAmbassador().getKnownObjectClassHandle(secondObject) ==
+              observerClass,
+      "Joined-federate MOM object-instances-discovered callbacks did not establish both application objects");
+  require(
+      requestDiscoveredCount(
+          "joined-federate MOM count after two application discoveries") ==
+          baseline + 2,
+      "Joined-federate MOM object-instances-discovered did not count both application discoveries");
+
+  auto const discoveriesBeforeRediscovery =
+      observer.recorder().discoveryCount();
+  observer.rtiAmbassador().localDeleteObjectInstance(firstObject);
+  requireException(
+      [&] {
+        static_cast<void>(
+            observer.rtiAmbassador().getKnownObjectClassHandle(firstObject));
+      },
+      L"ObjectInstanceNotKnown",
+      "known-object lookup after MOM discovered-count local deletion");
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes,
+      true,
+      L"");
+  waitFor(
+      observer,
+      [&] {
+        auto const discovery = observer.recorder().discovery();
+        return observer.recorder().discoveryCount() >
+                discoveriesBeforeRediscovery &&
+            discovery.object == firstObject;
+      },
+      options,
+      "joined-federate MOM local-delete rediscovery of the same object");
+  auto const rediscovery = observer.recorder().discovery();
+  require(
+      rediscovery.object == firstObject &&
+          rediscovery.objectClass == observerClass &&
+          rediscovery.producer == ownerFederate &&
+          observer.rtiAmbassador().getKnownObjectClassHandle(firstObject) ==
+              observerClass,
+      "Joined-federate MOM local deletion did not permit eligible rediscovery of the same application object");
+  require(
+      requestDiscoveredCount(
+          "joined-federate MOM count after local-delete rediscovery") ==
+          baseline + 3,
+      "Joined-federate MOM object-instances-discovered did not count rediscovery after local deletion");
+
+  auto const setTiming = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const federateParameter = observer.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriodParameter = observer.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && federateParameter.isValid() &&
+          reportPeriodParameter.isValid() &&
+          observer.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          observer.rtiAmbassador().getParameterName(
+              setTiming,
+              federateParameter) == L"HLAfederate" &&
+          observer.rtiAmbassador().getParameterName(
+              setTiming,
+              reportPeriodParameter) == L"HLAreportPeriod",
+      "Joined-federate MOM HLAsetTiming lookup did not round-trip");
+  auto sendTiming = [&](std::int32_t period) {
+    observer.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {federateParameter, observerFederate.encode()},
+            {reportPeriodParameter, rti::HLAinteger32BE{period}.encode()}},
+        rti::VariableLengthData{});
+  };
+
+  std::size_t const periodicReflectionStart =
+      observer.recorder().reflections().size();
+  sendTiming(1);
+  waitFor(
+      observer,
+      [&] { return findCountReflection(periodicReflectionStart).has_value(); },
+      options,
+      "joined-federate MOM periodic object-instances-discovered reflection");
+  auto const periodicReflection = findCountReflection(periodicReflectionStart);
+  require(
+      periodicReflection.has_value() &&
+          decodeCount(
+              *periodicReflection,
+              "Joined-federate MOM periodic object-instances-discovered reflection") ==
+              baseline + 3,
+      "Joined-federate MOM periodic object-instances-discovered value did not preserve the discovery total");
+  require(
+      requestDiscoveredCount(
+          "joined-federate MOM direct value after periodic discovered-count reflection") ==
+          baseline + 3,
+      "Joined-federate MOM direct and periodic discovered-object counts disagreed");
+  sendTiming(0);
+  require(
+      requestDiscoveredCount(
+          "joined-federate MOM discovered count after disabling periodic reports") ==
+          baseline + 3,
+      "Joined-federate MOM object-instances-discovered changed after periodic reporting was disabled");
+
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes);
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      momClass,
+      momAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  observer.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectInstancesDiscoveredAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectInstancesDiscoveredAttribute(options, model);
+}
+
+void scenarioJoinedFederateMomObjectInstancesRemovedAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty(),
+      "Joined-federate MOM object-instances-removed testing requires adapter-supplied FOM, standard MIM, object class, and attribute names");
+
+  Session owner(options, model, "mom-removed-owner");
+  Session observer(options, model, "mom-removed-observer");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-object-instances-removed-mim-attribute");
+  owner.connect();
+  observer.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    owner.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    owner.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+  owner.join(
+      options.ownerFederateName + L"-mom-removed-owner",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-mom-removed-observer",
+      options.federateType,
+      federation);
+  auto const ownerFederate = owner.federateHandle();
+  auto const observerFederate = observer.federateHandle();
+
+  auto const momClass = observer.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute =
+      observer.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAfederateHandle");
+  auto const instancesRemovedAttribute =
+      observer.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAobjectInstancesRemoved");
+  auto const reliable = observer.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          instancesRemovedAttribute.isValid() && reliable.isValid() &&
+          observer.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          observer.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          observer.rtiAmbassador().getAttributeName(
+              momClass,
+              instancesRemovedAttribute) == L"HLAobjectInstancesRemoved" &&
+          observer.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Joined-federate MOM object-instances-removed lookup did not round-trip standard MIM handles");
+  rti::AttributeHandleSet const momAttributes{
+      federateHandleAttribute,
+      instancesRemovedAttribute};
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      momAttributes,
+      true,
+      L"");
+
+  auto findObserverMomReflection = [&]()
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = observer.recorder().reflections();
+    auto const expectedHandle = copyBytes(observerFederate.encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  waitFor(
+      observer,
+      [&] { return findObserverMomReflection().has_value(); },
+      options,
+      "joined-federate MOM object-instances-removed self discovery");
+  auto const observerMomReflection = findObserverMomReflection();
+  require(
+      observerMomReflection.has_value() &&
+          observerMomReflection->object.isValid() &&
+          observer.rtiAmbassador().getKnownObjectClassHandle(
+              observerMomReflection->object) == momClass,
+      "Joined-federate MOM object-instances-removed discovery returned the wrong standard object");
+  auto const observerMomObject = observerMomReflection->object;
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const observerClass = observer.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const observerAttribute = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && observerClass == ownerClass &&
+          ownerAttribute.isValid() && observerAttribute == ownerAttribute &&
+          owner.rtiAmbassador().getObjectClassName(ownerClass) ==
+              options.objectClassName &&
+          observer.rtiAmbassador().getObjectClassName(observerClass) ==
+              options.objectClassName &&
+          owner.rtiAmbassador().getAttributeName(ownerClass, ownerAttribute) ==
+              options.attributeName &&
+          observer.rtiAmbassador().getAttributeName(
+              observerClass,
+              observerAttribute) == options.attributeName,
+      "Joined-federate MOM object-instances-removed application lookup did not round-trip");
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const observerAttributes{observerAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes,
+      true,
+      L"");
+
+  auto const firstObject = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  auto const secondObject = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  auto const thirdObject = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      firstObject.isValid() && secondObject.isValid() && thirdObject.isValid() &&
+          firstObject != secondObject && firstObject != thirdObject &&
+          secondObject != thirdObject,
+      "Joined-federate MOM object-instances-removed registration returned invalid or duplicate handles");
+  waitFor(
+      observer,
+      [&] {
+        return observer.recorder().hasDiscovery(firstObject) &&
+            observer.recorder().hasDiscovery(secondObject) &&
+            observer.recorder().hasDiscovery(thirdObject);
+      },
+      options,
+      "joined-federate MOM object-instances-removed application discovery");
+
+  auto findCountReflection = [&](std::size_t firstReflection)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = observer.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return reflection.present && reflection.object == observerMomObject &&
+              reflection.values.count(instancesRemovedAttribute) == 1U;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto decodeCount = [&](ReflectionRecord const& reflection,
+                         std::string const& description) {
+    require(
+        reflection.values.size() == 1U &&
+            reflection.values.count(instancesRemovedAttribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        description + " returned non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(instancesRemovedAttribute));
+    require(value.get() >= 0, description + " returned a negative removal count");
+    return value.get();
+  };
+  auto requestRemovedCount = [&](std::string const& description) {
+    auto const before = observer.recorder().reflections().size();
+    observer.rtiAmbassador().requestAttributeValueUpdate(
+        observerMomObject,
+        rti::AttributeHandleSet{instancesRemovedAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        observer,
+        [&] { return findCountReflection(before).has_value(); },
+        options,
+        description);
+    auto const reflection = findCountReflection(before);
+    require(reflection.has_value(), description + " produced no scalar count value");
+    return decodeCount(*reflection, description);
+  };
+  auto const baseline = requestRemovedCount(
+      "joined-federate MOM object-instances-removed baseline");
+  require(
+      baseline <= std::numeric_limits<std::int32_t>::max() - 3,
+      "Joined-federate MOM removal baseline cannot safely accommodate the tested callbacks");
+
+  auto removeAndObserve = [&](rti::ObjectInstanceHandle const& object,
+                              std::vector<std::uint8_t> const& tagBytes,
+                              std::string const& description) {
+    auto const before = observer.recorder().removals().size();
+    rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+    owner.rtiAmbassador().deleteObjectInstance(object, tag);
+    if (model == rti::HLA_EVOKED) {
+      require(
+          observer.recorder().removals().size() == before,
+          description + " delivered before callback servicing");
+    }
+    waitFor(
+        observer,
+        [&] {
+          auto const removals = observer.recorder().removals();
+          return std::any_of(
+              removals.begin() + static_cast<std::ptrdiff_t>(
+                                     std::min(before, removals.size())),
+              removals.end(),
+              [&](RemovalRecord const& removal) {
+                return removal.object == object;
+              });
+        },
+        options,
+        description);
+    auto const removals = observer.recorder().removals();
+    auto const begin = removals.begin() + static_cast<std::ptrdiff_t>(
+        std::min(before, removals.size()));
+    auto const iterator = std::find_if(
+        begin,
+        removals.end(),
+        [&](RemovalRecord const& removal) { return removal.object == object; });
+    require(
+        std::count_if(
+            begin,
+            removals.end(),
+            [&](RemovalRecord const& removal) { return removal.object == object; }) ==
+            1,
+        description + " produced a missing or duplicate removal callback");
+    require(
+        iterator != removals.end() && iterator->tag == tagBytes &&
+            iterator->producer == ownerFederate,
+        description + " returned incorrect removal metadata");
+  };
+
+  removeAndObserve(
+      firstObject,
+      std::vector<std::uint8_t>{0x71U},
+      "joined-federate MOM first receive-order object removal");
+  require(
+      requestRemovedCount(
+          "joined-federate MOM count after first removal") == baseline + 1,
+      "Joined-federate MOM object-instances-removed did not count the first committed removal callback");
+  removeAndObserve(
+      secondObject,
+      std::vector<std::uint8_t>{0x72U},
+      "joined-federate MOM second receive-order object removal");
+  require(
+      requestRemovedCount(
+          "joined-federate MOM count after second removal") == baseline + 2,
+      "Joined-federate MOM object-instances-removed did not count the second committed removal callback");
+
+  auto const setTiming = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const federateParameter = observer.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriodParameter = observer.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && federateParameter.isValid() &&
+          reportPeriodParameter.isValid() &&
+          observer.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          observer.rtiAmbassador().getParameterName(
+              setTiming,
+              federateParameter) == L"HLAfederate" &&
+          observer.rtiAmbassador().getParameterName(
+              setTiming,
+              reportPeriodParameter) == L"HLAreportPeriod",
+      "Joined-federate MOM HLAsetTiming lookup did not round-trip");
+  auto sendTiming = [&](std::int32_t period) {
+    observer.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {federateParameter, observerFederate.encode()},
+            {reportPeriodParameter, rti::HLAinteger32BE{period}.encode()}},
+        rti::VariableLengthData{});
+  };
+
+  auto const periodicStart = observer.recorder().reflections().size();
+  sendTiming(1);
+  removeAndObserve(
+      thirdObject,
+      std::vector<std::uint8_t>{0x73U},
+      "joined-federate MOM periodic-phase receive-order object removal");
+  auto findPeriodicCount = [&]() -> std::optional<ReflectionRecord> {
+    auto const reflections = observer.recorder().reflections();
+    auto const begin = std::min(periodicStart, reflections.size());
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (!iterator->present || iterator->object != observerMomObject ||
+          iterator->values.count(instancesRemovedAttribute) != 1U) {
+        continue;
+      }
+      if (decodeCount(*iterator, "Joined-federate MOM periodic removal count") ==
+          baseline + 3) {
+        return *iterator;
+      }
+    }
+    return std::nullopt;
+  };
+  waitFor(
+      observer,
+      [&] { return findPeriodicCount().has_value(); },
+      options,
+      "joined-federate MOM periodic object-instances-removed reflection");
+  auto const periodicReflection = findPeriodicCount();
+  require(
+      periodicReflection.has_value() &&
+          decodeCount(
+              *periodicReflection,
+              "Joined-federate MOM periodic object-instances-removed reflection") ==
+              baseline + 3,
+      "Joined-federate MOM periodic object-instances-removed value did not preserve the committed callback total");
+  sendTiming(0);
+  require(
+      requestRemovedCount(
+          "joined-federate MOM direct value after periodic removal reporting was disabled") ==
+          baseline + 3,
+      "Joined-federate MOM direct value disagreed after periodic removal reporting was disabled");
+
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes);
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      momClass,
+      momAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  observer.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectInstancesRemovedAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectInstancesRemovedAttribute(options, model);
+}
+
+void scenarioJoinedFederateMomObjectInstancesDeletedAttribute(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty(),
+      "Joined-federate MOM object-instances-deleted testing requires adapter-supplied FOM, standard MIM, object class, and attribute names");
+
+  Session publisher(options, model, "mom-deleted-publisher");
+  Session observer(options, model, "mom-deleted-observer");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-object-instances-deleted-mim-attribute");
+  publisher.connect();
+  observer.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    publisher.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+  publisher.join(
+      options.ownerFederateName + L"-mom-deleted-publisher",
+      options.federateType,
+      federation);
+
+  auto const momClass = publisher.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute =
+      publisher.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAfederateHandle");
+  auto const instancesDeletedAttribute =
+      publisher.rtiAmbassador().getAttributeHandle(
+          momClass,
+          L"HLAobjectInstancesDeleted");
+  auto const reliable = publisher.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          instancesDeletedAttribute.isValid() && reliable.isValid() &&
+          publisher.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          publisher.rtiAmbassador().getAttributeName(
+              momClass,
+              federateHandleAttribute) == L"HLAfederateHandle" &&
+          publisher.rtiAmbassador().getAttributeName(
+              momClass,
+              instancesDeletedAttribute) == L"HLAobjectInstancesDeleted" &&
+          publisher.rtiAmbassador().getTransportationTypeName(reliable) ==
+              L"HLAreliable",
+      "Joined-federate MOM object-instances-deleted lookup did not round-trip standard MIM handles");
+  rti::AttributeHandleSet const momAttributes{
+      federateHandleAttribute,
+      instancesDeletedAttribute};
+  publisher.rtiAmbassador().subscribeObjectClassAttributes(
+      momClass,
+      momAttributes,
+      true,
+      L"");
+
+  observer.join(
+      options.memberFederateName + L"-mom-deleted-observer",
+      options.federateType,
+      federation);
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const observerClass = observer.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.attributeName);
+  auto const observerAttribute = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.attributeName);
+  require(
+      publisherClass.isValid() && observerClass == publisherClass &&
+          publisherAttribute.isValid() && observerAttribute == publisherAttribute &&
+          publisher.rtiAmbassador().getObjectClassName(publisherClass) ==
+              options.objectClassName &&
+          observer.rtiAmbassador().getObjectClassName(observerClass) ==
+              options.objectClassName &&
+          publisher.rtiAmbassador().getAttributeName(
+              publisherClass,
+              publisherAttribute) == options.attributeName &&
+          observer.rtiAmbassador().getAttributeName(
+              observerClass,
+              observerAttribute) == options.attributeName,
+      "Joined-federate MOM object-instances-deleted application lookup did not round-trip");
+  rti::AttributeHandleSet const applicationAttributes{publisherAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      applicationAttributes);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      rti::AttributeHandleSet{observerAttribute},
+      true,
+      L"");
+
+  auto const firstObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  auto const secondObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  auto const thirdObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  require(
+      firstObject.isValid() && secondObject.isValid() && thirdObject.isValid() &&
+          firstObject != secondObject && firstObject != thirdObject &&
+          secondObject != thirdObject,
+      "Joined-federate MOM object-instances-deleted registration returned invalid or duplicate handles");
+  waitFor(
+      observer,
+      [&] {
+        return observer.recorder().hasDiscovery(firstObject) &&
+            observer.recorder().hasDiscovery(secondObject) &&
+            observer.recorder().hasDiscovery(thirdObject);
+      },
+      options,
+      "joined-federate MOM object-instances-deleted application discovery");
+
+  auto findMomObject = [&]() -> std::optional<rti::ObjectInstanceHandle> {
+    auto const reflections = publisher.recorder().reflections();
+    auto const expectedHandle = copyBytes(publisher.federateHandle().encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return iterator->object;
+  };
+  waitFor(
+      publisher,
+      [&] { return findMomObject().has_value(); },
+      options,
+      "joined-federate MOM object-instances-deleted self discovery");
+  auto const publisherMomObject = findMomObject();
+  require(
+      publisherMomObject.has_value() &&
+          publisher.rtiAmbassador().getKnownObjectClassHandle(
+              *publisherMomObject) == momClass,
+      "Joined-federate MOM object-instances-deleted discovery returned the wrong standard object");
+
+  auto findCountReflection = [&](std::size_t firstReflection)
+      -> std::optional<ReflectionRecord> {
+    auto const reflections = publisher.recorder().reflections();
+    auto const begin = std::min(firstReflection, reflections.size());
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(begin),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return reflection.present && reflection.object == *publisherMomObject &&
+              reflection.values.count(instancesDeletedAttribute) == 1U;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto decodeCount = [&](ReflectionRecord const& reflection,
+                         std::string const& description) {
+    require(
+        reflection.values.count(instancesDeletedAttribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            !reflection.producer.isValid() && !reflection.regions.has_value(),
+        description + " returned non-standard MOM reflection metadata");
+    rti::HLAinteger32BE value;
+    value.decode(reflection.values.at(instancesDeletedAttribute));
+    require(value.get() >= 0, description + " returned a negative deletion count");
+    return value.get();
+  };
+  auto requestCount = [&](std::string const& description) {
+    auto const before = publisher.recorder().reflections().size();
+    publisher.rtiAmbassador().requestAttributeValueUpdate(
+        *publisherMomObject,
+        rti::AttributeHandleSet{instancesDeletedAttribute},
+        rti::VariableLengthData{});
+    waitFor(
+        publisher,
+        [&] { return findCountReflection(before).has_value(); },
+        options,
+        description);
+    auto const reflection = findCountReflection(before);
+    require(reflection.has_value(), description + " produced no scalar value");
+    return decodeCount(*reflection, description);
+  };
+  require(
+      requestCount("joined-federate MOM initial object-instances-deleted value") == 0,
+      "Joined-federate MOM object-instances-deleted was nonzero before object deletion");
+
+  auto deleteAndObserve = [&](rti::ObjectInstanceHandle const& object,
+                              std::vector<std::uint8_t> const& tagBytes,
+                              std::string const& description) {
+    auto const before = observer.recorder().removals().size();
+    rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+    publisher.rtiAmbassador().deleteObjectInstance(object, tag);
+    if (model == rti::HLA_EVOKED) {
+      require(
+          observer.recorder().removals().size() == before,
+          description + " delivered before callback servicing");
+    }
+    waitFor(
+        observer,
+        [&] {
+          auto const removals = observer.recorder().removals();
+          return std::any_of(
+              removals.begin() + static_cast<std::ptrdiff_t>(
+                                     std::min(before, removals.size())),
+              removals.end(),
+              [&](RemovalRecord const& removal) {
+                return removal.object == object;
+              });
+        },
+        options,
+        description);
+    auto const removals = observer.recorder().removals();
+    auto const begin = removals.begin() + static_cast<std::ptrdiff_t>(
+        std::min(before, removals.size()));
+    auto const iterator = std::find_if(
+        begin,
+        removals.end(),
+        [&](RemovalRecord const& removal) { return removal.object == object; });
+    require(
+        std::count_if(
+            begin,
+            removals.end(),
+            [&](RemovalRecord const& removal) { return removal.object == object; }) ==
+            1,
+        description + " produced a missing or duplicate removal callback");
+    require(
+        iterator != removals.end() && iterator->tag == tagBytes &&
+            iterator->producer == publisher.federateHandle(),
+        description + " returned incorrect removal metadata");
+  };
+
+  deleteAndObserve(
+      firstObject,
+      std::vector<std::uint8_t>{0x61U},
+      "joined-federate MOM first receive-order object deletion");
+  require(
+      requestCount("joined-federate MOM count after first deletion") == 1,
+      "Joined-federate MOM object-instances-deleted did not count the first delete invocation");
+  deleteAndObserve(
+      secondObject,
+      std::vector<std::uint8_t>{0x62U},
+      "joined-federate MOM second receive-order object deletion");
+  auto const directBaseline = requestCount(
+      "joined-federate MOM direct object-instances-deleted baseline");
+  require(
+      directBaseline == 2,
+      "Joined-federate MOM object-instances-deleted did not count two successful delete invocations");
+
+  auto const setTiming = publisher.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const timingFederate = publisher.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriod = publisher.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && timingFederate.isValid() && reportPeriod.isValid() &&
+          publisher.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          publisher.rtiAmbassador().getParameterName(setTiming, timingFederate) ==
+              L"HLAfederate" &&
+          publisher.rtiAmbassador().getParameterName(setTiming, reportPeriod) ==
+              L"HLAreportPeriod",
+      "Joined-federate MOM HLAsetTiming lookup did not round-trip");
+  auto sendTiming = [&](std::int32_t period) {
+    publisher.rtiAmbassador().sendInteraction(
+        setTiming,
+        rti::ParameterHandleValueMap{
+            {timingFederate, publisher.federateHandle().encode()},
+            {reportPeriod, rti::HLAinteger32BE{period}.encode()}},
+        rti::VariableLengthData{});
+  };
+
+  std::size_t const periodicReflectionStart =
+      publisher.recorder().reflections().size();
+  sendTiming(1);
+  deleteAndObserve(
+      thirdObject,
+      std::vector<std::uint8_t>{0x63U},
+      "joined-federate MOM periodic-phase receive-order object deletion");
+  auto findPeriodicCount = [&]() -> std::optional<ReflectionRecord> {
+    auto const reflections = publisher.recorder().reflections();
+    auto const begin = std::min(periodicReflectionStart, reflections.size());
+    for (auto iterator = reflections.begin() +
+                         static_cast<std::ptrdiff_t>(begin);
+         iterator != reflections.end();
+         ++iterator) {
+      if (!iterator->present || iterator->object != *publisherMomObject ||
+          iterator->values.count(instancesDeletedAttribute) != 1U) {
+        continue;
+      }
+      rti::HLAinteger32BE value;
+      value.decode(iterator->values.at(instancesDeletedAttribute));
+      if (value.get() >= 3) {
+        return *iterator;
+      }
+    }
+    return std::nullopt;
+  };
+  waitFor(
+      publisher,
+      [&] { return findPeriodicCount().has_value(); },
+      options,
+      "joined-federate MOM periodic object-instances-deleted value");
+  auto const periodicReflection = findPeriodicCount();
+  require(
+      periodicReflection.has_value() &&
+          decodeCount(
+              *periodicReflection,
+              "Joined-federate MOM periodic object-instances-deleted reflection") == 3,
+      "Joined-federate MOM periodic object-instances-deleted did not equal successful deletion invocations");
+  require(
+      requestCount("joined-federate MOM direct value after periodic deletion") == 3,
+      "Joined-federate MOM direct object-instances-deleted value disagreed with periodic reporting");
+
+  sendTiming(0);
+  require(
+      requestCount("joined-federate MOM object-instances-deleted after disabling periodic reports") == 3,
+      "Joined-federate MOM object-instances-deleted changed after periodic reporting was disabled");
+
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      observerClass,
+      rti::AttributeHandleSet{observerAttribute});
+  publisher.rtiAmbassador().unsubscribeObjectClassAttributes(momClass, momAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass,
+      applicationAttributes);
+  observer.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  publisher.disconnect();
+  observer.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectInstancesDeletedAttributeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectInstancesDeletedAttribute(options, model);
+}
+
+void scenarioJoinedFederateMomObjectLifecycle(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Joined-federate MOM object lifecycle requires an adapter-supplied FOM");
+  require(
+      !options.mimFom.empty(),
+      "Joined-federate MOM object lifecycle requires an adapter-supplied standard MIM");
+  require(
+      !options.additionalFomModules.empty(),
+      "Joined-federate MOM object lifecycle requires an adapter-supplied additional FOM module");
+
+  Session moduleSubject(options, model, "owner");
+  Session noModuleSubject(options, model, "member");
+  Session observer(options, model, "member");
+  auto const federation = federationName(options, "joined-federate-mom-object-lifecycle");
+  moduleSubject.connect();
+  noModuleSubject.connect();
+  observer.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    moduleSubject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    moduleSubject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  auto const observerName = options.memberFederateName + L"-mom-lifecycle-observer";
+  auto const moduleSubjectName = options.ownerFederateName + L"-mom-lifecycle-module-subject";
+  auto const noModuleSubjectName = options.memberFederateName + L"-mom-lifecycle-no-module";
+  observer.join(observerName, options.federateType, federation);
+  auto const momClass = observer.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = observer.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHandle");
+  auto const federateNameAttribute = observer.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateName");
+  auto const federateTypeAttribute = observer.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateType");
+  auto const federateHostAttribute = observer.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAfederateHost");
+  auto const fomModuleListAttribute = observer.rtiAmbassador().getAttributeHandle(
+      momClass,
+      L"HLAFOMmoduleDesignatorList");
+  auto const reliable = observer.rtiAmbassador().getTransportationTypeHandle(
+      L"HLAreliable");
+  rti::AttributeHandleSet const momAttributes{
+      federateHandleAttribute,
+      federateNameAttribute,
+      federateTypeAttribute,
+      federateHostAttribute,
+      fomModuleListAttribute};
+  require(
+      momClass.isValid() && federateHandleAttribute.isValid() &&
+          federateNameAttribute.isValid() && federateTypeAttribute.isValid() &&
+          federateHostAttribute.isValid() &&
+          fomModuleListAttribute.isValid() && reliable.isValid() &&
+          observer.rtiAmbassador().getObjectClassName(momClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          observer.rtiAmbassador().getAttributeName(momClass, federateHandleAttribute) ==
+              L"HLAfederateHandle" &&
+          observer.rtiAmbassador().getAttributeName(momClass, federateNameAttribute) ==
+              L"HLAfederateName" &&
+          observer.rtiAmbassador().getAttributeName(momClass, federateTypeAttribute) ==
+              L"HLAfederateType" &&
+          observer.rtiAmbassador().getAttributeName(momClass, federateHostAttribute) ==
+              L"HLAfederateHost" &&
+          observer.rtiAmbassador().getAttributeName(momClass, fomModuleListAttribute) ==
+              L"HLAFOMmoduleDesignatorList" &&
+          observer.rtiAmbassador().getTransportationTypeName(reliable) == L"HLAreliable",
+      "Joined-federate MOM object lifecycle did not resolve the standard MIM handles");
+  observer.rtiAmbassador().subscribeObjectClassAttributes(momClass, momAttributes, true, L"");
+
+  auto decodeUnicodeString = [](rti::VariableLengthData const& encoded) {
+    rti::HLAunicodeString value;
+    value.decode(encoded);
+    return value.get();
+  };
+  auto decodeUnicodeStringList = [](rti::VariableLengthData const& encoded) {
+    rti::HLAvariableArrayT<rti::HLAunicodeString> values;
+    values.decode(encoded);
+    std::vector<std::wstring> result;
+    result.reserve(values.size());
+    for (std::size_t index = 0; index != values.size(); ++index) {
+      result.push_back(
+          dynamic_cast<rti::HLAunicodeString const&>(values.get(index)).get());
+    }
+    return result;
+  };
+  auto findReflectionFor = [&](rti::FederateHandle const& federate)
+      -> std::optional<ReflectionRecord> {
+    auto const expectedHandle = copyBytes(federate.encode());
+    auto const reflections = observer.recorder().reflections();
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return value != reflection.values.end() &&
+              copyBytes(value->second) == expectedHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  auto verifyReflection = [&](ReflectionRecord const& reflection,
+                              rti::FederateHandle const& federate,
+                              std::wstring const& federateName,
+                              std::wstring const& federateType,
+                              std::vector<std::wstring> const& expectedModules,
+                              std::string const& description) {
+    require(
+        reflection.values.size() == momAttributes.size() &&
+            reflection.values.count(federateHandleAttribute) == 1U &&
+            reflection.values.count(federateNameAttribute) == 1U &&
+            reflection.values.count(federateTypeAttribute) == 1U &&
+            reflection.values.count(federateHostAttribute) == 1U &&
+            reflection.values.count(fomModuleListAttribute) == 1U &&
+            reflection.transportation == reliable,
+        description + " returned incomplete MOM reflection data or the wrong MIM transportation");
+    require(
+        copyBytes(reflection.values.at(federateHandleAttribute)) ==
+                copyBytes(federate.encode()) &&
+            decodeUnicodeString(reflection.values.at(federateNameAttribute)) == federateName &&
+            decodeUnicodeString(reflection.values.at(federateTypeAttribute)) == federateType &&
+            decodeUnicodeStringList(reflection.values.at(fomModuleListAttribute)) ==
+                expectedModules,
+        description + " reflected a different federate identity or FOM designator list");
+    require(
+        !decodeUnicodeString(reflection.values.at(federateHostAttribute)).empty(),
+        description + " omitted the required HLAfederateHost Unicode value");
+  };
+  auto requestKnownValues = [&](rti::ObjectInstanceHandle const& object,
+                                rti::FederateHandle const& federate,
+                                std::wstring const& federateName,
+                                std::wstring const& federateType,
+                                std::vector<std::wstring> const& expectedModules,
+                                std::string const& description) {
+    auto const before = observer.recorder().reflections().size();
+    observer.rtiAmbassador().requestAttributeValueUpdate(
+        object,
+        momAttributes,
+        rti::VariableLengthData{});
+    waitFor(
+        observer,
+        [&] {
+          auto const reflections = observer.recorder().reflections();
+          return reflections.size() > before &&
+              std::any_of(
+                  reflections.begin() + static_cast<std::ptrdiff_t>(before),
+                  reflections.end(),
+                  [&](ReflectionRecord const& reflection) {
+                    return reflection.object == object &&
+                        reflection.values.count(federateHandleAttribute) == 1U;
+                  });
+        },
+        options,
+        description + " known-object request");
+    auto const reflections = observer.recorder().reflections();
+    auto const iterator = std::find_if(
+        reflections.begin() + static_cast<std::ptrdiff_t>(before),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return reflection.object == object &&
+              reflection.values.count(federateHandleAttribute) == 1U;
+        });
+    require(iterator != reflections.end(), description + " produced no requested reflection");
+    verifyReflection(
+        *iterator,
+        federate,
+        federateName,
+        federateType,
+        expectedModules,
+        description + " known-object request");
+  };
+
+  auto const expectedModules = fomModuleNames(options.additionalFomModules);
+  moduleSubject.join(
+      moduleSubjectName,
+      options.federateType,
+      federation,
+      expectedModules);
+  waitFor(
+      observer,
+      [&] {
+        auto const reflection = findReflectionFor(moduleSubject.federateHandle());
+        return reflection.has_value() && observer.recorder().hasDiscovery(reflection->object);
+      },
+      options,
+      "joined-federate MOM module-subject discovery and initial reflection");
+  auto const moduleSubjectReflection = findReflectionFor(moduleSubject.federateHandle());
+  require(
+      moduleSubjectReflection.has_value() &&
+          observer.rtiAmbassador().getKnownObjectClassHandle(
+              moduleSubjectReflection->object) == momClass,
+      "Joined-federate MOM module-subject discovery returned the wrong standard object class");
+  auto const moduleSubjectObject = moduleSubjectReflection->object;
+  verifyReflection(
+      *moduleSubjectReflection,
+      moduleSubject.federateHandle(),
+      moduleSubjectName,
+      options.federateType,
+      expectedModules,
+      "joined-federate MOM module-subject initial reflection");
+  auto const moduleSubjectObjectName =
+      observer.rtiAmbassador().getObjectInstanceName(moduleSubjectObject);
+  require(
+      !moduleSubjectObjectName.empty() &&
+          observer.rtiAmbassador().getObjectInstanceHandle(moduleSubjectObjectName) ==
+              moduleSubjectObject,
+      "Joined-federate MOM module-subject object-name lookup did not round-trip");
+  requestKnownValues(
+      moduleSubjectObject,
+      moduleSubject.federateHandle(),
+      moduleSubjectName,
+      options.federateType,
+      expectedModules,
+      "joined-federate MOM module-subject");
+
+  noModuleSubject.join(
+      noModuleSubjectName,
+      options.federateType,
+      federation);
+  waitFor(
+      observer,
+      [&] {
+        auto const reflection = findReflectionFor(noModuleSubject.federateHandle());
+        return reflection.has_value() && observer.recorder().hasDiscovery(reflection->object);
+      },
+      options,
+      "joined-federate MOM no-module subject discovery and initial reflection");
+  auto const noModuleSubjectReflection = findReflectionFor(noModuleSubject.federateHandle());
+  require(
+      noModuleSubjectReflection.has_value() &&
+          noModuleSubjectReflection->object != moduleSubjectObject &&
+          observer.rtiAmbassador().getKnownObjectClassHandle(
+              noModuleSubjectReflection->object) == momClass,
+      "Joined-federate MOM no-module subject did not receive a distinct standard object");
+  auto const noModuleSubjectObject = noModuleSubjectReflection->object;
+  verifyReflection(
+      *noModuleSubjectReflection,
+      noModuleSubject.federateHandle(),
+      noModuleSubjectName,
+      options.federateType,
+      {},
+      "joined-federate MOM no-module subject initial reflection");
+  auto const noModuleSubjectObjectName =
+      observer.rtiAmbassador().getObjectInstanceName(noModuleSubjectObject);
+  require(
+      !noModuleSubjectObjectName.empty() &&
+          observer.rtiAmbassador().getObjectInstanceHandle(noModuleSubjectObjectName) ==
+              noModuleSubjectObject,
+      "Joined-federate MOM no-module object-name lookup did not round-trip");
+  requestKnownValues(
+      noModuleSubjectObject,
+      noModuleSubject.federateHandle(),
+      noModuleSubjectName,
+      options.federateType,
+      {},
+      "joined-federate MOM no-module subject");
+
+  moduleSubject.resign(rti::NO_ACTION);
+  waitFor(
+      observer,
+      [&] {
+        auto const removals = observer.recorder().removals();
+        return std::any_of(
+            removals.begin(),
+            removals.end(),
+            [&](RemovalRecord const& removal) {
+              return removal.object == moduleSubjectObject;
+            });
+      },
+      options,
+      "joined-federate MOM module-subject removal");
+  noModuleSubject.resign(rti::NO_ACTION);
+  waitFor(
+      observer,
+      [&] {
+        auto const removals = observer.recorder().removals();
+        return std::any_of(
+            removals.begin(),
+            removals.end(),
+            [&](RemovalRecord const& removal) {
+              return removal.object == noModuleSubjectObject;
+            });
+      },
+      options,
+      "joined-federate MOM no-module subject removal");
+
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(momClass, momAttributes);
+  observer.resign(rti::NO_ACTION);
+  moduleSubject.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  noModuleSubject.disconnect();
+  moduleSubject.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectLifecycleContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectLifecycle(options, model);
 }
 
 void scenarioJoinedFederateMomDeletableObjectReport(
@@ -4734,6 +19595,2102 @@ void scenarioJoinedFederateMomDeletableObjectReportContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioJoinedFederateMomDeletableObjectReport(options, model);
+}
+
+void scenarioJoinedFederateMomObjectInstancesUpdatedReport(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty(),
+      "Joined-federate MOM updated-object reporting requires adapter-supplied FOM, standard MIM, object class, and attribute configuration");
+
+  Session requester(options, model, "mom-updated-requester");
+  Session subject(options, model, "mom-updated-subject");
+  auto const federation =
+      federationName(options, "joined-federate-mom-object-instances-updated-report");
+  requester.connect();
+  subject.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  auto const subjectName =
+      options.ownerFederateName + L"-mom-updated-subject";
+  auto const requesterName =
+      options.memberFederateName + L"-mom-updated-requester";
+  subject.join(subjectName, options.federateType, federation);
+  requester.join(requesterName, options.federateType, federation);
+  auto& requesterAmbassador = requester.rtiAmbassador();
+  auto& subjectAmbassador = subject.rtiAmbassador();
+
+  auto const requestClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestObjectInstancesUpdated");
+  auto const requestFederateParameter =
+      requesterAmbassador.getParameterHandle(requestClass, L"HLAfederate");
+  auto const reportClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstancesUpdated");
+  auto const reportCountsParameter = requesterAmbassador.getParameterHandle(
+      reportClass,
+      L"HLAobjectInstanceCounts");
+  auto const targetFederate = requesterAmbassador.getFederateHandle(subjectName);
+  auto const reliable =
+      requesterAmbassador.getTransportationTypeHandle(L"HLAreliable");
+  auto const subjectObjectClass =
+      subjectAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const subjectAttribute = subjectAmbassador.getAttributeHandle(
+      subjectObjectClass,
+      options.attributeName);
+  auto const requesterObjectClass =
+      requesterAmbassador.getObjectClassHandle(options.objectClassName);
+  require(
+      requestClass.isValid() && requestFederateParameter.isValid() &&
+          reportClass.isValid() && reportCountsParameter.isValid() &&
+          targetFederate.isValid() && reliable.isValid() &&
+          subjectObjectClass.isValid() && subjectAttribute.isValid() &&
+          requesterObjectClass.isValid(),
+      "Joined-federate MOM updated-object request/report or adapter-supplied application lookup returned an invalid handle");
+  requesterAmbassador.subscribeInteractionClass(reportClass);
+  subjectAmbassador.publishObjectClassAttributes(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute});
+
+  struct ObjectClassCount final {
+    rti::ObjectClassHandle objectClass;
+    std::int32_t count;
+  };
+  auto decodeObjectClassCounts = [&](rti::VariableLengthData const& encoded) {
+    rti::HLAvariableArrayT<rti::HLAoctet> objectClassHandlePrototype;
+    rti::HLAfixedRecord recordPrototype;
+    recordPrototype.appendElement(objectClassHandlePrototype)
+        .appendElement(rti::HLAinteger32BE{});
+    rti::HLAvariableArray counts{recordPrototype};
+    counts.decode(encoded);
+
+    std::vector<ObjectClassCount> decoded;
+    decoded.reserve(counts.size());
+    for (std::size_t index = 0; index != counts.size(); ++index) {
+      auto const& record =
+          dynamic_cast<rti::HLAfixedRecord const&>(counts.get(index));
+      auto const& encodedObjectClass =
+          dynamic_cast<rti::HLAvariableArray const&>(record.get(0));
+      decoded.push_back({
+          requesterAmbassador.decodeObjectClassHandle(
+              encodedObjectClass.encode()),
+          dynamic_cast<rti::HLAinteger32BE const&>(record.get(1)).get()});
+    }
+    return decoded;
+  };
+
+  auto const firstObject = subjectAmbassador.registerObjectInstance(subjectObjectClass);
+  auto const secondObject = subjectAmbassador.registerObjectInstance(subjectObjectClass);
+  require(
+      firstObject.isValid() && secondObject.isValid(),
+      "Joined-federate MOM updated-object registration returned an invalid handle");
+  auto updateObject = [&](rti::ObjectInstanceHandle const& object,
+                          std::int32_t value) {
+    rti::AttributeHandleValueMap const values{{
+        subjectAttribute,
+        rti::HLAbyte{static_cast<rti::Octet>(value)}.encode()}};
+    subjectAmbassador.updateAttributeValues(
+        object,
+        values,
+        rti::VariableLengthData{});
+  };
+  // Repeated updates to one instance must not inflate the class-based count.
+  updateObject(firstObject, 1);
+  updateObject(firstObject, 2);
+  updateObject(secondObject, 3);
+
+  auto const interactionsBeforeRequest =
+      requester.recorder().interactions().size();
+  rti::ParameterHandleValueMap const requestParameters{{
+      requestFederateParameter,
+      targetFederate.encode()}};
+  requesterAmbassador.sendInteraction(
+      requestClass,
+      requestParameters,
+      rti::VariableLengthData{});
+  waitFor(
+      requester,
+      [&] {
+        auto const interactions = requester.recorder().interactions();
+        return interactions.size() > interactionsBeforeRequest &&
+            std::any_of(
+                interactions.begin() + static_cast<std::ptrdiff_t>(
+                                           interactionsBeforeRequest),
+                interactions.end(),
+                [&](InteractionRecord const& interaction) {
+                  return interaction.present &&
+                      interaction.interaction == reportClass &&
+                      interaction.parameters.count(reportCountsParameter) == 1U;
+                });
+      },
+      options,
+      "the joined-federate MOM updated-object report");
+
+  auto const interactions = requester.recorder().interactions();
+  std::vector<InteractionRecord const*> reports;
+  for (std::size_t index = interactionsBeforeRequest;
+       index != interactions.size();
+       ++index) {
+    if (interactions[index].interaction == reportClass) {
+      reports.push_back(&interactions[index]);
+    }
+  }
+  require(
+      reports.size() == 1U,
+      "An updated-object publication query did not deliver exactly one standard report");
+  auto const& report = *reports.front();
+  require(
+      report.present && report.parameters.size() == 1U &&
+          report.parameters.count(reportCountsParameter) == 1U &&
+          report.transportation == reliable && report.tag.empty() &&
+          !report.producer.isValid() && !report.regions.has_value(),
+      "Joined-federate MOM updated-object report did not use its standard reliable one-parameter response shape");
+  auto const counts =
+      decodeObjectClassCounts(report.parameters.at(reportCountsParameter));
+  require(
+      counts.size() == 1U && counts.front().objectClass == requesterObjectClass &&
+          counts.front().count == 2,
+      "Joined-federate MOM updated-object report did not count the two updated instances once by registered class");
+
+  requesterAmbassador.unsubscribeInteractionClass(reportClass);
+  subjectAmbassador.deleteObjectInstance(firstObject, rti::VariableLengthData{});
+  subjectAmbassador.deleteObjectInstance(secondObject, rti::VariableLengthData{});
+  subjectAmbassador.unpublishObjectClassAttributes(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute});
+  requester.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subjectAmbassador.destroyFederationExecution(federation);
+  requester.disconnect();
+  subject.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectInstancesUpdatedReportContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectInstancesUpdatedReport(options, model);
+}
+
+void scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty(),
+      "Joined-federate MOM timestamped updated-object reporting requires adapter-supplied FOM, standard MIM, object class, and attribute configuration");
+
+  Session subject(options, model, "mom-updated-timestamped-subject");
+  Session observer(options, model, "mom-updated-timestamped-observer");
+  Session requester(options, model, "mom-updated-timestamped-requester");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-object-instances-updated-timestamped-report");
+  subject.connect();
+  observer.connect();
+  requester.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  auto const subjectName =
+      options.ownerFederateName + L"-mom-updated-timestamped-subject";
+  auto const observerName =
+      options.memberFederateName + L"-mom-updated-timestamped-observer";
+  auto const requesterName =
+      options.memberFederateName + L"-mom-updated-timestamped-requester";
+  subject.join(subjectName, options.federateType, federation);
+  observer.join(observerName, options.federateType, federation);
+  requester.join(requesterName, options.federateType, federation);
+  auto& subjectAmbassador = subject.rtiAmbassador();
+  auto& observerAmbassador = observer.rtiAmbassador();
+  auto& requesterAmbassador = requester.rtiAmbassador();
+
+  auto const subjectObjectClass =
+      subjectAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const subjectAttribute = subjectAmbassador.getAttributeHandle(
+      subjectObjectClass,
+      options.attributeName);
+  auto const observerObjectClass =
+      observerAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const observerAttribute = observerAmbassador.getAttributeHandle(
+      observerObjectClass,
+      options.attributeName);
+  auto const requestClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestObjectInstancesUpdated");
+  auto const requestFederateParameter =
+      requesterAmbassador.getParameterHandle(requestClass, L"HLAfederate");
+  auto const reportClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstancesUpdated");
+  auto const reportCountsParameter = requesterAmbassador.getParameterHandle(
+      reportClass,
+      L"HLAobjectInstanceCounts");
+  auto const targetFederate = requesterAmbassador.getFederateHandle(subjectName);
+  auto const reliable =
+      requesterAmbassador.getTransportationTypeHandle(L"HLAreliable");
+  auto const observerReliable =
+      observerAmbassador.getTransportationTypeHandle(L"HLAreliable");
+  auto const requesterObjectClass =
+      requesterAmbassador.getObjectClassHandle(options.objectClassName);
+  require(
+      subjectObjectClass.isValid() && subjectAttribute.isValid() &&
+          observerObjectClass.isValid() && observerAttribute.isValid() &&
+          requestClass.isValid() && requestFederateParameter.isValid() &&
+          reportClass.isValid() && reportCountsParameter.isValid() &&
+          targetFederate.isValid() && reliable.isValid() &&
+          observerReliable.isValid() && requesterObjectClass.isValid(),
+      "Joined-federate MOM timestamped updated-object lookup returned an invalid standard handle");
+
+  requesterAmbassador.subscribeInteractionClass(reportClass);
+  subjectAmbassador.publishObjectClassAttributes(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute});
+  subjectAmbassador.changeDefaultAttributeOrderType(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute},
+      rti::TIMESTAMP);
+  observerAmbassador.subscribeObjectClassAttributes(
+      observerObjectClass,
+      rti::AttributeHandleSet{observerAttribute});
+  auto const firstObject = subjectAmbassador.registerObjectInstance(subjectObjectClass);
+  auto const secondObject = subjectAmbassador.registerObjectInstance(subjectObjectClass);
+  require(
+      firstObject.isValid() && secondObject.isValid(),
+      "Joined-federate MOM timestamped updated-object registration returned an invalid handle");
+  waitFor(
+      observer,
+      [&] { return observer.recorder().discoveryCount() >= 2U; },
+      options,
+      "joined-federate MOM timestamped updated-object discovery");
+  auto const lastDiscovery = observer.recorder().discovery();
+  require(
+      observer.recorder().discoveryCount() == 2U &&
+          lastDiscovery.objectClass == observerObjectClass &&
+          lastDiscovery.producer == subject.federateHandle() &&
+          (lastDiscovery.object == firstObject ||
+           lastDiscovery.object == secondObject),
+      "Joined-federate MOM timestamped update fixture discovered unexpected object metadata");
+
+  auto const subjectTime = makeTimeContext(subject);
+  auto const observerTime = makeTimeContext(observer);
+  enableTimestampedRoles(
+      subject,
+      observer,
+      subjectTime,
+      observerTime,
+      options,
+      "joined-federate MOM timestamped updated-object report");
+  auto const messageTime = timeAfter(
+      *subjectTime.factory,
+      *subjectTime.initial,
+      *subjectTime.epsilon,
+      3U);
+  auto const observerTarget = timeAfter(
+      *observerTime.factory,
+      *observerTime.initial,
+      *observerTime.epsilon,
+      3U);
+  auto const firstValue = rti::HLAbyte{static_cast<rti::Octet>(0x41U)};
+  auto const secondValue = rti::HLAbyte{static_cast<rti::Octet>(0x42U)};
+  auto const firstValueBytes = copyBytes(firstValue.encode());
+  auto const secondValueBytes = copyBytes(secondValue.encode());
+  std::vector<std::uint8_t> const firstTagBytes{0x51U, 0x52U};
+  std::vector<std::uint8_t> const secondTagBytes{0x61U, 0x62U};
+  rti::VariableLengthData const firstTag(
+      firstTagBytes.data(),
+      firstTagBytes.size());
+  rti::VariableLengthData const secondTag(
+      secondTagBytes.data(),
+      secondTagBytes.size());
+  rti::AttributeHandleValueMap const firstValues{{
+      subjectAttribute,
+      firstValue.encode()}};
+  rti::AttributeHandleValueMap const secondValues{{
+      subjectAttribute,
+      secondValue.encode()}};
+  auto const firstRetraction = subjectAmbassador.updateAttributeValues(
+      firstObject,
+      firstValues,
+      firstTag,
+      *messageTime);
+  auto const secondRetraction = subjectAmbassador.updateAttributeValues(
+      secondObject,
+      secondValues,
+      secondTag,
+      *messageTime);
+  require(
+      firstRetraction.isValid() && secondRetraction.isValid(),
+      "Joined-federate MOM timestamped Update Attribute Values returned an invalid retraction handle");
+  require(
+      observer.recorder().timedReflections().empty(),
+      "Joined-federate MOM timestamped update reflected before the constrained grant");
+
+  observerAmbassador.timeAdvanceRequest(*observerTarget);
+  subjectAmbassador.timeAdvanceRequest(*messageTime);
+  waitForSessions(
+      {&subject, &observer},
+      [&] {
+        return subject.recorder().timeAdvanceGrants().size() >= 1U &&
+            observer.recorder().timeAdvanceGrants().size() >= 1U &&
+            observer.recorder().timedReflections().size() >= 2U;
+      },
+      options,
+      "joined-federate MOM timestamped update reflection and grants");
+
+  auto const timedReflections = observer.recorder().timedReflections();
+  require(
+      timedReflections.size() == 2U,
+      "Joined-federate MOM timestamped updates delivered a duplicate or missing reflection");
+  auto findReflection = [&](rti::ObjectInstanceHandle const& object) {
+    return std::find_if(
+        timedReflections.begin(),
+        timedReflections.end(),
+        [&](TimedReflectionRecord const& reflection) {
+          return reflection.object == object;
+        });
+  };
+  auto const firstReflection = findReflection(firstObject);
+  auto const secondReflection = findReflection(secondObject);
+  require(
+      firstReflection != timedReflections.end() &&
+          secondReflection != timedReflections.end(),
+      "Joined-federate MOM timestamped reflections did not cover both updated instances");
+  auto verifyReflection = [&](TimedReflectionRecord const& reflection,
+                              std::vector<std::uint8_t> const& expectedValue,
+                              std::vector<std::uint8_t> const& expectedTag,
+                              rti::MessageRetractionHandle const& expectedRetraction) {
+    require(
+        reflection.values.size() == 1U &&
+            reflection.values.count(observerAttribute) == 1U &&
+            copyBytes(reflection.values.at(observerAttribute)) == expectedValue &&
+            reflection.tag == expectedTag &&
+            reflection.time == encodeTime(*messageTime),
+        "Joined-federate MOM timestamped reflection changed its object value, tag, or logical time");
+    require(
+        reflection.producer == subject.federateHandle() &&
+            !reflection.timeText.empty() &&
+            reflection.sentOrder == rti::TIMESTAMP &&
+            reflection.receivedOrder == rti::TIMESTAMP &&
+            reflection.transportation == observerReliable &&
+            reflection.retractionPresent &&
+            reflection.retraction == copyBytes(expectedRetraction.encode()),
+        "Joined-federate MOM timestamped reflection changed its standard delivery metadata");
+  };
+  verifyReflection(
+      *firstReflection,
+      firstValueBytes,
+      firstTagBytes,
+      firstRetraction);
+  verifyReflection(
+      *secondReflection,
+      secondValueBytes,
+      secondTagBytes,
+      secondRetraction);
+  auto const subjectGrants = subject.recorder().timeAdvanceGrants();
+  auto const observerGrants = observer.recorder().timeAdvanceGrants();
+  require(
+      subjectGrants.size() == 1U && observerGrants.size() == 1U &&
+          subjectGrants.front().encoded == encodeTime(*messageTime) &&
+          observerGrants.front().encoded == encodeTime(*observerTarget),
+      "Joined-federate MOM timestamped update returned the wrong time-advance grants");
+
+  auto const interactionsBeforeRequest =
+      requester.recorder().interactions().size();
+  requesterAmbassador.sendInteraction(
+      requestClass,
+      rti::ParameterHandleValueMap{{
+          requestFederateParameter,
+          targetFederate.encode()}},
+      rti::VariableLengthData{});
+  waitFor(
+      requester,
+      [&] {
+        auto const interactions = requester.recorder().interactions();
+        return interactions.size() > interactionsBeforeRequest &&
+            std::any_of(
+                interactions.begin() + static_cast<std::ptrdiff_t>(
+                                           interactionsBeforeRequest),
+                interactions.end(),
+                [&](InteractionRecord const& interaction) {
+                  return interaction.present &&
+                      interaction.interaction == reportClass &&
+                      interaction.parameters.count(reportCountsParameter) == 1U;
+                });
+      },
+      options,
+      "joined-federate MOM timestamped updated-object report");
+  auto const interactions = requester.recorder().interactions();
+  std::vector<InteractionRecord const*> reports;
+  for (std::size_t index = interactionsBeforeRequest;
+       index != interactions.size();
+       ++index) {
+    if (interactions[index].interaction == reportClass) {
+      reports.push_back(&interactions[index]);
+    }
+  }
+  require(
+      reports.size() == 1U,
+      "An updated-object timestamped publication query did not deliver exactly one standard report");
+  auto const& report = *reports.front();
+  require(
+      report.present && report.parameters.size() == 1U &&
+          report.parameters.count(reportCountsParameter) == 1U &&
+          report.transportation == reliable && report.tag.empty() &&
+          !report.producer.isValid() && !report.regions.has_value(),
+      "Joined-federate MOM timestamped updated-object report did not use its standard reliable one-parameter response shape");
+
+  struct ObjectClassCount final {
+    rti::ObjectClassHandle objectClass;
+    std::int32_t count;
+  };
+  auto decodeObjectClassCounts = [&](rti::VariableLengthData const& encoded) {
+    rti::HLAvariableArrayT<rti::HLAoctet> objectClassHandlePrototype;
+    rti::HLAfixedRecord recordPrototype;
+    recordPrototype.appendElement(objectClassHandlePrototype)
+        .appendElement(rti::HLAinteger32BE{});
+    rti::HLAvariableArray counts{recordPrototype};
+    counts.decode(encoded);
+
+    std::vector<ObjectClassCount> decoded;
+    decoded.reserve(counts.size());
+    for (std::size_t index = 0; index != counts.size(); ++index) {
+      auto const& record =
+          dynamic_cast<rti::HLAfixedRecord const&>(counts.get(index));
+      auto const& encodedObjectClass =
+          dynamic_cast<rti::HLAvariableArray const&>(record.get(0));
+      decoded.push_back({
+          requesterAmbassador.decodeObjectClassHandle(
+              encodedObjectClass.encode()),
+          dynamic_cast<rti::HLAinteger32BE const&>(record.get(1)).get()});
+    }
+    return decoded;
+  };
+  auto const counts =
+      decodeObjectClassCounts(report.parameters.at(reportCountsParameter));
+  require(
+      counts.size() == 1U &&
+          counts.front().objectClass == requesterObjectClass &&
+          counts.front().count == 2,
+      "Joined-federate MOM report did not count both timestamp-updated instances by registered class");
+
+  requesterAmbassador.unsubscribeInteractionClass(reportClass);
+  observerAmbassador.unsubscribeObjectClassAttributes(
+      observerObjectClass,
+      rti::AttributeHandleSet{observerAttribute});
+  subjectAmbassador.deleteObjectInstance(firstObject, rti::VariableLengthData{});
+  subjectAmbassador.deleteObjectInstance(secondObject, rti::VariableLengthData{});
+  subjectAmbassador.unpublishObjectClassAttributes(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute});
+  requester.resign(rti::NO_ACTION);
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subjectAmbassador.destroyFederationExecution(federation);
+  requester.disconnect();
+  observer.disconnect();
+  subject.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReportContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport(
+      options,
+      model);
+}
+
+void scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReport(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.multiAttributeFom.empty() &&
+          !options.mimFom.empty() && !options.objectClassName.empty() &&
+          !options.attributeName.empty() &&
+          !options.multiAttributeObjectClassName.empty() &&
+          !options.multiAttributeFirstName.empty(),
+      "Joined-federate MOM multi-class updated-object reporting requires adapter-supplied FOMs, standard MIM, and both object-class/attribute configurations");
+
+  Session subject(options, model, "mom-updated-multi-subject");
+  Session observer(options, model, "mom-updated-multi-observer");
+  Session requester(options, model, "mom-updated-multi-requester");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-object-instances-updated-multi-class-report");
+  subject.connect();
+  observer.connect();
+  requester.connect();
+  std::vector<std::wstring> foms{
+      options.fom.wstring(),
+      options.multiAttributeFom.wstring()};
+  if (options.logicalTimeImplementationName.empty()) {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        foms,
+        options.mimFom.wstring());
+  } else {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        foms,
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  auto const subjectName = options.ownerFederateName + L"-mom-updated-multi-subject";
+  auto const observerName = options.memberFederateName + L"-mom-updated-multi-observer";
+  subject.join(subjectName, options.federateType, federation);
+  observer.join(observerName, options.federateType, federation);
+  requester.join(
+      options.memberFederateName + L"-mom-updated-multi-requester",
+      options.federateType,
+      federation);
+  auto& subjectAmbassador = subject.rtiAmbassador();
+  auto& observerAmbassador = observer.rtiAmbassador();
+  auto& requesterAmbassador = requester.rtiAmbassador();
+
+  auto const requestClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestObjectInstancesUpdated");
+  auto const requestFederateParameter =
+      requesterAmbassador.getParameterHandle(requestClass, L"HLAfederate");
+  auto const reportClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstancesUpdated");
+  auto const reportCountsParameter = requesterAmbassador.getParameterHandle(
+      reportClass,
+      L"HLAobjectInstanceCounts");
+  auto const subjectFederate = subject.federateHandle();
+  auto const reliable =
+      requesterAmbassador.getTransportationTypeHandle(L"HLAreliable");
+
+  auto const subjectClassA =
+      subjectAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const subjectAttributeA = subjectAmbassador.getAttributeHandle(
+      subjectClassA,
+      options.attributeName);
+  auto const observerClassA =
+      observerAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const observerAttributeA = observerAmbassador.getAttributeHandle(
+      observerClassA,
+      options.attributeName);
+  auto const subjectClassB =
+      subjectAmbassador.getObjectClassHandle(options.multiAttributeObjectClassName);
+  auto const subjectAttributeB = subjectAmbassador.getAttributeHandle(
+      subjectClassB,
+      options.multiAttributeFirstName);
+  auto const observerClassB =
+      observerAmbassador.getObjectClassHandle(options.multiAttributeObjectClassName);
+  auto const observerAttributeB = observerAmbassador.getAttributeHandle(
+      observerClassB,
+      options.multiAttributeFirstName);
+  require(
+      requestClass.isValid() && requestFederateParameter.isValid() &&
+          reportClass.isValid() && reportCountsParameter.isValid() &&
+          subjectFederate.isValid() && reliable.isValid() &&
+          subjectClassA.isValid() && subjectAttributeA.isValid() &&
+          observerClassA.isValid() && observerAttributeA.isValid() &&
+          subjectClassB.isValid() && subjectAttributeB.isValid() &&
+          observerClassB.isValid() && observerAttributeB.isValid() &&
+          subjectClassA == observerClassA &&
+          subjectAttributeA == observerAttributeA &&
+          subjectClassB == observerClassB &&
+          subjectAttributeB == observerAttributeB &&
+          subjectClassA != subjectClassB,
+      "Joined-federate MOM multi-class updated-object lookup returned invalid or inconsistent standard handles");
+  observerAmbassador.subscribeObjectClassAttributes(
+      observerClassA,
+      rti::AttributeHandleSet{observerAttributeA},
+      true);
+  observerAmbassador.subscribeObjectClassAttributes(
+      observerClassB,
+      rti::AttributeHandleSet{observerAttributeB},
+      true);
+  requesterAmbassador.subscribeInteractionClass(reportClass);
+  subjectAmbassador.publishObjectClassAttributes(
+      subjectClassA,
+      rti::AttributeHandleSet{subjectAttributeA});
+  subjectAmbassador.publishObjectClassAttributes(
+      subjectClassB,
+      rti::AttributeHandleSet{subjectAttributeB});
+
+  struct ObjectClassCount final {
+    rti::ObjectClassHandle objectClass;
+    std::int32_t count;
+  };
+  auto decodeObjectClassCounts = [&](rti::VariableLengthData const& encoded) {
+    rti::HLAvariableArrayT<rti::HLAoctet> objectClassHandlePrototype;
+    rti::HLAfixedRecord recordPrototype;
+    recordPrototype.appendElement(objectClassHandlePrototype)
+        .appendElement(rti::HLAinteger32BE{});
+    rti::HLAvariableArray counts{recordPrototype};
+    counts.decode(encoded);
+    std::vector<ObjectClassCount> decoded;
+    decoded.reserve(counts.size());
+    for (std::size_t index = 0; index != counts.size(); ++index) {
+      auto const& record =
+          dynamic_cast<rti::HLAfixedRecord const&>(counts.get(index));
+      auto const& encodedObjectClass =
+          dynamic_cast<rti::HLAvariableArray const&>(record.get(0));
+      decoded.push_back({
+          requesterAmbassador.decodeObjectClassHandle(
+              encodedObjectClass.encode()),
+          dynamic_cast<rti::HLAinteger32BE const&>(record.get(1)).get()});
+    }
+    return decoded;
+  };
+
+  auto const discoveriesBefore = observer.recorder().discoveryCount();
+  auto const firstA = subjectAmbassador.registerObjectInstance(subjectClassA);
+  auto const secondA = subjectAmbassador.registerObjectInstance(subjectClassA);
+  auto const firstB = subjectAmbassador.registerObjectInstance(subjectClassB);
+  auto const secondB = subjectAmbassador.registerObjectInstance(subjectClassB);
+  require(
+      firstA.isValid() && secondA.isValid() && firstB.isValid() &&
+          secondB.isValid() && firstA != secondA && firstA != firstB &&
+          firstA != secondB && secondA != firstB && secondA != secondB &&
+          firstB != secondB,
+      "Joined-federate MOM multi-class updated-object registration returned invalid or duplicate object handles");
+  waitFor(
+      observer,
+      [&] {
+        auto const& recorder = observer.recorder();
+        return recorder.hasDiscovery(firstA) && recorder.hasDiscovery(secondA) &&
+            recorder.hasDiscovery(firstB) && recorder.hasDiscovery(secondB);
+      },
+      options,
+      "joined-federate MOM multi-class updated-object discovery");
+  auto const lastDiscovery = observer.recorder().discovery();
+  require(
+      observer.recorder().discoveryCount() == discoveriesBefore + 4U &&
+          (lastDiscovery.object == firstA || lastDiscovery.object == secondA ||
+           lastDiscovery.object == firstB || lastDiscovery.object == secondB) &&
+          lastDiscovery.producer == subject.federateHandle() &&
+          observerAmbassador.getKnownObjectClassHandle(firstA) == observerClassA &&
+          observerAmbassador.getKnownObjectClassHandle(secondA) == observerClassA &&
+          observerAmbassador.getKnownObjectClassHandle(firstB) == observerClassB &&
+          observerAmbassador.getKnownObjectClassHandle(secondB) == observerClassB,
+      "Joined-federate MOM multi-class discovery did not identify all four subject instances by registered class");
+
+  auto updateObject = [&](rti::ObjectInstanceHandle const& object,
+                          rti::AttributeHandle const& attribute,
+                          std::int32_t value) {
+    rti::AttributeHandleValueMap const values{{
+        attribute,
+        rti::HLAbyte{static_cast<rti::Octet>(value)}.encode()}};
+    subjectAmbassador.updateAttributeValues(
+        object,
+        values,
+        rti::VariableLengthData{});
+  };
+  auto const reflectionsBefore = observer.recorder().reflections().size();
+  // Repeated updates in each class must still count a distinct instance once.
+  updateObject(firstA, subjectAttributeA, 11);
+  updateObject(firstA, subjectAttributeA, 12);
+  updateObject(secondA, subjectAttributeA, 13);
+  updateObject(firstB, subjectAttributeB, 21);
+  updateObject(firstB, subjectAttributeB, 22);
+  updateObject(secondB, subjectAttributeB, 23);
+  waitFor(
+      observer,
+      [&] {
+        return observer.recorder().reflections().size() >= reflectionsBefore + 6U;
+      },
+      options,
+      "joined-federate MOM multi-class receive-order reflections");
+
+  std::vector<std::int32_t> firstAValues;
+  std::vector<std::int32_t> secondAValues;
+  std::vector<std::int32_t> firstBValues;
+  std::vector<std::int32_t> secondBValues;
+  auto const reflections = observer.recorder().reflections();
+  for (auto const& reflection : reflections) {
+    if (reflection.object != firstA && reflection.object != secondA &&
+        reflection.object != firstB && reflection.object != secondB) {
+      continue;
+    }
+    auto const attribute =
+        reflection.object == firstA || reflection.object == secondA
+        ? observerAttributeA
+        : observerAttributeB;
+    require(
+        reflection.values.size() == 1U &&
+            reflection.values.count(attribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            reflection.producer == subject.federateHandle() &&
+            !reflection.regions.has_value(),
+        "Joined-federate MOM multi-class update callback had unexpected attribute or transport metadata");
+    rti::HLAbyte decoded;
+    decoded.decode(reflection.values.at(attribute));
+    auto const value = static_cast<std::int32_t>(decoded.get());
+    if (reflection.object == firstA) {
+      firstAValues.push_back(value);
+    } else if (reflection.object == secondA) {
+      secondAValues.push_back(value);
+    } else if (reflection.object == firstB) {
+      firstBValues.push_back(value);
+    } else {
+      secondBValues.push_back(value);
+    }
+  }
+  require(
+      firstAValues == std::vector<std::int32_t>{11, 12} &&
+          secondAValues == std::vector<std::int32_t>{13} &&
+          firstBValues == std::vector<std::int32_t>{21, 22} &&
+          secondBValues == std::vector<std::int32_t>{23},
+      "Joined-federate MOM multi-class callbacks did not preserve all six updated values");
+
+  auto const interactionsBeforeRequest =
+      requester.recorder().interactions().size();
+  rti::ParameterHandleValueMap const requestParameters{{
+      requestFederateParameter,
+      subjectFederate.encode()}};
+  requesterAmbassador.sendInteraction(
+      requestClass,
+      requestParameters,
+      rti::VariableLengthData{});
+  waitFor(
+      requester,
+      [&] {
+        auto const interactions = requester.recorder().interactions();
+        return interactions.size() > interactionsBeforeRequest &&
+            std::any_of(
+                interactions.begin() + static_cast<std::ptrdiff_t>(
+                                           interactionsBeforeRequest),
+                interactions.end(),
+                [&](InteractionRecord const& interaction) {
+                  return interaction.present &&
+                      interaction.interaction == reportClass &&
+                      interaction.parameters.count(reportCountsParameter) == 1U;
+                });
+      },
+      options,
+      "the joined-federate MOM multi-class updated-object report");
+  auto const interactions = requester.recorder().interactions();
+  std::vector<InteractionRecord const*> reports;
+  for (std::size_t index = interactionsBeforeRequest;
+       index != interactions.size();
+       ++index) {
+    if (interactions[index].interaction == reportClass) {
+      reports.push_back(&interactions[index]);
+    }
+  }
+  require(
+      reports.size() == 1U,
+      "A multi-class updated-object query did not deliver exactly one standard report");
+  auto const& report = *reports.front();
+  require(
+      report.present && report.parameters.size() == 1U &&
+          report.parameters.count(reportCountsParameter) == 1U &&
+          report.transportation == reliable && report.tag.empty() &&
+          !report.producer.isValid() && !report.regions.has_value(),
+      "Joined-federate MOM multi-class updated-object report did not use its standard reliable response shape");
+  auto const counts =
+      decodeObjectClassCounts(report.parameters.at(reportCountsParameter));
+  std::optional<std::int32_t> countA;
+  std::optional<std::int32_t> countB;
+  for (auto const& count : counts) {
+    if (count.objectClass == subjectClassA) {
+      require(!countA.has_value(), "The MIM repeated its first updated-class count record");
+      countA = count.count;
+    } else if (count.objectClass == subjectClassB) {
+      require(!countB.has_value(), "The MIM repeated its second updated-class count record");
+      countB = count.count;
+    } else {
+      require(
+          false,
+          "The MIM returned an updated-instance count for an untested class");
+    }
+  }
+  require(
+      counts.size() == 2U && countA == 2 && countB == 2,
+      "Joined-federate MOM updated-object report did not map two distinct updated instances to each registered class");
+
+  requesterAmbassador.unsubscribeInteractionClass(reportClass);
+  observerAmbassador.unsubscribeObjectClassAttributes(
+      observerClassA,
+      rti::AttributeHandleSet{observerAttributeA});
+  observerAmbassador.unsubscribeObjectClassAttributes(
+      observerClassB,
+      rti::AttributeHandleSet{observerAttributeB});
+  subjectAmbassador.deleteObjectInstance(firstA, rti::VariableLengthData{});
+  subjectAmbassador.deleteObjectInstance(secondA, rti::VariableLengthData{});
+  subjectAmbassador.deleteObjectInstance(firstB, rti::VariableLengthData{});
+  subjectAmbassador.deleteObjectInstance(secondB, rti::VariableLengthData{});
+  subjectAmbassador.unpublishObjectClassAttributes(
+      subjectClassA,
+      rti::AttributeHandleSet{subjectAttributeA});
+  subjectAmbassador.unpublishObjectClassAttributes(
+      subjectClassB,
+      rti::AttributeHandleSet{subjectAttributeB});
+  observer.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  requester.resign(rti::NO_ACTION);
+  subjectAmbassador.destroyFederationExecution(federation);
+  observer.disconnect();
+  subject.disconnect();
+  requester.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReportContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReport(options, model);
+}
+
+void scenarioJoinedFederateMomObjectInstancesUpdatedNullReport(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty(),
+      "Joined-federate MOM zero-update reporting requires adapter-supplied FOM and standard MIM modules");
+
+  Session subject(options, model, "mom-updated-null-subject");
+  Session requester(options, model, "mom-updated-null-requester");
+  auto const federation =
+      federationName(options, "joined-federate-mom-object-instances-updated-null-report");
+  subject.connect();
+  requester.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  auto const subjectName = options.ownerFederateName + L"-mom-updated-null-subject";
+  subject.join(subjectName, options.federateType, federation);
+  requester.join(
+      options.memberFederateName + L"-mom-updated-null-requester",
+      options.federateType,
+      federation);
+  auto& requesterAmbassador = requester.rtiAmbassador();
+  auto const requestClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestObjectInstancesUpdated");
+  auto const requestFederateParameter =
+      requesterAmbassador.getParameterHandle(requestClass, L"HLAfederate");
+  auto const reportClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstancesUpdated");
+  auto const reportCountsParameter = requesterAmbassador.getParameterHandle(
+      reportClass,
+      L"HLAobjectInstanceCounts");
+  auto const subjectFederate = subject.federateHandle();
+  auto const reliable =
+      requesterAmbassador.getTransportationTypeHandle(L"HLAreliable");
+  require(
+      requestClass.isValid() && requestFederateParameter.isValid() &&
+          reportClass.isValid() && reportCountsParameter.isValid() &&
+          subjectFederate.isValid() && reliable.isValid(),
+      "Joined-federate MOM zero-update request/report lookup returned an invalid standard handle");
+  requesterAmbassador.subscribeInteractionClass(reportClass);
+
+  auto const interactionsBeforeRequest =
+      requester.recorder().interactions().size();
+  rti::ParameterHandleValueMap const requestParameters{{
+      requestFederateParameter,
+      subjectFederate.encode()}};
+  requesterAmbassador.sendInteraction(
+      requestClass,
+      requestParameters,
+      rti::VariableLengthData{});
+  waitFor(
+      requester,
+      [&] {
+        auto const interactions = requester.recorder().interactions();
+        return interactions.size() > interactionsBeforeRequest &&
+            std::any_of(
+            interactions.begin() + static_cast<std::ptrdiff_t>(
+                                       interactionsBeforeRequest),
+            interactions.end(),
+            [&](InteractionRecord const& interaction) {
+              return interaction.present &&
+                  interaction.interaction == reportClass;
+            });
+      },
+      options,
+      "the standard NULL HLAreportObjectInstancesUpdated response");
+
+  auto const interactions = requester.recorder().interactions();
+  std::vector<InteractionRecord const*> reports;
+  for (std::size_t index = interactionsBeforeRequest;
+       index != interactions.size();
+       ++index) {
+    if (interactions[index].interaction == reportClass) {
+      reports.push_back(&interactions[index]);
+    }
+  }
+  require(
+      reports.size() == 1U,
+      "A joined subject with no successful update calls did not produce exactly one standard NULL report");
+  auto const& report = *reports.front();
+  require(
+      report.present && report.parameters.size() == 1U &&
+          report.parameters.count(reportCountsParameter) == 1U &&
+          report.transportation == reliable && report.tag.empty() &&
+          !report.producer.isValid() && !report.regions.has_value(),
+      "The standard zero-update report did not preserve its reliable one-parameter NULL response shape");
+
+  rti::HLAvariableArrayT<rti::HLAoctet> objectClassHandlePrototype;
+  rti::HLAfixedRecord countRecordPrototype;
+  countRecordPrototype.appendElement(objectClassHandlePrototype)
+      .appendElement(rti::HLAinteger32BE{});
+  rti::HLAvariableArray decodedCounts{countRecordPrototype};
+  auto const& encodedCounts = report.parameters.at(reportCountsParameter);
+  if (encodedCounts.size() != 0U) {
+    decodedCounts.decode(encodedCounts);
+  }
+  require(
+      decodedCounts.size() == 0U,
+      "The standard NULL update report did not expose an undefined or empty HLAobjectClassBasedCounts value");
+
+  requesterAmbassador.unsubscribeInteractionClass(reportClass);
+  requester.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  subject.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectInstancesUpdatedNullReportContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectInstancesUpdatedNullReport(options, model);
+}
+
+void scenarioJoinedFederateMomObjectInstancesReflectedNullReport(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty(),
+      "Joined-federate MOM zero-reflection reporting requires adapter-supplied FOM and standard MIM modules");
+
+  Session subject(options, model, "mom-reflected-null-subject");
+  Session requester(options, model, "mom-reflected-null-requester");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-object-instances-reflected-null-report");
+  subject.connect();
+  requester.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  auto const subjectName = options.ownerFederateName + L"-mom-reflected-null-subject";
+  subject.join(subjectName, options.federateType, federation);
+  requester.join(
+      options.memberFederateName + L"-mom-reflected-null-requester",
+      options.federateType,
+      federation);
+  auto& requesterAmbassador = requester.rtiAmbassador();
+  auto const requestClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestObjectInstancesReflected");
+  auto const requestFederateParameter =
+      requesterAmbassador.getParameterHandle(requestClass, L"HLAfederate");
+  auto const reportClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstancesReflected");
+  auto const reportCountsParameter = requesterAmbassador.getParameterHandle(
+      reportClass,
+      L"HLAobjectInstanceCounts");
+  auto const subjectFederate = subject.federateHandle();
+  auto const reliable =
+      requesterAmbassador.getTransportationTypeHandle(L"HLAreliable");
+  require(
+      requestClass.isValid() && requestFederateParameter.isValid() &&
+          reportClass.isValid() && reportCountsParameter.isValid() &&
+          subjectFederate.isValid() && reliable.isValid(),
+      "Joined-federate MOM zero-reflection request/report lookup returned an invalid standard handle");
+  requesterAmbassador.subscribeInteractionClass(reportClass);
+
+  auto const interactionsBeforeRequest =
+      requester.recorder().interactions().size();
+  rti::ParameterHandleValueMap const requestParameters{{
+      requestFederateParameter,
+      subjectFederate.encode()}};
+  requesterAmbassador.sendInteraction(
+      requestClass,
+      requestParameters,
+      rti::VariableLengthData{});
+  waitFor(
+      requester,
+      [&] {
+        auto const interactions = requester.recorder().interactions();
+        return interactions.size() > interactionsBeforeRequest &&
+            std::any_of(
+                interactions.begin() + static_cast<std::ptrdiff_t>(
+                                           interactionsBeforeRequest),
+                interactions.end(),
+                [&](InteractionRecord const& interaction) {
+                  return interaction.present &&
+                      interaction.interaction == reportClass;
+                });
+      },
+      options,
+      "the standard NULL HLAreportObjectInstancesReflected response");
+
+  auto const interactions = requester.recorder().interactions();
+  std::vector<InteractionRecord const*> reports;
+  for (std::size_t index = interactionsBeforeRequest;
+       index != interactions.size();
+       ++index) {
+    if (interactions[index].interaction == reportClass) {
+      reports.push_back(&interactions[index]);
+    }
+  }
+  require(
+      reports.size() == 1U,
+      "A joined subject with no reflect callbacks did not produce exactly one standard NULL report");
+  auto const& report = *reports.front();
+  require(
+      report.present && report.parameters.size() == 1U &&
+          report.parameters.count(reportCountsParameter) == 1U &&
+          report.transportation == reliable && report.tag.empty() &&
+          !report.producer.isValid() && !report.regions.has_value(),
+      "The standard zero-reflection report did not preserve its reliable one-parameter NULL response shape");
+
+  rti::HLAvariableArrayT<rti::HLAoctet> objectClassHandlePrototype;
+  rti::HLAfixedRecord countRecordPrototype;
+  countRecordPrototype.appendElement(objectClassHandlePrototype)
+      .appendElement(rti::HLAinteger32BE{});
+  rti::HLAvariableArray decodedCounts{countRecordPrototype};
+  auto const& encodedCounts = report.parameters.at(reportCountsParameter);
+  if (encodedCounts.size() != 0U) {
+    decodedCounts.decode(encodedCounts);
+  }
+  require(
+      decodedCounts.size() == 0U,
+      "The standard NULL reflection report did not expose an undefined or empty HLAobjectClassBasedCounts value");
+
+  requesterAmbassador.unsubscribeInteractionClass(reportClass);
+  requester.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  subject.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectInstancesReflectedNullReportContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectInstancesReflectedNullReport(options, model);
+}
+
+void scenarioJoinedFederateMomObjectInstancesReflectedReport(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty(),
+      "Joined-federate MOM reflected-object reporting requires adapter-supplied FOM, standard MIM, object class, and attribute configuration");
+
+  Session requester(options, model, "mom-reflected-target");
+  Session subject(options, model, "mom-reflected-subject");
+  Session monitor(options, model, "mom-reflected-requester");
+  auto const federation =
+      federationName(options, "joined-federate-mom-object-instances-reflected-report");
+  requester.connect();
+  subject.connect();
+  monitor.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  auto const requesterName = options.memberFederateName + L"-mom-reflected-target";
+  auto const subjectName = options.ownerFederateName + L"-mom-reflected-subject";
+  auto const monitorName = options.memberFederateName + L"-mom-reflected-requester";
+  requester.join(requesterName, options.federateType, federation);
+  subject.join(subjectName, options.federateType, federation);
+  monitor.join(monitorName, options.federateType, federation);
+  auto& requesterAmbassador = requester.rtiAmbassador();
+  auto& subjectAmbassador = subject.rtiAmbassador();
+  auto& monitorAmbassador = monitor.rtiAmbassador();
+
+  auto const requestClass = monitorAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestObjectInstancesReflected");
+  auto const requestFederateParameter =
+      monitorAmbassador.getParameterHandle(requestClass, L"HLAfederate");
+  auto const reportClass = monitorAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstancesReflected");
+  auto const reportCountsParameter = monitorAmbassador.getParameterHandle(
+      reportClass,
+      L"HLAobjectInstanceCounts");
+  auto const targetFederate = requester.federateHandle();
+  auto const reliable =
+      monitorAmbassador.getTransportationTypeHandle(L"HLAreliable");
+  auto const requesterObjectClass =
+      requesterAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const requesterAttribute = requesterAmbassador.getAttributeHandle(
+      requesterObjectClass,
+      options.attributeName);
+  auto const subjectObjectClass =
+      subjectAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const subjectAttribute = subjectAmbassador.getAttributeHandle(
+      subjectObjectClass,
+      options.attributeName);
+  require(
+      requestClass.isValid() && requestFederateParameter.isValid() &&
+          reportClass.isValid() && reportCountsParameter.isValid() &&
+          targetFederate.isValid() && reliable.isValid() &&
+          requesterObjectClass.isValid() && requesterAttribute.isValid() &&
+          subjectObjectClass.isValid() && subjectAttribute.isValid() &&
+          requesterObjectClass == subjectObjectClass &&
+          requesterAttribute == subjectAttribute,
+      "Joined-federate MOM reflected-object request/report or adapter-supplied application lookup returned an invalid or inconsistent handle");
+  requesterAmbassador.subscribeObjectClassAttributes(
+      requesterObjectClass,
+      rti::AttributeHandleSet{requesterAttribute},
+      true);
+  monitorAmbassador.subscribeInteractionClass(reportClass);
+  subjectAmbassador.publishObjectClassAttributes(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute});
+
+  struct ObjectClassCount final {
+    rti::ObjectClassHandle objectClass;
+    std::int32_t count;
+  };
+  auto decodeObjectClassCounts = [&](rti::VariableLengthData const& encoded) {
+    rti::HLAvariableArrayT<rti::HLAoctet> objectClassHandlePrototype;
+    rti::HLAfixedRecord recordPrototype;
+    recordPrototype.appendElement(objectClassHandlePrototype)
+        .appendElement(rti::HLAinteger32BE{});
+    rti::HLAvariableArray counts{recordPrototype};
+    counts.decode(encoded);
+
+    std::vector<ObjectClassCount> decoded;
+    decoded.reserve(counts.size());
+    for (std::size_t index = 0; index != counts.size(); ++index) {
+      auto const& record =
+          dynamic_cast<rti::HLAfixedRecord const&>(counts.get(index));
+      auto const& encodedObjectClass =
+          dynamic_cast<rti::HLAvariableArray const&>(record.get(0));
+      decoded.push_back({
+          monitorAmbassador.decodeObjectClassHandle(
+              encodedObjectClass.encode()),
+          dynamic_cast<rti::HLAinteger32BE const&>(record.get(1)).get()});
+    }
+    return decoded;
+  };
+
+  auto const discoveriesBefore = requester.recorder().discoveryCount();
+  auto const firstObject = subjectAmbassador.registerObjectInstance(subjectObjectClass);
+  auto const secondObject = subjectAmbassador.registerObjectInstance(subjectObjectClass);
+  require(
+      firstObject.isValid() && secondObject.isValid() &&
+          firstObject != secondObject,
+      "Joined-federate MOM reflected-object registration returned invalid or duplicate handles");
+  waitFor(
+      requester,
+      [&] {
+        return requester.recorder().hasDiscovery(firstObject) &&
+            requester.recorder().hasDiscovery(secondObject);
+      },
+      options,
+      "joined-federate MOM reflected-object discovery");
+  auto const lastDiscovery = requester.recorder().discovery();
+  require(
+      requester.recorder().discoveryCount() == discoveriesBefore + 2U &&
+          (lastDiscovery.object == firstObject ||
+           lastDiscovery.object == secondObject) &&
+          lastDiscovery.objectClass == requesterObjectClass &&
+          lastDiscovery.producer == subject.federateHandle() &&
+          requesterAmbassador.getKnownObjectClassHandle(firstObject) ==
+              requesterObjectClass &&
+          requesterAmbassador.getKnownObjectClassHandle(secondObject) ==
+              requesterObjectClass,
+      "Joined-federate MOM reflected-object test did not discover exactly both registered instances from the subject class");
+
+  auto updateObject = [&](rti::ObjectInstanceHandle const& object,
+                          std::int32_t value) {
+    rti::AttributeHandleValueMap const values{{
+        subjectAttribute,
+        rti::HLAbyte{static_cast<rti::Octet>(value)}.encode()}};
+    subjectAmbassador.updateAttributeValues(
+        object,
+        values,
+        rti::VariableLengthData{});
+  };
+  // Repeatedly reflecting one instance must still count that instance once.
+  updateObject(firstObject, 1);
+  updateObject(firstObject, 2);
+  updateObject(secondObject, 3);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().reflections().size() >= 3U; },
+      options,
+      "joined-federate MOM reflected-object updates");
+
+  auto const reflections = requester.recorder().reflections();
+  std::vector<std::int32_t> firstValues;
+  std::vector<std::int32_t> secondValues;
+  for (auto const& reflection : reflections) {
+    if (reflection.object != firstObject && reflection.object != secondObject) {
+      continue;
+    }
+    require(
+        reflection.values.size() == 1U &&
+            reflection.values.count(requesterAttribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            reflection.producer == subject.federateHandle() &&
+            !reflection.regions.has_value(),
+        "Joined-federate MOM reflected-object callback had unexpected attribute or transport metadata");
+    rti::HLAbyte decoded;
+    decoded.decode(reflection.values.at(requesterAttribute));
+    if (reflection.object == firstObject) {
+      firstValues.push_back(decoded.get());
+    } else {
+      secondValues.push_back(decoded.get());
+    }
+  }
+  require(
+      firstValues == std::vector<std::int32_t>{1, 2} &&
+          secondValues == std::vector<std::int32_t>{3},
+      "Joined-federate MOM reflected-object callbacks did not contain both instances and all three receive-order values");
+
+  auto const interactionsBeforeRequest =
+      monitor.recorder().interactions().size();
+  rti::ParameterHandleValueMap const requestParameters{{
+      requestFederateParameter,
+      targetFederate.encode()}};
+  monitorAmbassador.sendInteraction(
+      requestClass,
+      requestParameters,
+      rti::VariableLengthData{});
+  waitFor(
+      monitor,
+      [&] {
+        auto const interactions = monitor.recorder().interactions();
+        return interactions.size() > interactionsBeforeRequest &&
+            std::any_of(
+                interactions.begin() + static_cast<std::ptrdiff_t>(
+                                           interactionsBeforeRequest),
+                interactions.end(),
+                [&](InteractionRecord const& interaction) {
+                  return interaction.present &&
+                      interaction.interaction == reportClass &&
+                      interaction.parameters.count(reportCountsParameter) == 1U;
+                });
+      },
+      options,
+      "the joined-federate MOM reflected-object report");
+
+  auto const interactions = monitor.recorder().interactions();
+  std::vector<InteractionRecord const*> reports;
+  for (std::size_t index = interactionsBeforeRequest;
+       index != interactions.size();
+       ++index) {
+    if (interactions[index].interaction == reportClass) {
+      reports.push_back(&interactions[index]);
+    }
+  }
+  require(
+      reports.size() == 1U,
+      "A reflected-object query did not deliver exactly one standard report");
+  auto const& report = *reports.front();
+  require(
+      report.present && report.parameters.size() == 1U &&
+          report.parameters.count(reportCountsParameter) == 1U &&
+          report.transportation == reliable && report.tag.empty() &&
+          !report.producer.isValid() && !report.regions.has_value(),
+      "Joined-federate MOM reflected-object report did not use its standard reliable one-parameter response shape");
+  auto const counts =
+      decodeObjectClassCounts(report.parameters.at(reportCountsParameter));
+  require(
+      counts.size() == 1U && counts.front().objectClass == requesterObjectClass &&
+          counts.front().count == 2,
+      "Joined-federate MOM reflected-object report did not count the two reflected instances once by registered class");
+
+  monitorAmbassador.unsubscribeInteractionClass(reportClass);
+  requesterAmbassador.unsubscribeObjectClassAttributes(
+      requesterObjectClass,
+      rti::AttributeHandleSet{requesterAttribute});
+  subjectAmbassador.deleteObjectInstance(firstObject, rti::VariableLengthData{});
+  subjectAmbassador.deleteObjectInstance(secondObject, rti::VariableLengthData{});
+  subjectAmbassador.unpublishObjectClassAttributes(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute});
+  requester.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  monitor.resign(rti::NO_ACTION);
+  subjectAmbassador.destroyFederationExecution(federation);
+  requester.disconnect();
+  subject.disconnect();
+  monitor.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectInstancesReflectedReportContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectInstancesReflectedReport(options, model);
+}
+
+void scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.objectClassName.empty() && !options.attributeName.empty(),
+      "Joined-federate MOM timestamped reflected-object reporting requires adapter-supplied FOM, standard MIM, object class, and attribute configuration");
+
+  Session requester(options, model, "mom-reflected-timestamped-target");
+  Session subject(options, model, "mom-reflected-timestamped-subject");
+  Session monitor(options, model, "mom-reflected-timestamped-requester");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-object-instances-reflected-timestamped-report");
+  requester.connect();
+  subject.connect();
+  monitor.connect();
+  if (options.logicalTimeImplementationName.empty()) {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring());
+  } else {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        std::vector<std::wstring>{options.fom.wstring()},
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  auto const requesterName =
+      options.memberFederateName + L"-mom-reflected-timestamped-target";
+  auto const subjectName =
+      options.ownerFederateName + L"-mom-reflected-timestamped-subject";
+  auto const monitorName =
+      options.memberFederateName + L"-mom-reflected-timestamped-requester";
+  requester.join(requesterName, options.federateType, federation);
+  subject.join(subjectName, options.federateType, federation);
+  monitor.join(monitorName, options.federateType, federation);
+  auto& requesterAmbassador = requester.rtiAmbassador();
+  auto& subjectAmbassador = subject.rtiAmbassador();
+  auto& monitorAmbassador = monitor.rtiAmbassador();
+
+  auto const requestClass = monitorAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestObjectInstancesReflected");
+  auto const requestFederateParameter =
+      monitorAmbassador.getParameterHandle(requestClass, L"HLAfederate");
+  auto const reportClass = monitorAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstancesReflected");
+  auto const reportCountsParameter = monitorAmbassador.getParameterHandle(
+      reportClass,
+      L"HLAobjectInstanceCounts");
+  auto const targetFederate = requester.federateHandle();
+  auto const reliable =
+      monitorAmbassador.getTransportationTypeHandle(L"HLAreliable");
+  auto const requesterObjectClass =
+      requesterAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const requesterAttribute = requesterAmbassador.getAttributeHandle(
+      requesterObjectClass,
+      options.attributeName);
+  auto const subjectObjectClass =
+      subjectAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const subjectAttribute = subjectAmbassador.getAttributeHandle(
+      subjectObjectClass,
+      options.attributeName);
+  auto const requesterReliable =
+      requesterAmbassador.getTransportationTypeHandle(L"HLAreliable");
+  require(
+      requestClass.isValid() && requestFederateParameter.isValid() &&
+          reportClass.isValid() && reportCountsParameter.isValid() &&
+          targetFederate.isValid() && reliable.isValid() &&
+          requesterReliable.isValid() && requesterObjectClass.isValid() &&
+          requesterAttribute.isValid() && subjectObjectClass.isValid() &&
+          subjectAttribute.isValid() &&
+          requesterObjectClass == subjectObjectClass &&
+          requesterAttribute == subjectAttribute,
+      "Joined-federate MOM timestamped reflected-object request/report or adapter-supplied application lookup returned an invalid or inconsistent handle");
+
+  requesterAmbassador.subscribeObjectClassAttributes(
+      requesterObjectClass,
+      rti::AttributeHandleSet{requesterAttribute},
+      true);
+  monitorAmbassador.subscribeInteractionClass(reportClass);
+  subjectAmbassador.publishObjectClassAttributes(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute});
+  subjectAmbassador.changeDefaultAttributeOrderType(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute},
+      rti::TIMESTAMP);
+
+  auto const discoveriesBefore = requester.recorder().discoveryCount();
+  auto const firstObject =
+      subjectAmbassador.registerObjectInstance(subjectObjectClass);
+  auto const secondObject =
+      subjectAmbassador.registerObjectInstance(subjectObjectClass);
+  require(
+      firstObject.isValid() && secondObject.isValid() &&
+          firstObject != secondObject,
+      "Joined-federate MOM timestamped reflected-object registration returned invalid or duplicate handles");
+  waitFor(
+      requester,
+      [&] {
+        return requester.recorder().hasDiscovery(firstObject) &&
+            requester.recorder().hasDiscovery(secondObject);
+      },
+      options,
+      "joined-federate MOM timestamped reflected-object discovery");
+  auto const lastDiscovery = requester.recorder().discovery();
+  require(
+      requester.recorder().discoveryCount() == discoveriesBefore + 2U &&
+          (lastDiscovery.object == firstObject ||
+           lastDiscovery.object == secondObject) &&
+          lastDiscovery.objectClass == requesterObjectClass &&
+          lastDiscovery.producer == subject.federateHandle() &&
+          requesterAmbassador.getKnownObjectClassHandle(firstObject) ==
+              requesterObjectClass &&
+          requesterAmbassador.getKnownObjectClassHandle(secondObject) ==
+              requesterObjectClass,
+      "Joined-federate MOM timestamped reflected-object test did not discover exactly both registered instances from the subject class");
+
+  auto const subjectTime = makeTimeContext(subject);
+  auto const requesterTime = makeTimeContext(requester);
+  enableTimestampedRoles(
+      subject,
+      requester,
+      subjectTime,
+      requesterTime,
+      options,
+      "joined-federate MOM timestamped reflected-object report");
+  auto const messageTime = timeAfter(
+      *subjectTime.factory,
+      *subjectTime.initial,
+      *subjectTime.epsilon,
+      3U);
+  auto const requesterTarget = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      3U);
+  auto const firstValue = rti::HLAbyte{static_cast<rti::Octet>(1U)};
+  auto const repeatedValue = rti::HLAbyte{static_cast<rti::Octet>(2U)};
+  auto const secondValue = rti::HLAbyte{static_cast<rti::Octet>(3U)};
+  auto const firstValueBytes = copyBytes(firstValue.encode());
+  auto const repeatedValueBytes = copyBytes(repeatedValue.encode());
+  auto const secondValueBytes = copyBytes(secondValue.encode());
+  std::vector<std::uint8_t> const firstTagBytes{0x31U, 0x32U};
+  std::vector<std::uint8_t> const repeatedTagBytes{0x41U, 0x42U};
+  std::vector<std::uint8_t> const secondTagBytes{0x51U, 0x52U};
+  rti::VariableLengthData const firstTag(
+      firstTagBytes.data(),
+      firstTagBytes.size());
+  rti::VariableLengthData const repeatedTag(
+      repeatedTagBytes.data(),
+      repeatedTagBytes.size());
+  rti::VariableLengthData const secondTag(
+      secondTagBytes.data(),
+      secondTagBytes.size());
+  rti::AttributeHandleValueMap const firstValues{{
+      subjectAttribute,
+      firstValue.encode()}};
+  rti::AttributeHandleValueMap const repeatedValues{{
+      subjectAttribute,
+      repeatedValue.encode()}};
+  rti::AttributeHandleValueMap const secondValues{{
+      subjectAttribute,
+      secondValue.encode()}};
+  auto const firstRetraction = subjectAmbassador.updateAttributeValues(
+      firstObject,
+      firstValues,
+      firstTag,
+      *messageTime);
+  auto const repeatedRetraction = subjectAmbassador.updateAttributeValues(
+      firstObject,
+      repeatedValues,
+      repeatedTag,
+      *messageTime);
+  auto const secondRetraction = subjectAmbassador.updateAttributeValues(
+      secondObject,
+      secondValues,
+      secondTag,
+      *messageTime);
+  require(
+      firstRetraction.isValid() && repeatedRetraction.isValid() &&
+          secondRetraction.isValid(),
+      "Joined-federate MOM timestamped Update Attribute Values returned an invalid retraction handle");
+  require(
+      requester.recorder().timedReflections().empty(),
+      "Joined-federate MOM timestamped reflection occurred before the constrained grant");
+
+  requesterAmbassador.timeAdvanceRequest(*requesterTarget);
+  subjectAmbassador.timeAdvanceRequest(*messageTime);
+  try {
+    waitFor(
+        requester,
+        [&] { return requester.recorder().timedReflections().size() >= 3U; },
+        options,
+        "joined-federate MOM timestamped reflect callbacks");
+  } catch (std::exception const& error) {
+    throw std::runtime_error(
+        std::string(error.what()) + " (reflections=" +
+        std::to_string(requester.recorder().timedReflections().size()) +
+        ", target-grants=" +
+        std::to_string(requester.recorder().timeAdvanceGrants().size()) +
+        ", subject-grants=" +
+        std::to_string(subject.recorder().timeAdvanceGrants().size()) + ")");
+  }
+  waitFor(
+      subject,
+      [&] { return subject.recorder().timeAdvanceGrants().size() >= 1U; },
+      options,
+      "joined-federate MOM timestamped subject grant");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeAdvanceGrants().size() >= 1U; },
+      options,
+      "joined-federate MOM timestamped target grant");
+
+  auto const reflections = requester.recorder().timedReflections();
+  require(
+      reflections.size() == 3U,
+      "Joined-federate MOM timestamped updates delivered a duplicate or missing reflection");
+  auto findReflection = [&](rti::ObjectInstanceHandle const& object,
+                            std::vector<std::uint8_t> const& tag) {
+    return std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](TimedReflectionRecord const& reflection) {
+          return reflection.object == object && reflection.tag == tag;
+        });
+  };
+  auto verifyReflection = [&](TimedReflectionRecord const& reflection,
+                              rti::AttributeHandle const& expectedAttribute,
+                              std::vector<std::uint8_t> const& expectedValue,
+                              std::vector<std::uint8_t> const& expectedTag,
+                              std::vector<std::uint8_t> const& expectedTime,
+                              rti::MessageRetractionHandle const& expectedRetraction) {
+    require(
+        reflection.values.size() == 1U &&
+            reflection.values.count(expectedAttribute) == 1U &&
+            copyBytes(reflection.values.at(expectedAttribute)) == expectedValue &&
+            reflection.tag == expectedTag && reflection.time == expectedTime &&
+            !reflection.timeText.empty(),
+        "Joined-federate MOM timestamped reflect callback changed its object value, tag, attribute, or logical-time metadata");
+    require(
+        reflection.producer == subject.federateHandle() &&
+            reflection.sentOrder == rti::TIMESTAMP &&
+            reflection.receivedOrder == rti::TIMESTAMP &&
+            reflection.transportation == requesterReliable &&
+            reflection.retractionPresent &&
+            reflection.retraction == copyBytes(expectedRetraction.encode()) &&
+            !reflection.regions.has_value(),
+        "Joined-federate MOM timestamped reflect callback changed its standard delivery metadata");
+  };
+  auto const expectedTime = encodeTime(*messageTime);
+  auto const firstReflection = findReflection(firstObject, firstTagBytes);
+  auto const repeatedReflection = findReflection(firstObject, repeatedTagBytes);
+  auto const secondReflection = findReflection(secondObject, secondTagBytes);
+  require(
+      firstReflection != reflections.end() &&
+          repeatedReflection != reflections.end() &&
+          secondReflection != reflections.end(),
+      "Joined-federate MOM timestamped reflections did not cover both instances at all requested logical times");
+  verifyReflection(
+      *firstReflection,
+      requesterAttribute,
+      firstValueBytes,
+      firstTagBytes,
+      expectedTime,
+      firstRetraction);
+  verifyReflection(
+      *repeatedReflection,
+      requesterAttribute,
+      repeatedValueBytes,
+      repeatedTagBytes,
+      expectedTime,
+      repeatedRetraction);
+  verifyReflection(
+      *secondReflection,
+      requesterAttribute,
+      secondValueBytes,
+      secondTagBytes,
+      expectedTime,
+      secondRetraction);
+  auto const requesterGrants = requester.recorder().timeAdvanceGrants();
+  auto const subjectGrants = subject.recorder().timeAdvanceGrants();
+  require(
+      requesterGrants.size() == 1U && subjectGrants.size() == 1U &&
+          requesterGrants.front().encoded == encodeTime(*requesterTarget) &&
+          subjectGrants.front().encoded == encodeTime(*messageTime),
+      "Joined-federate MOM timestamped reflections returned the wrong standard time-advance grants");
+  auto const callbackOrder = requester.recorder().callbackOrder();
+  auto const firstGrant = std::find(callbackOrder.begin(), callbackOrder.end(), "grant");
+  require(
+      firstGrant != callbackOrder.end() &&
+          std::count(callbackOrder.begin(), callbackOrder.end(), "reflect") == 3 &&
+          std::all_of(
+              callbackOrder.begin(),
+              firstGrant,
+              [](std::string const& callback) { return callback == "reflect"; }),
+      "Joined-federate MOM timestamped reflect callbacks did not precede the observer's Time Advance Grant");
+
+  auto const interactionsBeforeRequest =
+      monitor.recorder().interactions().size();
+  monitorAmbassador.sendInteraction(
+      requestClass,
+      rti::ParameterHandleValueMap{{
+          requestFederateParameter,
+          targetFederate.encode()}},
+      rti::VariableLengthData{});
+  waitFor(
+      monitor,
+      [&] {
+        auto const interactions = monitor.recorder().interactions();
+        return interactions.size() > interactionsBeforeRequest &&
+            std::any_of(
+                interactions.begin() + static_cast<std::ptrdiff_t>(
+                                           interactionsBeforeRequest),
+                interactions.end(),
+                [&](InteractionRecord const& interaction) {
+                  return interaction.present &&
+                      interaction.interaction == reportClass &&
+                      interaction.parameters.count(reportCountsParameter) == 1U;
+                });
+      },
+      options,
+      "the joined-federate MOM timestamped reflected-object report");
+  auto const interactions = monitor.recorder().interactions();
+  std::vector<InteractionRecord const*> reports;
+  for (std::size_t index = interactionsBeforeRequest;
+       index != interactions.size();
+       ++index) {
+    if (interactions[index].interaction == reportClass) {
+      reports.push_back(&interactions[index]);
+    }
+  }
+  require(
+      reports.size() == 1U,
+      "A timestamped reflected-object query did not deliver exactly one standard report");
+  auto const& report = *reports.front();
+  require(
+      report.present && report.parameters.size() == 1U &&
+          report.parameters.count(reportCountsParameter) == 1U &&
+          report.transportation == reliable && report.tag.empty() &&
+          !report.producer.isValid() && !report.regions.has_value(),
+      "Joined-federate MOM timestamped reflected-object report did not use its standard reliable one-parameter response shape");
+
+  struct ObjectClassCount final {
+    rti::ObjectClassHandle objectClass;
+    std::int32_t count;
+  };
+  rti::HLAvariableArrayT<rti::HLAoctet> objectClassHandlePrototype;
+  rti::HLAfixedRecord recordPrototype;
+  recordPrototype.appendElement(objectClassHandlePrototype)
+      .appendElement(rti::HLAinteger32BE{});
+  rti::HLAvariableArray counts{recordPrototype};
+  counts.decode(report.parameters.at(reportCountsParameter));
+  std::vector<ObjectClassCount> decodedCounts;
+  decodedCounts.reserve(counts.size());
+  for (std::size_t index = 0; index != counts.size(); ++index) {
+    auto const& record =
+        dynamic_cast<rti::HLAfixedRecord const&>(counts.get(index));
+    auto const& encodedObjectClass =
+        dynamic_cast<rti::HLAvariableArray const&>(record.get(0));
+    decodedCounts.push_back({
+        monitorAmbassador.decodeObjectClassHandle(encodedObjectClass.encode()),
+        dynamic_cast<rti::HLAinteger32BE const&>(record.get(1)).get()});
+  }
+  require(
+      decodedCounts.size() == 1U &&
+          decodedCounts.front().objectClass == requesterObjectClass &&
+          decodedCounts.front().count == 2,
+      "Joined-federate MOM timestamped reflected-object report did not count two distinct reflected instances by registered class");
+
+  monitorAmbassador.unsubscribeInteractionClass(reportClass);
+  requesterAmbassador.unsubscribeObjectClassAttributes(
+      requesterObjectClass,
+      rti::AttributeHandleSet{requesterAttribute});
+  subjectAmbassador.deleteObjectInstance(firstObject, rti::VariableLengthData{});
+  subjectAmbassador.deleteObjectInstance(secondObject, rti::VariableLengthData{});
+  subjectAmbassador.unpublishObjectClassAttributes(
+      subjectObjectClass,
+      rti::AttributeHandleSet{subjectAttribute});
+  requester.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  monitor.resign(rti::NO_ACTION);
+  subjectAmbassador.destroyFederationExecution(federation);
+  requester.disconnect();
+  subject.disconnect();
+  monitor.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport(
+      options,
+      model);
+}
+
+void scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReport(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.multiAttributeFom.empty() &&
+          !options.mimFom.empty() && !options.objectClassName.empty() &&
+          !options.attributeName.empty() &&
+          !options.multiAttributeObjectClassName.empty() &&
+          !options.multiAttributeFirstName.empty(),
+      "Joined-federate MOM multi-class reflected-object reporting requires adapter-supplied FOMs, standard MIM, and both object-class/attribute configurations");
+
+  Session target(options, model, "mom-reflected-multi-target");
+  Session subject(options, model, "mom-reflected-multi-subject");
+  Session requester(options, model, "mom-reflected-multi-requester");
+  auto const federation = federationName(
+      options,
+      "joined-federate-mom-object-instances-reflected-multi-class-report");
+  target.connect();
+  subject.connect();
+  requester.connect();
+  std::vector<std::wstring> foms{
+      options.fom.wstring(),
+      options.multiAttributeFom.wstring()};
+  if (options.logicalTimeImplementationName.empty()) {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        foms,
+        options.mimFom.wstring());
+  } else {
+    subject.rtiAmbassador().createFederationExecutionWithMIM(
+        federation,
+        foms,
+        options.mimFom.wstring(),
+        options.logicalTimeImplementationName);
+  }
+
+  auto const targetName = options.memberFederateName + L"-mom-reflected-multi-target";
+  auto const subjectName = options.ownerFederateName + L"-mom-reflected-multi-subject";
+  auto const requesterName =
+      options.memberFederateName + L"-mom-reflected-multi-requester";
+  target.join(targetName, options.federateType, federation);
+  subject.join(subjectName, options.federateType, federation);
+  requester.join(requesterName, options.federateType, federation);
+  auto& targetAmbassador = target.rtiAmbassador();
+  auto& subjectAmbassador = subject.rtiAmbassador();
+  auto& requesterAmbassador = requester.rtiAmbassador();
+
+  auto const requestClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestObjectInstancesReflected");
+  auto const requestFederateParameter =
+      requesterAmbassador.getParameterHandle(requestClass, L"HLAfederate");
+  auto const reportClass = requesterAmbassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstancesReflected");
+  auto const reportCountsParameter = requesterAmbassador.getParameterHandle(
+      reportClass,
+      L"HLAobjectInstanceCounts");
+  auto const targetFederate = target.federateHandle();
+  auto const reliable =
+      requesterAmbassador.getTransportationTypeHandle(L"HLAreliable");
+
+  auto const targetClassA =
+      targetAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const targetAttributeA = targetAmbassador.getAttributeHandle(
+      targetClassA,
+      options.attributeName);
+  auto const subjectClassA =
+      subjectAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const subjectAttributeA = subjectAmbassador.getAttributeHandle(
+      subjectClassA,
+      options.attributeName);
+  auto const targetClassB =
+      targetAmbassador.getObjectClassHandle(options.multiAttributeObjectClassName);
+  auto const targetAttributeB = targetAmbassador.getAttributeHandle(
+      targetClassB,
+      options.multiAttributeFirstName);
+  auto const subjectClassB = subjectAmbassador.getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const subjectAttributeB = subjectAmbassador.getAttributeHandle(
+      subjectClassB,
+      options.multiAttributeFirstName);
+  require(
+      requestClass.isValid() && requestFederateParameter.isValid() &&
+          reportClass.isValid() && reportCountsParameter.isValid() &&
+          targetFederate.isValid() && reliable.isValid() &&
+          targetClassA.isValid() && targetAttributeA.isValid() &&
+          subjectClassA.isValid() && subjectAttributeA.isValid() &&
+          targetClassB.isValid() && targetAttributeB.isValid() &&
+          subjectClassB.isValid() && subjectAttributeB.isValid() &&
+          targetClassA == subjectClassA &&
+          targetAttributeA == subjectAttributeA &&
+          targetClassB == subjectClassB &&
+          targetAttributeB == subjectAttributeB &&
+          targetClassA != targetClassB,
+      "Joined-federate MOM multi-class reflected-object lookup returned invalid or inconsistent standard handles");
+  targetAmbassador.subscribeObjectClassAttributes(
+      targetClassA,
+      rti::AttributeHandleSet{targetAttributeA},
+      true);
+  targetAmbassador.subscribeObjectClassAttributes(
+      targetClassB,
+      rti::AttributeHandleSet{targetAttributeB},
+      true);
+  requesterAmbassador.subscribeInteractionClass(reportClass);
+  subjectAmbassador.publishObjectClassAttributes(
+      subjectClassA,
+      rti::AttributeHandleSet{subjectAttributeA});
+  subjectAmbassador.publishObjectClassAttributes(
+      subjectClassB,
+      rti::AttributeHandleSet{subjectAttributeB});
+
+  struct ObjectClassCount final {
+    rti::ObjectClassHandle objectClass;
+    std::int32_t count;
+  };
+  auto decodeObjectClassCounts = [&](rti::VariableLengthData const& encoded) {
+    rti::HLAvariableArrayT<rti::HLAoctet> objectClassHandlePrototype;
+    rti::HLAfixedRecord recordPrototype;
+    recordPrototype.appendElement(objectClassHandlePrototype)
+        .appendElement(rti::HLAinteger32BE{});
+    rti::HLAvariableArray counts{recordPrototype};
+    counts.decode(encoded);
+    std::vector<ObjectClassCount> decoded;
+    decoded.reserve(counts.size());
+    for (std::size_t index = 0; index != counts.size(); ++index) {
+      auto const& record =
+          dynamic_cast<rti::HLAfixedRecord const&>(counts.get(index));
+      auto const& encodedObjectClass =
+          dynamic_cast<rti::HLAvariableArray const&>(record.get(0));
+      decoded.push_back({
+          requesterAmbassador.decodeObjectClassHandle(
+              encodedObjectClass.encode()),
+          dynamic_cast<rti::HLAinteger32BE const&>(record.get(1)).get()});
+    }
+    return decoded;
+  };
+
+  auto const discoveriesBefore = target.recorder().discoveryCount();
+  auto const firstA = subjectAmbassador.registerObjectInstance(subjectClassA);
+  auto const secondA = subjectAmbassador.registerObjectInstance(subjectClassA);
+  auto const firstB = subjectAmbassador.registerObjectInstance(subjectClassB);
+  auto const secondB = subjectAmbassador.registerObjectInstance(subjectClassB);
+  require(
+      firstA.isValid() && secondA.isValid() && firstB.isValid() &&
+          secondB.isValid() && firstA != secondA && firstA != firstB &&
+          firstA != secondB && secondA != firstB && secondA != secondB &&
+          firstB != secondB,
+      "Joined-federate MOM multi-class registration returned invalid or duplicate object handles");
+  waitFor(
+      target,
+      [&] {
+        auto const& recorder = target.recorder();
+        return recorder.hasDiscovery(firstA) && recorder.hasDiscovery(secondA) &&
+            recorder.hasDiscovery(firstB) && recorder.hasDiscovery(secondB);
+      },
+      options,
+      "joined-federate MOM multi-class reflected-object discovery");
+  auto const lastDiscovery = target.recorder().discovery();
+  require(
+      target.recorder().discoveryCount() == discoveriesBefore + 4U &&
+          (lastDiscovery.object == firstA || lastDiscovery.object == secondA ||
+           lastDiscovery.object == firstB || lastDiscovery.object == secondB) &&
+          lastDiscovery.producer == subject.federateHandle() &&
+          targetAmbassador.getKnownObjectClassHandle(firstA) == targetClassA &&
+          targetAmbassador.getKnownObjectClassHandle(secondA) == targetClassA &&
+          targetAmbassador.getKnownObjectClassHandle(firstB) == targetClassB &&
+          targetAmbassador.getKnownObjectClassHandle(secondB) == targetClassB,
+      "Joined-federate MOM multi-class discovery did not identify all four subject instances by registered class");
+
+  auto updateObject = [&](rti::ObjectInstanceHandle const& object,
+                          rti::AttributeHandle const& attribute,
+                          std::int32_t value) {
+    rti::AttributeHandleValueMap const values{{
+        attribute,
+        rti::HLAbyte{static_cast<rti::Octet>(value)}.encode()}};
+    subjectAmbassador.updateAttributeValues(
+        object,
+        values,
+        rti::VariableLengthData{});
+  };
+  updateObject(firstA, subjectAttributeA, 11);
+  updateObject(firstA, subjectAttributeA, 12);
+  updateObject(secondA, subjectAttributeA, 13);
+  updateObject(firstB, subjectAttributeB, 21);
+  updateObject(firstB, subjectAttributeB, 22);
+  updateObject(secondB, subjectAttributeB, 23);
+  waitFor(
+      target,
+      [&] { return target.recorder().reflections().size() >= 6U; },
+      options,
+      "joined-federate MOM multi-class reflected-object updates");
+
+  std::vector<std::int32_t> firstAValues;
+  std::vector<std::int32_t> secondAValues;
+  std::vector<std::int32_t> firstBValues;
+  std::vector<std::int32_t> secondBValues;
+  auto const reflections = target.recorder().reflections();
+  for (auto const& reflection : reflections) {
+    if (reflection.object != firstA && reflection.object != secondA &&
+        reflection.object != firstB && reflection.object != secondB) {
+      continue;
+    }
+    auto const attribute =
+        reflection.object == firstA || reflection.object == secondA
+        ? targetAttributeA
+        : targetAttributeB;
+    require(
+        reflection.values.size() == 1U &&
+            reflection.values.count(attribute) == 1U &&
+            reflection.transportation == reliable && reflection.tag.empty() &&
+            reflection.producer == subject.federateHandle() &&
+            !reflection.regions.has_value(),
+        "Joined-federate MOM multi-class reflect callback had unexpected value or transport metadata");
+    rti::HLAbyte decoded;
+    decoded.decode(reflection.values.at(attribute));
+    auto const value = static_cast<std::int32_t>(decoded.get());
+    if (reflection.object == firstA) {
+      firstAValues.push_back(value);
+    } else if (reflection.object == secondA) {
+      secondAValues.push_back(value);
+    } else if (reflection.object == firstB) {
+      firstBValues.push_back(value);
+    } else {
+      secondBValues.push_back(value);
+    }
+  }
+  require(
+      firstAValues == std::vector<std::int32_t>{11, 12} &&
+          secondAValues == std::vector<std::int32_t>{13} &&
+          firstBValues == std::vector<std::int32_t>{21, 22} &&
+          secondBValues == std::vector<std::int32_t>{23},
+      "Joined-federate MOM multi-class callbacks did not preserve the expected instance values");
+
+  auto const interactionsBeforeRequest =
+      requester.recorder().interactions().size();
+  rti::ParameterHandleValueMap const requestParameters{{
+      requestFederateParameter,
+      targetFederate.encode()}};
+  requesterAmbassador.sendInteraction(
+      requestClass,
+      requestParameters,
+      rti::VariableLengthData{});
+  waitFor(
+      requester,
+      [&] {
+        auto const interactions = requester.recorder().interactions();
+        return interactions.size() > interactionsBeforeRequest &&
+            std::any_of(
+                interactions.begin() + static_cast<std::ptrdiff_t>(
+                                           interactionsBeforeRequest),
+                interactions.end(),
+                [&](InteractionRecord const& interaction) {
+                  return interaction.present &&
+                      interaction.interaction == reportClass &&
+                      interaction.parameters.count(reportCountsParameter) == 1U;
+                });
+      },
+      options,
+      "the joined-federate MOM multi-class reflected-object report");
+  auto const interactions = requester.recorder().interactions();
+  std::vector<InteractionRecord const*> reports;
+  for (std::size_t index = interactionsBeforeRequest;
+       index != interactions.size();
+       ++index) {
+    if (interactions[index].interaction == reportClass) {
+      reports.push_back(&interactions[index]);
+    }
+  }
+  require(
+      reports.size() == 1U,
+      "A multi-class reflected-object query did not deliver exactly one standard report");
+  auto const& report = *reports.front();
+  require(
+      report.present && report.parameters.size() == 1U &&
+          report.parameters.count(reportCountsParameter) == 1U &&
+          report.transportation == reliable && report.tag.empty() &&
+          !report.producer.isValid() && !report.regions.has_value(),
+      "Joined-federate MOM multi-class report did not use its standard reliable response shape");
+  auto const counts =
+      decodeObjectClassCounts(report.parameters.at(reportCountsParameter));
+  std::optional<std::int32_t> countA;
+  std::optional<std::int32_t> countB;
+  for (auto const& count : counts) {
+    if (count.objectClass == targetClassA) {
+      require(!countA.has_value(), "The MIM repeated its first class count record");
+      countA = count.count;
+    } else if (count.objectClass == targetClassB) {
+      require(!countB.has_value(), "The MIM repeated its second class count record");
+      countB = count.count;
+    } else {
+      require(
+          false,
+          "The MIM returned a reflected-instance count for an untested class");
+    }
+  }
+  require(
+      counts.size() == 2U && countA == 2 && countB == 2,
+      "Joined-federate MOM reflected-object report did not preserve the two-class/two-instance count mapping");
+
+  requesterAmbassador.unsubscribeInteractionClass(reportClass);
+  targetAmbassador.unsubscribeObjectClassAttributes(
+      targetClassA,
+      rti::AttributeHandleSet{targetAttributeA});
+  targetAmbassador.unsubscribeObjectClassAttributes(
+      targetClassB,
+      rti::AttributeHandleSet{targetAttributeB});
+  subjectAmbassador.deleteObjectInstance(firstA, rti::VariableLengthData{});
+  subjectAmbassador.deleteObjectInstance(secondA, rti::VariableLengthData{});
+  subjectAmbassador.deleteObjectInstance(firstB, rti::VariableLengthData{});
+  subjectAmbassador.deleteObjectInstance(secondB, rti::VariableLengthData{});
+  subjectAmbassador.unpublishObjectClassAttributes(
+      subjectClassA,
+      rti::AttributeHandleSet{subjectAttributeA});
+  subjectAmbassador.unpublishObjectClassAttributes(
+      subjectClassB,
+      rti::AttributeHandleSet{subjectAttributeB});
+  target.resign(rti::NO_ACTION);
+  subject.resign(rti::NO_ACTION);
+  requester.resign(rti::NO_ACTION);
+  subjectAmbassador.destroyFederationExecution(federation);
+  target.disconnect();
+  subject.disconnect();
+  requester.disconnect();
+}
+
+void scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReportContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReport(options, model);
 }
 
 void scenarioJoinedFederateMomDeletableObjectCount(
@@ -4925,6 +21882,77 @@ void scenarioJoinedFederateMomDeletableObjectCount(
   requestDeletableCount(
       2,
       "joined-federate MOM two-object value request");
+
+  auto const setTiming = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");
+  auto const timingFederate = observer.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAfederate");
+  auto const reportPeriod = observer.rtiAmbassador().getParameterHandle(
+      setTiming,
+      L"HLAreportPeriod");
+  require(
+      setTiming.isValid() && timingFederate.isValid() && reportPeriod.isValid() &&
+          observer.rtiAmbassador().getInteractionClassName(setTiming) ==
+              L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming" &&
+          observer.rtiAmbassador().getParameterName(setTiming, timingFederate) ==
+              L"HLAfederate" &&
+          observer.rtiAmbassador().getParameterName(setTiming, reportPeriod) ==
+              L"HLAreportPeriod",
+      "Joined-federate MOM deletable-object count HLAsetTiming lookup did not round-trip");
+  auto const beforePeriodic = observer.recorder().reflections().size();
+  observer.rtiAmbassador().sendInteraction(
+      setTiming,
+      rti::ParameterHandleValueMap{
+          {timingFederate, owner.federateHandle().encode()},
+          {reportPeriod, rti::HLAinteger32BE{1}.encode()}},
+      rti::VariableLengthData{});
+  waitFor(
+      observer,
+      [&] {
+        auto const reflections = observer.recorder().reflections();
+        auto const begin = reflections.begin() +
+            static_cast<std::ptrdiff_t>(std::min(beforePeriodic, reflections.size()));
+        return std::any_of(
+            begin,
+            reflections.end(),
+            [&](ReflectionRecord const& reflection) {
+              return reflection.present && reflection.object == ownerMomObject &&
+                  reflection.values.count(observerDeletableCountAttribute) == 1U;
+            });
+      },
+      options,
+      "joined-federate MOM deletable-object periodic reflection");
+  auto const periodicReflections = observer.recorder().reflections();
+  auto const periodicBegin = periodicReflections.begin() +
+      static_cast<std::ptrdiff_t>(std::min(beforePeriodic, periodicReflections.size()));
+  auto const periodicReflection = std::find_if(
+      periodicBegin,
+      periodicReflections.end(),
+      [&](ReflectionRecord const& reflection) {
+        return reflection.present && reflection.object == ownerMomObject &&
+            reflection.values.count(observerDeletableCountAttribute) == 1U;
+      });
+  require(
+      periodicReflection != periodicReflections.end() &&
+          periodicReflection->values.size() == 1U &&
+          periodicReflection->transportation == reliable &&
+          periodicReflection->tag.empty() && !periodicReflection->producer.isValid() &&
+          !periodicReflection->regions.has_value(),
+      "Joined-federate MOM deletable-object periodic reflection metadata was incorrect");
+  rti::HLAinteger32BE periodicDeletableCount;
+  periodicDeletableCount.decode(
+      periodicReflection->values.at(observerDeletableCountAttribute));
+  require(
+      periodicDeletableCount.get() == 2,
+      "Joined-federate MOM deletable-object periodic report returned the wrong count");
+  observer.rtiAmbassador().sendInteraction(
+      setTiming,
+      rti::ParameterHandleValueMap{
+          {timingFederate, owner.federateHandle().encode()},
+          {reportPeriod, rti::HLAinteger32BE{0}.encode()}},
+      rti::VariableLengthData{});
+
   owner.rtiAmbassador().deleteObjectInstance(
       firstObject,
       rti::VariableLengthData{});
@@ -6100,6 +23128,765 @@ void scenarioAttributeOwnershipAcquisitionCancellationContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioAttributeOwnershipAcquisitionCancellation(options, model);
+}
+
+void scenarioNegotiatedDivestitureConfirmationFlow(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Negotiated-divestiture testing requires an adapter-supplied FOM");
+
+  Session owner(options, model, "negotiated-divestiture-owner");
+  Session acquirer(options, model, "negotiated-divestiture-acquirer");
+  auto const federation = federationName(
+      options,
+      "negotiated-divestiture-confirmation-flow");
+  connectAndJoin(owner, acquirer, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const acquirerClass = acquirer.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const acquirerAttribute = acquirer.rtiAmbassador().getAttributeHandle(
+      acquirerClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && acquirerClass.isValid() &&
+          ownerAttribute.isValid() && acquirerAttribute.isValid(),
+      "Negotiated-divestiture lookup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const acquirerAttributes{acquirerAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  acquirer.rtiAmbassador().publishObjectClassAttributes(
+      acquirerClass,
+      acquirerAttributes);
+  acquirer.rtiAmbassador().subscribeObjectClassAttributes(
+      acquirerClass,
+      acquirerAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "Negotiated-divestiture registration returned an invalid object handle");
+  waitFor(
+      acquirer,
+      [&] { return acquirer.recorder().hasDiscovery(object); },
+      options,
+      "negotiated-divestiture object discovery");
+
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          !acquirer.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              acquirerAttribute),
+      "Negotiated-divestiture setup did not establish the standard initial ownership state");
+
+  std::vector<std::uint8_t> const divestitureTagBytes{0x10U, 0xD1U};
+  std::vector<std::uint8_t> const acquisitionRequestTagBytes{0x20U, 0xA2U};
+  std::vector<std::uint8_t> const confirmationTagBytes{0x30U, 0xC3U};
+  rti::VariableLengthData const divestitureTag(
+      divestitureTagBytes.data(),
+      divestitureTagBytes.size());
+  rti::VariableLengthData const acquisitionRequestTag(
+      acquisitionRequestTagBytes.data(),
+      acquisitionRequestTagBytes.size());
+  rti::VariableLengthData const confirmationTag(
+      confirmationTagBytes.data(),
+      confirmationTagBytes.size());
+
+  owner.recorder().clearOwnershipRecords();
+  acquirer.recorder().clearOwnershipRecords();
+  owner.rtiAmbassador().negotiatedAttributeOwnershipDivestiture(
+      object,
+      ownerAttributes,
+      divestitureTag);
+  acquirer.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      acquirerAttributes,
+      acquisitionRequestTag);
+
+  waitFor(
+      owner,
+      [&] { return owner.recorder().divestitureConfirmation().has_value(); },
+      options,
+      "negotiated-divestiture confirmation request");
+  auto const confirmationRequest = owner.recorder().divestitureConfirmation();
+  require(
+      confirmationRequest->object == object &&
+          confirmationRequest->attributes == ownerAttributes &&
+          confirmationRequest->tag == acquisitionRequestTagBytes,
+      "Negotiated-divestiture confirmation request returned the wrong object, attributes, or acquisition tag");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          !acquirer.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              acquirerAttribute) &&
+          !acquirer.recorder().ownershipAcquisition().has_value(),
+      "Negotiated divestiture transferred ownership before confirmation");
+
+  owner.rtiAmbassador().confirmDivestiture(
+      object,
+      ownerAttributes,
+      confirmationTag);
+  waitFor(
+      acquirer,
+      [&] { return acquirer.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "negotiated-divestiture acquisition notification");
+  auto const acquisition = acquirer.recorder().ownershipAcquisition();
+  require(
+      acquisition->object == object &&
+          acquisition->attributes == acquirerAttributes &&
+          acquisition->tag == confirmationTagBytes,
+      "Negotiated-divestiture acquisition notification returned the wrong object, attributes, or confirmation tag");
+  require(
+      !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          acquirer.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              acquirerAttribute),
+      "Confirm Divestiture did not transfer ownership to the acquirer");
+
+  acquirer.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+      object,
+      acquirerAttributes,
+      rti::VariableLengthData{});
+  acquirer.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  acquirer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioNegotiatedDivestitureConfirmationFlowContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioNegotiatedDivestitureConfirmationFlow(options, model);
+}
+
+void scenarioAttributeOwnershipReleaseDenied(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Ownership-release-denial testing requires an adapter-supplied FOM");
+
+  Session owner(options, model, "ownership-release-denial-owner");
+  Session requester(options, model, "ownership-release-denial-requester");
+  auto const federation = federationName(
+      options,
+      "attribute-ownership-release-denied");
+  connectAndJoin(owner, requester, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const requesterAttribute = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && requesterClass.isValid() &&
+          ownerAttribute.isValid() && requesterAttribute.isValid(),
+      "Ownership-release-denial lookup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const requesterAttributes{requesterAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass,
+      requesterAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "Ownership-release-denial registration returned an invalid object handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(object); },
+      options,
+      "ownership-release-denial object discovery");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              requesterAttribute),
+      "Ownership-release-denial setup did not establish the standard initial ownership state");
+
+  std::vector<std::uint8_t> const acquisitionTagBytes{0xA5U, 0x01U};
+  std::vector<std::uint8_t> const denialTagBytes{0xD3U, 0x02U};
+  rti::VariableLengthData const acquisitionTag(
+      acquisitionTagBytes.data(),
+      acquisitionTagBytes.size());
+  rti::VariableLengthData const denialTag(
+      denialTagBytes.data(),
+      denialTagBytes.size());
+  owner.recorder().clearOwnershipRecords();
+  requester.recorder().clearOwnershipRecords();
+
+  requester.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      requesterAttributes,
+      acquisitionTag);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().ownershipReleaseRequest().has_value(); },
+      options,
+      "ownership-release-denial release request");
+  auto const releaseRequest = owner.recorder().ownershipReleaseRequest();
+  require(
+      releaseRequest->object == object &&
+          releaseRequest->attributes == ownerAttributes &&
+          releaseRequest->tag == acquisitionTagBytes,
+      "Ownership-release request returned the wrong object, attributes, or acquisition tag");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              requesterAttribute) &&
+          !requester.recorder().ownershipAcquisition().has_value(),
+      "A pending ownership release request changed ownership before denial");
+
+  owner.rtiAmbassador().attributeOwnershipReleaseDenied(
+      object,
+      ownerAttributes,
+      denialTag);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().ownershipUnavailable().has_value(); },
+      options,
+      "ownership-release-denial unavailable callback");
+  auto const unavailable = requester.recorder().ownershipUnavailable();
+  require(
+      unavailable->object == object &&
+          unavailable->attributes == requesterAttributes &&
+          unavailable->tag == denialTagBytes,
+      "Ownership-unavailable callback returned the wrong object, attributes, or denial tag");
+  require(
+      !requester.recorder().ownershipAcquisition().has_value() &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              requesterAttribute),
+      "Ownership-release denial transferred ownership or delivered an acquisition");
+
+  requester.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioAttributeOwnershipReleaseDeniedContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeOwnershipReleaseDenied(options, model);
+}
+
+void scenarioAttributeOwnershipDivestitureIfWanted(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "If Wanted divestiture testing requires an adapter-supplied FOM");
+
+  Session owner(options, model, "if-wanted-divestiture-owner");
+  Session acquirer(options, model, "if-wanted-divestiture-acquirer");
+  auto const federation = federationName(
+      options,
+      "attribute-ownership-divestiture-if-wanted");
+  connectAndJoin(owner, acquirer, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const acquirerClass = acquirer.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const acquirerAttribute = acquirer.rtiAmbassador().getAttributeHandle(
+      acquirerClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && acquirerClass.isValid() &&
+          ownerAttribute.isValid() && acquirerAttribute.isValid(),
+      "If Wanted divestiture lookup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const acquirerAttributes{acquirerAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  acquirer.rtiAmbassador().publishObjectClassAttributes(
+      acquirerClass,
+      acquirerAttributes);
+  acquirer.rtiAmbassador().subscribeObjectClassAttributes(
+      acquirerClass,
+      acquirerAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "If Wanted divestiture registration returned an invalid object handle");
+  waitFor(
+      acquirer,
+      [&] { return acquirer.recorder().hasDiscovery(object); },
+      options,
+      "If Wanted divestiture object discovery");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          !acquirer.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              acquirerAttribute),
+      "If Wanted divestiture setup did not establish the standard initial ownership state");
+
+  std::vector<std::uint8_t> const acquisitionTagBytes{0xA4U, 0x61U};
+  std::vector<std::uint8_t> const divestitureTagBytes{0xD4U, 0x62U};
+  rti::VariableLengthData const acquisitionTag(
+      acquisitionTagBytes.data(),
+      acquisitionTagBytes.size());
+  rti::VariableLengthData const divestitureTag(
+      divestitureTagBytes.data(),
+      divestitureTagBytes.size());
+  owner.recorder().clearOwnershipRecords();
+  acquirer.recorder().clearOwnershipRecords();
+
+  acquirer.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      acquirerAttributes,
+      acquisitionTag);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().ownershipReleaseRequest().has_value(); },
+      options,
+      "If Wanted divestiture release request");
+  auto const releaseRequest = owner.recorder().ownershipReleaseRequest();
+  require(
+      releaseRequest->object == object &&
+          releaseRequest->attributes == ownerAttributes &&
+          releaseRequest->tag == acquisitionTagBytes,
+      "If Wanted divestiture release request returned the wrong metadata");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          !acquirer.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              acquirerAttribute),
+      "A pending If Wanted acquisition changed ownership before divestiture");
+
+  rti::AttributeHandleSet divestedAttributes;
+  owner.rtiAmbassador().attributeOwnershipDivestitureIfWanted(
+      object,
+      ownerAttributes,
+      divestitureTag,
+      divestedAttributes);
+  require(
+      divestedAttributes == ownerAttributes,
+      "If Wanted divestiture did not return the exact transferred attribute set");
+  waitFor(
+      acquirer,
+      [&] { return acquirer.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "If Wanted divestiture acquisition notification");
+  auto const acquisition = acquirer.recorder().ownershipAcquisition();
+  require(
+      acquisition->object == object &&
+          acquisition->attributes == acquirerAttributes &&
+          acquisition->tag == divestitureTagBytes,
+      "If Wanted acquisition notification returned the wrong metadata or divestiture tag");
+  require(
+      !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          acquirer.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              acquirerAttribute),
+      "If Wanted divestiture did not transfer ownership to the pending acquirer");
+
+  std::vector<std::uint8_t> const cleanupDivestitureTagBytes{0xC1U, 0x01U};
+  std::vector<std::uint8_t> const cleanupAcquisitionTagBytes{0xC2U, 0x02U};
+  rti::VariableLengthData const cleanupDivestitureTag(
+      cleanupDivestitureTagBytes.data(),
+      cleanupDivestitureTagBytes.size());
+  rti::VariableLengthData const cleanupAcquisitionTag(
+      cleanupAcquisitionTagBytes.data(),
+      cleanupAcquisitionTagBytes.size());
+  owner.recorder().clearOwnershipRecords();
+  acquirer.recorder().clearOwnershipRecords();
+  acquirer.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+      object,
+      acquirerAttributes,
+      cleanupDivestitureTag);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().ownershipAssumption().has_value(); },
+      options,
+      "If Wanted divestiture cleanup ownership-assumption offer");
+  owner.recorder().clearOwnershipRecords();
+  owner.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+      object,
+      ownerAttributes,
+      cleanupAcquisitionTag);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "If Wanted divestiture cleanup ownership reacquisition");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute),
+      "If Wanted divestiture cleanup did not restore owner ownership");
+
+  acquirer.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  acquirer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioAttributeOwnershipDivestitureIfWantedContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeOwnershipDivestitureIfWanted(options, model);
+}
+
+void scenarioAttributeOwnershipQueryOwnerReport(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Attribute-ownership query testing requires an adapter-supplied FOM");
+
+  Session owner(options, model, "ownership-query-owner");
+  Session observer(options, model, "ownership-query-observer");
+  auto const federation = federationName(
+      options,
+      "attribute-ownership-query-owner-report");
+  connectAndJoin(owner, observer, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const observerClass = observer.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const observerAttribute = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.attributeName);
+  require(
+      ownerClass.isValid() && observerClass.isValid() &&
+          ownerAttribute.isValid() && observerAttribute.isValid(),
+      "Attribute-ownership query lookup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const observerAttributes{observerAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "Attribute-ownership query registration returned an invalid object handle");
+  waitFor(
+      observer,
+      [&] { return observer.recorder().hasDiscovery(object); },
+      options,
+      "attribute-ownership query object discovery");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          !observer.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              observerAttribute),
+      "Attribute-ownership query setup did not establish the standard initial ownership state");
+
+  observer.recorder().clearOwnershipRecords();
+  observer.rtiAmbassador().queryAttributeOwnership(
+      object,
+      observerAttributes);
+  waitFor(
+      observer,
+      [&] {
+        return !observer.recorder().ownershipInformationEvents().empty();
+      },
+      options,
+      "attribute-ownership query Inform Attribute Ownership callback");
+  auto const reports = observer.recorder().ownershipInformationEvents();
+  require(
+      reports.size() == 1U &&
+          reports.front().object == object &&
+          reports.front().attributes == observerAttributes &&
+          reports.front().owner == owner.federateHandle(),
+      "Inform Attribute Ownership returned the wrong object, attributes, or owner handle");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          !observer.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              observerAttribute),
+      "Attribute-ownership query changed the reported ownership state");
+
+  observer.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioAttributeOwnershipQueryOwnerReportContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeOwnershipQueryOwnerReport(options, model);
+}
+
+void scenarioAttributeOwnershipQueryUnownedResult(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.multiAttributeFom.empty(),
+      "Attribute-ownership query testing requires an adapter-supplied multi-attribute FOM");
+
+  Session owner(options, model, "ownership-query-unowned-owner");
+  Session observer(options, model, "ownership-query-unowned-observer");
+  auto const federation = federationName(
+      options,
+      "attribute-ownership-query-unowned-result");
+  connectAndJoin(
+      owner,
+      observer,
+      options,
+      federation,
+      options.multiAttributeFom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const observerClass = observer.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerFirst = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeFirstName);
+  auto const ownerSecond = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeSecondName);
+  auto const observerFirst = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.multiAttributeFirstName);
+  auto const observerSecond = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.multiAttributeSecondName);
+  require(
+      ownerClass.isValid() && observerClass.isValid() && ownerFirst.isValid() &&
+          ownerSecond.isValid() && observerFirst.isValid() &&
+          observerSecond.isValid(),
+      "Attribute-ownership query lookup returned an invalid standard handle");
+  require(
+      ownerFirst != ownerSecond,
+      "Attribute-ownership query adapter supplied duplicate attribute names");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerFirst};
+  rti::AttributeHandleSet const observerAttributes{observerFirst, observerSecond};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "Attribute-ownership query registration returned an invalid object handle");
+  waitFor(
+      observer,
+      [&] { return observer.recorder().hasDiscovery(object); },
+      options,
+      "attribute-ownership query object discovery");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerFirst) &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerSecond) &&
+          !observer.rtiAmbassador().isAttributeOwnedByFederate(object, observerFirst) &&
+          !observer.rtiAmbassador().isAttributeOwnedByFederate(object, observerSecond),
+      "Attribute-ownership query setup did not establish one owned and one unowned attribute");
+
+  observer.recorder().clearOwnershipRecords();
+  observer.rtiAmbassador().queryAttributeOwnership(
+      object,
+      observerAttributes);
+  waitFor(
+      observer,
+      [&] {
+        return observer.recorder().ownershipInformationEvents().size() == 1U &&
+            observer.recorder().ownershipNotOwnedEvents().size() == 1U;
+      },
+      options,
+      "the partitioned ownership query callbacks");
+
+  auto const ownershipInformation =
+      observer.recorder().ownershipInformationEvents();
+  auto const ownershipNotOwned = observer.recorder().ownershipNotOwnedEvents();
+  require(
+      ownershipInformation.front().object == object &&
+          ownershipInformation.front().attributes ==
+              rti::AttributeHandleSet{observerFirst} &&
+          ownershipInformation.front().owner == owner.federateHandle(),
+      "Inform Attribute Ownership did not report the exact owned attribute and owner handle");
+  require(
+      ownershipNotOwned.front().object == object &&
+          ownershipNotOwned.front().attributes ==
+              rti::AttributeHandleSet{observerSecond},
+      "Attribute Is Not Owned did not report the exact unowned attribute");
+  require(
+      observer.recorder().ownershipOwnedByRtiEvents().empty(),
+      "an ordinary unowned attribute was incorrectly reported as RTI-owned");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerFirst) &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerSecond),
+      "the ownership query changed the object's ownership state");
+
+  observer.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioAttributeOwnershipQueryUnownedResultContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeOwnershipQueryUnownedResult(options, model);
+}
+
+void scenarioAttributeOwnershipQueryRtiOwnedResult(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "RTI-owned attribute-query testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
+
+  Session federate(options, model, "ownership-query-rti-owned-federate");
+  auto const federation = federationName(
+      options,
+      "attribute-ownership-query-rti-owned-result");
+  federate.connect();
+  federate.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  federate.join(
+      options.ownerFederateName + L"-ownership-query-rti-owned-federate",
+      options.federateType,
+      federation);
+
+  auto const federateClass = federate.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = federate.rtiAmbassador().getAttributeHandle(
+      federateClass,
+      L"HLAfederateHandle");
+  require(
+      federateClass.isValid() && federateHandleAttribute.isValid() &&
+          federate.rtiAmbassador().getObjectClassName(federateClass) ==
+              L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          federate.rtiAmbassador().getAttributeName(
+              federateClass,
+              federateHandleAttribute) == L"HLAfederateHandle",
+      "Standard-MIM HLAfederate ownership-query lookup returned inconsistent handles");
+
+  federate.recorder().clearDiscovery();
+  federate.recorder().clearReflection();
+  federate.rtiAmbassador().subscribeObjectClassAttributes(
+      federateClass,
+      rti::AttributeHandleSet{federateHandleAttribute},
+      true,
+      L"");
+
+  auto findOwnMomReflection = [&]() -> std::optional<ReflectionRecord> {
+    auto const reflections = federate.recorder().reflections();
+    auto const expectedFederateHandle = copyBytes(federate.federateHandle().encode());
+    auto const iterator = std::find_if(
+        reflections.begin(),
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          auto const value = reflection.values.find(federateHandleAttribute);
+          return reflection.present && value != reflection.values.end() &&
+              copyBytes(value->second) == expectedFederateHandle;
+        });
+    if (iterator == reflections.end()) {
+      return std::nullopt;
+    }
+    return *iterator;
+  };
+  waitFor(
+      federate,
+      [&] { return findOwnMomReflection().has_value(); },
+      options,
+      "standard-MIM self object reflection before ownership query");
+  auto const ownMomReflection = findOwnMomReflection();
+  require(
+      ownMomReflection.has_value() &&
+          federate.rtiAmbassador().getKnownObjectClassHandle(
+              ownMomReflection->object) == federateClass,
+      "Standard-MIM ownership-query setup discovered the wrong joined-federate object");
+
+  federate.recorder().clearOwnershipRecords();
+  federate.rtiAmbassador().queryAttributeOwnership(
+      ownMomReflection->object,
+      rti::AttributeHandleSet{federateHandleAttribute});
+  waitFor(
+      federate,
+      [&] {
+        return federate.recorder().ownershipOwnedByRtiEvents().size() == 1U;
+      },
+      options,
+      "FederateAmbassador::attributeIsOwnedByRTI for HLAfederateHandle");
+  auto const rtiOwned = federate.recorder().ownershipOwnedByRtiEvents();
+  require(
+      rtiOwned.size() == 1U &&
+          rtiOwned.front().object == ownMomReflection->object &&
+          rtiOwned.front().attributes ==
+              rti::AttributeHandleSet{federateHandleAttribute} &&
+          federate.recorder().ownershipInformationEvents().empty() &&
+          federate.recorder().ownershipNotOwnedEvents().empty(),
+      "The standard-MIM ownership query did not report exactly the RTI-owned attribute");
+  require(
+      !federate.rtiAmbassador().isAttributeOwnedByFederate(
+          ownMomReflection->object,
+          federateHandleAttribute),
+      "A joined federate was reported as owner of the RTI-owned standard-MIM attribute");
+
+  federate.resign(rti::NO_ACTION);
+  federate.rtiAmbassador().destroyFederationExecution(federation);
+  federate.disconnect();
+}
+
+void scenarioAttributeOwnershipQueryRtiOwnedResultContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeOwnershipQueryRtiOwnedResult(options, model);
 }
 
 void scenarioUnconditionalAttributeOwnershipDivestiture(
@@ -10541,6 +28328,22 @@ void scenarioDelaySubscriptionEvaluationTimestampedAttributeUpdateContract(
   scenarioDelaySubscriptionEvaluationTimestampedAttributeUpdate(options, model);
 }
 
+void scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdateContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdate(
+      options,
+      model);
+}
+
+void scenarioDelaySubscriptionEvaluationTimestampedRegionalInteractionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioDelaySubscriptionEvaluationTimestampedRegionalInteraction(
+      options,
+      model);
+}
+
 void scenarioFederationSaveRestoreInterlocksContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -10971,6 +28774,46 @@ int runFederationMomCurrentFddScenarios(int argc, char** argv) {
       scenarioFederationMomCurrentFddContractPortable);
 }
 
+int runFederationMomStaticIdentityScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationMomStaticIdentityScenario,
+      federationMomStaticIdentityContractScenario,
+      scenarioFederationMomStaticIdentity,
+      scenarioFederationMomStaticIdentityContract);
+}
+
+int runFederationMomStaticSwitchesScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationMomStaticSwitchesScenario,
+      federationMomStaticSwitchesContractScenario,
+      scenarioFederationMomStaticSwitches,
+      scenarioFederationMomStaticSwitchesContract);
+}
+
+int runFederationMomFederatesInFederationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationMomFederatesInFederationScenario,
+      federationMomFederatesInFederationContractScenario,
+      scenarioFederationMomFederatesInFederation,
+      scenarioFederationMomFederatesInFederationContract);
+}
+
+int runFederationMomFomModuleDesignatorListScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationMomFomModuleDesignatorListScenario,
+      federationMomFomModuleDesignatorListContractScenario,
+      scenarioFederationMomFomModuleDesignatorListPortable,
+      scenarioFederationMomFomModuleDesignatorListContractPortable);
+}
+
 int runFederationMomContentReportsScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -10991,6 +28834,136 @@ int runServiceReportOrderTransportationLookupsScenarios(
       serviceReportOrderTransportationLookupsContractScenario,
       scenarioServiceReportOrderTransportationLookupsPortable,
       scenarioServiceReportOrderTransportationLookupsContractPortable);
+}
+
+int runServiceReportDimensionUpperBoundScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportDimensionUpperBoundScenario,
+      serviceReportDimensionUpperBoundContractScenario,
+      scenarioServiceReportDimensionUpperBoundPortable,
+      scenarioServiceReportDimensionUpperBoundContractPortable);
+}
+
+int runServiceReportDimensionHandleSetScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportDimensionHandleSetScenario,
+      serviceReportDimensionHandleSetContractScenario,
+      scenarioServiceReportDimensionHandleSetPortable,
+      scenarioServiceReportDimensionHandleSetContractPortable);
+}
+
+int runServiceReportRangeBoundsScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportRangeBoundsScenario,
+      serviceReportRangeBoundsContractScenario,
+      scenarioServiceReportRangeBoundsPortable,
+      scenarioServiceReportRangeBoundsContractPortable);
+}
+
+int runServiceReportSetRangeBoundsScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportSetRangeBoundsScenario,
+      serviceReportSetRangeBoundsContractScenario,
+      scenarioServiceReportSetRangeBoundsPortable,
+      scenarioServiceReportSetRangeBoundsContractPortable);
+}
+
+int runServiceReportCommitRegionModificationsScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportCommitRegionModificationsScenario,
+      serviceReportCommitRegionModificationsContractScenario,
+      scenarioServiceReportCommitRegionModificationsPortable,
+      scenarioServiceReportCommitRegionModificationsContractPortable);
+}
+
+int runServiceReportDeleteRegionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportDeleteRegionScenario,
+      serviceReportDeleteRegionContractScenario,
+      scenarioServiceReportDeleteRegionPortable,
+      scenarioServiceReportDeleteRegionContractPortable);
+}
+
+int runServiceReportCreateRegionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportCreateRegionScenario,
+      serviceReportCreateRegionContractScenario,
+      scenarioServiceReportCreateRegionPortable,
+      scenarioServiceReportCreateRegionContractPortable);
+}
+
+int runRegionRangeValidationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      regionRangeValidationScenario,
+      regionRangeValidationContractScenario,
+      scenarioRegionRangeValidationPortable,
+      scenarioRegionRangeValidationContractPortable);
+}
+
+int runRegionRangeDimensionValidationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      regionRangeDimensionValidationScenario,
+      regionRangeDimensionValidationContractScenario,
+      scenarioRegionRangeDimensionValidationPortable,
+      scenarioRegionRangeDimensionValidationContractPortable);
+}
+
+int runServiceReportDimensionNameScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportDimensionNameScenario,
+      serviceReportDimensionNameContractScenario,
+      scenarioServiceReportDimensionNamePortable,
+      scenarioServiceReportDimensionNameContractPortable);
+}
+
+int runServiceReportDimensionHandleScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportDimensionHandleScenario,
+      serviceReportDimensionHandleContractScenario,
+      scenarioServiceReportDimensionHandlePortable,
+      scenarioServiceReportDimensionHandleContractPortable);
+}
+
+int runServiceReportInteractionDimensionsScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportInteractionDimensionsScenario,
+      serviceReportInteractionDimensionsContractScenario,
+      scenarioServiceReportInteractionDimensionsPortable,
+      scenarioServiceReportInteractionDimensionsContractPortable);
+}
+
+int runServiceReportObjectDimensionsScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportObjectDimensionsScenario,
+      serviceReportObjectDimensionsContractScenario,
+      scenarioServiceReportObjectDimensionsPortable,
+      scenarioServiceReportObjectDimensionsContractPortable);
 }
 
 int runServiceReportOrderTransportationLookupFailuresScenarios(
@@ -11061,6 +29034,346 @@ int runServiceReportInteractionScenarios(int argc, char** argv) {
       serviceReportInteractionContractScenario,
       scenarioServiceReportInteractionPortable,
       scenarioServiceReportInteractionContractPortable);
+}
+
+int runServiceReportResignFederationExecutionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportResignFederationExecutionScenario,
+      serviceReportResignFederationExecutionContractScenario,
+      scenarioServiceReportResignFederationExecutionPortable,
+      scenarioServiceReportResignFederationExecutionContractPortable);
+}
+
+int runFederateLostMomReportScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateLostReportScenario,
+      federateLostReportContractScenario,
+      scenarioFederateLostMomReportPortable,
+      scenarioFederateLostMomReportContractPortable);
+}
+
+int runHandleNormalizationMembershipBoundariesScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      handleNormalizationMembershipBoundariesScenario,
+      handleNormalizationMembershipBoundariesContractScenario,
+      scenarioHandleNormalizationMembershipBoundariesPortable,
+      scenarioHandleNormalizationMembershipBoundariesContractPortable);
+}
+
+int runDimensionLookupValidHandlesAfterResignationScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      dimensionLookupValidHandlesAfterResignationScenario,
+      dimensionLookupValidHandlesAfterResignationContractScenario,
+      scenarioDimensionLookupValidHandlesAfterResignationPortable,
+      scenarioDimensionLookupValidHandlesAfterResignationContractPortable);
+}
+
+int runUpdateRateLookupValidInputsAfterResignationScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      updateRateLookupValidInputsAfterResignationScenario,
+      updateRateLookupValidInputsAfterResignationContractScenario,
+      scenarioUpdateRateLookupValidInputsAfterResignationPortable,
+      scenarioUpdateRateLookupValidInputsAfterResignationContractPortable);
+}
+
+int runSupportLookupValidInputsAfterResignationScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      supportLookupValidInputsAfterResignationScenario,
+      supportLookupValidInputsAfterResignationContractScenario,
+      scenarioSupportLookupValidInputsAfterResignationPortable,
+      scenarioSupportLookupValidInputsAfterResignationContractPortable);
+}
+
+int runSupportSwitchGetterLifecycleBoundariesScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      supportSwitchGetterLifecycleBoundariesScenario,
+      supportSwitchGetterLifecycleBoundariesContractScenario,
+      scenarioSupportSwitchGetterLifecycleBoundariesPortable,
+      scenarioSupportSwitchGetterLifecycleBoundariesContractPortable);
+}
+
+int runSupportSwitchSetterLifecycleBoundariesScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      supportSwitchSetterLifecycleBoundariesScenario,
+      supportSwitchSetterLifecycleBoundariesContractScenario,
+      scenarioSupportSwitchSetterLifecycleBoundariesPortable,
+      scenarioSupportSwitchSetterLifecycleBoundariesContractPortable);
+}
+
+int runAutomaticResignDirectiveLifecycleBoundariesScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      automaticResignDirectiveLifecycleBoundariesScenario,
+      automaticResignDirectiveLifecycleBoundariesContractScenario,
+      scenarioAutomaticResignDirectiveLifecycleBoundariesPortable,
+      scenarioAutomaticResignDirectiveLifecycleBoundariesContractPortable);
+}
+
+int runAutomaticResignDirectiveEnumValuesScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      automaticResignDirectiveEnumValuesScenario,
+      automaticResignDirectiveEnumValuesContractScenario,
+      scenarioAutomaticResignDirectiveEnumValuesPortable,
+      scenarioAutomaticResignDirectiveEnumValuesContractPortable);
+}
+
+int runAdvisorySwitchValueRoundTripsScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      advisorySwitchValueRoundTripsScenario,
+      advisorySwitchValueRoundTripsContractScenario,
+      scenarioAdvisorySwitchValueRoundTripsPortable,
+      scenarioAdvisorySwitchValueRoundTripsContractPortable);
+}
+
+int runDuplicateFederateNameJoinBoundaryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      duplicateFederateNameJoinScenario,
+      duplicateFederateNameJoinContractScenario,
+      scenarioDuplicateFederateNameJoinBoundaryPortable,
+      scenarioDuplicateFederateNameJoinBoundaryContractPortable);
+}
+
+int runRepeatedJoinByMemberBoundaryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      repeatedJoinByMemberScenario,
+      repeatedJoinByMemberContractScenario,
+      scenarioRepeatedJoinByMemberBoundaryPortable,
+      scenarioRepeatedJoinByMemberBoundaryContractPortable);
+}
+
+int runForeignFederateNameLookupBoundaryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      foreignFederateNameLookupScenario,
+      foreignFederateNameLookupContractScenario,
+      scenarioForeignFederateNameLookupBoundaryPortable,
+      scenarioForeignFederateNameLookupBoundaryContractPortable);
+}
+
+int runForeignObjectInstanceNameLookupBoundaryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      foreignObjectInstanceNameLookupScenario,
+      foreignObjectInstanceNameLookupContractScenario,
+      scenarioForeignObjectInstanceNameLookupBoundaryPortable,
+      scenarioForeignObjectInstanceNameLookupBoundaryContractPortable);
+}
+
+int runForeignObjectInstanceHandleLookupBoundaryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      foreignObjectInstanceHandleLookupScenario,
+      foreignObjectInstanceHandleLookupContractScenario,
+      scenarioForeignObjectInstanceHandleLookupBoundaryPortable,
+      scenarioForeignObjectInstanceHandleLookupBoundaryContractPortable);
+}
+
+int runLocalDeleteObjectInstanceNameLookupBoundaryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      localDeleteObjectInstanceNameLookupScenario,
+      localDeleteObjectInstanceNameLookupContractScenario,
+      scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable,
+      scenarioLocalDeleteObjectInstanceNameLookupBoundaryContractPortable);
+}
+
+int runRemoteDeleteKnownObjectClassLookupBoundaryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      remoteDeleteKnownObjectClassLookupScenario,
+      remoteDeleteKnownObjectClassLookupContractScenario,
+      scenarioRemoteDeleteKnownObjectClassLookupBoundaryPortable,
+      scenarioRemoteDeleteKnownObjectClassLookupBoundaryContractPortable);
+}
+
+int runRemoteDeleteObjectInstanceNameLookupBoundaryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      remoteDeleteObjectInstanceNameLookupScenario,
+      remoteDeleteObjectInstanceNameLookupContractScenario,
+      scenarioRemoteDeleteObjectInstanceNameLookupBoundaryPortable,
+      scenarioRemoteDeleteObjectInstanceNameLookupBoundaryContractPortable);
+}
+
+int runResignDeleteObjectLookupBoundaryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      resignDeleteObjectLookupScenario,
+      resignDeleteObjectLookupContractScenario,
+      scenarioResignDeleteObjectLookupBoundaryPortable,
+      scenarioResignDeleteObjectLookupBoundaryContractPortable);
+}
+
+int runResignNoActionOwnedAttributesBoundaryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      resignNoActionOwnedAttributesScenario,
+      resignNoActionOwnedAttributesContractScenario,
+      scenarioResignNoActionOwnedAttributesBoundaryPortable,
+      scenarioResignNoActionOwnedAttributesBoundaryContractPortable);
+}
+
+int runResignDeleteObjectsThenDivestCrossObjectEffectsScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      resignDeleteObjectsThenDivestCrossObjectEffectsScenario,
+      resignDeleteObjectsThenDivestCrossObjectEffectsContractScenario,
+      scenarioResignDeleteObjectsThenDivestCrossObjectEffectsPortable,
+      scenarioResignDeleteObjectsThenDivestCrossObjectEffectsContractPortable);
+}
+
+int runResignUnconditionallyDivestAttributesPreservesObjectsScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      resignUnconditionallyDivestAttributesPreservesObjectsScenario,
+      resignUnconditionallyDivestAttributesPreservesObjectsContractScenario,
+      scenarioResignUnconditionallyDivestAttributesPreservesObjectsPortable,
+      scenarioResignUnconditionallyDivestAttributesPreservesObjectsContractPortable);
+}
+
+int runResignCancelPendingOwnershipAcquisitionsScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      resignCancelPendingOwnershipAcquisitionsScenario,
+      resignCancelPendingOwnershipAcquisitionsContractScenario,
+      scenarioResignCancelPendingOwnershipAcquisitionsPortable,
+      scenarioResignCancelPendingOwnershipAcquisitionsContractPortable);
+}
+
+int runResignCancelThenDeleteThenDivestCrossObjectEffectsScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      resignCancelThenDeleteThenDivestCrossObjectEffectsScenario,
+      resignCancelThenDeleteThenDivestCrossObjectEffectsContractScenario,
+      scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable,
+      scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable);
+}
+
+int runStandardOrderTransportLookupsAfterResignationScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      standardOrderTransportLookupsAfterResignationScenario,
+      standardOrderTransportLookupsAfterResignationContractScenario,
+      scenarioStandardOrderTransportLookupsAfterResignationPortable,
+      scenarioStandardOrderTransportLookupsAfterResignationContractPortable);
+}
+
+int runObjectAttributeDeclarationsValidInputsAfterResignationScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      objectAttributeDeclarationsValidInputsAfterResignationScenario,
+      objectAttributeDeclarationsValidInputsAfterResignationContractScenario,
+      scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable,
+      scenarioObjectAttributeDeclarationsValidInputsAfterResignationContractPortable);
+}
+
+int runInteractionDeclarationsValidInputsAfterResignationScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      interactionDeclarationsValidInputsAfterResignationScenario,
+      interactionDeclarationsValidInputsAfterResignationContractScenario,
+      scenarioInteractionDeclarationsValidInputsAfterResignationPortable,
+      scenarioInteractionDeclarationsValidInputsAfterResignationContractPortable);
+}
+
+int runDirectedInteractionDeclarationsValidInputsAfterResignationScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      directedInteractionDeclarationsValidInputsAfterResignationScenario,
+      directedInteractionDeclarationsValidInputsAfterResignationContractScenario,
+      scenarioDirectedInteractionDeclarationsValidInputsAfterResignationPortable,
+      scenarioDirectedInteractionDeclarationsValidInputsAfterResignationContractPortable);
+}
+
+int runInteractionTransportationQueryValidInputsAfterResignationScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      interactionTransportationQueryValidInputsAfterResignationScenario,
+      interactionTransportationQueryValidInputsAfterResignationContractScenario,
+      scenarioInteractionTransportationQueryValidInputsAfterResignationPortable,
+      scenarioInteractionTransportationQueryValidInputsAfterResignationContractPortable);
 }
 
 int runServiceReportReceiveOrderInteractionScenarios(int argc, char** argv) {
@@ -11271,6 +29584,28 @@ int runServiceReportReleaseMultipleObjectInstanceNamesScenarios(
       scenarioServiceReportReleaseMultipleObjectInstanceNamesContractPortable);
 }
 
+int runServiceReportQueryAttributeOwnershipScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportQueryAttributeOwnershipScenario,
+      serviceReportQueryAttributeOwnershipContractScenario,
+      scenarioServiceReportQueryAttributeOwnershipPortable,
+      scenarioServiceReportQueryAttributeOwnershipContractPortable);
+}
+
+int runServiceReportCancelAttributeOwnershipAcquisitionScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportCancelAttributeOwnershipAcquisitionScenario,
+      serviceReportCancelAttributeOwnershipAcquisitionContractScenario,
+      scenarioServiceReportCancelAttributeOwnershipAcquisitionPortable,
+      scenarioServiceReportCancelAttributeOwnershipAcquisitionContractPortable);
+}
+
 int runServiceReportLocalDeleteObjectInstanceScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -11463,6 +29798,166 @@ int runJoinedFederateMomRegisteredObjectCountScenarios(
       scenarioJoinedFederateMomRegisteredObjectCountContract);
 }
 
+int runJoinedFederateMomRoLengthPeriodicScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomRoLengthPeriodicScenario,
+      joinedFederateMomRoLengthPeriodicContractId,
+      scenarioJoinedFederateMomRoLengthPeriodic,
+      scenarioJoinedFederateMomRoLengthPeriodicContract);
+}
+
+int runJoinedFederateMomTsoLengthPeriodicScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomTsoLengthPeriodicScenario,
+      joinedFederateMomTsoLengthPeriodicContractId,
+      scenarioJoinedFederateMomTsoLengthPeriodic,
+      scenarioJoinedFederateMomTsoLengthPeriodicContract);
+}
+
+int runJoinedFederateMomInteractionsReceivedAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomInteractionsReceivedAttributeScenario,
+      joinedFederateMomInteractionsReceivedAttributeContractId,
+      scenarioJoinedFederateMomInteractionsReceivedAttribute,
+      scenarioJoinedFederateMomInteractionsReceivedAttributeContract);
+}
+
+int runJoinedFederateMomInteractionsSentAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomInteractionsSentAttributeScenario,
+      joinedFederateMomInteractionsSentAttributeContractId,
+      scenarioJoinedFederateMomInteractionsSentAttribute,
+      scenarioJoinedFederateMomInteractionsSentAttributeContract);
+}
+
+int runJoinedFederateMomDirectedInteractionsReceivedAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomDirectedInteractionsReceivedAttributeScenario,
+      joinedFederateMomDirectedInteractionsReceivedAttributeContractId,
+      scenarioJoinedFederateMomDirectedInteractionsReceivedAttribute,
+      scenarioJoinedFederateMomDirectedInteractionsReceivedAttributeContract);
+}
+
+int runJoinedFederateMomDirectedInteractionsSentAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomDirectedInteractionsSentAttributeScenario,
+      joinedFederateMomDirectedInteractionsSentAttributeContractId,
+      scenarioJoinedFederateMomDirectedInteractionsSentAttribute,
+      scenarioJoinedFederateMomDirectedInteractionsSentAttributeContract);
+}
+
+int runJoinedFederateMomUpdatesSentAttributeScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomUpdatesSentAttributeScenario,
+      joinedFederateMomUpdatesSentAttributeContractId,
+      scenarioJoinedFederateMomUpdatesSentAttribute,
+      scenarioJoinedFederateMomUpdatesSentAttributeContract);
+}
+
+int runJoinedFederateMomObjectInstancesUpdatedAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectInstancesUpdatedAttributeScenario,
+      joinedFederateMomObjectInstancesUpdatedAttributeContractId,
+      scenarioJoinedFederateMomObjectInstancesUpdatedAttribute,
+      scenarioJoinedFederateMomObjectInstancesUpdatedAttributeContract);
+}
+
+int runJoinedFederateMomObjectInstancesReflectedAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectInstancesReflectedAttributeScenario,
+      joinedFederateMomObjectInstancesReflectedAttributeContractId,
+      scenarioJoinedFederateMomObjectInstancesReflectedAttribute,
+      scenarioJoinedFederateMomObjectInstancesReflectedAttributeContract);
+}
+
+int runJoinedFederateMomReflectionsReceivedAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomReflectionsReceivedAttributeScenario,
+      joinedFederateMomReflectionsReceivedAttributeContractId,
+      scenarioJoinedFederateMomReflectionsReceivedAttribute,
+      scenarioJoinedFederateMomReflectionsReceivedAttributeContract);
+}
+
+int runJoinedFederateMomObjectInstancesDiscoveredAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectInstancesDiscoveredAttributeScenario,
+      joinedFederateMomObjectInstancesDiscoveredAttributeContractId,
+      scenarioJoinedFederateMomObjectInstancesDiscoveredAttribute,
+      scenarioJoinedFederateMomObjectInstancesDiscoveredAttributeContract);
+}
+
+int runJoinedFederateMomObjectInstancesRemovedAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectInstancesRemovedAttributeScenario,
+      joinedFederateMomObjectInstancesRemovedAttributeContractId,
+      scenarioJoinedFederateMomObjectInstancesRemovedAttribute,
+      scenarioJoinedFederateMomObjectInstancesRemovedAttributeContract);
+}
+
+int runJoinedFederateMomObjectInstancesDeletedAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectInstancesDeletedAttributeScenario,
+      joinedFederateMomObjectInstancesDeletedAttributeContractId,
+      scenarioJoinedFederateMomObjectInstancesDeletedAttribute,
+      scenarioJoinedFederateMomObjectInstancesDeletedAttributeContract);
+}
+
+int runJoinedFederateMomObjectLifecycleScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectLifecycleScenario,
+      joinedFederateMomObjectLifecycleContractId,
+      scenarioJoinedFederateMomObjectLifecycle,
+      scenarioJoinedFederateMomObjectLifecycleContract);
+}
+
 int runJoinedFederateMomDeletableObjectReportScenarios(
     int argc,
     char** argv) {
@@ -11473,6 +29968,102 @@ int runJoinedFederateMomDeletableObjectReportScenarios(
       joinedFederateMomDeletableObjectReportContractId,
       scenarioJoinedFederateMomDeletableObjectReport,
       scenarioJoinedFederateMomDeletableObjectReportContract);
+}
+
+int runJoinedFederateMomObjectInstancesUpdatedReportScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectInstancesUpdatedReportScenario,
+      joinedFederateMomObjectInstancesUpdatedReportContractId,
+      scenarioJoinedFederateMomObjectInstancesUpdatedReport,
+      scenarioJoinedFederateMomObjectInstancesUpdatedReportContract);
+}
+
+int runJoinedFederateMomObjectInstancesUpdatedTimestampedReportScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectInstancesUpdatedTimestampedReportScenario,
+      joinedFederateMomObjectInstancesUpdatedTimestampedReportContractId,
+      scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReport,
+      scenarioJoinedFederateMomObjectInstancesUpdatedTimestampedReportContract);
+}
+
+int runJoinedFederateMomObjectInstancesUpdatedMultiClassReportScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectInstancesUpdatedMultiClassReportScenario,
+      joinedFederateMomObjectInstancesUpdatedMultiClassReportContractId,
+      scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReport,
+      scenarioJoinedFederateMomObjectInstancesUpdatedMultiClassReportContract);
+}
+
+int runJoinedFederateMomObjectInstancesUpdatedNullReportScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectInstancesUpdatedNullReportScenario,
+      joinedFederateMomObjectInstancesUpdatedNullReportContractId,
+      scenarioJoinedFederateMomObjectInstancesUpdatedNullReport,
+      scenarioJoinedFederateMomObjectInstancesUpdatedNullReportContract);
+}
+
+int runJoinedFederateMomObjectInstancesReflectedNullReportScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectInstancesReflectedNullReportScenario,
+      joinedFederateMomObjectInstancesReflectedNullReportContractId,
+      scenarioJoinedFederateMomObjectInstancesReflectedNullReport,
+      scenarioJoinedFederateMomObjectInstancesReflectedNullReportContract);
+}
+
+int runJoinedFederateMomObjectInstancesReflectedReportScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectInstancesReflectedReportScenario,
+      joinedFederateMomObjectInstancesReflectedReportContractId,
+      scenarioJoinedFederateMomObjectInstancesReflectedReport,
+      scenarioJoinedFederateMomObjectInstancesReflectedReportContract);
+}
+
+int runJoinedFederateMomObjectInstancesReflectedTimestampedReportScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectInstancesReflectedTimestampedReportScenario,
+      joinedFederateMomObjectInstancesReflectedTimestampedReportContractId,
+      scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport,
+      scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract);
+}
+
+int runJoinedFederateMomObjectInstancesReflectedMultiClassReportScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomObjectInstancesReflectedMultiClassReportScenario,
+      joinedFederateMomObjectInstancesReflectedMultiClassReportContractId,
+      scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReport,
+      scenarioJoinedFederateMomObjectInstancesReflectedMultiClassReportContract);
 }
 
 int runJoinedFederateMomDeletableObjectCountScenarios(
@@ -11557,6 +30148,68 @@ int runAttributeOwnershipAcquisitionCancellationScenarios(
       attributeOwnershipAcquisitionCancellationContractId,
       scenarioAttributeOwnershipAcquisitionCancellation,
       scenarioAttributeOwnershipAcquisitionCancellationContract);
+}
+
+int runNegotiatedDivestitureConfirmationFlowScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      negotiatedDivestitureConfirmationFlowScenario,
+      negotiatedDivestitureConfirmationFlowContractId,
+      scenarioNegotiatedDivestitureConfirmationFlow,
+      scenarioNegotiatedDivestitureConfirmationFlowContract);
+}
+
+int runAttributeOwnershipReleaseDeniedScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      attributeOwnershipReleaseDeniedScenario,
+      attributeOwnershipReleaseDeniedContractId,
+      scenarioAttributeOwnershipReleaseDenied,
+      scenarioAttributeOwnershipReleaseDeniedContract);
+}
+
+int runAttributeOwnershipDivestitureIfWantedScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      attributeOwnershipDivestitureIfWantedScenario,
+      attributeOwnershipDivestitureIfWantedContractId,
+      scenarioAttributeOwnershipDivestitureIfWanted,
+      scenarioAttributeOwnershipDivestitureIfWantedContract);
+}
+
+int runAttributeOwnershipQueryOwnerReportScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      attributeOwnershipQueryOwnerReportScenario,
+      attributeOwnershipQueryOwnerReportContractId,
+      scenarioAttributeOwnershipQueryOwnerReport,
+      scenarioAttributeOwnershipQueryOwnerReportContract);
+}
+
+int runAttributeOwnershipQueryUnownedResultScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      attributeOwnershipQueryUnownedResultScenario,
+      attributeOwnershipQueryUnownedResultContractId,
+      scenarioAttributeOwnershipQueryUnownedResult,
+      scenarioAttributeOwnershipQueryUnownedResultContract);
+}
+
+int runAttributeOwnershipQueryRtiOwnedResultScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      attributeOwnershipQueryRtiOwnedResultScenario,
+      attributeOwnershipQueryRtiOwnedResultContractId,
+      scenarioAttributeOwnershipQueryRtiOwnedResult,
+      scenarioAttributeOwnershipQueryRtiOwnedResultContract);
 }
 
 int runTimestampedDirectedInteractionRetractionScenarios(
@@ -12055,6 +30708,294 @@ int runAutoProvideDisabledExplicitRequestScenarios(int argc, char** argv) {
       scenarioAutoProvideDisabledExplicitRequestContract);
 }
 
+int runFederationAutoProvideMomSwitchScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationAutoProvideMomSwitchScenario,
+      federationAutoProvideMomSwitchContractId,
+      scenarioFederationAutoProvideMomSwitch,
+      scenarioFederationAutoProvideMomSwitchContract);
+}
+
+int runFederateServiceReportingMomSwitchScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateServiceReportingMomSwitchScenario,
+      federateServiceReportingMomSwitchContractId,
+      scenarioFederateServiceReportingMomSwitch,
+      scenarioFederateServiceReportingMomSwitchContract);
+}
+
+int runFederateServiceReportingMomAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateServiceReportingMomAttributeScenario,
+      federateServiceReportingMomAttributeContractId,
+      scenarioFederateServiceReportingMomAttribute,
+      scenarioFederateServiceReportingMomAttributeContract);
+}
+
+int runFederateObjectClassRelevanceAdvisoryMomAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateObjectClassRelevanceAdvisoryMomAttributeScenario,
+      federateObjectClassRelevanceAdvisoryMomAttributeContractId,
+      scenarioFederateObjectClassRelevanceAdvisoryMomAttribute,
+      scenarioFederateObjectClassRelevanceAdvisoryMomAttributeContract);
+}
+
+int runFederateAttributeRelevanceAdvisoryMomAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateAttributeRelevanceAdvisoryMomAttributeScenario,
+      federateAttributeRelevanceAdvisoryMomAttributeContractId,
+      scenarioFederateAttributeRelevanceAdvisoryMomAttribute,
+      scenarioFederateAttributeRelevanceAdvisoryMomAttributeContract);
+}
+
+int runFederateAttributeScopeAdvisoryMomAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateAttributeScopeAdvisoryMomAttributeScenario,
+      federateAttributeScopeAdvisoryMomAttributeContractId,
+      scenarioFederateAttributeScopeAdvisoryMomAttribute,
+      scenarioFederateAttributeScopeAdvisoryMomAttributeContract);
+}
+
+int runFederateInteractionRelevanceAdvisoryMomAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateInteractionRelevanceAdvisoryMomAttributeScenario,
+      federateInteractionRelevanceAdvisoryMomAttributeContractId,
+      scenarioFederateInteractionRelevanceAdvisoryMomAttribute,
+      scenarioFederateInteractionRelevanceAdvisoryMomAttributeContract);
+}
+
+int runFederateAsynchronousDeliveryMomAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateAsynchronousDeliveryMomAttributeScenario,
+      federateAsynchronousDeliveryMomAttributeContractId,
+      scenarioFederateAsynchronousDeliveryMomAttribute,
+      scenarioFederateAsynchronousDeliveryMomAttributeContract);
+}
+
+int runFederateTimeConstrainedMomAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateTimeConstrainedMomAttributeScenario,
+      federateTimeConstrainedMomAttributeContractId,
+      scenarioFederateTimeConstrainedMomAttribute,
+      scenarioFederateTimeConstrainedMomAttributeContract);
+}
+
+int runFederateTimeRegulatingMomAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateTimeRegulatingMomAttributeScenario,
+      federateTimeRegulatingMomAttributeContractId,
+      scenarioFederateTimeRegulatingMomAttribute,
+      scenarioFederateTimeRegulatingMomAttributeContract);
+}
+
+int runFederateLookaheadMomPeriodicScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateLookaheadMomPeriodicScenario,
+      federateLookaheadMomPeriodicContractId,
+      scenarioFederateLookaheadMomPeriodic,
+      scenarioFederateLookaheadMomPeriodicContract);
+}
+
+int runFederateLogicalTimeMomPeriodicScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateLogicalTimeMomPeriodicScenario,
+      federateLogicalTimeMomPeriodicContractId,
+      scenarioFederateLogicalTimeMomPeriodic,
+      scenarioFederateLogicalTimeMomPeriodicContract);
+}
+
+int runFederateTimeManagerStateMomAttributeScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateTimeManagerStateMomAttributeScenario,
+      federateTimeManagerStateMomAttributeContractId,
+      scenarioFederateTimeManagerStateMomAttribute,
+      scenarioFederateTimeManagerStateMomAttributeContract);
+}
+
+int runFederateExceptionReportingMomSwitchScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateExceptionReportingMomSwitchScenario,
+      federateExceptionReportingMomSwitchContractId,
+      scenarioFederateExceptionReportingMomSwitch,
+      scenarioFederateExceptionReportingMomSwitchContract);
+}
+
+int runFederateExceptionReportingMomAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateExceptionReportingMomAttributeScenario,
+      federateExceptionReportingMomAttributeContractId,
+      scenarioFederateExceptionReportingMomAttribute,
+      scenarioFederateExceptionReportingMomAttributeContract);
+}
+
+int runFederateExceptionReportDeliveryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateExceptionReportDeliveryScenario,
+      federateExceptionReportDeliveryContractId,
+      scenarioFederateExceptionReportDelivery,
+      scenarioFederateExceptionReportDeliveryContract);
+}
+
+int runFederateMomExceptionReportDeliveryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomExceptionReportDeliveryScenario,
+      federateMomExceptionReportDeliveryContractId,
+      scenarioFederateMomExceptionReportDelivery,
+      scenarioFederateMomExceptionReportDeliveryContract);
+}
+
+int runFederateMomExceptionMissingParameterScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomExceptionMissingParameterScenario,
+      federateMomExceptionMissingParameterContractId,
+      scenarioFederateMomExceptionMissingParameter,
+      scenarioFederateMomExceptionMissingParameterContract);
+}
+
+int runFederationMomExceptionMissingFomModuleIndicatorScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationMomExceptionMissingFomModuleIndicatorScenario,
+      federationMomExceptionMissingFomModuleIndicatorContractId,
+      scenarioFederationMomExceptionMissingFomModuleIndicator,
+      scenarioFederationMomExceptionMissingFomModuleIndicatorContract);
+}
+
+int runFederateMomFomModuleContentReportScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomFomModuleContentReportScenario,
+      federateMomFomModuleContentReportContractId,
+      scenarioFederateMomFomModuleContentReport,
+      scenarioFederateMomFomModuleContentReportContract);
+}
+
+int runFederateMomObjectInstanceInformationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomObjectInstanceInformationScenario,
+      federateMomObjectInstanceInformationContractId,
+      scenarioFederateMomObjectInstanceInformation,
+      scenarioFederateMomObjectInstanceInformationContract);
+}
+
+int runFederateMomPublicationQueryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomPublicationQueryScenario,
+      federateMomPublicationQueryContractId,
+      scenarioFederateMomPublicationQuery,
+      scenarioFederateMomPublicationQueryContract);
+}
+
+int runFederateMomExceptionReportServicePreconditionScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomExceptionReportServicePreconditionScenario,
+      federateMomExceptionReportServicePreconditionContractId,
+      scenarioFederateMomExceptionReportServicePrecondition,
+      scenarioFederateMomExceptionReportServicePreconditionContract);
+}
+
+int runFederateSendServiceReportsToFileMomSwitchScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateSendServiceReportsToFileMomSwitchScenario,
+      federateSendServiceReportsToFileMomSwitchContractId,
+      scenarioFederateSendServiceReportsToFileMomSwitch,
+      scenarioFederateSendServiceReportsToFileMomSwitchContract);
+}
+
+int runFederateAutomaticResignActionMomSwitchScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateAutomaticResignActionMomSwitchScenario,
+      federateAutomaticResignActionMomSwitchContractId,
+      scenarioFederateAutomaticResignActionMomSwitch,
+      scenarioFederateAutomaticResignActionMomSwitchContract);
+}
+
+int runFederateAutomaticResignActionMomAttributeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateAutomaticResignActionMomAttributeScenario,
+      federateAutomaticResignActionMomAttributeContractId,
+      scenarioFederateAutomaticResignActionMomAttribute,
+      scenarioFederateAutomaticResignActionMomAttributeContract);
+}
+
 int runRegionalAutoProvideResponseScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -12224,6 +31165,18 @@ PortableScenario delaySubscriptionEvaluationScenario(std::string const& id) {
   if (id == delaySubscriptionEvaluationTimestampedAttributeUpdateContractId) {
     return scenarioDelaySubscriptionEvaluationTimestampedAttributeUpdateContract;
   }
+  if (id == delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateScenario) {
+    return scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdate;
+  }
+  if (id == delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateContractId) {
+    return scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdateContract;
+  }
+  if (id == delaySubscriptionEvaluationTimestampedRegionalInteractionScenario) {
+    return scenarioDelaySubscriptionEvaluationTimestampedRegionalInteraction;
+  }
+  if (id == delaySubscriptionEvaluationTimestampedRegionalInteractionContractId) {
+    return scenarioDelaySubscriptionEvaluationTimestampedRegionalInteractionContract;
+  }
   return nullptr;
 }
 
@@ -12233,7 +31186,11 @@ bool isDelaySubscriptionEvaluationTimestamped(std::string const& id) {
       id == delaySubscriptionEvaluationTimestampedDirectedInteractionScenario ||
       id == delaySubscriptionEvaluationTimestampedDirectedInteractionContractId ||
       id == delaySubscriptionEvaluationTimestampedAttributeUpdateScenario ||
-      id == delaySubscriptionEvaluationTimestampedAttributeUpdateContractId;
+      id == delaySubscriptionEvaluationTimestampedAttributeUpdateContractId ||
+      id == delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateScenario ||
+      id == delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateContractId ||
+      id == delaySubscriptionEvaluationTimestampedRegionalInteractionScenario ||
+      id == delaySubscriptionEvaluationTimestampedRegionalInteractionContractId;
 }
 
 int runDelaySubscriptionEvaluationScenarios(int argc, char** argv) {
@@ -12250,6 +31207,13 @@ int runDelaySubscriptionEvaluationScenarios(int argc, char** argv) {
       if (options.switchesFom.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied switch-declaration FOM";
+      } else if ((selected == delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateScenario ||
+                  selected == delaySubscriptionEvaluationTimestampedRegionalAttributeUpdateContractId ||
+                  selected == delaySubscriptionEvaluationTimestampedRegionalInteractionScenario ||
+                  selected == delaySubscriptionEvaluationTimestampedRegionalInteractionContractId) &&
+                 options.ddmFom.empty()) {
+        result.status = "skipped";
+        result.message = "requires an adapter-supplied dimensional FOM";
       } else if (isDelaySubscriptionEvaluationTimestamped(selected) &&
                  options.logicalTimeImplementationName.empty()) {
         result.status = "skipped";
@@ -12903,6 +31867,223 @@ bool hasJoinedFederateMomRegisteredObjectCountScenario(
   return false;
 }
 
+bool hasJoinedFederateMomRoLengthPeriodicScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomRoLengthPeriodicScenario ||
+        scenario == joinedFederateMomRoLengthPeriodicContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomTsoLengthPeriodicScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomTsoLengthPeriodicScenario ||
+        scenario == joinedFederateMomTsoLengthPeriodicContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomInteractionsReceivedAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomInteractionsReceivedAttributeScenario ||
+        scenario == joinedFederateMomInteractionsReceivedAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomInteractionsSentAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomInteractionsSentAttributeScenario ||
+        scenario == joinedFederateMomInteractionsSentAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomDirectedInteractionsReceivedAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomDirectedInteractionsReceivedAttributeScenario ||
+        scenario == joinedFederateMomDirectedInteractionsReceivedAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomDirectedInteractionsSentAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomDirectedInteractionsSentAttributeScenario ||
+        scenario == joinedFederateMomDirectedInteractionsSentAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomUpdatesSentAttributeScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomUpdatesSentAttributeScenario ||
+        scenario == joinedFederateMomUpdatesSentAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectInstancesUpdatedAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectInstancesUpdatedAttributeScenario ||
+        scenario == joinedFederateMomObjectInstancesUpdatedAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectInstancesReflectedAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectInstancesReflectedAttributeScenario ||
+        scenario == joinedFederateMomObjectInstancesReflectedAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomReflectionsReceivedAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomReflectionsReceivedAttributeScenario ||
+        scenario == joinedFederateMomReflectionsReceivedAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectInstancesDiscoveredAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectInstancesDiscoveredAttributeScenario ||
+        scenario ==
+            joinedFederateMomObjectInstancesDiscoveredAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectInstancesRemovedAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectInstancesRemovedAttributeScenario ||
+        scenario == joinedFederateMomObjectInstancesRemovedAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectInstancesDeletedAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectInstancesDeletedAttributeScenario ||
+        scenario == joinedFederateMomObjectInstancesDeletedAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectLifecycleScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectLifecycleScenario ||
+        scenario == joinedFederateMomObjectLifecycleContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasJoinedFederateMomDeletableObjectReportScenario(
     int argc,
     char** argv) {
@@ -12913,6 +32094,134 @@ bool hasJoinedFederateMomDeletableObjectReportScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == joinedFederateMomDeletableObjectReportScenario ||
         scenario == joinedFederateMomDeletableObjectReportContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectInstancesUpdatedReportScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectInstancesUpdatedReportScenario ||
+        scenario == joinedFederateMomObjectInstancesUpdatedReportContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectInstancesUpdatedTimestampedReportScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectInstancesUpdatedTimestampedReportScenario ||
+        scenario == joinedFederateMomObjectInstancesUpdatedTimestampedReportContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectInstancesUpdatedMultiClassReportScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectInstancesUpdatedMultiClassReportScenario ||
+        scenario == joinedFederateMomObjectInstancesUpdatedMultiClassReportContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectInstancesUpdatedNullReportScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectInstancesUpdatedNullReportScenario ||
+        scenario == joinedFederateMomObjectInstancesUpdatedNullReportContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectInstancesReflectedNullReportScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectInstancesReflectedNullReportScenario ||
+        scenario == joinedFederateMomObjectInstancesReflectedNullReportContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectInstancesReflectedReportScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectInstancesReflectedReportScenario ||
+        scenario == joinedFederateMomObjectInstancesReflectedReportContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectInstancesReflectedTimestampedReportScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectInstancesReflectedTimestampedReportScenario ||
+        scenario == joinedFederateMomObjectInstancesReflectedTimestampedReportContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomObjectInstancesReflectedMultiClassReportScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomObjectInstancesReflectedMultiClassReportScenario ||
+        scenario == joinedFederateMomObjectInstancesReflectedMultiClassReportContractId) {
       return true;
     }
   }
@@ -13029,6 +32338,94 @@ bool hasAttributeOwnershipAcquisitionCancellationScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == attributeOwnershipAcquisitionCancellationScenario ||
         scenario == attributeOwnershipAcquisitionCancellationContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasNegotiatedDivestitureConfirmationFlowScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == negotiatedDivestitureConfirmationFlowScenario ||
+        scenario == negotiatedDivestitureConfirmationFlowContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasAttributeOwnershipReleaseDeniedScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == attributeOwnershipReleaseDeniedScenario ||
+        scenario == attributeOwnershipReleaseDeniedContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasAttributeOwnershipDivestitureIfWantedScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == attributeOwnershipDivestitureIfWantedScenario ||
+        scenario == attributeOwnershipDivestitureIfWantedContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasAttributeOwnershipQueryOwnerReportScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == attributeOwnershipQueryOwnerReportScenario ||
+        scenario == attributeOwnershipQueryOwnerReportContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasAttributeOwnershipQueryUnownedResultScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == attributeOwnershipQueryUnownedResultScenario ||
+        scenario == attributeOwnershipQueryUnownedResultContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasAttributeOwnershipQueryRtiOwnedResultScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == attributeOwnershipQueryRtiOwnedResultScenario ||
+        scenario == attributeOwnershipQueryRtiOwnedResultContractId) {
       return true;
     }
   }
@@ -14055,6 +33452,62 @@ bool hasFederationMomCurrentFddScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasFederationMomStaticIdentityScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationMomStaticIdentityScenario ||
+        scenario == federationMomStaticIdentityContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederationMomStaticSwitchesScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationMomStaticSwitchesScenario ||
+        scenario == federationMomStaticSwitchesContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederationMomFederatesInFederationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationMomFederatesInFederationScenario ||
+        scenario == federationMomFederatesInFederationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederationMomFomModuleDesignatorListScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationMomFomModuleDesignatorListScenario ||
+        scenario == federationMomFomModuleDesignatorListContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasFederationMomContentReportsScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -14079,6 +33532,188 @@ bool hasServiceReportOrderTransportationLookupsScenario(
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == serviceReportOrderTransportationLookupsScenario ||
         scenario == serviceReportOrderTransportationLookupsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportDimensionUpperBoundScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportDimensionUpperBoundScenario ||
+        scenario == serviceReportDimensionUpperBoundContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportDimensionHandleSetScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportDimensionHandleSetScenario ||
+        scenario == serviceReportDimensionHandleSetContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportRangeBoundsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportRangeBoundsScenario ||
+        scenario == serviceReportRangeBoundsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportSetRangeBoundsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportSetRangeBoundsScenario ||
+        scenario == serviceReportSetRangeBoundsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportCommitRegionModificationsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportCommitRegionModificationsScenario ||
+        scenario == serviceReportCommitRegionModificationsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportDeleteRegionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportDeleteRegionScenario ||
+        scenario == serviceReportDeleteRegionContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportCreateRegionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportCreateRegionScenario ||
+        scenario == serviceReportCreateRegionContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasRegionRangeValidationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == regionRangeValidationScenario ||
+        scenario == regionRangeValidationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasRegionRangeDimensionValidationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == regionRangeDimensionValidationScenario ||
+        scenario == regionRangeDimensionValidationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportDimensionNameScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportDimensionNameScenario ||
+        scenario == serviceReportDimensionNameContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportDimensionHandleScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportDimensionHandleScenario ||
+        scenario == serviceReportDimensionHandleContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportInteractionDimensionsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportInteractionDimensionsScenario ||
+        scenario == serviceReportInteractionDimensionsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportObjectDimensionsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportObjectDimensionsScenario ||
+        scenario == serviceReportObjectDimensionsContractScenario) {
       return true;
     }
   }
@@ -14173,6 +33808,458 @@ bool hasServiceReportInteractionScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == serviceReportInteractionScenario ||
         scenario == serviceReportInteractionContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportResignFederationExecutionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportResignFederationExecutionScenario ||
+        scenario == serviceReportResignFederationExecutionContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateLostMomReportScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateLostReportScenario ||
+        scenario == federateLostReportContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasHandleNormalizationMembershipBoundariesScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == handleNormalizationMembershipBoundariesScenario ||
+        scenario == handleNormalizationMembershipBoundariesContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasDimensionLookupValidHandlesAfterResignationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == dimensionLookupValidHandlesAfterResignationScenario ||
+        scenario == dimensionLookupValidHandlesAfterResignationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasUpdateRateLookupValidInputsAfterResignationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == updateRateLookupValidInputsAfterResignationScenario ||
+        scenario == updateRateLookupValidInputsAfterResignationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasSupportLookupValidInputsAfterResignationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == supportLookupValidInputsAfterResignationScenario ||
+        scenario == supportLookupValidInputsAfterResignationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasSupportSwitchGetterLifecycleBoundariesScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == supportSwitchGetterLifecycleBoundariesScenario ||
+        scenario == supportSwitchGetterLifecycleBoundariesContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasSupportSwitchSetterLifecycleBoundariesScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == supportSwitchSetterLifecycleBoundariesScenario ||
+        scenario == supportSwitchSetterLifecycleBoundariesContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasAutomaticResignDirectiveLifecycleBoundariesScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == automaticResignDirectiveLifecycleBoundariesScenario ||
+        scenario == automaticResignDirectiveLifecycleBoundariesContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasAutomaticResignDirectiveEnumValuesScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == automaticResignDirectiveEnumValuesScenario ||
+        scenario == automaticResignDirectiveEnumValuesContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasAdvisorySwitchValueRoundTripsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == advisorySwitchValueRoundTripsScenario ||
+        scenario == advisorySwitchValueRoundTripsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasDuplicateFederateNameJoinBoundaryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == duplicateFederateNameJoinScenario ||
+        scenario == duplicateFederateNameJoinContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasRepeatedJoinByMemberBoundaryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == repeatedJoinByMemberScenario ||
+        scenario == repeatedJoinByMemberContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasForeignFederateNameLookupBoundaryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == foreignFederateNameLookupScenario ||
+        scenario == foreignFederateNameLookupContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasForeignObjectInstanceNameLookupBoundaryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == foreignObjectInstanceNameLookupScenario ||
+        scenario == foreignObjectInstanceNameLookupContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasForeignObjectInstanceHandleLookupBoundaryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == foreignObjectInstanceHandleLookupScenario ||
+        scenario == foreignObjectInstanceHandleLookupContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasLocalDeleteObjectInstanceNameLookupBoundaryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == localDeleteObjectInstanceNameLookupScenario ||
+        scenario == localDeleteObjectInstanceNameLookupContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasRemoteDeleteKnownObjectClassLookupBoundaryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == remoteDeleteKnownObjectClassLookupScenario ||
+        scenario == remoteDeleteKnownObjectClassLookupContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasRemoteDeleteObjectInstanceNameLookupBoundaryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == remoteDeleteObjectInstanceNameLookupScenario ||
+        scenario == remoteDeleteObjectInstanceNameLookupContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasResignDeleteObjectLookupBoundaryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == resignDeleteObjectLookupScenario ||
+        scenario == resignDeleteObjectLookupContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasResignNoActionOwnedAttributesBoundaryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == resignNoActionOwnedAttributesScenario ||
+        scenario == resignNoActionOwnedAttributesContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasResignDeleteObjectsThenDivestCrossObjectEffectsScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == resignDeleteObjectsThenDivestCrossObjectEffectsScenario ||
+        scenario == resignDeleteObjectsThenDivestCrossObjectEffectsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasResignUnconditionallyDivestAttributesPreservesObjectsScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == resignUnconditionallyDivestAttributesPreservesObjectsScenario ||
+        scenario == resignUnconditionallyDivestAttributesPreservesObjectsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasResignCancelPendingOwnershipAcquisitionsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == resignCancelPendingOwnershipAcquisitionsScenario ||
+        scenario == resignCancelPendingOwnershipAcquisitionsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasResignCancelThenDeleteThenDivestCrossObjectEffectsScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == resignCancelThenDeleteThenDivestCrossObjectEffectsScenario ||
+        scenario == resignCancelThenDeleteThenDivestCrossObjectEffectsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasStandardOrderTransportLookupsAfterResignationScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == standardOrderTransportLookupsAfterResignationScenario ||
+        scenario == standardOrderTransportLookupsAfterResignationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasObjectAttributeDeclarationsValidInputsAfterResignationScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == objectAttributeDeclarationsValidInputsAfterResignationScenario ||
+        scenario == objectAttributeDeclarationsValidInputsAfterResignationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasInteractionDeclarationsValidInputsAfterResignationScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == interactionDeclarationsValidInputsAfterResignationScenario ||
+        scenario == interactionDeclarationsValidInputsAfterResignationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasDirectedInteractionDeclarationsValidInputsAfterResignationScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == directedInteractionDeclarationsValidInputsAfterResignationScenario ||
+        scenario == directedInteractionDeclarationsValidInputsAfterResignationContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasInteractionTransportationQueryValidInputsAfterResignationScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == interactionTransportationQueryValidInputsAfterResignationScenario ||
+        scenario == interactionTransportationQueryValidInputsAfterResignationContractScenario) {
       return true;
     }
   }
@@ -14465,6 +34552,36 @@ bool hasServiceReportReleaseMultipleObjectInstanceNamesScenario(
   return false;
 }
 
+bool hasServiceReportQueryAttributeOwnershipScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportQueryAttributeOwnershipScenario ||
+        scenario == serviceReportQueryAttributeOwnershipContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportCancelAttributeOwnershipAcquisitionScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportCancelAttributeOwnershipAcquisitionScenario ||
+        scenario == serviceReportCancelAttributeOwnershipAcquisitionContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasServiceReportLocalDeleteObjectInstanceScenario(
     int argc,
     char** argv) {
@@ -14670,6 +34787,394 @@ bool hasAutoProvideDisabledExplicitRequestScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == autoProvideDisabledExplicitRequestScenario ||
         scenario == autoProvideDisabledExplicitRequestContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederationAutoProvideMomSwitchScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationAutoProvideMomSwitchScenario ||
+        scenario == federationAutoProvideMomSwitchContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateServiceReportingMomSwitchScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateServiceReportingMomSwitchScenario ||
+        scenario == federateServiceReportingMomSwitchContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateServiceReportingMomAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateServiceReportingMomAttributeScenario ||
+        scenario == federateServiceReportingMomAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateObjectClassRelevanceAdvisoryMomAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateObjectClassRelevanceAdvisoryMomAttributeScenario ||
+        scenario == federateObjectClassRelevanceAdvisoryMomAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateAttributeRelevanceAdvisoryMomAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateAttributeRelevanceAdvisoryMomAttributeScenario ||
+        scenario == federateAttributeRelevanceAdvisoryMomAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateAttributeScopeAdvisoryMomAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateAttributeScopeAdvisoryMomAttributeScenario ||
+        scenario == federateAttributeScopeAdvisoryMomAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateInteractionRelevanceAdvisoryMomAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateInteractionRelevanceAdvisoryMomAttributeScenario ||
+        scenario == federateInteractionRelevanceAdvisoryMomAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateAsynchronousDeliveryMomAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateAsynchronousDeliveryMomAttributeScenario ||
+        scenario == federateAsynchronousDeliveryMomAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateTimeConstrainedMomAttributeScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateTimeConstrainedMomAttributeScenario ||
+        scenario == federateTimeConstrainedMomAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateTimeRegulatingMomAttributeScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateTimeRegulatingMomAttributeScenario ||
+        scenario == federateTimeRegulatingMomAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateLookaheadMomPeriodicScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateLookaheadMomPeriodicScenario ||
+        scenario == federateLookaheadMomPeriodicContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateLogicalTimeMomPeriodicScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateLogicalTimeMomPeriodicScenario ||
+        scenario == federateLogicalTimeMomPeriodicContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateTimeManagerStateMomAttributeScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateTimeManagerStateMomAttributeScenario ||
+        scenario == federateTimeManagerStateMomAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateExceptionReportingMomSwitchScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateExceptionReportingMomSwitchScenario ||
+        scenario == federateExceptionReportingMomSwitchContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateExceptionReportingMomAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateExceptionReportingMomAttributeScenario ||
+        scenario == federateExceptionReportingMomAttributeContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateExceptionReportDeliveryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateExceptionReportDeliveryScenario ||
+        scenario == federateExceptionReportDeliveryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomExceptionReportDeliveryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomExceptionReportDeliveryScenario ||
+        scenario == federateMomExceptionReportDeliveryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomExceptionMissingParameterScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomExceptionMissingParameterScenario ||
+        scenario == federateMomExceptionMissingParameterContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederationMomExceptionMissingFomModuleIndicatorScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationMomExceptionMissingFomModuleIndicatorScenario ||
+        scenario == federationMomExceptionMissingFomModuleIndicatorContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomFomModuleContentReportScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomFomModuleContentReportScenario ||
+        scenario == federateMomFomModuleContentReportContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomObjectInstanceInformationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomObjectInstanceInformationScenario ||
+        scenario == federateMomObjectInstanceInformationContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomPublicationQueryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomPublicationQueryScenario ||
+        scenario == federateMomPublicationQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomExceptionReportServicePreconditionScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomExceptionReportServicePreconditionScenario ||
+        scenario == federateMomExceptionReportServicePreconditionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateSendServiceReportsToFileMomSwitchScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateSendServiceReportsToFileMomSwitchScenario ||
+        scenario == federateSendServiceReportsToFileMomSwitchContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateAutomaticResignActionMomSwitchScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateAutomaticResignActionMomSwitchScenario ||
+        scenario == federateAutomaticResignActionMomSwitchContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateAutomaticResignActionMomAttributeScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateAutomaticResignActionMomAttributeScenario ||
+        scenario == federateAutomaticResignActionMomAttributeContractId) {
       return true;
     }
   }
@@ -15082,8 +35587,114 @@ int main(int argc, char** argv) {
     if (hasJoinedFederateMomRegisteredObjectCountScenario(argc, argv)) {
       return runJoinedFederateMomRegisteredObjectCountScenarios(argc, argv);
     }
+    if (hasJoinedFederateMomRoLengthPeriodicScenario(argc, argv)) {
+      return runJoinedFederateMomRoLengthPeriodicScenarios(argc, argv);
+    }
+    if (hasJoinedFederateMomTsoLengthPeriodicScenario(argc, argv)) {
+      return runJoinedFederateMomTsoLengthPeriodicScenarios(argc, argv);
+    }
+    if (hasJoinedFederateMomInteractionsReceivedAttributeScenario(argc, argv)) {
+      return runJoinedFederateMomInteractionsReceivedAttributeScenarios(argc, argv);
+    }
+    if (hasJoinedFederateMomInteractionsSentAttributeScenario(argc, argv)) {
+      return runJoinedFederateMomInteractionsSentAttributeScenarios(argc, argv);
+    }
+    if (hasJoinedFederateMomDirectedInteractionsReceivedAttributeScenario(
+            argc,
+            argv)) {
+      return runJoinedFederateMomDirectedInteractionsReceivedAttributeScenarios(
+          argc,
+          argv);
+    }
+    if (hasJoinedFederateMomDirectedInteractionsSentAttributeScenario(
+            argc,
+            argv)) {
+      return runJoinedFederateMomDirectedInteractionsSentAttributeScenarios(
+          argc,
+          argv);
+    }
+    if (hasJoinedFederateMomUpdatesSentAttributeScenario(argc, argv)) {
+      return runJoinedFederateMomUpdatesSentAttributeScenarios(argc, argv);
+    }
+    if (hasJoinedFederateMomObjectInstancesUpdatedAttributeScenario(
+            argc,
+            argv)) {
+      return runJoinedFederateMomObjectInstancesUpdatedAttributeScenarios(
+          argc,
+          argv);
+    }
+    if (hasJoinedFederateMomObjectInstancesReflectedAttributeScenario(
+            argc,
+            argv)) {
+      return runJoinedFederateMomObjectInstancesReflectedAttributeScenarios(
+          argc,
+          argv);
+    }
+     if (hasJoinedFederateMomReflectionsReceivedAttributeScenario(argc, argv)) {
+       return runJoinedFederateMomReflectionsReceivedAttributeScenarios(argc, argv);
+     }
+    if (hasJoinedFederateMomObjectInstancesDiscoveredAttributeScenario(
+            argc,
+            argv)) {
+      return runJoinedFederateMomObjectInstancesDiscoveredAttributeScenarios(
+          argc,
+          argv);
+    }
+    if (hasJoinedFederateMomObjectInstancesRemovedAttributeScenario(
+            argc,
+            argv)) {
+      return runJoinedFederateMomObjectInstancesRemovedAttributeScenarios(
+          argc,
+          argv);
+    }
+    if (hasJoinedFederateMomObjectInstancesDeletedAttributeScenario(
+            argc,
+            argv)) {
+      return runJoinedFederateMomObjectInstancesDeletedAttributeScenarios(
+          argc,
+          argv);
+    }
+    if (hasJoinedFederateMomObjectLifecycleScenario(argc, argv)) {
+      return runJoinedFederateMomObjectLifecycleScenarios(argc, argv);
+    }
     if (hasJoinedFederateMomDeletableObjectReportScenario(argc, argv)) {
       return runJoinedFederateMomDeletableObjectReportScenarios(argc, argv);
+    }
+    if (hasJoinedFederateMomObjectInstancesUpdatedReportScenario(argc, argv)) {
+      return runJoinedFederateMomObjectInstancesUpdatedReportScenarios(argc, argv);
+    }
+    if (hasJoinedFederateMomObjectInstancesUpdatedTimestampedReportScenario(
+            argc, argv)) {
+      return runJoinedFederateMomObjectInstancesUpdatedTimestampedReportScenarios(
+          argc, argv);
+    }
+    if (hasJoinedFederateMomObjectInstancesUpdatedMultiClassReportScenario(
+            argc, argv)) {
+      return runJoinedFederateMomObjectInstancesUpdatedMultiClassReportScenarios(
+          argc, argv);
+    }
+    if (hasJoinedFederateMomObjectInstancesUpdatedNullReportScenario(
+            argc, argv)) {
+      return runJoinedFederateMomObjectInstancesUpdatedNullReportScenarios(
+          argc, argv);
+    }
+    if (hasJoinedFederateMomObjectInstancesReflectedNullReportScenario(
+            argc, argv)) {
+      return runJoinedFederateMomObjectInstancesReflectedNullReportScenarios(
+          argc, argv);
+    }
+    if (hasJoinedFederateMomObjectInstancesReflectedReportScenario(argc, argv)) {
+      return runJoinedFederateMomObjectInstancesReflectedReportScenarios(argc, argv);
+    }
+    if (hasJoinedFederateMomObjectInstancesReflectedTimestampedReportScenario(
+            argc, argv)) {
+      return runJoinedFederateMomObjectInstancesReflectedTimestampedReportScenarios(
+          argc, argv);
+    }
+    if (hasJoinedFederateMomObjectInstancesReflectedMultiClassReportScenario(
+            argc, argv)) {
+      return runJoinedFederateMomObjectInstancesReflectedMultiClassReportScenarios(
+          argc, argv);
     }
     if (hasJoinedFederateMomDeletableObjectCountScenario(argc, argv)) {
       return runJoinedFederateMomDeletableObjectCountScenarios(argc, argv);
@@ -15108,6 +35719,24 @@ int main(int argc, char** argv) {
     }
     if (hasAttributeOwnershipAcquisitionCancellationScenario(argc, argv)) {
       return runAttributeOwnershipAcquisitionCancellationScenarios(argc, argv);
+    }
+    if (hasNegotiatedDivestitureConfirmationFlowScenario(argc, argv)) {
+      return runNegotiatedDivestitureConfirmationFlowScenarios(argc, argv);
+    }
+    if (hasAttributeOwnershipReleaseDeniedScenario(argc, argv)) {
+      return runAttributeOwnershipReleaseDeniedScenarios(argc, argv);
+    }
+    if (hasAttributeOwnershipDivestitureIfWantedScenario(argc, argv)) {
+      return runAttributeOwnershipDivestitureIfWantedScenarios(argc, argv);
+    }
+    if (hasAttributeOwnershipQueryOwnerReportScenario(argc, argv)) {
+      return runAttributeOwnershipQueryOwnerReportScenarios(argc, argv);
+    }
+    if (hasAttributeOwnershipQueryUnownedResultScenario(argc, argv)) {
+      return runAttributeOwnershipQueryUnownedResultScenarios(argc, argv);
+    }
+    if (hasAttributeOwnershipQueryRtiOwnedResultScenario(argc, argv)) {
+      return runAttributeOwnershipQueryRtiOwnedResultScenarios(argc, argv);
     }
     if (hasTimestampedDirectedInteractionRetractionScenario(argc, argv)) {
       return runTimestampedDirectedInteractionRetractionScenarios(argc, argv);
@@ -15322,11 +35951,62 @@ int main(int argc, char** argv) {
     if (hasFederationMomCurrentFddScenario(argc, argv)) {
       return runFederationMomCurrentFddScenarios(argc, argv);
     }
+    if (hasFederationMomStaticIdentityScenario(argc, argv)) {
+      return runFederationMomStaticIdentityScenarios(argc, argv);
+    }
+    if (hasFederationMomStaticSwitchesScenario(argc, argv)) {
+      return runFederationMomStaticSwitchesScenarios(argc, argv);
+    }
+    if (hasFederationMomFederatesInFederationScenario(argc, argv)) {
+      return runFederationMomFederatesInFederationScenarios(argc, argv);
+    }
+    if (hasFederationMomFomModuleDesignatorListScenario(argc, argv)) {
+      return runFederationMomFomModuleDesignatorListScenarios(argc, argv);
+    }
     if (hasFederationMomContentReportsScenario(argc, argv)) {
       return runFederationMomContentReportsScenarios(argc, argv);
     }
     if (hasServiceReportOrderTransportationLookupsScenario(argc, argv)) {
       return runServiceReportOrderTransportationLookupsScenarios(argc, argv);
+    }
+    if (hasServiceReportDimensionUpperBoundScenario(argc, argv)) {
+      return runServiceReportDimensionUpperBoundScenarios(argc, argv);
+    }
+    if (hasServiceReportDimensionHandleSetScenario(argc, argv)) {
+      return runServiceReportDimensionHandleSetScenarios(argc, argv);
+    }
+    if (hasServiceReportRangeBoundsScenario(argc, argv)) {
+      return runServiceReportRangeBoundsScenarios(argc, argv);
+    }
+    if (hasServiceReportSetRangeBoundsScenario(argc, argv)) {
+      return runServiceReportSetRangeBoundsScenarios(argc, argv);
+    }
+    if (hasServiceReportCommitRegionModificationsScenario(argc, argv)) {
+      return runServiceReportCommitRegionModificationsScenarios(argc, argv);
+    }
+    if (hasServiceReportDeleteRegionScenario(argc, argv)) {
+      return runServiceReportDeleteRegionScenarios(argc, argv);
+    }
+    if (hasServiceReportCreateRegionScenario(argc, argv)) {
+      return runServiceReportCreateRegionScenarios(argc, argv);
+    }
+    if (hasRegionRangeValidationScenario(argc, argv)) {
+      return runRegionRangeValidationScenarios(argc, argv);
+    }
+    if (hasRegionRangeDimensionValidationScenario(argc, argv)) {
+      return runRegionRangeDimensionValidationScenarios(argc, argv);
+    }
+    if (hasServiceReportDimensionNameScenario(argc, argv)) {
+      return runServiceReportDimensionNameScenarios(argc, argv);
+    }
+    if (hasServiceReportDimensionHandleScenario(argc, argv)) {
+      return runServiceReportDimensionHandleScenarios(argc, argv);
+    }
+    if (hasServiceReportInteractionDimensionsScenario(argc, argv)) {
+      return runServiceReportInteractionDimensionsScenarios(argc, argv);
+    }
+    if (hasServiceReportObjectDimensionsScenario(argc, argv)) {
+      return runServiceReportObjectDimensionsScenarios(argc, argv);
     }
     if (hasServiceReportOrderTransportationLookupFailuresScenario(argc, argv)) {
       return runServiceReportOrderTransportationLookupFailuresScenarios(argc, argv);
@@ -15345,6 +36025,102 @@ int main(int argc, char** argv) {
     }
     if (hasServiceReportInteractionScenario(argc, argv)) {
       return runServiceReportInteractionScenarios(argc, argv);
+    }
+    if (hasServiceReportResignFederationExecutionScenario(argc, argv)) {
+      return runServiceReportResignFederationExecutionScenarios(argc, argv);
+    }
+    if (hasFederateLostMomReportScenario(argc, argv)) {
+      return runFederateLostMomReportScenarios(argc, argv);
+    }
+    if (hasHandleNormalizationMembershipBoundariesScenario(argc, argv)) {
+      return runHandleNormalizationMembershipBoundariesScenarios(argc, argv);
+    }
+    if (hasDimensionLookupValidHandlesAfterResignationScenario(argc, argv)) {
+      return runDimensionLookupValidHandlesAfterResignationScenarios(argc, argv);
+    }
+    if (hasUpdateRateLookupValidInputsAfterResignationScenario(argc, argv)) {
+      return runUpdateRateLookupValidInputsAfterResignationScenarios(argc, argv);
+    }
+    if (hasSupportLookupValidInputsAfterResignationScenario(argc, argv)) {
+      return runSupportLookupValidInputsAfterResignationScenarios(argc, argv);
+    }
+    if (hasSupportSwitchGetterLifecycleBoundariesScenario(argc, argv)) {
+      return runSupportSwitchGetterLifecycleBoundariesScenarios(argc, argv);
+    }
+    if (hasSupportSwitchSetterLifecycleBoundariesScenario(argc, argv)) {
+      return runSupportSwitchSetterLifecycleBoundariesScenarios(argc, argv);
+    }
+    if (hasAutomaticResignDirectiveLifecycleBoundariesScenario(argc, argv)) {
+      return runAutomaticResignDirectiveLifecycleBoundariesScenarios(argc, argv);
+    }
+    if (hasAutomaticResignDirectiveEnumValuesScenario(argc, argv)) {
+      return runAutomaticResignDirectiveEnumValuesScenarios(argc, argv);
+    }
+    if (hasAdvisorySwitchValueRoundTripsScenario(argc, argv)) {
+      return runAdvisorySwitchValueRoundTripsScenarios(argc, argv);
+    }
+    if (hasDuplicateFederateNameJoinBoundaryScenario(argc, argv)) {
+      return runDuplicateFederateNameJoinBoundaryScenarios(argc, argv);
+    }
+    if (hasRepeatedJoinByMemberBoundaryScenario(argc, argv)) {
+      return runRepeatedJoinByMemberBoundaryScenarios(argc, argv);
+    }
+    if (hasForeignFederateNameLookupBoundaryScenario(argc, argv)) {
+      return runForeignFederateNameLookupBoundaryScenarios(argc, argv);
+    }
+    if (hasForeignObjectInstanceNameLookupBoundaryScenario(argc, argv)) {
+      return runForeignObjectInstanceNameLookupBoundaryScenarios(argc, argv);
+    }
+    if (hasForeignObjectInstanceHandleLookupBoundaryScenario(argc, argv)) {
+      return runForeignObjectInstanceHandleLookupBoundaryScenarios(argc, argv);
+    }
+    if (hasLocalDeleteObjectInstanceNameLookupBoundaryScenario(argc, argv)) {
+      return runLocalDeleteObjectInstanceNameLookupBoundaryScenarios(argc, argv);
+    }
+    if (hasRemoteDeleteKnownObjectClassLookupBoundaryScenario(argc, argv)) {
+      return runRemoteDeleteKnownObjectClassLookupBoundaryScenarios(argc, argv);
+    }
+    if (hasRemoteDeleteObjectInstanceNameLookupBoundaryScenario(argc, argv)) {
+      return runRemoteDeleteObjectInstanceNameLookupBoundaryScenarios(argc, argv);
+    }
+    if (hasResignDeleteObjectLookupBoundaryScenario(argc, argv)) {
+      return runResignDeleteObjectLookupBoundaryScenarios(argc, argv);
+    }
+    if (hasResignNoActionOwnedAttributesBoundaryScenario(argc, argv)) {
+      return runResignNoActionOwnedAttributesBoundaryScenarios(argc, argv);
+    }
+    if (hasResignDeleteObjectsThenDivestCrossObjectEffectsScenario(argc, argv)) {
+      return runResignDeleteObjectsThenDivestCrossObjectEffectsScenarios(argc, argv);
+    }
+    if (hasResignUnconditionallyDivestAttributesPreservesObjectsScenario(
+            argc,
+            argv)) {
+      return runResignUnconditionallyDivestAttributesPreservesObjectsScenarios(
+          argc,
+          argv);
+    }
+    if (hasResignCancelPendingOwnershipAcquisitionsScenario(argc, argv)) {
+      return runResignCancelPendingOwnershipAcquisitionsScenarios(argc, argv);
+    }
+    if (hasResignCancelThenDeleteThenDivestCrossObjectEffectsScenario(argc, argv)) {
+      return runResignCancelThenDeleteThenDivestCrossObjectEffectsScenarios(
+          argc,
+          argv);
+    }
+    if (hasStandardOrderTransportLookupsAfterResignationScenario(argc, argv)) {
+      return runStandardOrderTransportLookupsAfterResignationScenarios(argc, argv);
+    }
+    if (hasObjectAttributeDeclarationsValidInputsAfterResignationScenario(argc, argv)) {
+      return runObjectAttributeDeclarationsValidInputsAfterResignationScenarios(argc, argv);
+    }
+    if (hasInteractionDeclarationsValidInputsAfterResignationScenario(argc, argv)) {
+      return runInteractionDeclarationsValidInputsAfterResignationScenarios(argc, argv);
+    }
+    if (hasDirectedInteractionDeclarationsValidInputsAfterResignationScenario(argc, argv)) {
+      return runDirectedInteractionDeclarationsValidInputsAfterResignationScenarios(argc, argv);
+    }
+    if (hasInteractionTransportationQueryValidInputsAfterResignationScenario(argc, argv)) {
+      return runInteractionTransportationQueryValidInputsAfterResignationScenarios(argc, argv);
     }
     if (hasServiceReportReceiveOrderInteractionScenario(argc, argv)) {
       return runServiceReportReceiveOrderInteractionScenarios(argc, argv);
@@ -15403,6 +36179,12 @@ int main(int argc, char** argv) {
     if (hasServiceReportReleaseMultipleObjectInstanceNamesScenario(argc, argv)) {
       return runServiceReportReleaseMultipleObjectInstanceNamesScenarios(argc, argv);
     }
+    if (hasServiceReportQueryAttributeOwnershipScenario(argc, argv)) {
+      return runServiceReportQueryAttributeOwnershipScenarios(argc, argv);
+    }
+    if (hasServiceReportCancelAttributeOwnershipAcquisitionScenario(argc, argv)) {
+      return runServiceReportCancelAttributeOwnershipAcquisitionScenarios(argc, argv);
+    }
     if (hasServiceReportLocalDeleteObjectInstanceScenario(argc, argv)) {
       return runServiceReportLocalDeleteObjectInstanceScenarios(argc, argv);
     }
@@ -15447,6 +36229,100 @@ int main(int argc, char** argv) {
     }
     if (hasAutoProvideDisabledExplicitRequestScenario(argc, argv)) {
       return runAutoProvideDisabledExplicitRequestScenarios(argc, argv);
+    }
+    if (hasFederationAutoProvideMomSwitchScenario(argc, argv)) {
+      return runFederationAutoProvideMomSwitchScenarios(argc, argv);
+    }
+    if (hasFederateServiceReportingMomSwitchScenario(argc, argv)) {
+      return runFederateServiceReportingMomSwitchScenarios(argc, argv);
+    }
+    if (hasFederateServiceReportingMomAttributeScenario(argc, argv)) {
+      return runFederateServiceReportingMomAttributeScenarios(argc, argv);
+    }
+    if (hasFederateObjectClassRelevanceAdvisoryMomAttributeScenario(
+            argc,
+            argv)) {
+      return runFederateObjectClassRelevanceAdvisoryMomAttributeScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateAttributeRelevanceAdvisoryMomAttributeScenario(
+            argc,
+            argv)) {
+      return runFederateAttributeRelevanceAdvisoryMomAttributeScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateAttributeScopeAdvisoryMomAttributeScenario(argc, argv)) {
+      return runFederateAttributeScopeAdvisoryMomAttributeScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateInteractionRelevanceAdvisoryMomAttributeScenario(
+            argc,
+            argv)) {
+      return runFederateInteractionRelevanceAdvisoryMomAttributeScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateAsynchronousDeliveryMomAttributeScenario(argc, argv)) {
+      return runFederateAsynchronousDeliveryMomAttributeScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateTimeConstrainedMomAttributeScenario(argc, argv)) {
+      return runFederateTimeConstrainedMomAttributeScenarios(argc, argv);
+    }
+    if (hasFederateTimeRegulatingMomAttributeScenario(argc, argv)) {
+      return runFederateTimeRegulatingMomAttributeScenarios(argc, argv);
+    }
+    if (hasFederateLookaheadMomPeriodicScenario(argc, argv)) {
+      return runFederateLookaheadMomPeriodicScenarios(argc, argv);
+    }
+    if (hasFederateLogicalTimeMomPeriodicScenario(argc, argv)) {
+      return runFederateLogicalTimeMomPeriodicScenarios(argc, argv);
+    }
+    if (hasFederateTimeManagerStateMomAttributeScenario(argc, argv)) {
+      return runFederateTimeManagerStateMomAttributeScenarios(argc, argv);
+    }
+    if (hasFederateExceptionReportingMomSwitchScenario(argc, argv)) {
+      return runFederateExceptionReportingMomSwitchScenarios(argc, argv);
+    }
+    if (hasFederateExceptionReportingMomAttributeScenario(argc, argv)) {
+      return runFederateExceptionReportingMomAttributeScenarios(argc, argv);
+    }
+    if (hasFederateExceptionReportDeliveryScenario(argc, argv)) {
+      return runFederateExceptionReportDeliveryScenarios(argc, argv);
+    }
+    if (hasFederateMomExceptionReportDeliveryScenario(argc, argv)) {
+      return runFederateMomExceptionReportDeliveryScenarios(argc, argv);
+    }
+    if (hasFederateMomExceptionMissingParameterScenario(argc, argv)) {
+      return runFederateMomExceptionMissingParameterScenarios(argc, argv);
+    }
+    if (hasFederationMomExceptionMissingFomModuleIndicatorScenario(argc, argv)) {
+      return runFederationMomExceptionMissingFomModuleIndicatorScenarios(argc, argv);
+    }
+    if (hasFederateMomFomModuleContentReportScenario(argc, argv)) {
+      return runFederateMomFomModuleContentReportScenarios(argc, argv);
+    }
+    if (hasFederateMomObjectInstanceInformationScenario(argc, argv)) {
+      return runFederateMomObjectInstanceInformationScenarios(argc, argv);
+    }
+    if (hasFederateMomPublicationQueryScenario(argc, argv)) {
+      return runFederateMomPublicationQueryScenarios(argc, argv);
+    }
+    if (hasFederateMomExceptionReportServicePreconditionScenario(argc, argv)) {
+      return runFederateMomExceptionReportServicePreconditionScenarios(argc, argv);
+    }
+    if (hasFederateSendServiceReportsToFileMomSwitchScenario(argc, argv)) {
+      return runFederateSendServiceReportsToFileMomSwitchScenarios(argc, argv);
+    }
+    if (hasFederateAutomaticResignActionMomSwitchScenario(argc, argv)) {
+      return runFederateAutomaticResignActionMomSwitchScenarios(argc, argv);
+    }
+    if (hasFederateAutomaticResignActionMomAttributeScenario(argc, argv)) {
+      return runFederateAutomaticResignActionMomAttributeScenarios(argc, argv);
     }
     if (hasObjectRegistrationServiceBoundariesScenario(argc, argv)) {
       return runObjectRegistrationServiceBoundariesScenarios(argc, argv);

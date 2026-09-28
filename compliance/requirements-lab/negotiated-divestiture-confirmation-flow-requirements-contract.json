@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "These candidate mappings identify the canonical IEEE 1516.1-2025 ownership-service clauses exercised by the portable C++ scenario. The test source is limited to the official C++ API and standard library; its adapter supplies provider, FOM, endpoint, and callback configuration. The mappings make no conformance claim and exclude cancellation, partial transfers, DDM, save/restore, and provider-specific behavior.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-negotiated-divestiture-confirmation-request",
+      "clause_id": "clause-7.3.4",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::negotiatedAttributeOwnershipDivestiture",
+      "source_lines": "1006-1009",
+      "statement": "The owner requests negotiated attribute divestiture for the adapter-supplied object and attribute; the test verifies that ownership remains with the owner until Confirm Divestiture.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNegotiatedDivestitureConfirmationFlow",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNegotiatedDivestitureConfirmationFlowContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-request-divestiture-confirmation-metadata",
+      "clause_id": "clause-7.5.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::requestDivestitureConfirmation",
+      "source_lines": "424-427",
+      "statement": "The owner receives a confirmation request identifying the object and attribute set, with the pending regular acquisition request's user tag.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNegotiatedDivestitureConfirmationFlow",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNegotiatedDivestitureConfirmationFlowContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-confirm-divestiture-handoff",
+      "clause_id": "clause-7.6.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::confirmDivestiture",
+      "source_lines": "1024-1027",
+      "statement": "After the request callback, the owner confirms divestiture; the test verifies transfer occurs only after confirmation and queries the resulting ownership state at both federates.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNegotiatedDivestitureConfirmationFlow",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNegotiatedDivestitureConfirmationFlowContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-regular-acquisition-request-tag",
+      "clause_id": "clause-7.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::attributeOwnershipAcquisition",
+      "source_lines": "1042-1045",
+      "statement": "The prospective owner requests the attribute through ordinary Attribute Ownership Acquisition and supplies the tag later checked on the owner's confirmation-request callback.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNegotiatedDivestitureConfirmationFlow",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNegotiatedDivestitureConfirmationFlowContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-acquisition-notification-confirmation-tag",
+      "clause_id": "clause-7.2",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::attributeOwnershipAcquisitionNotification",
+      "source_lines": "432-435",
+      "statement": "The acquirer receives the confirmed object and attribute set with the divesting owner's Confirm Divestiture tag, and the test verifies the resulting ownership transfer.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNegotiatedDivestitureConfirmationFlow",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNegotiatedDivestitureConfirmationFlowContract"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This focused trace covers a federate-scoped HLArequestFOMmoduleData request addressed to a distinct joined federate and the corresponding HLAreportFOMmoduleData payload. The adapter supplies a subject-joined FOM module so the zero-based HLAindex is backed by an actual module designator. The test checks only the standard target federate, reported indicator, FOM XML content, and reliable callback; it does not claim complete MOM or FOM-report conformance.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-federate-mom-fom-module-send",
+      "clause_id": "clause-6.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "761-764",
+      "source_symbol": "RTIambassador::sendInteraction",
+      "statement": "The test sends the standard federate-scoped MOM request through the public sendInteraction service, identifying the target federate and requested module in its parameter map.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomFomModuleContentReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomFomModuleContentReportContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-standard-federate-mom-fom-module-report",
+      "clause_id": "clause-11.5.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "909-918, 1200-1212, 1909-1930",
+      "source_symbol": "HLAmanager.HLAfederate.HLArequest.HLArequestFOMmoduleData; HLAmanager.HLAfederate.HLAreport.HLAreportFOMmoduleData",
+      "statement": "The federate-level request inherits HLAfederate as the target joined-federate reference and declares HLAFOMmoduleIndicator. The corresponding report declares the selected module indicator and FOM-module contents and uses reliable transportation. The test verifies the request's target parameter and the report's declared child parameters; if an inherited HLAfederate parameter is present in the report, its value is checked against the requested target.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomFomModuleContentReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomFomModuleContentReportContract"
+      ]
+    }
+  ]
+}

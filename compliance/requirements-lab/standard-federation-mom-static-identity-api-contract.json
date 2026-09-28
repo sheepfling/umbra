@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard HLAfederation MIM object, HLAunicodeString, and the C++ standard library. The adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and logical-time implementation name. It verifies the created federation name, a non-empty RTI version without constraining its provider-defined format, the standard MIM designator, and the exact time-implementation name supplied at federation creation through ordinary discovery, subscription, request, and reflection; it asserts no provider-specific behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-mom-static-identity",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador MIM federation creation, join, standard MOM handle lookup, subscription, object identity lookup, attribute value request, and resignation/destruction services with FederateAmbassador discovery and reflection callbacks for the standard static federation identity attributes",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::createFederationExecutionWithMIM, RTIambassador::joinFederationExecution, RTIambassador::getObjectClassHandle, RTIambassador::getAttributeHandle, RTIambassador::subscribeObjectClassAttributes, RTIambassador::requestAttributeValueUpdate, FederateAmbassador::discoverObjectInstance, FederateAmbassador::reflectAttributeValues, HLAfederation.HLAfederationName, HLAfederation.HLARTIversion, HLAfederation.HLAMIMdesignator, HLAfederation.HLAtimeImplementationName, HLAunicodeString",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentity",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentityContract"
+      ]
+    }
+  ]
+}

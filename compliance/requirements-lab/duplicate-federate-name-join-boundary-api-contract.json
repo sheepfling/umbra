@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable scenario exercises the official named joinFederationExecution overload. A second connected federate first attempts the active member's name and must receive FederateNameAlreadyInUse, then joins under a distinct adapter-derived name and receives a distinct FederateHandle. It uses only the official IEEE 1516.1-2025 C++ API and standard library. The scenario mirrors the duplicate-name condition in java-tck.federation-membership without provider-specific behavior.",
+  "api_surfaces": [
+    {
+      "id": "portable-join-federation-execution-named-federate",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual FederateHandle joinFederationExecution(std::wstring const & federateName, std::wstring const & federateType, std::wstring const & federationName, std::vector<std::wstring> const & additionalFomModules = std::vector<std::wstring>()) = 0",
+      "exception_types": ["CouldNotCreateLogicalTimeFactory", "FederateNameAlreadyInUse", "FederationExecutionDoesNotExist", "InconsistentFOM", "InvalidFOM", "ErrorReadingFOM", "CouldNotOpenFOM", "SaveInProgress", "RestoreInProgress", "FederateAlreadyExecutionMember", "Unauthorized", "NotConnected", "CallNotAllowedFromWithinCallback", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::joinFederationExecution(federateName, federateType, federationName, additionalFomModules)",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDuplicateFederateNameJoinBoundaryPortable"]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice requests HLAreportObjectInstancesUpdated for a joined subject that publishes an adapter-selected object-class attribute declared as standard HLAbyte, registers two instances, updates one instance twice and the other once, and verifies that the standard MIM count is two distinct instances grouped under the registered class. The nested count records use standard HLAinteger32BE. The test uses only official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard MIM, public object-class handle decoding, HLAbyte, HLAinteger32BE, HLAoctet, HLAfixedRecord, HLAvariableArray, and the C++ standard library. Provider package, FOM, application names, endpoint, callback configuration, and logical-time implementation come from the adapter. It uses no private headers, provider registries, or vendor-specific names.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-object-instances-updated-report",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador object publication, registration, attribute update, federate MOM request/report, public object-class handle decoding, and callback delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::publishObjectClassAttributes, registerObjectInstance, updateAttributeValues, subscribeInteractionClass, sendInteraction, decodeObjectClassHandle, and standard lifecycle services; FederateAmbassador::receiveInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedReportContract"
+      ]
+    }
+  ]
+}

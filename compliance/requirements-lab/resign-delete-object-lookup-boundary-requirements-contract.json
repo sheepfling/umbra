@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The mappings are limited to the official IEEE 1516.1-2025 C++ API clauses for resignation, object removal notification, and object instance identity/class lookup. The scenario verifies lookup state only after the surviving federate receives Remove Object Instance. Passing on one installed provider is test-run evidence, not a provider-independent conformance claim.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-federation-create-join-resign-destroy",
+      "clause_id": "clause-4.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::resignFederationExecution",
+      "source_lines": "240-251",
+      "statement": "The object-owning federate resigns with the standard DELETE_OBJECTS action; the scenario then observes removal at the surviving federate before checking its local lookup state.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-instance-deletion",
+      "clause_id": "clause-6.17",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::removeObjectInstance",
+      "source_lines": "313-319",
+      "statement": "The test waits for the surviving federate's Remove Object Instance callback after resign-time deletion before probing the removed handle.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-registration-discovery",
+      "clause_id": "clause-10.6",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getKnownObjectClassHandle",
+      "source_lines": "1722-1730",
+      "statement": "Section 10.6 declares ObjectInstanceNotKnown for a handle not known to the federate. The test confirms class lookup succeeds before resign-time deletion and expects that exception after the removal callback.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-instance-name-lifecycle",
+      "clause_id": "clause-10.7",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceHandle",
+      "source_lines": "1732-1740",
+      "statement": "Section 10.7 declares ObjectInstanceNotKnown when the named object is not known. After removal notification, the test expects the surviving federate's name-to-handle lookup to report that exception.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-instance-name-lifecycle",
+      "clause_id": "clause-10.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceName",
+      "source_lines": "1742-1750",
+      "statement": "Section 10.8 declares ObjectInstanceNotKnown when the handle is not known. After removal notification, the test expects that exception for the removed handle.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignDeleteObjectLookupBoundaryContractPortable"
+      ]
+    }
+  ]
+}

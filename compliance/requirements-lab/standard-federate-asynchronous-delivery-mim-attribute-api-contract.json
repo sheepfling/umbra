@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard MIM, HLAboolean, and the C++ standard library. The adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and federate configuration. Because the API has enable/disable operations but no state getter, the monitor directly requests the standard HLAasynchronousDelivery MOM value, the subject invokes the opposite standard operation, and the monitor verifies the conditional value and restoration. No provider-specific headers, names, registries, or internal APIs are used.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-asynchronous-delivery-mim-attribute",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador federation lifecycle, standard-MIM object-class subscription and attribute-value requests, Enable/Disable Asynchronous Delivery services, and FederateAmbassador reflection callback",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes, RTIambassador::requestAttributeValueUpdate, RTIambassador::enableAsynchronousDelivery, RTIambassador::disableAsynchronousDelivery, FederateAmbassador::reflectAttributeValues, HLAboolean",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttributeContract"
+      ]
+    }
+  ]
+}

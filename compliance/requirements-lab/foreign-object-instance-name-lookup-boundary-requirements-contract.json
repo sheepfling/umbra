@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The exact mapping below follows the canonical IEEE 1516.1-2025 C++ RTIambassador API header. The scenario registers one named object in each of two executions, confirms each name resolves in its own execution, and checks ObjectInstanceNotKnown when one execution queries the other's name.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-object-instance-name-lifecycle",
+      "clause_id": "clause-10.7",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceHandle",
+      "source_lines": "1732-1740",
+      "statement": "Section 10.7 declares getObjectInstanceHandle(std::wstring const&) and the ObjectInstanceNotKnown exception. The scenario verifies name-to-handle resolution in two separate executions and requires ObjectInstanceNotKnown when an execution queries the other execution's registered object name.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioForeignObjectInstanceNameLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioForeignObjectInstanceNameLookupBoundaryContractPortable"
+      ]
+    }
+  ]
+}

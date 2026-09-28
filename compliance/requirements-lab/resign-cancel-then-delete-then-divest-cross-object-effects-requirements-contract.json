@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Direct traceability is to the official IEEE 1516.1-2025 C++ API clause labels and standard callback declarations. The test gives CANCEL_THEN_DELETE_THEN_DIVEST three independently observable effects: it cancels a pending regular acquisition, divests an attribute on an object registered by a remaining member, and removes an object registered by the departing member. This is bounded adapter-backed evidence, not a conformance claim.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-federation-create-join-resign-destroy",
+      "clause_id": "clause-4.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::resignFederationExecution with ResignAction::CANCEL_THEN_DELETE_THEN_DIVEST",
+      "source_lines": "240-251",
+      "statement": "With the owner and a successor remaining joined, the departing member resigns while a regular acquisition is pending, it owns an attribute on the owner's retained object, and it has registered a separate object. The test checks cancellation, divestiture, and deletion as separate outcomes.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-federation-create-join-resign-destroy",
+      "clause_id": "clause-4.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/Enums.h",
+      "source_symbol": "ResignAction::CANCEL_THEN_DELETE_THEN_DIVEST",
+      "source_lines": "34-42",
+      "statement": "The test selects the named standard compound ResignAction enumerator and passes it to the standard resignation service.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-management",
+      "clause_id": "clause-5.2",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::publishObjectClassAttributes",
+      "source_lines": "424-431",
+      "statement": "The owner and departing member publish the tested object-class attribute before registering their objects.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-management",
+      "clause_id": "clause-5.9",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes",
+      "source_lines": "530-540",
+      "statement": "The remaining members subscribe to the tested attribute to observe object discovery and removal callbacks.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-management",
+      "clause_id": "clause-6.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::registerObjectInstance",
+      "source_lines": "687-698",
+      "statement": "The owner registers two separate objects for retained and pending ownership state; the departing member registers the object whose removal is expected on resignation.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-management",
+      "clause_id": "clause-6.9",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::discoverObjectInstance",
+      "source_lines": "226-233",
+      "statement": "Each non-registering member waits for discovery of an object before using its standard object-instance handle.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-ownership-management",
+      "clause_id": "clause-7.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::attributeOwnershipAcquisition",
+      "source_lines": "1026-1045",
+      "statement": "Before resignation, the departing member issues a regular acquisition on the owner's second object; the owner retains ownership until the departing member leaves.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-ownership-management",
+      "clause_id": "clause-7.2",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unconditionalAttributeOwnershipDivestiture",
+      "source_lines": "978-992",
+      "statement": "The setup releases an attribute from the retained object's registering member so the departing member can acquire it; after the compound resignation, that still-registered object's attribute is available to the successor. The owner also releases the pending object's attribute after resignation to verify that the old request did not reserve it.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-ownership-management",
+      "clause_id": "clause-7.9",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::attributeOwnershipAcquisitionIfAvailable",
+      "source_lines": "1047-1064",
+      "statement": "The successor acquires the retained object's released attribute, then acquires the pending object's attribute after its owner divests, checking callback metadata and resulting ownership for both.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-ownership-management",
+      "clause_id": "clause-7.7",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::attributeOwnershipAcquisitionNotification",
+      "source_lines": "429-435",
+      "statement": "The test checks the standard acquisition-notification callback and its user tag for each successor transfer.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-management",
+      "clause_id": "clause-6.17",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::removeObjectInstance",
+      "source_lines": "313-319",
+      "statement": "Both remaining subscribers verify one ordinary removal callback, including the empty tag and departing-federate handle, for the object registered by the resigning member.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-instance-name-lifecycle",
+      "clause_id": "clause-10.7",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceHandle",
+      "source_lines": "1729-1740",
+      "statement": "The owner and successor verify that both owner-registered objects remain known and that the departing member's object name is no longer known after resignation.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-object-instance-name-lifecycle",
+      "clause_id": "clause-10.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceName",
+      "source_lines": "1742-1750",
+      "statement": "The registering members record distinct standard object-instance names so surviving members can verify object identity after the compound resignation.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsContractPortable"
+      ]
+    }
+  ]
+}

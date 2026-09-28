@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, standard HLAstandardMIM declarations, standard HLAunicodeString/HLAvariableArray encodings, and the C++ standard library. The adapter supplies the provider package, base FOM, standard MIM, additional FOM module, endpoint, callback model, and logical-time configuration when applicable. It checks active ordinary discovery and reflection of HLAmanager.HLAfederate, the reflected federate handle/name/type, a non-empty required HLAfederateHost Unicode value, Join-scoped HLAFOMmoduleDesignatorList, known-object value requests, public object-class/name lookups, and object removal on resignation. It does not assert platform-specific hostname spelling or execution location, filesystem reports, RTI-version values, private snapshots, provider registries, Umbra headers, or an RTI-originated producer handle.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-object-lifecycle",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador Join, ordinary MOM subscription and known-object Request Attribute Value Update; FederateAmbassador discovery, reflection, and removal callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador and FederateAmbassador standard object-management declarations; HLAfederateHost, HLAunicodeString, and HLAvariableArray declarations and encodings",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectLifecycle"
+      ]
+    }
+  ]
+}

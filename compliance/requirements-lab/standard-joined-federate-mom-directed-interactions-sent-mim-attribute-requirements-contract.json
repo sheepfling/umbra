@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This contract directly traces both scalar values checked by the portable test to their pinned standard MIM entries and IEEE 1516.1 clause 11.4.1. Installed-package runs are bounded provider evidence, not proof of provider-independent behavior or conformance. The test deliberately omits DDM regions, so it does not assess the HLAinteractionsSent semantics concerning DDM usage.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-directed-interactions-sent-mim-attribute-directed",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "389-400",
+      "source_symbol": "HLAdirectedInteractionsSent",
+      "statement": "The standard MIM declares HLAdirectedInteractionsSent as an HLAcount updated periodically according to HLAsetTiming.HLAreportPeriod using reliable receive-order delivery, and defines it as the total number of directed interactions sent by the joined federate. The scenario checks zero before traffic, no change after one ordinary send, three after three directed sends, five after two further directed sends, and the unchanged final direct value after periodic reporting is disabled.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomDirectedInteractionsSentAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomDirectedInteractionsSentAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-directed-interactions-sent-mim-attribute-total",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "362-373",
+      "source_symbol": "HLAinteractionsSent",
+      "statement": "The standard MIM defines HLAinteractionsSent as the total number of interactions sent by the joined federate and specifies that the information shall reflect related DDM usage. The scenario cross-checks one ordinary send against the total without changing HLAdirectedInteractionsSent, then checks that directed sends increase the total as well as the directed-send scalar. DDM-related accounting is not exercised by this no-region test.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomDirectedInteractionsSentAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomDirectedInteractionsSentAttributeContract"
+      ]
+    }
+  ]
+}

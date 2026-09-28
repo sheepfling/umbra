@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable C++ scenario uses only the official IEEE 1516.1 RTIambassador API and standard library. It resolves and round-trips adapter-supplied object-class, attribute, interaction-class, and parameter names from the adapter FOM while joined, then checks the declared membership exception for all eight lookup directions after resignation while the connection remains open.",
+  "api_surfaces": [
+    {
+      "id": "portable-object-class-handle-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual ObjectClassHandle getObjectClassHandle(std::wstring const& objectClassName) = 0",
+      "exception_types": ["NameNotFound", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectClassHandle",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-object-class-name-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual std::wstring getObjectClassName(ObjectClassHandle const& objectClass) = 0",
+      "exception_types": ["InvalidObjectClassHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectClassName",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-attribute-handle-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual AttributeHandle getAttributeHandle(ObjectClassHandle const& objectClass, std::wstring const& attributeName) = 0",
+      "exception_types": ["AttributeNotDefined", "InvalidObjectClassHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAttributeHandle",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-attribute-name-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual std::wstring getAttributeName(ObjectClassHandle const& objectClass, AttributeHandle const& attribute) = 0",
+      "exception_types": ["AttributeNotDefined", "InvalidAttributeHandle", "InvalidObjectClassHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAttributeName",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-interaction-class-handle-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual InteractionClassHandle getInteractionClassHandle(std::wstring const& interactionClassName) = 0",
+      "exception_types": ["NameNotFound", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getInteractionClassHandle",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-interaction-class-name-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual std::wstring getInteractionClassName(InteractionClassHandle const& interactionClass) = 0",
+      "exception_types": ["InvalidInteractionClassHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getInteractionClassName",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-parameter-handle-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual ParameterHandle getParameterHandle(InteractionClassHandle const& interactionClass, std::wstring const& parameterName) = 0",
+      "exception_types": ["NameNotFound", "InvalidInteractionClassHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getParameterHandle",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-parameter-name-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual std::wstring getParameterName(InteractionClassHandle const& interactionClass, ParameterHandle const& parameter) = 0",
+      "exception_types": ["InteractionParameterNotDefined", "InvalidParameterHandle", "InvalidInteractionClassHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getParameterName",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportLookupValidInputsAfterResignationPortable"]
+    }
+  ]
+}

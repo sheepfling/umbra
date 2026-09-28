@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice exercises HLArequestPublications for one adapter-supplied published object class/attribute and interaction class. It validates HLAreportObjectClassPublication, HLAreportInteractionPublication, and the required NULL HLAreportDirectedInteractionPublication when the subject publishes no directed interactions. The test uses only official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard MIM, public handle decoders, HLAinteger32BE, HLAoctet, HLAvariableArray, and the C++ standard library. Provider package, FOM, application names, endpoint, callback configuration, and logical-time implementation come from the adapter. It does not use the directed-interaction publication service, DDM regions, private headers, provider registries, or vendor-specific names.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-mom-publication-query",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador publication declarations, federate MOM request/report interactions, public handle decoding, and callback delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::publishObjectClassAttributes, publishInteractionClass, subscribeInteractionClass, sendInteraction, decodeAttributeHandle, decodeInteractionClassHandle, and decodeObjectClassHandle; FederateAmbassador::receiveInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPublicationQueryContract"
+      ]
+    }
+  ]
+}

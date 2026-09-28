@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "These candidate mappings use exact IEEE 1516.1-2025 C++ API declarations and their canonical clause labels. The scenario queries two adapter-supplied attributes with different ownership states, checks the exact federate-owned and unowned callback partitions, confirms the ordinary unowned attribute is not classified as RTI-owned, and verifies that the query does not change ownership. It does not cover RTI-owned MOM attributes, invalid handles, callback/removal races, save/restore, or full conformance.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-query-attribute-ownership-unowned-result",
+      "clause_id": "clause-7.17",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::queryAttributeOwnership",
+      "source_lines": "1132-1143",
+      "statement": "A joined observer queries the adapter-supplied object using the adapter-supplied pair of attributes whose ownership states differ.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryUnownedResult",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryUnownedResultContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-inform-attribute-ownership-partition",
+      "clause_id": "clause-7.18",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::informAttributeOwnership",
+      "source_lines": "461-466",
+      "statement": "The query reports exactly the published attribute in Inform Attribute Ownership with the current owner's FederateHandle.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryUnownedResult",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryUnownedResultContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-attribute-is-not-owned-partition",
+      "clause_id": "clause-7.18",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::attributeIsNotOwned",
+      "source_lines": "468-473",
+      "statement": "The query reports exactly the unpublished object attribute in Attribute Is Not Owned.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryUnownedResult",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryUnownedResultContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-ordinary-unowned-is-not-rti-owned",
+      "clause_id": "clause-7.18",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::attributeIsOwnedByRTI",
+      "source_lines": "475-480",
+      "statement": "The ordinary unpublished attribute is not reported through Attribute Is Owned By RTI.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryUnownedResult",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryUnownedResultContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-ownership-query-preserves-state",
+      "clause_id": "clause-7.19",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::isAttributeOwnedByFederate",
+      "source_lines": "1146-1157",
+      "statement": "The owner remains the owner of the published attribute and no federate becomes owner of the unpublished attribute as a result of the query.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryUnownedResult",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryUnownedResultContract"
+      ]
+    }
+  ]
+}

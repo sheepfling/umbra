@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "The portable scenario uses the official automatic-resign-directive getter and setter with standard ResignAction values. It verifies a joined round trip without relying on a provider default, then checks FederateNotExecutionMember after resignation while connected and NotConnected after disconnect. It uses only the official IEEE 1516.1 C++ API and standard library.",
+  "api_surfaces": [
+    {
+      "id": "portable-automatic-resign-directive-getter-lifecycle-boundary",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual ResignAction getAutomaticResignDirective() = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAutomaticResignDirective",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAutomaticResignDirectiveLifecycleBoundariesPortable"]
+    },
+    {
+      "id": "portable-automatic-resign-directive-setter-lifecycle-boundary",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void setAutomaticResignDirective(ResignAction resignAction) = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "InvalidResignAction", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setAutomaticResignDirective",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAutomaticResignDirectiveLifecycleBoundariesPortable"]
+    }
+  ]
+}

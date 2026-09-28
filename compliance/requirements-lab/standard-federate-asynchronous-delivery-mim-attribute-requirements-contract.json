@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The test maps the standard MIM conditional HLAboolean attribute, the Enable/Disable Asynchronous Delivery API services, and the public request/subscription/reflection APIs. It obtains the starting state from the standard MOM rather than assuming a default. Installed-package results are bounded provider evidence only, not proof of provider-independent behavior or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-asynchronous-delivery-mim-attribute",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "185-200, 3046-3056",
+      "source_symbol": "HLAobjectRoot.HLAmanager.HLAfederate.HLAasynchronousDelivery; HLAboolean",
+      "statement": "The standard MIM declares HLAasynchronousDelivery as a conditional HLAboolean attribute updated whenever Enable Asynchronous Delivery or Disable Asynchronous Delivery succeeds. HLAboolean is represented by HLAinteger32BE with HLAfalse=0 and HLAtrue=1. The scenario reads the starting state from the MIM, checks one conditional value after each opposite-state operation, and restores the observed starting state.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-asynchronous-delivery-enable",
+      "clause_id": "clause-8.15",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1294-1302",
+      "source_symbol": "RTIambassador::enableAsynchronousDelivery",
+      "statement": "When the standard MOM value is false, the subject enables asynchronous delivery and the monitor observes the conditional HLAtrue value; the test does not assume that the initial state is false.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-asynchronous-delivery-disable",
+      "clause_id": "clause-8.16",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1304-1313",
+      "source_symbol": "RTIambassador::disableAsynchronousDelivery",
+      "statement": "When the standard MOM value is true, the subject disables asynchronous delivery and the monitor observes the conditional HLAfalse value; the test then restores the previously observed state.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-asynchronous-delivery-direct-request",
+      "clause_id": "clause-6.21",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "876-889",
+      "source_symbol": "RTIambassador::requestAttributeValueUpdate(ObjectInstanceHandle, AttributeHandleSet, VariableLengthData)",
+      "statement": "The monitor directly requests the standard HLAasynchronousDelivery value before and after each successful service transition and checks it against the transition target.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-asynchronous-delivery-subscription",
+      "clause_id": "clause-5.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "525-539",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes",
+      "statement": "The monitor subscribes to the standard HLAfederate MOM object's HLAfederateHandle and HLAasynchronousDelivery attributes to identify the subject object and receive its conditional updates.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-asynchronous-delivery-reflection-callback",
+      "clause_id": "clause-6.9.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "238-260",
+      "source_symbol": "FederateAmbassador::reflectAttributeValues",
+      "statement": "The monitor validates exactly one conditional reflection for each successful transition, including the HLAboolean value, reliable transport, empty tag, invalid producer handle, and absent DDM-region metadata.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAsynchronousDeliveryMomAttributeContract"
+      ]
+    }
+  ]
+}

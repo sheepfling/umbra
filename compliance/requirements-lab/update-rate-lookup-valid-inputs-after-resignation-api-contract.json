@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable C++ scenario uses only the official IEEE 1516.1 RTIambassador API and standard library. It obtains a valid adapter-supplied update-rate designator and valid object/attribute handles from the adapter FOM, confirms both lookup results while joined, then verifies FederateNotExecutionMember after resignation while the connection remains open.",
+  "api_surfaces": [
+    {
+      "id": "portable-update-rate-designator-value-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual double getUpdateRateValue(std::wstring const& updateRateDesignator) = 0",
+      "exception_types": ["InvalidUpdateRateDesignator", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getUpdateRateValue",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioUpdateRateLookupValidInputsAfterResignationPortable"]
+    },
+    {
+      "id": "portable-object-attribute-update-rate-value-after-resignation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual double getUpdateRateValueForAttribute(ObjectInstanceHandle const& objectInstance, AttributeHandle const& attribute) = 0",
+      "exception_types": ["ObjectInstanceNotKnown", "AttributeNotDefined", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getUpdateRateValueForAttribute",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioUpdateRateLookupValidInputsAfterResignationPortable"]
+    }
+  ]
+}

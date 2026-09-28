@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable C++ scenario uses only the official IEEE 1516.1 RTIambassador API and standard library. It passes the standard SUPPORT_SERVICES group plus valid federate, object-class, interaction-class, and live object-instance handles from a joined peer to a disconnected ambassador, a connected ambassador that has not joined, and the same ambassador after it joins and resigns while remaining connected. It asserts only the declared NotConnected and FederateNotExecutionMember boundaries, not normalization values or provider-specific handle representation.",
+  "api_surfaces": [
+    {
+      "id": "portable-normalize-service-group-membership-boundary",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual unsigned long normalizeServiceGroup(ServiceGroup serviceGroup) = 0",
+      "exception_types": [
+        "InvalidServiceGroup",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::normalizeServiceGroup",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesPortable"
+      ]
+    },
+    {
+      "id": "portable-normalize-federate-handle-membership-boundary",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual unsigned long normalizeFederateHandle(FederateHandle const& federate) = 0",
+      "exception_types": [
+        "InvalidFederateHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::normalizeFederateHandle",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesPortable"
+      ]
+    },
+    {
+      "id": "portable-normalize-object-class-handle-membership-boundary",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual unsigned long normalizeObjectClassHandle(ObjectClassHandle const& objectClass) = 0",
+      "exception_types": [
+        "InvalidObjectClassHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::normalizeObjectClassHandle",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesPortable"
+      ]
+    },
+    {
+      "id": "portable-normalize-interaction-class-handle-membership-boundary",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual unsigned long normalizeInteractionClassHandle(InteractionClassHandle const& interactionClass) = 0",
+      "exception_types": [
+        "InvalidInteractionClassHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::normalizeInteractionClassHandle",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesPortable"
+      ]
+    },
+    {
+      "id": "portable-normalize-object-instance-handle-membership-boundary",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual unsigned long normalizeObjectInstanceHandle(ObjectInstanceHandle const& objectInstance) = 0",
+      "exception_types": [
+        "InvalidObjectInstanceHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::normalizeObjectInstanceHandle",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleNormalizationMembershipBoundariesPortable"
+      ]
+    }
+  ]
+}

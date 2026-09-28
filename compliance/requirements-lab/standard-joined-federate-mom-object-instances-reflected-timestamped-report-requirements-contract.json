@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This candidate tests timestamped reflections of two adapter-supplied object instances, including a repeated reflection of one instance, and queries the standard MIM count for the time-constrained target. The MIM defines the report in terms of Reflect Attribute Values service invocations without excluding timestamp order; this case checks that the repeated instance is counted once. It does not claim broader MOM statistics, non-reliable transports, or overall conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-subscription",
+      "clause_id": "clause-5.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "525-539",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes",
+      "statement": "The joined target actively subscribes to the adapter-supplied object class and attribute and receives discoveries for both subject-owned instances.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-registration",
+      "clause_id": "clause-6.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "687-698",
+      "source_symbol": "RTIambassador::registerObjectInstance",
+      "statement": "The subject registers two distinct instances of its published adapter-supplied object class before issuing the timestamped updates.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-order",
+      "clause_id": "clause-8.25",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1400-1413",
+      "source_symbol": "RTIambassador::changeDefaultAttributeOrderType",
+      "statement": "Before registration, the subject sets the published attribute's default order type to timestamp order for the test objects.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-update",
+      "clause_id": "clause-6.10",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "733-748",
+      "source_symbol": "RTIambassador::updateAttributeValues timestamped overload",
+      "statement": "The subject sends three timestamped updates, two for the first instance and one for the second, and receives a valid message retraction handle for each invocation.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-callback",
+      "clause_id": "clause-6.11",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "247-260",
+      "source_symbol": "FederateAmbassador::reflectAttributeValues timestamped callback",
+      "statement": "The constrained target validates all three timestamped reflect callbacks for object, value, tag, logical time, producer, sent and received order, transportation, regions, and retraction metadata.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-time-regulation",
+      "clause_id": "clause-8.2",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1163-1176",
+      "source_symbol": "RTIambassador::enableTimeRegulation",
+      "statement": "The subject enables standard time regulation before sending timestamped updates.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-regulation-callback",
+      "clause_id": "clause-8.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "486-490",
+      "source_symbol": "FederateAmbassador::timeRegulationEnabled",
+      "statement": "The subject services its standard time-regulation-enabled callback before issuing the timestamped updates.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-time-constrained-service",
+      "clause_id": "clause-8.5",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1189-1200",
+      "source_symbol": "RTIambassador::enableTimeConstrained",
+      "statement": "The target enables time-constrained operation before receiving timestamped attribute updates.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-time-constrained-callback",
+      "clause_id": "clause-8.6",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "492-496",
+      "source_symbol": "FederateAmbassador::timeConstrainedEnabled",
+      "statement": "The target services its standard time-constrained-enabled callback before the timestamped updates are sent.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-time-advance",
+      "clause_id": "clause-8.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "1213-1227",
+      "source_symbol": "RTIambassador::timeAdvanceRequest",
+      "statement": "The subject and target request advancement to the last update's logical time; the test validates both resulting grant values and checks that timestamped reflections arrive before the target's grant.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-grant-callback",
+      "clause_id": "clause-8.14",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "504-509",
+      "source_symbol": "FederateAmbassador::timeAdvanceGrant",
+      "statement": "The subject and target receive one standard grant each with the logical times requested by the scenario.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-request-report",
+      "clause_id": "clause-6.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "750-764",
+      "source_symbol": "RTIambassador::sendInteraction",
+      "statement": "A distinct joined requester uses the standard sendInteraction parameter map to request the target's reflected-object report.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-mim-report",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "1112-1119, 1474-1494, 3647-3659, 3735-3747",
+      "source_symbol": "HLArequestObjectInstancesReflected; HLAreportObjectInstancesReflected; HLAobjectClassBasedCounts; HLAobjectClassBasedCount",
+      "statement": "The standard MIM requests a report of object instances for which the target has had a Reflect Attribute Values service invocation, without excluding timestamp order. The distinct requester identifies the target through HLAfederate; the test decodes the class-grouped standard count records and verifies that three reflection invocations covering two object instances produce a count of two.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedTimestampedReportContract"
+      ]
+    }
+  ]
+}

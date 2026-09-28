@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice requests the content of one FOM module from a specific joined federate using the federate-scoped standard MIM interactions. It uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, standard MIM declarations, HLAinteger32BE, HLAunicodeString, and the C++ standard library. The adapter supplies the provider package, base FOM, standard MIM, an additional FOM module joined by the subject federate, endpoint, callback model, and logical-time configuration. The test sends the inherited target-federate parameter and validates the report's declared module indicator and XML content, reliable delivery, and cleanup; if the inherited target parameter is included in the report, it also checks that value. It makes no provider-specific header, registry, naming, or FOM-content assumptions.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-mom-fom-module-content-report",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador federate-scoped MOM FOM-module request, subscription, and send services with FederateAmbassador interaction callback delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador join, handle lookup, interaction subscription and send declarations; FederateAmbassador::receiveInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomFomModuleContentReport",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomFomModuleContentReportContract"
+      ]
+    }
+  ]
+}

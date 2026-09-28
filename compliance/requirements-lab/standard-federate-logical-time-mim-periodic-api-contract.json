@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard MIM, the adapter-selected LogicalTimeFactory and LogicalTime, standard HLAinteger32BE encoding, and the C++ standard library. The adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, logical-time configuration, and federate configuration. The monitor acts as a standard time regulator, selects the subject's HLAfederate MOM reporting period with standard HLAsetTiming, and advances alongside the time-constrained subject. The subject checks periodic HLAlogicalTime values against Query Logical Time after two successful Time Advance Grants. Each MIM value is decoded with the selected standard LogicalTimeFactory, without assuming an implementation-specific logical-time representation or provider API.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-logical-time-mim-periodic",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador standard-MIM subscription and HLAsetTiming interaction, Enable Time Constrained, Time Advance Request, Query Logical Time, federation lifecycle, and FederateAmbassador reflection, timeConstrainedEnabled, and timeAdvanceGrant callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::createFederationExecutionWithMIM, RTIambassador::joinFederationExecution, RTIambassador::getObjectClassHandle, RTIambassador::getAttributeHandle, RTIambassador::subscribeObjectClassAttributes, RTIambassador::sendInteraction, RTIambassador::getTimeFactory, RTIambassador::enableTimeRegulation, RTIambassador::disableTimeRegulation, RTIambassador::enableTimeConstrained, RTIambassador::timeAdvanceRequest, RTIambassador::queryLogicalTime, FederateAmbassador::reflectAttributeValues, FederateAmbassador::timeRegulationEnabled, FederateAmbassador::timeConstrainedEnabled, FederateAmbassador::timeAdvanceGrant, LogicalTimeFactory::decodeLogicalTime, HLAinteger32BE",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodic",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLogicalTimeMomPeriodicContract"
+      ]
+    }
+  ]
+}

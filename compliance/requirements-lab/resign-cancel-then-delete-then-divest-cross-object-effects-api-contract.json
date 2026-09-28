@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "The portable scenario uses only the official IEEE 1516.1 C++ API and standard library. A departing member has a regular ownership request pending on one member's object, owns an attribute on a second member's object, and has registered its own object. It resigns with CANCEL_THEN_DELETE_THEN_DIVEST; the test observes cancellation, divestiture, and object removal separately.",
+  "api_surfaces": [
+    {
+      "id": "portable-resign-cancel-delete-divest-action",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void resignFederationExecution(ResignAction resignAction) = 0",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::resignFederationExecution with ResignAction::CANCEL_THEN_DELETE_THEN_DIVEST",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable"
+      ]
+    },
+    {
+      "id": "portable-resign-cancel-delete-divest-pending-acquisition",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::attributeOwnershipAcquisition",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::attributeOwnershipAcquisition",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable"
+      ]
+    },
+    {
+      "id": "portable-resign-cancel-delete-divest-ownership-state",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::isAttributeOwnedByFederate and RTIambassador::attributeOwnershipAcquisitionIfAvailable",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "Standard ownership-state query and If Available acquisition service",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable"
+      ]
+    },
+    {
+      "id": "portable-resign-cancel-delete-divest-standard-callbacks",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "FederateAmbassador::attributeOwnershipAcquisitionNotification and FederateAmbassador::removeObjectInstance",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "Standard ownership-acquisition and object-removal callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignCancelThenDeleteThenDivestCrossObjectEffectsPortable"
+      ]
+    }
+  ]
+}

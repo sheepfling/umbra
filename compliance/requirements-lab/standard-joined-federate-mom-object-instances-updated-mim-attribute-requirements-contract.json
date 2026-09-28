@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This contract directly traces HLAobjectInstancesUpdated to its pinned standard MIM entry and IEEE 1516.1 clause 11.4.1. Installed-package runs are bounded provider evidence, not proof of provider-independent behavior or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-updated-mim-attribute",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "416-428",
+      "source_symbol": "HLAobjectInstancesUpdated",
+      "statement": "The standard MIM declares HLAobjectInstancesUpdated as an HLAcount updated periodically according to HLAsetTiming.HLAreportPeriod and defines it as the total number of object instances for which the joined federate has invoked Update Attribute Values. The scenario verifies zero before application updates, one after repeated updates to the first object, two after an update to a second object, and three after two updates to a third object. It checks the third-object result through a periodic MIM reflection before requesting the direct value, so a direct query cannot satisfy the periodic-report assertion.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesUpdatedAttributeContract"
+      ]
+    }
+  ]
+}

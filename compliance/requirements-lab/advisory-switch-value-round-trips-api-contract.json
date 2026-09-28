@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable scenario exercises the four standard relevance/scope advisory getter-setter pairs while joined. For each switch it observes the current value, sets the opposite Boolean, verifies the getter, restores the original value, and verifies restoration. It assumes no provider-specific defaults and sends no object, interaction, or region traffic. Only official IEEE 1516.1-2025 C++ API declarations and the standard library are used.",
+  "api_surfaces": [
+    {
+      "id": "portable-object-class-relevance-advisory-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getObjectClassRelevanceAdvisorySwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectClassRelevanceAdvisorySwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsPortable"]
+    },
+    {
+      "id": "portable-object-class-relevance-advisory-switch-setter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void setObjectClassRelevanceAdvisorySwitch(bool switchValue) = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setObjectClassRelevanceAdvisorySwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsPortable"]
+    },
+    {
+      "id": "portable-attribute-relevance-advisory-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getAttributeRelevanceAdvisorySwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAttributeRelevanceAdvisorySwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsPortable"]
+    },
+    {
+      "id": "portable-attribute-relevance-advisory-switch-setter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void setAttributeRelevanceAdvisorySwitch(bool switchValue) = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setAttributeRelevanceAdvisorySwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsPortable"]
+    },
+    {
+      "id": "portable-attribute-scope-advisory-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getAttributeScopeAdvisorySwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAttributeScopeAdvisorySwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsPortable"]
+    },
+    {
+      "id": "portable-attribute-scope-advisory-switch-setter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void setAttributeScopeAdvisorySwitch(bool switchValue) = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setAttributeScopeAdvisorySwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsPortable"]
+    },
+    {
+      "id": "portable-interaction-relevance-advisory-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getInteractionRelevanceAdvisorySwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getInteractionRelevanceAdvisorySwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsPortable"]
+    },
+    {
+      "id": "portable-interaction-relevance-advisory-switch-setter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void setInteractionRelevanceAdvisorySwitch(bool switchValue) = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setInteractionRelevanceAdvisorySwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAdvisorySwitchValueRoundTripsPortable"]
+    }
+  ]
+}

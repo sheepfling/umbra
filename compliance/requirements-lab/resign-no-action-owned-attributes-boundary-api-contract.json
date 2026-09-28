@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "The portable C++ scenario uses only the official IEEE 1516.1 API and standard library. A second federate remains joined so the final-federate resignation rule does not apply. The owner registers an object, expects NO_ACTION resignation to report the declared FederateOwnsAttributes exception, verifies the object name remains queryable after rejection, and then resigns with DELETE_OBJECTS for cleanup.",
+  "api_surfaces": [
+    {
+      "id": "portable-resign-federation-execution-owned-attributes-boundary",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual void resignFederationExecution(ResignAction resignAction) = 0",
+      "exception_types": [
+        "InvalidResignAction",
+        "OwnershipAcquisitionPending",
+        "FederateOwnsAttributes",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "CallNotAllowedFromWithinCallback",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::resignFederationExecution",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignNoActionOwnedAttributesBoundaryPortable"
+      ]
+    },
+    {
+      "id": "portable-register-object-instance-for-resign-boundary",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual ObjectInstanceHandle registerObjectInstance(ObjectClassHandle const& objectClass) = 0",
+      "exception_types": [
+        "ObjectClassNotPublished",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::registerObjectInstance",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignNoActionOwnedAttributesBoundaryPortable"
+      ]
+    },
+    {
+      "id": "portable-object-instance-name-query-after-rejected-resign",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual std::wstring getObjectInstanceName(ObjectInstanceHandle const& objectInstance) = 0",
+      "exception_types": [
+        "ObjectInstanceNotKnown",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceName",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioResignNoActionOwnedAttributesBoundaryPortable"
+      ]
+    }
+  ]
+}

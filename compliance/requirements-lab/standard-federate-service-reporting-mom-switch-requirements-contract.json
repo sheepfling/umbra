@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This narrow trace maps the portable switch test to the canonical IEEE 1516.1-2025 MOM clause and the pinned IEEE 1516.2-2025 standard MIM. It verifies only the standard federate-specific Service Reporting switch false-to-true-to-false behavior through the public getter; it does not claim complete service-reporting or MOM conformance.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-federate-service-reporting-mom-switch",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches.HLAserviceReporting",
+      "source_lines": "984-1036",
+      "statement": "A joined federate may send individual declared parameters of the standard HLAsetSwitches interaction; HLAserviceReporting sets that joined federate's Service Reporting switch to the provided value, whose default is false.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomSwitch",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomSwitchContract"
+      ]
+    }
+  ]
+}

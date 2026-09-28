@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records a portable installed-package C++ TCK case for the ordinary negotiated-divestiture confirmation and acquisition handoff. The scenario uses only official IEEE 1516.1 RTIambassador and FederateAmbassador declarations plus the C++ standard library. The adapter supplies the provider library, FOM, endpoint, and callback configuration. It checks the acquisition tag on Request Divestiture Confirmation, unchanged ownership before confirmation, the confirmation tag on Attribute Ownership Acquisition Notification, and final ownership. It excludes cancellation, partial attribute sets, DDM, save/restore, and provider-specific behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-negotiated-divestiture-confirmation-flow",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador negotiatedAttributeOwnershipDivestiture, attributeOwnershipAcquisition, confirmDivestiture, and isAttributeOwnedByFederate with FederateAmbassador requestDivestitureConfirmation and attributeOwnershipAcquisitionNotification callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNegotiatedDivestitureConfirmationFlow",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNegotiatedDivestitureConfirmationFlowContract"
+      ]
+    }
+  ]
+}

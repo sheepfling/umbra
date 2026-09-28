@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The exact mappings below follow the canonical IEEE 1516.1-2025 C++ RTIambassador API header. The scenario first resolves and round-trips mandatory standard values while joined, then checks FederateNotExecutionMember for the same valid names and handles after resignation with the connection still open.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-order-type-membership-boundary-after-resignation",
+      "clause_id": "clause-10.17",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getOrderType",
+      "source_lines": "1845-1852",
+      "statement": "The standard API declares FederateNotExecutionMember for getOrderType. The test resolves the mandatory Receive and TimeStamp names while joined, then verifies that exception for both valid names after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioStandardOrderTransportLookupsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioStandardOrderTransportLookupsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-order-name-membership-boundary-after-resignation",
+      "clause_id": "clause-10.18",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getOrderName",
+      "source_lines": "1855-1862",
+      "statement": "The standard API declares FederateNotExecutionMember for getOrderName. The test supplies the valid Receive and TimeStamp values obtained while joined, then verifies that exception for both after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioStandardOrderTransportLookupsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioStandardOrderTransportLookupsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-transportation-type-handle-membership-boundary-after-resignation",
+      "clause_id": "clause-10.19",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getTransportationTypeHandle",
+      "source_lines": "1865-1872",
+      "statement": "The standard API declares FederateNotExecutionMember for getTransportationTypeHandle. The test resolves the mandatory HLAreliable and HLAbestEffort names while joined, then verifies that exception for both valid names after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioStandardOrderTransportLookupsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioStandardOrderTransportLookupsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-transportation-type-name-membership-boundary-after-resignation",
+      "clause_id": "clause-10.20",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getTransportationTypeName",
+      "source_lines": "1875-1882",
+      "statement": "The standard API declares FederateNotExecutionMember for getTransportationTypeName. The test supplies valid HLAreliable and HLAbestEffort handles obtained while joined, then verifies that exception for both after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioStandardOrderTransportLookupsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioStandardOrderTransportLookupsAfterResignationContractPortable"]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This contract directly traces HLAobjectInstancesReflected to its pinned standard MIM entry and IEEE 1516.1 clause 11.4.1. Installed-package runs are bounded provider evidence, not proof of provider-independent behavior or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-joined-federate-mom-object-instances-reflected-mim-attribute",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "430-442",
+      "source_symbol": "HLAobjectInstancesReflected",
+      "statement": "The standard MIM declares HLAobjectInstancesReflected as an HLAcount updated periodically according to HLAsetTiming.HLAreportPeriod and defines it as the total number of object instances for which the joined federate has had a Reflect Attribute Values service invocation. The scenario verifies zero before application reflections, one after a reflection for the first object, still one after a second reflection for that same object, two after a reflection for a second object, and three after two reflections for a third object. A separate monitor federate requests the subject's MOM value, keeping those MOM reflections outside the subject's reflected-object count. The periodic value is observed before making the final direct request.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesReflectedAttributeContract"
+      ]
+    }
+  ]
+}

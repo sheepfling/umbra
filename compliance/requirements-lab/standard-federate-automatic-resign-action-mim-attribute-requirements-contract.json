@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The test maps the standard MIM conditional attribute and the public C++ APIs used to request, change, restore, and receive its value. Installed-package results are bounded provider evidence only; they are not proof of provider-independent behavior or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-automatic-resign-action-mim-attribute",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "595-604",
+      "source_symbol": "HLAobjectRoot.HLAmanager.HLAfederate.HLAautomaticResignAction; HLAresignAction",
+      "statement": "The standard MIM declares HLAautomaticResignAction as a conditional HLAresignAction attribute, reliably received, with an update whenever the joined federate's Automatic Resign Action changes. The scenario checks the direct value and the conditional reflection both after a change and after restoring the initial action.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-automatic-resign-action-getter",
+      "clause_id": "clause-10.44",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "2127-2135",
+      "source_symbol": "RTIambassador::getAutomaticResignDirective",
+      "statement": "The subject reads the directive before and after each change and confirms restoration; the monitor's HLAinteger32BE MOM value must represent that same standard ResignAction.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-automatic-resign-action-setter",
+      "clause_id": "clause-10.45",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "2137-2147",
+      "source_symbol": "RTIambassador::setAutomaticResignDirective",
+      "statement": "The subject uses the standard setter to change its directive to a different valid enumerator, then restores its initially observed value; the test does not rely on HLAsetSwitches or cause resignation side effects.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-automatic-resign-action-direct-request",
+      "clause_id": "clause-6.21",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "876-889",
+      "source_symbol": "RTIambassador::requestAttributeValueUpdate(ObjectInstanceHandle, AttributeHandleSet, VariableLengthData)",
+      "statement": "The monitor directly requests the subject federate's standard MOM attribute before and after the conditional update and validates each returned HLAinteger32BE value.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-automatic-resign-action-subscription-and-reflection",
+      "clause_id": "clause-5.8",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "525-539",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes",
+      "statement": "The monitor subscribes to the standard HLAfederate MOM object's HLAfederateHandle and HLAautomaticResignAction attributes so it can identify the subject MOM object and receive its conditional updates.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttributeContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-automatic-resign-action-reflection-callback",
+      "clause_id": "clause-6.9.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_lines": "238-260",
+      "source_symbol": "FederateAmbassador::reflectAttributeValues",
+      "statement": "The monitor validates exactly one conditional reflection for each directive change, including the expected HLAinteger32BE action value, reliable transport, empty tag, invalid producer handle, and absent DDM-region metadata.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateAutomaticResignActionMomAttributeContract"
+      ]
+    }
+  ]
+}

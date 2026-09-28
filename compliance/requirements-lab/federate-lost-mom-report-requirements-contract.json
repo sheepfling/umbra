@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-standard-mim-element-traceability-not-conformance-evidence",
+  "notes": "This portable TCK requirement is anchored to the exact named interaction-class definition in the canonical IEEE 1516.2-2025 standard MIM resource. It does not reuse the Requirements Lab's experimental broad clause-4 connection-loss attribution. The checked-in MIM states that HLAreportFederateLost shall be sent when a federate is lost due to a fault; it specifies HLAreliable receive order and the HLAfederateName, HLAtimeStamp, and HLAfaultDescription parameters, with HLAfederate inherited from the parent class. The TCK checks subscribed delivery, lost-federate identity, name, standard logical-time decoding, and reliable transportation. The adapter injects the fault outside the portable TCK source. It makes no claim about the producer designator, exact fault text, region routing, or the reported last-known-good time value.",
+  "requirements": [
+    {
+      "id": "cpp-1516.2-mim-federate-lost-report",
+      "standard_element": "IEEE 1516.2-2025 Standard MIM: HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportFederateLost",
+      "canonical_resource": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "resource_lines": "1878-1906",
+      "statement": "The interaction shall be sent when a federate has been lost from the federation due to a fault; it uses reliable receive order and contains the named lost-federate name, logical timestamp, and fault-description parameters.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLostMomReportPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLostMomReportContractPortable"
+      ]
+    }
+  ]
+}

@@ -3,7 +3,36 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK checks for ordinary and directed subscription re-evaluation. The scenarios use only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM modules, endpoint, callback model, and logical-time implementation. The checks cover ordinary and directed receive-order delivery at the callback boundary and timestamped delivery at the time-constrained grant boundary, including the standard Delay Subscription Evaluation switch and current-subscription filtering.",
+  "notes": "This contract records the portable C++ TCK checks for ordinary and directed subscription re-evaluation. The scenarios use only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM modules, endpoint, callback model, and logical-time implementation. The checks cover ordinary and directed receive-order delivery at the callback boundary and timestamped delivery at the time-constrained grant boundary, including regional attribute and interaction eligibility, the standard Delay Subscription Evaluation switch, and current-subscription filtering. The three DSE-specific pinned Requirements Lab candidate IDs below map to canonical IEEE 1516.1-2025 §8.1.8; the stale exported §8.1.10 metadata is corrected by the resolved RL-252 crosswalk record. The regional timestamped variants additionally use the directly mapped l10-1 candidate for §8.1.10. This remains experimental public-API evidence, not conformance evidence.",
+  "canonical_standard_section_overrides": [
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.1.10",
+      "canonical_clause_id": "clause-8.1.8",
+      "source_heading": "8.1.8 Delay Subscription Evaluation Switch",
+      "source_path": "content/clauses/08-time-management-page-187.tex",
+      "known_issue_id": "RL-252"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l40-11",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.1.10",
+      "canonical_clause_id": "clause-8.1.8",
+      "source_heading": "8.1.8 Delay Subscription Evaluation Switch",
+      "source_path": "content/clauses/08-time-management-page-187.tex",
+      "known_issue_id": "RL-252"
+    },
+    {
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l46-13",
+      "document_id": "hla-1516.1-2025",
+      "exported_clause_id": "clause-8.1.10",
+      "canonical_clause_id": "clause-8.1.8",
+      "source_heading": "8.1.8 Delay Subscription Evaluation Switch",
+      "source_path": "content/clauses/08-time-management-page-187.tex",
+      "known_issue_id": "RL-252"
+    }
+  ],
   "api_surfaces": [
     {
       "id": "standard-cpp-delay-subscription-evaluation-interaction",
@@ -69,6 +98,28 @@
       "source_symbol": "IEEE 1516.1 RTIambassador timestamped attribute subscription-evaluation declarations and FederateAmbassador callbacks",
       "tests": [
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDelaySubscriptionEvaluationTimestampedAttributeUpdateContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-delay-subscription-evaluation-timestamped-regional-attribute-update",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped regional object-attribute update, Delay Subscription Evaluation switch, and FederateAmbassador callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador regional time-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdateContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-delay-subscription-evaluation-timestamped-regional-interaction",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador timestamped regional interaction, Delay Subscription Evaluation switch, and FederateAmbassador callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador regional timestamped interaction declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioDelaySubscriptionEvaluationTimestampedRegionalInteractionContract"
       ]
     }
   ]

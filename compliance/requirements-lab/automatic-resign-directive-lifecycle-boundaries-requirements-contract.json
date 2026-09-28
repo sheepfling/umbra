@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Mappings follow the official IEEE 1516.1-2025 RTIambassador API clauses. The test first sets and reads a valid standard directive while joined, restores NO_ACTION before resignation, then verifies FederateNotExecutionMember after resignation while connected and NotConnected after disconnect. InvalidResignAction is not exercised because only valid ResignAction values are supplied.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-automatic-resign-directive-getter-lifecycle-boundary",
+      "clause_id": "clause-10.44",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAutomaticResignDirective",
+      "source_lines": "2127-2135",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this getter. The test verifies it is callable while joined, then expects the corresponding exception after resignation and disconnect.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAutomaticResignDirectiveLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAutomaticResignDirectiveLifecycleBoundariesContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-automatic-resign-directive-setter-lifecycle-boundary",
+      "clause_id": "clause-10.45",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::setAutomaticResignDirective",
+      "source_lines": "2137-2147",
+      "statement": "The API declares FederateNotExecutionMember and NotConnected for this setter. The test uses valid ResignAction values only and expects the corresponding exception after resignation and disconnect.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAutomaticResignDirectiveLifecycleBoundariesPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAutomaticResignDirectiveLifecycleBoundariesContractPortable"]
+    }
+  ]
+}

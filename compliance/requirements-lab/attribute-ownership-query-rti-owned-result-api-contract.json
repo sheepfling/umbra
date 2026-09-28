@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records a portable installed-package C++ TCK case for querying the standard joined-federate HLAfederateHandle MIM attribute. The adapter supplies the provider package, FOM module, standard MIM, endpoint, and callback configuration. The scenario uses only official IEEE 1516.1 RTIambassador and FederateAmbassador declarations plus the C++ standard library, and checks the distinct Attribute Is Owned By RTI result rather than treating it as a federate-owned or not-owned result. The broader MOM removal/count scenario remains separate; this case isolates only the standard-MIM ownership query.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-attribute-ownership-query-rti-owned-result",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::createFederationExecutionWithMIM, queryAttributeOwnership, and isAttributeOwnedByFederate with FederateAmbassador::discoverObjectInstance and attributeIsOwnedByRTI",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador MIM and ownership-query declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryRtiOwnedResult",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipQueryRtiOwnedResultContract"
+      ]
+    }
+  ]
+}

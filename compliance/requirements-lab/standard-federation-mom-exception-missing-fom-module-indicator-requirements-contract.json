@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This focused trace covers omission of the declared HLAFOMmoduleIndicator parameter from the standard federation-level HLArequestFOMmoduleData MOM interaction and the resulting standard HLAreportMOMexception payload. The case requires HLAparameterError true for the missing parameter but does not constrain provider-specific synchronous exception types or HLAexception wording, and does not claim complete federation MOM or FOM-module-report conformance.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-tck-federation-mom-send-interaction-via-standard-api",
+      "clause_id": "clause-6.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::sendInteraction",
+      "source_lines": "761-764",
+      "statement": "The test invokes the standard sendInteraction service with the standard federation MOM interaction class and an empty ParameterHandleValueMap.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomExceptionMissingFomModuleIndicator",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomExceptionMissingFomModuleIndicatorContract"
+      ]
+    },
+    {
+      "id": "cpp-1516.1-tck-standard-federation-mom-missing-parameter-report",
+      "clause_id": "clause-11.5.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestFOMmoduleData.HLAFOMmoduleIndicator; HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception",
+      "source_lines": "909-918, 1759-1767, 1847-1875, 2586-2598",
+      "statement": "HLArequestFOMmoduleData declares HLAFOMmoduleIndicator to identify the FOM module whose data is requested. HLAreportMOMexception shall be sent when a MOM interaction is sent without all necessary parameters; its HLAservice value identifies the interaction class fully qualified, its inherited HLAfederate identifies the joined federate, and HLAparameterError is HLAtrue for an incorrect number of interaction parameters.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomExceptionMissingFomModuleIndicator",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomExceptionMissingFomModuleIndicatorContract"
+      ]
+    }
+  ]
+}

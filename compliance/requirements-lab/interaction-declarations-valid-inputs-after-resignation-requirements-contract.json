@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The exact mappings below follow the canonical IEEE 1516.1-2025 C++ RTIambassador API header. The scenario resolves a valid adapter-supplied interaction class, successfully invokes each service while joined, then checks FederateNotExecutionMember with the same handle after resignation while the connection remains open.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-publish-interaction-class-membership-boundary-after-resignation",
+      "clause_id": "clause-5.4",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::publishInteractionClass",
+      "source_lines": "461-471",
+      "statement": "The standard API declares FederateNotExecutionMember for publishInteractionClass. The test first successfully publishes an adapter-FOM-defined interaction class while joined, then verifies that exception after resignation while connected.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionDeclarationsValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionDeclarationsValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-unpublish-interaction-class-membership-boundary-after-resignation",
+      "clause_id": "clause-5.5",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unpublishInteractionClass",
+      "source_lines": "473-483",
+      "statement": "The standard API declares FederateNotExecutionMember for unpublishInteractionClass. The test first successfully publishes and unpublishes a valid adapter-FOM-defined interaction class while joined, then verifies that exception after resignation with the same handle.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionDeclarationsValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionDeclarationsValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-subscribe-interaction-class-membership-boundary-after-resignation",
+      "clause_id": "clause-5.10",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::subscribeInteractionClass",
+      "source_lines": "567-579",
+      "statement": "The standard API declares FederateNotExecutionMember for subscribeInteractionClass. The test first successfully subscribes to a valid adapter-FOM-defined interaction class while joined, then verifies that exception after resignation with the same handle.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionDeclarationsValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionDeclarationsValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-unsubscribe-interaction-class-membership-boundary-after-resignation",
+      "clause_id": "clause-5.11",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::unsubscribeInteractionClass",
+      "source_lines": "581-591",
+      "statement": "The standard API declares FederateNotExecutionMember for unsubscribeInteractionClass. The test first successfully subscribes to and unsubscribes from a valid adapter-FOM-defined interaction class while joined, then verifies that exception after resignation with the same handle.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionDeclarationsValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionDeclarationsValidInputsAfterResignationContractPortable"]
+    }
+  ]
+}

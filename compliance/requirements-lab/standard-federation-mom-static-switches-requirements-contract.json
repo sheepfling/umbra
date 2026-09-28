@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The mappings cite the pinned HLAfederation MOM attribute definitions and HLAswitch encoding in the IEEE 1516.2-2025 standard MIM. Installed-package results are bounded provider evidence and do not establish provider-independent conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck.federation-mom-static-switches-object",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "658-669",
+      "source_symbol": "HLAobjectRoot.HLAmanager.HLAfederation object-class semantics",
+      "statement": "The standard HLAfederation MOM class has one RTI-registered instance per federation execution and responds to attribute value requests through the ordinary instance-attribute update mechanism. The scenario discovers that standard instance and requests the four static federation switch values.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticSwitches",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticSwitchesContract"
+      ]
+    },
+    {
+      "id": "cpp-tck.federation-mom-static-switches-values",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "845-895",
+      "source_symbol": "HLAfederation.HLAadvisoriesUseKnownClass; HLAdelaySubscriptionEvaluation; HLAnonRegulatedGrant; HLAallowRelaxedDDM",
+      "statement": "Each of the four named federation MOM attributes is a required static HLAswitch with HLAreliable transportation and receive order. The scenario requests all four and validates that each delivered value is one of the standard Disabled or Enabled enumerators without assuming which value the provider configuration selects.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticSwitches",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticSwitchesContract"
+      ]
+    },
+    {
+      "id": "cpp-tck.federation-mom-static-switches-enumeration",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "3144-3154",
+      "source_symbol": "HLAswitch represented by HLAinteger32BE; Enabled=1; Disabled=0",
+      "statement": "The standard MIM defines HLAswitch using HLAinteger32BE and exactly the Enabled=1 and Disabled=0 enumerators. The scenario decodes each requested value through HLAinteger32BE and rejects any other integer.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticSwitches",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticSwitchesContract"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This mapping points to the official IEEE 1516.1-2025 named joinFederationExecution API service clause and exact overload declaration. The test uses a valid connected, joined federate and repeats the same named join on its existing ambassador; it does not assert exception precedence among unrelated join failures.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-federate-already-execution-member-repeat-join",
+      "clause_id": "clause-4.11",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::joinFederationExecution(federateName, federateType, federationName, additionalFomModules)",
+      "source_lines": "217-238",
+      "statement": "The API declares FederateAlreadyExecutionMember for the named join overload. After a successful join, the test requires the same ambassador's repeated join to throw FederateAlreadyExecutionMember; it then resigns successfully from the original membership.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRepeatedJoinByMemberBoundaryPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioRepeatedJoinByMemberBoundaryContractPortable"]
+    }
+  ]
+}

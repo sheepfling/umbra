@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The mappings below follow the canonical IEEE 1516.1-2025 C++ RTIambassador and FederateAmbassador API headers. A valid adapter-FOM interaction class and a separate active publisher's federate handle are used both before and after the requester resigns, so the membership exception is checked without invalid-handle or unavailable-peer ambiguity.",
+  "requirements": [
+    {
+      "id": "cpp-1516.1-query-interaction-transportation-type-membership-boundary-after-resignation",
+      "clause_id": "clause-6.32",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::queryInteractionTransportationType",
+      "source_lines": "960-971",
+      "statement": "The standard API declares FederateNotExecutionMember for queryInteractionTransportationType. The test first queries a valid active peer and adapter-FOM interaction class successfully, then verifies that exception after the requesting federate resigns while connected, using the same valid inputs.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionTransportationQueryValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionTransportationQueryValidInputsAfterResignationContractPortable"]
+    },
+    {
+      "id": "cpp-1516.1-report-interaction-transportation-type-callback",
+      "clause_id": "clause-6.33",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "FederateAmbassador::reportInteractionTransportationType",
+      "source_lines": "400-406",
+      "statement": "The standard callback reports the queried federate, interaction class, and transportation type. The test verifies that the successful query reports the active adapter-backed publisher and valid interaction class, and that the returned transportation handle resolves through the standard name lookup.",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionTransportationQueryValidInputsAfterResignationPortable", "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionTransportationQueryValidInputsAfterResignationContractPortable"]
+    }
+  ]
+}

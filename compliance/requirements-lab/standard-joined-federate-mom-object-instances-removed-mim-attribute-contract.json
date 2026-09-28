@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records a portable C++ TCK check for the standard joined-federate MOM HLAobjectInstancesRemoved value. It uses only official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, the standard MIM, HLAinteger32BE, and the C++ standard library. The adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and application class/member names. It correlates three successful receive-order Delete Object Instance calls with exactly one receiver removal callback each, checks baseline-relative direct counts, and verifies the final HLAsetTiming periodic value and standard reflection metadata. Timestamped removal/retraction, service-reporting extensions, DDM regions, provider-specific headers, registries, names, and diagnostics are outside this slice.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-object-instances-removed-mim-attribute",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador joined-federate MOM value requests, object-class publication/subscription, object registration, receive-order deletion and HLAsetTiming control, with FederateAmbassador discovery/removal/reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador object-management, MOM, callback, and HLAinteger32BE declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesRemovedAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectInstancesRemovedAttributeContract"
+      ]
+    }
+  ]
+}

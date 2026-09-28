@@ -105,7 +105,6 @@
         <attributeRelevanceAdvisory isEnabled="false"/>
         <objectClassRelevanceAdvisory isEnabled="false"/>
         <interactionRelevanceAdvisory isEnabled="false"/>
-        <delaySubscriptionEvaluation isEnabled="false"/>
         <nonRegulatedGrant isEnabled="false"/>
         <advisoriesUseKnownClass isEnabled="false"/>
     </switches>

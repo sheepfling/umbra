@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable C++ scenario uses only the official IEEE 1516.1 C++ API and standard library. It registers a local object and two objects in another execution, selects a foreign handle that does not compare equal to the local handle, confirms the handle resolves in its own execution, and checks the API-declared ObjectInstanceNotKnown boundary locally.",
+  "api_surfaces": [
+    {
+      "id": "portable-foreign-object-instance-name-by-handle",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual std::wstring getObjectInstanceName(ObjectInstanceHandle const& objectInstance) = 0",
+      "exception_types": [
+        "ObjectInstanceNotKnown",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectInstanceName",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioForeignObjectInstanceHandleLookupBoundaryPortable"
+      ]
+    }
+  ]
+}

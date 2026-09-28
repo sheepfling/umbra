@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK check for the standard joined-federate MOM HLAinteractionsSent attribute. It uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, the standard MIM, HLAinteger32BE, and the C++ standard library. The adapter supplies the provider package, FOM, standard MIM, endpoint, callback model, and application interaction and parameter names. The scenario checks an initial zero, captures a direct baseline after enabling periodic reporting, requires that three accepted ordinary application Send Interaction calls increase that baseline by exactly three, and verifies the same value through periodic reflection. DDM usage accounting is deliberately outside this focused ordinary-interaction slice; no provider-specific headers, registries, names, or diagnostics are used.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-joined-federate-mom-interactions-sent-mim-attribute",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador joined-federate MOM attribute request, application Send Interaction, and HLAsetTiming control with FederateAmbassador reflectAttributeValues and receiveInteraction callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador MOM, object-management, interaction, callback, and HLAinteger32BE declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomInteractionsSentAttribute",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomInteractionsSentAttributeContract"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-public-api-not-conformance-evidence",
+  "notes": "This portable scenario invokes every standard RTIambassador boolean support-switch getter while joined without asserting provider-specific defaults. It then verifies FederateNotExecutionMember after resignation while connected and NotConnected after federation destruction and disconnect. The scenario uses only the official IEEE 1516.1 C++ API and standard library.",
+  "api_surfaces": [
+    {
+      "id": "portable-object-class-relevance-advisory-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getObjectClassRelevanceAdvisorySwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getObjectClassRelevanceAdvisorySwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable"]
+    },
+    {
+      "id": "portable-attribute-relevance-advisory-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getAttributeRelevanceAdvisorySwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAttributeRelevanceAdvisorySwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable"]
+    },
+    {
+      "id": "portable-attribute-scope-advisory-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getAttributeScopeAdvisorySwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAttributeScopeAdvisorySwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable"]
+    },
+    {
+      "id": "portable-interaction-relevance-advisory-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getInteractionRelevanceAdvisorySwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getInteractionRelevanceAdvisorySwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable"]
+    },
+    {
+      "id": "portable-convey-region-designator-sets-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getConveyRegionDesignatorSetsSwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getConveyRegionDesignatorSetsSwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable"]
+    },
+    {
+      "id": "portable-service-reporting-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getServiceReportingSwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getServiceReportingSwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable"]
+    },
+    {
+      "id": "portable-exception-reporting-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getExceptionReportingSwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getExceptionReportingSwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable"]
+    },
+    {
+      "id": "portable-send-service-reports-to-file-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getSendServiceReportsToFileSwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getSendServiceReportsToFileSwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable"]
+    },
+    {
+      "id": "portable-auto-provide-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getAutoProvideSwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAutoProvideSwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable"]
+    },
+    {
+      "id": "portable-delay-subscription-evaluation-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getDelaySubscriptionEvaluationSwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getDelaySubscriptionEvaluationSwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable"]
+    },
+    {
+      "id": "portable-advisories-use-known-class-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getAdvisoriesUseKnownClassSwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAdvisoriesUseKnownClassSwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable"]
+    },
+    {
+      "id": "portable-allow-relaxed-ddm-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getAllowRelaxedDDMSwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getAllowRelaxedDDMSwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable"]
+    },
+    {
+      "id": "portable-non-regulated-grant-switch-getter",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "virtual bool getNonRegulatedGrantSwitch() const = 0",
+      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::getNonRegulatedGrantSwitch",
+      "tests": ["packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioSupportSwitchGetterLifecycleBoundariesPortable"]
+    }
+  ]
+}

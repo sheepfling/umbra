@@ -3,7 +3,12 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for a successful ReleaseMultipleObjectInstanceNames service report. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM data elements, and the standard library; the adapter supplies the provider package, ordinary FOM, standard MIM, endpoint, and callback configuration. It verifies the standard HLAreportServiceInvocation payload and name-reservation callback without provider-specific headers, registries, names, or diagnostics.",
+  "standard_sections": [
+    "hla-1516.1-2025:clause-6.5.3",
+    "hla-1516.1-2025:clause-6.7.5",
+    "hla-1516.1-2025:clause-11.5"
+  ],
+  "notes": "This contract records the portable C++ TCK check for a successful ReleaseMultipleObjectInstanceNames service report. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM data elements, and the standard library; the adapter supplies the provider package, ordinary FOM, standard MIM, endpoint, and callback configuration. The scenario checks the HLAreportServiceInvocation class, the presence of its eight standard parameters, service name, service type, success indicator, empty exception, serial number, reliable transportation, and absence of producer, tag, and region metadata; it also waits for the standard multiple-name reservation-success callback before releasing the names. It does not yet decode the supplied-arguments, returned-argument, or HLAfederate parameter payloads. It contains no provider-specific headers, registries, names, or diagnostics.",
   "api_surfaces": [
     {
       "id": "standard-cpp-service-report-release-multiple-object-instance-names",

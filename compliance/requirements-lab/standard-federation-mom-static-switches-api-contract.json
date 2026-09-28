@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard HLAfederation MIM object, HLAinteger32BE, and the C++ standard library. The adapter supplies the provider package, FOM, standard MIM, endpoint, and callback model. It requests the four standard static federation switch attributes and validates only the standard HLAswitch encoding and enumerators; it does not assert provider-specific switch defaults.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-mom-static-switches",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador MIM federation creation, join, standard MOM handle lookup, subscription, object identity lookup, attribute value request, and resignation/destruction services with FederateAmbassador discovery and reflection callbacks for standard HLAswitch values",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::createFederationExecutionWithMIM, RTIambassador::joinFederationExecution, RTIambassador::getObjectClassHandle, RTIambassador::getAttributeHandle, RTIambassador::subscribeObjectClassAttributes, RTIambassador::requestAttributeValueUpdate, FederateAmbassador::discoverObjectInstance, FederateAmbassador::reflectAttributeValues, HLAinteger32BE",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticSwitches",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticSwitchesContract"
+      ]
+    }
+  ]
+}
