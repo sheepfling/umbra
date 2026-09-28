@@ -502,6 +502,10 @@ constexpr char federateMomPassiveSubscriptionQueryScenario[] =
     "cpp-tck.federate-mom-passive-subscription-query";
 constexpr char federateMomPassiveSubscriptionQueryContractId[] =
     "cpp-tck.federate-mom-passive-subscription-query-contract";
+constexpr char federateMomPassiveInteractionSubscriptionQueryScenario[] =
+    "cpp-tck.federate-mom-passive-interaction-subscription-query";
+constexpr char federateMomPassiveInteractionSubscriptionQueryContractId[] =
+    "cpp-tck.federate-mom-passive-interaction-subscription-query-contract";
 constexpr char federateMomExceptionReportServicePreconditionScenario[] =
     "cpp-tck.federate-mom-exception-report-service-precondition";
 constexpr char federateMomExceptionReportServicePreconditionContractId[] =
@@ -11687,7 +11691,8 @@ void scenarioFederateMomPublicationQueryContract(
 void scenarioFederateMomSubscriptionQueryState(
     Options const& options,
     rti::CallbackModel model,
-    bool activeSubscription) {
+    bool activeObjectSubscription,
+    bool activeInteractionSubscription) {
   require(
       !options.fom.empty() && !options.mimFom.empty() &&
           !options.rateFom.empty() &&
@@ -11699,10 +11704,21 @@ void scenarioFederateMomSubscriptionQueryState(
 
   Session subject(options, model, "owner");
   Session requester(options, model, "member");
-  auto const federation = federationName(
-      options,
-      activeSubscription ? "federate-mom-subscription-query"
-                         : "federate-mom-passive-subscription-query");
+  auto const scenarioSuffix = activeObjectSubscription
+      ? (activeInteractionSubscription
+             ? "federate-mom-subscription-query"
+             : "federate-mom-passive-interaction-subscription-query")
+      : (activeInteractionSubscription
+             ? "federate-mom-passive-subscription-query"
+             : "federate-mom-passive-object-and-interaction-subscription-query");
+  auto const federateNameSuffix = activeObjectSubscription
+      ? (activeInteractionSubscription
+             ? L"-mom-subscription-query"
+             : L"-mom-passive-interaction-subscription-query")
+      : (activeInteractionSubscription
+             ? L"-mom-passive-subscription-query"
+             : L"-mom-passive-object-and-interaction-subscription-query");
+  auto const federation = federationName(options, scenarioSuffix);
   subject.connect();
   requester.connect();
   subject.rtiAmbassador().createFederationExecutionWithMIM(
@@ -11712,12 +11728,10 @@ void scenarioFederateMomSubscriptionQueryState(
           options.rateFom.wstring()},
       options.mimFom.wstring(),
       options.logicalTimeImplementationName);
-  auto const subjectName = activeSubscription
-      ? options.ownerFederateName + L"-mom-subscription-query-subject"
-      : options.ownerFederateName + L"-mom-passive-subscription-query-subject";
-  auto const requesterName = activeSubscription
-      ? options.memberFederateName + L"-mom-subscription-query-requester"
-      : options.memberFederateName + L"-mom-passive-subscription-query-requester";
+  auto const subjectName =
+      options.ownerFederateName + federateNameSuffix + L"-subject";
+  auto const requesterName =
+      options.memberFederateName + federateNameSuffix + L"-requester";
   subject.join(subjectName, options.federateType, federation);
   requester.join(requesterName, options.federateType, federation);
 
@@ -11796,9 +11810,11 @@ void scenarioFederateMomSubscriptionQueryState(
   subjectAmbassador.subscribeObjectClassAttributes(
       subjectObjectClass,
       rti::AttributeHandleSet{subjectAttribute},
-      activeSubscription,
+      activeObjectSubscription,
       options.fomUpdateRateName);
-  subjectAmbassador.subscribeInteractionClass(subjectInteractionClass);
+  subjectAmbassador.subscribeInteractionClass(
+      subjectInteractionClass,
+      activeInteractionSubscription);
 
   struct InteractionSubscription {
     rti::InteractionClassHandle interactionClass;
@@ -11927,7 +11943,7 @@ void scenarioFederateMomSubscriptionQueryState(
       requesterAmbassador.decodeObjectClassHandle(
               objectReport->parameters.at(objectReportClassParameter)) ==
               requesterObjectClass &&
-          objectSubscriptionActive.get() == activeSubscription &&
+          objectSubscriptionActive.get() == activeObjectSubscription &&
           objectSubscriptionUpdateRate.get() == options.fomUpdateRateName,
       "Object-class subscription report did not identify the adapter-selected subscription state and update-rate name");
   auto const subscribedAttributes = decodeAttributeHandleList(
@@ -11958,8 +11974,8 @@ void scenarioFederateMomSubscriptionQueryState(
         });
     require(
         matchingSubscription != subscribedInteractions.end() &&
-            matchingSubscription->active,
-        "Interaction subscription report omitted the expected active application subscription");
+            matchingSubscription->active == activeInteractionSubscription,
+        "Interaction subscription report omitted the expected application subscription mode");
   }
 
   require(
@@ -11995,13 +12011,19 @@ void scenarioFederateMomSubscriptionQueryState(
 void scenarioFederateMomSubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
-  scenarioFederateMomSubscriptionQueryState(options, model, true);
+  scenarioFederateMomSubscriptionQueryState(options, model, true, true);
 }
 
 void scenarioFederateMomPassiveSubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
-  scenarioFederateMomSubscriptionQueryState(options, model, false);
+  scenarioFederateMomSubscriptionQueryState(options, model, false, true);
+}
+
+void scenarioFederateMomPassiveInteractionSubscriptionQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(options, model, true, false);
 }
 
 void scenarioFederateMomSubscriptionQueryContract(
@@ -12014,6 +12036,12 @@ void scenarioFederateMomPassiveSubscriptionQueryContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederateMomPassiveSubscriptionQuery(options, model);
+}
+
+void scenarioFederateMomPassiveInteractionSubscriptionQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPassiveInteractionSubscriptionQuery(options, model);
 }
 
 void scenarioFederateMomExceptionReportServicePrecondition(
@@ -31309,6 +31337,18 @@ int runFederateMomPassiveSubscriptionQueryScenarios(int argc, char** argv) {
       scenarioFederateMomPassiveSubscriptionQueryContract);
 }
 
+int runFederateMomPassiveInteractionSubscriptionQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomPassiveInteractionSubscriptionQueryScenario,
+      federateMomPassiveInteractionSubscriptionQueryContractId,
+      scenarioFederateMomPassiveInteractionSubscriptionQuery,
+      scenarioFederateMomPassiveInteractionSubscriptionQueryContract);
+}
+
 int runFederateMomExceptionReportServicePreconditionScenarios(
     int argc,
     char** argv) {
@@ -35506,6 +35546,22 @@ bool hasFederateMomPassiveSubscriptionQueryScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasFederateMomPassiveInteractionSubscriptionQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomPassiveInteractionSubscriptionQueryScenario ||
+        scenario == federateMomPassiveInteractionSubscriptionQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasFederateMomExceptionReportServicePreconditionScenario(
     int argc,
     char** argv) {
@@ -36706,6 +36762,9 @@ int main(int argc, char** argv) {
     }
     if (hasFederateMomPassiveSubscriptionQueryScenario(argc, argv)) {
       return runFederateMomPassiveSubscriptionQueryScenarios(argc, argv);
+    }
+    if (hasFederateMomPassiveInteractionSubscriptionQueryScenario(argc, argv)) {
+      return runFederateMomPassiveInteractionSubscriptionQueryScenarios(argc, argv);
     }
     if (hasFederateMomExceptionReportServicePreconditionScenario(argc, argv)) {
       return runFederateMomExceptionReportServicePreconditionScenarios(argc, argv);

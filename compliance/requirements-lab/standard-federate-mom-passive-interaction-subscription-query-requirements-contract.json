@@ -1,0 +1,61 @@
+{
+    "schema_version": 1,
+    "kind": "requirements-reference",
+    "document_id": "hla-1516.1-2025",
+    "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+    "notes": "This portable slice composes adapter-supplied application and update-rate FOM modules. The queried subject has one active object-attribute subscription and one passive application interaction subscription. A separate requester identifies that subject in HLArequestSubscriptions and validates the standard object, interaction, and directed-interaction reports. The interaction report contains exactly the selected class with its passive HLAactive indicator false; the object report retains the selected active state, update-rate name, and attribute list; the directed-interaction response uses the standard empty NULL shape. It does not cover multiple classes, multiple rates, DDM regions, populated directed subscriptions, or overall MOM conformance.",
+    "requirements": [
+        {
+            "id": "cpp-tck-federate-mom-passive-interaction-object-declaration",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4",
+            "clause_id": "clause-5.9.4",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "535-539",
+            "source_symbol": "subscribeObjectClassAttributes",
+            "statement": "The subject actively subscribes to the adapter-selected object-class attribute with the adapter-selected update-rate designator; the standard MIM report identifies that class, active state, update-rate name, and exact attribute handle.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-passive-interaction-declaration",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-099-l75-20",
+            "clause_id": "clause-5.10",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "577-579",
+            "source_symbol": "subscribeInteractionClass",
+            "statement": "The subject passively subscribes to the adapter-selected interaction class with the standard active argument set to false; the report's interaction-subscription pair must retain that class handle and report HLAactive=false.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-passive-interaction-query-send",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-123-l145-40",
+            "clause_id": "clause-6.12",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "750-764",
+            "source_symbol": "sendInteraction",
+            "statement": "The requester sends HLArequestSubscriptions through the standard sendInteraction service and uses its inherited HLAfederate parameter to identify the joined subject whose declarations are queried.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-passive-interaction-query-reports",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+            "clause_id": "clause-11.4.1",
+            "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+            "source_lines": "909-918, 1077-1090, 1316-1426, 3625-3638, 3718-3733",
+            "source_symbol": "HLArequestSubscriptions",
+            "statement": "The standard reports identify the subject's active object subscription and passive interaction subscription. The interaction-class list contains the selected interaction handle paired with HLAactive=false as defined by the MIM's HLAinteractionSubscription record. With no directed interactions, the directed report is a NULL response with zero classes, omitted object-class parameter, and an empty interaction-class list.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionQueryContract"
+            ]
+        }
+    ]
+}

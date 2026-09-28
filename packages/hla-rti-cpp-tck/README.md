@@ -249,6 +249,8 @@ The executable covers these ordinary public-API workflows, under both
   | `cpp-tck.federate-mom-subscription-query-contract` | Pure standard C++ contract for federate MOM subscription reports |
   | `cpp-tck.federate-mom-passive-subscription-query` | Verifies a passive object-attribute subscription, active interaction subscription, and required empty directed-interaction report |
   | `cpp-tck.federate-mom-passive-subscription-query-contract` | Pure standard C++ contract for passive federate MOM subscription reporting |
+  | `cpp-tck.federate-mom-passive-interaction-subscription-query` | Verifies an active object-attribute subscription, passive interaction subscription, and required empty directed-interaction report |
+  | `cpp-tck.federate-mom-passive-interaction-subscription-query-contract` | Pure standard C++ contract for passive interaction subscription reporting |
   | `cpp-tck.federate-mom-exception-report-service-precondition` | Service Reporting enablement failure while subscribed to HLAreportServiceInvocation reports HLAparameterError false |
   | `cpp-tck.federate-mom-exception-report-service-precondition-contract` | Pure standard C++ contract for the Service Reporting MOM precondition report |
   | `cpp-tck.federate-send-service-reports-to-file-mom-switch` | Standard federate-level HLAsetSwitches changes for the service-report destination switch without activating report emission |
@@ -4385,7 +4387,19 @@ four active/passive scenario IDs in both callback models. Evidence is in
 `.build/cpp-tck-federate-mom-passive-subscription-query-candidate-a-clean-20260928/`
 and
 `.build/cpp-tck-federate-mom-passive-subscription-query-candidate-b-clean-20260928/`.
-The pair is promoted. The catalog now contains 954 IDs (952 promoted, 2
-candidates); Java parity remains 21/21. Next bounded handoff: select the next
-uncovered standard `HLAfederate` request/report family from the pinned MIM
-survey and verify its adapter-backed scenario before promotion.
+The passive-interaction pair validates the adapter-selected interaction class
+as a passive subscription while retaining an active object-attribute
+subscription. Its standard `HLAinteractionClassList` record must contain the
+selected interaction handle paired with `HLAactive=false`. Two independent
+installed-package consumer trees each passed 12/12 focused CTest cases across
+both callback models, and direct evidence passed all six active/passive-object/
+passive-interaction scenario IDs in both callback models. Evidence is in
+`.build/cpp-tck-federate-mom-passive-interaction-subscription-query-candidate-a-clean-20260928/`
+and
+`.build/cpp-tck-federate-mom-passive-interaction-subscription-query-candidate-b-clean-20260928/`.
+The pair is promoted. The catalog now contains 956 IDs (954 promoted, 2
+candidates); Java parity remains 21/21. Next bounded handoff: translate the
+standard MIM NULL responses for empty object-attribute and interaction
+subscriptions; the existing native `requestSubscriptions` test is green for
+those report shapes, while the portable TCK currently checks only the empty
+directed-interaction response.

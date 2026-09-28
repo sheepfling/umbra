@@ -39807,6 +39807,93 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.federate-mom-passive-interaction-subscription-query",
+      "category": "federate-mom",
+      "title": "Report an active object and passive interaction subscription through the standard MIM",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-passive-interaction-subscription-query-api-contract.json",
+        "standard-federate-mom-passive-interaction-subscription-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomPassiveInteractionSubscriptionQuery",
+      "runner_id": "cpp-tck.federate-mom-passive-interaction-subscription-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-passive-interaction-subscription-query-contract",
+      "category": "federate-mom",
+      "title": "Pure standard C++ contract for passive interaction subscription reporting",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-passive-interaction-subscription-query-api-contract.json",
+        "standard-federate-mom-passive-interaction-subscription-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomPassiveInteractionSubscriptionQueryContract",
+      "runner_id": "cpp-tck.federate-mom-passive-interaction-subscription-query-contract",
+      "parity": "cpp-tck.federate-mom-passive-interaction-subscription-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.joined-federate-mom-object-instances-updated-report",
       "category": "joined-federate-mom-object-statistics",
       "title": "Request standard joined-federate MOM updated-object counts by registered class",

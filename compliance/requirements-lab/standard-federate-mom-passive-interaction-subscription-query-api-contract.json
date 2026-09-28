@@ -1,0 +1,53 @@
+{
+    "schema_version": 1,
+    "kind": "api-reference",
+    "document_id": "hla-1516.1-2025",
+    "status": "experimental-public-api-not-conformance-evidence",
+    "notes": "This portable C++ TCK slice composes adapter-supplied application and update-rate FOM modules. A subject federate actively subscribes to one adapter-selected object-class attribute and passively subscribes to one adapter-selected interaction class. A separate requester subscribes to the three standard MIM report interactions and names the subject using the inherited HLAfederate parameter of HLArequestSubscriptions. The test checks the active object-class report, including its update-rate name and exact attribute list; the interaction subscription pair, including HLAactive=false; and the empty directed-interaction NULL response. It uses only official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard MIM, public handle decoders, standard encoding DataElements, and the C++ standard library. The provider package, FOM modules, names, endpoint, callback configuration, update-rate name, and logical-time implementation come from the adapter. It uses no DDM regions, private headers, provider registry, or vendor-specific API.",
+    "api_surfaces": [
+        {
+            "id": "standard-cpp-passive-interaction-query-object-subscription",
+            "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeobjectclassattributes.048ff2ba5bba",
+            "owner": "RTIambassador",
+            "language": "cpp",
+            "signature": "virtual void subscribeObjectClassAttributes( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes, bool active = true, std::wstring const & updateRateDesignator = L\"\") = 0",
+            "exception_types": [
+                "AttributeNotDefined",
+                "ObjectClassNotDefined",
+                "SaveInProgress",
+                "RestoreInProgress",
+                "FederateNotExecutionMember",
+                "NotConnected",
+                "RTIinternalError"
+            ],
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_symbol": "subscribeObjectClassAttributes",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionQueryContract"
+            ]
+        },
+        {
+            "id": "standard-cpp-passive-interaction-query-interaction-subscription",
+            "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
+            "owner": "RTIambassador",
+            "language": "cpp",
+            "signature": "virtual void subscribeInteractionClass( InteractionClassHandle const & interactionClass, bool active = true) = 0",
+            "exception_types": [
+                "FederateServiceInvocationsAreBeingReportedViaMOM",
+                "InteractionClassNotDefined",
+                "SaveInProgress",
+                "RestoreInProgress",
+                "FederateNotExecutionMember",
+                "NotConnected",
+                "RTIinternalError"
+            ],
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_symbol": "subscribeInteractionClass",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionQueryContract"
+            ]
+        }
+    ]
+}
