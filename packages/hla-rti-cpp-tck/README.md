@@ -4397,9 +4397,22 @@ passive-interaction scenario IDs in both callback models. Evidence is in
 `.build/cpp-tck-federate-mom-passive-interaction-subscription-query-candidate-a-clean-20260928/`
 and
 `.build/cpp-tck-federate-mom-passive-interaction-subscription-query-candidate-b-clean-20260928/`.
-The pair is promoted. The catalog now contains 956 IDs (954 promoted, 2
-candidates); Java parity remains 21/21. Next bounded handoff: translate the
-standard MIM NULL responses for empty object-attribute and interaction
-subscriptions; the existing native `requestSubscriptions` test is green for
-those report shapes, while the portable TCK currently checks only the empty
-directed-interaction response.
+The empty-subscription pair now verifies all three standard `HLArequestSubscriptions`
+report shapes: the object report has only a zero `HLAnumberOfClasses` and omits
+the four optional object parameters; the ordinary interaction report carries
+an empty `HLAinteractionClassList`; and the directed-interaction NULL response
+has zero classes, omits `HLAobjectClass`, and carries an empty class list. Two
+independent installed-package consumer trees each passed 16/16 focused CTest
+cases across the active, passive-object, passive-interaction, and empty states
+in both callback models. Direct evidence passed all eight scenario IDs in both
+callback models. Evidence is in
+`.build/cpp-tck-federate-mom-empty-subscription-query-candidate-a-clean-20260928/`
+and
+`.build/cpp-tck-federate-mom-empty-subscription-query-candidate-b-clean-20260928/`.
+The pair is promoted. The catalog now contains 958 IDs (956 promoted, 2
+candidates); Java parity remains 21/21. The API-surface audit still accounts
+for all 164 official RTIambassador methods and 56 FederateAmbassador callbacks.
+Next bounded handoff: add populated directed-interaction subscription reports.
+The native `requestSubscriptions` case verifies one object class and one
+interaction class in that report; a search of the portable catalog found no
+matching populated directed-subscription scenario yet.

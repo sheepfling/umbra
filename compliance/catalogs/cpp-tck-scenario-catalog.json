@@ -39894,6 +39894,84 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.federate-mom-empty-subscription-query",
+      "category": "federate-mom",
+      "title": "Report empty object and interaction subscriptions through standard MIM NULL responses",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-empty-subscription-query-api-contract.json",
+        "standard-federate-mom-empty-subscription-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomEmptySubscriptionQuery",
+      "runner_id": "cpp-tck.federate-mom-empty-subscription-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-empty-subscription-query-contract",
+      "category": "federate-mom",
+      "title": "Pure standard C++ contract for empty subscription query reporting",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-empty-subscription-query-api-contract.json",
+        "standard-federate-mom-empty-subscription-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomEmptySubscriptionQueryContract",
+      "runner_id": "cpp-tck.federate-mom-empty-subscription-query-contract",
+      "parity": "cpp-tck.federate-mom-empty-subscription-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.joined-federate-mom-object-instances-updated-report",
       "category": "joined-federate-mom-object-statistics",
       "title": "Request standard joined-federate MOM updated-object counts by registered class",

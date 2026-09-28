@@ -506,6 +506,10 @@ constexpr char federateMomPassiveInteractionSubscriptionQueryScenario[] =
     "cpp-tck.federate-mom-passive-interaction-subscription-query";
 constexpr char federateMomPassiveInteractionSubscriptionQueryContractId[] =
     "cpp-tck.federate-mom-passive-interaction-subscription-query-contract";
+constexpr char federateMomEmptySubscriptionQueryScenario[] =
+    "cpp-tck.federate-mom-empty-subscription-query";
+constexpr char federateMomEmptySubscriptionQueryContractId[] =
+    "cpp-tck.federate-mom-empty-subscription-query-contract";
 constexpr char federateMomExceptionReportServicePreconditionScenario[] =
     "cpp-tck.federate-mom-exception-report-service-precondition";
 constexpr char federateMomExceptionReportServicePreconditionContractId[] =
@@ -11691,7 +11695,9 @@ void scenarioFederateMomPublicationQueryContract(
 void scenarioFederateMomSubscriptionQueryState(
     Options const& options,
     rti::CallbackModel model,
+    bool hasObjectSubscription,
     bool activeObjectSubscription,
+    bool hasInteractionSubscription,
     bool activeInteractionSubscription) {
   require(
       !options.fom.empty() && !options.mimFom.empty() &&
@@ -11704,20 +11710,26 @@ void scenarioFederateMomSubscriptionQueryState(
 
   Session subject(options, model, "owner");
   Session requester(options, model, "member");
-  auto const scenarioSuffix = activeObjectSubscription
-      ? (activeInteractionSubscription
-             ? "federate-mom-subscription-query"
-             : "federate-mom-passive-interaction-subscription-query")
-      : (activeInteractionSubscription
-             ? "federate-mom-passive-subscription-query"
-             : "federate-mom-passive-object-and-interaction-subscription-query");
-  auto const federateNameSuffix = activeObjectSubscription
-      ? (activeInteractionSubscription
-             ? L"-mom-subscription-query"
-             : L"-mom-passive-interaction-subscription-query")
-      : (activeInteractionSubscription
-             ? L"-mom-passive-subscription-query"
-             : L"-mom-passive-object-and-interaction-subscription-query");
+  auto const scenarioSuffix = !hasObjectSubscription &&
+          !hasInteractionSubscription
+      ? "federate-mom-empty-subscription-query"
+      : activeObjectSubscription
+          ? (activeInteractionSubscription
+                 ? "federate-mom-subscription-query"
+                 : "federate-mom-passive-interaction-subscription-query")
+          : (activeInteractionSubscription
+                 ? "federate-mom-passive-subscription-query"
+                 : "federate-mom-passive-object-and-interaction-subscription-query");
+  auto const federateNameSuffix = !hasObjectSubscription &&
+          !hasInteractionSubscription
+      ? L"-mom-empty-subscription-query"
+      : activeObjectSubscription
+          ? (activeInteractionSubscription
+                 ? L"-mom-subscription-query"
+                 : L"-mom-passive-interaction-subscription-query")
+          : (activeInteractionSubscription
+                 ? L"-mom-passive-subscription-query"
+                 : L"-mom-passive-object-and-interaction-subscription-query");
   auto const federation = federationName(options, scenarioSuffix);
   subject.connect();
   requester.connect();
@@ -11807,14 +11819,18 @@ void scenarioFederateMomSubscriptionQueryState(
   requesterAmbassador.subscribeInteractionClass(objectReportClass);
   requesterAmbassador.subscribeInteractionClass(interactionReportClass);
   requesterAmbassador.subscribeInteractionClass(directedReportClass);
-  subjectAmbassador.subscribeObjectClassAttributes(
-      subjectObjectClass,
-      rti::AttributeHandleSet{subjectAttribute},
-      activeObjectSubscription,
-      options.fomUpdateRateName);
-  subjectAmbassador.subscribeInteractionClass(
-      subjectInteractionClass,
-      activeInteractionSubscription);
+  if (hasObjectSubscription) {
+    subjectAmbassador.subscribeObjectClassAttributes(
+        subjectObjectClass,
+        rti::AttributeHandleSet{subjectAttribute},
+        activeObjectSubscription,
+        options.fomUpdateRateName);
+  }
+  if (hasInteractionSubscription) {
+    subjectAmbassador.subscribeInteractionClass(
+        subjectInteractionClass,
+        activeInteractionSubscription);
+  }
 
   struct InteractionSubscription {
     rti::InteractionClassHandle interactionClass;
@@ -11922,36 +11938,52 @@ void scenarioFederateMomSubscriptionQueryState(
           directedReport != nullptr,
       "Subscription query omitted one of the three standard MIM report classes");
 
-  require(
-      objectReport->parameters.size() == 5U &&
-          objectReport->parameters.count(objectReportCountParameter) == 1U &&
-          objectReport->parameters.count(objectReportClassParameter) == 1U &&
-          objectReport->parameters.count(objectReportActiveParameter) == 1U &&
-          objectReport->parameters.count(objectReportUpdateRateParameter) == 1U &&
-          objectReport->parameters.count(objectReportAttributesParameter) == 1U,
-      "Object-class subscription report did not contain its five MIM-defined parameters");
   rti::HLAinteger32BE objectClassCount;
+  require(
+      objectReport->parameters.count(objectReportCountParameter) == 1U,
+      "Object-class subscription report omitted its MIM-defined class count");
   objectClassCount.decode(objectReport->parameters.at(objectReportCountParameter));
-  rti::HLAboolean objectSubscriptionActive;
-  objectSubscriptionActive.decode(
-      objectReport->parameters.at(objectReportActiveParameter));
-  rti::HLAunicodeString objectSubscriptionUpdateRate;
-  objectSubscriptionUpdateRate.decode(
-      objectReport->parameters.at(objectReportUpdateRateParameter));
-  require(
-      objectClassCount.get() == 1 &&
-      requesterAmbassador.decodeObjectClassHandle(
-              objectReport->parameters.at(objectReportClassParameter)) ==
-              requesterObjectClass &&
-          objectSubscriptionActive.get() == activeObjectSubscription &&
-          objectSubscriptionUpdateRate.get() == options.fomUpdateRateName,
-      "Object-class subscription report did not identify the adapter-selected subscription state and update-rate name");
-  auto const subscribedAttributes = decodeAttributeHandleList(
-      objectReport->parameters.at(objectReportAttributesParameter));
-  require(
-      subscribedAttributes.size() == 1U &&
-          subscribedAttributes.front() == requesterAttribute,
-      "Object-class subscription report did not contain exactly the adapter-selected attribute");
+  if (hasObjectSubscription) {
+    require(
+        objectReport->parameters.size() == 5U &&
+            objectReport->parameters.count(objectReportClassParameter) == 1U &&
+            objectReport->parameters.count(objectReportActiveParameter) == 1U &&
+            objectReport->parameters.count(objectReportUpdateRateParameter) ==
+                1U &&
+            objectReport->parameters.count(objectReportAttributesParameter) ==
+                1U,
+        "Populated object-class subscription report did not contain its five MIM-defined parameters");
+    rti::HLAboolean objectSubscriptionActive;
+    objectSubscriptionActive.decode(
+        objectReport->parameters.at(objectReportActiveParameter));
+    rti::HLAunicodeString objectSubscriptionUpdateRate;
+    objectSubscriptionUpdateRate.decode(
+        objectReport->parameters.at(objectReportUpdateRateParameter));
+    require(
+        objectClassCount.get() == 1 &&
+            requesterAmbassador.decodeObjectClassHandle(
+                    objectReport->parameters.at(objectReportClassParameter)) ==
+                requesterObjectClass &&
+            objectSubscriptionActive.get() == activeObjectSubscription &&
+            objectSubscriptionUpdateRate.get() == options.fomUpdateRateName,
+        "Object-class subscription report did not identify the adapter-selected subscription state and update-rate name");
+    auto const subscribedAttributes = decodeAttributeHandleList(
+        objectReport->parameters.at(objectReportAttributesParameter));
+    require(
+        subscribedAttributes.size() == 1U &&
+            subscribedAttributes.front() == requesterAttribute,
+        "Object-class subscription report did not contain exactly the adapter-selected attribute");
+  } else {
+    require(
+        objectReport->parameters.size() == 1U && objectClassCount.get() == 0 &&
+            objectReport->parameters.count(objectReportClassParameter) == 0U &&
+            objectReport->parameters.count(objectReportActiveParameter) == 0U &&
+            objectReport->parameters.count(objectReportUpdateRateParameter) ==
+                0U &&
+            objectReport->parameters.count(objectReportAttributesParameter) ==
+                0U,
+        "Empty object-class subscription report did not use the standard zero-class NULL response shape");
+  }
 
   require(
       interactionReport->parameters.size() == 1U &&
@@ -11960,22 +11992,17 @@ void scenarioFederateMomSubscriptionQueryState(
       "Interaction subscription report did not contain its MIM-defined class list");
   auto const subscribedInteractions = decodeInteractionSubscriptions(
       interactionReport->parameters.at(interactionReportListParameter));
-  std::vector<rti::InteractionClassHandle> const expectedSubscriptions{
-      requesterInteractionClass};
-  require(
-      subscribedInteractions.size() == expectedSubscriptions.size(),
-      "Interaction subscription report did not contain exactly the adapter-selected interaction subscription");
-  for (auto const& expected : expectedSubscriptions) {
-    auto const matchingSubscription = std::find_if(
-        subscribedInteractions.begin(),
-        subscribedInteractions.end(),
-        [&](auto const& subscription) {
-          return subscription.interactionClass == expected;
-        });
+  if (hasInteractionSubscription) {
     require(
-        matchingSubscription != subscribedInteractions.end() &&
-            matchingSubscription->active == activeInteractionSubscription,
-        "Interaction subscription report omitted the expected application subscription mode");
+        subscribedInteractions.size() == 1U &&
+            subscribedInteractions.front().interactionClass ==
+                requesterInteractionClass &&
+            subscribedInteractions.front().active == activeInteractionSubscription,
+        "Interaction subscription report did not contain exactly the adapter-selected interaction subscription mode");
+  } else {
+    require(
+        subscribedInteractions.empty(),
+        "Empty interaction subscription report did not use the standard empty class-list NULL response shape");
   }
 
   require(
@@ -11994,10 +12021,14 @@ void scenarioFederateMomSubscriptionQueryState(
               directedReport->parameters.at(directedReportListParameter)).empty(),
       "Empty directed-interaction subscription report did not report zero classes and an empty list");
 
-  subjectAmbassador.unsubscribeObjectClassAttributes(
-      subjectObjectClass,
-      rti::AttributeHandleSet{subjectAttribute});
-  subjectAmbassador.unsubscribeInteractionClass(subjectInteractionClass);
+  if (hasObjectSubscription) {
+    subjectAmbassador.unsubscribeObjectClassAttributes(
+        subjectObjectClass,
+        rti::AttributeHandleSet{subjectAttribute});
+  }
+  if (hasInteractionSubscription) {
+    subjectAmbassador.unsubscribeInteractionClass(subjectInteractionClass);
+  }
   requesterAmbassador.unsubscribeInteractionClass(objectReportClass);
   requesterAmbassador.unsubscribeInteractionClass(interactionReportClass);
   requesterAmbassador.unsubscribeInteractionClass(directedReportClass);
@@ -12011,19 +12042,25 @@ void scenarioFederateMomSubscriptionQueryState(
 void scenarioFederateMomSubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
-  scenarioFederateMomSubscriptionQueryState(options, model, true, true);
+  scenarioFederateMomSubscriptionQueryState(options, model, true, true, true, true);
 }
 
 void scenarioFederateMomPassiveSubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
-  scenarioFederateMomSubscriptionQueryState(options, model, false, true);
+  scenarioFederateMomSubscriptionQueryState(options, model, true, false, true, true);
 }
 
 void scenarioFederateMomPassiveInteractionSubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
-  scenarioFederateMomSubscriptionQueryState(options, model, true, false);
+  scenarioFederateMomSubscriptionQueryState(options, model, true, true, true, false);
+}
+
+void scenarioFederateMomEmptySubscriptionQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(options, model, false, false, false, false);
 }
 
 void scenarioFederateMomSubscriptionQueryContract(
@@ -12042,6 +12079,12 @@ void scenarioFederateMomPassiveInteractionSubscriptionQueryContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederateMomPassiveInteractionSubscriptionQuery(options, model);
+}
+
+void scenarioFederateMomEmptySubscriptionQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomEmptySubscriptionQuery(options, model);
 }
 
 void scenarioFederateMomExceptionReportServicePrecondition(
@@ -31349,6 +31392,16 @@ int runFederateMomPassiveInteractionSubscriptionQueryScenarios(
       scenarioFederateMomPassiveInteractionSubscriptionQueryContract);
 }
 
+int runFederateMomEmptySubscriptionQueryScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomEmptySubscriptionQueryScenario,
+      federateMomEmptySubscriptionQueryContractId,
+      scenarioFederateMomEmptySubscriptionQuery,
+      scenarioFederateMomEmptySubscriptionQueryContract);
+}
+
 int runFederateMomExceptionReportServicePreconditionScenarios(
     int argc,
     char** argv) {
@@ -35562,6 +35615,20 @@ bool hasFederateMomPassiveInteractionSubscriptionQueryScenario(
   return false;
 }
 
+bool hasFederateMomEmptySubscriptionQueryScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomEmptySubscriptionQueryScenario ||
+        scenario == federateMomEmptySubscriptionQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasFederateMomExceptionReportServicePreconditionScenario(
     int argc,
     char** argv) {
@@ -36765,6 +36832,9 @@ int main(int argc, char** argv) {
     }
     if (hasFederateMomPassiveInteractionSubscriptionQueryScenario(argc, argv)) {
       return runFederateMomPassiveInteractionSubscriptionQueryScenarios(argc, argv);
+    }
+    if (hasFederateMomEmptySubscriptionQueryScenario(argc, argv)) {
+      return runFederateMomEmptySubscriptionQueryScenarios(argc, argv);
     }
     if (hasFederateMomExceptionReportServicePreconditionScenario(argc, argv)) {
       return runFederateMomExceptionReportServicePreconditionScenarios(argc, argv);
