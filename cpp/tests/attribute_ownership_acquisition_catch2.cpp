@@ -4,6 +4,9 @@
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
+#include <RTI/encoding/BasicDataElements.h>
+#include <RTI/encoding/HLAfixedRecord.h>
+#include <RTI/encoding/HLAvariableArray.h>
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 #include "internal/federation/federation_registry.hpp"
@@ -15,8 +18,12 @@
 #endif
 
 #include <atomic>
+#include <array>
+#include <chrono>
 #include <exception>
 #include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <memory>
 #include <stdexcept>
 #include <thread>
@@ -35,10 +42,15 @@ using rti1516_2025::AttributeHandleSet;
 using rti1516_2025::FederateHandle;
 using rti1516_2025::HLA_EVOKED;
 using rti1516_2025::HLA_IMMEDIATE;
+using rti1516_2025::InteractionClassHandle;
 using rti1516_2025::ObjectClassHandle;
 using rti1516_2025::ObjectInstanceHandle;
+using rti1516_2025::ParameterHandle;
+using rti1516_2025::ParameterHandleValueMap;
+using rti1516_2025::RegionHandleSet;
 using rti1516_2025::RTIambassador;
 using rti1516_2025::RTIambassadorFactory;
+using rti1516_2025::TransportationTypeHandle;
 using rti1516_2025::VariableLengthData;
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
@@ -1517,6 +1529,11 @@ TEST_CASE(
       serveExpected(
           requesterSession,
           requesterHandler,
+          TransportServiceOperation::get_attribute_handle,
+          "The process negotiated-divestiture cancellation server lost requester second-attribute lookup.");
+      serveExpected(
+          requesterSession,
+          requesterHandler,
           TransportServiceOperation::subscribe_object_class_attributes,
           "The process negotiated-divestiture cancellation server lost requester Subscribe.");
       serveExpected(
@@ -1529,6 +1546,11 @@ TEST_CASE(
           ownerHandler,
           TransportServiceOperation::get_attribute_handle,
           "The process negotiated-divestiture cancellation server lost owner attribute lookup.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::get_attribute_handle,
+          "The process negotiated-divestiture cancellation server lost owner second-attribute lookup.");
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -1571,6 +1593,26 @@ TEST_CASE(
           TransportServiceOperation::
               cancel_negotiated_attribute_ownership_divestiture,
           "The process negotiated-divestiture cancellation server lost Cancellation.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::is_attribute_owned_by_federate,
+          "The process negotiated-divestiture cancellation server lost the owner-state query.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::is_attribute_owned_by_federate,
+          "The process negotiated-divestiture cancellation server lost the owner's second-attribute state query.");
+      serveExpected(
+          requesterSession,
+          requesterHandler,
+          TransportServiceOperation::is_attribute_owned_by_federate,
+          "The process negotiated-divestiture cancellation server lost the requester-state query.");
+      serveExpected(
+          requesterSession,
+          requesterHandler,
+          TransportServiceOperation::is_attribute_owned_by_federate,
+          "The process negotiated-divestiture cancellation server lost the requester's second-attribute state query.");
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -1645,22 +1687,30 @@ TEST_CASE(
     auto const requesterAttribute = requester->getAttributeHandle(
         requesterClass,
         fixture_hla::fixture::reliable_base_a);
+    auto const requesterSecondAttribute = requester->getAttributeHandle(
+        requesterClass,
+        fixture_hla::fixture::reliable_base_b);
     REQUIRE(requesterClass.isValid());
     REQUIRE(requesterAttribute.isValid());
+    REQUIRE(requesterSecondAttribute.isValid());
     REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(
         requesterClass,
-        AttributeHandleSet{requesterAttribute}));
+        AttributeHandleSet{requesterAttribute, requesterSecondAttribute}));
 
     auto const ownerClass = owner->getObjectClassHandle(
         fixture_hla::fom::attribute_fixture_child);
     auto const ownerAttribute = owner->getAttributeHandle(
         ownerClass,
         fixture_hla::fixture::reliable_base_a);
+    auto const ownerSecondAttribute = owner->getAttributeHandle(
+        ownerClass,
+        fixture_hla::fixture::reliable_base_b);
     REQUIRE(ownerClass.isValid());
     REQUIRE(ownerAttribute.isValid());
+    REQUIRE(ownerSecondAttribute.isValid());
     REQUIRE_NOTHROW(owner->publishObjectClassAttributes(
         ownerClass,
-        AttributeHandleSet{ownerAttribute}));
+        AttributeHandleSet{ownerAttribute, ownerSecondAttribute}));
 
     ObjectInstanceHandle objectInstance;
     REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(ownerClass));
@@ -1671,28 +1721,36 @@ TEST_CASE(
             objectInstance);
     REQUIRE_NOTHROW(requester->publishObjectClassAttributes(
         requesterClass,
-        AttributeHandleSet{requesterAttribute}));
+        AttributeHandleSet{requesterAttribute, requesterSecondAttribute}));
 
     unsigned char const tagBytes[] = {0xC2, 0x11, 0x6D, 0x09};
     VariableLengthData const tag(tagBytes, sizeof(tagBytes));
     REQUIRE_NOTHROW(requester->attributeOwnershipAcquisition(
         objectInstance,
-        AttributeHandleSet{requesterAttribute},
+        AttributeHandleSet{requesterAttribute, requesterSecondAttribute},
         tag));
     REQUIRE(ownerReports.releaseRequests.empty());
     REQUIRE_NOTHROW(owner->negotiatedAttributeOwnershipDivestiture(
         objectInstance,
-        AttributeHandleSet{ownerAttribute},
+        AttributeHandleSet{ownerAttribute, ownerSecondAttribute},
         tag));
     REQUIRE_NOTHROW(owner->cancelNegotiatedAttributeOwnershipDivestiture(
         objectInstance,
-        AttributeHandleSet{ownerAttribute}));
+        AttributeHandleSet{ownerAttribute, ownerSecondAttribute}));
+    REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, ownerAttribute));
+    REQUIRE(owner->isAttributeOwnedByFederate(
+        objectInstance, ownerSecondAttribute));
+    REQUIRE_FALSE(requester->isAttributeOwnedByFederate(
+        objectInstance, requesterAttribute));
+    REQUIRE_FALSE(requester->isAttributeOwnedByFederate(
+        objectInstance, requesterSecondAttribute));
     REQUIRE(ownerReports.releaseRequests.empty());
     REQUIRE_NOTHROW(owner->evokeMultipleCallbacks(0.0, 0.0));
     REQUIRE(ownerReports.releaseRequests.size() == 1U);
     auto const& release = ownerReports.releaseRequests.front();
     REQUIRE(release.objectInstance == objectInstance);
-    REQUIRE(release.attributes == AttributeHandleSet{ownerAttribute});
+    REQUIRE(release.attributes ==
+            AttributeHandleSet{ownerAttribute, ownerSecondAttribute});
     REQUIRE(variableLengthDataBytes(release.userSuppliedTag) ==
             std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
 
@@ -1741,15 +1799,9 @@ TEST_CASE(
   REQUIRE_FALSE(serverError);
 }
 
-TEST_CASE(
-    "RTIambassadors deliver Confirm Divestiture through a configured process endpoint",
-    "[integration][development-profile][federation-management][ownership-management]"
-    "[transport][process-boundary][process-confirm-divestiture][public-endpoint]"
-    "[negotiated-attribute-ownership-divestiture][confirm-divestiture]"
-    "[rti.service.negotiated-attribute-ownership-divestiture]"
-    "[rti.service.confirm-divestiture]"
-    "[federate.callback.request-divestiture-confirmation]"
-    "[federate.callback.attribute-ownership-acquisition-notification][2025]") {
+void runProcessConfirmDivestitureServiceReportScenario(
+    bool selectFileDestination,
+    bool exerciseMixedConfirmation = false) {
   class ConfirmingFederateAmbassador final
       : public rti1516_2025::NullFederateAmbassador {
    public:
@@ -1774,6 +1826,19 @@ TEST_CASE(
         unsigned char const confirmationTagBytes[] = {0xE1, 0x6A, 0xB4, 0x2D};
         VariableLengthData const confirmationTag(
             confirmationTagBytes, sizeof(confirmationTagBytes));
+        if (exerciseMixedConfirmation) {
+          AttributeHandleSet mixedAttributes{attributes};
+          mixedAttributes.insert(unrequestedAttribute);
+          try {
+            rti->confirmDivestiture(
+                objectInstance,
+                mixedAttributes,
+                confirmationTag);
+          } catch (rti1516_2025::AttributeDivestitureWasNotRequested const&) {
+            mixedConfirmationRejected = true;
+          }
+          return;
+        }
         rti->confirmDivestiture(
             objectInstance, attributes, confirmationTag);
         confirmed = true;
@@ -1788,10 +1853,41 @@ TEST_CASE(
     }
 
     RTIambassador* rti = nullptr;
+    AttributeHandle unrequestedAttribute;
+    bool exerciseMixedConfirmation = false;
+    bool mixedConfirmationRejected = false;
     bool confirmed = false;
     std::vector<RequestReport> requests;
     std::vector<AcquisitionReport> acquisitions;
   } ownerReports;
+  class ServiceReportObserver final
+      : public rti1516_2025::NullFederateAmbassador {
+   public:
+    struct InteractionReport final {
+      InteractionClassHandle interactionClass;
+      ParameterHandleValueMap parameterValues;
+      VariableLengthData userSuppliedTag;
+      TransportationTypeHandle transportationType;
+      FederateHandle producingFederate;
+    };
+
+    void receiveInteraction(
+        InteractionClassHandle const& interactionClass,
+        ParameterHandleValueMap const& parameterValues,
+        VariableLengthData const& userSuppliedTag,
+        TransportationTypeHandle const& transportationType,
+        FederateHandle const& producingFederate,
+        RegionHandleSet const*) override {
+      interactionReports.push_back({
+          interactionClass,
+          parameterValues,
+          userSuppliedTag,
+          transportationType,
+          producingFederate});
+    }
+
+    std::vector<InteractionReport> interactionReports;
+  } observerReports;
   ReportingFederateAmbassador requesterReports;
 
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
@@ -1799,13 +1895,27 @@ TEST_CASE(
   auto const port = listener->address().port;
   REQUIRE(port != 0U);
 
+  auto const reportDirectory = std::filesystem::temp_directory_path() /
+      ("umbra-process-confirm-divestiture-report-" + std::to_string(
+          std::chrono::steady_clock::now().time_since_epoch().count()));
+  struct ReportDirectoryCleanup final {
+    std::filesystem::path path;
+    ~ReportDirectoryCleanup() {
+      std::error_code ignored;
+      std::filesystem::remove_all(path, ignored);
+    }
+  } reportDirectoryCleanup{reportDirectory};
+
   std::exception_ptr serverError;
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions serviceOptions;
+      serviceOptions.serviceReportDirectory = reportDirectory;
       ProcessFederationService service(
           registry,
-          composedProcessOwnershipDefinition());
+          composedProcessOwnershipDefinition(),
+          serviceOptions);
       auto ownerConnection = listener->accept(
           nullptr,
           {"process-confirm-divestiture-server", 0xA70DU},
@@ -1857,6 +1967,35 @@ TEST_CASE(
           requesterHandler,
           TransportServiceOperation::join_federation_execution,
           "The process Confirm Divestiture server lost requester Join.");
+      auto observerConnection = listener->accept(
+          nullptr,
+          {"process-confirm-divestiture-server", 0xA70FU},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession observerSession(observerConnection);
+      auto observerHandler = service.handlerFor(observerSession);
+      serveExpected(
+          observerSession,
+          observerHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The process Confirm Divestiture server lost observer Join.");
+      serveExpected(
+          observerSession,
+          observerHandler,
+          TransportServiceOperation::get_interaction_class_handle,
+          "The process Confirm Divestiture server lost the report interaction lookup.");
+      for (std::size_t index = 0U; index < 8U; ++index) {
+        serveExpected(
+            observerSession,
+            observerHandler,
+            TransportServiceOperation::get_parameter_handle,
+            "The process Confirm Divestiture server lost a report parameter lookup.");
+      }
+      serveExpected(
+          observerSession,
+          observerHandler,
+          TransportServiceOperation::subscribe_interaction_class,
+          "The process Confirm Divestiture server lost the report subscription.");
       serveExpected(
           requesterSession,
           requesterHandler,
@@ -1882,6 +2021,13 @@ TEST_CASE(
           ownerHandler,
           TransportServiceOperation::get_attribute_handle,
           "The process Confirm Divestiture server lost owner attribute lookup.");
+      if (exerciseMixedConfirmation) {
+        serveExpected(
+            ownerSession,
+            ownerHandler,
+            TransportServiceOperation::get_attribute_handle,
+            "The process Confirm Divestiture server lost the unrequested owner attribute lookup.");
+      }
       serveExpected(
           ownerSession,
           ownerHandler,
@@ -1920,6 +2066,16 @@ TEST_CASE(
       serveExpected(
           ownerSession,
           ownerHandler,
+          TransportServiceOperation::set_service_reporting_switch,
+          "The process Confirm Divestiture server lost the service-reporting switch.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::set_send_service_reports_to_file_switch,
+          "The process Confirm Divestiture server lost the service-report-file switch.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
           TransportServiceOperation::receive_interaction,
           "The process Confirm Divestiture server lost owner confirmation poll.");
       serveExpected(
@@ -1927,11 +2083,45 @@ TEST_CASE(
           ownerHandler,
           TransportServiceOperation::receive_interaction,
           "The process Confirm Divestiture server lost owner confirmation drain.");
+      if (exerciseMixedConfirmation) {
+        serveExpected(
+            ownerSession,
+            ownerHandler,
+            TransportServiceOperation::confirm_divestiture,
+            "The process Confirm Divestiture server lost the mixed-set rejection request.");
+        serveExpected(
+            ownerSession,
+            ownerHandler,
+            TransportServiceOperation::report_service_exception,
+            "The process Confirm Divestiture server lost the suppressed failure-report request.");
+        serveExpected(
+            ownerSession,
+            ownerHandler,
+            TransportServiceOperation::set_service_reporting_switch,
+            "The process Confirm Divestiture server lost the reporting re-enable request.");
+      }
       serveExpected(
           ownerSession,
           ownerHandler,
           TransportServiceOperation::confirm_divestiture,
           "The process Confirm Divestiture server lost Confirm Divestiture.");
+      serveExpected(
+          ownerSession,
+          ownerHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The process Confirm Divestiture server lost its successful service report.");
+      if (!selectFileDestination) {
+        serveExpected(
+            observerSession,
+            observerHandler,
+            TransportServiceOperation::receive_interaction,
+            "The process Confirm Divestiture server lost the report observer poll.");
+        serveExpected(
+            observerSession,
+            observerHandler,
+            TransportServiceOperation::receive_interaction,
+            "The process Confirm Divestiture server lost the report observer drain.");
+      }
       serveExpected(
           requesterSession,
           requesterHandler,
@@ -1952,10 +2142,17 @@ TEST_CASE(
           ownerHandler,
           TransportServiceOperation::resign_federation_execution,
           "The process Confirm Divestiture server lost owner Resign.");
+      serveExpected(
+          observerSession,
+          observerHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The process Confirm Divestiture server lost observer Resign.");
       service.detach(ownerSession);
       service.detach(requesterSession);
+      service.detach(observerSession);
       ownerConnection->close();
       requesterConnection->close();
+      observerConnection->close();
     } catch (...) {
       serverError = std::current_exception();
     }
@@ -1966,6 +2163,7 @@ TEST_CASE(
   auto const fomModule = resourcePath("attribute-update-passel-fom.xml").wstring();
   auto owner = makeRti();
   auto requester = makeRti();
+  auto observer = makeRti();
   auto ownerConfiguration = rti1516_2025::RtiConfiguration::createConfiguration()
                                 .withConfigurationName(
                                     L"process-confirm-divestiture-owner")
@@ -1976,9 +2174,15 @@ TEST_CASE(
                                         L"process-confirm-divestiture-requester")
                                     .withRtiAddress(
                                         L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto observerConfiguration = rti1516_2025::RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(
+                                       L"process-confirm-divestiture-observer")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
   std::exception_ptr clientError;
   bool ownerJoined = false;
   bool requesterJoined = false;
+  bool observerJoined = false;
   try {
     REQUIRE_NOTHROW(owner->connect(
         ownerReports, HLA_EVOKED, ownerConfiguration));
@@ -2000,6 +2204,32 @@ TEST_CASE(
         federationName));
     requesterJoined = true;
 
+    REQUIRE_NOTHROW(observer->connect(
+        observerReports, HLA_EVOKED, observerConfiguration));
+    REQUIRE_NOTHROW(observer->joinFederationExecution(
+        L"process-confirm-divestiture-observer",
+        L"observer",
+        federationName));
+    observerJoined = true;
+    auto const reportClass = observer->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+    REQUIRE(reportClass.isValid());
+    std::vector<ParameterHandle> reportParameters;
+    for (auto const* name : {
+             L"HLAservice",
+             L"HLAserviceType",
+             L"HLAsuccessIndicator",
+             L"HLAsuppliedArguments",
+             L"HLAreturnedArgument",
+             L"HLAexception",
+             L"HLAserialNumber",
+             L"HLAfederate"}) {
+      auto const parameter = observer->getParameterHandle(reportClass, name);
+      REQUIRE(parameter.isValid());
+      reportParameters.push_back(parameter);
+    }
+    REQUIRE_NOTHROW(observer->subscribeInteractionClass(reportClass));
+
     auto const requesterClass = requester->getObjectClassHandle(
         fixture_hla::fom::attribute_fixture_child);
     auto const requesterAttribute = requester->getAttributeHandle(
@@ -2016,11 +2246,25 @@ TEST_CASE(
     auto const ownerAttribute = owner->getAttributeHandle(
         ownerClass,
         fixture_hla::fixture::reliable_base_a);
+    AttributeHandle unrequestedAttribute;
+    if (exerciseMixedConfirmation) {
+      unrequestedAttribute = owner->getAttributeHandle(
+          ownerClass,
+          fixture_hla::fixture::reliable_base_b);
+    }
     REQUIRE(ownerClass.isValid());
     REQUIRE(ownerAttribute.isValid());
+    if (exerciseMixedConfirmation) {
+      REQUIRE(unrequestedAttribute.isValid());
+      ownerReports.unrequestedAttribute = unrequestedAttribute;
+      ownerReports.exerciseMixedConfirmation = true;
+    }
+    AttributeHandleSet const publishedAttributes = exerciseMixedConfirmation
+        ? AttributeHandleSet{ownerAttribute, unrequestedAttribute}
+        : AttributeHandleSet{ownerAttribute};
     REQUIRE_NOTHROW(owner->publishObjectClassAttributes(
         ownerClass,
-        AttributeHandleSet{ownerAttribute}));
+        publishedAttributes));
 
     ObjectInstanceHandle objectInstance;
     REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(ownerClass));
@@ -2045,6 +2289,9 @@ TEST_CASE(
         objectInstance,
         AttributeHandleSet{ownerAttribute},
         negotiatedTag));
+    REQUIRE_NOTHROW(owner->setServiceReportingSwitch(!exerciseMixedConfirmation));
+    REQUIRE_NOTHROW(owner->setSendServiceReportsToFileSwitch(
+        selectFileDestination));
     REQUIRE(ownerReports.requests.empty());
     REQUIRE_NOTHROW(owner->evokeMultipleCallbacks(0.0, 0.0));
     REQUIRE(ownerReports.requests.size() == 1U);
@@ -2056,8 +2303,68 @@ TEST_CASE(
             std::vector<unsigned char>(
                 negotiatedTagBytes,
                 negotiatedTagBytes + sizeof(negotiatedTagBytes)));
+    if (exerciseMixedConfirmation) {
+      REQUIRE(ownerReports.mixedConfirmationRejected);
+      REQUIRE_FALSE(ownerReports.confirmed);
+      REQUIRE_NOTHROW(owner->setServiceReportingSwitch(true));
+      unsigned char const confirmationTagBytes[] = {0xE1, 0x6A, 0xB4, 0x2D};
+      VariableLengthData const confirmationTag(
+          confirmationTagBytes, sizeof(confirmationTagBytes));
+      REQUIRE_NOTHROW(owner->confirmDivestiture(
+          objectInstance,
+          AttributeHandleSet{ownerAttribute},
+          confirmationTag));
+      ownerReports.confirmed = true;
+    }
     REQUIRE(ownerReports.confirmed);
     REQUIRE(requesterReports.acquisitionReports.empty());
+
+    if (!selectFileDestination) {
+      REQUIRE_NOTHROW(observer->evokeMultipleCallbacks(0.0, 0.0));
+      REQUIRE(observerReports.interactionReports.size() == 1U);
+      auto const& report = observerReports.interactionReports.front();
+      REQUIRE(report.interactionClass == reportClass);
+      REQUIRE(report.parameterValues.size() == 8U);
+      REQUIRE(report.userSuppliedTag.size() == 0U);
+      REQUIRE(report.transportationType.isValid());
+      REQUIRE_FALSE(report.producingFederate.isValid());
+
+      rti1516_2025::HLAunicodeString service;
+      REQUIRE_NOTHROW(service.decode(
+          report.parameterValues.at(reportParameters[0])));
+      REQUIRE(service.get() == L"ConfirmDivestiture");
+      rti1516_2025::HLAinteger16BE serviceType;
+      REQUIRE_NOTHROW(serviceType.decode(
+          report.parameterValues.at(reportParameters[1])));
+      REQUIRE(serviceType.get() == 3);
+      rti1516_2025::HLAboolean success;
+      REQUIRE_NOTHROW(success.decode(
+          report.parameterValues.at(reportParameters[2])));
+      REQUIRE(success.get());
+
+      rti1516_2025::HLAfixedRecord argumentPrototype;
+      argumentPrototype.appendElement(rti1516_2025::HLAinteger32BE{})
+          .appendElement(rti1516_2025::HLAunicodeString{})
+          .appendElement(rti1516_2025::HLAunicodeString{});
+      rti1516_2025::HLAvariableArray suppliedArguments{argumentPrototype};
+      REQUIRE_NOTHROW(suppliedArguments.decode(
+          report.parameterValues.at(reportParameters[3])));
+      REQUIRE(suppliedArguments.size() == 3U);
+      auto const& tagArgument =
+          dynamic_cast<rti1516_2025::HLAfixedRecord const&>(
+              suppliedArguments.get(2U));
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  tagArgument.get(0U))
+                  .get() == 60);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  tagArgument.get(1U))
+                  .get() == L"User-supplied tag");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  tagArgument.get(2U))
+                  .get() == L"\"4Wq0LQ==\"");
+    } else {
+      REQUIRE(observerReports.interactionReports.empty());
+    }
 
     REQUIRE_NOTHROW(requester->evokeMultipleCallbacks(0.0, 0.0));
     REQUIRE(requesterReports.acquisitionReports.size() == 1U);
@@ -2080,8 +2387,12 @@ TEST_CASE(
     REQUIRE_NOTHROW(owner->resignFederationExecution(
         rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
     ownerJoined = false;
+    REQUIRE_NOTHROW(observer->resignFederationExecution(
+        rti1516_2025::NO_ACTION));
+    observerJoined = false;
     REQUIRE_NOTHROW(owner->disconnect());
     REQUIRE_NOTHROW(requester->disconnect());
+    REQUIRE_NOTHROW(observer->disconnect());
   } catch (...) {
     clientError = std::current_exception();
     if (requesterJoined) {
@@ -2098,12 +2409,22 @@ TEST_CASE(
       } catch (...) {
       }
     }
+    if (observerJoined) {
+      try {
+        observer->resignFederationExecution(rti1516_2025::NO_ACTION);
+      } catch (...) {
+      }
+    }
     try {
       requester->disconnect();
     } catch (...) {
     }
     try {
       owner->disconnect();
+    } catch (...) {
+    }
+    try {
+      observer->disconnect();
     } catch (...) {
     }
   }
@@ -2117,6 +2438,72 @@ TEST_CASE(
     std::rethrow_exception(clientError);
   }
   REQUIRE_FALSE(serverError);
+
+  if (selectFileDestination) {
+    std::string confirmationRecord;
+    for (auto const& entry : std::filesystem::directory_iterator(reportDirectory)) {
+      if (!entry.is_regular_file()) {
+        continue;
+      }
+      std::ifstream input(entry.path(), std::ios::binary);
+      std::string const fileText{
+          std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
+      if (fileText.find("\"HLAservice\":\"ConfirmDivestiture\"") !=
+          std::string::npos) {
+        confirmationRecord = fileText;
+        break;
+      }
+    }
+    REQUIRE_FALSE(confirmationRecord.empty());
+    REQUIRE(confirmationRecord.find("\"HLAsuccessIndicator\":true") !=
+            std::string::npos);
+    REQUIRE(confirmationRecord.find(
+                "\"HLAargumentType\":63,\"HLAargumentName\":\"User-supplied tag\"") !=
+            std::string::npos);
+    REQUIRE(confirmationRecord.find("\"HLAargumentValue\":\"4Wq0LQ==\"") !=
+            std::string::npos);
+  } else {
+    REQUIRE(observerReports.interactionReports.size() == 1U);
+  }
+}
+
+TEST_CASE(
+    "RTIambassadors deliver Confirm Divestiture through a configured process endpoint",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[transport][process-boundary][process-confirm-divestiture][public-endpoint]"
+    "[mom][service-reporting][service-report-file][process-confirm-divestiture-service-report]"
+    "[negotiated-attribute-ownership-divestiture][confirm-divestiture]"
+    "[rti.service.negotiated-attribute-ownership-divestiture]"
+    "[rti.service.confirm-divestiture]"
+    "[federate.callback.request-divestiture-confirmation]"
+    "[federate.callback.attribute-ownership-acquisition-notification][2025]") {
+  runProcessConfirmDivestitureServiceReportScenario(true);
+}
+
+TEST_CASE(
+    "RTIambassadors deliver Confirm Divestiture through process MOM interaction",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[transport][process-boundary][process-confirm-divestiture][public-endpoint]"
+    "[mom][service-reporting][service-report-interaction]"
+    "[process-confirm-divestiture-service-report-interaction]"
+    "[negotiated-attribute-ownership-divestiture][confirm-divestiture]"
+    "[rti.service.negotiated-attribute-ownership-divestiture]"
+    "[rti.service.confirm-divestiture]"
+    "[federate.callback.request-divestiture-confirmation]"
+    "[federate.callback.attribute-ownership-acquisition-notification]"
+    "[federate.callback.receive-interaction][2025]") {
+  runProcessConfirmDivestitureServiceReportScenario(false);
+}
+
+TEST_CASE(
+    "RTIambassadors reject mixed process Confirm Divestiture sets atomically",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[transport][process-boundary][public-endpoint]"
+    "[process-confirm-divestiture-mixed-set-atomicity]"
+    "[rti.service.confirm-divestiture]"
+    "[federate.callback.request-divestiture-confirmation]"
+    "[federate.callback.attribute-ownership-acquisition-notification][2025]") {
+  runProcessConfirmDivestitureServiceReportScenario(false, true);
 }
 
 TEST_CASE(
@@ -2183,20 +2570,31 @@ TEST_CASE(
                                auto const& handler,
                                umbra::detail::TransportServiceOperation operation,
                                char const* description) {
-        umbra::detail::TransportServiceMessage response;
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                processSession,
-                [&](umbra::detail::TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  response = handler(request);
-                  return response;
-                })) {
-          throw std::runtime_error(description);
-        }
-        if (response.status != umbra::detail::TransportServiceStatus::ok) {
-          throw std::runtime_error(description);
+        bool expectedOperationServed = false;
+        while (!expectedOperationServed) {
+          umbra::detail::TransportServiceMessage response;
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  processSession,
+                  [&](umbra::detail::TransportServiceMessage const& request) {
+                    if (request.operation ==
+                            umbra::detail::TransportServiceOperation::receive_interaction &&
+                        operation !=
+                            umbra::detail::TransportServiceOperation::receive_interaction) {
+                      response = handler(request);
+                      return response;
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(description);
+                    }
+                    expectedOperationServed = true;
+                    response = handler(request);
+                    return response;
+                  })) {
+            throw std::runtime_error(description);
+          }
+          if (response.status != umbra::detail::TransportServiceStatus::ok) {
+            throw std::runtime_error(description);
+          }
         }
       };
 
@@ -2290,11 +2688,11 @@ TEST_CASE(
           ownerHandler,
           TransportServiceOperation::confirm_divestiture,
           "The push Confirm Divestiture server lost Confirm Divestiture.");
-      // Confirm emits the acquisition notification directly to the requester;
-      // its next ordinary lookup is the second HLA_IMMEDIATE receive fence.
-      serveExpected(
-          requesterSession,
-          requesterHandler,
+      serveExpected(ownerSession, ownerHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The push Confirm Divestiture server lost its service-report append.");
+      // The requester lookup consumes the pushed acquisition notification.
+      serveExpected(requesterSession, requesterHandler,
           TransportServiceOperation::get_object_class_handle,
           "The push Confirm Divestiture server lost requester acquisition fence.");
       serveExpected(
@@ -2570,20 +2968,31 @@ TEST_CASE(
                                auto const& handler,
                                umbra::detail::TransportServiceOperation operation,
                                char const* description) {
-        umbra::detail::TransportServiceMessage response;
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                processSession,
-                [&](umbra::detail::TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  response = handler(request);
-                  return response;
-                })) {
-          throw std::runtime_error(description);
-        }
-        if (response.status != umbra::detail::TransportServiceStatus::ok) {
-          throw std::runtime_error(description);
+        bool expectedOperationServed = false;
+        while (!expectedOperationServed) {
+          umbra::detail::TransportServiceMessage response;
+          if (!ProcessTransportServiceDispatcher::serveOne(
+                  processSession,
+                  [&](umbra::detail::TransportServiceMessage const& request) {
+                    if (request.operation ==
+                            umbra::detail::TransportServiceOperation::receive_interaction &&
+                        operation !=
+                            umbra::detail::TransportServiceOperation::receive_interaction) {
+                      response = handler(request);
+                      return response;
+                    }
+                    if (request.operation != operation) {
+                      throw std::runtime_error(description);
+                    }
+                    expectedOperationServed = true;
+                    response = handler(request);
+                    return response;
+                  })) {
+            throw std::runtime_error(description);
+          }
+          if (response.status != umbra::detail::TransportServiceStatus::ok) {
+            throw std::runtime_error(description);
+          }
         }
       };
 
@@ -2709,14 +3118,14 @@ TEST_CASE(
           candidateHandler,
           TransportServiceOperation::get_object_class_handle,
           "The process Confirm Divestiture assumption server lost candidate assumption fence.");
-      serveExpected(
-          ownerSession,
-          ownerHandler,
+      serveExpected(ownerSession, ownerHandler,
           TransportServiceOperation::confirm_divestiture,
           "The process Confirm Divestiture assumption server lost Confirm Divestiture.");
+      serveExpected(ownerSession, ownerHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The process Confirm Divestiture assumption server lost its service-report append.");
       serveExpected(
-          requesterSession,
-          requesterHandler,
+          requesterSession, requesterHandler,
           TransportServiceOperation::get_object_class_handle,
           "The process Confirm Divestiture assumption server lost requester acquisition fence.");
       serveExpected(
@@ -2975,7 +3384,7 @@ TEST_CASE(
 TEST_CASE(
     "RTIambassadors deliver restored ownership-assumption work through a configured process endpoint",
     "[integration][development-profile][federation-management][save-restore][ownership-management]"
-    "[transport][process-boundary][process-local-restore][public-endpoint][ownership-assumption]"
+    "[transport][process-boundary][process-local-restore][process-restored-ownership-assumption][public-endpoint][ownership-assumption]"
     "[rti.service.unconditional-attribute-ownership-divestiture]"
     "[rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete]"
     "[rti.service.request-federation-restore][rti.service.federate-restore-complete]"
@@ -3437,7 +3846,7 @@ TEST_CASE(
 TEST_CASE(
     "RTIambassadors deliver restored ownership-assumption work under HLA_IMMEDIATE through a configured process endpoint",
     "[integration][development-profile][federation-management][save-restore][ownership-management]"
-    "[transport][process-boundary][process-local-restore][public-endpoint][ownership-assumption]"
+    "[transport][process-boundary][process-local-restore][process-restored-ownership-assumption][public-endpoint][ownership-assumption]"
     "[callback-model-hla-immediate][process-federation-restore-work-item-ownership-assumption-immediate]"
     "[rti.service.unconditional-attribute-ownership-divestiture]"
     "[rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete]"
@@ -3854,7 +4263,7 @@ TEST_CASE(
 TEST_CASE(
     "RTIambassadors preserve pushed ownership-assumption delivery across save and restore",
     "[integration][development-profile][federation-management][save-restore][ownership-management]"
-    "[transport][process-boundary][process-local-restore][push-mode][public-endpoint][ownership-assumption]"
+    "[transport][process-boundary][process-local-restore][process-restored-ownership-assumption][push-mode][callback-model-hla-immediate][public-endpoint][ownership-assumption]"
     "[rti.service.unconditional-attribute-ownership-divestiture]"
     "[rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete]"
     "[rti.service.request-federation-restore][rti.service.federate-restore-complete]"
@@ -4285,7 +4694,7 @@ TEST_CASE(
 TEST_CASE(
     "RTIambassadors deliver an unconsumed pushed ownership-assumption callback through HLA_EVOKED",
     "[integration][development-profile][ownership-management]"
-    "[transport][process-boundary][push-mode][public-endpoint][ownership-assumption]"
+    "[transport][process-boundary][push-mode][process-unconsumed-pushed-ownership-assumption][public-endpoint][ownership-assumption]"
     "[callback-model][evoked][object-discovery-order]"
     "[rti.service.unconditional-attribute-ownership-divestiture]"
     "[federate.callback.request-attribute-ownership-assumption][2025]") {

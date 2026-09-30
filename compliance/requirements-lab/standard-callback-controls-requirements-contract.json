@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-traceability-not-conformance-evidence",
+  "notes": "This contract maps the ordinary interaction callback-control scenarios to the direct IEEE 1516.1-2025 requirements in §10.60.6. The immediate-model assertion verifies that a pending Receive Interaction callback remains undispatched between Disable Callbacks and Enable Callbacks. The evoked-model scenario exercises callback servicing separately; it is not used to widen the immediate-model requirement claim.",
+  "requirements": [
+    {
+      "id": "cpp-tck-callback-disable-gates-immediate-interaction-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-286-l152-47",
+      "clause_id": "clause-10.60.6",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "disableCallbacks",
+      "statement": "In HLA_IMMEDIATE mode, after Disable Callbacks and a published ordinary Send Interaction, no Receive Interaction callback is exposed before Enable Callbacks; after Enable Callbacks, the pending callback is delivered.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioCallbackControls",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioCallbackControlsContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-callback-disable-invoked-outside-callback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-286-l167-52",
+      "clause_id": "clause-10.60.6",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "disableCallbacks",
+      "statement": "The scenario waits for the baseline Receive Interaction callback to return before invoking Disable Callbacks, so the service is not invoked while a callback is in progress.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioCallbackControls",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioCallbackControlsContract"
+      ]
+    }
+  ]
+}

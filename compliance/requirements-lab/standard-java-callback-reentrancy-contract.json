@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The Requirements Lab has no standalone normative callback-reentrancy requirement. This Java TCK scenario records only the exception boundary declared by the official IEEE 1516.1-2025 Java API when evokeCallback and evokeMultipleCallbacks are called from reportFederationExecutions. Do not treat this as normative conformance evidence.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-callback-reentrancy-evoke-callback",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signature": "boolean evokeCallback(double approximateMinimumTimeInSeconds) throws CallNotAllowedFromWithinCallback, RTIinternalError",
+      "source": "official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "hla.rti1516_2025.RTIambassador.evokeCallback",
+      "tests": ["packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/CallbackReentrancyTck.java"]
+    },
+    {
+      "id": "standard-java-callback-reentrancy-evoke-multiple-callbacks",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signature": "boolean evokeMultipleCallbacks(double approximateMinimumTimeInSeconds, double approximateMaximumTimeInSeconds) throws CallNotAllowedFromWithinCallback, RTIinternalError",
+      "source": "official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "hla.rti1516_2025.RTIambassador.evokeMultipleCallbacks",
+      "tests": ["packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/CallbackReentrancyTck.java"]
+    },
+    {
+      "id": "standard-java-callback-reentrancy-federation-list-report",
+      "owner": "FederateAmbassador",
+      "language": "java",
+      "signature": "void reportFederationExecutions(FederationExecutionInformationSet federationExecutionInformationSet)",
+      "source": "official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "hla.rti1516_2025.FederateAmbassador.reportFederationExecutions",
+      "tests": ["packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/CallbackReentrancyTck.java"]
+    }
+  ]
+}

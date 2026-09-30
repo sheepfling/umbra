@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The case verifies a single active, non-regional object-class subscription composed of two adapter-selected attributes. Following the standard attribute-set unsubscribe service for one attribute, a fresh standard MIM subscription query must still report the object class and report only the remaining attribute, preserving the active flag and update-rate designator. This is limited to ordinary attribute subscription and MOM query/report behavior; it makes no claim about DDM, region-associated subscriptions, the full subscription service surface, or provider conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-mom-object-attribute-subscription-declaration",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4",
+      "clause_id": "clause-5.9.4",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "535-539",
+      "source_symbol": "subscribeObjectClassAttributes",
+      "statement": "The subject federate actively subscribes to an adapter-selected set of two object-class attributes.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectAttributePartialUnsubscribeQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectAttributePartialUnsubscribeQueryContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-mom-object-attribute-partial-unsubscribe-service",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4",
+      "clause_id": "clause-5.9.4",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "563-565",
+      "source_symbol": "unsubscribeObjectClassAttributes",
+      "statement": "The subject federate removes only one member of the subscribed attribute set by invoking the standard attribute-set unsubscribe service.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectAttributePartialUnsubscribeQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectAttributePartialUnsubscribeQueryContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-mom-object-attribute-subscription-query-request",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "1077-1089",
+      "source_symbol": "HLArequestSubscriptions",
+      "statement": "A separate requester sends the standard MIM subscription query identifying the joined subject federate.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectAttributePartialUnsubscribeQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectAttributePartialUnsubscribeQueryContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-mom-object-attribute-partial-unsubscribe-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "1316-1367",
+      "source_symbol": "HLAreportObjectClassSubscription",
+      "statement": "A fresh HLArequestSubscriptions query reports the current object-class subscription. The object-class report retains the subscribed class, its active state and update-rate designator, and exactly the one attribute that remains subscribed after partial unsubscription.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectAttributePartialUnsubscribeQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectAttributePartialUnsubscribeQueryContract"
+      ]
+    }
+  ]
+}

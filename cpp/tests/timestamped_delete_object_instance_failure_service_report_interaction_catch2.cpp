@@ -160,7 +160,7 @@ TEST_CASE(
                                  std::wstring const& serviceException) {
     auto const& report = observerCallbacks.interactionReports.at(index);
     REQUIRE(report.interactionClass == reportClass);
-    REQUIRE(report.parameterValues.size() == 7U);
+    REQUIRE(report.parameterValues.size() == 8U);
     REQUIRE(report.userSuppliedTag.size() == 0U);
     REQUIRE_FALSE(report.producingFederate.isValid());
 
@@ -196,7 +196,7 @@ TEST_CASE(
         37,
         L"Object instance designator",
         L"\"" + objectValue + L"\"");
-    verifyArgument(1U, 63, L"User-supplied tag", L"\"dHNv\"");
+    verifyArgument(1U, 60, L"User-supplied tag", L"\"dHNv\"");
     verifyArgument(2U, 31, L"Optional timestamp", L"\"" + timestampValue + L"\"");
 
     rti1516_2025::HLAfixedRecord returned;

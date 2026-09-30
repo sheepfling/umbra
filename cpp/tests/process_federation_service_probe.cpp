@@ -3,6 +3,7 @@
 #include "internal/federation/process_federation_callback_bridge.hpp"
 #include "internal/federation/process_federation_client.hpp"
 #include "internal/federation/process_federation_service.hpp"
+#include "process_public_service_fixture.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
 #include "internal/handles/federate_handle.hpp"
@@ -13,8 +14,10 @@
 #include <RTI/RTI1516.h>
 #include <RTI/NullFederateAmbassador.h>
 
+#include <array>
 #include <chrono>
 #include <cstdint>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -279,9 +282,9 @@ int runServer(std::filesystem::path const& directory) {
 
   auto senderHandler = service.handlerFor(*sender);
   auto receiverHandler = service.handlerFor(*receiver);
-  if (!ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler) ||
-      !ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler) ||
-      !ProcessTransportServiceDispatcher::serveOne(*receiver, receiverHandler)) {
+  if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler) ||
+      !umbra::test::servePrimaryProcessRequest(*sender, senderHandler) ||
+      !umbra::test::servePrimaryProcessRequest(*receiver, receiverHandler)) {
     throw std::runtime_error("The process probe lost a Create or Join request.");
   }
 
@@ -305,11 +308,11 @@ int runServer(std::filesystem::path const& directory) {
   }
   writeText(directory / "interaction-class.txt", std::to_string(*interactionClass));
 
-  if (!ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler)) {
+  if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler)) {
     throw std::runtime_error("The process probe lost its interaction request.");
   }
   if (!serviceOptions.pushReceiveOrderEvents &&
-      !ProcessTransportServiceDispatcher::serveOne(*receiver, receiverHandler)) {
+      !umbra::test::servePrimaryProcessRequest(*receiver, receiverHandler)) {
     throw std::runtime_error("The process probe lost its interaction request.");
   }
   service.detach(*sender);
@@ -348,6 +351,8 @@ int runPublicServer(
       directory / "automatic-cancel-pending-acquisition.mode");
   bool const automaticDeleteObjects = std::filesystem::exists(
       directory / "automatic-delete-objects.mode");
+  bool const federateLostMomReport = std::filesystem::exists(
+      directory / "federate-lost-mom-report.mode");
   std::unique_ptr<ProcessTransportSession> sender;
   std::unique_ptr<ProcessTransportSession> receiver;
   std::unique_ptr<ProcessTransportSession> survivor;
@@ -378,11 +383,17 @@ int runPublicServer(
   };
   auto receiverHandler = service.handlerFor(*receiver);
   std::optional<ProcessTransportServiceDispatcher::Handler> survivorHandler;
-  if (!ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler) ||
-      !ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler) ||
-      !ProcessTransportServiceDispatcher::serveOne(*receiver, receiverHandler)) {
+  if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler)) {
     throw std::runtime_error(
-        "The installable process profile server lost Create or Join.");
+        "The installable process profile server lost federate Create.");
+  }
+  if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler)) {
+    throw std::runtime_error(
+        "The installable process profile server lost observer Join.");
+  }
+  if (!umbra::test::servePrimaryProcessRequest(*receiver, receiverHandler)) {
+    throw std::runtime_error(
+        "The installable process profile server lost lost-member Join.");
   }
   if (automaticCancelPendingAcquisition) {
     auto connection = listener->accept(
@@ -396,7 +407,7 @@ int runPublicServer(
     }
     survivor = std::make_unique<ProcessTransportSession>(std::move(connection));
     survivorHandler.emplace(service.handlerFor(*survivor));
-    if (!ProcessTransportServiceDispatcher::serveOne(*survivor, *survivorHandler)) {
+    if (!umbra::test::servePrimaryProcessRequest(*survivor, *survivorHandler)) {
       throw std::runtime_error(
           "The installable process profile pending-acquisition server lost survivor Join.");
     }
@@ -409,8 +420,8 @@ int runPublicServer(
   auto const survivorMember = registry.memberByName(
       L"process-execution", L"package-process-receiver-survivor");
   auto serveExpectedSender = [&](TransportServiceOperation operation) {
-    return ProcessTransportServiceDispatcher::serveOne(
-        *sender,
+    return umbra::test::servePrimaryProcessRequest(
+        *sender, senderHandler,
         [&](TransportServiceMessage const& request) {
           if (request.operation != operation) {
             throw std::runtime_error(
@@ -423,8 +434,8 @@ int runPublicServer(
         });
   };
   auto serveExpectedReceiver = [&](TransportServiceOperation operation) {
-    return ProcessTransportServiceDispatcher::serveOne(
-        *receiver,
+    return umbra::test::servePrimaryProcessRequest(
+        *receiver, receiverHandler,
         [&](TransportServiceMessage const& request) {
           if (request.operation != operation) {
             throw std::runtime_error(
@@ -440,8 +451,8 @@ int runPublicServer(
       [&](TransportServiceOperation operation) {
         while (true) {
           bool expected = false;
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  *sender,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  *sender, senderHandler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation ==
                         TransportServiceOperation::receive_interaction) {
@@ -466,8 +477,8 @@ int runPublicServer(
   // timestamped retraction additionally causes the client to acknowledge the
   // suppressed TSO reservation after that poll.
   auto serveReceiverDelivery = [&](bool expectAcknowledgement) {
-    if (!ProcessTransportServiceDispatcher::serveOne(
-            *receiver,
+    if (!umbra::test::servePrimaryProcessRequest(
+            *receiver, receiverHandler,
             [&](TransportServiceMessage const& request) {
               if (request.operation == TransportServiceOperation::receive_interaction) {
                 return receiverHandler(request);
@@ -482,8 +493,8 @@ int runPublicServer(
       return false;
     }
     if (expectAcknowledgement) {
-      return ProcessTransportServiceDispatcher::serveOne(
-          *receiver,
+      return umbra::test::servePrimaryProcessRequest(
+          *receiver, receiverHandler,
           [&](TransportServiceMessage const& request) {
             if (request.operation !=
                 TransportServiceOperation::acknowledge_tso_delivery) {
@@ -499,8 +510,8 @@ int runPublicServer(
     if (!survivor || !survivorHandler) {
       return false;
     }
-    return ProcessTransportServiceDispatcher::serveOne(
-        *survivor,
+    return umbra::test::servePrimaryProcessRequest(
+        *survivor, *survivorHandler,
         [&](TransportServiceMessage const& request) {
           if (request.operation != operation) {
             throw std::runtime_error(
@@ -510,8 +521,8 @@ int runPublicServer(
         });
   };
   auto serveExpectedReceiverPoll = [&] {
-    return ProcessTransportServiceDispatcher::serveOne(
-        *receiver,
+    return umbra::test::servePrimaryProcessRequest(
+        *receiver, receiverHandler,
         [&](TransportServiceMessage const& request) {
           if (request.operation != TransportServiceOperation::receive_interaction) {
             throw std::runtime_error(
@@ -524,8 +535,8 @@ int runPublicServer(
     if (!survivor || !survivorHandler) {
       return false;
     }
-    return ProcessTransportServiceDispatcher::serveOne(
-        *survivor,
+    return umbra::test::servePrimaryProcessRequest(
+        *survivor, *survivorHandler,
         [&](TransportServiceMessage const& request) {
           if (request.operation != TransportServiceOperation::receive_interaction) {
             throw std::runtime_error(
@@ -730,8 +741,8 @@ int runPublicServer(
           std::string("The installable directed-retraction server lost ") + directedStage + ".");
     }
     writeText(directory / "send.ok", "ok\n");
-    if (!ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler) ||
-        !ProcessTransportServiceDispatcher::serveOne(*receiver, receiverHandler)) {
+    if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler) ||
+        !umbra::test::servePrimaryProcessRequest(*receiver, receiverHandler)) {
       throw std::runtime_error(
           "The installable directed-retraction server lost a public Resign.");
     }
@@ -755,8 +766,8 @@ int runPublicServer(
     std::size_t reservationCount = 0U;
     std::size_t registrationCount = 0U;
     auto serveNamedSender = [&](TransportServiceOperation operation) {
-      return ProcessTransportServiceDispatcher::serveOne(
-          *sender,
+      return umbra::test::servePrimaryProcessRequest(
+          *sender, senderHandler,
           [&](TransportServiceMessage const& request) {
             if (request.operation != operation) {
               throw std::runtime_error(
@@ -818,8 +829,8 @@ int runPublicServer(
           "The installable process profile named-registration server lost a public operation.");
     }
     writeText(directory / "send.ok", "ok\n");
-    if (!ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler) ||
-        !ProcessTransportServiceDispatcher::serveOne(*receiver, receiverHandler)) {
+    if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler) ||
+        !umbra::test::servePrimaryProcessRequest(*receiver, receiverHandler)) {
       throw std::runtime_error(
           "The installable process profile named-registration server lost a public Resign.");
     }
@@ -857,8 +868,8 @@ int runPublicServer(
           "The installable process profile object-registration server lost registration.");
     }
     writeText(directory / "send.ok", "ok\n");
-    if (!ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler) ||
-        !ProcessTransportServiceDispatcher::serveOne(*receiver, receiverHandler)) {
+    if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler) ||
+        !umbra::test::servePrimaryProcessRequest(*receiver, receiverHandler)) {
       throw std::runtime_error(
           "The installable process profile object-registration server lost a public Resign.");
     }
@@ -880,8 +891,8 @@ int runPublicServer(
           "The installable process profile attribute-update server could not resolve the object attribute.");
     }
     auto serveExpectedReceiver = [&](TransportServiceOperation operation) {
-      return ProcessTransportServiceDispatcher::serveOne(
-          *receiver,
+      return umbra::test::servePrimaryProcessRequest(
+          *receiver, receiverHandler,
           [&](TransportServiceMessage const& request) {
             if (request.operation != operation) {
               throw std::runtime_error(
@@ -898,13 +909,13 @@ int runPublicServer(
         !serveExpectedSender(TransportServiceOperation::publish_object_class_attributes) ||
         !serveExpectedSender(TransportServiceOperation::register_object_instance) ||
         !serveExpectedSender(TransportServiceOperation::update_attribute_values) ||
-        !ProcessTransportServiceDispatcher::serveOne(*receiver, receiverHandler)) {
+        !umbra::test::servePrimaryProcessRequest(*receiver, receiverHandler)) {
       throw std::runtime_error(
           "The installable process profile attribute-update server lost a public operation.");
     }
     writeText(directory / "send.ok", "ok\n");
-    if (!ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler) ||
-        !ProcessTransportServiceDispatcher::serveOne(*receiver, receiverHandler)) {
+    if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler) ||
+        !umbra::test::servePrimaryProcessRequest(*receiver, receiverHandler)) {
       throw std::runtime_error(
           "The installable process profile attribute-update server lost a public Resign.");
     }
@@ -920,6 +931,23 @@ int runPublicServer(
     bool const evokedCallbacks = std::filesystem::exists(directory / "evoked.mode");
     bool const automaticUnconditional = std::filesystem::exists(
         directory / "automatic-unconditional.mode");
+    if (federateLostMomReport) {
+      if (!serveExpectedSender(
+              TransportServiceOperation::get_interaction_class_handle)) {
+        throw std::runtime_error(
+            "The installable process profile federate-lost MOM server lost report-class lookup.");
+      }
+      for (int index = 0; index < 4; ++index) {
+        if (!serveExpectedSender(TransportServiceOperation::get_parameter_handle)) {
+          throw std::runtime_error(
+              "The installable process profile federate-lost MOM server lost report-parameter lookup.");
+        }
+      }
+      if (!serveExpectedSender(TransportServiceOperation::subscribe_interaction_class)) {
+        throw std::runtime_error(
+            "The installable process profile federate-lost MOM server lost report subscription.");
+      }
+    }
     if (automaticUnconditional) {
       if (!serveExpectedReceiver(TransportServiceOperation::get_object_class_handle) ||
           !serveExpectedSender(TransportServiceOperation::get_object_class_handle) ||
@@ -969,22 +997,50 @@ int runPublicServer(
     // Model a real process/socket loss on the receiver side.  Apply the
     // registry's automatic-resign policy before closing the transport so the
     // surviving sender cannot route a later interaction to a stale member.
-    auto const lost = registry.connectionLost(
-        L"process-execution", receiverMember->id);
-    if (lost.status != FederationRegistryStatus::applied) {
-      throw std::runtime_error(
-          "The installable process profile could not apply receiver Connection Lost.");
-    }
-    if (!service.dispatchConnectionLossResult(
-            L"process-execution",
-            std::move(lost),
-            receiverMember->id)) {
+    bool const lossApplied = federateLostMomReport
+        ? service.connectionLost(
+              L"process-execution",
+              receiverMember->id,
+              L"Process endpoint connection lost")
+        : [&] {
+            auto const lost = registry.connectionLost(
+                L"process-execution", receiverMember->id);
+            return lost.status == FederationRegistryStatus::applied &&
+                service.dispatchConnectionLossResult(
+                    L"process-execution", std::move(lost), receiverMember->id);
+          }();
+    if (!lossApplied) {
       throw std::runtime_error(
           "The installable process profile could not project receiver Connection Lost callbacks.");
     }
     service.detach(*receiver);
     receiver->connection()->close();
     writeText(directory / "receiver-closed.ok", "ok\n");
+    if (federateLostMomReport) {
+      if (!serveExpectedSenderAfterEvokedPolls(
+              TransportServiceOperation::get_transportation_type_handle) ||
+          !serveExpectedSenderAfterEvokedPolls(
+              TransportServiceOperation::resign_federation_execution) ||
+          !serveExpectedSender(
+              TransportServiceOperation::destroy_federation_execution)) {
+        throw std::runtime_error(
+            "The installable process profile federate-lost MOM server lost a post-report lookup or observer teardown request.");
+      }
+      waitForFile(directory / "receiver-loss.ok", [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "callback-ok") {
+          throw std::runtime_error(
+              "The installable process profile federate-lost MOM callback marker is invalid.");
+        }
+        return true;
+      });
+      service.detach(*sender);
+      sender->connection()->close();
+      writeText(directory / "server.ok", "ok\n");
+      return 0;
+    }
     waitForFile(directory / "receiver-loss.ok", [](std::filesystem::path const& marker) {
       std::ifstream input(marker, std::ios::binary);
       std::string value;
@@ -1034,7 +1090,7 @@ int runPublicServer(
           "The installable process profile loss server lost lookup or Send Interaction.");
     }
     writeText(directory / "send.ok", "ok\n");
-    if (!ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler)) {
+    if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler)) {
       throw std::runtime_error(
           "The installable process profile loss server lost sender Resign.");
     }
@@ -1060,7 +1116,7 @@ int runPublicServer(
   // draining the pushed event frame.  Answer that poll before accepting the
   // lifecycle requests so the client can cross the official callback boundary
   // without leaving an in-flight request on the socket.
-  if (!ProcessTransportServiceDispatcher::serveOne(*receiver, receiverHandler)) {
+  if (!umbra::test::servePrimaryProcessRequest(*receiver, receiverHandler)) {
     throw std::runtime_error(
         "The installable process profile server lost the receiver callback poll.");
   }
@@ -1069,8 +1125,8 @@ int runPublicServer(
   // Both public clients resign through the official RTIambassador before the
   // fixture closes their sockets.  This keeps the package run on the normal
   // lifecycle path instead of relying on destructor cleanup.
-  if (!ProcessTransportServiceDispatcher::serveOne(*sender, senderHandler) ||
-      !ProcessTransportServiceDispatcher::serveOne(*receiver, receiverHandler)) {
+  if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler) ||
+      !umbra::test::servePrimaryProcessRequest(*receiver, receiverHandler)) {
     throw std::runtime_error(
         "The installable process profile server lost a public Resign.");
   }
@@ -1078,6 +1134,83 @@ int runPublicServer(
   service.detach(*receiver);
   sender->connection()->close();
   receiver->connection()->close();
+  writeText(directory / "server.ok", "ok\n");
+  return 0;
+}
+
+// Public ownership service-report TCK cases have two or three independent
+// ambassadors depending on whether a separate MOM observer is required. Serve
+// each process session on its own worker so lookups, service calls, and callback
+// drains can interleave as they do for an external coordinator.
+int runPublicOwnershipServiceReportServer(
+    std::filesystem::path const& directory,
+    std::size_t clientCount,
+    std::string const& fixtureName) {
+  if (clientCount < 2U || clientCount > 3U) {
+    throw std::runtime_error("Unsupported ownership service-report client count.");
+  }
+  EmbeddedFederationRegistry registry;
+  ProcessFomPreparationContext fomContext;
+  auto const serviceOptions = makeProcessServiceOptions(fomContext);
+  ProcessFederationService service(
+      registry, composedRestaurantDefinition(), serviceOptions);
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  if (!listener) {
+    throw std::runtime_error(
+        "The installable Confirm Divestiture server could not open its listener.");
+  }
+  writeText(directory / "port.txt", std::to_string(listener->address().port));
+
+  std::vector<std::unique_ptr<ProcessTransportSession>> sessions(clientCount);
+  for (std::size_t index = 0U; index < sessions.size(); ++index) {
+    auto connection = listener->accept(
+        nullptr,
+        {"package-process-ownership-service-report-server",
+         static_cast<std::uint64_t>(0xA1U + index)},
+        [](std::wstring) {},
+        [](std::wstring) { return false; });
+    if (!connection) {
+      throw std::runtime_error(
+          "The installable " + fixtureName + " server lost a client connection.");
+    }
+    auto const expectedEndpoint = index == 0U
+        ? "package-process-sender"
+        : "package-process-receiver";
+    if (connection->peerIdentity().endpointId != expectedEndpoint) {
+      throw std::runtime_error(
+          "The installable " + fixtureName + " server received endpoint '" +
+          connection->peerIdentity().endpointId + "' for client " +
+          std::to_string(index) + ".");
+    }
+    sessions[index] = std::make_unique<ProcessTransportSession>(
+        std::move(connection));
+  }
+
+  std::vector<std::exception_ptr> failures(sessions.size());
+  std::vector<std::thread> workers(sessions.size());
+  for (std::size_t index = 0U; index < sessions.size(); ++index) {
+    auto handler = service.handlerFor(*sessions[index]);
+    workers[index] = std::thread(
+        [&, index, handler = std::move(handler)]() mutable {
+          try {
+            while (umbra::test::servePrimaryProcessRequest(
+                *sessions[index], handler)) {
+            }
+          } catch (...) {
+            failures[index] = std::current_exception();
+          }
+          service.detach(*sessions[index]);
+          sessions[index]->connection()->close();
+        });
+  }
+  for (auto& worker : workers) {
+    worker.join();
+  }
+  for (auto const& failure : failures) {
+    if (failure) {
+      std::rethrow_exception(failure);
+    }
+  }
   writeText(directory / "server.ok", "ok\n");
   return 0;
 }
@@ -1122,8 +1255,8 @@ int runPublicSaveRestoreServer(
   auto handler = service.handlerFor(session);
   auto serveExpected = [&](TransportServiceOperation operation,
                            char const* description) {
-    if (!ProcessTransportServiceDispatcher::serveOne(
-            session,
+    if (!umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -1314,6 +1447,18 @@ int main(int argc, char** argv) {
     }
     if (std::string(argv[1]) == "public-server-directed-retraction") {
       return runPublicServer(directory, false, false, false, false, false, true);
+    }
+    if (std::string(argv[1]) == "public-server-confirm-divestiture") {
+      return runPublicOwnershipServiceReportServer(
+          directory, 3U, "Confirm Divestiture");
+    }
+    if (std::string(argv[1]) == "public-server-query-ownership") {
+      return runPublicOwnershipServiceReportServer(
+          directory, 2U, "Query Attribute Ownership");
+    }
+    if (std::string(argv[1]) == "public-server-cancel-ownership-acquisition") {
+      return runPublicOwnershipServiceReportServer(
+          directory, 3U, "Cancel Attribute Ownership Acquisition");
     }
     if (std::string(argv[1]) == "public-server-save-restore") {
       return runPublicSaveRestoreServer(directory, false, false, false);

@@ -11,12 +11,120 @@ not a claim that the Lab, IEEE source, or Umbra is non-conformant.
 - Reviewed release: `v0.1.0.a1` (`4bafa0619cf8c777a79294c9e0e78f2a38ee55b4`)
 - Umbra lock: `compliance/requirements-lab/requirements-lab.lock.json`
 - Editions exported: 2010 and 2025
-- Last reviewed: 2026-08-26
+- Last reviewed: 2026-09-23
 
 Umbra consumes only the Lab's exported portable JSON bundle. The generated
 bundle under `.compliance/` is intentionally ignored, so each observation
 below names the pinned revision and durable source identifiers rather than
 depending on an uncommitted export artifact.
+
+### 2026-09-23 RL-252 recurrence: section lookup bypassed the known DSE correction
+
+The three page-187 Delay Subscription Evaluation Lab ids remain exported under
+§8.1.10, although RL-018 already records that their source block is headed
+§8.1.8. A focused query exposed a separate Umbra traceability regression:
+`section 8.1.8` returned no Catch2 cases, while the stale §8.1.10 query returned
+the DSE cases. Because this resurfaced after the existing issue was recorded,
+it has its own sequential id (RL-252), linked to RL-018 rather than silently
+reopening or renumbering it.
+
+Umbra now applies a local, source-backed canonical-section crosswalk and keeps
+the exported Lab clause visible as provenance. The pinned Requirements Lab
+export is unchanged. `python tools/query_rti_work_regression.py` verifies the
+direct Lab-id-to-§8.1.8 pairs and the section query returns eight Catch2 cases.
+See [known-issues.json](../../compliance/requirements-lab/known-issues.json).
+
+### 2026-09-23 RL-251: page-224 DDM reinterpretation requirement omits its service list
+
+The pinned §9.1.6 requirement
+`requirement-candidate-content-clauses-09-data-distribution-management-page-224-l137-44`
+ends after introducing “the following three object management services” and
+does not include the list in the exported statement. The reconstructed IEEE
+page identifies the three as Register Object Instance With Regions, Send
+Interaction With Regions, and Request Attribute Value Update With Regions.
+This omission is in the Lab's requirement record, not in the standard page.
+
+Keep l137 unmapped until the export preserves that list. The self-contained
+l125 requirement is mapped to three focused C++ cases—one for each regional
+service form—under the `ddm-clause6-service-expansion` lane. The lane gives a
+quick implementation/test path without pretending the incomplete l137 record
+is complete. Track RL-251 in
+[known-issues.json](../../compliance/requirements-lab/known-issues.json);
+do not rewrite the pinned export.
+
+Reproduce the incomplete record with:
+
+~~~powershell
+python tools/query_rti_work.py requirement requirement-candidate-content-clauses-09-data-distribution-management-page-224-l137-44 --summary --compact
+~~~
+
+### 2026-09-23 RL-250: page-224 Receive Interaction requirement is split across adjacent records
+
+The pinned §9.1.6 requirement
+`requirement-candidate-content-clauses-09-data-distribution-management-page-224-l89-29`
+ends mid-sentence at “subscribed”. The following record,
+`requirement-candidate-content-clauses-09-data-distribution-management-page-224-l92-30`,
+begins with “interaction class as an argument” before stating a separate
+at-most-once reception requirement. The l89 export is therefore not
+self-contained; do not infer its missing condition or map it until the Lab
+repairs or clarifies the split.
+
+Keep l92 as its own stable requirement. It is independently mapped to the
+receive-order C++ case that asserts one callback for overlapping base/child
+subscriptions. This is a new extraction segmentation issue, not a recurrence
+of RL-248's clause-boundary issue or RL-249's variable-notation corruption.
+Track it as RL-250 in [known-issues.json](../../compliance/requirements-lab/known-issues.json);
+do not rewrite the pinned export.
+
+Evidence checked: the two exact `requirement` query records and the focused
+`interaction-sent-class-preservation` case mapping. Reproduce the incomplete
+record with:
+
+~~~powershell
+python tools/query_rti_work.py requirement requirement-candidate-content-clauses-09-data-distribution-management-page-224-l89-29 --summary --compact
+~~~
+
+### 2026-09-23 RL-249: page-109 interaction-receipt requirement text damage
+
+The pinned requirement
+`requirement-candidate-content-clauses-06-object-management-page-109-l10-1`
+is assigned to §6.1.9, but its exported statement contains damaged variable
+notation (`Fned federate Fscribed`) and is incomplete (`at a joined`). The
+reconstructed semantic page separately defines “candidate received class” as
+the sent interaction class when subscribed, or otherwise the closest
+subscribed superclass. This supports the behavior and subsection used by the
+focused C++ test, but does not repair the exported requirement prose.
+
+Keep the stable Lab id and §6.1.9 mapping; do not rewrite the pinned export or
+quote the malformed statement as complete normative text. Track the extraction
+repair as RL-249 in [known-issues.json](../../compliance/requirements-lab/known-issues.json).
+Evidence checked: the exact pinned requirement record and the reconstructed
+2025 page-109 candidate-received-class definition in
+`../Document-Recreation/topics/ieee/hla-1516.1-2025/semantic/content-blocks.json`.
+
+### 2026-09-23 RL-248 recurrence: page-236 regional-registration clause assignment
+
+The pinned requirement
+`requirement-candidate-content-clauses-09-data-distribution-management-page-236-l32-9`
+is exported as §9.10, but its source reconstruction places the `Invalid region`
+precondition in the §9.5.3 `Register Object Instance With Regions` block, before
+the §9.5.4 Postconditions heading. The official 2025 C++ binding likewise
+anchors `registerObjectInstanceWithRegions` under service §9.5. This is a
+separate occurrence of the clause-boundary/extraction problem already recorded
+as RL-177, but RL-178 through RL-247 are already present in the observation
+history. It is therefore logged as RL-248, the next unused id, rather than
+treated as fixed.
+
+Do not map a C++ test to the exported §9.10 label or silently rewrite the
+requirement id/section in Umbra. Keep the discrepancy visible until the Lab
+corrects the export; the direct reproduction is the `requirement` query shown
+in [known-issues.json](../../compliance/requirements-lab/known-issues.json).
+Evidence checked: the pinned 2025 `semantic/requirements.json` record and
+`semantic/content-blocks.json` page-236 component headings in
+`../Document-Recreation`, plus the 2025 `RTIambassador.h` service declaration.
+The downloaded IEEE archive available to this workspace did not include the
+standard PDF, so this is a source-reconstruction finding, not a visual PDF-page
+review.
 
 ### 2026-09-08 local roadmap-query guard (not a Requirements Lab recurrence)
 
@@ -9866,7 +9974,7 @@ future behavior additions should switch the corresponding registration back to
 
 No Requirements Lab resynchronization or new numbered observation was needed.
 The process-boundary catalog now includes the exact C++ case
-`RTIambassador publishes object-class attributes and registers an object through
+`RTIambassador publishes and unpublishes object-class attributes and registers an object through
 a configured process endpoint`, mapped to the four 2025 requirement IDs and
 the canonical `clause-5.1.2`, `clause-5.2`, and `clause-6.8.4` subsection keys.
 The installed package has a matching
@@ -13555,11 +13663,11 @@ Bounded queries and execution:
 
 ~~~powershell
 python tools/query_rti_work.py test "Private process service binds create join and receive-order interaction to the federation registry" --summary --compact
-python tools/query_rti_work.py test "RTIambassador routes public Create, Join, and Resign through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py test "RTIambassador routes public Create, Join, Resign, and Destroy through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py matrix api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05 --summary --compact --limit 10
 python tools/query_rti_work.py focus process-boundary --summary --compact
 python tools/query_rti_work.py check --lane process-boundary --summary --compact
-ctest --test-dir <build-dir> -C Debug -R "(Private process service binds create join and receive-order interaction to the federation registry|RTIambassador routes public Create, Join, and Resign through a configured process endpoint)$" --output-on-failure
+ctest --test-dir <build-dir> -C Debug -R "(Private process service binds create join and receive-order interaction to the federation registry|RTIambassador routes public Create, Join, Resign, and Destroy through a configured process endpoint)$" --output-on-failure
 ~~~
 
 ### 2026-09-04 queryability maintenance — custom transportation lane and aggregate gate
@@ -17586,6 +17694,22 @@ and exact `ctest` commands instead of falling back to a broad neighboring lane.
 This is the intended query boundary: choose a case or lane first, then inspect
 only its mapped standard slice.
 
+### 2026-09-24 — RL-253: Get Dimension Handle exception extraction
+
+The pinned 2025 candidate for §10.23.3 says that Get Dimension Handle returns
+the DimensionHandle associated with the supplied name. The official C++ API
+declaration for §10.23 also declares `NameNotFound`, but the candidate corpus
+does not contain a separate requirement row for that failure outcome. This is
+new extraction feedback (RL-253), not a recurrence of an earlier requirement
+numbering change and not a reason to resync the unchanged Lab export.
+
+Umbra's public process test verifies the declared exception and maps the
+positive lookup candidate only as service context, alongside the direct
+§11.5/§11.5.1 service-report mappings. It explicitly does not claim that the
+current Lab row alone traces the `NameNotFound` behavior. Keep the issue open
+for Lab refinement; do not invent a requirement or promote this development
+evidence to conformance.
+
 ### 2026-09-18 installable-package directed-retraction promotion slice — push-mode fixture sequencing
 
 The installable-package transport gate exposed a local promotion-fixture
@@ -17608,4 +17732,48 @@ Bounded verification:
 ~~~powershell
 cmake --build .build --config Debug --target umbra_test_installable_package --parallel 4
 ctest --test-dir .build -C Debug -L installable-package --output-on-failure
+~~~
+
+### 2026-09-27 — RL-263: Page 290 §11.4.1 requirement fragment
+
+The exact bounded requirement query for
+`requirement-candidate-content-clauses-11-management-object-model-page-290-l12-3`
+returns only “sent by the RTI shall not contain the new parameters.” Its source
+locator is page 290, lines 12–14, but the candidate export omits the antecedent
+and does not identify which RTI-sent interaction or which new parameters are in
+scope. That is insufficient to select a C++ behavior without inventing context.
+
+This is a separate affected requirement from the similar incomplete-statement
+issue RL-258 on page 187, so it has its own ledger number, RL-263. Keep the
+requirement uncovered; do not attach it to the adjacent HLAsetSwitches case.
+The full canonical PDF is not in this checkout or the named 1516 downloads
+folder, and [IEEE's standard listing](https://standards.ieee.org/ieee/1516.1/6688/)
+requires subscription access. This is an extraction-context issue, not a claim
+of IEEE errata. No Lab resynchronization was performed.
+
+Reproduction:
+
+~~~powershell
+python tools/query_rti_work.py requirement requirement-candidate-content-clauses-11-management-object-model-page-290-l12-3 --json --limit 1
+~~~
+
+### 2026-09-27 — RL-264: Page 290 §11.4.1 split interaction-class statement
+
+Two adjacent requirement candidates expose fragments rather than a complete
+rule. The p.290 l.75 candidate ends with “These classes of interaction”; the
+p.290 l.78 candidate starts with “shall be ignored by the RTI and may be formed
+in any way that is consistent with IEEE 1516.2 federation object model (FOM)
+development.” The records do not establish the full class context, so they are
+not sufficient to select which RTI interaction behavior should be tested.
+
+This is a separate occurrence from RL-263, with two affected requirement IDs.
+Keep both uncovered; do not infer that the rule applies to every MOM extension
+or to the adjacent HLAsetSwitches tests. No Requirements Lab resynchronization
+was performed.
+
+Reproduction:
+
+~~~powershell
+python tools/query_rti_work.py requirement requirement-candidate-content-clauses-11-management-object-model-page-290-l75-24 --json --limit 1
+python tools/query_rti_work.py requirement requirement-candidate-content-clauses-11-management-object-model-page-290-l78-25 --summary --compact
 ~~~

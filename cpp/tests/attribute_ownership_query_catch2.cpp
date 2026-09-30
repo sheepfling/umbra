@@ -14,6 +14,7 @@
 #include "internal/federation/process_federation_service.hpp"
 #include "internal/federation/process_transport.hpp"
 #include "internal/federation/process_transport_session.hpp"
+#include "process_public_service_fixture.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
 #include "internal/handles/attribute_handle.hpp"
@@ -467,7 +468,7 @@ TEST_CASE(
 
   auto const& report = ownerReports.interactionReports.front();
   REQUIRE(report.interactionClass == reportClass);
-  REQUIRE(report.parameterValues.size() == 7U);
+  REQUIRE(report.parameterValues.size() == 8U);
   REQUIRE(report.userSuppliedTag.size() == 0U);
   REQUIRE_FALSE(report.producingFederate.isValid());
 
@@ -584,8 +585,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](umbra::detail::TransportServiceOperation operation) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](umbra::detail::TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -707,8 +708,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](umbra::detail::TransportServiceOperation operation) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](umbra::detail::TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(

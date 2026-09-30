@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only IEEE 1516.1 RTIambassador and FederateAmbassador interfaces and the C++ standard library. The adapter supplies the provider package, FOM, endpoint, callback model, and logical-time implementation. It deletes two objects at one receiver, verifies a time-constrained receive-order removal is gated until standard Enable Asynchronous Delivery, then distinguishes that ordinary callback from timestamped removal and checks timestamp metadata before the corresponding grant.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-object-removal-message-order-classification",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador ordinary and timestamped Delete Object Instance, Enable/Disable Asynchronous Delivery, object publication and registration, time-role and time-advance services with FederateAmbassador ordinary and timestamped Remove Object Instance callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador object-management and time-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectRemovalOrderClassification",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectRemovalOrderClassificationContract"
+      ]
+    }
+  ]
+}

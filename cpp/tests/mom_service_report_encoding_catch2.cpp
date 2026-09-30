@@ -11,6 +11,7 @@
 #include "internal/handles/region_handle.hpp"
 #include "internal/handles/transportation_type_handle.hpp"
 
+#include <RTI/auth/HLAplainTextPassword.h>
 #include <RTI/encoding/BasicDataElements.h>
 #include <RTI/time/HLAfloat64Interval.h>
 #include <RTI/time/HLAfloat64Time.h>
@@ -75,6 +76,17 @@ TEST_CASE(
       0U, 0U,
       0U, 0U, 0U, 1U, 0U, 0x38U,
   }));
+
+  MomServiceArgument const userSuppliedTag{
+      MomArgumentType::table_5_user_supplied_tag,
+      L"User-supplied tag",
+      L"\"AQI=\""};
+  auto const encodedUserSuppliedTag = encodeMomServiceArgument(userSuppliedTag);
+  auto const encodedType = octets(encodedUserSuppliedTag);
+  REQUIRE(std::vector<rti1516_2025::Octet>(encodedType.begin(), encodedType.begin() + 4) ==
+      byteValues({0U, 0U, 0U, 60U}));
+  REQUIRE(formatMomServiceArgumentRecord(userSuppliedTag).find(
+              L"\"HLAargumentType\":63") != std::wstring::npos);
 }
 
 TEST_CASE(
@@ -115,6 +127,29 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "MOM service-report files encode Credentials with the Table 5 type and binary data",
+    "[mom][encoding][service-reporting][credentials][unit][service-report-credentials]") {
+  using namespace umbra::detail;
+
+  rti1516_2025::HLAplainTextPassword credential(L"p\u00E4ss");
+  auto const value = formatMomCredentials(credential);
+  REQUIRE(value ==
+      L"{\"Type\":\"HLAplainTextPassword\",\"Data\":\"AAAABABwAOQAcwBz\"}");
+
+  MomServiceArgument const argument{
+      MomArgumentType::credentials, L"credentials", value};
+  REQUIRE(formatMomServiceArgumentRecord(argument) ==
+      L"{\"HLAargumentType\":9,\"HLAargumentName\":\"credentials\","
+      L"\"HLAargumentValue\":{\"Type\":\"HLAplainTextPassword\","
+      L"\"Data\":\"AAAABABwAOQAcwBz\"}}");
+
+  auto const encoded = octets(encodeMomServiceArgument(argument));
+  REQUIRE(encoded.size() >= 4U);
+  REQUIRE(std::vector<rti1516_2025::Octet>(encoded.begin(), encoded.begin() + 4) ==
+      byteValues({0U, 0U, 0U, 9U}));
+}
+
+TEST_CASE(
     "MOM service-report files begin with the Table 5 initial record",
     "[mom][encoding][service-reporting][unit]") {
   using namespace umbra::detail;
@@ -142,8 +177,25 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "MOM service-report initial-record PairList uses braced string pairs",
+    "[mom][encoding][service-reporting][unit][service-report-pair-list]") {
+  using namespace umbra::detail;
+
+  MomServiceReportInitialRecord record;
+  record.optionalInternalData = {
+      {L"Operation", L"CreateFederationExecution"},
+      {L"Outcome", L"Success"},
+  };
+
+  auto const encoded = formatMomServiceReportInitialRecord(record);
+  REQUIRE(encoded.find(
+              L"\"OptionalInternalData\":{\"Operation\":\"CreateFederationExecution\","
+              L"\"Outcome\":\"Success\"}") != std::wstring::npos);
+}
+
+TEST_CASE(
     "MOM service-report files format successful void records using Table 5",
-    "[mom][encoding][service-reporting][unit]") {
+    "[mom][encoding][service-reporting][unit][service-report-boolean-table5]") {
   using namespace umbra::detail;
 
   MomServiceArgument supplied{
@@ -154,6 +206,14 @@ TEST_CASE(
   REQUIRE(formatMomServiceArgumentRecord(supplied) ==
           L"{\"HLAargumentType\":6,\"HLAargumentName\":\"SwitchValue\","
           L"\"HLAargumentValue\":false}");
+  MomServiceArgument suppliedTrue{
+      MomArgumentType::boolean,
+      L"SwitchValue",
+      formatMomBoolean(true),
+  };
+  REQUIRE(formatMomServiceArgumentRecord(suppliedTrue) ==
+          L"{\"HLAargumentType\":6,\"HLAargumentName\":\"SwitchValue\","
+          L"\"HLAargumentValue\":true}");
   REQUIRE(formatMomSuccessfulVoidServiceReportRecord(
               7U,
               L"SetExceptionReportingSwitch",
@@ -162,6 +222,15 @@ TEST_CASE(
           L"\"HLAservice\":\"SetExceptionReportingSwitch\","
           L"\"HLAsuppliedArguments\":[{\"HLAargumentType\":6,"
           L"\"HLAargumentName\":\"SwitchValue\",\"HLAargumentValue\":false}],"
+          L"\"HLAsuccessIndicator\":true,\"HLAexception\":null}");
+  REQUIRE(formatMomSuccessfulVoidServiceReportRecord(
+              7U,
+              L"SetExceptionReportingSwitch",
+              {suppliedTrue}) ==
+          L"{\"HLAserialNumber\":7,\"HLAreturnedArgument\":[null],"
+          L"\"HLAservice\":\"SetExceptionReportingSwitch\","
+          L"\"HLAsuppliedArguments\":[{\"HLAargumentType\":6,"
+          L"\"HLAargumentName\":\"SwitchValue\",\"HLAargumentValue\":true}],"
           L"\"HLAsuccessIndicator\":true,\"HLAexception\":null}");
 }
 
@@ -339,7 +408,8 @@ TEST_CASE(
 TEST_CASE(
     "MOM service-report files use the Table 5 Create Region and Get Range Bounds return forms",
     "[mom][encoding][service-reporting][unit][ddm]"
-    "[create-region-service-report][get-range-bounds-service-report]") {
+    "[create-region-service-report][get-range-bounds-service-report]"
+    "[dimension-handle-set-service-report]") {
   using namespace umbra::detail;
   using rti1516_2025::umbra_binding_detail::makeDimensionHandle;
   using rti1516_2025::umbra_binding_detail::makeRegionHandle;
@@ -1669,6 +1739,27 @@ TEST_CASE(
   REQUIRE(formatMomServiceArgumentRecord(supplied) ==
           L"{\"HLAargumentType\":59,\"HLAargumentName\":\"Transportation type\","
           L"\"HLAargumentValue\":\"TransportationTypeHandle(2)\"}");
+}
+
+TEST_CASE(
+    "MOM service-report files encode scalar AttributeHandle with the Table 5 text form",
+    "[mom][encoding][service-reporting][table-5][unit]"
+    "[service-report-table5-attribute-handle]") {
+  using namespace umbra::detail;
+  using rti1516_2025::umbra_binding_detail::makeAttributeHandle;
+
+  auto const attribute = makeAttributeHandle(7U);
+  REQUIRE(attribute.toString() == L"AttributeHandle(7)");
+  REQUIRE(formatMomAttributeHandle(attribute) == L"\"AttributeHandle(7)\"");
+  MomServiceArgument const argument{
+      MomArgumentType::attribute_handle,
+      L"Class attribute handle",
+      formatMomAttributeHandle(attribute),
+  };
+  REQUIRE(formatMomServiceArgumentRecord(argument) ==
+          L"{\"HLAargumentType\":0,\"HLAargumentName\":"
+          L"\"Class attribute handle\",\"HLAargumentValue\":"
+          L"\"AttributeHandle(7)\"}");
 }
 
 TEST_CASE(

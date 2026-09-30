@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "A subject federate begins with a passive adapter-selected interaction-class subscription, which the standard MIM reports as inactive. After the standard subscribeInteractionClass service changes the same subscription to active, a separate requester issues HLArequestSubscriptions again and verifies that the MIM interaction-class list reports the same class as active. The scenario uses only official IEEE 1516.1-2025 RTIambassador and FederateAmbassador APIs, standard MIM interactions, standard encoding DataElements, and the C++ standard library. Provider package, FOM, endpoint, callback configuration, names, and update-rate designator remain adapter supplied; no vendor API, private headers, or DDM regions are used.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-passive-interaction-activation-query-interaction-subscription",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void subscribeInteractionClass( InteractionClassHandle const & interactionClass, bool active = true) = 0",
+      "exception_types": [
+        "FederateServiceInvocationsAreBeingReportedViaMOM",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "subscribeInteractionClass",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionActivationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPassiveInteractionSubscriptionActivationQueryContract"
+      ]
+    }
+  ]
+}

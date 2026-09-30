@@ -42,7 +42,8 @@ TEST_CASE("The official ParameterHandle has stable embedded value semantics", "[
 
 TEST_CASE(
     "The embedded ParameterHandle encoding is an HLAvariableArray-wrapped identity",
-    "[unit][kernel][parameter-handle][foundation][interaction-management]") {
+    "[unit][kernel][parameter-handle][foundation][interaction-management]"
+    "[handle-encoding]") {
   auto const handle = makeParameterHandle(0x0102030405060708ULL);
   std::array<unsigned char, 12> const expected{
       0x00, 0x00, 0x00, 0x08, 0x01, 0x02,

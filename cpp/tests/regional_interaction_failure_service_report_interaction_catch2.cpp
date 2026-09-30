@@ -182,7 +182,7 @@ TEST_CASE(
                                  std::wstring const& exceptionValue) {
     auto const& report = observerCallbacks.interactionReports.at(index);
     REQUIRE(report.interactionClass == reportClass);
-    REQUIRE(report.parameterValues.size() == 7U);
+    REQUIRE(report.parameterValues.size() == 8U);
     REQUIRE(report.userSuppliedTag.size() == 0U);
     REQUIRE(report.transportationType ==
             observer->getTransportationTypeHandle(standard_hla::mom::reliable));
@@ -223,7 +223,7 @@ TEST_CASE(
         L"Constrained set of interaction parameter designator and value pairs",
         parameterMapValue);
     verifyArgument(2U, 43, L"Set of region designators", regionSetValue);
-    verifyArgument(3U, 63, L"User-supplied tag", L"\"dHNv\"");
+    verifyArgument(3U, 60, L"User-supplied tag", L"\"dHNv\"");
     verifyArgument(4U, 34, L"Optional timestamp", L"null");
 
     rti1516_2025::HLAfixedRecord returned;

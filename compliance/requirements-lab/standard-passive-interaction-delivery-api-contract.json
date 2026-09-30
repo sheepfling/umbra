@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable scenario declares the adapter-selected interaction active on one receiver and passive on a distinct receiver, then tests ordinary interaction delivery only to the active receiver. Passive-recipient delivery is intentionally not asserted. It uses only official IEEE 1516.1-2025 C++ API surfaces and the standard library; provider, FOM, endpoint, and callback model remain adapter-supplied. No vendor hooks or DDM APIs are used.",
+  "api_surfaces": [
+    {
+      "id": "cpp-tck-interaction-active-passive-modes-publish",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.publishinteractionclass.b9a848c4482f",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void publishInteractionClass( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "publishInteractionClass",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionActiveAndPassiveSubscriptionModes",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionActiveAndPassiveSubscriptionModesContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-interaction-active-passive-modes-subscribe",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void subscribeInteractionClass( InteractionClassHandle const & interactionClass, bool active = true) = 0",
+      "exception_types": [
+        "FederateServiceInvocationsAreBeingReportedViaMOM",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "subscribeInteractionClass",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionActiveAndPassiveSubscriptionModes",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionActiveAndPassiveSubscriptionModesContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-interaction-active-passive-modes-send",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.sendinteraction.18921ac41e4f",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void sendInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag) = 0",
+      "exception_types": [
+        "InteractionClassNotPublished",
+        "InteractionParameterNotDefined",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "sendInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionActiveAndPassiveSubscriptionModes",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionActiveAndPassiveSubscriptionModesContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-interaction-active-passive-modes-callback",
+      "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1",
+      "owner": "FederateAmbassador",
+      "language": "cpp",
+      "signature": "virtual void receiveInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, const RegionHandleSet * optionalSentRegions) = 0",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "receiveInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionActiveAndPassiveSubscriptionModes",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionActiveAndPassiveSubscriptionModesContract"
+      ]
+    }
+  ]
+}

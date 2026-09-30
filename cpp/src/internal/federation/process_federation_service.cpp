@@ -1,15 +1,27 @@
 #include "internal/federation/process_federation_service.hpp"
 
+#include "internal/fom/hla_names.hpp"
+#include "internal/handles/dimension_handle.hpp"
+#include "internal/handles/federate_handle.hpp"
+#include "internal/handles/interaction_class_handle.hpp"
+#include "internal/handles/object_class_handle.hpp"
+#include "internal/handles/region_handle.hpp"
+#include "internal/handles/transportation_type_handle.hpp"
+#include "internal/observability/mom_service_report_encoding.hpp"
 #include "internal/runtime/utf8_string.hpp"
 #include "internal/time/federation_time_bounds.hpp"
 #include "internal/time/federation_time_grant_policy.hpp"
 
 #include <RTI/Exception.h>
 #include <RTI/VariableLengthData.h>
+#include <RTI/encoding/BasicDataElements.h>
 #include <RTI/time/HLAlogicalTimeFactoryFactory.h>
 
 #include <algorithm>
 #include <array>
+#include <atomic>
+#include <bit>
+#include <cmath>
 #include <limits>
 #include <memory>
 #include <iterator>
@@ -18,6 +30,135 @@
 
 namespace umbra::detail {
 namespace {
+
+constexpr std::wstring_view kProcessRtiVersion = L"Umbra 0.1.0";
+constexpr std::wstring_view kProcessFederateHostFallback = L"process";
+// Trailing event metadata markers. Ordinary process payloads predate these
+// markers: an eight-byte suffix remains the legacy retraction identity, while
+// a marker-prefixed suffix identifies an RTI-owned MOM event and optionally
+// retains that identity as a second suffix.
+constexpr std::uint8_t kRtiOwnedMomAttributeEventMarker = 0xA5U;
+constexpr std::uint8_t kRtiOwnedMomDiscoveryEventMarker = 0xA6U;
+constexpr std::uint8_t kRtiOwnedMomInteractionEventMarker = 0xA7U;
+constexpr std::uint8_t kRtiOwnedMomRemovalEventMarker = 0xA8U;
+std::atomic_uint64_t nextProcessServiceReportJoinIdentifier{1U};
+
+std::optional<std::uint32_t> decodeProcessHlaInteger32BE(
+    std::vector<std::uint8_t> const& bytes) {
+  if (bytes.size() != 4U) {
+    return std::nullopt;
+  }
+  return (static_cast<std::uint32_t>(bytes[0]) << 24U) |
+      (static_cast<std::uint32_t>(bytes[1]) << 16U) |
+      (static_cast<std::uint32_t>(bytes[2]) << 8U) |
+      static_cast<std::uint32_t>(bytes[3]);
+}
+
+std::optional<bool> decodeProcessHlaSwitch(
+    std::vector<std::uint8_t> const& bytes) {
+  auto const encoded = decodeProcessHlaInteger32BE(bytes);
+  if (!encoded || *encoded > 1U) {
+    return std::nullopt;
+  }
+  return *encoded == 1U;
+}
+
+std::optional<rti1516_2025::ResignAction> decodeProcessHlaResignAction(
+    std::vector<std::uint8_t> const& bytes) {
+  auto const encoded = decodeProcessHlaInteger32BE(bytes);
+  if (!encoded) {
+    return std::nullopt;
+  }
+  switch (*encoded) {
+    case 0U:
+      return rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES;
+    case 1U:
+      return rti1516_2025::DELETE_OBJECTS;
+    case 2U:
+      return rti1516_2025::CANCEL_PENDING_OWNERSHIP_ACQUISITIONS;
+    case 3U:
+      return rti1516_2025::DELETE_OBJECTS_THEN_DIVEST;
+    case 4U:
+      return rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST;
+    case 5U:
+      return rti1516_2025::NO_ACTION;
+    default:
+      return std::nullopt;
+  }
+}
+
+std::vector<PrevalidatedFomModule> processFomModulesSpecifiedAtJoin(
+    FederationDefinition const& definition,
+    std::vector<std::wstring> const& requestedDesignators) {
+  std::set<std::filesystem::path> seenSources;
+  std::vector<PrevalidatedFomModule> result;
+  result.reserve(requestedDesignators.size());
+  for (auto const& requested : requestedDesignators) {
+    auto const found = std::find_if(
+        definition.fomModules.begin(),
+        definition.fomModules.end(),
+        [&](PrevalidatedFomModule const& module) {
+          return module.kind == FomModuleKind::fom &&
+              module.designator == requested &&
+              !module.sourcePath.empty();
+        });
+    if (found == definition.fomModules.end() ||
+        !seenSources.insert(found->sourcePath).second) {
+      continue;
+    }
+    result.push_back(*found);
+  }
+  return result;
+}
+
+std::wstring processFederateHost(ProcessTransportSession const& session) {
+  auto const connection = session.connection();
+  if (!connection) {
+    return std::wstring{kProcessFederateHostFallback};
+  }
+  auto const converted = wideFromUtf8(connection->peerIdentity().endpointId);
+  return converted.value_or(std::wstring{kProcessFederateHostFallback});
+}
+
+std::wstring formatProcessServiceReportInitialRecord(
+    ProcessFederationJoinConnectionSnapshot const& connection,
+    std::wstring const& federationName,
+    FederationDefinition const& definition,
+    FederateMembership const& membership,
+    bool autoProvide,
+    std::wstring const& federateHost,
+    std::vector<PrevalidatedFomModule> const& fomModulesSpecifiedAtJoin) {
+  MomServiceReportInitialRecord record;
+  record.callbackModel = connection.callbackModel;
+  record.configurationName = connection.configurationName;
+  record.rtiAddress = connection.rtiAddress;
+  record.additionalSettings = connection.additionalSettings;
+  if (connection.credentials) {
+    record.credentials = MomServiceReportCredentials{
+        connection.credentials->first,
+        connection.credentials->second};
+  }
+  record.federationName = federationName;
+  record.rtiVersion = std::wstring{kProcessRtiVersion};
+  record.timeImplementationName = definition.logicalTimeImplementationName;
+  record.autoProvide = autoProvide;
+  record.federateHandle =
+      rti1516_2025::umbra_binding_detail::makeFederateHandle(membership.id).toString();
+  record.federateName = membership.name;
+  record.federateType = membership.type;
+  record.federateHost = federateHost;
+  for (auto const& module : definition.fomModules) {
+    if (module.kind == FomModuleKind::mim) {
+      record.mimDesignator = module.designator;
+    } else {
+      record.federationFomModuleDesignators.push_back(module.designator);
+    }
+  }
+  for (auto const& module : fomModulesSpecifiedAtJoin) {
+    record.federateFomModuleDesignators.push_back(module.designator);
+  }
+  return formatMomServiceReportInitialRecord(record);
+}
 
 class PayloadWriter final {
  public:
@@ -39,6 +180,11 @@ class PayloadWriter final {
       bytes_.push_back(static_cast<std::uint8_t>((value >> shift) & 0xffU));
     }
     bytes_.push_back(static_cast<std::uint8_t>(value & 0xffU));
+  }
+
+  void real64(double value) {
+    static_assert(sizeof(double) == sizeof(std::uint64_t));
+    unsigned64(std::bit_cast<std::uint64_t>(value));
   }
 
   void wideString(std::wstring const& value) {
@@ -136,6 +282,11 @@ class PayloadReader final {
     }
     offset_ += sizeof(std::uint64_t);
     return value;
+  }
+
+  [[nodiscard]] double real64() {
+    static_assert(sizeof(double) == sizeof(std::uint64_t));
+    return std::bit_cast<double>(unsigned64());
   }
 
   [[nodiscard]] std::wstring wideString() {
@@ -240,6 +391,27 @@ void requireNonzero(std::uint64_t value, char const* message) {
   }
 }
 
+[[nodiscard]] ProcessFederationUpdateRateValueStatus
+processUpdateRateValueStatus(UpdateRateValueStatus status) noexcept {
+  switch (status) {
+    case UpdateRateValueStatus::applied:
+      return ProcessFederationUpdateRateValueStatus::applied;
+    case UpdateRateValueStatus::federation_does_not_exist:
+      return ProcessFederationUpdateRateValueStatus::federation_does_not_exist;
+    case UpdateRateValueStatus::federate_not_member:
+      return ProcessFederationUpdateRateValueStatus::federate_not_member;
+    case UpdateRateValueStatus::invalid_update_rate_designator:
+      return ProcessFederationUpdateRateValueStatus::invalid_update_rate_designator;
+    case UpdateRateValueStatus::object_instance_not_known:
+      return ProcessFederationUpdateRateValueStatus::object_instance_not_known;
+    case UpdateRateValueStatus::attribute_not_defined:
+      return ProcessFederationUpdateRateValueStatus::attribute_not_defined;
+    case UpdateRateValueStatus::inconsistent_catalog:
+      return ProcessFederationUpdateRateValueStatus::inconsistent_catalog;
+  }
+  return ProcessFederationUpdateRateValueStatus::inconsistent_catalog;
+}
+
 [[nodiscard]] bool validResignAction(rti1516_2025::ResignAction action) noexcept {
   switch (action) {
     case rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES:
@@ -277,6 +449,31 @@ void requireNonzero(std::uint64_t value, char const* message) {
 
 constexpr std::uint8_t kLastRegionServiceStatus = static_cast<std::uint8_t>(
     RegionServiceStatus::inconsistent_catalog);
+
+constexpr std::uint8_t kLastAttributeValueUpdateClassRequestStatus =
+    static_cast<std::uint8_t>(
+        AttributeValueUpdateClassRequestStatus::inconsistent_catalog);
+
+void writeAttributeValueUpdateClassRequestStatus(
+    PayloadWriter& writer,
+    AttributeValueUpdateClassRequestStatus status) {
+  auto const encoded = static_cast<std::uint8_t>(status);
+  if (encoded > kLastAttributeValueUpdateClassRequestStatus) {
+    throw ProcessFederationServiceProtocolError(
+        "A process class Request Attribute Value Update result has an invalid status.");
+  }
+  writer.unsigned8(encoded);
+}
+
+[[nodiscard]] AttributeValueUpdateClassRequestStatus
+readAttributeValueUpdateClassRequestStatus(PayloadReader& reader) {
+  auto const encoded = reader.unsigned8();
+  if (encoded > kLastAttributeValueUpdateClassRequestStatus) {
+    throw ProcessFederationServiceProtocolError(
+        "A process class Request Attribute Value Update result has an invalid status.");
+  }
+  return static_cast<AttributeValueUpdateClassRequestStatus>(encoded);
+}
 
 constexpr std::uint8_t kLastObjectInstanceRegionAssociationStatus =
     static_cast<std::uint8_t>(
@@ -669,6 +866,10 @@ void readInteractionOrderMetadata(
     return;
   }
   auto const marker = reader.unsigned8();
+  if (marker == kRtiOwnedMomInteractionEventMarker) {
+    event.rtiOwnedMomInteraction = true;
+    return;
+  }
   if (marker > 1U) {
     throw ProcessFederationServiceProtocolError(
         "A process interaction event has an invalid order metadata marker.");
@@ -1004,6 +1205,20 @@ std::vector<std::uint8_t> encodeProcessFederationJoinRequest(
     }
   }
   writer.wideStringVector(request.additionalFomModules);
+  writer.unsigned8(1U);
+  writer.wideString(request.connection.callbackModel);
+  writer.wideString(request.connection.configurationName);
+  writer.wideString(request.connection.rtiAddress);
+  writer.wideString(request.connection.additionalSettings);
+  writer.unsigned8(request.connection.credentials.has_value() ? 1U : 0U);
+  if (request.connection.credentials) {
+    if (request.connection.credentials->first.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation Join credential type cannot be empty.");
+    }
+    writer.wideString(request.connection.credentials->first);
+    writer.bytes(request.connection.credentials->second);
+  }
   return std::move(writer).finish();
 }
 
@@ -1022,16 +1237,41 @@ ProcessFederationJoinRequest decodeProcessFederationJoinRequest(
     result.requestedFederateName = reader.wideString();
   }
   // Keep the original three-field request decodable for an already-running
-  // private client. New clients append the vector count; an absent suffix is
-  // the wire-compatible empty-module form, while any partial suffix remains
-  // subject to the normal payload bounds/trailing-byte checks below.
+  // private client. New clients append the module vector and then a versioned
+  // Connect snapshot; absent suffixes retain the legacy defaults.
   if (reader.remaining() != 0U) {
     result.additionalFomModules = reader.wideStringVector();
+  }
+  if (reader.remaining() != 0U) {
+    auto const snapshotVersion = reader.unsigned8();
+    if (snapshotVersion != 1U) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation Join request has an unsupported connection snapshot version.");
+    }
+    result.connection.callbackModel = reader.wideString();
+    result.connection.configurationName = reader.wideString();
+    result.connection.rtiAddress = reader.wideString();
+    result.connection.additionalSettings = reader.wideString();
+    auto const hasCredentials = reader.unsigned8();
+    if (hasCredentials > 1U) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation Join request has an invalid credential marker.");
+    }
+    if (hasCredentials != 0U) {
+      auto credentialType = reader.wideString();
+      if (credentialType.empty()) {
+        throw ProcessFederationServiceProtocolError(
+            "A process federation Join credential type cannot be empty.");
+      }
+      result.connection.credentials = std::make_pair(
+          std::move(credentialType), reader.bytes());
+    }
   }
   reader.finish();
   if (result.federationName.empty() || result.federateType.empty() ||
       (result.requestedFederateName.has_value() &&
        result.requestedFederateName->empty()) ||
+      result.connection.callbackModel.empty() ||
       std::any_of(
           result.additionalFomModules.begin(),
           result.additionalFomModules.end(),
@@ -1087,6 +1327,61 @@ ProcessFederationResignRequest decodeProcessFederationResignRequest(
         "A process federation resign request has an invalid resign action.");
   }
   return result;
+}
+
+std::vector<std::uint8_t> encodeProcessFederationDestroyRequest(
+    ProcessFederationDestroyRequest const& request) {
+  if (request.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation destroy request requires a federation name.");
+  }
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  return std::move(writer).finish();
+}
+
+ProcessFederationDestroyRequest decodeProcessFederationDestroyRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationDestroyRequest result;
+  result.federationName = reader.wideString();
+  reader.finish();
+  if (result.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation destroy request requires a federation name.");
+  }
+  return result;
+}
+
+std::vector<std::uint8_t> encodeProcessFederationDestroyResult(
+    ProcessFederationDestroyResult const& result) {
+  switch (result.status) {
+    case ProcessFederationDestroyStatus::applied:
+    case ProcessFederationDestroyStatus::federation_does_not_exist:
+    case ProcessFederationDestroyStatus::federates_currently_joined:
+    case ProcessFederationDestroyStatus::invalid_request:
+      break;
+    default:
+      throw ProcessFederationServiceProtocolError(
+          "A process federation destroy result has an invalid status.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(static_cast<std::uint8_t>(result.status));
+  return std::move(writer).finish();
+}
+
+ProcessFederationDestroyResult decodeProcessFederationDestroyResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  auto const status = reader.unsigned8();
+  reader.finish();
+  if (status > static_cast<std::uint8_t>(
+                   ProcessFederationDestroyStatus::invalid_request)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process federation destroy result has an invalid status.");
+  }
+  return ProcessFederationDestroyResult{
+      static_cast<ProcessFederationDestroyStatus>(status)};
 }
 
 std::vector<std::uint8_t>
@@ -3930,6 +4225,92 @@ decodeProcessFederationGetKnownObjectClassHandleRequest(
 }
 
 std::vector<std::uint8_t>
+encodeProcessFederationGetUpdateRateValueRequest(
+    ProcessFederationGetUpdateRateValueRequest const& request) {
+  if (request.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process update-rate lookup requires a federation name.");
+  }
+  requireNonzero(
+      request.federateId,
+      "A process update-rate lookup requires a federate identity.");
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  writer.unsigned64(request.federateId);
+  writer.string(request.updateRateDesignator);
+  return std::move(writer).finish();
+}
+
+ProcessFederationGetUpdateRateValueRequest
+decodeProcessFederationGetUpdateRateValueRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationGetUpdateRateValueRequest result;
+  result.federationName = reader.wideString();
+  result.federateId = reader.unsigned64();
+  result.updateRateDesignator = reader.string();
+  reader.finish();
+  if (result.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process update-rate lookup requires a federation name.");
+  }
+  requireNonzero(
+      result.federateId,
+      "A process update-rate lookup requires a federate identity.");
+  return result;
+}
+
+std::vector<std::uint8_t>
+encodeProcessFederationGetUpdateRateValueForAttributeRequest(
+    ProcessFederationGetUpdateRateValueForAttributeRequest const& request) {
+  if (request.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process attribute update-rate lookup requires a federation name.");
+  }
+  requireNonzero(
+      request.federateId,
+      "A process attribute update-rate lookup requires a federate identity.");
+  requireNonzero(
+      request.objectInstanceHandle,
+      "A process attribute update-rate lookup requires an object instance.");
+  requireNonzero(
+      request.attributeHandle,
+      "A process attribute update-rate lookup requires an attribute.");
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  writer.unsigned64(request.federateId);
+  writer.unsigned64(request.objectInstanceHandle);
+  writer.unsigned64(request.attributeHandle);
+  return std::move(writer).finish();
+}
+
+ProcessFederationGetUpdateRateValueForAttributeRequest
+decodeProcessFederationGetUpdateRateValueForAttributeRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationGetUpdateRateValueForAttributeRequest result;
+  result.federationName = reader.wideString();
+  result.federateId = reader.unsigned64();
+  result.objectInstanceHandle = reader.unsigned64();
+  result.attributeHandle = reader.unsigned64();
+  reader.finish();
+  if (result.federationName.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A process attribute update-rate lookup requires a federation name.");
+  }
+  requireNonzero(
+      result.federateId,
+      "A process attribute update-rate lookup requires a federate identity.");
+  requireNonzero(
+      result.objectInstanceHandle,
+      "A process attribute update-rate lookup requires an object instance.");
+  requireNonzero(
+      result.attributeHandle,
+      "A process attribute update-rate lookup requires an attribute.");
+  return result;
+}
+
+std::vector<std::uint8_t>
 encodeProcessFederationInteractionClassDeclarationRequest(
     ProcessFederationInteractionClassDeclarationRequest const& request) {
   if (request.federationName.empty()) {
@@ -5036,6 +5417,13 @@ std::vector<std::uint8_t> encodeProcessFederationJoinResult(
   if (!result.logicalTimeImplementationName.empty()) {
     writer.wideString(result.logicalTimeImplementationName);
   }
+  // A nonempty report path is a second, tagged suffix.  The tag keeps the
+  // existing one-string logical-time extension unambiguous for older private
+  // clients while allowing the server to publish the immutable MOM path.
+  if (!result.reportServiceFile.empty()) {
+    writer.unsigned8(1U);
+    writer.wideString(result.reportServiceFile);
+  }
   return std::move(writer).finish();
 }
 
@@ -5047,6 +5435,17 @@ ProcessFederationJoinResult decodeProcessFederationJoinResult(
   result.federateName = reader.wideString();
   if (reader.remaining() != 0U) {
     result.logicalTimeImplementationName = reader.wideString();
+  }
+  if (reader.remaining() != 0U) {
+    if (reader.unsigned8() != 1U || reader.remaining() == 0U) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation join result has an invalid report-file suffix.");
+    }
+    result.reportServiceFile = reader.wideString();
+    if (result.reportServiceFile.empty()) {
+      throw ProcessFederationServiceProtocolError(
+          "A process federation join result has an empty report-file location.");
+    }
   }
   reader.finish();
   requireNonzero(
@@ -6016,6 +6415,253 @@ decodeProcessFederationAttributeScopeAdvisorySwitchRequest(
   return request;
 }
 
+std::vector<std::uint8_t> encodeProcessFederationExceptionReportingSwitchResult(
+    ProcessFederationExceptionReportingSwitchResult const& result) {
+  auto const status = static_cast<std::uint8_t>(result.status);
+  if (status > static_cast<std::uint8_t>(
+                   FederationServiceOperationStatus::restore_in_progress)) {
+    throw ProcessFederationServiceProtocolError(
+        "An exception-reporting switch result has an invalid operation status.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(status);
+  writer.unsigned8(result.value ? 1U : 0U);
+  return std::move(writer).finish();
+}
+
+ProcessFederationExceptionReportingSwitchResult
+decodeProcessFederationExceptionReportingSwitchResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  auto const status = reader.unsigned8();
+  auto const value = reader.unsigned8();
+  if (status > static_cast<std::uint8_t>(
+                   FederationServiceOperationStatus::restore_in_progress) ||
+      value > 1U) {
+    throw ProcessFederationServiceProtocolError(
+        "An exception-reporting switch result has an invalid status or boolean.");
+  }
+  reader.finish();
+  return {static_cast<FederationServiceOperationStatus>(status), value != 0U};
+}
+
+std::vector<std::uint8_t> encodeProcessFederationServiceExceptionRequest(
+    ProcessFederationServiceExceptionRequest const& request) {
+  if (request.federationName.empty() || request.federateId == 0U ||
+      request.service.empty() || request.exception.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A service exception report requires member identity, service, and exception.");
+  }
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  writer.unsigned64(request.federateId);
+  writer.wideString(request.service);
+  writer.wideString(request.exception);
+  return std::move(writer).finish();
+}
+
+ProcessFederationServiceExceptionRequest
+decodeProcessFederationServiceExceptionRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationServiceExceptionRequest result;
+  result.federationName = reader.wideString();
+  result.federateId = reader.unsigned64();
+  result.service = reader.wideString();
+  result.exception = reader.wideString();
+  reader.finish();
+  if (result.federationName.empty() || result.federateId == 0U ||
+      result.service.empty() || result.exception.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A service exception report requires member identity, service, and exception.");
+  }
+  return result;
+}
+
+std::vector<std::uint8_t> encodeProcessFederationFailedServiceInvocationRequest(
+    ProcessFederationFailedServiceInvocationRequest const& request) {
+  if (request.federationName.empty() || request.federateId == 0U ||
+      request.service.empty() || request.exception.empty() ||
+      request.serviceType > MomServiceType::support_services ||
+      request.suppliedArguments.size() > std::numeric_limits<std::uint32_t>::max()) {
+    throw ProcessFederationServiceProtocolError(
+        "A failed service invocation report requires valid member identity, service, type, and exception.");
+  }
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  writer.unsigned64(request.federateId);
+  writer.unsigned32(static_cast<std::uint32_t>(request.serviceType));
+  writer.wideString(request.service);
+  writer.unsigned32(static_cast<std::uint32_t>(request.suppliedArguments.size()));
+  for (auto const& argument : request.suppliedArguments) {
+    auto const argumentType = static_cast<std::int32_t>(argument.type);
+    if (argumentType < 0) {
+      throw ProcessFederationServiceProtocolError(
+          "A failed service invocation argument has an invalid MIM type.");
+    }
+    writer.unsigned32(static_cast<std::uint32_t>(argumentType));
+    writer.wideString(argument.name);
+    writer.wideString(argument.value);
+  }
+  writer.wideString(request.exception);
+  return std::move(writer).finish();
+}
+
+ProcessFederationFailedServiceInvocationRequest
+decodeProcessFederationFailedServiceInvocationRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationFailedServiceInvocationRequest result;
+  result.federationName = reader.wideString();
+  result.federateId = reader.unsigned64();
+  auto const serviceType = reader.unsigned32();
+  if (serviceType > static_cast<std::uint32_t>(MomServiceType::support_services)) {
+    throw ProcessFederationServiceProtocolError(
+        "A failed service invocation report has an invalid MIM service type.");
+  }
+  result.serviceType = static_cast<MomServiceType>(serviceType);
+  result.service = reader.wideString();
+  auto const argumentCount = reader.count(20U);
+  result.suppliedArguments.reserve(argumentCount);
+  for (std::size_t index = 0U; index < argumentCount; ++index) {
+    auto const argumentType = reader.unsigned32();
+    if (argumentType > static_cast<std::uint32_t>(
+                           std::numeric_limits<std::int32_t>::max())) {
+      throw ProcessFederationServiceProtocolError(
+          "A failed service invocation argument has an invalid MIM type.");
+    }
+    MomServiceArgument argument;
+    argument.type = static_cast<MomArgumentType>(
+        static_cast<std::int32_t>(argumentType));
+    argument.name = reader.wideString();
+    argument.value = reader.wideString();
+    result.suppliedArguments.push_back(std::move(argument));
+  }
+  result.exception = reader.wideString();
+  reader.finish();
+  if (result.federationName.empty() || result.federateId == 0U ||
+      result.service.empty() || result.exception.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A failed service invocation report requires member identity, service, and exception.");
+  }
+  return result;
+}
+
+std::vector<std::uint8_t>
+encodeProcessFederationSuccessfulServiceInvocationRequest(
+    ProcessFederationSuccessfulServiceInvocationRequest const& request) {
+  auto const returnedArgumentType =
+      static_cast<std::int32_t>(request.returnedArgument.type);
+  if (request.federationName.empty() || request.federateId == 0U ||
+      request.service.empty() ||
+      request.serviceType > MomServiceType::support_services ||
+      request.suppliedArguments.size() > std::numeric_limits<std::uint32_t>::max() ||
+      returnedArgumentType < 0) {
+    throw ProcessFederationServiceProtocolError(
+        "A successful service invocation report requires valid member identity, service, type, and return value.");
+  }
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  writer.unsigned64(request.federateId);
+  writer.unsigned32(static_cast<std::uint32_t>(request.serviceType));
+  writer.wideString(request.service);
+  writer.unsigned32(static_cast<std::uint32_t>(request.suppliedArguments.size()));
+  for (auto const& argument : request.suppliedArguments) {
+    auto const argumentType = static_cast<std::int32_t>(argument.type);
+    if (argumentType < 0) {
+      throw ProcessFederationServiceProtocolError(
+          "A successful service invocation argument has an invalid MIM type.");
+    }
+    writer.unsigned32(static_cast<std::uint32_t>(argumentType));
+    writer.wideString(argument.name);
+    writer.wideString(argument.value);
+  }
+  writer.unsigned32(static_cast<std::uint32_t>(returnedArgumentType));
+  writer.wideString(request.returnedArgument.name);
+  writer.wideString(request.returnedArgument.value);
+  return std::move(writer).finish();
+}
+
+ProcessFederationSuccessfulServiceInvocationRequest
+decodeProcessFederationSuccessfulServiceInvocationRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationSuccessfulServiceInvocationRequest result;
+  result.federationName = reader.wideString();
+  result.federateId = reader.unsigned64();
+  auto const serviceType = reader.unsigned32();
+  if (serviceType > static_cast<std::uint32_t>(MomServiceType::support_services)) {
+    throw ProcessFederationServiceProtocolError(
+        "A successful service invocation report has an invalid MIM service type.");
+  }
+  result.serviceType = static_cast<MomServiceType>(serviceType);
+  result.service = reader.wideString();
+  auto const argumentCount = reader.count(20U);
+  result.suppliedArguments.reserve(argumentCount);
+  for (std::size_t index = 0U; index < argumentCount; ++index) {
+    auto const argumentType = reader.unsigned32();
+    if (argumentType > static_cast<std::uint32_t>(
+                           std::numeric_limits<std::int32_t>::max())) {
+      throw ProcessFederationServiceProtocolError(
+          "A successful service invocation argument has an invalid MIM type.");
+    }
+    MomServiceArgument argument;
+    argument.type = static_cast<MomArgumentType>(
+        static_cast<std::int32_t>(argumentType));
+    argument.name = reader.wideString();
+    argument.value = reader.wideString();
+    result.suppliedArguments.push_back(std::move(argument));
+  }
+  auto const returnedArgumentType = reader.unsigned32();
+  if (returnedArgumentType > static_cast<std::uint32_t>(
+                                 std::numeric_limits<std::int32_t>::max())) {
+    throw ProcessFederationServiceProtocolError(
+        "A successful service invocation return value has an invalid MIM type.");
+  }
+  result.returnedArgument.type = static_cast<MomArgumentType>(
+      static_cast<std::int32_t>(returnedArgumentType));
+  result.returnedArgument.name = reader.wideString();
+  result.returnedArgument.value = reader.wideString();
+  reader.finish();
+  if (result.federationName.empty() || result.federateId == 0U ||
+      result.service.empty()) {
+    throw ProcessFederationServiceProtocolError(
+        "A successful service invocation report requires member identity and service.");
+  }
+  return result;
+}
+
+std::vector<std::uint8_t> encodeProcessFederationExceptionReportRecheckRequest(
+    ProcessFederationExceptionReportRecheckRequest const& request) {
+  if (request.federationName.empty() || request.receivingFederateId == 0U ||
+      request.reportedFederateId == 0U) {
+    throw ProcessFederationServiceProtocolError(
+        "An exception report recheck requires federation, recipient, and source identities.");
+  }
+  PayloadWriter writer;
+  writer.wideString(request.federationName);
+  writer.unsigned64(request.receivingFederateId);
+  writer.unsigned64(request.reportedFederateId);
+  return std::move(writer).finish();
+}
+
+ProcessFederationExceptionReportRecheckRequest
+decodeProcessFederationExceptionReportRecheckRequest(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  ProcessFederationExceptionReportRecheckRequest result;
+  result.federationName = reader.wideString();
+  result.receivingFederateId = reader.unsigned64();
+  result.reportedFederateId = reader.unsigned64();
+  reader.finish();
+  if (result.federationName.empty() || result.receivingFederateId == 0U ||
+      result.reportedFederateId == 0U) {
+    throw ProcessFederationServiceProtocolError(
+        "An exception report recheck requires federation, recipient, and source identities.");
+  }
+  return result;
+}
+
 std::vector<std::uint8_t> encodeProcessFederationBooleanResult(
     ProcessFederationBooleanResult const& result) {
   PayloadWriter writer;
@@ -6736,6 +7382,48 @@ decodeProcessFederationAvailableDimensionsResult(
   return result;
 }
 
+std::vector<std::uint8_t> encodeProcessFederationUpdateRateValueResult(
+    ProcessFederationUpdateRateValueResult const& result) {
+  auto const encodedStatus = static_cast<std::uint8_t>(result.status);
+  if (encodedStatus > static_cast<std::uint8_t>(
+                          ProcessFederationUpdateRateValueStatus::
+                              inconsistent_catalog)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process update-rate result has an invalid status.");
+  }
+  if (!std::isfinite(result.value)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process update-rate result must carry a finite value.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(encodedStatus);
+  writer.real64(result.value);
+  return std::move(writer).finish();
+}
+
+ProcessFederationUpdateRateValueResult
+decodeProcessFederationUpdateRateValueResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  auto const encodedStatus = reader.unsigned8();
+  if (encodedStatus > static_cast<std::uint8_t>(
+                          ProcessFederationUpdateRateValueStatus::
+                              inconsistent_catalog)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process update-rate result has an invalid status.");
+  }
+  ProcessFederationUpdateRateValueResult result;
+  result.status = static_cast<ProcessFederationUpdateRateValueStatus>(
+      encodedStatus);
+  result.value = reader.real64();
+  reader.finish();
+  if (!std::isfinite(result.value)) {
+    throw ProcessFederationServiceProtocolError(
+        "A process update-rate result must carry a finite value.");
+  }
+  return result;
+}
+
 std::vector<std::uint8_t> encodeProcessFederationInteractionEnvelope(
     ProcessFederationInteractionEnvelope const& envelope) {
   if (envelope.parameterValues.size() >
@@ -6884,9 +7572,11 @@ std::vector<std::uint8_t> encodeProcessFederationReceiveInteractionResult(
   writer.unsigned8(eventKind);
   if (result.event.has_value()) {
     auto const& event = *result.event;
-    requireNonzero(
-        event.producingFederateId,
-        "A process federation interaction event requires a producer identity.");
+    if (!event.rtiOwnedMomInteraction) {
+      requireNonzero(
+          event.producingFederateId,
+          "A process federation interaction event requires a producer identity.");
+    }
     requireNonzero(
         event.receivingFederateId,
         "A process federation interaction event requires a recipient identity.");
@@ -6916,11 +7606,24 @@ std::vector<std::uint8_t> encodeProcessFederationReceiveInteractionResult(
     }
     writeInteractionRegionMetadata(writer, event);
     writeInteractionOrderMetadata(writer, event);
+    if (event.rtiOwnedMomInteraction) {
+      writer.unsigned8(kRtiOwnedMomInteractionEventMarker);
+      if (event.exceptionReportFederateId) {
+        requireNonzero(*event.exceptionReportFederateId,
+                       "An exception report event requires its reported member.");
+        writer.unsigned64(*event.exceptionReportFederateId);
+      }
+    } else if (event.exceptionReportFederateId) {
+      throw ProcessFederationServiceProtocolError(
+          "Exception report metadata requires an RTI-owned MOM event.");
+    }
   } else if (result.attributeEvent.has_value()) {
     auto const& event = *result.attributeEvent;
-    requireNonzero(
-        event.producingFederateId,
-        "A process federation attribute event requires a producer identity.");
+    if (!event.rtiOwnedMomObject) {
+      requireNonzero(
+          event.producingFederateId,
+          "A process federation attribute event requires a producer identity.");
+    }
     requireNonzero(
         event.receivingFederateId,
         "A process federation attribute event requires a recipient identity.");
@@ -6956,6 +7659,9 @@ std::vector<std::uint8_t> encodeProcessFederationReceiveInteractionResult(
     writer.string(event.transportationName);
     writeAttributeUpdateRegionMetadata(writer, event);
     writeOptionalLogicalTime(writer, event.timestamp);
+    if (event.rtiOwnedMomObject) {
+      writer.unsigned8(kRtiOwnedMomAttributeEventMarker);
+    }
     if (event.retractionMessageId) {
       requireNonzero(
           *event.retractionMessageId,
@@ -6973,9 +7679,11 @@ std::vector<std::uint8_t> encodeProcessFederationReceiveInteractionResult(
     requireNonzero(
         event.objectClassHandle,
         "A process federation discovery event requires an object class.");
-    requireNonzero(
-        event.producingFederateId,
-        "A process federation discovery event requires a producer identity.");
+    if (!event.rtiOwnedMomObject) {
+      requireNonzero(
+          event.producingFederateId,
+          "A process federation discovery event requires a producer identity.");
+    }
     if (event.objectInstanceName.empty()) {
       throw ProcessFederationServiceProtocolError(
           "A process federation discovery event requires an object instance name.");
@@ -6985,6 +7693,9 @@ std::vector<std::uint8_t> encodeProcessFederationReceiveInteractionResult(
     writer.unsigned64(event.objectClassHandle);
     writer.wideString(event.objectInstanceName);
     writer.unsigned64(event.producingFederateId);
+    if (event.rtiOwnedMomObject) {
+      writer.unsigned8(kRtiOwnedMomDiscoveryEventMarker);
+    }
   } else if (result.scopeChangeEvent.has_value()) {
     auto const& event = *result.scopeChangeEvent;
     requireNonzero(
@@ -7020,9 +7731,17 @@ std::vector<std::uint8_t> encodeProcessFederationReceiveInteractionResult(
     requireNonzero(
         event.objectInstanceHandle,
         "A process object removal event requires an object instance.");
-    requireNonzero(
-        event.producingFederateId,
-        "A process object removal event requires a producer identity.");
+    if (event.rtiOwnedMomObject) {
+      if (event.producingFederateId != 0U || event.timestamp ||
+          event.retractionMessageId) {
+        throw ProcessFederationServiceProtocolError(
+            "An RTI-owned MOM removal event cannot carry a producer or timestamped deletion metadata.");
+      }
+    } else {
+      requireNonzero(
+          event.producingFederateId,
+          "A process object removal event requires a producer identity.");
+    }
     writer.unsigned64(event.receivingFederateId);
     writer.unsigned64(event.objectInstanceHandle);
     writer.unsigned64(event.producingFederateId);
@@ -7055,6 +7774,9 @@ std::vector<std::uint8_t> encodeProcessFederationReceiveInteractionResult(
       writer.unsigned8(1U);
       writer.unsigned8(static_cast<std::uint8_t>(*event.sentOrderType));
       writer.unsigned8(static_cast<std::uint8_t>(*event.receivedOrderType));
+    }
+    if (event.rtiOwnedMomObject) {
+      writer.unsigned8(kRtiOwnedMomRemovalEventMarker);
     }
   } else if (result.attributeRelevanceAdvisoryEvent.has_value()) {
     auto const& event = *result.attributeRelevanceAdvisoryEvent;
@@ -7580,10 +8302,26 @@ decodeProcessFederationReceiveInteractionResult(
       }
       readInteractionRegionMetadata(reader, event);
       readInteractionOrderMetadata(reader, event);
+      // With no explicit order pair the order reader already consumed the
+      // RTI-owned marker. With an order pair it remains in the suffix.
+      if (reader.remaining() != 0U && !event.rtiOwnedMomInteraction) {
+        if (reader.unsigned8() != kRtiOwnedMomInteractionEventMarker) {
+          throw ProcessFederationServiceProtocolError(
+              "A process interaction event has invalid trailing RTI-owned MOM metadata.");
+        }
+        event.rtiOwnedMomInteraction = true;
+      }
+      if (event.rtiOwnedMomInteraction && reader.remaining() != 0U) {
+        event.exceptionReportFederateId = reader.unsigned64();
+        requireNonzero(*event.exceptionReportFederateId,
+                       "An exception report event requires its reported member.");
+      }
     }
-    requireNonzero(
-        event.producingFederateId,
-        "A process federation interaction event requires a producer identity.");
+    if (!event.rtiOwnedMomInteraction) {
+      requireNonzero(
+          event.producingFederateId,
+          "A process federation interaction event requires a producer identity.");
+    }
     requireNonzero(
         event.receivingFederateId,
         "A process federation interaction event requires a recipient identity.");
@@ -7614,15 +8352,33 @@ decodeProcessFederationReceiveInteractionResult(
     event.transportationName = reader.string();
     readAttributeUpdateRegionMetadata(reader, event);
     event.timestamp = readOptionalLogicalTime(reader);
-    if (reader.remaining() != 0U) {
+    if (reader.remaining() == sizeof(std::uint64_t)) {
       event.retractionMessageId = reader.unsigned64();
       requireNonzero(
           *event.retractionMessageId,
           "A process attribute event requires a retraction identity.");
+    } else if (reader.remaining() != 0U) {
+      if (reader.unsigned8() != kRtiOwnedMomAttributeEventMarker) {
+        throw ProcessFederationServiceProtocolError(
+            "A process attribute event has an invalid RTI-owned MOM marker.");
+      }
+      event.rtiOwnedMomObject = true;
+      if (reader.remaining() != 0U) {
+        if (reader.remaining() != sizeof(std::uint64_t)) {
+          throw ProcessFederationServiceProtocolError(
+              "A process attribute event has invalid trailing metadata.");
+        }
+        event.retractionMessageId = reader.unsigned64();
+        requireNonzero(
+            *event.retractionMessageId,
+            "A process attribute event requires a retraction identity.");
+      }
     }
-    requireNonzero(
-        event.producingFederateId,
-        "A process federation attribute event requires a producer identity.");
+    if (!event.rtiOwnedMomObject) {
+      requireNonzero(
+          event.producingFederateId,
+          "A process federation attribute event requires a producer identity.");
+    }
     requireNonzero(
         event.receivingFederateId,
         "A process federation attribute event requires a recipient identity.");
@@ -7641,6 +8397,13 @@ decodeProcessFederationReceiveInteractionResult(
     event.objectClassHandle = reader.unsigned64();
     event.objectInstanceName = reader.wideString();
     event.producingFederateId = reader.unsigned64();
+    if (reader.remaining() != 0U) {
+      if (reader.unsigned8() != kRtiOwnedMomDiscoveryEventMarker) {
+        throw ProcessFederationServiceProtocolError(
+            "A process discovery event has an invalid RTI-owned MOM marker.");
+      }
+      event.rtiOwnedMomObject = true;
+    }
     requireNonzero(
         event.receivingFederateId,
         "A process federation discovery event requires a recipient identity.");
@@ -7650,9 +8413,11 @@ decodeProcessFederationReceiveInteractionResult(
     requireNonzero(
         event.objectClassHandle,
         "A process federation discovery event requires an object class.");
-    requireNonzero(
-        event.producingFederateId,
-        "A process federation discovery event requires a producer identity.");
+    if (!event.rtiOwnedMomObject) {
+      requireNonzero(
+          event.producingFederateId,
+          "A process federation discovery event requires a producer identity.");
+    }
     if (event.objectInstanceName.empty()) {
       throw ProcessFederationServiceProtocolError(
           "A process federation discovery event requires an object instance name.");
@@ -7735,15 +8500,29 @@ decodeProcessFederationReceiveInteractionResult(
             "A process object removal event has an invalid received order classification.");
       }
     }
+    if (reader.remaining() != 0U) {
+      if (reader.unsigned8() != kRtiOwnedMomRemovalEventMarker) {
+        throw ProcessFederationServiceProtocolError(
+            "A process object removal event has an invalid RTI-owned MOM marker.");
+      }
+      event.rtiOwnedMomObject = true;
+      if (event.producingFederateId != 0U || event.timestamp ||
+          event.retractionMessageId) {
+        throw ProcessFederationServiceProtocolError(
+            "An RTI-owned MOM removal event has conflicting producer or timestamp metadata.");
+      }
+    }
     requireNonzero(
         event.receivingFederateId,
         "A process object removal event requires a recipient identity.");
     requireNonzero(
         event.objectInstanceHandle,
         "A process object removal event requires an object instance.");
-    requireNonzero(
-        event.producingFederateId,
-        "A process object removal event requires a producer identity.");
+    if (!event.rtiOwnedMomObject) {
+      requireNonzero(
+          event.producingFederateId,
+          "A process object removal event requires a producer identity.");
+    }
     result.removalEvent = std::move(event);
   } else if (eventKind == 5U) {
     ProcessFederationAttributeRelevanceAdvisoryEvent event;
@@ -8306,6 +9085,7 @@ encodeProcessFederationRequestAttributeValueUpdateResult(
     ProcessFederationRequestAttributeValueUpdateResult const& result) {
   PayloadWriter writer;
   writer.unsigned32(result.recipientCount);
+  writeAttributeValueUpdateClassRequestStatus(writer, result.status);
   return std::move(writer).finish();
 }
 
@@ -8313,8 +9093,13 @@ ProcessFederationRequestAttributeValueUpdateResult
 decodeProcessFederationRequestAttributeValueUpdateResult(
     std::span<std::uint8_t const> encoded) {
   PayloadReader reader(encoded);
-  ProcessFederationRequestAttributeValueUpdateResult result{
-      reader.unsigned32()};
+  ProcessFederationRequestAttributeValueUpdateResult result;
+  result.recipientCount = reader.unsigned32();
+  // Keep decoding old private peers that only carried the recipient count;
+  // current regional responses append the typed planner status.
+  if (reader.remaining() != 0U) {
+    result.status = readAttributeValueUpdateClassRequestStatus(reader);
+  }
   reader.finish();
   return result;
 }
@@ -8326,9 +9111,11 @@ encodeProcessFederationReceiveAttributeUpdateResult(
   writer.unsigned8(result.event.has_value() ? 1U : 0U);
   if (result.event.has_value()) {
     auto const& event = *result.event;
-    requireNonzero(
-        event.producingFederateId,
-        "A process federation attribute event requires a producer identity.");
+    if (!event.rtiOwnedMomObject) {
+      requireNonzero(
+          event.producingFederateId,
+          "A process federation attribute event requires a producer identity.");
+    }
     requireNonzero(
         event.receivingFederateId,
         "A process federation attribute event requires a recipient identity.");
@@ -8364,6 +9151,9 @@ encodeProcessFederationReceiveAttributeUpdateResult(
     writer.string(event.transportationName);
     writeAttributeUpdateRegionMetadata(writer, event);
     writeOptionalLogicalTime(writer, event.timestamp);
+    if (event.rtiOwnedMomObject) {
+      writer.unsigned8(kRtiOwnedMomAttributeEventMarker);
+    }
     if (event.retractionMessageId) {
       requireNonzero(
           *event.retractionMessageId,
@@ -8407,15 +9197,33 @@ decodeProcessFederationReceiveAttributeUpdateResult(
     event.transportationName = reader.string();
     readAttributeUpdateRegionMetadata(reader, event);
     event.timestamp = readOptionalLogicalTime(reader);
-    if (reader.remaining() != 0U) {
+    if (reader.remaining() == sizeof(std::uint64_t)) {
       event.retractionMessageId = reader.unsigned64();
       requireNonzero(
           *event.retractionMessageId,
           "A process attribute event requires a retraction identity.");
+    } else if (reader.remaining() != 0U) {
+      if (reader.unsigned8() != kRtiOwnedMomAttributeEventMarker) {
+        throw ProcessFederationServiceProtocolError(
+            "A process attribute result has an invalid RTI-owned MOM marker.");
+      }
+      event.rtiOwnedMomObject = true;
+      if (reader.remaining() != 0U) {
+        if (reader.remaining() != sizeof(std::uint64_t)) {
+          throw ProcessFederationServiceProtocolError(
+              "A process attribute result has invalid trailing metadata.");
+        }
+        event.retractionMessageId = reader.unsigned64();
+        requireNonzero(
+            *event.retractionMessageId,
+            "A process attribute event requires a retraction identity.");
+      }
     }
-    requireNonzero(
-        event.producingFederateId,
-        "A process federation attribute event requires a producer identity.");
+    if (!event.rtiOwnedMomObject) {
+      requireNonzero(
+          event.producingFederateId,
+          "A process federation attribute event requires a producer identity.");
+    }
     requireNonzero(
         event.receivingFederateId,
         "A process federation attribute event requires a recipient identity.");
@@ -8448,9 +9256,11 @@ encodeProcessFederationReceiveObjectInstanceDiscoveryResult(
     requireNonzero(
         event.objectClassHandle,
         "A process discovery event requires an object class.");
-    requireNonzero(
-        event.producingFederateId,
-        "A process discovery event requires a producer identity.");
+    if (!event.rtiOwnedMomObject) {
+      requireNonzero(
+          event.producingFederateId,
+          "A process discovery event requires a producer identity.");
+    }
     if (event.objectInstanceName.empty()) {
       throw ProcessFederationServiceProtocolError(
           "A process discovery event requires an object instance name.");
@@ -8460,6 +9270,9 @@ encodeProcessFederationReceiveObjectInstanceDiscoveryResult(
     writer.unsigned64(event.objectClassHandle);
     writer.wideString(event.objectInstanceName);
     writer.unsigned64(event.producingFederateId);
+    if (event.rtiOwnedMomObject) {
+      writer.unsigned8(kRtiOwnedMomDiscoveryEventMarker);
+    }
   }
   return std::move(writer).finish();
 }
@@ -8481,6 +9294,13 @@ decodeProcessFederationReceiveObjectInstanceDiscoveryResult(
     event.objectClassHandle = reader.unsigned64();
     event.objectInstanceName = reader.wideString();
     event.producingFederateId = reader.unsigned64();
+    if (reader.remaining() != 0U) {
+      if (reader.unsigned8() != kRtiOwnedMomDiscoveryEventMarker) {
+        throw ProcessFederationServiceProtocolError(
+            "A process discovery result has an invalid RTI-owned MOM marker.");
+      }
+      event.rtiOwnedMomObject = true;
+    }
     requireNonzero(
         event.receivingFederateId,
         "A process discovery event requires a recipient identity.");
@@ -8490,9 +9310,11 @@ decodeProcessFederationReceiveObjectInstanceDiscoveryResult(
     requireNonzero(
         event.objectClassHandle,
         "A process discovery event requires an object class.");
-    requireNonzero(
-        event.producingFederateId,
-        "A process discovery event requires a producer identity.");
+    if (!event.rtiOwnedMomObject) {
+      requireNonzero(
+          event.producingFederateId,
+          "A process discovery event requires a producer identity.");
+    }
     if (event.objectInstanceName.empty()) {
       throw ProcessFederationServiceProtocolError(
           "A process discovery event requires an object instance name.");
@@ -8510,7 +9332,12 @@ ProcessFederationService::ProcessFederationService(
     : registry_(registry),
       federationDefinition_(
           std::make_shared<FederationDefinition const>(std::move(federationDefinition))),
-      options_(options) {}
+      options_(std::move(options)),
+      serviceReportStore_(
+          options_.serviceReportDirectory.empty()
+              ? nullptr
+              : std::make_unique<FilesystemServiceReportStore>(
+                    options_.serviceReportDirectory)) {}
 
 ProcessTransportServiceDispatcher::Handler ProcessFederationService::handlerFor(
     ProcessTransportSession& session) {
@@ -8550,7 +9377,9 @@ void ProcessFederationService::detach(ProcessTransportSession& session) noexcept
 bool ProcessFederationService::dispatchConnectionLossResult(
     std::wstring const& federationName,
     FederationRegistryResult result,
-    std::optional<std::uint64_t> departedFederateId) {
+    std::optional<std::uint64_t> departedFederateId,
+    std::optional<FederateLostReportPlan> federateLostReport,
+    std::wstring faultDescription) {
   if (departedFederateId) {
     std::scoped_lock lock(mutex_);
     for (auto& [session, state] : sessions_) {
@@ -8616,7 +9445,99 @@ bool ProcessFederationService::dispatchConnectionLossResult(
           std::move(result.synchronizationNotifications))) {
     return false;
   }
+
+  if (federateLostReport &&
+      federateLostReport->status == FederateLostReportStatus::applied &&
+      federateLostReport->reportedFederateId != 0U &&
+      federateLostReport->lastKnownTime &&
+      federateLostReport->routing.interactionClassHandle != 0U &&
+      federateLostReport->routing.federateParameterHandle != 0U &&
+      federateLostReport->routing.federateNameParameterHandle != 0U &&
+      federateLostReport->routing.timestampParameterHandle != 0U &&
+      federateLostReport->routing.faultDescriptionParameterHandle != 0U &&
+      !federateLostReport->recipients.empty()) {
+    auto copyEncoded = [](rti1516_2025::VariableLengthData const& value) {
+      auto const* bytes = static_cast<std::uint8_t const*>(value.data());
+      return value.size() == 0U
+          ? std::vector<std::uint8_t>{}
+          : std::vector<std::uint8_t>{bytes, bytes + value.size()};
+    };
+    auto const payload = encodeProcessFederationInteractionEnvelope({
+        {{federateLostReport->routing.federateParameterHandle,
+          copyEncoded(rti1516_2025::umbra_binding_detail::makeFederateHandle(
+                          federateLostReport->reportedFederateId)
+                          .encode())},
+         {federateLostReport->routing.federateNameParameterHandle,
+          copyEncoded(rti1516_2025::HLAunicodeString{
+                          federateLostReport->reportedFederateName}
+                          .encode())},
+         {federateLostReport->routing.timestampParameterHandle,
+          copyEncoded(federateLostReport->lastKnownTime->encode())},
+         {federateLostReport->routing.faultDescriptionParameterHandle,
+          copyEncoded(rti1516_2025::HLAunicodeString{faultDescription}.encode())}},
+        {}});
+    std::vector<std::pair<ProcessTransportSession*,
+                          ProcessFederationInteractionEvent>> pushedEvents;
+    {
+      std::scoped_lock lock(mutex_);
+      for (auto const& recipient : federateLostReport->recipients) {
+        auto const receivingSession =
+            sessionsByFederateId_.find(recipient.federateId);
+        if (receivingSession == sessionsByFederateId_.end()) {
+          continue;
+        }
+        auto const state = sessions_.find(receivingSession->second);
+        if (state == sessions_.end() ||
+            state->second.federationName != federationName) {
+          continue;
+        }
+        ProcessFederationInteractionEvent event;
+        event.receivingFederateId = recipient.federateId;
+        event.interactionClassHandle =
+            recipient.receivedInteractionClassHandle;
+        event.parameterHandles =
+            parameterVector(recipient.receivedParameterHandles);
+        event.payload = payload;
+        event.transportationName = hla::utf8::mom::reliable;
+        event.rtiOwnedMomInteraction = true;
+        if (options_.pushReceiveOrderEvents) {
+          pushedEvents.emplace_back(receivingSession->second,
+                                    std::move(event));
+        } else {
+          state->second.interactionEvents.push_back(std::move(event));
+        }
+      }
+    }
+    for (auto const& [recipient, event] : pushedEvents) {
+      if (recipient == nullptr || !recipient->send({
+              TransportServiceMessageKind::event,
+              TransportServiceOperation::receive_interaction,
+              TransportServiceStatus::ok,
+              0U,
+              encodeProcessFederationReceiveInteractionResult({event})})) {
+        return false;
+      }
+    }
+  }
   return true;
+}
+
+bool ProcessFederationService::connectionLost(
+    std::wstring const& federationName,
+    std::uint64_t departedFederateId,
+    std::wstring faultDescription) {
+  auto federateLostReport = registry_.planFederateLostReport(
+      federationName, departedFederateId);
+  auto result = registry_.connectionLost(federationName, departedFederateId);
+  if (result.status != FederationRegistryStatus::applied) {
+    return false;
+  }
+  return dispatchConnectionLossResult(
+      federationName,
+      std::move(result),
+      departedFederateId,
+      std::move(federateLostReport),
+      std::move(faultDescription));
 }
 
 TransportServiceMessage ProcessFederationService::handle(
@@ -8626,6 +9547,8 @@ TransportServiceMessage ProcessFederationService::handle(
     switch (request.operation) {
       case TransportServiceOperation::create_federation_execution:
         return handleCreate(request);
+      case TransportServiceOperation::destroy_federation_execution:
+        return handleDestroy(request);
       case TransportServiceOperation::join_federation_execution:
         return handleJoin(session, request);
       case TransportServiceOperation::resign_federation_execution:
@@ -8742,6 +9665,8 @@ TransportServiceMessage ProcessFederationService::handle(
       case TransportServiceOperation::get_parameter_handle:
         return handleGetParameterHandle(session, request);
       case TransportServiceOperation::publish_object_class_attributes:
+      case TransportServiceOperation::unpublish_object_class_attributes:
+      case TransportServiceOperation::unpublish_object_class:
         return handleObjectClassAttributeDeclaration(session, request);
       case TransportServiceOperation::subscribe_object_class_attributes:
       case TransportServiceOperation::unsubscribe_object_class_attributes:
@@ -8793,14 +9718,42 @@ TransportServiceMessage ProcessFederationService::handle(
         return handleGetAttributeScopeAdvisorySwitch(session, request);
       case TransportServiceOperation::set_attribute_scope_advisory_switch:
         return handleSetAttributeScopeAdvisorySwitch(session, request);
+      case TransportServiceOperation::get_object_class_relevance_advisory_switch:
+        return handleGetObjectClassRelevanceAdvisorySwitch(session, request);
       case TransportServiceOperation::get_attribute_relevance_advisory_switch:
         return handleGetAttributeRelevanceAdvisorySwitch(session, request);
+      case TransportServiceOperation::get_interaction_relevance_advisory_switch:
+        return handleGetInteractionRelevanceAdvisorySwitch(session, request);
       case TransportServiceOperation::set_attribute_relevance_advisory_switch:
         return handleSetAttributeRelevanceAdvisorySwitch(session, request);
       case TransportServiceOperation::get_convey_region_designator_sets_switch:
         return handleGetConveyRegionDesignatorSetsSwitch(session, request);
+      case TransportServiceOperation::get_allow_relaxed_ddm_switch:
+        return handleGetAllowRelaxedDDMSwitch(session, request);
       case TransportServiceOperation::set_convey_region_designator_sets_switch:
         return handleSetConveyRegionDesignatorSetsSwitch(session, request);
+      case TransportServiceOperation::get_service_reporting_switch:
+        return handleGetServiceReportingSwitch(session, request);
+      case TransportServiceOperation::set_service_reporting_switch:
+        return handleSetServiceReportingSwitch(session, request);
+      case TransportServiceOperation::get_exception_reporting_switch:
+        return handleGetExceptionReportingSwitch(session, request);
+      case TransportServiceOperation::report_service_exception:
+        return handleReportServiceException(session, request);
+      case TransportServiceOperation::report_failed_service_invocation:
+        return handleReportFailedServiceInvocation(session, request);
+      case TransportServiceOperation::report_successful_service_invocation:
+        return handleReportSuccessfulServiceInvocation(session, request);
+      case TransportServiceOperation::report_successful_void_service_invocation:
+        return handleReportSuccessfulVoidServiceInvocation(session, request);
+      case TransportServiceOperation::recheck_exception_report:
+        return handleRecheckExceptionReport(session, request);
+      case TransportServiceOperation::set_exception_reporting_switch:
+        return handleSetExceptionReportingSwitch(session, request);
+      case TransportServiceOperation::get_send_service_reports_to_file_switch:
+        return handleGetSendServiceReportsToFileSwitch(session, request);
+      case TransportServiceOperation::set_send_service_reports_to_file_switch:
+        return handleSetSendServiceReportsToFileSwitch(session, request);
       case TransportServiceOperation::get_automatic_resign_directive:
         return handleGetAutomaticResignDirective(session, request);
       case TransportServiceOperation::set_automatic_resign_directive:
@@ -8823,6 +9776,10 @@ TransportServiceMessage ProcessFederationService::handle(
         return handleGetObjectInstanceName(session, request);
       case TransportServiceOperation::get_known_object_class_handle:
         return handleGetKnownObjectClassHandle(session, request);
+      case TransportServiceOperation::get_update_rate_value:
+        return handleGetUpdateRateValue(session, request);
+      case TransportServiceOperation::get_update_rate_value_for_attribute:
+        return handleGetUpdateRateValueForAttribute(session, request);
       case TransportServiceOperation::get_object_class_name:
         return handleGetObjectClassName(session, request);
       case TransportServiceOperation::get_interaction_class_name:
@@ -9029,6 +9986,8 @@ TransportServiceMessage ProcessFederationService::handleResign(
       state->second.federationName.reset();
       state->second.federateId = 0U;
       state->second.timeState.reset();
+      state->second.serviceReportWriter.reset();
+      state->second.serviceReportLocation.clear();
       state->second.interactionEvents.clear();
       state->second.attributeUpdateEvents.clear();
       state->second.objectInstanceDiscoveryEvents.clear();
@@ -9578,6 +10537,39 @@ TransportServiceMessage ProcessFederationService::handleCreate(
   return responseFor(request, TransportServiceStatus::ok);
 }
 
+TransportServiceMessage ProcessFederationService::handleDestroy(
+    TransportServiceMessage const& request) {
+  auto const destroyRequest =
+      decodeProcessFederationDestroyRequest(request.payload);
+  auto const destroyed = registry_.destroy(destroyRequest.federationName);
+  ProcessFederationDestroyStatus status =
+      ProcessFederationDestroyStatus::invalid_request;
+  switch (destroyed.status) {
+    case FederationRegistryStatus::applied:
+      status = ProcessFederationDestroyStatus::applied;
+      break;
+    case FederationRegistryStatus::federation_does_not_exist:
+      status = ProcessFederationDestroyStatus::federation_does_not_exist;
+      break;
+    case FederationRegistryStatus::federates_currently_joined:
+      status = ProcessFederationDestroyStatus::federates_currently_joined;
+      break;
+    case FederationRegistryStatus::invalid_request:
+    case FederationRegistryStatus::federation_already_exists:
+    case FederationRegistryStatus::federate_name_already_in_use:
+    case FederationRegistryStatus::federate_not_member:
+    case FederationRegistryStatus::invalid_resign_action:
+    case FederationRegistryStatus::ownership_acquisition_pending:
+    case FederationRegistryStatus::federate_owns_attributes:
+      break;
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationDestroyResult(
+          ProcessFederationDestroyResult{status}));
+}
+
 TransportServiceMessage ProcessFederationService::handleJoin(
     ProcessTransportSession& session,
     TransportServiceMessage const& request) {
@@ -9865,13 +10857,142 @@ TransportServiceMessage ProcessFederationService::handleJoin(
     return rejected(request);
   }
 
+  // A configured process service owns the same joined-federate report-file
+  // transaction as the embedded profile.  Allocate the immutable filesystem
+  // identity and establish the RTI-owned MOM ledger before exposing the
+  // successful Join response; a failure rolls the membership back and never
+  // falls back to an in-memory or synthetic location.
+  std::unique_ptr<ServiceReportWriter> serviceReportWriter;
+  std::filesystem::path serviceReportLocation;
+  std::wstring reportServiceFile;
+  if (serviceReportStore_) {
+    auto rollbackJoinedMembership = [&]() {
+      auto const rollback = registry_.resign(
+          joinRequest.federationName,
+          result.membership->id,
+          rti1516_2025::NO_ACTION);
+      if (timeState) {
+        timeState->deactivate();
+      }
+      return rollback.status == FederationRegistryStatus::applied;
+    };
+
+    try {
+      auto const joinedDefinition =
+          registry_.definitionFor(joinRequest.federationName);
+      auto const autoProvide = registry_.autoProvideSwitchFor(
+          joinRequest.federationName,
+          result.membership->id);
+      if (!joinedDefinition || !autoProvide) {
+        throw std::runtime_error(
+            "The process federation could not resolve the committed Join definition.");
+      }
+
+      auto const fomModulesSpecifiedAtJoin =
+          processFomModulesSpecifiedAtJoin(
+              *joinedDefinition,
+              joinRequest.additionalFomModules);
+      if (fomModulesSpecifiedAtJoin.size() !=
+          std::set<std::wstring>{
+              joinRequest.additionalFomModules.begin(),
+              joinRequest.additionalFomModules.end()}.size()) {
+        throw std::runtime_error(
+            "The process federation could not retain the validated Join FOM modules.");
+      }
+
+      bool const legacyFomCompatibility =
+          joinedDefinition->standardEdition == FomStandardEdition::ieee1516_2010;
+      std::wstring mimDesignator;
+      for (auto const& module : joinedDefinition->fomModules) {
+        if (module.kind == FomModuleKind::mim) {
+          mimDesignator = module.designator;
+        }
+      }
+      if (!legacyFomCompatibility) {
+        auto const federationMomStatus = registry_.establishFederationMomObject(
+            joinRequest.federationName,
+            std::wstring{kProcessRtiVersion},
+            mimDesignator);
+        if (federationMomStatus != JoinedFederateMomObjectStatus::applied &&
+            federationMomStatus != JoinedFederateMomObjectStatus::already_established) {
+          throw std::runtime_error(
+              "The process federation could not establish its RTI-owned federation MOM object.");
+        }
+      }
+
+      auto const joinIdentifier = nextProcessServiceReportJoinIdentifier.fetch_add(
+          1U,
+          std::memory_order_relaxed);
+      auto writer = serviceReportStore_->createForJoinedFederate({
+          joinRequest.federationName,
+          result.membership->name,
+          result.membership->id,
+          joinIdentifier,
+          formatProcessServiceReportInitialRecord(
+              joinRequest.connection,
+              joinRequest.federationName,
+              *joinedDefinition,
+              *result.membership,
+              *autoProvide,
+              processFederateHost(session),
+              fomModulesSpecifiedAtJoin),
+      });
+      if (!writer || writer->location().empty()) {
+        throw std::runtime_error(
+            "The process federation service-report store did not return a filesystem location.");
+      }
+      serviceReportLocation = writer->location();
+      reportServiceFile = serviceReportLocation.wstring();
+
+      if (!legacyFomCompatibility) {
+        auto const momObjectStatus = registry_.establishJoinedFederateMomObject(
+            joinRequest.federationName,
+            result.membership->id,
+            {
+                processFederateHost(session),
+                std::wstring{kProcessRtiVersion},
+                fomModulesSpecifiedAtJoin,
+                reportServiceFile,
+            });
+        if (momObjectStatus != JoinedFederateMomObjectStatus::applied) {
+          throw std::runtime_error(
+              "The process federation could not establish the joined federate MOM object.");
+        }
+      }
+      serviceReportWriter = std::move(writer);
+    } catch (...) {
+      if (!rollbackJoinedMembership()) {
+        return internalError(request);
+      }
+      return internalError(request);
+    }
+  }
+
   {
     std::scoped_lock lock(mutex_);
     auto& state = sessions_.at(&session);
     state.federationName = joinRequest.federationName;
     state.federateId = result.membership->id;
     state.timeState = std::move(timeState);
+    state.serviceReportWriter = std::move(serviceReportWriter);
+    state.serviceReportLocation = serviceReportLocation;
     sessionsByFederateId_[state.federateId] = &session;
+  }
+  // Join creates the RTI-owned HLAfederate MOM object for this new joined
+  // lifetime. Existing class subscribers must discover that object through
+  // the same process event path used by the embedded Join implementation;
+  // they cannot rely on a new subscription to backfill the new lifetime.
+  if (auto const momObject = registry_.joinedFederateMomObjectFor(
+          joinRequest.federationName,
+          result.membership->id)) {
+    auto discoveries = registry_.planJoinedFederateMomObjectDiscoveriesForInstance(
+        joinRequest.federationName,
+        momObject->objectInstanceHandle);
+    if (!enqueueObjectInstanceDiscoveries(
+            joinRequest.federationName,
+            std::move(discoveries))) {
+      return internalError(request);
+    }
   }
   auto pendingAnnouncements = registry_.announcePendingSynchronizationPoints(
       joinRequest.federationName,
@@ -9891,7 +11012,8 @@ TransportServiceMessage ProcessFederationService::handleJoin(
           ProcessFederationJoinResult{
               result.membership->id,
               result.membership->name,
-              std::move(logicalTimeImplementationName)}));
+              std::move(logicalTimeImplementationName),
+              std::move(reportServiceFile)}));
 }
 
 TransportServiceMessage ProcessFederationService::handleQueryLogicalTime(
@@ -10697,6 +11819,27 @@ TransportServiceMessage ProcessFederationService::handleGetObjectClassHandle(
           lookupRequest.federateId)) {
     return internalError(request);
   }
+  if (!appendSelectedServiceReportRecord(
+          session,
+          lookupRequest.federationName,
+          lookupRequest.federateId,
+          static_cast<std::uint16_t>(MomServiceType::support_services),
+          [objectClassName = lookupRequest.objectClassName,
+           objectClassHandle = *handle](std::uint32_t serialNumber) {
+            return formatMomSuccessfulServiceReportRecord(
+                serialNumber,
+                L"GetObjectClassHandle",
+                {{MomArgumentType::string,
+                  L"Object class name",
+                  formatMomString(objectClassName)}},
+                {MomArgumentType::object_class_handle,
+                 L"Object class handle",
+                 formatMomObjectClassHandle(
+                     rti1516_2025::umbra_binding_detail::makeObjectClassHandle(
+                         objectClassHandle))});
+          })) {
+    return internalError(request);
+  }
   return responseFor(
       request,
       TransportServiceStatus::ok,
@@ -10878,6 +12021,69 @@ ProcessFederationService::handleGetKnownObjectClassHandle(
           ProcessFederationHandleResult{known->knownObjectClassHandle}));
 }
 
+TransportServiceMessage ProcessFederationService::handleGetUpdateRateValue(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const lookupRequest =
+      decodeProcessFederationGetUpdateRateValueRequest(request.payload);
+  UpdateRateValueResult result;
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != lookupRequest.federationName ||
+        state->second.federateId != lookupRequest.federateId ||
+        !registry_.memberById(
+            lookupRequest.federationName, lookupRequest.federateId)) {
+      return rejected(request);
+    }
+    result = registry_.updateRateValueForDesignator(
+        lookupRequest.federationName,
+        lookupRequest.federateId,
+        lookupRequest.updateRateDesignator);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationUpdateRateValueResult(
+          ProcessFederationUpdateRateValueResult{
+              processUpdateRateValueStatus(result.status), result.value}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleGetUpdateRateValueForAttribute(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const lookupRequest =
+      decodeProcessFederationGetUpdateRateValueForAttributeRequest(
+          request.payload);
+  UpdateRateValueResult result;
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != lookupRequest.federationName ||
+        state->second.federateId != lookupRequest.federateId ||
+        !registry_.memberById(
+            lookupRequest.federationName, lookupRequest.federateId)) {
+      return rejected(request);
+    }
+    result = registry_.updateRateValueForAttribute(
+        lookupRequest.federationName,
+        lookupRequest.federateId,
+        lookupRequest.objectInstanceHandle,
+        lookupRequest.attributeHandle);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationUpdateRateValueResult(
+          ProcessFederationUpdateRateValueResult{
+              processUpdateRateValueStatus(result.status), result.value}));
+}
+
 TransportServiceMessage ProcessFederationService::handleGetObjectClassName(
     ProcessTransportSession& session,
     TransportServiceMessage const& request) {
@@ -10903,6 +12109,27 @@ TransportServiceMessage ProcessFederationService::handleGetObjectClassName(
   }
   auto const decodedName = wideFromUtf8(*encodedName);
   if (!decodedName) {
+    return internalError(request);
+  }
+  if (!appendSelectedServiceReportRecord(
+          session,
+          lookupRequest.federationName,
+          lookupRequest.federateId,
+          static_cast<std::uint16_t>(MomServiceType::support_services),
+          [objectClassHandle = lookupRequest.objectClassHandle,
+           objectClassName = *decodedName](std::uint32_t serialNumber) {
+            return formatMomSuccessfulServiceReportRecord(
+                serialNumber,
+                L"GetObjectClassName",
+                {{MomArgumentType::object_class_handle,
+                  L"Object class handle",
+                  formatMomObjectClassHandle(
+                      rti1516_2025::umbra_binding_detail::makeObjectClassHandle(
+                          objectClassHandle))}},
+                {MomArgumentType::string,
+                 L"Object class name",
+                 formatMomString(objectClassName)});
+          })) {
     return internalError(request);
   }
   return responseFor(
@@ -10937,6 +12164,27 @@ TransportServiceMessage ProcessFederationService::handleGetInteractionClassName(
   }
   auto const decodedName = wideFromUtf8(*encodedName);
   if (!decodedName) {
+    return internalError(request);
+  }
+  if (!appendSelectedServiceReportRecord(
+          session,
+          lookupRequest.federationName,
+          lookupRequest.federateId,
+          static_cast<std::uint16_t>(MomServiceType::support_services),
+          [interactionClassHandle = lookupRequest.interactionClassHandle,
+           interactionClassName = *decodedName](std::uint32_t serialNumber) {
+            return formatMomSuccessfulServiceReportRecord(
+                serialNumber,
+                L"GetInteractionClassName",
+                {{MomArgumentType::interaction_class_handle,
+                  L"Interaction class handle",
+                  formatMomInteractionClassHandle(
+                      rti1516_2025::umbra_binding_detail::makeInteractionClassHandle(
+                          interactionClassHandle))}},
+                {MomArgumentType::string,
+                 L"Interaction class name",
+                 formatMomString(interactionClassName)});
+          })) {
     return internalError(request);
   }
   return responseFor(
@@ -11079,6 +12327,12 @@ TransportServiceMessage ProcessFederationService::handleInteractionClassDeclarat
       break;
     default:
       return invalid(request);
+  }
+  if (result == InteractionClassDeclarationStatus::
+          federate_service_invocations_are_being_reported_via_mom) {
+    return responseFor(
+        request,
+        TransportServiceStatus::service_reporting_interlock);
   }
   if (result != InteractionClassDeclarationStatus::applied) {
     return rejected(request);
@@ -11673,12 +12927,30 @@ ProcessFederationService::handleObjectClassAttributeDeclaration(
   std::set<std::uint64_t> attributeHandles(
       declarationRequest.attributeHandles.begin(),
       declarationRequest.attributeHandles.end());
+  bool const publishing =
+      request.operation == TransportServiceOperation::publish_object_class_attributes;
+  if (!publishing &&
+      request.operation == TransportServiceOperation::unpublish_object_class &&
+      attributeHandles.empty()) {
+    // The official whole-class overload is represented by an empty private
+    // attribute vector. Resolve the exact current publication set at the
+    // process-owned registry so implicit HLAprivilegeToDeleteObject state is
+    // removed together with explicit publications.
+    auto const published = registry_.publishedObjectClassAttributeHandles(
+        declarationRequest.federationName,
+        declarationRequest.federateId,
+        declarationRequest.objectClassHandle);
+    if (!published) {
+      return rejected(request);
+    }
+    attributeHandles = *published;
+  }
   auto const result = registry_.setObjectClassAttributePublication(
       declarationRequest.federationName,
       declarationRequest.federateId,
       declarationRequest.objectClassHandle,
       attributeHandles,
-      true);
+      publishing);
   if (result != ObjectClassAttributeDeclarationStatus::applied) {
     return rejected(request);
   }
@@ -12261,6 +13533,29 @@ TransportServiceMessage ProcessFederationService::handleGetDimensionHandle(
   if (!handle) {
     return rejected(request);
   }
+  auto const dimensionName = wideFromUtf8(lookupRequest.dimensionName);
+  if (!dimensionName ||
+      !appendSelectedServiceReportRecord(
+          session,
+          lookupRequest.federationName,
+          lookupRequest.federateId,
+          static_cast<std::uint16_t>(MomServiceType::support_services),
+          [dimensionName = *dimensionName,
+           dimensionHandle = *handle](std::uint32_t serialNumber) {
+            return formatMomSuccessfulServiceReportRecord(
+                serialNumber,
+                L"GetDimensionHandle",
+                {{MomArgumentType::string,
+                  L"Dimension name",
+                  formatMomString(dimensionName)}},
+                {MomArgumentType::dimension_handle,
+                 L"Dimension handle",
+                 formatMomDimensionHandle(
+                     rti1516_2025::umbra_binding_detail::makeDimensionHandle(
+                         dimensionHandle))});
+          })) {
+    return internalError(request);
+  }
   return responseFor(
       request,
       TransportServiceStatus::ok,
@@ -12292,6 +13587,27 @@ TransportServiceMessage ProcessFederationService::handleGetDimensionName(
   }
   auto const decodedName = wideFromUtf8(*encodedName);
   if (!decodedName) {
+    return internalError(request);
+  }
+  if (!appendSelectedServiceReportRecord(
+          session,
+          lookupRequest.federationName,
+          lookupRequest.federateId,
+          static_cast<std::uint16_t>(MomServiceType::support_services),
+          [dimensionHandle = lookupRequest.dimensionHandle,
+           dimensionName = *decodedName](std::uint32_t serialNumber) {
+            return formatMomSuccessfulServiceReportRecord(
+                serialNumber,
+                L"GetDimensionName",
+                {{MomArgumentType::dimension_handle,
+                  L"Dimension handle",
+                  formatMomDimensionHandle(
+                      rti1516_2025::umbra_binding_detail::makeDimensionHandle(
+                          dimensionHandle))}},
+                {MomArgumentType::string,
+                 L"Dimension name",
+                 formatMomString(dimensionName)});
+          })) {
     return internalError(request);
   }
   return responseFor(
@@ -12361,6 +13677,28 @@ ProcessFederationService::handleGetTransportationTypeName(
   if (!decodedName) {
     return internalError(request);
   }
+  if (!appendSelectedServiceReportRecord(
+          session,
+          lookupRequest.federationName,
+          lookupRequest.federateId,
+          static_cast<std::uint16_t>(MomServiceType::support_services),
+          [transportationTypeHandle = lookupRequest.transportationTypeHandle,
+           transportationTypeName = *decodedName](std::uint32_t serialNumber) {
+            return formatMomSuccessfulServiceReportRecord(
+                serialNumber,
+                L"GetTransportationTypeName",
+                {{MomArgumentType::transportation_type_handle,
+                  L"Transportation type handle",
+                  formatMomTransportationTypeHandle(
+                      rti1516_2025::umbra_binding_detail::
+                          makeTransportationTypeHandle(
+                              transportationTypeHandle))}},
+                {MomArgumentType::string,
+                 L"Transportation type name",
+                 formatMomString(transportationTypeName)});
+          })) {
+    return internalError(request);
+  }
   return responseFor(
       request,
       TransportServiceStatus::ok,
@@ -12387,6 +13725,28 @@ TransportServiceMessage ProcessFederationService::handleGetDimensionUpperBound(
   }
   auto const upperBound = registry_.dimensionUpperBoundFor(
       dimensionRequest.federationName, dimensionRequest.dimensionHandle);
+  if (upperBound &&
+      !appendSelectedServiceReportRecord(
+          session,
+          dimensionRequest.federationName,
+          dimensionRequest.federateId,
+          static_cast<std::uint16_t>(MomServiceType::support_services),
+          [dimensionHandle = dimensionRequest.dimensionHandle,
+           upperBound = *upperBound](std::uint32_t serialNumber) {
+            return formatMomSuccessfulServiceReportRecord(
+                serialNumber,
+                L"GetDimensionUpperBound",
+                {{MomArgumentType::dimension_handle,
+                  L"Dimension handle",
+                  formatMomDimensionHandle(
+                      rti1516_2025::umbra_binding_detail::makeDimensionHandle(
+                          dimensionHandle))}},
+                {MomArgumentType::number,
+                 L"Dimension upper bound",
+                 formatMomNumber(std::to_wstring(upperBound))});
+          })) {
+    return internalError(request);
+  }
   return responseFor(
       request,
       TransportServiceStatus::ok,
@@ -12416,8 +13776,35 @@ ProcessFederationService::handleGetAvailableDimensionsForObjectClass(
   auto const handles = registry_.availableDimensionsForObjectClass(
       classRequest.federationName, classRequest.classHandle);
   std::vector<std::uint64_t> encodedHandles;
+  rti1516_2025::DimensionHandleSet reportHandles;
   if (handles) {
     encodedHandles.assign(handles->begin(), handles->end());
+    for (auto const handle : *handles) {
+      reportHandles.insert(
+          rti1516_2025::umbra_binding_detail::makeDimensionHandle(handle));
+    }
+    if (!appendSelectedServiceReportRecord(
+            session,
+            classRequest.federationName,
+            classRequest.federateId,
+            static_cast<std::uint16_t>(MomServiceType::support_services),
+            [classHandle = classRequest.classHandle,
+             reportHandles = std::move(reportHandles)](
+                std::uint32_t serialNumber) {
+              return formatMomSuccessfulServiceReportRecord(
+                  serialNumber,
+                  L"GetAvailableDimensionsForObjectClass",
+                  {{MomArgumentType::object_class_handle,
+                    L"Object class handle",
+                    formatMomObjectClassHandle(
+                        rti1516_2025::umbra_binding_detail::makeObjectClassHandle(
+                            classHandle))}},
+                  {MomArgumentType::dimension_handle_set,
+                   L"A set of dimension handles",
+                   formatMomDimensionHandleSet(reportHandles)});
+            })) {
+      return internalError(request);
+    }
   }
   return responseFor(
       request,
@@ -12448,8 +13835,35 @@ ProcessFederationService::handleGetAvailableDimensionsForInteractionClass(
   auto const handles = registry_.availableDimensionsForInteractionClass(
       classRequest.federationName, classRequest.classHandle);
   std::vector<std::uint64_t> encodedHandles;
+  rti1516_2025::DimensionHandleSet reportHandles;
   if (handles) {
     encodedHandles.assign(handles->begin(), handles->end());
+    for (auto const handle : *handles) {
+      reportHandles.insert(
+          rti1516_2025::umbra_binding_detail::makeDimensionHandle(handle));
+    }
+    if (!appendSelectedServiceReportRecord(
+            session,
+            classRequest.federationName,
+            classRequest.federateId,
+            static_cast<std::uint16_t>(MomServiceType::support_services),
+            [classHandle = classRequest.classHandle,
+             reportHandles = std::move(reportHandles)](
+                std::uint32_t serialNumber) {
+              return formatMomSuccessfulServiceReportRecord(
+                  serialNumber,
+                  L"GetAvailableDimensionsForInteractionClass",
+                  {{MomArgumentType::interaction_class_handle,
+                    L"Interaction class handle",
+                    formatMomInteractionClassHandle(
+                        rti1516_2025::umbra_binding_detail::makeInteractionClassHandle(
+                            classHandle))}},
+                  {MomArgumentType::dimension_handle_set,
+                   L"A set of dimension handles",
+                   formatMomDimensionHandleSet(reportHandles)});
+            })) {
+      return internalError(request);
+    }
   }
   return responseFor(
       request,
@@ -12480,6 +13894,34 @@ TransportServiceMessage ProcessFederationService::handleCreateRegion(
       createRequest.dimensionHandles.begin(), createRequest.dimensionHandles.end());
   auto const result = registry_.createRegion(
       createRequest.federationName, createRequest.federateId, dimensions);
+  if (result.status == RegionServiceStatus::applied) {
+    rti1516_2025::DimensionHandleSet reportDimensions;
+    for (auto const handle : dimensions) {
+      reportDimensions.insert(
+          rti1516_2025::umbra_binding_detail::makeDimensionHandle(handle));
+    }
+    if (!appendSelectedServiceReportRecord(
+            session,
+            createRequest.federationName,
+            createRequest.federateId,
+            static_cast<std::uint16_t>(MomServiceType::data_distribution_management),
+            [reportDimensions = std::move(reportDimensions),
+             regionHandle = result.regionHandle](std::uint32_t serialNumber) {
+              return formatMomSuccessfulServiceReportRecord(
+                  serialNumber,
+                  L"CreateRegion",
+                  {{MomArgumentType::dimension_handle_set,
+                    L"Set of dimension designators",
+                    formatMomDimensionHandleSet(reportDimensions)}},
+                  {MomArgumentType::region_handle,
+                   L"Region designator",
+                   formatMomRegionHandle(
+                       rti1516_2025::umbra_binding_detail::makeRegionHandle(
+                           regionHandle))});
+            })) {
+      return internalError(request);
+    }
+  }
   return responseFor(
       request,
       TransportServiceStatus::ok,
@@ -12524,6 +13966,29 @@ TransportServiceMessage ProcessFederationService::handleCommitRegionModification
           std::move(plan.attributeRelevanceAdvisories))) {
     return internalError(request);
   }
+  if (plan.status == RegionServiceStatus::applied) {
+    rti1516_2025::RegionHandleSet reportRegions;
+    for (auto const handle : regions) {
+      reportRegions.insert(
+          rti1516_2025::umbra_binding_detail::makeRegionHandle(handle));
+    }
+    if (!appendSelectedServiceReportRecord(
+            session,
+            commitRequest.federationName,
+            commitRequest.federateId,
+            static_cast<std::uint16_t>(MomServiceType::data_distribution_management),
+            [reportRegions = std::move(reportRegions)](
+                std::uint32_t serialNumber) {
+              return formatMomSuccessfulVoidServiceReportRecord(
+                  serialNumber,
+                  L"CommitRegionModifications",
+                  {{MomArgumentType::region_handle_set,
+                    L"Set of region designators",
+                    formatMomRegionHandleSet(reportRegions)}});
+            })) {
+      return internalError(request);
+    }
+  }
   return responseFor(
       request,
       TransportServiceStatus::ok,
@@ -12551,6 +14016,24 @@ TransportServiceMessage ProcessFederationService::handleDeleteRegion(
       regionRequest.federationName,
       regionRequest.federateId,
       regionRequest.regionHandle);
+  if (status == RegionServiceStatus::applied &&
+      !appendSelectedServiceReportRecord(
+          session,
+          regionRequest.federationName,
+          regionRequest.federateId,
+          static_cast<std::uint16_t>(MomServiceType::data_distribution_management),
+          [regionHandle = regionRequest.regionHandle](std::uint32_t serialNumber) {
+            return formatMomSuccessfulVoidServiceReportRecord(
+                serialNumber,
+                L"DeleteRegion",
+                {{MomArgumentType::region_handle,
+                  L"Region designator",
+                  formatMomRegionHandle(
+                      rti1516_2025::umbra_binding_detail::makeRegionHandle(
+                          regionHandle))}});
+          })) {
+    return internalError(request);
+  }
   return responseFor(
       request,
       TransportServiceStatus::ok,
@@ -12578,6 +14061,35 @@ TransportServiceMessage ProcessFederationService::handleGetDimensionHandleSet(
       regionRequest.federationName,
       regionRequest.federateId,
       regionRequest.regionHandle);
+  if (result.status == RegionServiceStatus::applied) {
+    rti1516_2025::DimensionHandleSet reportHandles;
+    for (auto const handle : result.dimensionHandles) {
+      reportHandles.insert(
+          rti1516_2025::umbra_binding_detail::makeDimensionHandle(handle));
+    }
+    if (!appendSelectedServiceReportRecord(
+            session,
+            regionRequest.federationName,
+            regionRequest.federateId,
+            static_cast<std::uint16_t>(MomServiceType::support_services),
+            [regionHandle = regionRequest.regionHandle,
+             reportHandles = std::move(reportHandles)](
+                std::uint32_t serialNumber) {
+              return formatMomSuccessfulServiceReportRecord(
+                  serialNumber,
+                  L"GetDimensionHandleSet",
+                  {{MomArgumentType::region_handle,
+                    L"Region handle",
+                    formatMomRegionHandle(
+                        rti1516_2025::umbra_binding_detail::makeRegionHandle(
+                            regionHandle))}},
+                  {MomArgumentType::dimension_handle_set,
+                   L"A set of dimensions",
+                   formatMomDimensionHandleSet(reportHandles)});
+            })) {
+      return internalError(request);
+    }
+  }
   return responseFor(
       request,
       TransportServiceStatus::ok,
@@ -12610,6 +14122,34 @@ TransportServiceMessage ProcessFederationService::handleGetRangeBounds(
       boundsRequest.federateId,
       boundsRequest.regionHandle,
       boundsRequest.dimensionHandle);
+  if (result.status == RegionServiceStatus::applied &&
+      !appendSelectedServiceReportRecord(
+          session,
+          boundsRequest.federationName,
+          boundsRequest.federateId,
+          static_cast<std::uint16_t>(MomServiceType::data_distribution_management),
+          [regionHandle = boundsRequest.regionHandle,
+           dimensionHandle = boundsRequest.dimensionHandle,
+           range = result.range](std::uint32_t serialNumber) {
+            return formatMomSuccessfulServiceReportRecord(
+                serialNumber,
+                L"GetRangeBounds",
+                {{MomArgumentType::region_handle,
+                  L"Region handle",
+                  formatMomRegionHandle(
+                      rti1516_2025::umbra_binding_detail::makeRegionHandle(
+                          regionHandle))},
+                 {MomArgumentType::dimension_handle,
+                  L"Dimension handle",
+                  formatMomDimensionHandle(
+                      rti1516_2025::umbra_binding_detail::makeDimensionHandle(
+                          dimensionHandle))}},
+                {MomArgumentType::range_bounds,
+                 L"Range bounds",
+                 formatMomRangeBounds(range.lowerBound, range.upperBound)});
+          })) {
+    return internalError(request);
+  }
   return responseFor(
       request,
       TransportServiceStatus::ok,
@@ -12641,6 +14181,39 @@ TransportServiceMessage ProcessFederationService::handleSetRangeBounds(
       boundsRequest.regionHandle,
       boundsRequest.dimensionHandle,
       RegionRangeBounds{boundsRequest.lowerBound, boundsRequest.upperBound});
+  if (status == RegionServiceStatus::applied &&
+      !appendSelectedServiceReportRecord(
+          session,
+          boundsRequest.federationName,
+          boundsRequest.federateId,
+          static_cast<std::uint16_t>(MomServiceType::data_distribution_management),
+          [regionHandle = boundsRequest.regionHandle,
+           dimensionHandle = boundsRequest.dimensionHandle,
+           lowerBound = boundsRequest.lowerBound,
+           upperBound = boundsRequest.upperBound](
+              std::uint32_t serialNumber) {
+            return formatMomSuccessfulVoidServiceReportRecord(
+                serialNumber,
+                L"SetRangeBounds",
+                {{MomArgumentType::region_handle,
+                  L"Region handle",
+                  formatMomRegionHandle(
+                      rti1516_2025::umbra_binding_detail::makeRegionHandle(
+                          regionHandle))},
+                 {MomArgumentType::dimension_handle,
+                  L"Dimension handle",
+                  formatMomDimensionHandle(
+                      rti1516_2025::umbra_binding_detail::makeDimensionHandle(
+                          dimensionHandle))},
+                 {MomArgumentType::number,
+                  L"Range lower bound",
+                  formatMomNumber(std::to_wstring(lowerBound))},
+                 {MomArgumentType::number,
+                  L"Range upper bound",
+                  formatMomNumber(std::to_wstring(upperBound))}});
+          })) {
+    return internalError(request);
+  }
   return responseFor(
       request,
       TransportServiceStatus::ok,
@@ -12744,6 +14317,68 @@ ProcessFederationService::handleGetAttributeRelevanceAdvisorySwitch(
 }
 
 TransportServiceMessage
+ProcessFederationService::handleGetObjectClassRelevanceAdvisorySwitch(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const switchRequest =
+      decodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != switchRequest.federationName ||
+        state->second.federateId != switchRequest.federateId ||
+        !registry_.memberById(
+            switchRequest.federationName, switchRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  auto const switchValue = registry_.objectClassRelevanceAdvisorySwitchFor(
+      switchRequest.federationName, switchRequest.federateId);
+  if (!switchValue) {
+    return rejected(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationBooleanResult(
+          ProcessFederationBooleanResult{*switchValue}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleGetInteractionRelevanceAdvisorySwitch(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const switchRequest =
+      decodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != switchRequest.federationName ||
+        state->second.federateId != switchRequest.federateId ||
+        !registry_.memberById(
+            switchRequest.federationName, switchRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  auto const switchValue = registry_.interactionRelevanceAdvisorySwitchFor(
+      switchRequest.federationName, switchRequest.federateId);
+  if (!switchValue) {
+    return rejected(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationBooleanResult(
+          ProcessFederationBooleanResult{*switchValue}));
+}
+
+TransportServiceMessage
 ProcessFederationService::handleSetAttributeRelevanceAdvisorySwitch(
     ProcessTransportSession& session,
     TransportServiceMessage const& request) {
@@ -12808,6 +14443,37 @@ ProcessFederationService::handleGetConveyRegionDesignatorSetsSwitch(
 }
 
 TransportServiceMessage
+ProcessFederationService::handleGetAllowRelaxedDDMSwitch(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const switchRequest =
+      decodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != switchRequest.federationName ||
+        state->second.federateId != switchRequest.federateId ||
+        !registry_.memberById(
+            switchRequest.federationName, switchRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  auto const switchValue = registry_.allowRelaxedDDMSwitchFor(
+      switchRequest.federationName, switchRequest.federateId);
+  if (!switchValue) {
+    return rejected(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationBooleanResult(
+          ProcessFederationBooleanResult{*switchValue}));
+}
+
+TransportServiceMessage
 ProcessFederationService::handleSetConveyRegionDesignatorSetsSwitch(
     ProcessTransportSession& session,
     TransportServiceMessage const& request) {
@@ -12827,6 +14493,590 @@ ProcessFederationService::handleSetConveyRegionDesignatorSetsSwitch(
     }
   }
   auto const status = registry_.setConveyRegionDesignatorSetsSwitch(
+      switchRequest.federationName,
+      switchRequest.federateId,
+      switchRequest.switchValue);
+  if (status != FederationRegistryStatus::applied) {
+    return rejected(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationBooleanResult(
+          ProcessFederationBooleanResult{switchRequest.switchValue}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleGetServiceReportingSwitch(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const switchRequest =
+      decodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != switchRequest.federationName ||
+        state->second.federateId != switchRequest.federateId ||
+        !registry_.memberById(
+            switchRequest.federationName, switchRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  auto const switchValue = registry_.serviceReportingSwitchFor(
+      switchRequest.federationName, switchRequest.federateId);
+  if (!switchValue) {
+    return rejected(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationBooleanResult(
+          ProcessFederationBooleanResult{*switchValue}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleSetServiceReportingSwitch(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const switchRequest =
+      decodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != switchRequest.federationName ||
+        state->second.federateId != switchRequest.federateId ||
+        !registry_.memberById(
+            switchRequest.federationName, switchRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  auto const status = registry_.setServiceReportingSwitch(
+      switchRequest.federationName,
+      switchRequest.federateId,
+      switchRequest.switchValue);
+  if (status != ServiceReportingSwitchStatus::applied) {
+    return rejected(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationBooleanResult(
+          ProcessFederationBooleanResult{switchRequest.switchValue}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleReportServiceException(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const reportRequest =
+      decodeProcessFederationServiceExceptionRequest(request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        state->second.federationName != reportRequest.federationName ||
+        state->second.federateId != reportRequest.federateId ||
+        !registry_.memberById(reportRequest.federationName,
+                              reportRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  // The reporting switch is process-owned and can change through MOM as well
+  // as the public setter. Never trust a client-side cached switch value.
+  auto const report = registry_.planExceptionReport(
+      reportRequest.federationName, reportRequest.federateId);
+  if (report.status != ExceptionReportStatus::applied) {
+    return responseFor(request, TransportServiceStatus::ok, {});
+  }
+  auto copyEncoded = [](rti1516_2025::VariableLengthData const& value) {
+    auto const* bytes = static_cast<std::uint8_t const*>(value.data());
+    return value.size() == 0U ? std::vector<std::uint8_t>{}
+                             : std::vector<std::uint8_t>{bytes, bytes + value.size()};
+  };
+  auto const payload = encodeProcessFederationInteractionEnvelope({
+      {{report.routing.federateParameterHandle,
+        copyEncoded(rti1516_2025::umbra_binding_detail::makeFederateHandle(
+                        reportRequest.federateId).encode())},
+       {report.routing.serviceParameterHandle,
+        copyEncoded(rti1516_2025::HLAunicodeString{reportRequest.service}.encode())},
+       {report.routing.exceptionParameterHandle,
+        copyEncoded(rti1516_2025::HLAunicodeString{reportRequest.exception}.encode())}},
+      {}});
+  std::vector<std::pair<ProcessTransportSession*, ProcessFederationInteractionEvent>>
+      pushedEvents;
+  {
+    std::scoped_lock lock(mutex_);
+    for (auto const& recipient : report.recipients) {
+      auto const receivingSession = sessionsByFederateId_.find(recipient.federateId);
+      if (receivingSession == sessionsByFederateId_.end()) {
+        continue;
+      }
+      auto const state = sessions_.find(receivingSession->second);
+      if (state == sessions_.end() ||
+          state->second.federationName != reportRequest.federationName) {
+        continue;
+      }
+      ProcessFederationInteractionEvent event;
+      event.receivingFederateId = recipient.federateId;
+      event.interactionClassHandle = recipient.receivedInteractionClassHandle;
+      event.parameterHandles = parameterVector(recipient.receivedParameterHandles);
+      event.payload = payload;
+      event.transportationName = hla::utf8::mom::reliable;
+      event.rtiOwnedMomInteraction = true;
+      event.exceptionReportFederateId = reportRequest.federateId;
+      if (options_.pushReceiveOrderEvents) {
+        pushedEvents.emplace_back(receivingSession->second, std::move(event));
+      } else {
+        state->second.interactionEvents.push_back(std::move(event));
+      }
+    }
+  }
+  for (auto const& [recipient, event] : pushedEvents) {
+    if (recipient == nullptr || !recipient->send({
+            TransportServiceMessageKind::event,
+            TransportServiceOperation::receive_interaction,
+            TransportServiceStatus::ok,
+            0U,
+            encodeProcessFederationReceiveInteractionResult({event})})) {
+      return internalError(request);
+    }
+  }
+  return responseFor(request, TransportServiceStatus::ok, {});
+}
+
+TransportServiceMessage
+ProcessFederationService::handleReportFailedServiceInvocation(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto reportRequest =
+      decodeProcessFederationFailedServiceInvocationRequest(request.payload);
+  ProcessFederationServiceInvocationReport report;
+  report.federationName = std::move(reportRequest.federationName);
+  report.federateId = reportRequest.federateId;
+  report.serviceType = reportRequest.serviceType;
+  report.service = std::move(reportRequest.service);
+  report.suppliedArguments = std::move(reportRequest.suppliedArguments);
+  report.exception = std::move(reportRequest.exception);
+  return handleServiceInvocationReport(session, request, std::move(report));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleReportSuccessfulServiceInvocation(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto reportRequest =
+      decodeProcessFederationSuccessfulServiceInvocationRequest(request.payload);
+  ProcessFederationServiceInvocationReport report;
+  report.federationName = std::move(reportRequest.federationName);
+  report.federateId = reportRequest.federateId;
+  report.serviceType = reportRequest.serviceType;
+  report.service = std::move(reportRequest.service);
+  report.suppliedArguments = std::move(reportRequest.suppliedArguments);
+  report.successful = true;
+  report.returnedArgument = std::move(reportRequest.returnedArgument);
+  return handleServiceInvocationReport(session, request, std::move(report));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleReportSuccessfulVoidServiceInvocation(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto reportRequest =
+      decodeProcessFederationSuccessfulServiceInvocationRequest(request.payload);
+  if (reportRequest.returnedArgument.type != MomArgumentType::null_value ||
+      !reportRequest.returnedArgument.name.empty() ||
+      reportRequest.returnedArgument.value != formatMomNull()) {
+    return invalid(request);
+  }
+  ProcessFederationServiceInvocationReport report;
+  report.federationName = std::move(reportRequest.federationName);
+  report.federateId = reportRequest.federateId;
+  report.serviceType = reportRequest.serviceType;
+  report.service = std::move(reportRequest.service);
+  report.suppliedArguments = std::move(reportRequest.suppliedArguments);
+  report.successful = true;
+  report.successfulVoid = true;
+  report.returnedArgument = std::move(reportRequest.returnedArgument);
+  return handleServiceInvocationReport(session, request, std::move(report));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleServiceInvocationReport(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request,
+    ProcessFederationServiceInvocationReport reportRequest) {
+  if (reportRequest.federationName.empty() || reportRequest.federateId == 0U ||
+      reportRequest.service.empty() ||
+      reportRequest.serviceType > MomServiceType::support_services ||
+      (reportRequest.successful &&
+       (!reportRequest.returnedArgument || !reportRequest.exception.empty())) ||
+      (reportRequest.successfulVoid &&
+       (!reportRequest.successful || !reportRequest.returnedArgument ||
+        reportRequest.returnedArgument->type != MomArgumentType::null_value ||
+        !reportRequest.returnedArgument->name.empty() ||
+        reportRequest.returnedArgument->value != formatMomNull())) ||
+      (!reportRequest.successful &&
+       (reportRequest.returnedArgument || reportRequest.exception.empty()))) {
+    return invalid(request);
+  }
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        state->second.federationName != reportRequest.federationName ||
+        state->second.federateId != reportRequest.federateId ||
+        !registry_.memberById(
+            reportRequest.federationName, reportRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  auto const serviceGroup =
+      static_cast<std::uint16_t>(reportRequest.serviceType);
+  auto const plan = registry_.planMomServiceReport(
+      reportRequest.federationName, reportRequest.federateId, serviceGroup);
+  switch (plan.disposition) {
+    case MomServiceReportDisposition::suppressed:
+      return responseFor(request, TransportServiceStatus::ok, {});
+    case MomServiceReportDisposition::report_to_file:
+      break;
+    case MomServiceReportDisposition::interaction:
+      // No observer means there is no emitted report and therefore no serial
+      // reservation.  The registry will re-evaluate subscriptions atomically
+      // when the reservation is made below.
+      if (plan.recipients.empty()) {
+        return responseFor(request, TransportServiceStatus::ok, {});
+      }
+      break;
+    case MomServiceReportDisposition::inconsistent_catalog:
+    case MomServiceReportDisposition::reported_federate_not_member:
+    case MomServiceReportDisposition::invalid_service_group:
+      return internalError(request);
+  }
+
+  auto reservation = registry_.reserveMomServiceReport(
+      reportRequest.federationName, reportRequest.federateId, serviceGroup);
+  if (!reservation.acceptedForEmission) {
+    if (reservation.routing.disposition == MomServiceReportDisposition::suppressed ||
+        (reservation.routing.disposition ==
+             MomServiceReportDisposition::interaction &&
+         reservation.routing.recipients.empty())) {
+      return responseFor(request, TransportServiceStatus::ok, {});
+    }
+    return internalError(request);
+  }
+
+  if (reservation.routing.disposition ==
+      MomServiceReportDisposition::report_to_file) {
+    // Honor the reservation's authoritative destination without allocating a
+    // second serial through the general append helper.
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        state->second.federationName != reportRequest.federationName ||
+        state->second.federateId != reportRequest.federateId ||
+        !state->second.serviceReportWriter) {
+      return internalError(request);
+    }
+    try {
+      auto const encodedRecord = reportRequest.successful
+          ? reportRequest.successfulVoid
+                ? formatMomSuccessfulVoidServiceReportRecord(
+                      reservation.serialNumber,
+                      reportRequest.service,
+                      reportRequest.suppliedArguments)
+                : formatMomSuccessfulServiceReportRecord(
+                      reservation.serialNumber,
+                      reportRequest.service,
+                      reportRequest.suppliedArguments,
+                      *reportRequest.returnedArgument)
+          : formatMomFailedServiceReportRecord(
+                reservation.serialNumber,
+                reportRequest.service,
+                reportRequest.suppliedArguments,
+                reportRequest.exception);
+      state->second.serviceReportWriter->append(encodedRecord);
+    } catch (std::exception const&) {
+      return internalError(request);
+    }
+    return responseFor(request, TransportServiceStatus::ok, {});
+  }
+  if (reservation.routing.disposition != MomServiceReportDisposition::interaction ||
+      reservation.routing.reportParameterHandles.size() != 8U ||
+      reservation.serialNumber >
+          static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::max())) {
+    return internalError(request);
+  }
+
+  auto const returnedArgument = reportRequest.successful
+      ? *reportRequest.returnedArgument
+      : MomServiceArgument{MomArgumentType::null_value, L"", formatMomNull()};
+  auto const encoded = encodeMomServiceInvocation(
+      reportRequest.service,
+      static_cast<MomServiceType>(reportRequest.serviceType),
+      reportRequest.successful,
+      reportRequest.suppliedArguments,
+      returnedArgument,
+      reportRequest.exception,
+      static_cast<std::int32_t>(reservation.serialNumber));
+  auto copyEncoded = [](rti1516_2025::VariableLengthData const& value) {
+    auto const* bytes = static_cast<std::uint8_t const*>(value.data());
+    return value.size() == 0U
+        ? std::vector<std::uint8_t>{}
+        : std::vector<std::uint8_t>{bytes, bytes + value.size()};
+  };
+  auto const& parameterHandles = reservation.routing.reportParameterHandles;
+  auto const interactionPayload = encodeProcessFederationInteractionEnvelope({
+      {{parameterHandles[0], copyEncoded(encoded.service)},
+       {parameterHandles[1], copyEncoded(encoded.serviceType)},
+       {parameterHandles[2], copyEncoded(encoded.successIndicator)},
+       {parameterHandles[3], copyEncoded(encoded.suppliedArguments)},
+       {parameterHandles[4], copyEncoded(encoded.returnedArgument)},
+       {parameterHandles[5], copyEncoded(encoded.exception)},
+       {parameterHandles[6], copyEncoded(encoded.serialNumber)},
+       {parameterHandles[7], copyEncoded(
+            rti1516_2025::umbra_binding_detail::makeFederateHandle(
+                reportRequest.federateId).encode())}},
+      {}});
+
+  std::vector<std::pair<ProcessTransportSession*, ProcessFederationInteractionEvent>>
+      pushedEvents;
+  {
+    std::scoped_lock lock(mutex_);
+    auto const reportingState = sessions_.find(&session);
+    if (reportingState == sessions_.end() ||
+        reportingState->second.federationName != reportRequest.federationName ||
+        reportingState->second.federateId != reportRequest.federateId) {
+      return rejected(request);
+    }
+    for (auto const& recipient : reservation.routing.recipients) {
+      auto const receivingSession =
+          sessionsByFederateId_.find(recipient.federateId);
+      if (receivingSession == sessionsByFederateId_.end()) {
+        continue;
+      }
+      auto const state = sessions_.find(receivingSession->second);
+      if (state == sessions_.end() ||
+          state->second.federationName != reportRequest.federationName) {
+        continue;
+      }
+      ProcessFederationInteractionEvent event;
+      event.receivingFederateId = recipient.federateId;
+      event.interactionClassHandle = recipient.receivedInteractionClassHandle;
+      event.parameterHandles = parameterVector(recipient.receivedParameterHandles);
+      event.payload = interactionPayload;
+      event.transportationName = hla::utf8::mom::reliable;
+      event.rtiOwnedMomInteraction = true;
+      if (options_.pushReceiveOrderEvents) {
+        pushedEvents.emplace_back(receivingSession->second, std::move(event));
+      } else {
+        state->second.interactionEvents.push_back(std::move(event));
+      }
+    }
+  }
+  for (auto const& [recipient, event] : pushedEvents) {
+    if (recipient == nullptr || !recipient->send({
+            TransportServiceMessageKind::event,
+            TransportServiceOperation::receive_interaction,
+            TransportServiceStatus::ok,
+            0U,
+            encodeProcessFederationReceiveInteractionResult({event})})) {
+      return internalError(request);
+    }
+  }
+  return responseFor(request, TransportServiceStatus::ok, {});
+}
+
+TransportServiceMessage
+ProcessFederationService::handleRecheckExceptionReport(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const recheck =
+      decodeProcessFederationExceptionReportRecheckRequest(request.payload);
+  std::scoped_lock lock(mutex_);
+  auto const state = sessions_.find(&session);
+  if (state == sessions_.end() ||
+      state->second.federationName != recheck.federationName ||
+      state->second.federateId != recheck.receivingFederateId ||
+      !registry_.memberById(recheck.federationName, recheck.receivingFederateId)) {
+    return rejected(request);
+  }
+  ProcessFederationReceiveInteractionResult result;
+  auto const projection = registry_.exceptionReportRecipientFor(
+      recheck.federationName,
+      recheck.reportedFederateId,
+      recheck.receivingFederateId);
+  if (projection) {
+    ProcessFederationInteractionEvent event;
+    event.receivingFederateId = recheck.receivingFederateId;
+    event.interactionClassHandle = projection->receivedInteractionClassHandle;
+    event.parameterHandles = parameterVector(projection->receivedParameterHandles);
+    event.transportationName = hla::utf8::mom::reliable;
+    event.rtiOwnedMomInteraction = true;
+    event.exceptionReportFederateId = recheck.reportedFederateId;
+    result.event = std::move(event);
+  }
+  return responseFor(request, TransportServiceStatus::ok,
+                     encodeProcessFederationReceiveInteractionResult(result));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleGetExceptionReportingSwitch(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const switchRequest =
+      decodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != switchRequest.federationName ||
+        state->second.federateId != switchRequest.federateId ||
+        !registry_.memberById(
+            switchRequest.federationName, switchRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  auto const availability = registry_.serviceOperationStatus(
+      switchRequest.federationName, switchRequest.federateId);
+  if (availability != FederationServiceOperationStatus::available) {
+    return responseFor(
+        request,
+        TransportServiceStatus::ok,
+        encodeProcessFederationExceptionReportingSwitchResult({availability}));
+  }
+  auto const switchValue = registry_.exceptionReportingSwitchFor(
+      switchRequest.federationName, switchRequest.federateId);
+  if (!switchValue) {
+    return rejected(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationExceptionReportingSwitchResult(
+          {FederationServiceOperationStatus::available, *switchValue}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleSetExceptionReportingSwitch(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const switchRequest =
+      decodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != switchRequest.federationName ||
+        state->second.federateId != switchRequest.federateId ||
+        !registry_.memberById(
+            switchRequest.federationName, switchRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  auto const availability = registry_.serviceOperationStatus(
+      switchRequest.federationName, switchRequest.federateId);
+  if (availability != FederationServiceOperationStatus::available) {
+    return responseFor(
+        request,
+        TransportServiceStatus::ok,
+        encodeProcessFederationExceptionReportingSwitchResult({availability}));
+  }
+  auto const status = registry_.setExceptionReportingSwitch(
+      switchRequest.federationName,
+      switchRequest.federateId,
+      switchRequest.switchValue);
+  if (status != FederationRegistryStatus::applied) {
+    return rejected(request);
+  }
+  if (!enqueueJoinedFederateMomConditionalAttributeUpdate(
+          switchRequest.federationName,
+          switchRequest.federateId,
+          {std::string(hla::utf8::mom::exception_reporting)})) {
+    return internalError(request);
+  }
+  if (!appendSelectedServiceReportRecord(
+          session,
+          switchRequest.federationName,
+          switchRequest.federateId,
+          static_cast<std::uint16_t>(MomServiceType::support_services),
+          [switchValue = switchRequest.switchValue](std::uint32_t serialNumber) {
+            return formatMomSuccessfulVoidServiceReportRecord(
+                serialNumber,
+                L"SetExceptionReportingSwitch",
+                {{MomArgumentType::boolean,
+                  L"SwitchValue",
+                  formatMomBoolean(switchValue)}});
+          })) {
+    return internalError(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationExceptionReportingSwitchResult(
+          {FederationServiceOperationStatus::available, switchRequest.switchValue}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleGetSendServiceReportsToFileSwitch(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const switchRequest =
+      decodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != switchRequest.federationName ||
+        state->second.federateId != switchRequest.federateId ||
+        !registry_.memberById(
+            switchRequest.federationName, switchRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  auto const switchValue = registry_.sendServiceReportsToFileSwitchFor(
+      switchRequest.federationName, switchRequest.federateId);
+  if (!switchValue) {
+    return rejected(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationBooleanResult(
+          ProcessFederationBooleanResult{*switchValue}));
+}
+
+TransportServiceMessage
+ProcessFederationService::handleSetSendServiceReportsToFileSwitch(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const switchRequest =
+      decodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != switchRequest.federationName ||
+        state->second.federateId != switchRequest.federateId ||
+        !registry_.memberById(
+            switchRequest.federationName, switchRequest.federateId)) {
+      return rejected(request);
+    }
+  }
+  auto const status = registry_.setSendServiceReportsToFileSwitch(
       switchRequest.federationName,
       switchRequest.federateId,
       switchRequest.switchValue);
@@ -13624,6 +15874,9 @@ bool ProcessFederationService::enqueueObjectInstanceDiscoveries(
   std::vector<std::pair<ProcessTransportSession*,
                         ProcessFederationObjectInstanceDiscoveryEvent>>
       pushedEvents;
+  std::vector<std::pair<ProcessTransportSession*,
+                        ProcessFederationAttributeUpdateEvent>>
+      pushedMomAttributeEvents;
   std::vector<AttributeRelevanceAdvisoryRecipient> initialAdvisories;
   for (auto const& planned : discoveries) {
     ProcessTransportSession* receivingSession = nullptr;
@@ -13691,9 +15944,54 @@ bool ProcessFederationService::enqueueObjectInstanceDiscoveries(
         snapshot->objectInstanceHandle,
         snapshot->knownObjectClassHandle,
         snapshot->objectInstanceName,
-        snapshot->producingFederateId};
+        snapshot->producingFederateId,
+        planned.rtiOwnedMomObject};
+
+    // A joined-federate MOM discovery is immediately followed by its
+    // subscribed initial values.  Keep that ordering on both pull and push
+    // process seams; the public callback bridge then projects an invalid
+    // producer handle exactly as the embedded profile does.
+    std::optional<ProcessFederationAttributeUpdateEvent> initialMomValues;
+    if (planned.rtiOwnedMomObject && !snapshot->initialAttributeHandles.empty()) {
+      auto const initialPlan = registry_.planJoinedFederateMomAttributeValueUpdate(
+          federationName,
+          planned.receivingFederateId,
+          snapshot->objectInstanceHandle,
+          snapshot->initialAttributeHandles,
+          true);
+      if (initialPlan.status ==
+              JoinedFederateMomAttributeValueUpdateStatus::applied &&
+          initialPlan.recipient &&
+          !initialPlan.recipient->attributeValues.empty()) {
+        ProcessFederationAttributeUpdateEvent values;
+        values.receivingFederateId = planned.receivingFederateId;
+        values.objectInstanceHandle = snapshot->objectInstanceHandle;
+        values.transportationName = "HLAreliable";
+        values.rtiOwnedMomObject = true;
+        values.attributeValues.reserve(
+            initialPlan.recipient->attributeValues.size());
+        for (auto const& [attributeHandle, encodedValue] :
+             initialPlan.recipient->attributeValues) {
+          std::vector<std::uint8_t> bytes(encodedValue.size());
+          if (!bytes.empty()) {
+            auto const* data = static_cast<std::uint8_t const*>(
+                encodedValue.data());
+            if (data == nullptr) {
+              return false;
+            }
+            std::copy(data, data + bytes.size(), bytes.begin());
+          }
+          values.attributeValues.emplace_back(attributeHandle, std::move(bytes));
+        }
+        initialMomValues = std::move(values);
+      }
+    }
     if (options_.pushReceiveOrderEvents) {
       pushedEvents.emplace_back(receivingSession, std::move(event));
+      if (initialMomValues) {
+        pushedMomAttributeEvents.emplace_back(
+            receivingSession, std::move(*initialMomValues));
+      }
       continue;
     }
 
@@ -13703,7 +16001,12 @@ bool ProcessFederationService::enqueueObjectInstanceDiscoveries(
         state->second.federationName.has_value() &&
         *state->second.federationName == federationName &&
         state->second.federateId == planned.receivingFederateId) {
+      event.callbackOrderSequence =
+          state->second.nextObjectLifecycleCallbackOrderSequence++;
       state->second.objectInstanceDiscoveryEvents.push_back(std::move(event));
+      if (initialMomValues) {
+        state->second.attributeUpdateEvents.push_back(std::move(*initialMomValues));
+      }
     }
   }
 
@@ -13725,9 +16028,98 @@ bool ProcessFederationService::enqueueObjectInstanceDiscoveries(
       return false;
     }
   }
+  for (auto const& pushedEvent : pushedMomAttributeEvents) {
+    if (pushedEvent.first == nullptr || !pushedEvent.first->send(
+            TransportServiceMessage{
+                TransportServiceMessageKind::event,
+                TransportServiceOperation::receive_attribute_update,
+                TransportServiceStatus::ok,
+                0U,
+                encodeProcessFederationReceiveAttributeUpdateResult(
+                    ProcessFederationReceiveAttributeUpdateResult{
+                        pushedEvent.second})})) {
+      return false;
+    }
+  }
   return enqueueAttributeRelevanceAdvisories(
       federationName,
       std::move(initialAdvisories));
+}
+
+bool ProcessFederationService::enqueueJoinedFederateMomConditionalAttributeUpdate(
+    std::wstring const& federationName,
+    std::uint64_t federateId,
+    std::vector<std::string> const& attributeNames) {
+  auto const object = registry_.joinedFederateMomObjectFor(
+      federationName, federateId);
+  if (!object) {
+    return true;
+  }
+  std::set<std::uint64_t> attributeHandles;
+  for (auto const& attributeName : attributeNames) {
+    auto const handle = registry_.attributeHandleFor(
+        federationName,
+        std::string(hla::utf8::mom::federate_object_class),
+        attributeName);
+    if (!handle) {
+      return true;
+    }
+    attributeHandles.insert(*handle);
+  }
+  auto const plan = registry_.planJoinedFederateMomAttributeValueUpdateForObject(
+      federationName, object->objectInstanceHandle, attributeHandles, true);
+  for (auto const& recipient : plan.recipients) {
+    if (recipient.attributeValues.empty()) {
+      continue;
+    }
+    ProcessFederationAttributeUpdateEvent event;
+    event.receivingFederateId = recipient.receivingFederateId;
+    event.objectInstanceHandle = recipient.objectInstanceHandle;
+    event.transportationName = "HLAreliable";
+    event.rtiOwnedMomObject = true;
+    event.attributeValues.reserve(recipient.attributeValues.size());
+    for (auto const& [attributeHandle, encodedValue] : recipient.attributeValues) {
+      std::vector<std::uint8_t> bytes(encodedValue.size());
+      if (!bytes.empty()) {
+        auto const* data = static_cast<std::uint8_t const*>(encodedValue.data());
+        if (data == nullptr) {
+          return false;
+        }
+        std::copy(data, data + bytes.size(), bytes.begin());
+      }
+      event.attributeValues.emplace_back(attributeHandle, std::move(bytes));
+    }
+    ProcessTransportSession* receivingSession = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      auto const session = sessionsByFederateId_.find(recipient.receivingFederateId);
+      if (session == sessionsByFederateId_.end()) {
+        continue;
+      }
+      auto const state = sessions_.find(session->second);
+      if (state == sessions_.end() ||
+          !state->second.federationName.has_value() ||
+          *state->second.federationName != federationName ||
+          state->second.federateId != recipient.receivingFederateId) {
+        continue;
+      }
+      if (!options_.pushReceiveOrderEvents) {
+        state->second.attributeUpdateEvents.push_back(std::move(event));
+        continue;
+      }
+      receivingSession = session->second;
+    }
+    if (!receivingSession->send(TransportServiceMessage{
+            TransportServiceMessageKind::event,
+            TransportServiceOperation::receive_attribute_update,
+            TransportServiceStatus::ok,
+            0U,
+            encodeProcessFederationReceiveAttributeUpdateResult(
+                ProcessFederationReceiveAttributeUpdateResult{std::move(event)})})) {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool ProcessFederationService::enqueueObjectInstanceRemovals(
@@ -13763,10 +16155,17 @@ bool ProcessFederationService::enqueueObjectInstanceRemovals(
       // ledger entry instead; keep that entry until the producer retracts it
       // or the federation lifecycle cleans it up.
       if (retractionMessageId == 0U) {
-        registry_.cancelObjectInstanceRemoval(
-            federationName,
-            planned.receivingFederateId,
-            planned.objectInstanceHandle);
+        if (planned.rtiOwnedMomObject) {
+          registry_.cancelJoinedFederateMomObjectRemoval(
+              federationName,
+              planned.receivingFederateId,
+              planned.objectInstanceHandle);
+        } else {
+          registry_.cancelObjectInstanceRemoval(
+              federationName,
+              planned.receivingFederateId,
+              planned.objectInstanceHandle);
+        }
       }
       continue;
     }
@@ -13776,6 +16175,7 @@ bool ProcessFederationService::enqueueObjectInstanceRemovals(
         planned.objectInstanceHandle,
         0U,
         userSuppliedTag};
+    event.rtiOwnedMomObject = planned.rtiOwnedMomObject;
     event.timestamp = timestamp;
     if (retractionMessageId != 0U) {
       event.retractionMessageId = retractionMessageId;
@@ -13784,7 +16184,12 @@ bool ProcessFederationService::enqueueObjectInstanceRemovals(
       event.receivedOrderType = planned.receivedOrderType;
     }
     if (options_.pushReceiveOrderEvents) {
-      auto const snapshot = retractionMessageId == 0U
+      auto const snapshot = planned.rtiOwnedMomObject
+          ? registry_.beginJoinedFederateMomObjectRemoval(
+                federationName,
+                planned.receivingFederateId,
+                planned.objectInstanceHandle)
+          : retractionMessageId == 0U
           ? registry_.beginObjectInstanceRemoval(
                 federationName,
                 planned.receivingFederateId,
@@ -13814,16 +16219,25 @@ bool ProcessFederationService::enqueueObjectInstanceRemovals(
         state->second.federationName.has_value() &&
         *state->second.federationName == federationName &&
         state->second.federateId == planned.receivingFederateId) {
+      event.callbackOrderSequence =
+          state->second.nextObjectLifecycleCallbackOrderSequence++;
       state->second.objectInstanceRemovalEvents.push_back(std::move(event));
       if (retractionMessageId != 0U) {
         retractionRecipients.push_back(receivingSession);
       }
     } else {
       if (retractionMessageId == 0U) {
-        registry_.cancelObjectInstanceRemoval(
-            federationName,
-            planned.receivingFederateId,
-            planned.objectInstanceHandle);
+        if (planned.rtiOwnedMomObject) {
+          registry_.cancelJoinedFederateMomObjectRemoval(
+              federationName,
+              planned.receivingFederateId,
+              planned.objectInstanceHandle);
+        } else {
+          registry_.cancelObjectInstanceRemoval(
+              federationName,
+              planned.receivingFederateId,
+              planned.objectInstanceHandle);
+        }
       }
     }
   }
@@ -15117,6 +17531,75 @@ ProcessFederationService::handleRequestAttributeValueUpdate(
     }
   }
 
+  // RTI-owned joined-federate MOM instances are not stored in the ordinary
+  // objectInstances table. Resolve a requested value update against the MOM
+  // ledger first and reflect its immutable/request-time values directly to
+  // the requesting process session; these values never induce a federate
+  // Provide Attribute Value Update callback.
+  auto const momPlan = registry_.planJoinedFederateMomAttributeValueUpdate(
+      requestValue.federationName,
+      requestValue.requestingFederateId,
+      requestValue.objectInstanceHandle,
+      requestedAttributeHandles);
+  if (momPlan.rtiOwnedMomObject) {
+    if (momPlan.status !=
+            JoinedFederateMomAttributeValueUpdateStatus::applied ||
+        !momPlan.recipient) {
+      return rejected(request);
+    }
+
+    ProcessFederationAttributeUpdateEvent event;
+    event.receivingFederateId = requestValue.requestingFederateId;
+    event.objectInstanceHandle = momPlan.recipient->objectInstanceHandle;
+    event.userSuppliedTag = requestValue.userSuppliedTag;
+    event.transportationName = "HLAreliable";
+    event.rtiOwnedMomObject = true;
+    event.attributeValues.reserve(momPlan.recipient->attributeValues.size());
+    for (auto const& [attributeHandle, encodedValue] :
+         momPlan.recipient->attributeValues) {
+      std::vector<std::uint8_t> bytes(encodedValue.size());
+      if (!bytes.empty()) {
+        auto const* data = static_cast<std::uint8_t const*>(encodedValue.data());
+        if (data == nullptr) {
+          return internalError(request);
+        }
+        std::copy(data, data + bytes.size(), bytes.begin());
+      }
+      event.attributeValues.emplace_back(attributeHandle, std::move(bytes));
+    }
+
+    if (options_.pushReceiveOrderEvents) {
+      if (!session.send(TransportServiceMessage{
+              TransportServiceMessageKind::event,
+              TransportServiceOperation::receive_attribute_update,
+              TransportServiceStatus::ok,
+              0U,
+              encodeProcessFederationReceiveAttributeUpdateResult(
+                  ProcessFederationReceiveAttributeUpdateResult{
+                      std::move(event)})})) {
+        return internalError(request);
+      }
+    } else {
+      std::scoped_lock lock(mutex_);
+      auto const state = sessions_.find(&session);
+      if (state == sessions_.end() ||
+          !state->second.federationName.has_value() ||
+          *state->second.federationName != requestValue.federationName ||
+          state->second.federateId != requestValue.requestingFederateId ||
+          !registry_.memberById(
+              requestValue.federationName,
+              requestValue.requestingFederateId)) {
+        return rejected(request);
+      }
+      state->second.attributeUpdateEvents.push_back(std::move(event));
+    }
+    return responseFor(
+        request,
+        TransportServiceStatus::ok,
+        encodeProcessFederationRequestAttributeValueUpdateResult(
+            ProcessFederationRequestAttributeValueUpdateResult{1U}));
+  }
+
   auto const plan = registry_.planAttributeValueUpdateRequest(
       requestValue.federationName,
       requestValue.requestingFederateId,
@@ -15378,7 +17861,11 @@ ProcessFederationService::handleRequestAttributeValueUpdateClassWithRegions(
       requestedAttributeHandles,
       &requestValue.requestRegionsByAttribute);
   if (plan.status != AttributeValueUpdateClassRequestStatus::applied) {
-    return rejected(request);
+    return responseFor(
+        request,
+        TransportServiceStatus::rejected,
+        encodeProcessFederationRequestAttributeValueUpdateResult(
+            ProcessFederationRequestAttributeValueUpdateResult{0U, plan.status}));
   }
 
   std::vector<std::pair<ProcessTransportSession*,
@@ -16227,6 +18714,293 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
     producingTimeState = state->second.timeState;
   }
 
+  // HLAsetSwitches is a predefined Subscribe-only MOM interaction.  It is
+  // consumed by the RTI rather than routed through the ordinary interaction
+  // planner (which would correctly reject it because no federate subscribes
+  // to the adjustment class).  Keep the process endpoint's decoding and
+  // mutation boundary equivalent to the embedded public path.
+  auto const interactionClassName = registry_.interactionClassNameFor(
+      sendRequest.federationName, sendRequest.interactionClassHandle);
+  auto const isFederationSetSwitches =
+      registry_.interactionClassIsSameOrDescendantOf(
+          sendRequest.federationName,
+          sendRequest.interactionClassHandle,
+          hla::utf8::mom::federation_set_switches);
+  if (interactionClassName &&
+      (*interactionClassName == hla::utf8::mom::federation_set_switches ||
+       (isFederationSetSwitches && *isFederationSetSwitches))) {
+    if (sendRequest.timestamp || sendRequest.sentRegionHandles ||
+        sendRequest.sentParameterHandles.empty()) {
+      return rejected(request);
+    }
+    auto const envelope =
+        decodeProcessFederationInteractionEnvelope(sendRequest.payload);
+    if (!envelope) {
+      return rejected(request);
+    }
+
+    std::optional<bool> autoProvideSwitchValue;
+    for (auto const parameterHandle : sendRequest.sentParameterHandles) {
+      auto const value = std::find_if(
+          envelope->parameterValues.begin(),
+          envelope->parameterValues.end(),
+          [parameterHandle](ProcessFederationInteractionParameterValue const& entry) {
+            return entry.first == parameterHandle;
+          });
+      if (value == envelope->parameterValues.end()) {
+        return rejected(request);
+      }
+      auto const parameterName = registry_.parameterNameFor(
+          sendRequest.federationName,
+          *interactionClassName,
+          parameterHandle);
+      if (!parameterName) {
+        return rejected(request);
+      }
+      if (*parameterName != hla::utf8::mom::auto_provide) {
+        // Compatible MOM subclasses may add parameters; only the predefined
+        // federation-wide HLAautoProvide switch is interpreted here.
+        continue;
+      }
+      auto const decoded = decodeProcessHlaSwitch(value->second);
+      if (!decoded) {
+        return rejected(request);
+      }
+      autoProvideSwitchValue = *decoded;
+    }
+
+    if (autoProvideSwitchValue &&
+        registry_.setAutoProvideSwitch(
+            sendRequest.federationName,
+            sendRequest.producingFederateId,
+            *autoProvideSwitchValue) != FederationRegistryStatus::applied) {
+      return rejected(request);
+    }
+    return responseFor(
+        request,
+        TransportServiceStatus::ok,
+        encodeProcessFederationSendInteractionResult(
+            ProcessFederationSendInteractionResult{}));
+  }
+
+  auto const isFederateSetSwitches = registry_.interactionClassIsSameOrDescendantOf(
+      sendRequest.federationName,
+      sendRequest.interactionClassHandle,
+      hla::utf8::mom::federate_set_switches);
+  if (interactionClassName && isFederateSetSwitches && *isFederateSetSwitches) {
+    if (sendRequest.timestamp || sendRequest.sentRegionHandles) {
+      return rejected(request);
+    }
+
+    auto emitMomExceptionReport = [&](std::wstring exceptionText,
+                                      bool parameterError) {
+      auto const report = registry_.planMomExceptionReport(
+          sendRequest.federationName,
+          sendRequest.producingFederateId);
+      if (report.status != MomExceptionReportStatus::applied) {
+        return true;
+      }
+
+      auto copyEncoded = [](rti1516_2025::VariableLengthData const& value) {
+        std::vector<std::uint8_t> bytes;
+        if (value.size() != 0U) {
+          auto const* data = static_cast<std::uint8_t const*>(value.data());
+          bytes.assign(data, data + value.size());
+        }
+        return bytes;
+      };
+      auto const reportPayload = encodeProcessFederationInteractionEnvelope(
+          ProcessFederationInteractionEnvelope{
+              {{report.routing.federateParameterHandle,
+                copyEncoded(rti1516_2025::umbra_binding_detail::makeFederateHandle(
+                                report.reportedFederateId).encode())},
+               {report.routing.serviceParameterHandle,
+                copyEncoded(rti1516_2025::HLAunicodeString{
+                    hla::wide::mom::set_switches_federate}
+                                .encode())},
+               {report.routing.exceptionParameterHandle,
+                copyEncoded(rti1516_2025::HLAunicodeString{exceptionText}
+                                .encode())},
+               {report.routing.parameterErrorParameterHandle,
+                copyEncoded(rti1516_2025::HLAboolean{parameterError}.encode())}},
+              {}});
+      std::vector<std::pair<ProcessTransportSession*,
+                            ProcessFederationInteractionEvent>>
+          pushedEvents;
+      {
+        std::scoped_lock lock(mutex_);
+        for (auto const& recipient : report.recipients) {
+          auto const receivingSession =
+              sessionsByFederateId_.find(recipient.federateId);
+          if (receivingSession == sessionsByFederateId_.end()) {
+            continue;
+          }
+          auto const state = sessions_.find(receivingSession->second);
+          if (state == sessions_.end()) {
+            continue;
+          }
+          ProcessFederationInteractionEvent event;
+          event.receivingFederateId = recipient.federateId;
+          event.interactionClassHandle =
+              recipient.receivedInteractionClassHandle;
+          event.parameterHandles =
+              parameterVector(recipient.receivedParameterHandles);
+          event.payload = reportPayload;
+          event.transportationName = hla::utf8::mom::reliable;
+          event.rtiOwnedMomInteraction = true;
+          if (options_.pushReceiveOrderEvents) {
+            pushedEvents.emplace_back(receivingSession->second,
+                                      std::move(event));
+          } else {
+            state->second.interactionEvents.push_back(std::move(event));
+          }
+        }
+      }
+      if (options_.pushReceiveOrderEvents) {
+        for (auto const& pushedEvent : pushedEvents) {
+          auto const eventMessage = TransportServiceMessage{
+              TransportServiceMessageKind::event,
+              TransportServiceOperation::receive_interaction,
+              TransportServiceStatus::ok,
+              0U,
+              encodeProcessFederationReceiveInteractionResult(
+                  ProcessFederationReceiveInteractionResult{
+                      pushedEvent.second})};
+          if (pushedEvent.first == nullptr ||
+              !pushedEvent.first->send(eventMessage)) {
+            return false;
+          }
+        }
+      }
+      return true;
+    };
+
+    auto rejectMalformed = [&](std::wstring exceptionText) {
+      if (!emitMomExceptionReport(std::move(exceptionText), true)) {
+        return internalError(request);
+      }
+      return rejected(request);
+    };
+
+    if (sendRequest.sentParameterHandles.empty()) {
+      return rejectMalformed(
+          L"InteractionParameterNotDefined: HLAsetSwitches requires at least one declared parameter.");
+    }
+    auto const envelope =
+        decodeProcessFederationInteractionEnvelope(sendRequest.payload);
+    if (!envelope) {
+      return rejectMalformed(
+          L"InteractionParameterNotDefined: HLAsetSwitches interaction payload is malformed.");
+    }
+
+    FederateMOMSwitchUpdate update;
+    bool predefinedParameterSupplied = false;
+    for (auto const parameterHandle : sendRequest.sentParameterHandles) {
+      auto const value = std::find_if(
+          envelope->parameterValues.begin(),
+          envelope->parameterValues.end(),
+          [parameterHandle](ProcessFederationInteractionParameterValue const& entry) {
+            return entry.first == parameterHandle;
+          });
+      if (value == envelope->parameterValues.end()) {
+        return rejectMalformed(
+            L"InteractionParameterNotDefined: HLAsetSwitches parameter value is missing.");
+      }
+      auto const parameterName = registry_.parameterNameFor(
+          sendRequest.federationName,
+          *interactionClassName,
+          parameterHandle);
+      if (!parameterName) {
+        return rejectMalformed(
+            L"InteractionParameterNotDefined: HLAsetSwitches parameter is not defined.");
+      }
+      if (*parameterName == hla::utf8::mom::automatic_resign_action) {
+        auto const decoded = decodeProcessHlaResignAction(value->second);
+        if (!decoded) {
+          return rejectMalformed(
+              L"InteractionParameterNotDefined: HLAsetSwitches HLAresignAction value is malformed.");
+        }
+        update.automaticResignAction = *decoded;
+        predefinedParameterSupplied = true;
+        continue;
+      }
+      if (*parameterName != hla::utf8::mom::object_class_relevance_advisory &&
+          *parameterName != hla::utf8::mom::attribute_relevance_advisory &&
+          *parameterName != hla::utf8::mom::attribute_scope_advisory &&
+          *parameterName != hla::utf8::mom::interaction_relevance_advisory &&
+          *parameterName != hla::utf8::mom::convey_region_designator_sets &&
+          *parameterName != hla::utf8::mom::service_reporting &&
+          *parameterName != hla::utf8::mom::exception_reporting &&
+          *parameterName != hla::utf8::mom::send_service_reports_to_file) {
+        // A compatible predefined-interaction subclass may carry extension
+        // parameters.  Receive them, but process only the standard subset.
+        continue;
+      }
+      auto const decoded = decodeProcessHlaSwitch(value->second);
+      if (!decoded) {
+        return rejectMalformed(
+            L"InteractionParameterNotDefined: HLAsetSwitches switch value is malformed.");
+      }
+      predefinedParameterSupplied = true;
+      if (*parameterName == hla::utf8::mom::object_class_relevance_advisory) {
+        update.objectClassRelevanceAdvisory = *decoded;
+      } else if (*parameterName == hla::utf8::mom::attribute_relevance_advisory) {
+        update.attributeRelevanceAdvisory = *decoded;
+      } else if (*parameterName == hla::utf8::mom::attribute_scope_advisory) {
+        update.attributeScopeAdvisory = *decoded;
+      } else if (*parameterName == hla::utf8::mom::interaction_relevance_advisory) {
+        update.interactionRelevanceAdvisory = *decoded;
+      } else if (*parameterName == hla::utf8::mom::convey_region_designator_sets) {
+        update.conveyRegionDesignatorSets = *decoded;
+      } else if (*parameterName == hla::utf8::mom::service_reporting) {
+        update.serviceReporting = *decoded;
+      } else if (*parameterName == hla::utf8::mom::exception_reporting) {
+        update.exceptionReporting = *decoded;
+      } else if (*parameterName == hla::utf8::mom::send_service_reports_to_file) {
+        update.sendServiceReportsToFile = *decoded;
+      }
+    }
+
+    if (!predefinedParameterSupplied) {
+      return rejectMalformed(
+          L"InteractionParameterNotDefined: HLAsetSwitches requires at least one predefined parameter.");
+    }
+
+    auto const status = registry_.applyFederateMOMSwitchUpdate(
+        sendRequest.federationName,
+        sendRequest.producingFederateId,
+        update);
+    if (status != FederateMOMSwitchUpdateStatus::applied) {
+      if (status ==
+          FederateMOMSwitchUpdateStatus::report_service_invocations_are_subscribed) {
+        // §11.5.1 requires a distinct RTI-originated HLAreportMOMexception
+        // interaction for this well-formed-but-rejected MOM request.  The
+        // process endpoint has no local callback route, so project the same
+        // planned recipient set into its interaction event seam.  The public
+        // client drains pushed events before it observes this rejected
+        // response, preserving the original RTIinternalError at the API.
+        if (!emitMomExceptionReport(
+                L"RTIinternalError: HLAsetSwitches cannot enable Service Reporting while report-service invocations are subscribed.",
+                false)) {
+          return internalError(request);
+        }
+      }
+      return rejected(request);
+    }
+    if (update.exceptionReporting.has_value() &&
+        !enqueueJoinedFederateMomConditionalAttributeUpdate(
+            sendRequest.federationName,
+            sendRequest.producingFederateId,
+            {std::string(hla::utf8::mom::exception_reporting)})) {
+      return internalError(request);
+    }
+    return responseFor(
+        request,
+        TransportServiceStatus::ok,
+        encodeProcessFederationSendInteractionResult(
+            ProcessFederationSendInteractionResult{}));
+  }
+
   auto const plan = registry_.planReceiveOrderInteraction(
       sendRequest.federationName,
       sendRequest.producingFederateId,
@@ -16925,10 +19699,16 @@ TransportServiceMessage ProcessFederationService::handleReceiveInteraction(
     } else if (!state->second.interactionEvents.empty()) {
       result.event = std::move(state->second.interactionEvents.front());
       state->second.interactionEvents.pop_front();
-    } else if (!state->second.objectInstanceDiscoveryEvents.empty()) {
+    } else if (!state->second.objectInstanceDiscoveryEvents.empty() &&
+               (state->second.objectInstanceRemovalEvents.empty() ||
+                state->second.objectInstanceDiscoveryEvents.front()
+                        .callbackOrderSequence <
+                    state->second.objectInstanceRemovalEvents.front()
+                        .callbackOrderSequence)) {
       // Object discovery is delivered before reflections for a newly
-      // registered instance, matching the official callback ordering while
-      // retaining the single receive-interaction polling fence.
+      // registered instance, matching the official callback ordering. When a
+      // removal is also pending, the per-session sequence preserves the
+      // causal order in which discovery/removal work entered the process queue.
       result.discoveryEvent = std::move(
           state->second.objectInstanceDiscoveryEvents.front());
       state->second.objectInstanceDiscoveryEvents.pop_front();
@@ -16941,7 +19721,12 @@ TransportServiceMessage ProcessFederationService::handleReceiveInteraction(
         auto event = std::move(
             state->second.objectInstanceRemovalEvents.front());
         state->second.objectInstanceRemovalEvents.pop_front();
-        auto const snapshot = event.retractionMessageId
+        auto const snapshot = event.rtiOwnedMomObject
+            ? registry_.beginJoinedFederateMomObjectRemoval(
+                  receiveRequest.federationName,
+                  receiveRequest.receivingFederateId,
+                  event.objectInstanceHandle)
+            : event.retractionMessageId
             ? registry_.beginTsoObjectInstanceRemoval(
                   receiveRequest.federationName,
                   receiveRequest.receivingFederateId,
@@ -17471,6 +20256,56 @@ ProcessFederationService::handleReceiveObjectInstanceDiscovery(
       request,
       TransportServiceStatus::ok,
       encodeProcessFederationReceiveObjectInstanceDiscoveryResult(result));
+}
+
+bool ProcessFederationService::appendSelectedServiceReportRecord(
+    ProcessTransportSession& session,
+    std::wstring const& federationName,
+    std::uint64_t federateId,
+    std::uint16_t serviceGroup,
+    FederateServiceReportRecordEncoder encodeRecord) {
+  if (!encodeRecord) {
+    return false;
+  }
+
+  std::scoped_lock lock(mutex_);
+  auto const state = sessions_.find(&session);
+  if (state == sessions_.end() ||
+      !state->second.federationName.has_value() ||
+      *state->second.federationName != federationName ||
+      state->second.federateId != federateId) {
+    return false;
+  }
+
+  auto const plan = registry_.planMomServiceReport(
+      federationName, federateId, serviceGroup);
+  switch (plan.disposition) {
+    case MomServiceReportDisposition::suppressed:
+    case MomServiceReportDisposition::interaction:
+      return true;
+    case MomServiceReportDisposition::inconsistent_catalog:
+    case MomServiceReportDisposition::reported_federate_not_member:
+    case MomServiceReportDisposition::invalid_service_group:
+      return false;
+    case MomServiceReportDisposition::report_to_file:
+      break;
+  }
+
+  if (!state->second.serviceReportWriter) {
+    return false;
+  }
+  auto const reserved = registry_.reserveMomServiceReport(
+      federationName, federateId, serviceGroup);
+  if (!reserved.acceptedForEmission ||
+      reserved.routing.disposition != MomServiceReportDisposition::report_to_file) {
+    return false;
+  }
+  try {
+    state->second.serviceReportWriter->append(encodeRecord(reserved.serialNumber));
+  } catch (std::exception const&) {
+    return false;
+  }
+  return true;
 }
 
 TransportServiceMessage ProcessFederationService::rejected(

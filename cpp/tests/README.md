@@ -4,6 +4,14 @@ This directory contains Umbra's native C++ tests. A test name identifies the
 runtime domain or standard-binding surface it exercises; the file stays beside
 similar focused tests instead of being grouped by framework.
 
+For the current task and exact test-to-requirement/subsection crosswalk, use
+the [short query card](../../docs/planning/QUERY-CARD.md). Start with
+`python tools/query_rti_work.py resume`; a `case <plan-id> --summary --compact`
+query returns live source lines and the available focused execution handles.
+Keep the exact case title, lane tag, requirements, and canonical 2025 subsection
+pairs in the Catch2 plan when adding a test. Do not make contributors search
+this directory or the full requirements export to reconstruct that mapping.
+
 ## Test layers
 
 | Test kind | Purpose | Typical file name |
@@ -1517,7 +1525,7 @@ a pushed event frame and exercises the official C++
 `FederateAmbassador::receiveInteraction` callback through the private bridge.
 The public process-address/message slice is also directly queryable:
 
-    python tools/query_rti_work.py test "RTIambassador routes public Create, Join, and Resign through a configured process endpoint" --summary --compact
+    python tools/query_rti_work.py test "RTIambassador routes public Create, Join, Resign, and Destroy through a configured process endpoint" --summary --compact
     python tools/query_rti_work.py test "RTIambassador routes public Send Interaction through a configured process endpoint" --summary --compact
     python tools/query_rti_work.py test "RTIambassador resolves interaction and parameter handles through a configured process endpoint" --summary --compact
     python tools/query_rti_work.py test "RTIambassador routes ordinary interaction declarations through a configured process endpoint" --summary --compact
@@ -1538,7 +1546,8 @@ The public process-address/message slice is also directly queryable:
     python tools/query_rti_work.py test "RTIambassador routes Local Delete Object Instance through a configured process endpoint" --summary --compact
     python tools/query_rti_work.py trace "RTIambassador routes Local Delete Object Instance through a configured process endpoint" --summary --compact
     python tools/query_rti_work.py test "RTIambassador routes public Update Attribute Values through a configured process endpoint" --summary --compact
-    python tools/query_rti_work.py test "RTIambassador delivers a process Update Attribute Values event through the official Reflect callback" --summary --compact
+    python tools/query_rti_work.py focus process-update-attribute-delivery-reduction --summary --compact
+    python tools/query_rti_work.py test "RTIambassador reflects an update only once for overlapping process subscriptions" --summary --compact
     python tools/query_rti_work.py test "Embedded transport loss applies the bounded automatic NoAction forced-resign policy" --summary --compact
     python tools/query_rti_work.py test "RTIambassador selects a configured tcp process endpoint through the official address field" --summary --compact
     python tools/query_rti_work.py test "RTIambassador rejects malformed tcp process addresses before connecting" --summary --compact
@@ -1556,6 +1565,12 @@ python tools/query_rti_work.py trace "Embedded passive object-attribute subscrip
 python tools/query_rti_work.py focus passive-regional-object-attribute-transition --summary --compact
 python tools/query_rti_work.py matrix passive-regional-object-attribute-transition --group-by section --summary --compact
 ctest --test-dir .build -C Debug -R "^umbra\.passive_object_attribute_subscription\.catch2\.Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery$" --output-on-failure
+python tools/query_rti_work.py focus interaction-subscription-mode-exclusivity --summary --compact
+python tools/query_rti_work.py case umbra-cpp-joined-federate-mom-subscriptions-report-integration --summary --compact
+python tools/query_rti_work.py focus interaction-sent-class-preservation --summary --compact
+python tools/query_rti_work.py focus ddm-clause6-service-expansion --summary --compact
+ctest --test-dir .build -C Debug -L "^ddm-clause6-service-expansion$" --output-on-failure
+python tools/query_rti_work.py case umbra-cpp-receive-order-interaction-integration --summary --compact
 python tools/query_rti_work.py trace "Embedded mixed update-rate subscriptions gate each attribute independently" --summary --compact
 python tools/query_rti_work.py focus update-rate-mixed-attribute-gating --summary --compact
 python tools/query_rti_work.py trace "Embedded custom transportation handles remain stable across an additional FOM join" --summary --compact

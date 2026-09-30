@@ -296,7 +296,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioCallbackReentrancyPortable",
       "runner_id": "cpp-tck.callback-reentrancy",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.callback-reentrancy",
       "default_status": "run",
       "promotion": "promoted"
     },
@@ -904,7 +904,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioUnnamedJoinOverloadPortable",
       "runner_id": "cpp-tck.unnamed-join-overload",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.federation-membership",
       "default_status": "run",
       "promotion": "promoted"
     },
@@ -964,7 +964,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioFederationListServicesPortable",
       "runner_id": "cpp-tck.federation-list-services",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.federation-membership",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -1077,7 +1077,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioExplicitMimCreationPortable",
       "runner_id": "cpp-tck.explicit-mim-creation",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.explicit-mim-creation",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -1136,7 +1136,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioFederationMomCurrentFddPortable",
       "runner_id": "cpp-tck.federation-mom-current-fdd",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.federation-mom-current-fdd",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -1210,7 +1210,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioFederationMomStaticIdentity",
       "runner_id": "cpp-tck.federation-mom-static-identity",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.federation-mom-static-identity",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -1281,7 +1281,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioFederationMomStaticSwitches",
       "runner_id": "cpp-tck.federation-mom-static-switches",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.federation-mom-static-switches",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -1355,7 +1355,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioFederationMomFederatesInFederation",
       "runner_id": "cpp-tck.federation-mom-federates-in-federation",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.federation-mom-federates-in-federation",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -1430,7 +1430,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioFederationMomFomModuleDesignatorListPortable",
       "runner_id": "cpp-tck.federation-mom-fom-module-designator-list",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.federation-mom-fom-module-designator-list",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -1493,7 +1493,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioFederationMomContentReportsPortable",
       "runner_id": "cpp-tck.federation-mom-content-reports",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.federation-mom-content-reports",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -1562,7 +1562,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioServiceReportInteractionPortable",
       "runner_id": "cpp-tck.service-report-interaction",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.service-report-interaction",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -1638,7 +1638,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioServiceReportResignFederationExecutionPortable",
       "runner_id": "cpp-tck.service-report-resign-federation-execution",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.service-report-resign-federation-execution",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -1722,7 +1722,7 @@
       "runner_id": "cpp-tck.federate-lost-mom-report",
       "parity": "cpp-extension-no-java-counterpart",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.federate-lost-mom-report-contract",
@@ -1750,7 +1750,7 @@
       "runner_id": "cpp-tck.federate-lost-mom-report-contract",
       "parity": "cpp-tck.federate-lost-mom-report",
       "default_status": "adapter-required",
-      "promotion": "candidate"
+      "promotion": "promoted"
     },
     {
       "id": "cpp-tck.service-report-receive-order-interaction",
@@ -4446,10 +4446,81 @@
       "promotion": "promoted"
     },
     {
+      "id": "java-tck.timestamped-attribute-update",
+      "category": "timestamped-attribute-update",
+      "title": "Deliver a timestamped attribute reflection before the constrained grant",
+      "api_methods": [
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect",
+        "cpp-1516.1-time-advance-and-grant"
+      ],
+      "contract_refs": [
+        "timestamped-attribute-update-api-contract.json",
+        "timestamped-attribute-update-requirements-contract.json",
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdatePortable",
+      "runner_id": "java-tck.timestamped-attribute-update",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "java-tck.timestamped-object-removal",
+      "category": "timestamped-object-removal",
+      "title": "Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.deleteObjectInstance(receive-order overload)",
+        "RTIambassador.deleteObjectInstance(time)",
+        "RTIambassador.enableAsynchronousDelivery",
+        "RTIambassador.disableAsynchronousDelivery",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "FederateAmbassador.removeObjectInstance(receive-order overload)",
+        "FederateAmbassador.removeObjectInstance(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+        "requirement-candidate-content-clauses-08-time-management-page-204-l113-31",
+        "cpp-1516.1-object-removal",
+        "cpp-1516.1-asynchronous-delivery-enable",
+        "cpp-1516.1-asynchronous-delivery-disable",
+        "cpp-1516.1-timestamped-object-deletion",
+        "cpp-1516.1-timestamped-object-removal"
+      ],
+      "contract_refs": [
+        "object-removal-order-classification-api-contract.json",
+        "object-removal-order-classification-requirements-contract.json",
+        "asynchronous-delivery-api-contract.json",
+        "asynchronous-delivery-requirements-contract.json",
+        "object-instance-deletion-requirements-contract.json",
+        "timestamped-object-deletion-requirements-contract.json",
+        "time-role-requirements-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioObjectRemovalOrderClassification",
+      "runner_id": "java-tck.timestamped-object-removal",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "java-tck.time-advance",
       "category": "time",
       "title": "Enforce time-role lifecycle boundaries, model deferred lookahead changes, and complete advances",
       "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.queryLogicalTime",
@@ -7392,7 +7463,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioObjectRegistrationDiscoveryLifecycle",
       "runner_id": "cpp-tck.object-registration-discovery-lifecycle",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.object-registration-discovery-lifecycle",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -7961,7 +8032,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioOrderTypeControls",
       "runner_id": "cpp-tck.order-type-controls",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.order-type-controls",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -8094,7 +8165,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioReceiveOrderAttributeUpdateCallbackCancellation",
       "runner_id": "cpp-tck.receive-order-attribute-update-callback-cancellation",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.receive-order-attribute-update-callback-cancellation",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -8208,6 +8279,67 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.attribute-update-order-classification",
+      "category": "attribute-update-order-classification",
+      "title": "Classify receive-order and timestamp-order attribute updates at the same receiver",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues(receive-order overload)",
+        "RTIambassador.changeDefaultAttributeOrderType",
+        "RTIambassador.updateAttributeValues(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "FederateAmbassador.reflectAttributeValues(receive-order overload)",
+        "FederateAmbassador.reflectAttributeValues(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect"
+      ],
+      "contract_refs": [
+        "attribute-update-order-classification-api-contract.json",
+        "attribute-update-order-classification-requirements-contract.json",
+        "receive-order-attribute-update-requirements-contract.json",
+        "timestamped-attribute-update-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioAttributeUpdateOrderClassification",
+      "runner_id": "cpp-tck.attribute-update-order-classification",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.attribute-update-order-classification-contract",
+      "category": "attribute-update-order-classification",
+      "title": "Exercise the standard receive-order/timestamp-order attribute-update contract",
+      "api_methods": [
+        "RTIambassador.updateAttributeValues(receive-order overload)",
+        "RTIambassador.updateAttributeValues(time)",
+        "FederateAmbassador.reflectAttributeValues(receive-order overload)",
+        "FederateAmbassador.reflectAttributeValues(time)"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+        "cpp-1516.1-attribute-update-reflect",
+        "cpp-1516.1-timestamped-attribute-update",
+        "cpp-1516.1-timestamped-attribute-reflect"
+      ],
+      "contract_refs": [
+        "attribute-update-order-classification-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioAttributeUpdateOrderClassificationContract",
+      "runner_id": "cpp-tck.attribute-update-order-classification-contract",
+      "parity": "cpp-tck.attribute-update-order-classification",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.receive-order-interaction",
       "category": "receive-order-interaction",
       "title": "Deliver consecutive ordinary receive-order interactions in producer order",
@@ -8244,7 +8376,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioReceiveOrderInteraction",
       "runner_id": "cpp-tck.receive-order-interaction",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.receive-order-interaction",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -8278,6 +8410,64 @@
       "cpp_test": "src/portable_tck.cpp#scenarioReceiveOrderInteractionContract",
       "runner_id": "cpp-tck.receive-order-interaction-contract",
       "parity": "cpp-tck.receive-order-interaction",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.interaction-order-classification",
+      "category": "interaction-order-classification",
+      "title": "Classify receive-order and timestamp-order interactions at the same receiver",
+      "api_methods": [
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction(receive-order overload)",
+        "RTIambassador.changeInteractionOrderType",
+        "RTIambassador.sendInteraction(time)",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "FederateAmbassador.receiveInteraction(receive-order overload)",
+        "FederateAmbassador.receiveInteraction(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+        "cpp-1516.1-interaction-parameter-delivery",
+        "cpp-1516.1-timestamped-interaction-delivery"
+      ],
+      "contract_refs": [
+        "interaction-message-order-classification-api-contract.json",
+        "interaction-message-order-classification-requirements-contract.json",
+        "receive-order-interaction-requirements-contract.json",
+        "timestamped-interaction-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioInteractionOrderClassification",
+      "runner_id": "cpp-tck.interaction-order-classification",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.interaction-order-classification-contract",
+      "category": "interaction-order-classification",
+      "title": "Exercise the standard receive-order/timestamp-order classification contract",
+      "api_methods": [
+        "RTIambassador.sendInteraction(receive-order overload)",
+        "RTIambassador.sendInteraction(time)",
+        "FederateAmbassador.receiveInteraction(receive-order overload)",
+        "FederateAmbassador.receiveInteraction(time)"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+        "cpp-1516.1-interaction-parameter-delivery",
+        "cpp-1516.1-timestamped-interaction-delivery"
+      ],
+      "contract_refs": [
+        "interaction-message-order-classification-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioInteractionOrderClassificationContract",
+      "runner_id": "cpp-tck.interaction-order-classification-contract",
+      "parity": "cpp-tck.interaction-order-classification",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -8362,6 +8552,78 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.object-removal-order-classification",
+      "category": "object-removal-order-classification",
+      "title": "Classify receive-order and timestamp-order object removals at the same receiver",
+      "api_methods": [
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.deleteObjectInstance(receive-order overload)",
+        "RTIambassador.deleteObjectInstance(time)",
+        "RTIambassador.enableAsynchronousDelivery",
+        "RTIambassador.disableAsynchronousDelivery",
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "FederateAmbassador.removeObjectInstance(receive-order overload)",
+        "FederateAmbassador.removeObjectInstance(time)",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+        "requirement-candidate-content-clauses-08-time-management-page-204-l113-31",
+        "cpp-1516.1-object-removal",
+        "cpp-1516.1-asynchronous-delivery-enable",
+        "cpp-1516.1-asynchronous-delivery-disable",
+        "cpp-1516.1-timestamped-object-deletion",
+        "cpp-1516.1-timestamped-object-removal"
+      ],
+      "contract_refs": [
+        "object-removal-order-classification-api-contract.json",
+        "object-removal-order-classification-requirements-contract.json",
+        "asynchronous-delivery-api-contract.json",
+        "asynchronous-delivery-requirements-contract.json",
+        "object-instance-deletion-requirements-contract.json",
+        "timestamped-object-deletion-requirements-contract.json",
+        "time-role-requirements-contract.json",
+        "time-advance-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioObjectRemovalOrderClassification",
+      "runner_id": "cpp-tck.object-removal-order-classification",
+      "parity": "java-tck.timestamped-object-removal",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.object-removal-order-classification-contract",
+      "category": "object-removal-order-classification",
+      "title": "Exercise the standard receive-order/timestamp-order object-removal contract",
+      "api_methods": [
+        "RTIambassador.deleteObjectInstance(receive-order overload)",
+        "RTIambassador.deleteObjectInstance(time)",
+        "RTIambassador.enableAsynchronousDelivery",
+        "FederateAmbassador.removeObjectInstance(receive-order overload)",
+        "FederateAmbassador.removeObjectInstance(time)"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+        "requirement-candidate-content-clauses-08-time-management-page-204-l113-31",
+        "cpp-1516.1-object-removal",
+        "cpp-1516.1-asynchronous-delivery-enable",
+        "cpp-1516.1-timestamped-object-deletion",
+        "cpp-1516.1-timestamped-object-removal"
+      ],
+      "contract_refs": [
+        "object-removal-order-classification-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioObjectRemovalOrderClassificationContract",
+      "runner_id": "cpp-tck.object-removal-order-classification-contract",
+      "parity": "cpp-tck.object-removal-order-classification",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.receive-order-interaction-callback-cancellation",
       "category": "receive-order-interaction-callback-cancellation",
       "title": "Cancel a queued receive-order interaction by removing its active subscription",
@@ -8391,7 +8653,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioReceiveOrderInteractionCallbackCancellation",
       "runner_id": "cpp-tck.receive-order-interaction-callback-cancellation",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.receive-order-interaction-callback-cancellation",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -8455,7 +8717,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioInteractionSubscriptionLifecycle",
       "runner_id": "cpp-tck.interaction-subscription-lifecycle",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.interaction-subscription-lifecycle",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -8521,7 +8783,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioInteractionPublicationSendFence",
       "runner_id": "cpp-tck.interaction-publication-send-fence",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.interaction-publication-send-fence",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -8591,7 +8853,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioInteractionMultiRecipientFifo",
       "runner_id": "cpp-tck.interaction-multi-recipient-fifo",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.interaction-multi-recipient-fifo",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -8894,7 +9156,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioReceiveOrderMultiAttributeUpdateCallbackCancellation",
       "runner_id": "cpp-tck.receive-order-multi-attribute-update-callback-cancellation",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.receive-order-multi-attribute-update-callback-cancellation",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -9190,7 +9452,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionsPortable",
       "runner_id": "cpp-tck.timestamped-interactions",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-interaction-retraction",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -9437,7 +9699,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionMixedAdvancesPortable",
       "runner_id": "cpp-tck.timestamped-interaction-mixed-advances",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-interaction-mixed-advances",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -9693,7 +9955,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionCrossProducerOrderPortable",
       "runner_id": "cpp-tck.timestamped-interaction-cross-producer-order",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-interaction-cross-producer-order",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -9760,7 +10022,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionNoFanoutPortable",
       "runner_id": "cpp-tck.timestamped-interaction-no-fanout",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-interaction-no-fanout",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -9833,7 +10095,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionRetractionFanoutPortable",
       "runner_id": "cpp-tck.timestamped-interaction-retraction-fanout",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-interaction-retraction-fanout",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -9951,7 +10213,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionRegulationReenablePortable",
       "runner_id": "cpp-tck.timestamped-interaction-regulation-reenable",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-interaction-regulation-reenable",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -10028,7 +10290,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedInteractionReenablePortable",
       "runner_id": "cpp-tck.timestamped-interaction-reenable",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-interaction-reenable",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -10122,7 +10384,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionReenablePortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-reenable",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-directed-interaction-reenable",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -10215,7 +10477,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionRegulationReenablePortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-regulation-reenable",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-directed-interaction-regulation-reenable",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -10263,7 +10525,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionSourceResignationPortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-source-resignation",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-directed-interaction-source-resignation",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -10311,7 +10573,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionSourceResignationFanoutPortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-source-resignation-fanout",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-directed-interaction-source-resignation-fanout",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -10449,7 +10711,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionTarNmrPortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-tar-nmr",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-directed-interaction-tar-nmr",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -10532,7 +10794,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionImmediateSourceResignationPortable",
       "runner_id": "cpp-tck.timestamped-directed-interaction-immediate-source-resignation",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-directed-interaction-immediate-source-resignation",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -10607,7 +10869,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdatePortable",
       "runner_id": "cpp-tck.timestamped-attribute-update",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-attribute-update",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -10698,7 +10960,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateOwnershipTransferPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-ownership-transfer",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-attribute-ownership-transfer",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -10799,7 +11061,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeSourceResignationPortable",
       "runner_id": "cpp-tck.timestamped-attribute-source-resignation",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-attribute-source-resignation",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -10898,7 +11160,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeOrderCohortPortable",
       "runner_id": "cpp-tck.timestamped-attribute-order-cohort",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-attribute-order-cohort",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -11156,7 +11418,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedAttributeUpdateAlternateAdvancesPortable",
       "runner_id": "cpp-tck.timestamped-attribute-update-alternate-advances",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-attribute-update-alternate-advances",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -13261,7 +13523,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-object-deletion-retraction",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -13335,7 +13597,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionNoFanoutPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-no-fanout",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-object-deletion-no-fanout",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -13416,7 +13678,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionTombstonePortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-tombstone",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-object-deletion-tombstone",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -13500,7 +13762,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionRegulationReenablePortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-regulation-reenable",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-object-deletion-regulation-reenable",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -13586,7 +13848,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionSourceResignationFanoutPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-source-resignation-fanout",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-object-deletion-source-resignation-fanout",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -13688,7 +13950,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionJoinedOwnerRetractionPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-retraction-joined-owners",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-object-deletion-retraction-joined-owners",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -13787,7 +14049,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedObjectDeletionMixedAdvancesPortable",
       "runner_id": "cpp-tck.timestamped-object-deletion-mixed-advances",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-object-deletion-mixed-advances",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -13905,6 +14167,71 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.pending-alternate-time-advance-state",
+      "category": "alternate-time-advances",
+      "title": "Reject every alternate advance request while a time advance is pending",
+      "api_methods": [
+        "RTIambassador.enableTimeRegulation",
+        "RTIambassador.enableTimeConstrained",
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.timeAdvanceRequestAvailable",
+        "RTIambassador.nextMessageRequestAvailable",
+        "RTIambassador.flushQueueRequest",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeAdvanceGrant"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-time-advance-and-grant",
+        "cpp-1516.1-time-advance-request-available",
+        "cpp-1516.1-next-message-request-available",
+        "cpp-1516.1-flush-queue-request",
+        "cpp-1516.1-alternate-advance-negative-boundaries"
+      ],
+      "contract_refs": [
+        "time-advance-api-contract.json",
+        "time-advance-requirements-contract.json",
+        "time-advance-request-available-api-contract.json",
+        "time-advance-request-available-requirements-contract.json",
+        "next-message-request-available-api-contract.json",
+        "next-message-request-available-requirements-contract.json",
+        "flush-queue-request-api-contract.json",
+        "flush-queue-request-requirements-contract.json",
+        "time-role-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioPendingAlternateAdvanceState",
+      "runner_id": "cpp-tck.pending-alternate-time-advance-state",
+      "parity": "java-tck.time-advance",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.pending-alternate-time-advance-state-contract",
+      "category": "alternate-time-advances",
+      "title": "Portable standard contract for pending alternate advance request boundaries",
+      "api_methods": [
+        "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.timeAdvanceRequestAvailable",
+        "RTIambassador.nextMessageRequestAvailable",
+        "RTIambassador.flushQueueRequest"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-time-advance-and-grant",
+        "cpp-1516.1-time-advance-request-available",
+        "cpp-1516.1-next-message-request-available",
+        "cpp-1516.1-flush-queue-request",
+        "cpp-1516.1-alternate-advance-negative-boundaries"
+      ],
+      "contract_refs": [
+        "standard-alternate-time-advances-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioPendingAlternateAdvanceStateContract",
+      "runner_id": "cpp-tck.pending-alternate-time-advance-state-contract",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.timestamped-directed-alternate-advances",
       "category": "timestamped-directed-alternate-advances",
       "title": "Deliver timestamped directed interactions through Flush Queue Request, Time Advance Request Available, and Next Message Request Available",
@@ -13947,7 +14274,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedAlternateAdvancesPortable",
       "runner_id": "cpp-tck.timestamped-directed-alternate-advances",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-directed-alternate-advances",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -17216,7 +17543,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioDirectedInteractionSubscriptionKind",
       "runner_id": "cpp-tck.directed-interaction-subscription-kind",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.directed-interaction-subscription-kind",
       "default_status": "run",
       "promotion": "promoted"
     },
@@ -17291,7 +17618,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioDirectedInteractionTargetLifecycle",
       "runner_id": "cpp-tck.directed-interaction-target-lifecycle",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.directed-interaction-target-lifecycle",
       "default_status": "run",
       "promotion": "promoted"
     },
@@ -17381,7 +17708,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioDirectedInteractionMultiRecipientFifo",
       "runner_id": "cpp-tck.directed-interaction-multi-recipient-fifo",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.directed-interaction-multi-recipient-fifo",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -17481,7 +17808,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioDirectedInteractionMixedSubscriptionFanout",
       "runner_id": "cpp-tck.directed-interaction-mixed-subscription-fanout",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.directed-interaction-mixed-subscription-fanout",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -17739,7 +18066,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioOrderTypeChange",
       "runner_id": "cpp-tck.order-type-change",
-      "parity": "java-tck.transport-order",
+      "parity": "java-tck.order-type-controls",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -17833,7 +18160,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionRetractionFanout",
       "runner_id": "cpp-tck.timestamped-directed-interaction-retraction-fanout",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-directed-interaction-retraction-fanout",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -17939,7 +18266,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioTimestampedDirectedInteractionRetraction",
       "runner_id": "cpp-tck.timestamped-directed-interaction-retraction",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-directed-interaction-retraction",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -21924,14 +22251,14 @@
         "cpp-1516.1-callback-model-servicing"
       ],
       "contract_refs": [
-        "connection-callback-api-contract.json",
-        "connection-implementation-contract.json",
+        "standard-callback-controls-contract.json",
         "receive-order-interaction-api-contract.json",
-        "receive-order-interaction-requirements-contract.json"
+        "receive-order-interaction-requirements-contract.json",
+        "standard-callback-controls-requirements-contract.json"
       ],
       "cpp_test": "src/main.cpp#scenarioCallbackControls",
       "runner_id": "cpp-tck.callback-controls",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.attribute-interaction",
       "default_status": "run",
       "promotion": "promoted"
     },
@@ -21953,7 +22280,8 @@
         "cpp-1516.1-callback-model-servicing"
       ],
       "contract_refs": [
-        "standard-callback-controls-contract.json"
+        "standard-callback-controls-contract.json",
+        "standard-callback-controls-requirements-contract.json"
       ],
       "cpp_test": "src/main.cpp#scenarioCallbackControlsContract",
       "runner_id": "cpp-tck.callback-controls-contract",
@@ -34591,6 +34919,111 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.service-report-confirm-divestiture",
+      "category": "mom-service-reporting",
+      "title": "Report successful ConfirmDivestiture and verify its negotiated ownership transfer through standard MOM",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.negotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.confirmDivestiture",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestDivestitureConfirmation",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-ownership-management",
+        "cpp-1516.1-object-management"
+      ],
+      "contract_refs": [
+        "mom-service-reporting-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json",
+        "support-switches-api-contract.json",
+        "negotiated-divestiture-confirmation-flow-api-contract.json",
+        "negotiated-divestiture-confirmation-flow-requirements-contract.json",
+        "negotiated-attribute-ownership-divestiture-api-contract.json",
+        "negotiated-attribute-ownership-divestiture-requirements-contract.json",
+        "attribute-ownership-acquisition-api-contract.json",
+        "attribute-ownership-acquisition-requirements-contract.json",
+        "object-instance-registration-api-contract.json",
+        "object-instance-registration-requirements-contract.json",
+        "publish-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
+        "subscribe-interaction-class-api-contract.json",
+        "receive-order-interaction-api-contract.json",
+        "receive-order-interaction-requirements-contract.json",
+        "federation-execution-api-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportConfirmDivestiturePortable",
+      "runner_id": "cpp-tck.service-report-confirm-divestiture",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.service-report-confirm-divestiture-contract",
+      "category": "mom-service-reporting",
+      "title": "Portable standard contract for ConfirmDivestiture service-report delivery and negotiated ownership transfer",
+      "api_methods": [
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.setServiceReportingSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
+        "RTIambassador.negotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.confirmDivestiture",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "FederateAmbassador.requestDivestitureConfirmation",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "FederateAmbassador.receiveInteraction",
+        "HLAunicodeString",
+        "HLAinteger16BE",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAfixedRecord",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-mom-service-reporting",
+        "cpp-1516.1-explicit-mim-composition",
+        "cpp-1516.1-ownership-management",
+        "cpp-1516.1-object-management"
+      ],
+      "contract_refs": [
+        "standard-service-report-confirm-divestiture-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioServiceReportConfirmDivestitureContractPortable",
+      "runner_id": "cpp-tck.service-report-confirm-divestiture-contract",
+      "parity": "cpp-tck.service-report-confirm-divestiture",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.service-report-synchronization",
       "category": "mom-service-reporting",
       "title": "Deliver standard HLAreportServiceInvocation records for synchronization-point services",
@@ -39168,7 +39601,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioDirectedDerivedObjectTargetDelivery",
       "runner_id": "cpp-tck.directed-interaction-derived-object-target",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.directed-interaction-derived-object-target",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -39246,7 +39679,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioDirectedDerivedObjectTargetEligibility",
       "runner_id": "cpp-tck.directed-derived-object-target-eligibility",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.directed-derived-object-target-eligibility",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -39339,7 +39772,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioTimestampedDirectedDerivedObjectTargetDelivery",
       "runner_id": "cpp-tck.timestamped-directed-interaction-derived-object-target",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.timestamped-directed-interaction-derived-object-target",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -39633,6 +40066,272 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.federate-mom-multiple-directed-publication-query",
+      "category": "federate-mom",
+      "title": "Report directed publications across object classes through the standard MIM",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-directed-interaction-publication",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-directed-publication-query-api-contract.json",
+        "standard-federate-mom-multiple-directed-publication-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleDirectedPublicationQuery",
+      "runner_id": "cpp-tck.federate-mom-multiple-directed-publication-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-directed-publication-query-contract",
+      "category": "federate-mom",
+      "title": "Pure standard C++ contract for directed-publication reports across object classes",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-directed-interaction-publication"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-directed-publication-query-api-contract.json",
+        "standard-federate-mom-multiple-directed-publication-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleDirectedPublicationQueryContract",
+      "runner_id": "cpp-tck.federate-mom-multiple-directed-publication-query-contract",
+      "parity": "cpp-tck.federate-mom-multiple-directed-publication-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-directed-publication-partial-unpublish-query",
+      "category": "federate-mom",
+      "title": "Report remaining directed publications after set-based partial unpublication",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-directed-interaction-publication",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-directed-publication-partial-unpublish-query-api-contract.json",
+        "standard-federate-mom-multiple-directed-publication-partial-unpublish-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleDirectedPublicationPartialUnpublishQuery",
+      "runner_id": "cpp-tck.federate-mom-multiple-directed-publication-partial-unpublish-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-directed-publication-partial-unpublish-query-contract",
+      "category": "federate-mom",
+      "title": "Pure standard C++ contract for reports after partial directed unpublication",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-directed-interaction-publication",
+        "cpp-1516.1-federation-mom"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-directed-publication-partial-unpublish-query-api-contract.json",
+        "standard-federate-mom-multiple-directed-publication-partial-unpublish-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleDirectedPublicationPartialUnpublishQueryContract",
+      "runner_id": "cpp-tck.federate-mom-multiple-directed-publication-partial-unpublish-query-contract",
+      "parity": "cpp-tck.federate-mom-multiple-directed-publication-partial-unpublish-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-directed-publication-full-unpublish-query",
+      "category": "federate-mom",
+      "title": "Report the IEEE 1516.2-2025 directed-publication NULL response after complete unpublication",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-directed-interaction-publication",
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-directed-publication-full-unpublish-query-api-contract.json",
+        "standard-federate-mom-multiple-directed-publication-full-unpublish-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleDirectedPublicationFullUnpublishQuery",
+      "runner_id": "cpp-tck.federate-mom-multiple-directed-publication-full-unpublish-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-directed-publication-full-unpublish-query-contract",
+      "category": "federate-mom",
+      "title": "Pure IEEE 1516.1-2025 C++ contract for the directed-publication NULL response",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-directed-interaction-publication",
+        "cpp-1516.1-federation-mom"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-directed-publication-full-unpublish-query-api-contract.json",
+        "standard-federate-mom-multiple-directed-publication-full-unpublish-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleDirectedPublicationFullUnpublishQueryContract",
+      "runner_id": "cpp-tck.federate-mom-multiple-directed-publication-full-unpublish-query-contract",
+      "parity": "cpp-tck.federate-mom-multiple-directed-publication-full-unpublish-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.federate-mom-subscription-query",
       "category": "federate-mom",
       "title": "Report active object, interaction, and empty directed-interaction subscriptions through the standard MIM",
@@ -39894,6 +40593,551 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.federate-mom-passive-interaction-subscription-activation-query",
+      "category": "federate-mom",
+      "title": "Report a passive-to-active interaction subscription transition through the standard MIM",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-passive-interaction-subscription-activation-query-api-contract.json",
+        "standard-federate-mom-passive-interaction-subscription-activation-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomPassiveInteractionSubscriptionActivationQuery",
+      "runner_id": "cpp-tck.federate-mom-passive-interaction-subscription-activation-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-passive-interaction-subscription-activation-query-contract",
+      "category": "federate-mom",
+      "title": "Pure IEEE 1516.1-2025 C++ contract for interaction subscription state transitions",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-passive-interaction-subscription-activation-query-api-contract.json",
+        "standard-federate-mom-passive-interaction-subscription-activation-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomPassiveInteractionSubscriptionActivationQueryContract",
+      "runner_id": "cpp-tck.federate-mom-passive-interaction-subscription-activation-query-contract",
+      "parity": "cpp-tck.federate-mom-passive-interaction-subscription-activation-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-interaction-subscription-query",
+      "category": "federate-mom",
+      "title": "Report mixed active/passive states for multiple interaction classes through the standard MIM",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-interaction-subscription-query-api-contract.json",
+        "standard-federate-mom-multiple-interaction-subscription-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleInteractionSubscriptionQuery",
+      "runner_id": "cpp-tck.federate-mom-multiple-interaction-subscription-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-interaction-subscription-query-contract",
+      "category": "federate-mom",
+      "title": "Pure IEEE 1516.1-2025 C++ contract for mixed interaction-subscription reports",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-interaction-subscription-query-api-contract.json",
+        "standard-federate-mom-multiple-interaction-subscription-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleInteractionSubscriptionQueryContract",
+      "runner_id": "cpp-tck.federate-mom-multiple-interaction-subscription-query-contract",
+      "parity": "cpp-tck.federate-mom-multiple-interaction-subscription-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-interaction-subscription-unsubscribe-query",
+      "category": "federate-mom",
+      "title": "Remove one mixed-state interaction subscription and verify the remaining MIM report",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-interaction-subscription-unsubscribe-query-api-contract.json",
+        "standard-federate-mom-multiple-interaction-subscription-unsubscribe-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleInteractionSubscriptionUnsubscribeQuery",
+      "runner_id": "cpp-tck.federate-mom-multiple-interaction-subscription-unsubscribe-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-interaction-subscription-unsubscribe-query-contract",
+      "category": "federate-mom",
+      "title": "Pure IEEE 1516.1-2025 C++ contract for partial interaction unsubscription reports",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-interaction-subscription-unsubscribe-query-api-contract.json",
+        "standard-federate-mom-multiple-interaction-subscription-unsubscribe-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleInteractionSubscriptionUnsubscribeQueryContract",
+      "runner_id": "cpp-tck.federate-mom-multiple-interaction-subscription-unsubscribe-query-contract",
+      "parity": "cpp-tck.federate-mom-multiple-interaction-subscription-unsubscribe-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-interaction-subscription-full-unsubscribe-query",
+      "category": "federate-mom",
+      "title": "Verify the empty MIM interaction-subscription response after full unsubscription",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-interaction-subscription-full-unsubscribe-query-api-contract.json",
+        "standard-federate-mom-multiple-interaction-subscription-full-unsubscribe-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQuery",
+      "runner_id": "cpp-tck.federate-mom-multiple-interaction-subscription-full-unsubscribe-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-attribute-partial-unsubscribe-query",
+      "category": "federate-mom",
+      "title": "Verify a partial object-attribute unsubscribe through the standard MIM report",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-attribute-partial-unsubscribe-query-api-contract.json",
+        "standard-federate-mom-object-attribute-partial-unsubscribe-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectAttributePartialUnsubscribeQuery",
+      "runner_id": "cpp-tck.federate-mom-object-attribute-partial-unsubscribe-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-attribute-full-unsubscribe-query",
+      "category": "federate-mom",
+      "title": "Verify the object-attribute subscription NULL report after full unsubscription",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-attribute-full-unsubscribe-query-api-contract.json",
+        "standard-federate-mom-object-attribute-full-unsubscribe-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectAttributeFullUnsubscribeQuery",
+      "runner_id": "cpp-tck.federate-mom-object-attribute-full-unsubscribe-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-full-unsubscribe-query",
+      "category": "federate-mom",
+      "title": "Verify whole-class unsubscription through the standard MIM NULL report",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-full-unsubscribe-query-api-contract.json",
+        "standard-federate-mom-object-class-full-unsubscribe-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassFullUnsubscribeQuery",
+      "runner_id": "cpp-tck.federate-mom-object-class-full-unsubscribe-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-full-unsubscribe-query-contract",
+      "category": "federate-mom",
+      "title": "Pure IEEE 1516.1-2025 C++ contract for whole-class unsubscription",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClass",
+        "RTIambassador.sendInteraction",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-full-unsubscribe-query-api-contract.json",
+        "standard-federate-mom-object-class-full-unsubscribe-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassFullUnsubscribeQueryContract",
+      "runner_id": "cpp-tck.federate-mom-object-class-full-unsubscribe-query-contract",
+      "parity": "cpp-tck.federate-mom-object-class-full-unsubscribe-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-attribute-full-unsubscribe-query-contract",
+      "category": "federate-mom",
+      "title": "Pure IEEE 1516.1-2025 C++ contract for the object-attribute subscription NULL response",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.sendInteraction",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-attribute-full-unsubscribe-query-api-contract.json",
+        "standard-federate-mom-object-attribute-full-unsubscribe-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectAttributeFullUnsubscribeQueryContract",
+      "runner_id": "cpp-tck.federate-mom-object-attribute-full-unsubscribe-query-contract",
+      "parity": "cpp-tck.federate-mom-object-attribute-full-unsubscribe-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-attribute-partial-unsubscribe-query-contract",
+      "category": "federate-mom",
+      "title": "Pure IEEE 1516.1-2025 C++ contract for partial object-attribute unsubscription",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeAttributeHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-attribute-partial-unsubscribe-query-api-contract.json",
+        "standard-federate-mom-object-attribute-partial-unsubscribe-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectAttributePartialUnsubscribeQueryContract",
+      "runner_id": "cpp-tck.federate-mom-object-attribute-partial-unsubscribe-query-contract",
+      "parity": "cpp-tck.federate-mom-object-attribute-partial-unsubscribe-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-interaction-subscription-full-unsubscribe-query-contract",
+      "category": "federate-mom",
+      "title": "Pure IEEE 1516.1-2025 C++ contract for the final interaction-subscription NULL report",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-interaction-subscription-full-unsubscribe-query-api-contract.json",
+        "standard-federate-mom-multiple-interaction-subscription-full-unsubscribe-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQueryContract",
+      "runner_id": "cpp-tck.federate-mom-multiple-interaction-subscription-full-unsubscribe-query-contract",
+      "parity": "cpp-tck.federate-mom-multiple-interaction-subscription-full-unsubscribe-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.federate-mom-empty-subscription-query",
       "category": "federate-mom",
       "title": "Report empty object and interaction subscriptions through standard MIM NULL responses",
@@ -40056,6 +41300,179 @@
       "cpp_test": "src/portable_tck.cpp#scenarioFederateMomDirectedSubscriptionQueryContract",
       "runner_id": "cpp-tck.federate-mom-directed-subscription-query-contract",
       "parity": "cpp-tck.federate-mom-directed-subscription-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-directed-subscription-query",
+      "category": "federate-mom",
+      "title": "Report directed subscriptions across object classes and partial unsubscription through the standard MIM",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-directed-interaction-subscription",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-directed-subscription-query-api-contract.json",
+        "standard-federate-mom-multiple-directed-subscription-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleDirectedSubscriptionQuery",
+      "runner_id": "cpp-tck.federate-mom-multiple-directed-subscription-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-directed-subscription-query-contract",
+      "category": "federate-mom",
+      "title": "Pure standard C++ contract for directed-subscription reporting across object classes and partial unsubscribe",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-directed-interaction-subscription"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-directed-subscription-query-api-contract.json",
+        "standard-federate-mom-multiple-directed-subscription-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleDirectedSubscriptionQueryContract",
+      "runner_id": "cpp-tck.federate-mom-multiple-directed-subscription-query-contract",
+      "parity": "cpp-tck.federate-mom-multiple-directed-subscription-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-directed-subscription-full-unsubscribe-query",
+      "category": "federate-mom",
+      "title": "Report the IEEE 1516.2-2025 directed-subscription NULL response after complete unsubscribe",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-directed-interaction-subscription"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-directed-subscription-full-unsubscribe-query-api-contract.json",
+        "standard-federate-mom-multiple-directed-subscription-full-unsubscribe-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleDirectedSubscriptionFullUnsubscribeQuery",
+      "runner_id": "cpp-tck.federate-mom-multiple-directed-subscription-full-unsubscribe-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-directed-subscription-full-unsubscribe-query-contract",
+      "category": "federate-mom",
+      "title": "Pure IEEE 1516.1-2025 C++ contract for the directed-subscription NULL response",
+      "api_methods": [
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.unsubscribeObjectClassDirectedInteractions",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAoctet",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-directed-interaction-subscription",
+        "cpp-1516.1-federation-mom"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-directed-subscription-full-unsubscribe-query-api-contract.json",
+        "standard-federate-mom-multiple-directed-subscription-full-unsubscribe-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleDirectedSubscriptionFullUnsubscribeQueryContract",
+      "runner_id": "cpp-tck.federate-mom-multiple-directed-subscription-full-unsubscribe-query-contract",
+      "parity": "cpp-tck.federate-mom-multiple-directed-subscription-full-unsubscribe-query",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -40974,6 +42391,961 @@
       "cpp_test": "src/portable_tck.cpp#scenarioJoinedFederateMomObjectInstancesReflectedNullReportContract",
       "runner_id": "cpp-tck.joined-federate-mom-object-instances-reflected-null-report-contract",
       "parity": "cpp-tck.joined-federate-mom-object-instances-reflected-null-report",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-complete-attribute-subscription-query",
+      "category": "federate-mom",
+      "title": "Report the complete adapter-configured application-attribute subscription through the standard MIM",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-complete-attribute-subscription-query-api-contract.json",
+        "standard-federate-mom-object-class-complete-attribute-subscription-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassCompleteAttributeSubscriptionQuery",
+      "runner_id": "cpp-tck.federate-mom-object-class-complete-attribute-subscription-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-complete-attribute-subscription-query-contract",
+      "category": "federate-mom",
+      "title": "Pure 2025-standard contract for complete adapter-configured application-attribute subscription reporting",
+      "api_methods": [
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-complete-attribute-subscription-query-api-contract.json",
+        "standard-federate-mom-object-class-complete-attribute-subscription-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassCompleteAttributeSubscriptionQueryContract",
+      "runner_id": "cpp-tck.federate-mom-object-class-complete-attribute-subscription-query-contract",
+      "parity": "cpp-tck.federate-mom-object-class-complete-attribute-subscription-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-passive-complete-attribute-subscription-query",
+      "category": "federate-mom",
+      "title": "Report a passive subscription to the complete adapter-configured application-attribute set",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-passive-complete-attribute-subscription-query-api-contract.json",
+        "standard-federate-mom-object-class-passive-complete-attribute-subscription-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassPassiveCompleteAttributeSubscriptionQuery",
+      "runner_id": "cpp-tck.federate-mom-object-class-passive-complete-attribute-subscription-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-passive-complete-attribute-subscription-query-contract",
+      "category": "federate-mom",
+      "title": "Pure 2025-standard contract for passive complete object-class attribute subscription reporting",
+      "api_methods": [
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-passive-complete-attribute-subscription-query-api-contract.json",
+        "standard-federate-mom-object-class-passive-complete-attribute-subscription-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassPassiveCompleteAttributeSubscriptionQueryContract",
+      "runner_id": "cpp-tck.federate-mom-object-class-passive-complete-attribute-subscription-query-contract",
+      "parity": "cpp-tck.federate-mom-object-class-passive-complete-attribute-subscription-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-complete-attribute-subscription-activation-query",
+      "category": "federate-mom",
+      "title": "Activate the complete object-class attribute set and verify the standard MIM state transition",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-complete-attribute-subscription-activation-query-api-contract.json",
+        "standard-federate-mom-object-class-complete-attribute-subscription-activation-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassCompleteAttributeSubscriptionActivationQuery",
+      "runner_id": "cpp-tck.federate-mom-object-class-complete-attribute-subscription-activation-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-complete-attribute-subscription-activation-query-contract",
+      "category": "federate-mom",
+      "title": "Pure 2025-standard contract for complete object-class subscription activation reporting",
+      "api_methods": [
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAboolean",
+        "HLAunicodeString",
+        "HLAvariableArray",
+        "HLAfixedRecord"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-complete-attribute-subscription-activation-query-api-contract.json",
+        "standard-federate-mom-object-class-complete-attribute-subscription-activation-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassCompleteAttributeSubscriptionActivationQueryContract",
+      "runner_id": "cpp-tck.federate-mom-object-class-complete-attribute-subscription-activation-query-contract",
+      "parity": "cpp-tck.federate-mom-object-class-complete-attribute-subscription-activation-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-complete-object-class-publication-query",
+      "category": "federate-mom",
+      "title": "Verify the complete adapter-configured application-attribute publication set and inherited HLAprivilegeToDeleteObject through the standard MIM",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-complete-object-class-publication-query-api-contract.json",
+        "standard-federate-mom-complete-object-class-publication-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomCompleteObjectClassPublicationQuery",
+      "runner_id": "cpp-tck.federate-mom-complete-object-class-publication-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-complete-object-class-publication-query-contract",
+      "category": "federate-mom",
+      "title": "Pure 2025-standard contract for complete application-attribute publication reporting, including inherited HLAprivilegeToDeleteObject",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-complete-object-class-publication-query-api-contract.json",
+        "standard-federate-mom-complete-object-class-publication-query-requirements-contract.json",
+        "explicit-mim-api-contract.json",
+        "explicit-mim-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomCompleteObjectClassPublicationQueryContract",
+      "runner_id": "cpp-tck.federate-mom-complete-object-class-publication-query-contract",
+      "parity": "cpp-tck.federate-mom-complete-object-class-publication-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-attribute-unpublication-query",
+      "category": "federate-mom",
+      "title": "After ordinary attribute unpublication, report the exact remaining application attributes through the 2025 standard MIM",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-attribute-unpublication-query-api-contract.json",
+        "standard-federate-mom-object-class-attribute-unpublication-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassAttributeUnpublicationQuery",
+      "runner_id": "cpp-tck.federate-mom-object-class-attribute-unpublication-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-attribute-unpublication-query-contract",
+      "category": "federate-mom",
+      "title": "Pure 2025-standard contract for post-unpublication object-class publication reports",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-attribute-unpublication-query-api-contract.json",
+        "standard-federate-mom-object-class-attribute-unpublication-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassAttributeUnpublicationQueryContract",
+      "runner_id": "cpp-tck.federate-mom-object-class-attribute-unpublication-query-contract",
+      "parity": "cpp-tck.federate-mom-object-class-attribute-unpublication-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-full-attribute-unpublication-query",
+      "category": "federate-mom",
+      "title": "After all application attributes are unpublished, verify the 2025 standard MIM NULL publication response",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-full-attribute-unpublication-query-api-contract.json",
+        "standard-federate-mom-object-class-full-attribute-unpublication-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassFullAttributeUnpublicationQuery",
+      "runner_id": "cpp-tck.federate-mom-object-class-full-attribute-unpublication-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-full-attribute-unpublication-query-contract",
+      "category": "federate-mom",
+      "title": "Pure 2025-standard contract for the NULL publication response after full application unpublication",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-full-attribute-unpublication-query-api-contract.json",
+        "standard-federate-mom-object-class-full-attribute-unpublication-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassFullAttributeUnpublicationQueryContract",
+      "runner_id": "cpp-tck.federate-mom-object-class-full-attribute-unpublication-query-contract",
+      "parity": "cpp-tck.federate-mom-object-class-full-attribute-unpublication-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-whole-unpublication-query",
+      "category": "federate-mom",
+      "title": "After whole-class unpublication, verify the 2025 standard MIM NULL publication response",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClass",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-whole-unpublication-query-api-contract.json",
+        "standard-federate-mom-object-class-whole-unpublication-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassWholeUnpublicationQuery",
+      "runner_id": "cpp-tck.federate-mom-object-class-whole-unpublication-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-object-class-whole-unpublication-query-contract",
+      "category": "federate-mom",
+      "title": "Pure 2025-standard contract for the NULL publication response after whole-class unpublication",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-object-class-whole-unpublication-query-api-contract.json",
+        "standard-federate-mom-object-class-whole-unpublication-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomObjectClassWholeUnpublicationQueryContract",
+      "runner_id": "cpp-tck.federate-mom-object-class-whole-unpublication-query-contract",
+      "parity": "cpp-tck.federate-mom-object-class-whole-unpublication-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-interaction-class-whole-unpublication-query",
+      "category": "federate-mom",
+      "title": "After whole interaction-class unpublication, verify the 2025 standard MIM NULL publication response",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-interaction-class-whole-unpublication-query-api-contract.json",
+        "standard-federate-mom-interaction-class-whole-unpublication-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomInteractionClassWholeUnpublicationQuery",
+      "runner_id": "cpp-tck.federate-mom-interaction-class-whole-unpublication-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-interaction-class-whole-unpublication-query-contract",
+      "category": "federate-mom",
+      "title": "Pure 2025-standard contract for the NULL publication response after whole interaction-class unpublication",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-interaction-class-whole-unpublication-query-api-contract.json",
+        "standard-federate-mom-interaction-class-whole-unpublication-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomInteractionClassWholeUnpublicationQueryContract",
+      "runner_id": "cpp-tck.federate-mom-interaction-class-whole-unpublication-query-contract",
+      "parity": "cpp-tck.federate-mom-interaction-class-whole-unpublication-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-interaction-class-partial-unpublication-query",
+      "category": "federate-mom",
+      "title": "After partial ordinary interaction unpublication, verify the remaining class in the 2025 MIM publication report",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-interaction-class-partial-unpublication-query-api-contract.json",
+        "standard-federate-mom-interaction-class-partial-unpublication-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomInteractionClassPartialUnpublicationQuery",
+      "runner_id": "cpp-tck.federate-mom-interaction-class-partial-unpublication-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-interaction-class-partial-unpublication-query-contract",
+      "category": "federate-mom",
+      "title": "Pure 2025-standard contract for the remaining interaction-class publication report after partial unpublication",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-interaction-class-partial-unpublication-query-api-contract.json",
+        "standard-federate-mom-interaction-class-partial-unpublication-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomInteractionClassPartialUnpublicationQueryContract",
+      "runner_id": "cpp-tck.federate-mom-interaction-class-partial-unpublication-query-contract",
+      "parity": "cpp-tck.federate-mom-interaction-class-partial-unpublication-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-interaction-class-full-unpublication-query",
+      "category": "federate-mom",
+      "title": "After unpublishing both ordinary interaction classes, verify the exact 2025 MIM NULL publication report",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.publishObjectClassDirectedInteractions",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassDirectedInteractions",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-interaction-class-full-unpublication-query-api-contract.json",
+        "standard-federate-mom-multiple-interaction-class-full-unpublication-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleInteractionClassFullUnpublicationQuery",
+      "runner_id": "cpp-tck.federate-mom-multiple-interaction-class-full-unpublication-query",
+      "parity": "cpp-extension-no-java-counterpart",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-mom-multiple-interaction-class-full-unpublication-query-contract",
+      "category": "federate-mom",
+      "title": "Pure 2025-standard contract for the NULL interaction-publication report after full unpublication",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.decodeAttributeHandle",
+        "RTIambassador.decodeObjectClassHandle",
+        "RTIambassador.decodeInteractionClassHandle",
+        "FederateAmbassador.receiveInteraction",
+        "HLAinteger32BE",
+        "HLAoctet",
+        "HLAvariableArray"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-federation-mom",
+        "cpp-1516.1-explicit-mim-composition"
+      ],
+      "contract_refs": [
+        "standard-federate-mom-multiple-interaction-class-full-unpublication-query-api-contract.json",
+        "standard-federate-mom-multiple-interaction-class-full-unpublication-query-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioFederateMomMultipleInteractionClassFullUnpublicationQueryContract",
+      "runner_id": "cpp-tck.federate-mom-multiple-interaction-class-full-unpublication-query-contract",
+      "parity": "cpp-tck.federate-mom-multiple-interaction-class-full-unpublication-query",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.interaction-publication-send-transition",
+      "category": "interaction-management",
+      "title": "Verify ordinary sends before withdrawal, failure while unpublished, and delivery recovery after republishing",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "FederateAmbassador.receiveInteraction",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-interaction-declarations",
+        "cpp-1516.1-interaction-management"
+      ],
+      "contract_refs": [
+        "standard-interaction-publication-send-transition-api-contract.json",
+        "standard-interaction-publication-send-transition-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioInteractionPublicationSendTransition",
+      "runner_id": "cpp-tck.interaction-publication-send-transition",
+      "parity": "java-tck.interaction-publication-send-transition",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.interaction-publication-send-transition-contract",
+      "category": "interaction-management",
+      "title": "Portable IEEE 1516.1-2025 contract for withdrawal rejection and republish recovery",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "FederateAmbassador.receiveInteraction",
+        "RTIambassador.unpublishInteractionClass"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-interaction-declarations",
+        "cpp-1516.1-interaction-management"
+      ],
+      "contract_refs": [
+        "standard-interaction-publication-send-transition-api-contract.json",
+        "standard-interaction-publication-send-transition-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioInteractionPublicationSendTransitionContract",
+      "runner_id": "cpp-tck.interaction-publication-send-transition-contract",
+      "parity": "cpp-tck.interaction-publication-send-transition",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.interaction-active-and-passive-subscription-modes",
+      "category": "interaction-management",
+      "title": "Verify active and passive interaction subscription modes and ordinary delivery to the active subscriber",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass(active=true)",
+        "RTIambassador.subscribeInteractionClass(active=false)",
+        "RTIambassador.sendInteraction",
+        "FederateAmbassador.receiveInteraction",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-interaction-declarations",
+        "cpp-1516.1-interaction-management",
+        "cpp-1516.1-interaction-parameter-delivery"
+      ],
+      "contract_refs": [
+        "standard-passive-interaction-delivery-api-contract.json",
+        "standard-passive-interaction-delivery-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioInteractionActiveAndPassiveSubscriptionModes",
+      "runner_id": "cpp-tck.interaction-active-and-passive-subscription-modes",
+      "parity": "java-tck.attribute-interaction",
+      "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.interaction-active-and-passive-subscription-modes-contract",
+      "category": "interaction-management",
+      "title": "Portable IEEE 1516.1-2025 contract for active and passive interaction subscription modes",
+      "api_methods": [
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass(active=true)",
+        "RTIambassador.subscribeInteractionClass(active=false)",
+        "RTIambassador.sendInteraction",
+        "FederateAmbassador.receiveInteraction",
+        "RTIambassador.unsubscribeInteractionClass",
+        "RTIambassador.unpublishInteractionClass"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-interaction-declarations",
+        "cpp-1516.1-interaction-management",
+        "cpp-1516.1-interaction-parameter-delivery"
+      ],
+      "contract_refs": [
+        "standard-passive-interaction-delivery-api-contract.json",
+        "standard-passive-interaction-delivery-requirements-contract.json"
+      ],
+      "cpp_test": "src/portable_tck.cpp#scenarioInteractionActiveAndPassiveSubscriptionModesContract",
+      "runner_id": "cpp-tck.interaction-active-and-passive-subscription-modes-contract",
+      "parity": "cpp-tck.interaction-active-and-passive-subscription-modes",
       "default_status": "adapter-required",
       "promotion": "promoted"
     }

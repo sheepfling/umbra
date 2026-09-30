@@ -129,8 +129,9 @@ the same CMake presets and package source layout.
 A hosted provider needs only to:
 
 1. Check out the repository.
-2. Provide Python 3.11+, CMake 3.23+, Visual Studio 2022 C++ build tools, and a
-   Windows SDK.
+2. Provide Python 3.11+, CMake 3.23+, Scoop MinGW GCC (`gcc`), and Ninja. On a
+   Scoop setup, install the compiler and generator with `scoop install gcc ninja`.
+   The native C++ presets use this MinGW toolchain rather than Visual Studio.
 3. Provide Java 11+ for Java/JNI lanes.
 4. Install the small CI tools needed by the selected lane, such as `pytest`
    and `ruff`.

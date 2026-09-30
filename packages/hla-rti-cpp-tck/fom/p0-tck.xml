@@ -61,6 +61,14 @@
                     <order>Receive</order>
                     <semantics>Portable ordinary P0 attribute.</semantics>
                 </attribute>
+                <objectClass>
+                    <name>TckSecondaryObject</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <directedInteraction>
+                        <name>HLAinteractionRoot.TckSecondaryDirectedInteraction</name>
+                        <sharing>PublishSubscribe</sharing>
+                    </directedInteraction>
+                </objectClass>
             </objectClass>
         </objectClass>
     </objects>
@@ -77,6 +85,17 @@
                     <name>Payload</name>
                     <dataType>HLAbyte</dataType>
                     <semantics>Portable ordinary P0 parameter.</semantics>
+                </parameter>
+            </interactionClass>
+            <interactionClass>
+                <name>TckSecondaryDirectedInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>Receive</order>
+                <parameter>
+                    <name>SecondaryPayload</name>
+                    <dataType>HLAbyte</dataType>
+                    <semantics>Portable second directed-subscription parameter.</semantics>
                 </parameter>
             </interactionClass>
         </interactionClass>

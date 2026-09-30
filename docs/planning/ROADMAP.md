@@ -52,33 +52,30 @@ Catch2 plan. The proposed lane remains non-runnable until its plan row and
 `TEST_CASE` declaration exist, after which the emitted post-mapping focus and
 check handles become valid.
 
-Current indexed C++ handoff (the source of truth is `ROADMAP-INDEX.json`):
-
-The latest bounded case is the HLA_IMMEDIATE restored ownership-assumption
-process slice. It carries 52 assertions, maps nine Requirements-Lab
-requirements to seven canonical 2025 sections, and exercises 11 official C++
-API surfaces. It disables callbacks before divestiture/save, retains the
-pending reservation through restore, and proves Federation Restored precedes
-exactly one assumption callback after the gate reopens. It does not absorb the
-restore-abort/successful/failed lifecycle, restore-status, already-pushed
-work-item, package/JUnit, review, validation, interoperability, or conformance
-evidence:
+Current indexed C++ handoff: `ROADMAP-INDEX.json` and the Catch2 plan are the
+source of truth. Do not maintain a second current-task title or count here.
+Use only the query needed:
 
 ```powershell
-python tools/query_rti_work.py case umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration --summary --compact
-python tools/query_rti_work.py focus process-federation-restore-work-item-ownership-assumption-immediate --summary --compact
-python tools/query_rti_work.py trace "RTIambassadors deliver restored ownership-assumption work under HLA_IMMEDIATE through a configured process endpoint" --summary --compact
-python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration --group-by requirement --summary --compact
-python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration --group-by section --summary --compact
-python tools/query_rti_work.py check --lane process-federation-restore-work-item-ownership-assumption-immediate --summary --compact
-ctest --test-dir .build -C Debug -R "^umbra\.attribute_ownership_acquisition\.catch2\.RTIambassadors deliver restored ownership-assumption work under HLA_IMMEDIATE through a configured process endpoint$" --output-on-failure
+# One current task, or one family choice when no task is queued
+python tools/query_rti_work.py resume
+# Acceptance criteria and target source
+python tools/query_rti_work.py ready --summary --compact
+# Completion history
+python tools/query_rti_work.py recent --summary --compact
+# Source, direct requirement -> 2025 subsection pairs, and focused CTest
+python tools/query_rti_work.py case <exact-plan-id> --summary --compact
+# Requirement-to-case or subsection-to-case reverse views
+python tools/query_rti_work.py matrix <exact-handle> --group-by requirement --summary --compact
+python tools/query_rti_work.py matrix <exact-handle> --group-by section --summary --compact
 ```
 
-The previous restore-abort and lifecycle slices, the already-pushed work-item
-companion, and the remaining transport/package/review lanes remain separately
-queryable through their exact plan IDs and focus lanes. Use
-`recent --summary --compact` for the bounded completion ledger instead of
-reopening this document or scanning the source tree.
+Follow the exact returned handle, open only the selected source, and run its
+printed focused CTest selector. A new-case seed must gain its own direct
+mapping before it becomes evidence. Development evidence does not imply
+package/JUnit/protected review, validation, interoperability, or conformance.
+The remaining slice descriptions are historical references, not the current
+task queue; use `recent` instead of scanning them for completion state.
 
 The raw directed-interaction process transport slice is now independently
 indexed as `process-directed-interaction-routing` at
@@ -359,10 +356,12 @@ single-endpoint FQR baseline at
 `cpp/tests/ieee1516_2025_connection_catch2.cpp:18207` remain independently
 queryable by their exact plan ids and lanes.
 
-The current indexed baseline is 1,285 Catch2 cases (1,221 mapped), with 155
-process-boundary cases and 6,717 indexed assertions (6,869 assertions recorded
-by plan rows). No mapped row is
-currently planned; 64 rows retain explicit no-standalone-surface dispositions.
+The current indexed baseline is intentionally obtained from the live query
+card, not copied into this roadmap prose. Use `resume --summary --compact`
+for the repository totals and `focus process-boundary --summary --compact`
+for the scoped process-boundary totals; `check` reports planned,
+explicit-disposition, unclassified, and source-health counts. This keeps the
+roadmap handoff current as focused rows are added or split.
 The preceding completed ordinary directed case is the two-recipient receive-order
 slice at `cpp/tests/ieee1516_2025_connection_catch2.cpp:2528`; it adds 104
 assertions, maps 14 Lab requirements to ten canonical 2025 sections, and
@@ -501,7 +500,8 @@ The `case` command is the shortest exact handoff: it accepts a plan id or full
 TEST_CASE title and prints source, owner, direct requirement-to-subsection
 pairs, API surfaces, and focused execution handles without a broad search. The
 positive-dimensional/default-region interaction sibling is a separate
-50-assertion lane:
+58-assertion lane and covers §9.10 independence of regional subscriptions from
+ordinary subscribe/unsubscribe calls:
 
 ```powershell
 python tools/query_rti_work.py focus focused-positive-dimensional-regional-interaction --summary --compact
@@ -1259,8 +1259,9 @@ directed, timestamped-directed, target-departure, subscription-kind,
 save/restore, and other regional lanes:
 
 For the active implementation loop, use the narrower `[process-boundary]`
-lane: 155 mapped plan rows / 6,717 indexed Catch2 assertions, with the current
-stable label registering 209 CTest executions. A separately queryable bounded
+lane and read its live totals with `focus process-boundary --summary --compact`;
+the stable label and CTest registration counts are emitted by that query card.
+A separately queryable bounded
 directed slice is the 44-assertion query/report transportation override case at
 `cpp/tests/ieee1516_2025_connection_catch2.cpp:27231`; the 66-assertion
 receive-order transportation override case at
@@ -1803,7 +1804,7 @@ python tools/query_rti_work.py test "Private registry-bound service exchanges fe
 python tools/query_rti_work.py test "Private process service binds create join and receive-order interaction to the federation registry" --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes public Send Interaction through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador resolves interaction and parameter handles through a configured process endpoint" --summary --compact
-python tools/query_rti_work.py test "RTIambassador publishes object-class attributes and registers an object through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py test "RTIambassador publishes and unpublishes object-class attributes and registers an object through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador reserves a name and registers a named object through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador projects the 2025 region lifecycle and regional registration through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes a remote regional subscription and scoped update through a configured process endpoint" --summary --compact
@@ -5007,10 +5008,14 @@ Umbra-owned replacement public API.
       HLA_IMMEDIATE lane decodes the reliable seven-parameter
       `HLAreportServiceInvocation`, service type 3, type-37/type-1 supplied
       records, Null return, true success, empty exception, and serial zero
-      before restored ordinary release work is queued. The neighboring
-      user-tag ownership services remain filesystem-only while RL-077's
-      Table 5 type-63 versus MIM type-60 conflict is unresolved; full
-      negotiated arbitration, protected review, and conformance remain open.
+      before restored ordinary release work is queued. Unconditional
+      Attribute Ownership Divestiture now also has a public MOM route: its
+      file record retains Table 5 type 63 and the interaction uses static MIM
+      type 60. Negotiated divestiture, confirmation, acquisition,
+      acquisition-if-available, and release-denied still need their own
+      interaction wrappers and tests. RL-077 remains a Requirements-Lab
+      extraction limitation; full negotiated arbitration, protected review,
+      and conformance remain open.
       The dedicated source-backed case is
       `cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp:547`
       with 87 assertions, five Lab anchors, five canonical 2025 sections, and
@@ -6159,8 +6164,22 @@ Umbra-owned replacement public API.
 - [ ] Complete FOM module management and declaration management beyond the
       interaction declaration/delivery foundation, including sharing and
       advisory behavior.
+      Completed bounded Summary Rule 1 evidence is separately indexed as
+      `fom-summary-rule-1`: the 11-assertion native C++ case creates a
+      validated 2025 Restaurant FOM, joins a member, and round-trips an OMT
+      object class and declared attribute through the official lookup APIs.
+      It maps `summary-rule-1` directly to `hla-1516-2025:clause-4`; this is
+      development-profile traceability evidence, not full FOM/MIM,
+      interoperability, validation, or conformance evidence.
 - [ ] Complete object lifecycle/updates/ownership, interaction, and data
       distribution management.
+      Completed bounded Summary Rule 2 evidence is separately indexed as
+      `fom-summary-rule-2`: the 81-assertion native C++ object-registration /
+      discovery case proves the application-federate registration, callback,
+      and public lookup boundary. It maps `summary-rule-2` directly to
+      `hla-1516-2025:clause-4`; this is bounded development-profile evidence,
+      not an exhaustive inspection of private RTI storage or a conformance
+      claim.
 - [ ] Time management, ownership management, and save/restore.
       Focused lane anchor: joined-owner timestamped deletion retraction.
       Focused lane anchor: optimistic-time Flush Queue Request.
@@ -6188,6 +6207,13 @@ Umbra-owned replacement public API.
       (`federation-mom-content-reports`).
 - [ ] Embedded and remote transports, multi-process interoperability, and
       independently reviewed conformance evidence.
+      Completed bounded Summary Rule 3 evidence is separately indexed as
+      `summary-rule-3`: the 13-assertion public process additional-FOM case
+      carries Create/Join FOM designators across the configured RTI boundary
+      and resolves the composed class through the official lookup APIs. It
+      maps `summary-rule-3` directly to `hla-1516-2025:clause-4`; this is
+      process-foundation evidence, not every FOM exchange path,
+      interoperability, validation, or conformance evidence.
 
 ## Follow-on bindings
 

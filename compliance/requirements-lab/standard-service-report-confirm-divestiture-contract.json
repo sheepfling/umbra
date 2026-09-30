@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "standard_sections": [
+    "hla-1516.1-2025:clause-7.6.3",
+    "hla-1516.1-2025:clause-11.5"
+  ],
+  "notes": "This portable C++ TCK contract checks negotiated ownership transfer through ConfirmDivestiture and the corresponding standard HLAreportServiceInvocation interaction. The adapter supplies the provider package, multi-attribute FOM, standard MIM, endpoint, callback model, and logical-time configuration. The owner requests negotiated divestiture, the requester acquires the attribute, and the owner confirms divestiture with a distinct tag. The scenario verifies the ownership-confirmation callback flow, resulting ownership, reliable receive-order MOM delivery, the ConfirmDivestiture service identity/type/success, all eight standard report parameters, typed object/attribute/tag arguments, the null return marker, empty exception, and initial serial value. The source uses only official IEEE 1516.1 C++ RTIambassador/FederateAmbassador APIs, standard MIM data elements, and the C++ standard library; it makes no provider-specific or implementation-state assertion.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-service-report-confirm-divestiture",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
+      "language": "cpp",
+      "signature": "RTIambassador::negotiatedAttributeOwnershipDivestiture, RTIambassador::attributeOwnershipAcquisition, RTIambassador::confirmDivestiture, standard service-reporting controls, and FederateAmbassador ownership/receiveInteraction callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::confirmDivestiture; standard MIM HLAreportServiceInvocation",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioServiceReportConfirmDivestiture"
+      ]
+    }
+  ]
+}

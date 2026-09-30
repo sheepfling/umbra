@@ -32,6 +32,8 @@ class ProcessFederationCallbackBridge final {
  public:
   using CallbackCompletionHandler = std::function<void()>;
   using TsoDeliveryCompletionHandler = std::function<void(std::uint64_t)>;
+  using ExceptionReportProjectionHandler = std::function<
+      std::optional<ProcessFederationInteractionEvent>(ProcessFederationInteractionEvent)>;
 
   explicit ProcessFederationCallbackBridge(
       rti1516_2025::FederateAmbassador& recipient,
@@ -165,6 +167,12 @@ class ProcessFederationCallbackBridge final {
   // Request Retraction).
   void setTsoDeliveryCompletionHandler(
       TsoDeliveryCompletionHandler handler);
+  void setExceptionReportProjectionHandler(ExceptionReportProjectionHandler handler);
+
+  // Invalidate queued reports and wait for the client-owned projection hook
+  // to leave its pre-callback work. Call without client transaction/state
+  // ownership. The hook must not dispatch user callbacks itself.
+  void cancelExceptionReportProjections() noexcept;
 
   // Queue one process-side Time Advance Grant through the official callback
   // surface.  The private endpoint owns the state transition; this bridge
@@ -198,6 +206,9 @@ class ProcessFederationCallbackBridge final {
   void close() noexcept;
 
  private:
+  struct ExceptionReportProjectionState;
+  [[nodiscard]] bool isClosed() const noexcept;
+
   struct RetractionState final {
     std::mutex mutex;
     bool callbackStarted = false;
@@ -206,9 +217,12 @@ class ProcessFederationCallbackBridge final {
     bool deliveryAcknowledged = false;
   };
 
-  std::shared_ptr<CallbackDispatcher> dispatcher_;
-  std::shared_ptr<rti1516_2025::umbra_binding_detail::CallbackSession>
+  // Keep these owners stable through close: an evoker may still be returning
+  // from the dispatcher while another thread closes the borrowed endpoint.
+  std::shared_ptr<CallbackDispatcher> const dispatcher_;
+  std::shared_ptr<rti1516_2025::umbra_binding_detail::CallbackSession> const
       callbackSession_;
+  std::shared_ptr<ExceptionReportProjectionState> const exceptionReportProjection_;
   std::shared_ptr<std::atomic_bool> attributeRelevanceAdvisorySwitchState_;
   CallbackCompletionHandler timeRegulationEnabledCompletion_;
   CallbackCompletionHandler timeConstrainedEnabledCompletion_;

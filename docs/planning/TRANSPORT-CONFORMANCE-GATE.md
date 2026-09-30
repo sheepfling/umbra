@@ -20,7 +20,7 @@ python tools/query_rti_work.py check --lane transport --summary --compact
 python tools/query_rti_work.py check --lane process-boundary --summary --compact
 python tools/query_rti_work.py test "Private process service binds create join and receive-order interaction to the federation registry" --summary --compact
 python tools/query_rti_work.py test "Private registry-bound service exchanges federation traffic across independently launched processes" --summary --compact
-python tools/query_rti_work.py test "RTIambassador routes public Create, Join, and Resign through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py test "RTIambassador routes public Create, Join, Resign, and Destroy through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador obtains the selected logical-time factory after a configured process join" --summary --compact
 python tools/query_rti_work.py test "RTIambassadors resolve federate handles and names through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes public Send Interaction through a configured process endpoint" --summary --compact
@@ -39,7 +39,7 @@ python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-transportation-
 python tools/query_rti_work.py check --lane process-transportation-timestamped-regional-interaction-control --summary --compact
 ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.RTIambassadors preserve a timestamped regional interaction transportation override through a configured process endpoint$" --output-on-failure
 python tools/query_rti_work.py test "RTIambassador resolves interaction and parameter handles through a configured process endpoint" --summary --compact
-python tools/query_rti_work.py test "RTIambassador publishes object-class attributes and registers an object through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py test "RTIambassador publishes and unpublishes object-class attributes and registers an object through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador reserves a name and registers a named object through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador projects the 2025 region lifecycle and regional registration through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes a remote regional subscription and scoped update through a configured process endpoint" --summary --compact
@@ -71,7 +71,8 @@ python tools/query_rti_work.py lane federate.callback.request-retraction --summa
 python tools/query_rti_work.py test "Private process service routes ordinary Update Attribute Values to a subscribed receiver" --summary --compact
 python tools/query_rti_work.py lane rti.service.subscribe-object-class-attributes --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes public Update Attribute Values through a configured process endpoint" --summary --compact
-python tools/query_rti_work.py test "RTIambassador delivers a process Update Attribute Values event through the official Reflect callback" --summary --compact
+python tools/query_rti_work.py focus process-update-attribute-delivery-reduction --summary --compact
+python tools/query_rti_work.py test "RTIambassador reflects an update only once for overlapping process subscriptions" --summary --compact
 python tools/query_rti_work.py test "RTIambassador selects a configured tcp process endpoint through the official address field" --summary --compact
 python tools/query_rti_work.py test "RTIambassador rejects malformed tcp process addresses before connecting" --summary --compact
 cmake --build <build-dir> --config Debug --target umbra_test_installable_package
@@ -92,14 +93,32 @@ card and emits the deterministic
 projection appears exactly once and that the CTest report has no failures or
 errors; the artifact is evidence for review, not a conformance claim.
 
-The current query baseline is 155 mapped `process-boundary` plan rows / 6,717
-indexed Catch2 assertions (6,869 assertions recorded on the individual plan
-rows), all mapped and source-located. The stable label has
+The current query baseline is available from
+`python tools/query_rti_work.py focus process-boundary --summary --compact`;
+that live card is authoritative for mapped plan rows, indexed assertions,
+source health, and direct requirement-to-2025-section pairs. The stable label has
 207 registered CTest executions; the JUnit target executes the 119
 independently buildable registrations. The current merged JUnit report contains
 214 emitted section-level testcases and 5,458 assertions with zero failures/errors.
 The aggregate umbrella registration remains CTest-only because its federation-
 management translation unit is not an evidence source.
+The newest service-report lifecycle lane is independently selectable without
+rescan:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-endpoint-service-report-file-loss-integration --summary --compact
+python tools/query_rti_work.py focus process-service-report-file-loss --summary --compact
+python tools/query_rti_work.py trace "RTIambassador reports a deterministic process service-report append failure after file loss" --summary --compact
+python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-service-report-file-loss-integration --summary --compact
+python tools/query_rti_work.py check --lane process-service-report-file-loss --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.connection_catch2\.RTIambassador reports a deterministic process service-report append failure after file loss$" --output-on-failure
+```
+
+It carries 15 assertions, two direct Requirements-Lab anchors, two canonical
+2025 subsections, and eight official C++ API surfaces. It proves deterministic
+post-join append failure after the report file is removed, with no recreation or
+memory fallback. Preflight directory validation, joined-federate allocation,
+switch-cycle append gating, and rejoin identity remain separate lanes.
 The newest HLA_IMMEDIATE restored ownership-assumption slice is independently
 queryable at
 `cpp/tests/attribute_ownership_acquisition_catch2.cpp:3437`: 52 assertions,

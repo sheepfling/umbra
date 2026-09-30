@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The subject begins with an active adapter-selected application interaction subscription and a passive HLAreportServiceInvocation subscription from the adapter-supplied IEEE 1516.2-2025 MIM. It unsubscribes the passive class, confirms the active application class remains, then unsubscribes the last interaction class and confirms a fresh HLArequestSubscriptions response has the MIM-defined empty interaction-class list. The scenario uses only official IEEE 1516.1-2025 RTIambassador and FederateAmbassador APIs, standard MIM interactions, standard encoding DataElements, and the C++ standard library. Provider, FOM, endpoint, callback configuration, application interaction name, and update-rate designator remain adapter supplied. No vendor API, private headers, or DDM regions are used.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-multiple-interaction-full-unsubscribe-query-service",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unsubscribeinteractionclass.4d5941b5cddf",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeInteractionClass( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "unsubscribeInteractionClass",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQueryContract"
+      ]
+    }
+  ]
+}

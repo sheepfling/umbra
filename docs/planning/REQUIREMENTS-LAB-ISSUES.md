@@ -15,7 +15,7 @@ Use the bounded query from the repository root:
 
 ```powershell
 python tools/query_rti_work.py lab-issues --summary --compact
-python tools/query_rti_work.py lab-issues RL-177 --summary --compact
+python tools/query_rti_work.py lab-issues RL-267 --summary --compact
 ```
 
 ## Policy
@@ -59,6 +59,25 @@ Reproduce the bounded observation with:
 python tools/query_rti_work.py gaps --family object-ddm-ownership --clause 6.18 --summary --compact --limit 40
 ```
 
+### RL-267 — page-67 Initiate Federate Save label clause ownership recurs
+
+The pinned candidate
+`requirement-candidate-content-clauses-04-federation-management-page-067-l22-3`
+describes the Initiate Federate Save label, whose source belongs to **§4.20**,
+but the export attaches it to **§4.21.1**. The mismatch surfaced again while
+mapping the single-federate process save-not-complete test. The test verifies
+that the label reaches the callback, but its focused mapping deliberately
+leaves that assertion unmapped rather than attributing it to Federate Save
+Begun.
+
+This is a new recurrence of the page-67 service-boundary issue documented as
+RL-082, not a replacement of that historical record. Preserve the candidate
+id and exported clause until the Lab refinement is reviewed; do not resync or
+mutate the pinned export as part of RTI work.
+
+Source: `content/clauses/04-federation-management-page-067.tex`, line 22
+(page 67), document `hla-1516.1-2025`.
+
 ## Resolved local harness rough edge
 
 While adding the next bounded ownership handoff, the Catch2 plan validator
@@ -70,3 +89,25 @@ source-reconciliation states, while `ready` and `focus` continue to expose the
 row as planned and source-unlocated. This is a local validation usability fix,
 not a change to the pinned Requirements Lab export; keep the planned row's
 requirement and 2025 subsection mapping intact until its C++ case is added.
+
+### RL-268 — unrelated global Catch2 plan validation drift
+
+The global plan audit
+`python tools/requirements_lab.py check-plan --plan compliance/requirements-lab/catch2-test-plan.json`
+reports eight findings in other work lanes: two rows lack a non-empty
+`next_action`; three references point to the absent API surface
+`api.2025.cpp.rtiambassador.setservicereportingswitch.86951e8b3e77`; and one
+timestamped directed-interaction row contains four requirement/API identifiers
+absent from the pinned Lab surfaces. The affected rows concern timestamped
+attribute update, negotiated/confirmed divestiture, timestamped directed
+interaction, and process restore status.
+
+Impact: the global Catch2 requirements-plan gate is not green, but these
+unrelated findings do not invalidate the independently passing promoted
+portable TCK interaction-publication slice or its IEEE 1516.1-2025 and
+1516.2-2025 contracts.
+
+Workaround: repair each affected row only after checking its exact 2025 source
+and Lab identity. Keep this drift separate from portable TCK evidence; do not
+resynchronize or rewrite the pinned Requirements Lab export to silence the
+validator.

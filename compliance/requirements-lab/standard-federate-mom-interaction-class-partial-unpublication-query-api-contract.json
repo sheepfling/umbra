@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK case publishes two adapter-selected ordinary interaction classes, unpublishes one through the official IEEE 1516.1-2025 RTIambassador API, and queries the result through the IEEE 1516.2-2025 MIM. The provider library, FOM, endpoint, callback configuration, and class names remain adapter-supplied. No vendor hooks or DDM region APIs are used.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-interaction-class-partial-unpublication-mim-query",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unpublishinteractionclass.eebfcdf14b8a",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unpublishInteractionClass( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "unpublishInteractionClass",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomInteractionClassPartialUnpublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomInteractionClassPartialUnpublicationQueryContract"
+      ]
+    }
+  ]
+}

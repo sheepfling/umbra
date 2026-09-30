@@ -13,10 +13,10 @@ package configuration template.
 CTest invokes the installed-package smoke path from the ordinary native build;
 it is also available as the named `umbra_test_installable_package` target (or
 the `installable-package` CTest label). Its staging and consumer builds are
-created below the selected out/cmake profile, never in a source directory. The
-smoke validates `umbra_rti-profile.json`, the exported LibXml2 dependency when
-the embedded federation-management option is enabled, and the installed
-1516.2 resource payload used by the runtime fallback.
+created below the selected build profile under `out/`, never in a source
+directory. The smoke validates `umbra_rti-profile.json`, the exported LibXml2
+dependency when the embedded federation-management option is enabled, and the
+installed 1516.2 resource payload used by the runtime fallback.
 The active process lane has a separate `umbra_process_boundary_junit` target,
 which writes a bounded JUnit artifact under the configured compliance output
 directory.
@@ -63,3 +63,5 @@ For the build commands and named test lanes, start at the root README and
 [requirements and testing](../docs/testing/REQUIREMENTS-AND-TESTING.md). CI
 providers and local checkouts invoke matching presets through
 [tools/ci.py](../tools/ci.py); see the [CI contract](../docs/development/CI.md).
+On Windows, those native profiles use the Scoop MinGW GCC and Ninja presets
+(`mingw-default`, `mingw-catch2`, `mingw-fom`, and `mingw-fom-services`).

@@ -16,8 +16,13 @@ import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
+import hla.rti1516_2025.exceptions.ObjectInstanceNotKnown;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -43,6 +48,7 @@ final class FederationBasicsTck {
       RTIambassador foreignCreator = factory.getRtiAmbassador();
       RTIambassador foreignMember = factory.getRtiAmbassador();
       RTIambassador immediateLister = factory.getRtiAmbassador();
+      RTIambassador evokedDisconnectLister = factory.getRtiAmbassador();
       CallbackRecorder creatorRecorder = new CallbackRecorder();
       CallbackRecorder unjoinedRecorder = new CallbackRecorder();
       CallbackRecorder modulesRecorder = new CallbackRecorder();
@@ -52,6 +58,7 @@ final class FederationBasicsTck {
       CallbackRecorder foreignCreatorRecorder = new CallbackRecorder();
       CallbackRecorder foreignMemberRecorder = new CallbackRecorder();
       CallbackRecorder immediateRecorder = new CallbackRecorder();
+      CallbackRecorder evokedDisconnectRecorder = new CallbackRecorder();
       String federation = "java-tck-membership-" + UUID.randomUUID();
       String foreignFederation = "java-tck-foreign-" + UUID.randomUUID();
       String missingFederation = "java-tck-missing-" + UUID.randomUUID();
@@ -65,6 +72,7 @@ final class FederationBasicsTck {
       boolean foreignCreatorConnected = false;
       boolean foreignMemberConnected = false;
       boolean immediateListerConnected = false;
+      boolean evokedDisconnectListerConnected = false;
       boolean creatorJoined = false;
       boolean modulesJoined = false;
       boolean typedJoined = false;
@@ -127,6 +135,9 @@ final class FederationBasicsTck {
          ConfigurationResult immediateConfiguration = immediateLister.connect(
             immediateRecorder.proxy(), CallbackModel.HLA_IMMEDIATE);
          immediateListerConnected = true;
+         ConfigurationResult evokedDisconnectConfiguration = evokedDisconnectLister.connect(
+            evokedDisconnectRecorder.proxy(), CallbackModel.HLA_EVOKED);
+         evokedDisconnectListerConnected = true;
          check(creatorConfiguration != null, "creator connect returned null ConfigurationResult");
          check(modulesConfiguration != null, "modules joiner connect returned null ConfigurationResult");
          check(typedConfiguration != null, "typed joiner connect returned null ConfigurationResult");
@@ -140,6 +151,8 @@ final class FederationBasicsTck {
             "foreign member connect returned null ConfigurationResult");
          check(immediateConfiguration != null,
             "immediate lister connect returned null ConfigurationResult");
+         check(evokedDisconnectConfiguration != null,
+            "evoked disconnect lister connect returned null ConfigurationResult");
 
          creator.createFederationExecution(federation, fom, timeImplementation);
          created = true;
@@ -236,6 +249,9 @@ final class FederationBasicsTck {
          check(containsFederation(creatorRecorder.lastFederationExecutions,
                federation, timeImplementation),
             "created federation was missing from the federation execution report");
+         check(containsFederation(creatorRecorder.lastFederationExecutions,
+               foreignFederation, timeImplementation),
+            "second federation was missing from the federation execution report");
 
          immediateLister.listFederationExecutions();
          check(immediateRecorder.federationExecutionReports > 0,
@@ -243,6 +259,17 @@ final class FederationBasicsTck {
          check(containsFederation(immediateRecorder.lastFederationExecutions,
                federation, timeImplementation),
             "immediate federation execution report omitted the created federation");
+         check(containsFederation(immediateRecorder.lastFederationExecutions,
+               foreignFederation, timeImplementation),
+            "immediate federation execution report omitted the second federation");
+
+         evokedDisconnectLister.listFederationExecutions();
+         check(evokedDisconnectRecorder.federationExecutionReports == 0,
+            "evoked federation report was delivered before callback servicing");
+         evokedDisconnectLister.disconnect();
+         evokedDisconnectListerConnected = false;
+         check(evokedDisconnectRecorder.federationExecutionReports == 0,
+            "disconnect delivered a queued federation execution report");
 
          creator.listFederationExecutionMembers(federation);
          drain(creator);
@@ -299,6 +326,13 @@ final class FederationBasicsTck {
          creatorJoined = false;
          creator.destroyFederationExecution(federation);
          created = false;
+         int missingReportsBeforeDestroyedQuery = creatorRecorder.missingFederationReports;
+         creator.listFederationExecutionMembers(federation);
+         drain(creator);
+         check(creatorRecorder.missingFederationReports == missingReportsBeforeDestroyedQuery + 1,
+            "destroyed federation did not produce a new missing-federation report");
+         check(federation.equals(creatorRecorder.lastMissingFederation),
+            "destroyed-federation report identified the wrong execution");
          expectFailure(
             () -> creator.destroyFederationExecution(federation),
             "FederationExecutionDoesNotExist", "destroy of a missing federation");
@@ -353,6 +387,12 @@ final class FederationBasicsTck {
          if (immediateListerConnected) {
             try {
                immediateLister.disconnect();
+            } catch (Exception ignored) {
+            }
+         }
+         if (evokedDisconnectListerConnected) {
+            try {
+               evokedDisconnectLister.disconnect();
             } catch (Exception ignored) {
             }
          }
@@ -566,6 +606,14 @@ final class FederationBasicsTck {
       boolean publisherJoined = false;
       boolean subscriberJoined = false;
       boolean created = false;
+      String reservedName = null;
+      boolean nameReservationSucceeded = false;
+      boolean subscriberNameReservationSucceeded = false;
+      ObjectInstanceHandle namedRegistered = null;
+      ObjectInstanceHandle subscriberNamedRegistered = null;
+      Set<String> batchReservationNames = new LinkedHashSet<>();
+      boolean publisherBatchReservationActive = false;
+      boolean subscriberBatchReservationActive = false;
       try {
          ConfigurationResult publisherConfiguration = publisher.connect(
             publisherRecorder.proxy(), CallbackModel.HLA_EVOKED);
@@ -604,21 +652,107 @@ final class FederationBasicsTck {
             "registerObjectInstance returned an invalid handle");
          drain(subscriber);
          check(registered.equals(subscriberRecorder.discoveredObject),
-            "discovered object handle differs from the registered handle");
+            "discovered object handle differs from the unnamed registration");
          check(publisher.getObjectInstanceName(registered).equals(
                subscriberRecorder.discoveredName),
+            "discovered name did not match the unnamed registration");
+         check(subscriberRecorder.discoveredClass.equals(subscriberClass),
+            "discovered object class did not match the subscribed class");
+
+         byte[] classRequestTag = new byte[] {3, 1, 4};
+         subscriber.requestAttributeValueUpdate(subscriberClass, subscriberAttributes,
+            classRequestTag);
+         drain(publisher);
+         check(publisherRecorder.providedUpdates.size() == 1,
+            "class-scoped value update request did not identify the registered object");
+         ProvidedUpdate classProvidedUpdate = publisherRecorder.providedUpdates.get(0);
+         check(registered.equals(classProvidedUpdate.object),
+            "class-scoped value update request identified the wrong object");
+         check(classProvidedUpdate.attributes.equals(publisherAttributes),
+            "class-scoped value update request reported the wrong attributes");
+         check(Arrays.equals(classRequestTag, classProvidedUpdate.tag),
+            "class-scoped value update request tag did not round-trip");
+
+         subscriber.localDeleteObjectInstance(registered);
+         check(subscriberRecorder.removedObject == null,
+            "localDeleteObjectInstance incorrectly generated removeObjectInstance");
+         boolean repeatedLocalDeleteRejected = false;
+         try {
+            subscriber.localDeleteObjectInstance(registered);
+         } catch (ObjectInstanceNotKnown expected) {
+            repeatedLocalDeleteRejected = true;
+         }
+         check(repeatedLocalDeleteRejected,
+            "localDeleteObjectInstance did not forget the locally deleted object");
+
+         batchReservationNames.add("java-tck-batch-a-" + UUID.randomUUID());
+         batchReservationNames.add("java-tck-batch-b-" + UUID.randomUUID());
+         publisher.reserveMultipleObjectInstanceNames(batchReservationNames);
+         publisherBatchReservationActive = true;
+         drain(publisher);
+         check(batchReservationNames.equals(
+               publisherRecorder.multipleObjectInstanceNamesReserved),
+            "multiple-object-name success callback did not report the requested set");
+         publisher.releaseMultipleObjectInstanceNames(batchReservationNames);
+         publisherBatchReservationActive = false;
+
+         subscriber.reserveMultipleObjectInstanceNames(batchReservationNames);
+         subscriberBatchReservationActive = true;
+         drain(subscriber);
+         check(batchReservationNames.equals(
+               subscriberRecorder.multipleObjectInstanceNamesReserved),
+            "released object-name set could not be reserved by another federate");
+         subscriber.releaseMultipleObjectInstanceNames(batchReservationNames);
+         subscriberBatchReservationActive = false;
+
+         reservedName = "java-tck-named-" + UUID.randomUUID();
+         publisher.reserveObjectInstanceName(reservedName);
+         drain(publisher);
+         nameReservationSucceeded = reservedName.equals(
+            publisherRecorder.reservedObjectInstanceName);
+         check(nameReservationSucceeded,
+            "objectInstanceNameReservationSucceeded did not report the reserved name");
+         namedRegistered = publisher.registerObjectInstance(publisherClass, reservedName);
+         check(namedRegistered != null && namedRegistered.encodedLength() > 0,
+            "named registerObjectInstance returned an invalid handle");
+         check(namedRegistered.equals(publisher.getObjectInstanceHandle(reservedName)),
+            "getObjectInstanceHandle did not resolve the named registration");
+         check(reservedName.equals(publisher.getObjectInstanceName(namedRegistered)),
+            "getObjectInstanceName did not preserve the reserved name");
+         subscriber.reserveObjectInstanceName(reservedName);
+         drain(subscriber);
+         check(reservedName.equals(subscriberRecorder.failedObjectInstanceNameReservation),
+            "a second federate did not receive reservation failure for the in-use name");
+         check(namedRegistered.equals(subscriberRecorder.discoveredObject),
+            "discovered object handle differs from the named registration");
+         check(reservedName.equals(subscriberRecorder.discoveredName),
             "discovered object name did not match the registered instance");
          check(subscriberRecorder.discoveredClass.equals(subscriberClass),
             "discovered object class did not match the subscribed class");
+
+         publisherRecorder.providedUpdates.clear();
+         byte[] instanceRequestTag = new byte[] {2, 7, 1};
+         subscriber.requestAttributeValueUpdate(namedRegistered, subscriberAttributes,
+            instanceRequestTag);
+         drain(publisher);
+         check(publisherRecorder.providedUpdates.size() == 1,
+            "instance-scoped value update request did not produce one provider callback");
+         ProvidedUpdate instanceProvidedUpdate = publisherRecorder.providedUpdates.get(0);
+         check(namedRegistered.equals(instanceProvidedUpdate.object),
+            "instance-scoped value update request identified the wrong object");
+         check(instanceProvidedUpdate.attributes.equals(publisherAttributes),
+            "instance-scoped value update request reported the wrong attributes");
+         check(Arrays.equals(instanceRequestTag, instanceProvidedUpdate.tag),
+            "instance-scoped value update request tag did not round-trip");
 
          byte[] payload = new byte[] {1, 2, 3, (byte) 0xff};
          AttributeHandleValueMap values =
             publisher.getAttributeHandleValueMapFactory().create(1);
          values.put(publisherAttribute, payload);
          byte[] tag = new byte[] {9, 8, 7};
-         publisher.updateAttributeValues(registered, values, tag);
+         publisher.updateAttributeValues(namedRegistered, values, tag);
          drain(subscriber);
-         check(subscriberRecorder.reflectedObject.equals(registered),
+         check(subscriberRecorder.reflectedObject.equals(namedRegistered),
             "reflected object handle differs from the registered handle");
          check(subscriberRecorder.reflectedValues != null
                && subscriberRecorder.reflectedValues.size() == 1,
@@ -628,14 +762,67 @@ final class FederationBasicsTck {
             "reflected attribute payload did not round-trip");
          check(Arrays.equals(tag, subscriberRecorder.reflectedTag),
             "update tag did not round-trip");
+
+         byte[] deletionTag = new byte[] {6, 5, 4};
+         publisher.deleteObjectInstance(namedRegistered, deletionTag);
+         drain(subscriber);
+         check(namedRegistered.equals(subscriberRecorder.removedObject),
+            "removeObjectInstance reported the wrong object handle");
+         check(Arrays.equals(deletionTag, subscriberRecorder.removalTag),
+            "object deletion tag did not round-trip");
+
+         // A deleted named instance releases its registered name. A different
+         // federate can reserve that same name and use it for a new instance.
+         subscriber.publishObjectClassAttributes(subscriberClass, subscriberAttributes);
+         subscriber.reserveObjectInstanceName(reservedName);
+         drain(subscriber);
+         subscriberNameReservationSucceeded = reservedName.equals(
+            subscriberRecorder.reservedObjectInstanceName);
+         check(subscriberNameReservationSucceeded,
+            "a deleted object's registered name was not available for reservation");
+         subscriberNamedRegistered = subscriber.registerObjectInstance(
+            subscriberClass, reservedName);
+         subscriberNameReservationSucceeded = false;
+         check(subscriberNamedRegistered != null
+               && subscriberNamedRegistered.encodedLength() > 0,
+            "the second federate could not register an instance with the released name");
+         check(subscriberNamedRegistered.equals(
+               subscriber.getObjectInstanceHandle(reservedName))
+               && reservedName.equals(subscriber.getObjectInstanceName(
+                  subscriberNamedRegistered)),
+            "the released-name registration did not preserve object-name lookup identity");
       } finally {
          if (subscriberJoined) {
+            if (subscriberNameReservationSucceeded && reservedName != null) {
+                try {
+                   subscriber.releaseObjectInstanceName(reservedName);
+                } catch (Exception ignored) {
+                }
+             }
+            if (subscriberBatchReservationActive) {
+               try {
+                  subscriber.releaseMultipleObjectInstanceNames(batchReservationNames);
+               } catch (Exception ignored) {
+               }
+            }
             try {
                subscriber.resignFederationExecution(ResignAction.NO_ACTION);
             } catch (Exception ignored) {
             }
          }
          if (publisherJoined) {
+            if (publisherBatchReservationActive) {
+               try {
+                  publisher.releaseMultipleObjectInstanceNames(batchReservationNames);
+               } catch (Exception ignored) {
+               }
+            }
+            if (nameReservationSucceeded && namedRegistered == null && reservedName != null) {
+               try {
+                  publisher.releaseObjectInstanceName(reservedName);
+               } catch (Exception ignored) {
+               }
+            }
             try {
                publisher.resignFederationExecution(ResignAction.NO_ACTION);
             } catch (Exception ignored) {
@@ -685,9 +872,15 @@ final class FederationBasicsTck {
       private ObjectInstanceHandle discoveredObject;
       private ObjectClassHandle discoveredClass;
       private String discoveredName;
+      private String reservedObjectInstanceName;
+      private String failedObjectInstanceNameReservation;
+      private Set<?> multipleObjectInstanceNamesReserved;
       private ObjectInstanceHandle reflectedObject;
       private AttributeHandleValueMap reflectedValues;
       private byte[] reflectedTag;
+      private ObjectInstanceHandle removedObject;
+      private byte[] removalTag;
+      private final List<ProvidedUpdate> providedUpdates = new ArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -717,6 +910,20 @@ final class FederationBasicsTck {
                   discoveredClass = (ObjectClassHandle) arguments[1];
                   discoveredName = (String) arguments[2];
                }
+               if ("objectInstanceNameReservationSucceeded".equals(method.getName())
+                     && arguments != null && arguments.length >= 1) {
+                  reservedObjectInstanceName = (String) arguments[0];
+               }
+               if ("objectInstanceNameReservationFailed".equals(method.getName())
+                     && arguments != null && arguments.length >= 1) {
+                  failedObjectInstanceNameReservation = (String) arguments[0];
+               }
+               if ("multipleObjectInstanceNameReservationSucceeded".equals(method.getName())
+                     && arguments != null && arguments.length >= 1
+                     && arguments[0] instanceof Set<?>) {
+                  multipleObjectInstanceNamesReserved = new LinkedHashSet<>(
+                     (Set<?>) arguments[0]);
+               }
                if ("reflectAttributeValues".equals(method.getName())
                      && arguments != null && arguments.length >= 2) {
                   reflectedObject = (ObjectInstanceHandle) arguments[0];
@@ -725,6 +932,22 @@ final class FederationBasicsTck {
                      reflectedTag = (byte[]) arguments[2];
                   }
                }
+               if ("removeObjectInstance".equals(method.getName())
+                     && arguments != null && arguments.length >= 2) {
+                  removedObject = (ObjectInstanceHandle) arguments[0];
+                  if (arguments[1] instanceof byte[]) {
+                     removalTag = ((byte[]) arguments[1]).clone();
+                  }
+               }
+               if ("provideAttributeValueUpdate".equals(method.getName())
+                     && arguments != null && arguments.length >= 3) {
+                  @SuppressWarnings("unchecked")
+                  Set<AttributeHandle> attributes = new LinkedHashSet<>(
+                     (Set<AttributeHandle>) arguments[1]);
+                  providedUpdates.add(new ProvidedUpdate(
+                     (ObjectInstanceHandle) arguments[0], attributes,
+                     arguments[2] instanceof byte[] ? ((byte[]) arguments[2]).clone() : null));
+               }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(method.getName())) return "Java RTI TCK callbacks";
                   if ("hashCode".equals(method.getName())) return System.identityHashCode(proxy);
@@ -732,6 +955,19 @@ final class FederationBasicsTck {
                }
                return null;
             });
+      }
+   }
+
+   private static final class ProvidedUpdate {
+      private final ObjectInstanceHandle object;
+      private final Set<AttributeHandle> attributes;
+      private final byte[] tag;
+
+      private ProvidedUpdate(ObjectInstanceHandle object, Set<AttributeHandle> attributes,
+            byte[] tag) {
+         this.object = object;
+         this.attributes = attributes;
+         this.tag = tag;
       }
    }
 }

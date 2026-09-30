@@ -1,0 +1,35 @@
+{
+    "schema_version": 1,
+    "kind": "requirements-reference",
+    "document_id": "hla-1516.1-2025",
+    "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+    "notes": "The subject publishes the three ordinary application attributes supplied by the adapter for the selected P0 object class. The requester verifies the exact four-handle IEEE 1516.2-2025 MIM report: those three adapter-selected handles plus the inherited HLAprivilegeToDeleteObject handle defined on HLAobjectRoot. The test does not claim that the adapter-selected application attributes are every attribute in the standard object-class hierarchy. DDM regions are not used.",
+    "requirements": [
+        {
+            "id": "cpp-tck-federate-mom-complete-object-class-publication-declaration",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-090-l79-22",
+            "clause_id": "clause-5.2",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "419-431",
+            "source_symbol": "publishObjectClassAttributes",
+            "statement": "The subject publishes the three adapter-configured ordinary application attributes for the selected object class through the standard Publish Object Class Attributes service. The publication report is checked against those three application handles and the inherited HLAprivilegeToDeleteObject handle defined by the 2025 MIM.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomCompleteObjectClassPublicationQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomCompleteObjectClassPublicationQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-complete-object-class-publication-report",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+            "clause_id": "clause-11.4.1",
+            "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+            "source_lines": "29-42, 1063-1073, 1225-1313",
+            "source_symbol": "HLAreportObjectClassPublication",
+            "statement": "A standard MIM publication query for the joined subject returns the selected object-class publication report. Its attribute handle list contains exactly the three adapter-configured application attributes and the inherited HLAprivilegeToDeleteObject attribute, with no missing or extra handles.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomCompleteObjectClassPublicationQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomCompleteObjectClassPublicationQueryContract"
+            ]
+        }
+    ]
+}

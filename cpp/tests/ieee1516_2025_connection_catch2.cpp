@@ -1,13 +1,20 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
 #include <atomic>
 #include <array>
+#include <chrono>
+#include <condition_variable>
 #include <cstring>
 #include <exception>
 #include <filesystem>
 #include <fstream>
+#include <functional>
+#include <future>
+#include <iterator>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <set>
@@ -16,10 +23,12 @@
 #include <vector>
 #include <RTI/RTI1516.h>
 #include <RTI/NullFederateAmbassador.h>
+#include <RTI/auth/HLAnoCredentials.h>
 #include <RTI/time/HLAinteger64Time.h>
 #include <RTI/time/HLAinteger64TimeFactory.h>
 #include <RTI/time/HLAinteger64Interval.h>
 #include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include <RTI/encoding/BasicDataElements.h>
 
 #include <umbra/embedded_profile_configuration.hpp>
 
@@ -28,15 +37,19 @@
 #include "internal/federation/process_federation_service.hpp"
 #include "internal/federation/process_transport.hpp"
 #include "internal/federation/process_transport_session.hpp"
+#include "process_public_service_fixture.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
 #include "internal/handles/attribute_handle.hpp"
+#include "internal/handles/dimension_handle.hpp"
 #include "internal/handles/federate_handle.hpp"
 #include "internal/handles/interaction_class_handle.hpp"
 #include "internal/handles/object_class_handle.hpp"
 #include "internal/handles/object_instance_handle.hpp"
 #include "internal/handles/parameter_handle.hpp"
+#include "internal/handles/region_handle.hpp"
+#include "internal/handles/transportation_type_handle.hpp"
 namespace {
 
 using rti1516_2025::CallbackModel;
@@ -339,7 +352,8 @@ PrevalidatedFomModule validatedProcessModule(
   return *result.module;
 }
 
-FederationDefinition composedProcessDefinition() {
+FederationDefinition composedProcessDefinition(
+    bool const allowRelaxedDdm = false) {
   std::vector<PrevalidatedFomModule> modules{
       validatedProcessModule(
           processResourcePath("mim/HLAstandardMIM-2025.xml"),
@@ -350,6 +364,15 @@ FederationDefinition composedProcessDefinition() {
           FomModuleKind::fom,
           L"urn:umbra:test:public-process-restaurant"),
   };
+  if (allowRelaxedDdm) {
+    auto const relaxedDdmFom =
+        std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+        "data" / "allow-relaxed-ddm-enabled-fom.xml";
+    modules.push_back(validatedProcessModule(
+        relaxedDdmFom,
+        FomModuleKind::fom,
+        L"urn:umbra:test:public-process-relaxed-ddm"));
+  }
   LibXml2FomModuleComposer composer(
       processResourcePath("schemas/IEEE1516-FDD-2025.xsd"));
   auto result = composer.compose(modules);
@@ -403,6 +426,7 @@ FederationDefinition composedDirectedProcessDefinition() {
 
 #endif
 
+
 std::unique_ptr<RTIambassador> makeRti() {
   RTIambassadorFactory factory;
   return factory.createRTIambassador();
@@ -410,8 +434,15 @@ std::unique_ptr<RTIambassador> makeRti() {
 
 std::filesystem::path temporaryServiceReportDirectory() {
   static std::atomic_uint64_t next{0};
-  return std::filesystem::temp_directory_path() /
-      ("umbra-service-report-configuration-" + std::to_string(++next));
+  // CTest starts separate processes whose counters all begin at zero. Claim
+  // each directory atomically so parallel cases never share or remove it.
+  for (;;) {
+    auto const candidate = std::filesystem::temp_directory_path() /
+        ("umbra-service-report-configuration-" + std::to_string(++next));
+    if (std::filesystem::create_directory(candidate)) {
+      return candidate;
+    }
+  }
 }
 
 void requireIgnoredConfiguration(ConfigurationResult const& result) {
@@ -469,10 +500,12 @@ TEST_CASE(
   if (server.joinable()) {
     server.join();
   }
+  if (serverError) {
+    std::rethrow_exception(serverError);
+  }
   if (clientError) {
     std::rethrow_exception(clientError);
   }
-  REQUIRE_FALSE(serverError);
   REQUIRE(result.has_value());
   REQUIRE(result->configurationUsed);
   REQUIRE(result->addressUsed);
@@ -480,8 +513,8 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "RTIambassador routes public Create, Join, and Resign through a configured process endpoint",
-    "[integration][foundation][federation-management][transport][time-management][2025][process-boundary][public-endpoint][rti.service.enable-time-regulation][rti.service.disable-time-regulation][rti.service.query-logical-time][federate.callback.time-regulation-enabled]") {
+    "RTIambassador routes public Create, Join, Resign, and Destroy through a configured process endpoint",
+    "[integration][foundation][federation-management][transport][time-management][2025][process-boundary][process-boundary-federation-lifecycle][public-endpoint][rti.service.enable-time-regulation][rti.service.disable-time-regulation][rti.service.query-logical-time][rti.service.destroy-federation-execution][federate.callback.time-regulation-enabled]") {
   using umbra::detail::EmbeddedFederationRegistry;
   using umbra::detail::FederationDefinition;
   using umbra::detail::FomModuleKind;
@@ -520,15 +553,18 @@ TEST_CASE(
           [](std::wstring) { return false; });
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
-      if (!ProcessTransportServiceDispatcher::serveOne(session, handler) ||
-          !ProcessTransportServiceDispatcher::serveOne(session, handler) ||
-          !ProcessTransportServiceDispatcher::serveOne(session, handler) ||
-          !ProcessTransportServiceDispatcher::serveOne(session, handler) ||
-          !ProcessTransportServiceDispatcher::serveOne(session, handler) ||
-          !ProcessTransportServiceDispatcher::serveOne(session, handler) ||
-          !ProcessTransportServiceDispatcher::serveOne(session, handler)) {
+      if (!umbra::test::servePrimaryProcessRequest(session, handler) ||
+          !umbra::test::servePrimaryProcessRequest(session, handler) ||
+          !umbra::test::servePrimaryProcessRequest(session, handler) ||
+          !umbra::test::servePrimaryProcessRequest(session, handler) ||
+          !umbra::test::servePrimaryProcessRequest(session, handler) ||
+          !umbra::test::servePrimaryProcessRequest(session, handler) ||
+          !umbra::test::servePrimaryProcessRequest(session, handler) ||
+          !umbra::test::servePrimaryProcessRequest(session, handler) ||
+          !umbra::test::servePrimaryProcessRequest(session, handler) ||
+          !umbra::test::servePrimaryProcessRequest(session, handler)) {
         throw std::runtime_error(
-            "The public process endpoint server did not receive Create, Join, Enable/Disable Time Regulation, Query Logical Time, and Resign.");
+            "The public process endpoint server did not receive Create, Join, Destroy-while-joined, Enable/Disable Time Regulation, Query Logical Time, Resign, Destroy, and missing-Destroy.");
       }
       service.detach(session);
       connection->close();
@@ -552,6 +588,9 @@ TEST_CASE(
         L"process-public-execution", L"server-owned-fom.xml");
     joinedHandle = rti->joinFederationExecution(
         L"process-public-type", L"process-public-execution");
+    REQUIRE_THROWS_AS(
+        rti->destroyFederationExecution(L"process-public-execution"),
+        rti1516_2025::FederatesCurrentlyJoined);
     REQUIRE_NOTHROW(
         rti->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
     REQUIRE(federate.timeRegulationEnabledCount == 0U);
@@ -567,6 +606,11 @@ TEST_CASE(
         rti->disableTimeRegulation(),
         rti1516_2025::TimeRegulationIsNotEnabled);
     rti->resignFederationExecution(NO_ACTION);
+    REQUIRE_NOTHROW(
+        rti->destroyFederationExecution(L"process-public-execution"));
+    REQUIRE_THROWS_AS(
+        rti->destroyFederationExecution(L"process-public-execution"),
+        rti1516_2025::FederationExecutionDoesNotExist);
     rti->disconnect();
   } catch (...) {
     clientError = std::current_exception();
@@ -585,6 +629,3093 @@ TEST_CASE(
   REQUIRE(connectionResult->addressUsed);
   REQUIRE(joinedHandle.has_value());
   REQUIRE(joinedHandle->isValid());
+}
+
+TEST_CASE(
+    "RTIambassador projects the joined-federate MOM report path through a configured process endpoint",
+    "[integration][foundation][federation-management][mom][service-report-file][service-reporting]"
+    "[joined-federate-mom][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-connection-initial-record][process-service-report-file-switch-cycle]"
+    "[process-service-report-file-join-lifetime]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.subscribe-object-class-attributes][rti.service.evoke-callback]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.send-interaction][rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.request-attribute-value-update][rti.service.resign-federation-execution]"
+    "[federate.callback.discover-object-instance][federate.callback.reflect-attribute-values]") {
+  class RecordingFederateAmbassador final : public NullFederateAmbassador {
+   public:
+    struct Discovery final {
+      rti1516_2025::ObjectInstanceHandle objectInstance;
+      rti1516_2025::ObjectClassHandle objectClass;
+      std::wstring objectInstanceName;
+      rti1516_2025::FederateHandle producingFederate;
+    };
+    struct Reflection final {
+      rti1516_2025::ObjectInstanceHandle objectInstance;
+      rti1516_2025::AttributeHandleValueMap attributeValues;
+      rti1516_2025::FederateHandle producingFederate;
+    };
+    void discoverObjectInstance(
+        rti1516_2025::ObjectInstanceHandle const& objectInstance,
+        rti1516_2025::ObjectClassHandle const& objectClass,
+        std::wstring const& objectInstanceName,
+        rti1516_2025::FederateHandle const& producingFederate) override {
+      discoveries.push_back({objectInstance, objectClass, objectInstanceName, producingFederate});
+    }
+    void reflectAttributeValues(
+        rti1516_2025::ObjectInstanceHandle const& objectInstance,
+        rti1516_2025::AttributeHandleValueMap const& attributeValues,
+        rti1516_2025::VariableLengthData const&,
+        rti1516_2025::TransportationTypeHandle const&,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const*) override {
+      reflections.push_back({objectInstance, attributeValues, producingFederate});
+      reflectionCount.fetch_add(1U, std::memory_order_release);
+      reflectionChanged.notify_all();
+      if (discoveries.size() >= 2U && reflections.size() >= 2U) {
+        initialMomValuesReady.store(true, std::memory_order_release);
+      }
+    }
+    bool waitForReflectionCount(std::size_t expectedCount) {
+      std::unique_lock lock(reflectionMutex);
+      return reflectionChanged.wait_for(
+          lock,
+          std::chrono::milliseconds(100),
+          [&] {
+            return reflectionCount.load(std::memory_order_acquire) >= expectedCount;
+          });
+    }
+    std::vector<Discovery> discoveries;
+    std::vector<Reflection> reflections;
+    std::mutex reflectionMutex;
+    std::condition_variable reflectionChanged;
+    std::atomic_size_t reflectionCount{0U};
+    std::atomic_bool initialMomValuesReady{false};
+  } observerFederate;
+
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"public-process-joined-federate-mom-report-execution";
+  constexpr wchar_t const* subjectName =
+      L"public-process-joined-federate-mom-report-subject";
+  constexpr wchar_t const* observerName =
+      L"public-process-joined-federate-mom-report-observer";
+
+  std::exception_ptr serverError;
+  auto narrowExceptionText = [](std::wstring const& value) {
+    std::string result;
+    result.reserve(value.size());
+    for (wchar_t const character : value) {
+      result.push_back(character >= 0 && character <= 0x7F
+                           ? static_cast<char>(character)
+                           : '?');
+    }
+    return result;
+  };
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(description);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+      auto subjectConnection = listener->accept(
+          nullptr,
+          {"public-process-joined-federate-mom-report-server", 0x9D01U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession subjectSession(subjectConnection);
+      auto subjectHandler = service.handlerFor(subjectSession);
+      serveExpected(subjectSession, subjectHandler,
+                    TransportServiceOperation::create_federation_execution,
+                    "The process MOM server lost Create.");
+      serveExpected(subjectSession, subjectHandler,
+                    TransportServiceOperation::join_federation_execution,
+                    "The process MOM server lost subject Join.");
+      serveExpected(subjectSession, subjectHandler,
+                    TransportServiceOperation::get_send_service_reports_to_file_switch,
+                    "The process MOM server lost the initial subject file-switch query.");
+      auto observerConnection = listener->accept(
+          nullptr,
+          {"public-process-joined-federate-mom-report-server", 0x9D02U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession observerSession(observerConnection);
+      auto observerHandler = service.handlerFor(observerSession);
+      serveExpected(observerSession, observerHandler,
+                    TransportServiceOperation::join_federation_execution,
+                    "The process MOM server lost observer Join.");
+      serveExpected(observerSession, observerHandler,
+                    TransportServiceOperation::get_object_class_handle,
+                    "The process MOM server lost the MOM class lookup.");
+      serveExpected(observerSession, observerHandler,
+                    TransportServiceOperation::get_attribute_handle,
+                    "The process MOM server lost the MOM report-file lookup.");
+      serveExpected(observerSession, observerHandler,
+                    TransportServiceOperation::get_attribute_handle,
+                    "The process MOM server lost the MOM name lookup.");
+      serveExpected(observerSession, observerHandler,
+                    TransportServiceOperation::subscribe_object_class_attributes,
+                    "The process MOM server lost the MOM subscription.");
+      while (!observerFederate.initialMomValuesReady.load(std::memory_order_acquire)) {
+        serveExpected(observerSession, observerHandler,
+                      TransportServiceOperation::receive_interaction,
+                      "The process MOM server lost an initial callback poll.");
+      }
+      serveExpected(subjectSession, subjectHandler,
+                    TransportServiceOperation::get_interaction_class_handle,
+                    "The process MOM server lost the HLAsetSwitches lookup.");
+      serveExpected(subjectSession, subjectHandler,
+                    TransportServiceOperation::get_parameter_handle,
+                    "The process MOM server lost the file-switch parameter lookup.");
+      auto serveObserverReflectionsUntil = [&](std::size_t expectedCount) {
+        std::size_t pollCount = 0U;
+        while (observerFederate.reflectionCount.load(std::memory_order_acquire) <
+                   expectedCount &&
+               pollCount != 32U) {
+          serveExpected(observerSession, observerHandler,
+                        TransportServiceOperation::receive_interaction,
+                        "The process MOM server lost a requested report-path reflection poll.");
+          ++pollCount;
+          if (observerFederate.reflectionCount.load(std::memory_order_acquire) <
+              expectedCount) {
+            static_cast<void>(observerFederate.waitForReflectionCount(expectedCount));
+          }
+        }
+        if (observerFederate.reflectionCount.load(std::memory_order_acquire) <
+            expectedCount) {
+          throw std::runtime_error(
+              "The process MOM server did not observe the expected report-path reflection count.");
+        }
+        serveExpected(observerSession, observerHandler,
+                      TransportServiceOperation::receive_interaction,
+                      "The process MOM server lost the final empty callback poll.");
+      };
+      for (std::size_t expectedReflectionCount = 3U;
+           expectedReflectionCount <= 5U;
+           ++expectedReflectionCount) {
+        serveExpected(subjectSession, subjectHandler,
+                      TransportServiceOperation::send_interaction,
+                      "The process MOM server lost an HLAsetSwitches file-reporting adjustment.");
+        serveExpected(subjectSession, subjectHandler,
+                      TransportServiceOperation::report_successful_void_service_invocation,
+                      "The process MOM server lost the successful HLAsetSwitches invocation report.");
+        serveExpected(subjectSession, subjectHandler,
+                      TransportServiceOperation::get_send_service_reports_to_file_switch,
+                      "The process MOM server lost a subject file-switch readback.");
+        serveExpected(observerSession, observerHandler,
+                      TransportServiceOperation::request_attribute_value_update,
+                      "The process MOM server lost a report-path value request.");
+        serveObserverReflectionsUntil(expectedReflectionCount);
+      }
+      serveExpected(subjectSession, subjectHandler,
+                    TransportServiceOperation::resign_federation_execution,
+                    "The process MOM server lost the first subject Resign.");
+      serveExpected(subjectSession, subjectHandler,
+                    TransportServiceOperation::join_federation_execution,
+                    "The process MOM server lost the subject rejoin.");
+      serveExpected(subjectSession, subjectHandler,
+                    TransportServiceOperation::get_send_service_reports_to_file_switch,
+                    "The process MOM server lost the rejoined subject file-switch query.");
+      std::exception_ptr observerLifecycleServerError;
+      std::thread observerLifecycleServer([&] {
+        try {
+          while (umbra::test::servePrimaryProcessRequest(
+              observerSession, observerHandler)) {
+          }
+        } catch (...) {
+          observerLifecycleServerError = std::current_exception();
+        }
+      });
+      try {
+        serveExpected(subjectSession, subjectHandler,
+                      TransportServiceOperation::resign_federation_execution,
+                      "The process MOM server lost the final subject Resign.");
+      } catch (...) {
+        observerConnection->close();
+        if (observerLifecycleServer.joinable()) {
+          observerLifecycleServer.join();
+        }
+        throw;
+      }
+      if (observerLifecycleServer.joinable()) {
+        observerLifecycleServer.join();
+      }
+      if (observerLifecycleServerError) {
+        std::rethrow_exception(observerLifecycleServerError);
+      }
+      service.detach(subjectSession);
+      service.detach(observerSession);
+      subjectConnection->close();
+      observerConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador subjectFederate;
+  auto subject = makeRti();
+  auto observer = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"public-process-joined-federate-mom-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port))
+                           .withAdditionalSettings(L"ignored-by-initial-slice");
+  std::exception_ptr clientError;
+  bool subjectJoined = false;
+  bool observerJoined = false;
+  try {
+    rti1516_2025::HLAnoCredentials credentials;
+    REQUIRE(subject->connect(
+                subjectFederate, HLA_IMMEDIATE, configuration, credentials)
+                .addressUsed);
+    subject->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(subject->joinFederationExecution(
+                subjectName,
+                L"public-process-joined-federate-mom-report-type",
+                federationName)
+                .isValid());
+    subjectJoined = true;
+    REQUIRE_FALSE(subject->getSendServiceReportsToFileSwitch());
+    REQUIRE(observer->connect(observerFederate, HLA_EVOKED, configuration).addressUsed);
+    REQUIRE(observer->joinFederationExecution(
+                observerName,
+                L"public-process-joined-federate-mom-report-type",
+                federationName)
+                .isValid());
+    observerJoined = true;
+
+    auto const momClass = observer->getObjectClassHandle(
+        L"HLAobjectRoot.HLAmanager.HLAfederate");
+    auto const reportFileAttribute =
+        observer->getAttributeHandle(momClass, L"HLAreportServiceFile");
+    auto const federateNameAttribute =
+        observer->getAttributeHandle(momClass, L"HLAfederateName");
+    REQUIRE(momClass.isValid());
+    REQUIRE(reportFileAttribute.isValid());
+    REQUIRE(federateNameAttribute.isValid());
+    REQUIRE_NOTHROW(observer->subscribeObjectClassAttributes(
+        momClass,
+        rti1516_2025::AttributeHandleSet{reportFileAttribute, federateNameAttribute}));
+    for (std::size_t pass = 0U; pass != 16U &&
+         !observerFederate.initialMomValuesReady.load(std::memory_order_acquire);
+         ++pass) {
+      static_cast<void>(observer->evokeCallback(0.0));
+    }
+    // The server's receive-order loop is intentionally request/response
+    // driven.  Send one final empty poll after the callback has become ready
+    // so the server cannot be left blocked in serveOne between the last
+    // reflection and the teardown requests.
+    static_cast<void>(observer->evokeCallback(0.0));
+    REQUIRE(observerFederate.initialMomValuesReady.load(std::memory_order_acquire));
+    REQUIRE(observerFederate.discoveries.size() == 2U);
+    REQUIRE(observerFederate.reflections.size() == 2U);
+
+    std::optional<RecordingFederateAmbassador::Reflection> subjectReflection;
+    for (auto const& reflection : observerFederate.reflections) {
+      auto const value = reflection.attributeValues.find(federateNameAttribute);
+      if (value == reflection.attributeValues.end()) {
+        continue;
+      }
+      rti1516_2025::HLAunicodeString reflectedName;
+      try {
+        reflectedName.decode(value->second);
+      } catch (...) {
+        continue;
+      }
+      if (reflectedName.get() == subjectName) {
+        subjectReflection = reflection;
+        break;
+      }
+    }
+    REQUIRE(subjectReflection.has_value());
+    REQUIRE(subjectReflection->attributeValues.size() == 2U);
+    REQUIRE_FALSE(subjectReflection->producingFederate.isValid());
+    auto const discovery = std::find_if(
+        observerFederate.discoveries.begin(),
+        observerFederate.discoveries.end(),
+        [&](RecordingFederateAmbassador::Discovery const& value) {
+          return value.objectInstance == subjectReflection->objectInstance;
+        });
+    REQUIRE(discovery != observerFederate.discoveries.end());
+    REQUIRE(discovery->objectClass == momClass);
+    REQUIRE_FALSE(discovery->producingFederate.isValid());
+
+    rti1516_2025::HLAunicodeString advertisedPath;
+    REQUIRE_NOTHROW(advertisedPath.decode(
+        subjectReflection->attributeValues.at(reportFileAttribute)));
+    auto const reportPath = std::filesystem::path(advertisedPath.get());
+    REQUIRE(reportPath.is_absolute());
+    REQUIRE(reportPath.lexically_normal() == reportPath);
+    REQUIRE(reportPath.parent_path() ==
+            std::filesystem::absolute(reportDirectory).lexically_normal());
+    REQUIRE(std::filesystem::exists(reportPath));
+    std::ifstream reportStream(reportPath, std::ios::binary);
+    REQUIRE(reportStream.good());
+    std::string reportText{
+        std::istreambuf_iterator<char>(reportStream),
+        std::istreambuf_iterator<char>{}};
+    reportStream.close();
+    REQUIRE(reportText.find("\"CallbackModel\":\"HLA_IMMEDIATE\"") !=
+            std::string::npos);
+    REQUIRE(reportText.find(
+                "\"ConfigurationName\":\"public-process-joined-federate-mom-report-client\"") !=
+            std::string::npos);
+    REQUIRE(reportText.find(
+                "\"RTIaddress\":\"tcp://127.0.0.1:" + std::to_string(port) + "\"") !=
+            std::string::npos);
+    REQUIRE(reportText.find(
+                "\"AdditionalSettings\":\"ignored-by-initial-slice\"") !=
+            std::string::npos);
+    REQUIRE(reportText.find(
+                "\"Credentials\":{\"Type\":\"HLAnoCredentials\",\"Data\":\"\"}") !=
+            std::string::npos);
+
+    auto const setSwitches = subject->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    auto const sendServiceReportsToFile = subject->getParameterHandle(
+        setSwitches, L"HLAsendServiceReportsToFile");
+    REQUIRE(setSwitches.isValid());
+    REQUIRE(sendServiceReportsToFile.isValid());
+    auto encodeSwitch = [](bool enabled) {
+      return rti1516_2025::HLAinteger32BE(enabled ? 1 : 0).encode();
+    };
+    auto requestAndCheckStableReportPath = [&](
+        rti1516_2025::ObjectInstanceHandle expectedObjectInstance,
+        std::wstring const& expectedPath) {
+      auto const reflectionsBefore = observerFederate.reflectionCount.load(
+          std::memory_order_acquire);
+      try {
+        observer->requestAttributeValueUpdate(
+            expectedObjectInstance,
+            rti1516_2025::AttributeHandleSet{reportFileAttribute},
+            rti1516_2025::VariableLengthData{});
+      } catch (rti1516_2025::Exception const& error) {
+        throw std::runtime_error(
+            narrowExceptionText(error.name()) + ": " +
+            narrowExceptionText(error.what()));
+      }
+      for (std::size_t pass = 0U;
+           pass != 64U &&
+           observerFederate.reflectionCount.load(std::memory_order_acquire) ==
+               reflectionsBefore;
+           ++pass) {
+        static_cast<void>(observer->evokeCallback(0.0));
+      }
+      // Match one final empty process poll if the server has not yet observed
+      // the callback-count transition from the last requested-value response.
+      static_cast<void>(observer->evokeCallback(0.0));
+      REQUIRE(observerFederate.reflectionCount.load(std::memory_order_acquire) ==
+              reflectionsBefore + 1U);
+      auto const& requestedReflection = observerFederate.reflections.back();
+      REQUIRE(requestedReflection.objectInstance == expectedObjectInstance);
+      REQUIRE(requestedReflection.attributeValues.size() == 1U);
+      rti1516_2025::HLAunicodeString requestedPath;
+      REQUIRE_NOTHROW(requestedPath.decode(
+          requestedReflection.attributeValues.at(reportFileAttribute)));
+      REQUIRE(requestedPath.get() == expectedPath);
+    };
+
+    rti1516_2025::ParameterHandleValueMap const enabledFileSwitch{
+        {sendServiceReportsToFile, encodeSwitch(true)}};
+    REQUIRE_NOTHROW(subject->sendInteraction(
+        setSwitches, enabledFileSwitch, rti1516_2025::VariableLengthData{}));
+    REQUIRE(subject->getSendServiceReportsToFileSwitch());
+    requestAndCheckStableReportPath(
+        subjectReflection->objectInstance, advertisedPath.get());
+
+    rti1516_2025::ParameterHandleValueMap const disabledFileSwitch{
+        {sendServiceReportsToFile, encodeSwitch(false)}};
+    REQUIRE_NOTHROW(subject->sendInteraction(
+        setSwitches, disabledFileSwitch, rti1516_2025::VariableLengthData{}));
+    REQUIRE_FALSE(subject->getSendServiceReportsToFileSwitch());
+    requestAndCheckStableReportPath(
+        subjectReflection->objectInstance, advertisedPath.get());
+
+    REQUIRE_NOTHROW(subject->sendInteraction(
+        setSwitches, enabledFileSwitch, rti1516_2025::VariableLengthData{}));
+    REQUIRE(subject->getSendServiceReportsToFileSwitch());
+    requestAndCheckStableReportPath(
+        subjectReflection->objectInstance, advertisedPath.get());
+
+    auto readFile = [](std::filesystem::path const& path) {
+      std::ifstream stream(path, std::ios::binary);
+      return std::string{
+          std::istreambuf_iterator<char>(stream),
+          std::istreambuf_iterator<char>{}};
+    };
+    subject->resignFederationExecution(NO_ACTION);
+    subjectJoined = false;
+    auto const originalFileContents = readFile(reportPath);
+    REQUIRE_FALSE(originalFileContents.empty());
+    auto const rejoinedSubject = subject->joinFederationExecution(
+        subjectName,
+        L"public-process-joined-federate-mom-report-type",
+        federationName);
+    if (!rejoinedSubject.isValid()) {
+      throw std::runtime_error(
+          "The process rejoin returned an invalid public federate handle.");
+    }
+    subjectJoined = true;
+    static_cast<void>(subject->getSendServiceReportsToFileSwitch());
+
+    for (std::size_t pass = 0U;
+         pass != 64U &&
+         observerFederate.reflectionCount.load(std::memory_order_acquire) < 6U;
+         ++pass) {
+      static_cast<void>(observer->evokeCallback(0.0));
+    }
+    static_cast<void>(observer->evokeCallback(0.0));
+    REQUIRE(observerFederate.reflectionCount.load(std::memory_order_acquire) == 6U);
+    REQUIRE(observerFederate.discoveries.size() == 3U);
+    REQUIRE(observerFederate.reflections.size() == 6U);
+    auto const& rejoinedReflection = observerFederate.reflections.back();
+    REQUIRE(rejoinedReflection.objectInstance != subjectReflection->objectInstance);
+    REQUIRE(rejoinedReflection.attributeValues.size() == 2U);
+    rti1516_2025::HLAunicodeString rejoinedFederateName;
+    REQUIRE_NOTHROW(rejoinedFederateName.decode(
+        rejoinedReflection.attributeValues.at(federateNameAttribute)));
+    REQUIRE(rejoinedFederateName.get() == subjectName);
+    rti1516_2025::HLAunicodeString rejoinedAdvertisedPath;
+    REQUIRE_NOTHROW(rejoinedAdvertisedPath.decode(
+        rejoinedReflection.attributeValues.at(reportFileAttribute)));
+    auto const rejoinedReportPath =
+        std::filesystem::path(rejoinedAdvertisedPath.get());
+    REQUIRE(rejoinedReportPath.is_absolute());
+    REQUIRE(rejoinedReportPath.lexically_normal() == rejoinedReportPath);
+    REQUIRE(rejoinedReportPath.parent_path() == reportPath.parent_path());
+    REQUIRE(rejoinedReportPath != reportPath);
+    REQUIRE(std::filesystem::exists(rejoinedReportPath));
+    auto const rejoinedFileContents = readFile(rejoinedReportPath);
+    REQUIRE_FALSE(rejoinedFileContents.empty());
+    REQUIRE(rejoinedFileContents.find(
+                "\"ConfigurationName\":\"public-process-joined-federate-mom-report-client\"") !=
+            std::string::npos);
+    REQUIRE(readFile(reportPath) == originalFileContents);
+    requestAndCheckStableReportPath(
+        rejoinedReflection.objectInstance, rejoinedAdvertisedPath.get());
+
+    subject->resignFederationExecution(NO_ACTION);
+    subjectJoined = false;
+    observer->resignFederationExecution(NO_ACTION);
+    observerJoined = false;
+    subject->disconnect();
+    observer->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    try {
+      std::rethrow_exception(clientError);
+    } catch (rti1516_2025::Exception const& error) {
+      clientError = std::make_exception_ptr(std::runtime_error(
+          narrowExceptionText(error.name()) + ": " +
+          narrowExceptionText(error.what())));
+    } catch (...) {
+    }
+    if (subjectJoined) {
+      try {
+        subject->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (observerJoined) {
+      try {
+        observer->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      subject->disconnect();
+    } catch (...) {
+    }
+    try {
+      observer->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(subjectJoined);
+  REQUIRE_FALSE(observerJoined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador delivers resigned HLAfederate MOM removal before rejoined-object discovery",
+    "[integration][internal][foundation][federation-management][mom]"
+    "[transport][process-boundary][public-endpoint][2025][process-mom-resign-removal-order]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.resign-federation-execution]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.subscribe-object-class-attributes][rti.service.evoke-callback]"
+    "[rti.service.disconnect][federate.callback.discover-object-instance]"
+    "[federate.callback.reflect-attribute-values][federate.callback.remove-object-instance]") {
+  class RecordingFederateAmbassador final : public NullFederateAmbassador {
+   public:
+    enum class CallbackKind { discovery, reflection, removal };
+    struct CallbackEvent final {
+      CallbackKind kind;
+      rti1516_2025::ObjectInstanceHandle objectInstance;
+    };
+    struct Reflection final {
+      rti1516_2025::ObjectInstanceHandle objectInstance;
+      rti1516_2025::AttributeHandleValueMap attributeValues;
+    };
+
+    void discoverObjectInstance(
+        rti1516_2025::ObjectInstanceHandle const& objectInstance,
+        rti1516_2025::ObjectClassHandle const&,
+        std::wstring const&,
+        rti1516_2025::FederateHandle const&) override {
+      callbackEvents.push_back({CallbackKind::discovery, objectInstance});
+    }
+
+    void reflectAttributeValues(
+        rti1516_2025::ObjectInstanceHandle const& objectInstance,
+        rti1516_2025::AttributeHandleValueMap const& attributeValues,
+        rti1516_2025::VariableLengthData const&,
+        rti1516_2025::TransportationTypeHandle const&,
+        rti1516_2025::FederateHandle const&,
+        rti1516_2025::RegionHandleSet const*) override {
+      callbackEvents.push_back({CallbackKind::reflection, objectInstance});
+      reflections.push_back({objectInstance, attributeValues});
+    }
+
+    void removeObjectInstance(
+        rti1516_2025::ObjectInstanceHandle const& objectInstance,
+        rti1516_2025::VariableLengthData const&,
+        rti1516_2025::FederateHandle const&) override {
+      callbackEvents.push_back({CallbackKind::removal, objectInstance});
+    }
+
+    std::vector<CallbackEvent> callbackEvents;
+    std::vector<Reflection> reflections;
+  } observerFederate;
+
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"public-process-mom-resign-removal-order-execution";
+  constexpr wchar_t const* subjectName = L"public-process-mom-removal-subject";
+  constexpr wchar_t const* observerName = L"public-process-mom-removal-observer";
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(description);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+
+      auto subjectConnection = listener->accept(
+          nullptr,
+          {"public-process-mom-removal-server", 0x9D11U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession subjectSession(subjectConnection);
+      auto subjectHandler = service.handlerFor(subjectSession);
+      serveExpected(subjectSession, subjectHandler,
+                    TransportServiceOperation::create_federation_execution,
+                    "The process MOM lifecycle server lost Create.");
+      serveExpected(subjectSession, subjectHandler,
+                    TransportServiceOperation::join_federation_execution,
+                    "The process MOM lifecycle server lost the initial subject Join.");
+
+      auto observerConnection = listener->accept(
+          nullptr,
+          {"public-process-mom-removal-server", 0x9D12U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession observerSession(observerConnection);
+      auto observerHandler = service.handlerFor(observerSession);
+      serveExpected(observerSession, observerHandler,
+                    TransportServiceOperation::join_federation_execution,
+                    "The process MOM lifecycle server lost observer Join.");
+      serveExpected(observerSession, observerHandler,
+                    TransportServiceOperation::get_object_class_handle,
+                    "The process MOM lifecycle server lost the MOM class lookup.");
+      serveExpected(observerSession, observerHandler,
+                    TransportServiceOperation::get_attribute_handle,
+                    "The process MOM lifecycle server lost the federate-name lookup.");
+      serveExpected(observerSession, observerHandler,
+                    TransportServiceOperation::subscribe_object_class_attributes,
+                    "The process MOM lifecycle server lost the MOM subscription.");
+
+      std::exception_ptr observerServerError;
+      std::thread observerServer([&] {
+        try {
+          while (umbra::test::servePrimaryProcessRequest(
+              observerSession, observerHandler)) {
+          }
+        } catch (...) {
+          observerServerError = std::current_exception();
+        }
+      });
+      try {
+        serveExpected(subjectSession, subjectHandler,
+                      TransportServiceOperation::resign_federation_execution,
+                      "The process MOM lifecycle server lost the subject Resign.");
+        serveExpected(subjectSession, subjectHandler,
+                      TransportServiceOperation::join_federation_execution,
+                      "The process MOM lifecycle server lost the subject rejoin.");
+        serveExpected(subjectSession, subjectHandler,
+                      TransportServiceOperation::resign_federation_execution,
+                      "The process MOM lifecycle server lost the final subject Resign.");
+      } catch (...) {
+        observerConnection->close();
+        if (observerServer.joinable()) {
+          observerServer.join();
+        }
+        throw;
+      }
+      if (observerServer.joinable()) {
+        observerServer.join();
+      }
+      if (observerServerError) {
+        std::rethrow_exception(observerServerError);
+      }
+      service.detach(subjectSession);
+      service.detach(observerSession);
+      subjectConnection->close();
+      observerConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  NullFederateAmbassador subjectFederate;
+  auto subject = makeRti();
+  auto observer = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"public-process-mom-removal-order-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  constexpr wchar_t const* federateType = L"public-process-mom-removal-order-type";
+  std::exception_ptr clientError;
+  bool subjectJoined = false;
+  bool observerJoined = false;
+  try {
+    rti1516_2025::HLAnoCredentials credentials;
+    REQUIRE(subject->connect(
+                subjectFederate, HLA_IMMEDIATE, configuration, credentials)
+                .addressUsed);
+    subject->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(subject->joinFederationExecution(
+                subjectName, federateType, federationName)
+                .isValid());
+    subjectJoined = true;
+
+    REQUIRE(observer->connect(observerFederate, HLA_EVOKED, configuration).addressUsed);
+    REQUIRE(observer->joinFederationExecution(
+                observerName, federateType, federationName)
+                .isValid());
+    observerJoined = true;
+    auto const momClass = observer->getObjectClassHandle(
+        L"HLAobjectRoot.HLAmanager.HLAfederate");
+    auto const federateNameAttribute =
+        observer->getAttributeHandle(momClass, L"HLAfederateName");
+    REQUIRE(momClass.isValid());
+    REQUIRE(federateNameAttribute.isValid());
+    REQUIRE_NOTHROW(observer->subscribeObjectClassAttributes(
+        momClass, rti1516_2025::AttributeHandleSet{federateNameAttribute}));
+
+    auto subjectReflectionForName = [&](
+                                           std::optional<rti1516_2025::ObjectInstanceHandle>
+                                               excludedObject = std::nullopt) {
+      return std::find_if(
+          observerFederate.reflections.begin(), observerFederate.reflections.end(),
+          [&](RecordingFederateAmbassador::Reflection const& reflection) {
+            if (excludedObject && reflection.objectInstance == *excludedObject) {
+              return false;
+            }
+            auto const value = reflection.attributeValues.find(federateNameAttribute);
+            if (value == reflection.attributeValues.end()) {
+              return false;
+            }
+            rti1516_2025::HLAunicodeString name;
+            try {
+              name.decode(value->second);
+            } catch (...) {
+              return false;
+            }
+            return name.get() == subjectName;
+          });
+    };
+    for (std::size_t pass = 0U;
+         pass != 64U && observerFederate.reflections.size() < 2U;
+         ++pass) {
+      static_cast<void>(observer->evokeCallback(0.0));
+    }
+    REQUIRE(observerFederate.reflections.size() >= 2U);
+    auto const initialSubjectReflection = subjectReflectionForName();
+    REQUIRE(initialSubjectReflection != observerFederate.reflections.end());
+    auto const resignedObject = initialSubjectReflection->objectInstance;
+
+    subject->resignFederationExecution(NO_ACTION);
+    subjectJoined = false;
+    REQUIRE(subject->joinFederationExecution(
+                subjectName, federateType, federationName)
+                .isValid());
+    subjectJoined = true;
+
+    for (std::size_t pass = 0U;
+         pass != 128U &&
+         std::none_of(
+             observerFederate.reflections.begin(), observerFederate.reflections.end(),
+             [&](RecordingFederateAmbassador::Reflection const& reflection) {
+               if (reflection.objectInstance == resignedObject) {
+                 return false;
+               }
+               auto const value = reflection.attributeValues.find(federateNameAttribute);
+               if (value == reflection.attributeValues.end()) {
+                 return false;
+               }
+               rti1516_2025::HLAunicodeString name;
+               try {
+                 name.decode(value->second);
+               } catch (...) {
+                 return false;
+               }
+               return name.get() == subjectName;
+             });
+         ++pass) {
+      static_cast<void>(observer->evokeCallback(0.0));
+    }
+    auto const rejoinedSubjectReflection = subjectReflectionForName(resignedObject);
+    REQUIRE(rejoinedSubjectReflection != observerFederate.reflections.end());
+
+    auto const removal = std::find_if(
+        observerFederate.callbackEvents.begin(), observerFederate.callbackEvents.end(),
+        [&](RecordingFederateAmbassador::CallbackEvent const& event) {
+          return event.kind == RecordingFederateAmbassador::CallbackKind::removal &&
+                 event.objectInstance == resignedObject;
+        });
+    auto const rejoinedDiscovery = std::find_if(
+        observerFederate.callbackEvents.begin(), observerFederate.callbackEvents.end(),
+        [&](RecordingFederateAmbassador::CallbackEvent const& event) {
+          return event.kind == RecordingFederateAmbassador::CallbackKind::discovery &&
+                 event.objectInstance == rejoinedSubjectReflection->objectInstance;
+        });
+    auto const rejoinedReflection = std::find_if(
+        observerFederate.callbackEvents.begin(), observerFederate.callbackEvents.end(),
+        [&](RecordingFederateAmbassador::CallbackEvent const& event) {
+          return event.kind == RecordingFederateAmbassador::CallbackKind::reflection &&
+                 event.objectInstance == rejoinedSubjectReflection->objectInstance;
+        });
+    REQUIRE(removal != observerFederate.callbackEvents.end());
+    REQUIRE(rejoinedDiscovery != observerFederate.callbackEvents.end());
+    REQUIRE(rejoinedReflection != observerFederate.callbackEvents.end());
+    REQUIRE(removal < rejoinedDiscovery);
+    REQUIRE(rejoinedDiscovery < rejoinedReflection);
+
+    subject->resignFederationExecution(NO_ACTION);
+    subjectJoined = false;
+    observer->resignFederationExecution(NO_ACTION);
+    observerJoined = false;
+    subject->disconnect();
+    observer->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (subjectJoined) {
+      try {
+        subject->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (observerJoined) {
+      try {
+        observer->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      subject->disconnect();
+    } catch (...) {
+    }
+    try {
+      observer->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(subjectJoined);
+  REQUIRE_FALSE(observerJoined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassadors allocate independent process service-report files for simultaneous joined federates",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][service-report-file-multifederate][transport][process-boundary]"
+    "[public-endpoint][2025][rti.service.connect]"
+    "[rti.service.create-federation-execution][rti.service.join-federation-execution]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-service-report-multifederate-execution";
+  constexpr wchar_t const* firstFederateName =
+      L"process-service-report-multifederate-first";
+  constexpr wchar_t const* secondFederateName =
+      L"process-service-report-multifederate-second";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry : std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto serve = [&](ProcessTransportSession& session,
+                       auto const& handler,
+                       TransportServiceOperation operation,
+                       char const* description) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(description);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+
+      auto firstConnection = listener->accept(
+          nullptr,
+          {"process-service-report-multifederate-server", 0x9E21U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession firstSession(firstConnection);
+      auto firstHandler = service.handlerFor(firstSession);
+      serve(firstSession, firstHandler,
+            TransportServiceOperation::create_federation_execution,
+            "The process service-report multifederate server lost Create.");
+      serve(firstSession, firstHandler,
+            TransportServiceOperation::join_federation_execution,
+            "The process service-report multifederate server lost first Join.");
+
+      auto secondConnection = listener->accept(
+          nullptr,
+          {"process-service-report-multifederate-server", 0x9E22U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession secondSession(secondConnection);
+      auto secondHandler = service.handlerFor(secondSession);
+      serve(secondSession, secondHandler,
+            TransportServiceOperation::join_federation_execution,
+            "The process service-report multifederate server lost second Join.");
+      serve(firstSession, firstHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The process service-report multifederate server lost first Resign.");
+      serve(secondSession, secondHandler,
+            TransportServiceOperation::resign_federation_execution,
+            "The process service-report multifederate server lost second Resign.");
+      service.detach(firstSession);
+      service.detach(secondSession);
+      firstConnection->close();
+      secondConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador firstFederate;
+  TestFederateAmbassador secondFederate;
+  auto firstRti = makeRti();
+  auto secondRti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-service-report-multifederate-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool firstJoined = false;
+  bool secondJoined = false;
+  try {
+    REQUIRE(firstRti->connect(firstFederate, HLA_EVOKED, configuration).addressUsed);
+    firstRti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(firstRti->joinFederationExecution(
+                firstFederateName,
+                L"process-service-report-multifederate-first-type",
+                federationName)
+                .isValid());
+    firstJoined = true;
+
+    REQUIRE(secondRti->connect(secondFederate, HLA_EVOKED, configuration).addressUsed);
+    REQUIRE(secondRti->joinFederationExecution(
+                secondFederateName,
+                L"process-service-report-multifederate-second-type",
+                federationName)
+                .isValid());
+    secondJoined = true;
+
+    auto const files = reportFiles();
+    REQUIRE(files.size() == 2U);
+    for (auto const& file : files) {
+      REQUIRE(file.is_absolute());
+      REQUIRE(file.lexically_normal() == file);
+      REQUIRE(file.parent_path() ==
+              std::filesystem::absolute(reportDirectory).lexically_normal());
+      REQUIRE(std::filesystem::exists(file));
+    }
+    auto const firstFile = std::find_if(
+        files.begin(), files.end(), [&](std::filesystem::path const& file) {
+          return readReport(file).find("process-service-report-multifederate-first") !=
+              std::string::npos;
+        });
+    auto const secondFile = std::find_if(
+        files.begin(), files.end(), [&](std::filesystem::path const& file) {
+          return readReport(file).find("process-service-report-multifederate-second") !=
+              std::string::npos;
+        });
+    REQUIRE(firstFile != files.end());
+    REQUIRE(secondFile != files.end());
+    REQUIRE(firstFile != secondFile);
+    REQUIRE(readReport(*firstFile).find("HLAfederateName") != std::string::npos);
+    REQUIRE(readReport(*secondFile).find("HLAfederateName") != std::string::npos);
+
+    auto const firstText = readReport(*firstFile);
+    auto const secondText = readReport(*secondFile);
+    firstRti->resignFederationExecution(NO_ACTION);
+    firstJoined = false;
+    REQUIRE(reportFiles() == files);
+    REQUIRE(readReport(*firstFile) == firstText);
+    REQUIRE(readReport(*secondFile) == secondText);
+    secondRti->resignFederationExecution(NO_ACTION);
+    secondJoined = false;
+    firstRti->disconnect();
+    secondRti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (firstJoined) {
+      try {
+        firstRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (secondJoined) {
+      try {
+        secondRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      firstRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      secondRti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(firstJoined);
+  REQUIRE_FALSE(secondJoined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador preserves process service-report file identity across switch cycles",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][service-report-file-lifecycle][transport][process-boundary]"
+    "[public-endpoint][2025][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-object-class-handle][rti.service.get-dimension-handle]"
+    "[rti.service.get-dimension-name][rti.service.get-dimension-upper-bound]"
+    "[rti.service.get-order-name][rti.service.get-order-type]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-service-report-switch-cycle-execution";
+  constexpr wchar_t const* federateName =
+      L"process-service-report-switch-cycle-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry : std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-service-report-switch-cycle-server", 0x9E01U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The process service-report server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The process service-report server lost Join.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The process service-report server lost the initial service switch query.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The process service-report server lost the initial file switch query.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The process service-report server lost the service switch enable.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The process service-report server lost the enabled service switch query.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The process service-report server lost the file switch enable.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The process service-report server lost the enabled file switch query.");
+      serve(TransportServiceOperation::get_object_class_handle,
+            "The process service-report server lost the first report-producing lookup.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The process service-report server lost the dimension-handle report producer.");
+      serve(TransportServiceOperation::get_dimension_name,
+            "The process service-report server lost the dimension-name report producer.");
+      serve(TransportServiceOperation::get_dimension_upper_bound,
+            "The process service-report server lost the dimension upper-bound report producer.");
+      serve(TransportServiceOperation::report_successful_service_invocation,
+            "The process service-report server lost the local order-name report producer.");
+      serve(TransportServiceOperation::report_successful_service_invocation,
+            "The process service-report server lost the local order-type report producer.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The process service-report server lost the file switch disable.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The process service-report server lost the disabled file switch query.");
+      serve(TransportServiceOperation::get_object_class_handle,
+            "The process service-report server lost the suppressed lookup.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The process service-report server lost the file switch re-enable.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The process service-report server lost the re-enabled file switch query.");
+      serve(TransportServiceOperation::get_object_class_handle,
+            "The process service-report server lost the resumed lookup.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The process service-report server lost the service switch disable.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The process service-report server lost the disabled service switch query.");
+      serve(TransportServiceOperation::get_object_class_handle,
+            "The process service-report server lost the service-suppressed lookup.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The process service-report server lost the service switch re-enable.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The process service-report server lost the resumed service switch query.");
+      serve(TransportServiceOperation::get_object_class_handle,
+            "The process service-report server lost the final lookup.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The process service-report server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-service-report-switch-cycle-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName, L"process-service-report-switch-cycle-type", federationName)
+                .isValid());
+    joined = true;
+
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+    REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
+    auto files = reportFiles();
+    REQUIRE(files.size() == 1U);
+    auto const reportFile = files.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialText = readReport(reportFile);
+    REQUIRE(initialText.find(R"("HLAservice":"GetDimensionHandle")") ==
+            std::string::npos);
+
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE(rti->getServiceReportingSwitch());
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    REQUIRE(rti->getSendServiceReportsToFileSwitch());
+    REQUIRE_NOTHROW(rti->getObjectClassHandle(L"HLAobjectRoot"));
+    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    REQUIRE(barQuantity.isValid());
+    REQUIRE(rti->getDimensionName(barQuantity) == L"BarQuantity");
+    REQUIRE(rti->getDimensionUpperBound(barQuantity) == 25UL);
+    REQUIRE(rti->getOrderName(rti1516_2025::RECEIVE) == L"Receive");
+    REQUIRE(rti->getOrderType(L"TimeStamp") == rti1516_2025::TIMESTAMP);
+    std::string dimensionHandleText;
+    auto const dimensionHandleWideText = barQuantity.toString();
+    dimensionHandleText.reserve(dimensionHandleWideText.size());
+    for (wchar_t const character : dimensionHandleWideText) {
+      dimensionHandleText.push_back(static_cast<char>(character));
+    }
+    auto const expectedDimensionHandleRecord =
+        std::string{
+            R"("HLAserialNumber":1,"HLAreturnedArgument":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")"} +
+        dimensionHandleText +
+        R"("}],"HLAservice":"GetDimensionHandle","HLAsuppliedArguments":[{"HLAargumentType":53,"HLAargumentName":"Dimension name","HLAargumentValue":"BarQuantity"}])";
+    auto const expectedDimensionNameRecord =
+        std::string{
+            R"("HLAserialNumber":2,"HLAreturnedArgument":[{"HLAargumentType":53,"HLAargumentName":"Dimension name","HLAargumentValue":"BarQuantity"}],"HLAservice":"GetDimensionName","HLAsuppliedArguments":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")"} +
+        dimensionHandleText + R"("}])";
+    auto const expectedDimensionUpperBoundRecord =
+        std::string{
+            R"("HLAserialNumber":3,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentName":"Dimension upper bound","HLAargumentValue":25}],"HLAservice":"GetDimensionUpperBound","HLAsuppliedArguments":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")"} +
+        dimensionHandleText + R"("}])";
+    auto const expectedOrderNameRecord =
+        R"("HLAserialNumber":4,"HLAreturnedArgument":[{"HLAargumentType":53,"HLAargumentName":"Order name","HLAargumentValue":"Receive"}],"HLAservice":"GetOrderName","HLAsuppliedArguments":[{"HLAargumentType":38,"HLAargumentName":"Order type","HLAargumentValue":"RECEIVE"}])";
+    auto const expectedOrderTypeRecord =
+        R"("HLAserialNumber":5,"HLAreturnedArgument":[{"HLAargumentType":38,"HLAargumentName":"Order type","HLAargumentValue":"TIMESTAMP"}],"HLAservice":"GetOrderType","HLAsuppliedArguments":[{"HLAargumentType":53,"HLAargumentName":"Order name","HLAargumentValue":"TimeStamp"}])";
+    auto const enabledText = readReport(reportFile);
+    REQUIRE(enabledText.size() > initialText.size());
+    REQUIRE(enabledText.find(expectedDimensionHandleRecord) !=
+            std::string::npos);
+    REQUIRE(enabledText.find(expectedDimensionNameRecord) !=
+            std::string::npos);
+    REQUIRE(enabledText.find(expectedDimensionUpperBoundRecord) !=
+            std::string::npos);
+    REQUIRE(enabledText.find(expectedOrderNameRecord) != std::string::npos);
+    REQUIRE(enabledText.find(expectedOrderTypeRecord) != std::string::npos);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(false));
+    REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
+    REQUIRE_NOTHROW(rti->getObjectClassHandle(L"HLAobjectRoot"));
+    REQUIRE(readReport(reportFile) == enabledText);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    REQUIRE(rti->getSendServiceReportsToFileSwitch());
+    REQUIRE_NOTHROW(rti->getObjectClassHandle(L"HLAobjectRoot"));
+    auto const fileReenabledText = readReport(reportFile);
+    REQUIRE(fileReenabledText.size() > enabledText.size());
+
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(false));
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+    REQUIRE_NOTHROW(rti->getObjectClassHandle(L"HLAobjectRoot"));
+    REQUIRE(readReport(reportFile) == fileReenabledText);
+
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE(rti->getServiceReportingSwitch());
+    REQUIRE_NOTHROW(rti->getObjectClassHandle(L"HLAobjectRoot"));
+    REQUIRE(readReport(reportFile).size() > fileReenabledText.size());
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador reports available class dimensions through the process service-report file",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][support-services][ddm][transport][process-boundary]"
+    "[public-endpoint][2025][process-service-report-available-dimensions]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution]"
+    "[rti.service.get-available-dimensions-for-object-class]"
+    "[rti.service.get-available-dimensions-for-interaction-class]"
+    "[rti.service.get-object-class-handle][rti.service.get-interaction-class-handle]"
+    "[rti.service.get-dimension-handle][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-available-dimensions-report-execution";
+  constexpr wchar_t const* federateName =
+      L"process-available-dimensions-report-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry : std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-available-dimensions-report-server", 0x9E02U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The available-dimensions process server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The available-dimensions process server lost Join.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The available-dimensions process server lost the initial service-switch query.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The available-dimensions process server lost the initial file-switch query.");
+      serve(TransportServiceOperation::get_object_class_handle,
+            "The available-dimensions process server lost the object-class lookup.");
+      serve(TransportServiceOperation::get_interaction_class_handle,
+            "The available-dimensions process server lost the interaction-class lookup.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The available-dimensions process server lost the BarQuantity lookup.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The available-dimensions process server lost the ServerId lookup.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The available-dimensions process server lost the service-switch enable.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The available-dimensions process server lost the enabled service-switch query.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The available-dimensions process server lost the file-switch enable.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The available-dimensions process server lost the enabled file-switch query.");
+      serve(TransportServiceOperation::get_available_dimensions_for_object_class,
+            "The available-dimensions process server lost the object-class report producer.");
+      serve(TransportServiceOperation::get_available_dimensions_for_interaction_class,
+            "The available-dimensions process server lost the interaction-class report producer.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The available-dimensions process server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-available-dimensions-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName, L"process-available-dimensions-report-type", federationName)
+                .isValid());
+    joined = true;
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+    REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
+
+    auto const drink =
+        rti->getObjectClassHandle(L"HLAobjectRoot.Food.Drink");
+    auto const mainCourseServed = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    auto const serverId = rti->getDimensionHandle(L"ServerId");
+    REQUIRE(drink.isValid());
+    REQUIRE(mainCourseServed.isValid());
+    REQUIRE(barQuantity.isValid());
+    REQUIRE(serverId.isValid());
+
+    auto files = reportFiles();
+    REQUIRE(files.size() == 1U);
+    auto const reportFile = files.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialText = readReport(reportFile);
+
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE(rti->getServiceReportingSwitch());
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    REQUIRE(rti->getSendServiceReportsToFileSwitch());
+    REQUIRE(rti->getAvailableDimensionsForObjectClass(drink) ==
+            rti1516_2025::DimensionHandleSet{barQuantity});
+    REQUIRE(rti->getAvailableDimensionsForInteractionClass(mainCourseServed) ==
+            rti1516_2025::DimensionHandleSet{serverId});
+
+    auto asAscii = [](std::wstring const& value) {
+      std::string result;
+      result.reserve(value.size());
+      for (wchar_t const character : value) {
+        REQUIRE(character >= L' ');
+        REQUIRE(character <= L'~');
+        result.push_back(static_cast<char>(character));
+      }
+      return result;
+    };
+    auto const drinkValue = asAscii(drink.toString());
+    auto const mainCourseServedValue = asAscii(mainCourseServed.toString());
+    auto const barQuantityValue = asAscii(barQuantity.toString());
+    auto const serverIdValue = asAscii(serverId.toString());
+    auto const expectedObjectDimensionsRecord =
+        std::string{
+            R"("HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":11,"HLAargumentName":"A set of dimension handles","HLAargumentValue":[")" +
+        barQuantityValue +
+        R"("]}],"HLAservice":"GetAvailableDimensionsForObjectClass","HLAsuppliedArguments":[{"HLAargumentType":36,"HLAargumentName":"Object class handle","HLAargumentValue":")" +
+        drinkValue + R"("}])"};
+    auto const expectedInteractionDimensionsRecord =
+        std::string{
+            R"("HLAserialNumber":1,"HLAreturnedArgument":[{"HLAargumentType":11,"HLAargumentName":"A set of dimension handles","HLAargumentValue":[")" +
+        serverIdValue +
+        R"("]}],"HLAservice":"GetAvailableDimensionsForInteractionClass","HLAsuppliedArguments":[{"HLAargumentType":27,"HLAargumentName":"Interaction class handle","HLAargumentValue":")" +
+        mainCourseServedValue + R"("}])"};
+    auto const reportText = readReport(reportFile);
+    REQUIRE(reportText.size() > initialText.size());
+    REQUIRE(reportText.find(expectedObjectDimensionsRecord) != std::string::npos);
+    REQUIRE(reportText.find(expectedInteractionDimensionsRecord) != std::string::npos);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador reports region dimension sets through the process service-report file",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][support-services][ddm][transport][process-boundary]"
+    "[public-endpoint][2025][process-service-report-region-dimension-set]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.create-region]"
+    "[rti.service.get-dimension-handle-set][rti.service.get-dimension-handle]"
+    "[rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-region-dimension-set-report-execution";
+  constexpr wchar_t const* federateName =
+      L"process-region-dimension-set-report-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry : std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-region-dimension-set-report-server", 0x9E03U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The region-dimension-set process server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The region-dimension-set process server lost Join.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The region-dimension-set process server lost the initial service-switch query.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The region-dimension-set process server lost the initial file-switch query.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The region-dimension-set process server lost the BarQuantity lookup.");
+      serve(TransportServiceOperation::create_region,
+            "The region-dimension-set process server lost region creation.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The region-dimension-set process server lost the service-switch enable.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The region-dimension-set process server lost the enabled service-switch query.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The region-dimension-set process server lost the file-switch enable.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The region-dimension-set process server lost the enabled file-switch query.");
+      serve(TransportServiceOperation::get_dimension_handle_set,
+            "The region-dimension-set process server lost GetDimensionHandleSet.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The region-dimension-set process server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-region-dimension-set-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName, L"process-region-dimension-set-type", federationName)
+                .isValid());
+    joined = true;
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+    REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
+
+    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    REQUIRE(barQuantity.isValid());
+    auto const region = rti->createRegion(
+        rti1516_2025::DimensionHandleSet{barQuantity});
+    REQUIRE(region.isValid());
+
+    auto files = reportFiles();
+    REQUIRE(files.size() == 1U);
+    auto const reportFile = files.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialText = readReport(reportFile);
+    REQUIRE(readReport(reportFile) == initialText);
+
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE(rti->getServiceReportingSwitch());
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    REQUIRE(rti->getSendServiceReportsToFileSwitch());
+    REQUIRE(rti->getDimensionHandleSet(region) ==
+            rti1516_2025::DimensionHandleSet{barQuantity});
+
+    auto asAscii = [](std::wstring const& value) {
+      std::string result;
+      result.reserve(value.size());
+      for (wchar_t const character : value) {
+        REQUIRE(character >= L' ');
+        REQUIRE(character <= L'~');
+        result.push_back(static_cast<char>(character));
+      }
+      return result;
+    };
+    auto const regionValue = asAscii(region.toString());
+    auto const barQuantityValue = asAscii(barQuantity.toString());
+    auto const expectedRecord =
+        std::string{
+            R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":11,"HLAargumentName":"A set of dimensions","HLAargumentValue":[")" +
+        barQuantityValue +
+        R"("]}],"HLAservice":"GetDimensionHandleSet","HLAsuppliedArguments":[{"HLAargumentType":42,"HLAargumentName":"Region handle","HLAargumentValue":")" +
+        regionValue +
+        R"("}],"HLAsuccessIndicator":true,"HLAexception":null})"};
+    REQUIRE(readReport(reportFile) == initialText + expectedRecord);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador reports created regions through the process service-report file",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][data-distribution-management][ddm][transport][process-boundary]"
+    "[public-endpoint][2025][process-service-report-region-create]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-dimension-handle]"
+    "[rti.service.create-region][rti.service.set-service-reporting-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-region-create-report-execution";
+  constexpr wchar_t const* federateName =
+      L"process-region-create-report-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry : std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-region-create-report-server", 0x9E04U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The region-create process server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The region-create process server lost Join.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The region-create process server lost the BarQuantity lookup.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The region-create process server lost the service-switch enable.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The region-create process server lost the file-switch enable.");
+      serve(TransportServiceOperation::create_region,
+            "The region-create process server lost CreateRegion.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The region-create process server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-region-create-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName, L"process-region-create-type", federationName)
+                .isValid());
+    joined = true;
+
+    auto files = reportFiles();
+    REQUIRE(files.size() == 1U);
+    auto const reportFile = files.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialText = readReport(reportFile);
+    REQUIRE_FALSE(initialText.empty());
+
+    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    REQUIRE(barQuantity.isValid());
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    auto const region = rti->createRegion(
+        rti1516_2025::DimensionHandleSet{barQuantity});
+    REQUIRE(region.isValid());
+
+    auto asAscii = [](std::wstring const& value) {
+      std::string result;
+      result.reserve(value.size());
+      for (wchar_t const character : value) {
+        REQUIRE(character >= L' ');
+        REQUIRE(character <= L'~');
+        result.push_back(static_cast<char>(character));
+      }
+      return result;
+    };
+    auto const regionValue = asAscii(region.toString());
+    auto const barQuantityValue = asAscii(barQuantity.toString());
+    auto const expectedRecord =
+        std::string{
+            R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":42,"HLAargumentName":"Region designator","HLAargumentValue":")" +
+        regionValue +
+        R"("}],"HLAservice":"CreateRegion","HLAsuppliedArguments":[{"HLAargumentType":11,"HLAargumentName":"Set of dimension designators","HLAargumentValue":[")" +
+        barQuantityValue +
+        R"("]}],"HLAsuccessIndicator":true,"HLAexception":null})"};
+    REQUIRE(readReport(reportFile) == initialText + expectedRecord);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador reports deleted regions through the process service-report file",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][data-distribution-management][ddm][transport][process-boundary]"
+    "[public-endpoint][2025][process-service-report-region-delete]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-dimension-handle]"
+    "[rti.service.create-region][rti.service.delete-region]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-region-delete-report-execution";
+  constexpr wchar_t const* federateName =
+      L"process-region-delete-report-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry : std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-region-delete-report-server", 0x9E05U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The region-delete process server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The region-delete process server lost Join.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The region-delete process server lost the BarQuantity lookup.");
+      serve(TransportServiceOperation::create_region,
+            "The region-delete process server lost CreateRegion.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The region-delete process server lost the service-switch enable.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The region-delete process server lost the file-switch enable.");
+      serve(TransportServiceOperation::delete_region,
+            "The region-delete process server lost DeleteRegion.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The region-delete process server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-region-delete-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName, L"process-region-delete-type", federationName)
+                .isValid());
+    joined = true;
+
+    auto files = reportFiles();
+    REQUIRE(files.size() == 1U);
+    auto const reportFile = files.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialText = readReport(reportFile);
+    REQUIRE_FALSE(initialText.empty());
+
+    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    REQUIRE(barQuantity.isValid());
+    auto const region = rti->createRegion(
+        rti1516_2025::DimensionHandleSet{barQuantity});
+    REQUIRE(region.isValid());
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    REQUIRE_NOTHROW(rti->deleteRegion(region));
+
+    auto asAscii = [](std::wstring const& value) {
+      std::string result;
+      result.reserve(value.size());
+      for (wchar_t const character : value) {
+        REQUIRE(character >= L' ');
+        REQUIRE(character <= L'~');
+        result.push_back(static_cast<char>(character));
+      }
+      return result;
+    };
+    auto const regionValue = asAscii(region.toString());
+    auto const expectedRecord =
+        std::string{
+            R"({"HLAserialNumber":0,"HLAreturnedArgument":[null],"HLAservice":"DeleteRegion","HLAsuppliedArguments":[{"HLAargumentType":42,"HLAargumentName":"Region designator","HLAargumentValue":")" +
+        regionValue +
+        R"("}],"HLAsuccessIndicator":true,"HLAexception":null})"};
+    REQUIRE(readReport(reportFile) == initialText + expectedRecord);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador reports committed region modifications through the process service-report file",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][data-distribution-management][ddm][transport][process-boundary]"
+    "[public-endpoint][2025][process-service-report-region-commit]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-dimension-handle]"
+    "[rti.service.create-region][rti.service.set-range-bounds]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.commit-region-modifications]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-region-commit-report-execution";
+  constexpr wchar_t const* federateName =
+      L"process-region-commit-report-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry : std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-region-commit-report-server", 0x9E06U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The region-commit process server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The region-commit process server lost Join.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The region-commit process server lost the BarQuantity lookup.");
+      serve(TransportServiceOperation::create_region,
+            "The region-commit process server lost CreateRegion.");
+      serve(TransportServiceOperation::set_range_bounds,
+            "The region-commit process server lost SetRangeBounds.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The region-commit process server lost the service-switch enable.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The region-commit process server lost the file-switch enable.");
+      serve(TransportServiceOperation::commit_region_modifications,
+            "The region-commit process server lost CommitRegionModifications.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The region-commit process server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-region-commit-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName, L"process-region-commit-type", federationName)
+                .isValid());
+    joined = true;
+
+    auto files = reportFiles();
+    REQUIRE(files.size() == 1U);
+    auto const reportFile = files.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialText = readReport(reportFile);
+    REQUIRE_FALSE(initialText.empty());
+
+    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    REQUIRE(barQuantity.isValid());
+    auto const region = rti->createRegion(
+        rti1516_2025::DimensionHandleSet{barQuantity});
+    REQUIRE(region.isValid());
+    REQUIRE_NOTHROW(rti->setRangeBounds(
+        region, barQuantity, rti1516_2025::RangeBounds(0UL, 1UL)));
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    REQUIRE_NOTHROW(rti->commitRegionModifications(
+        rti1516_2025::RegionHandleSet{region}));
+
+    auto asAscii = [](std::wstring const& value) {
+      std::string result;
+      result.reserve(value.size());
+      for (wchar_t const character : value) {
+        REQUIRE(character >= L' ');
+        REQUIRE(character <= L'~');
+        result.push_back(static_cast<char>(character));
+      }
+      return result;
+    };
+    auto const regionValue = asAscii(region.toString());
+    auto const expectedRecord =
+        std::string{
+            R"({"HLAserialNumber":0,"HLAreturnedArgument":[null],"HLAservice":"CommitRegionModifications","HLAsuppliedArguments":[{"HLAargumentType":43,"HLAargumentName":"Set of region designators","HLAargumentValue":[")" +
+        regionValue +
+        R"("]}],"HLAsuccessIndicator":true,"HLAexception":null})"};
+    REQUIRE(readReport(reportFile) == initialText + expectedRecord);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador reports range bounds through the process service-report file",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][data-distribution-management][ddm][transport][process-boundary]"
+    "[public-endpoint][2025][process-service-report-region-get-bounds]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-dimension-handle]"
+    "[rti.service.create-region][rti.service.set-range-bounds]"
+    "[rti.service.commit-region-modifications][rti.service.get-range-bounds]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-region-get-bounds-report-execution";
+  constexpr wchar_t const* federateName =
+      L"process-region-get-bounds-report-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry : std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-region-get-bounds-report-server", 0x9E07U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The range-bounds process server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The range-bounds process server lost Join.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The range-bounds process server lost the BarQuantity lookup.");
+      serve(TransportServiceOperation::create_region,
+            "The range-bounds process server lost CreateRegion.");
+      serve(TransportServiceOperation::set_range_bounds,
+            "The range-bounds process server lost SetRangeBounds.");
+      serve(TransportServiceOperation::commit_region_modifications,
+            "The range-bounds process server lost CommitRegionModifications.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The range-bounds process server lost the service-switch enable.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The range-bounds process server lost the file-switch enable.");
+      serve(TransportServiceOperation::get_range_bounds,
+            "The range-bounds process server lost GetRangeBounds.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The range-bounds process server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-region-get-bounds-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName, L"process-region-get-bounds-type", federationName)
+                .isValid());
+    joined = true;
+
+    auto files = reportFiles();
+    REQUIRE(files.size() == 1U);
+    auto const reportFile = files.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialText = readReport(reportFile);
+    REQUIRE_FALSE(initialText.empty());
+
+    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    REQUIRE(barQuantity.isValid());
+    auto const region = rti->createRegion(
+        rti1516_2025::DimensionHandleSet{barQuantity});
+    REQUIRE(region.isValid());
+    REQUIRE_NOTHROW(rti->setRangeBounds(
+        region, barQuantity, rti1516_2025::RangeBounds(0UL, 1UL)));
+    REQUIRE_NOTHROW(rti->commitRegionModifications(
+        rti1516_2025::RegionHandleSet{region}));
+    REQUIRE(readReport(reportFile) == initialText);
+
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    auto const bounds = rti->getRangeBounds(region, barQuantity);
+    REQUIRE(bounds.getLowerBound() == 0UL);
+    REQUIRE(bounds.getUpperBound() == 1UL);
+
+    auto asAscii = [](std::wstring const& value) {
+      std::string result;
+      result.reserve(value.size());
+      for (wchar_t const character : value) {
+        REQUIRE(character >= L' ');
+        REQUIRE(character <= L'~');
+        result.push_back(static_cast<char>(character));
+      }
+      return result;
+    };
+    auto const regionValue = asAscii(region.toString());
+    auto const barQuantityValue = asAscii(barQuantity.toString());
+    auto const expectedRecord = std::string{
+        R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":41,"HLAargumentName":"Range bounds","HLAargumentValue":{"lower":0,"upper":1}}],"HLAservice":"GetRangeBounds","HLAsuppliedArguments":[{"HLAargumentType":42,"HLAargumentName":"Region handle","HLAargumentValue":")" +
+        regionValue +
+        R"("},{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")" +
+        barQuantityValue +
+        R"("}],"HLAsuccessIndicator":true,"HLAexception":null})"};
+    REQUIRE(readReport(reportFile) == initialText + expectedRecord);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador reports range-bound changes through the process service-report file",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][data-distribution-management][ddm][transport][process-boundary]"
+    "[public-endpoint][2025][process-service-report-region-set-bounds]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-dimension-handle]"
+    "[rti.service.create-region][rti.service.set-range-bounds]"
+    "[rti.service.commit-region-modifications]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-region-set-bounds-report-execution";
+  constexpr wchar_t const* federateName =
+      L"process-region-set-bounds-report-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry : std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-region-set-bounds-report-server", 0x9E08U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The range-set process server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The range-set process server lost Join.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The range-set process server lost the BarQuantity lookup.");
+      serve(TransportServiceOperation::create_region,
+            "The range-set process server lost CreateRegion.");
+      serve(TransportServiceOperation::set_range_bounds,
+            "The range-set process server lost initial SetRangeBounds.");
+      serve(TransportServiceOperation::commit_region_modifications,
+            "The range-set process server lost CommitRegionModifications.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The range-set process server lost the service-switch enable.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The range-set process server lost the file-switch enable.");
+      serve(TransportServiceOperation::set_range_bounds,
+            "The range-set process server lost reported SetRangeBounds.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The range-set process server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-region-set-bounds-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName, L"process-region-set-bounds-type", federationName)
+                .isValid());
+    joined = true;
+
+    auto files = reportFiles();
+    REQUIRE(files.size() == 1U);
+    auto const reportFile = files.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialText = readReport(reportFile);
+    REQUIRE_FALSE(initialText.empty());
+
+    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    REQUIRE(barQuantity.isValid());
+    auto const region = rti->createRegion(
+        rti1516_2025::DimensionHandleSet{barQuantity});
+    REQUIRE(region.isValid());
+    REQUIRE_NOTHROW(rti->setRangeBounds(
+        region, barQuantity, rti1516_2025::RangeBounds(0UL, 1UL)));
+    REQUIRE_NOTHROW(rti->commitRegionModifications(
+        rti1516_2025::RegionHandleSet{region}));
+    REQUIRE(readReport(reportFile) == initialText);
+
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    REQUIRE_NOTHROW(rti->setRangeBounds(
+        region, barQuantity, rti1516_2025::RangeBounds(2UL, 3UL)));
+
+    auto asAscii = [](std::wstring const& value) {
+      std::string result;
+      result.reserve(value.size());
+      for (wchar_t const character : value) {
+        REQUIRE(character >= L' ');
+        REQUIRE(character <= L'~');
+        result.push_back(static_cast<char>(character));
+      }
+      return result;
+    };
+    auto const regionValue = asAscii(region.toString());
+    auto const barQuantityValue = asAscii(barQuantity.toString());
+    auto const expectedRecord = std::string{
+        R"({"HLAserialNumber":0,"HLAreturnedArgument":[null],"HLAservice":"SetRangeBounds","HLAsuppliedArguments":[{"HLAargumentType":42,"HLAargumentName":"Region handle","HLAargumentValue":")" +
+        regionValue +
+        R"("},{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")" +
+        barQuantityValue +
+        R"("},{"HLAargumentType":35,"HLAargumentName":"Range lower bound","HLAargumentValue":2},{"HLAargumentType":35,"HLAargumentName":"Range upper bound","HLAargumentValue":3}],"HLAsuccessIndicator":true,"HLAexception":null})"};
+    REQUIRE(readReport(reportFile) == initialText + expectedRecord);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador assigns a new process service-report file after resign and rejoin",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][service-report-file-lifecycle][process-service-report-file-rejoin]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-service-report-rejoin-execution";
+  constexpr wchar_t const* federateName =
+      L"process-service-report-rejoin-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry :
+         std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-service-report-rejoin-server", 0x9E11U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The process service-report rejoin server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The process service-report rejoin server lost the first Join.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The process service-report rejoin server lost the first Resign.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The process service-report rejoin server lost the second Join.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The process service-report rejoin server lost the second Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-service-report-rejoin-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+
+    REQUIRE(rti->joinFederationExecution(
+                federateName, L"process-service-report-rejoin-type", federationName)
+                .isValid());
+    joined = true;
+    auto const firstFiles = reportFiles();
+    REQUIRE(firstFiles.size() == 1U);
+    auto const firstReport = firstFiles.front();
+    REQUIRE(firstReport.is_absolute());
+    auto const firstText = readReport(firstReport);
+    REQUIRE_FALSE(firstText.empty());
+    REQUIRE(firstText.find("HLAfederateName") != std::string::npos);
+    REQUIRE(firstText.find("process-service-report-rejoin-federate") !=
+            std::string::npos);
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    REQUIRE(std::filesystem::exists(firstReport));
+    REQUIRE(reportFiles() == firstFiles);
+    REQUIRE(readReport(firstReport) == firstText);
+
+    REQUIRE(rti->joinFederationExecution(
+                federateName, L"process-service-report-rejoin-type", federationName)
+                .isValid());
+    joined = true;
+    auto const secondFiles = reportFiles();
+    REQUIRE(secondFiles.size() == 2U);
+    auto const second = std::find_if(
+        secondFiles.begin(), secondFiles.end(),
+        [&](std::filesystem::path const& path) { return path != firstReport; });
+    REQUIRE(second != secondFiles.end());
+    REQUIRE(second->is_absolute());
+    REQUIRE(*second != firstReport);
+    auto const secondText = readReport(*second);
+    REQUIRE_FALSE(secondText.empty());
+    REQUIRE(secondText.find("HLAfederateName") != std::string::npos);
+    REQUIRE(secondText.find("process-service-report-rejoin-federate") !=
+            std::string::npos);
+    REQUIRE(readReport(firstReport) == firstText);
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    REQUIRE(std::filesystem::exists(firstReport));
+    REQUIRE(std::filesystem::exists(*second));
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador rejects an unusable process service-report directory before endpoint connection",
+    "[integration][foundation][federation-management][mom][service-reporting]"
+    "[service-report-file][service-report-file-failure][transport][process-boundary]"
+    "[public-endpoint][2025][rti.service.connect]") {
+  using umbra::detail::ProcessTransportListener;
+
+  TestFederateAmbassador federate;
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  REQUIRE(listener->address().port != 0U);
+
+  auto const parent = temporaryServiceReportDirectory();
+  std::filesystem::create_directories(parent);
+  auto const regularFile = parent / "not-a-directory";
+  std::ofstream output(regularFile, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output << "not a directory";
+  REQUIRE(output.good());
+  output.close();
+
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(L"process-service-report-failure")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" +
+                               std::to_wstring(listener->address().port))
+                           .withAdditionalSettings(
+                               L"serviceReportDirectory=" + regularFile.wstring());
+  auto rti = makeRti();
+
+  REQUIRE_THROWS_AS(
+      rti->connect(federate, HLA_EVOKED, configuration),
+      RTIinternalError);
+  // The invalid filesystem configuration is rejected before the process
+  // endpoint is touched and cannot leave a partially connected ambassador.
+  REQUIRE_NOTHROW(rti->connect(federate, HLA_EVOKED));
+  REQUIRE_NOTHROW(rti->disconnect());
+
+  std::error_code ignored;
+  std::filesystem::remove_all(parent, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador reports a deterministic process service-report append failure after file loss",
+    "[integration][foundation][federation-management][mom][service-reporting]"
+    "[service-report-file][service-report-file-failure][service-report-file-loss]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-object-class-handle]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-service-report-file-loss-execution";
+  constexpr wchar_t const* federateName =
+      L"process-service-report-file-loss-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry :
+         std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-service-report-file-loss-server", 0x9E12U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The process service-report file-loss server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The process service-report file-loss server lost Join.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The process service-report file-loss server lost the service-report switch enable.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The process service-report file-loss server lost the file-report switch enable.");
+      serve(TransportServiceOperation::get_object_class_handle,
+            "The process service-report file-loss server lost the report-producing lookup.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The process service-report file-loss server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-service-report-file-loss-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName, L"process-service-report-file-loss-type", federationName)
+                .isValid());
+    joined = true;
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+
+    auto const filesAtJoin = reportFiles();
+    REQUIRE(filesAtJoin.size() == 1U);
+    auto const reportFile = filesAtJoin.front();
+    REQUIRE(reportFile.is_absolute());
+    std::error_code removed;
+    REQUIRE(std::filesystem::remove(reportFile, removed));
+    REQUIRE_FALSE(removed);
+    REQUIRE_FALSE(std::filesystem::exists(reportFile));
+
+    REQUIRE_THROWS_AS(
+        rti->getObjectClassHandle(L"HLAobjectRoot"),
+        RTIinternalError);
+    REQUIRE(reportFiles().empty());
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
 }
 
 TEST_CASE(
@@ -622,8 +3753,8 @@ TEST_CASE(
                                 auto const& handler,
                                 TransportServiceOperation operation,
                                 char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -825,8 +3956,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -934,8 +4065,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -1096,8 +4227,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -1259,8 +4390,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -1421,8 +4552,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -1596,8 +4727,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -1807,8 +4938,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -2279,8 +5410,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -2370,7 +5501,7 @@ TEST_CASE(
 
 TEST_CASE(
     "RTIambassadors carry timestamped federation save callbacks through the configured process endpoint",
-    "[integration][foundation][federation-management][save-restore][time-management][transport][process-boundary][public-endpoint][2025][rti.service.enable-time-regulation][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.time-regulation-enabled][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
+    "[integration][foundation][federation-management][save-restore][time-management][transport][process-boundary][public-endpoint][2025][rti.service.enable-time-regulation][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.time-regulation-enabled][federate.callback.initiate-federate-save][federate.callback.federation-saved][process-federation-save-timestamped]") {
   using umbra::detail::ProcessTransportListener;
 
   constexpr wchar_t const* federationName =
@@ -2401,8 +5532,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -2507,7 +5638,7 @@ TEST_CASE(
 
 TEST_CASE(
     "RTIambassadors coordinate timestamped federation save boundaries through a configured process endpoint",
-    "[integration][foundation][federation-management][save-restore][time-management][transport][process-boundary][public-endpoint][multi-federate][2025][timed-save][multi-federate-callback-ordering][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.request-federation-save][rti.service.time-advance-request][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
+    "[integration][foundation][federation-management][save-restore][time-management][transport][process-boundary][public-endpoint][multi-federate][2025][timed-save][process-federation-save-timed-multi-federate][multi-federate-callback-ordering][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.request-federation-save][rti.service.time-advance-request][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
   class MixedTimedSaveFederateAmbassador final : public NullFederateAmbassador {
    public:
     void timeRegulationEnabled(
@@ -2602,8 +5733,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -2839,7 +5970,7 @@ TEST_CASE(
 
 TEST_CASE(
     "RTIambassadors admit timestamped federation saves to multiple constrained recipients through a configured process endpoint",
-    "[integration][foundation][federation-management][save-restore][time-management][transport][process-boundary][public-endpoint][multi-federate][multiple-constrained][2025][timed-save][multi-federate-callback-ordering][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.request-federation-save][rti.service.time-advance-request][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
+    "[integration][foundation][federation-management][save-restore][time-management][transport][process-boundary][public-endpoint][multi-federate][multiple-constrained][2025][timed-save][multi-federate-callback-ordering][process-federation-save-timed-multiple-constrained][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.request-federation-save][rti.service.time-advance-request][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
   class MultipleConstrainedTimedSaveFederateAmbassador final : public NullFederateAmbassador {
    public:
     void timeRegulationEnabled(
@@ -2928,8 +6059,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -3264,7 +6395,7 @@ TEST_CASE(
 
 TEST_CASE(
     "RTIambassadors admit a timestamped federation save while queued TSO delivery remains pending for multiple constrained recipients through a configured process endpoint",
-    "[integration][foundation][federation-management][interaction-management][save-restore][time-management][time-advance][transport][process-boundary][public-endpoint][multi-federate][multiple-constrained][queued-tso][2025][timed-save][multi-federate-callback-ordering][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.send-interaction][rti.service.request-federation-save][rti.service.time-advance-request][rti.service.query-galt][rti.service.query-lits][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.receive-interaction][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
+    "[integration][foundation][federation-management][interaction-management][save-restore][time-management][time-advance][transport][process-boundary][public-endpoint][multi-federate][multiple-constrained][queued-tso][2025][timed-save][multi-federate-callback-ordering][process-federation-save-timed-queued-tso][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.send-interaction][rti.service.request-federation-save][rti.service.time-advance-request][rti.service.query-galt][rti.service.query-lits][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.receive-interaction][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
   class QueuedTsoTimedSaveFederateAmbassador final : public NullFederateAmbassador {
    public:
     void receiveInteraction(
@@ -3415,8 +6546,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -4004,8 +7135,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -4151,8 +7282,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -4271,8 +7402,8 @@ TEST_CASE(
                                 auto const& handler,
                                 TransportServiceOperation operation,
                                 char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -4332,6 +7463,7 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::synchronization_point_achieved,
           "The explicit synchronization server lost sender rejection.");
+      umbra::test::serveProcessExceptionReport(sender, senderHandler);
       serveExpected(
           receiver,
           receiverHandler,
@@ -4490,8 +7622,8 @@ TEST_CASE(
                                 auto const& handler,
                                 TransportServiceOperation operation,
                                 char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -4554,6 +7686,7 @@ TEST_CASE(
           senderHandler,
           TransportServiceOperation::synchronization_point_achieved,
           "The immediate synchronization server lost sender rejection.");
+      umbra::test::serveProcessExceptionReport(sender, senderHandler);
       serveExpected(
           receiver,
           receiverHandler,
@@ -4694,8 +7827,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -4786,8 +7919,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -4878,8 +8011,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -4949,8 +8082,8 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "RTIambassador publishes object-class attributes and registers an object through a configured process endpoint",
-    "[integration][foundation][declaration-management][object-management][time-management][transport][process-boundary][public-endpoint][order-type-control][rti.service.publish-object-class-attributes][rti.service.register-object-instance][rti.service.change-default-attribute-order-type][rti.service.change-attribute-order-type]") {
+    "RTIambassador publishes and unpublishes object-class attributes and registers an object through a configured process endpoint",
+    "[integration][foundation][declaration-management][object-management][time-management][transport][process-boundary][public-endpoint][order-type-control][process-unpublish-object-class-attributes][rti.service.publish-object-class-attributes][rti.service.unpublish-object-class-attributes][rti.service.unpublish-object-class][rti.service.register-object-instance][rti.service.change-default-attribute-order-type][rti.service.change-attribute-order-type]") {
   auto runScenario = [](CallbackModel callbackModel) {
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
@@ -4977,8 +8110,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -5020,6 +8153,45 @@ TEST_CASE(
       if (!published || !published->contains(*attribute)) {
         throw std::runtime_error(
             "The public process object-registration publication did not reach the registry.");
+      }
+
+      if (!serveExpected(
+              TransportServiceOperation::unpublish_object_class_attributes)) {
+        throw std::runtime_error(
+            "The public process object-registration server lost subset unpublication.");
+      }
+      auto const afterSubsetUnpublish = registry.publishedObjectClassAttributeHandles(
+          federationName, member->id, *objectClass);
+      if (!afterSubsetUnpublish || afterSubsetUnpublish->contains(*attribute)) {
+        throw std::runtime_error(
+            "The public process object-registration subset unpublication did not reach the registry.");
+      }
+
+      if (!serveExpected(TransportServiceOperation::publish_object_class_attributes)) {
+        throw std::runtime_error(
+            "The public process object-registration server lost the publication restore.");
+      }
+      auto const republished = registry.publishedObjectClassAttributeHandles(
+          federationName, member->id, *objectClass);
+      if (!republished || !republished->contains(*attribute)) {
+        throw std::runtime_error(
+            "The public process object-registration publication restore did not reach the registry.");
+      }
+
+      if (!serveExpected(TransportServiceOperation::unpublish_object_class)) {
+        throw std::runtime_error(
+            "The public process object-registration server lost whole-class unpublication.");
+      }
+      auto const afterWholeUnpublish = registry.publishedObjectClassAttributeHandles(
+          federationName, member->id, *objectClass);
+      if (!afterWholeUnpublish || !afterWholeUnpublish->empty()) {
+        throw std::runtime_error(
+            "The public process object-registration whole-class unpublication did not reach the registry.");
+      }
+
+      if (!serveExpected(TransportServiceOperation::publish_object_class_attributes)) {
+        throw std::runtime_error(
+            "The public process object-registration server lost the final publication restore.");
       }
 
       if (!serveExpected(
@@ -5070,6 +8242,10 @@ TEST_CASE(
     rti1516_2025::AttributeHandleSet attributes;
     attributes.insert(attribute);
     rti->publishObjectClassAttributes(objectClass, attributes);
+    REQUIRE_NOTHROW(rti->unpublishObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(rti->publishObjectClassAttributes(objectClass, attributes));
+    REQUIRE_NOTHROW(rti->unpublishObjectClass(objectClass));
+    REQUIRE_NOTHROW(rti->publishObjectClassAttributes(objectClass, attributes));
     REQUIRE_NOTHROW(rti->changeDefaultAttributeOrderType(
         objectClass, attributes, rti1516_2025::TIMESTAMP));
     auto const objectInstance = rti->registerObjectInstance(objectClass);
@@ -5147,8 +8323,8 @@ TEST_CASE(
         ProcessTransportSession session(connection);
         auto handler = service.handlerFor(session);
         auto serveExpected = [&](TransportServiceOperation operation) {
-          return ProcessTransportServiceDispatcher::serveOne(
-              session,
+          return umbra::test::servePrimaryProcessRequest(
+              session, handler,
               [&](TransportServiceMessage const& request) {
                 if (request.operation != operation) {
                   throw std::runtime_error(
@@ -5236,6 +8412,277 @@ TEST_CASE(
           objectClass, attributes, transportation));
       auto const objectInstance = rti->registerObjectInstance(objectClass);
       REQUIRE(objectInstance.isValid());
+      rti->resignFederationExecution(NO_ACTION);
+      rti->disconnect();
+    } catch (...) {
+      clientError = std::current_exception();
+      if (clientJoined) {
+        try {
+          rti->resignFederationExecution(NO_ACTION);
+        } catch (...) {
+        }
+      }
+      try {
+        rti->disconnect();
+      } catch (...) {
+      }
+    }
+    if (listener) {
+      listener.reset();
+    }
+    if (server.joinable()) {
+      server.join();
+    }
+    if (clientError) {
+      std::rethrow_exception(clientError);
+    }
+    REQUIRE_FALSE(serverError);
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "RTIambassador resolves update-rate values through a configured process endpoint",
+    "[integration][foundation][support-services][object-management][transport][process-boundary][public-endpoint][process-update-rate-query][rti.service.get-update-rate-value][rti.service.get-update-rate-value-for-attribute]") {
+  auto runScenario = [](CallbackModel callbackModel) {
+    auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+    REQUIRE(listener);
+    auto const port = listener->address().port;
+    REQUIRE(port != 0U);
+
+    constexpr wchar_t const* federationName =
+        L"public-process-update-rate-execution";
+    constexpr wchar_t const* federateName =
+        L"public-process-update-rate-federate";
+    constexpr char const* objectClassName = "HLAobjectRoot.Customer";
+    constexpr char const* attributeName = "HLAprivilegeToDeleteObject";
+    std::atomic_uint64_t expectedObjectClass{0U};
+    std::atomic_uint64_t expectedAttribute{0U};
+    std::exception_ptr serverError;
+    std::thread server([&] {
+      try {
+        EmbeddedFederationRegistry registry;
+        ProcessFederationService service(
+            registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+        auto connection = listener->accept(
+            nullptr,
+            {"public-process-update-rate-server", 0x9603U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession session(connection);
+        auto handler = service.handlerFor(session);
+        auto serveExpected = [&](TransportServiceOperation operation) {
+          return umbra::test::servePrimaryProcessRequest(
+              session, handler,
+              [&](TransportServiceMessage const& request) {
+                if (request.operation != operation) {
+                  throw std::runtime_error(
+                      "The public process update-rate server received an unexpected operation.");
+                }
+                return handler(request);
+              });
+        };
+
+        if (!serveExpected(TransportServiceOperation::create_federation_execution)) {
+          throw std::runtime_error(
+              "The public process update-rate server lost Create.");
+        }
+        auto const objectClass = registry.objectClassHandleFor(
+            federationName, objectClassName);
+        auto const attribute = registry.attributeHandleFor(
+            federationName, objectClassName, attributeName);
+        if (!objectClass || !attribute) {
+          throw std::runtime_error(
+              "The public process update-rate server could not resolve its FOM handles.");
+        }
+        expectedObjectClass.store(*objectClass, std::memory_order_release);
+        expectedAttribute.store(*attribute, std::memory_order_release);
+
+        if (!serveExpected(TransportServiceOperation::join_federation_execution) ||
+            !serveExpected(TransportServiceOperation::get_object_class_handle) ||
+            !serveExpected(TransportServiceOperation::get_attribute_handle) ||
+            !serveExpected(TransportServiceOperation::publish_object_class_attributes) ||
+            !serveExpected(TransportServiceOperation::register_object_instance) ||
+            !serveExpected(TransportServiceOperation::get_update_rate_value) ||
+            !serveExpected(
+                TransportServiceOperation::get_update_rate_value_for_attribute) ||
+            !serveExpected(TransportServiceOperation::get_update_rate_value) ||
+            !serveExpected(TransportServiceOperation::resign_federation_execution)) {
+          throw std::runtime_error(
+              "The public process update-rate server lost a query operation.");
+        }
+        service.detach(session);
+        connection->close();
+      } catch (...) {
+        serverError = std::current_exception();
+      }
+    });
+
+    TestFederateAmbassador federate;
+    auto rti = makeRti();
+    auto configuration = RtiConfiguration::createConfiguration()
+                             .withConfigurationName(
+                                 L"public-process-update-rate-client")
+                             .withRtiAddress(
+                                 L"tcp://127.0.0.1:" + std::to_wstring(port));
+    std::exception_ptr clientError;
+    bool clientJoined = false;
+    try {
+      REQUIRE(rti->connect(federate, callbackModel, configuration).addressUsed);
+      rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+      static_cast<void>(rti->joinFederationExecution(
+          federateName,
+          L"public-process-update-rate-type",
+          federationName));
+      clientJoined = true;
+
+      auto const objectClass = rti->getObjectClassHandle(
+          L"HLAobjectRoot.Customer");
+      REQUIRE(objectClass.toString() ==
+              L"ObjectClassHandle(" +
+                  std::to_wstring(
+                      expectedObjectClass.load(std::memory_order_acquire)) +
+                  L")");
+      auto const attribute = rti->getAttributeHandle(
+          objectClass, L"HLAprivilegeToDeleteObject");
+      REQUIRE(attribute.toString() ==
+              L"AttributeHandle(" +
+                  std::to_wstring(
+                      expectedAttribute.load(std::memory_order_acquire)) +
+                  L")");
+      rti1516_2025::AttributeHandleSet attributes;
+      attributes.insert(attribute);
+      rti->publishObjectClassAttributes(objectClass, attributes);
+      auto const objectInstance = rti->registerObjectInstance(objectClass);
+      REQUIRE(objectInstance.isValid());
+
+      REQUIRE(rti->getUpdateRateValue(L"HLAdefault") == 0.0);
+      REQUIRE(rti->getUpdateRateValueForAttribute(objectInstance, attribute) == 0.0);
+      REQUIRE_THROWS_AS(
+          rti->getUpdateRateValue(L"not-defined-by-the-fdd"),
+          rti1516_2025::InvalidUpdateRateDesignator);
+
+      rti->resignFederationExecution(NO_ACTION);
+      rti->disconnect();
+    } catch (...) {
+      clientError = std::current_exception();
+      if (clientJoined) {
+        try {
+          rti->resignFederationExecution(NO_ACTION);
+        } catch (...) {
+        }
+      }
+      try {
+        rti->disconnect();
+      } catch (...) {
+      }
+    }
+    if (listener) {
+      listener.reset();
+    }
+    if (server.joinable()) {
+      server.join();
+    }
+    if (clientError) {
+      std::rethrow_exception(clientError);
+    }
+    REQUIRE_FALSE(serverError);
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "RTIambassador resolves named FDD update rates through a configured process endpoint",
+    "[integration][foundation][support-services][transport][process-boundary][public-endpoint][process-update-rate-query-named][rti.service.get-update-rate-value]") {
+  auto runScenario = [](CallbackModel callbackModel) {
+    auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+    REQUIRE(listener);
+    auto const port = listener->address().port;
+    REQUIRE(port != 0U);
+
+    constexpr wchar_t const* federationName =
+        L"public-process-named-update-rate-execution";
+    constexpr wchar_t const* federateName =
+        L"public-process-named-update-rate-federate";
+    std::exception_ptr serverError;
+    std::thread server([&] {
+      try {
+        EmbeddedFederationRegistry registry;
+        ProcessFederationService service(
+            registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+        auto connection = listener->accept(
+            nullptr,
+            {"public-process-named-update-rate-server", 0x9604U},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        ProcessTransportSession session(connection);
+        auto handler = service.handlerFor(session);
+        auto serveExpected = [&](TransportServiceOperation operation) {
+          return umbra::test::servePrimaryProcessRequest(
+              session, handler,
+              [&](TransportServiceMessage const& request) {
+                if (request.operation != operation) {
+                  throw std::runtime_error(
+                      "The public process named update-rate server received an unexpected operation.");
+                }
+                return handler(request);
+              });
+        };
+
+        if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
+            !serveExpected(TransportServiceOperation::join_federation_execution) ||
+            !serveExpected(TransportServiceOperation::get_update_rate_value) ||
+            !serveExpected(TransportServiceOperation::get_update_rate_value) ||
+            !serveExpected(TransportServiceOperation::get_update_rate_value) ||
+            !serveExpected(TransportServiceOperation::get_update_rate_value) ||
+            !serveExpected(TransportServiceOperation::resign_federation_execution)) {
+          throw std::runtime_error(
+              "The public process named update-rate server lost a query operation.");
+        }
+        service.detach(session);
+        connection->close();
+      } catch (...) {
+        serverError = std::current_exception();
+      }
+    });
+
+    TestFederateAmbassador federate;
+    auto rti = makeRti();
+    auto configuration = RtiConfiguration::createConfiguration()
+                             .withConfigurationName(
+                                 L"public-process-named-update-rate-client")
+                             .withRtiAddress(
+                                 L"tcp://127.0.0.1:" + std::to_wstring(port));
+    std::exception_ptr clientError;
+    bool clientJoined = false;
+    try {
+      REQUIRE(rti->connect(federate, callbackModel, configuration).addressUsed);
+      rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+      static_cast<void>(rti->joinFederationExecution(
+          federateName,
+          L"public-process-named-update-rate-type",
+          federationName));
+      clientJoined = true;
+
+      REQUIRE(rti->getUpdateRateValue(L"High") == 30.0);
+      REQUIRE(rti->getUpdateRateValue(L"Low") == 0.2);
+      REQUIRE(rti->getUpdateRateValue(L"HLAdefault") == 0.0);
+      REQUIRE_THROWS_AS(
+          rti->getUpdateRateValue(L"not-defined-by-the-fdd"),
+          rti1516_2025::InvalidUpdateRateDesignator);
+
       rti->resignFederationExecution(NO_ACTION);
       rti->disconnect();
     } catch (...) {
@@ -5362,8 +8809,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -5707,8 +9154,8 @@ TEST_CASE(
       std::size_t multipleReservationCount = 0U;
       std::size_t multipleReleaseCount = 0U;
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -6063,7 +9510,7 @@ TEST_CASE(
           [](std::wstring) { return false; });
       ProcessTransportSession sender(senderConnection);
       auto senderHandler = service.handlerFor(sender);
-      if (!ProcessTransportServiceDispatcher::serveOne(sender, senderHandler)) {
+      if (!umbra::test::servePrimaryProcessRequest(sender, senderHandler)) {
         throw std::runtime_error("The public process message server lost Create.");
       }
 
@@ -6085,7 +9532,7 @@ TEST_CASE(
       interactionClassValue.store(*interactionClass, std::memory_order_release);
       parameterValue.store(*parameter, std::memory_order_release);
 
-      if (!ProcessTransportServiceDispatcher::serveOne(sender, senderHandler)) {
+      if (!umbra::test::servePrimaryProcessRequest(sender, senderHandler)) {
         throw std::runtime_error("The public process message server lost Join.");
       }
 
@@ -6096,7 +9543,7 @@ TEST_CASE(
           [](std::wstring) { return false; });
       ProcessTransportSession receiver(receiverConnection);
       auto receiverHandler = service.handlerFor(receiver);
-      if (!ProcessTransportServiceDispatcher::serveOne(receiver, receiverHandler)) {
+      if (!umbra::test::servePrimaryProcessRequest(receiver, receiverHandler)) {
         throw std::runtime_error("The public process message server lost receiver Join.");
       }
 
@@ -6129,15 +9576,15 @@ TEST_CASE(
             std::to_string(static_cast<int>(subscriptionStatus)) + ").");
       }
 
-      if (!ProcessTransportServiceDispatcher::serveOne(sender, senderHandler)) {
+      if (!umbra::test::servePrimaryProcessRequest(sender, senderHandler)) {
         throw std::runtime_error("The public process message server lost Send.");
       }
 
-      if (!ProcessTransportServiceDispatcher::serveOne(receiver, receiverHandler)) {
+      if (!umbra::test::servePrimaryProcessRequest(receiver, receiverHandler)) {
         throw std::runtime_error("The public process message server lost Receive.");
       }
 
-      if (!ProcessTransportServiceDispatcher::serveOne(sender, senderHandler)) {
+      if (!umbra::test::servePrimaryProcessRequest(sender, senderHandler)) {
         throw std::runtime_error("The public process message server lost Resign.");
       }
       service.detach(sender);
@@ -6314,8 +9761,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -6468,8 +9915,8 @@ TEST_CASE(
       auto serveExpected = [&](ProcessTransportSession& session,
                                auto const& handler,
                                TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -6877,8 +10324,8 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(
@@ -7345,8 +10792,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -7554,8 +11001,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -7625,8 +11072,8 @@ TEST_CASE(
           TransportServiceOperation::subscribe_interaction_class,
           "The public process evoke server lost Subscribe.");
       auto serveSend = [&] {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                sender,
+        if (!umbra::test::servePrimaryProcessRequest(
+                sender, senderHandler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != TransportServiceOperation::send_interaction) {
                     throw std::runtime_error(
@@ -7898,8 +11345,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -7968,8 +11415,8 @@ TEST_CASE(
           receiverHandler,
           TransportServiceOperation::subscribe_interaction_class,
           "The public timestamped process server lost Subscribe.");
-      if (!ProcessTransportServiceDispatcher::serveOne(
-              sender,
+      if (!umbra::test::servePrimaryProcessRequest(
+              sender, senderHandler,
               [&](TransportServiceMessage const& request) {
                 if (request.operation != TransportServiceOperation::send_interaction) {
                   throw std::runtime_error(
@@ -8175,8 +11622,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -8322,8 +11769,8 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "RTIambassador delivers a process Update Attribute Values event through the official Reflect callback",
-    "[integration][foundation][object-management][callbacks][callback-controls][transport][process-boundary][public-endpoint][rti.service.update-attribute-values][federate.callback.reflect-attribute-values]") {
+    "RTIambassador reflects an update only once for overlapping process subscriptions",
+    "[integration][foundation][data-distribution-management][object-management][callbacks][callback-controls][transport][process-boundary][public-endpoint][rti.service.subscribe-object-class-attributes][rti.service.update-attribute-values][federate.callback.reflect-attribute-values]") {
   auto runScenario = [](CallbackModel callbackModel) {
   class RecordingFederateAmbassador final : public NullFederateAmbassador {
    public:
@@ -8351,6 +11798,7 @@ TEST_CASE(
       this->transportationType = transportationType;
       this->producingFederate = producingFederate;
       this->attributeCount = attributeValues.size();
+      ++this->receivedCount;
       this->hasOptionalSentRegions = optionalSentRegions != nullptr;
       this->tag.clear();
       if (userSuppliedTag.size() != 0U) {
@@ -8373,6 +11821,7 @@ TEST_CASE(
     std::wstring discoveredObjectInstanceName;
     rti1516_2025::FederateHandle discoveredProducingFederate;
     bool received = false;
+    std::size_t receivedCount = 0U;
     rti1516_2025::ObjectInstanceHandle objectInstance;
     rti1516_2025::TransportationTypeHandle transportationType;
     rti1516_2025::FederateHandle producingFederate;
@@ -8389,8 +11838,9 @@ TEST_CASE(
 
   constexpr wchar_t const* federationNameWide =
       L"public-process-attribute-reflect-execution";
-  constexpr char const* objectClassName = "HLAobjectRoot.Employee";
-  constexpr wchar_t const* objectClassNameWide = L"HLAobjectRoot.Employee";
+  constexpr char const* objectClassName = "HLAobjectRoot.Employee.Server";
+  constexpr wchar_t const* objectClassNameWide = L"HLAobjectRoot.Employee.Server";
+  constexpr wchar_t const* baseObjectClassNameWide = L"HLAobjectRoot.Employee";
   constexpr char const* attributeName = "Name";
   constexpr wchar_t const* attributeNameWide = L"Name";
   std::atomic_uint64_t expectedObjectClass{0U};
@@ -8444,8 +11894,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -8498,28 +11948,36 @@ TEST_CASE(
           receiverJoinHandler,
           TransportServiceOperation::join_federation_execution,
           "The public process reflection server lost receiver Join.");
-      auto const senderMember = registry.memberByName(
-          federationNameWide, L"public-process-attribute-reflect-federate");
-      auto const receiverMember = registry.memberByName(
-          federationNameWide, L"public-process-attribute-reflect-receiver");
-      if (!senderMember || !receiverMember ||
-          registry.setObjectClassAttributePublication(
-              federationNameWide,
-              senderMember->id,
-              *objectClass,
-              std::set<std::uint64_t>{*attribute},
-              true) !=
-              umbra::detail::ObjectClassAttributeDeclarationStatus::applied ||
-          registry.setObjectClassAttributeSubscription(
-              federationNameWide,
-              receiverMember->id,
-              *objectClass,
-              std::set<std::uint64_t>{*attribute},
-              true) !=
-              umbra::detail::ObjectClassAttributeDeclarationStatus::applied) {
-        throw std::runtime_error(
-            "The public process reflection declarations were rejected.");
-      }
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::get_object_class_handle,
+          "The public process reflection server lost receiver base-class lookup.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::get_attribute_handle,
+          "The public process reflection server lost receiver base-attribute lookup.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::get_object_class_handle,
+          "The public process reflection server lost receiver derived-class lookup.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::get_attribute_handle,
+          "The public process reflection server lost receiver derived-attribute lookup.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::subscribe_object_class_attributes,
+          "The public process reflection server lost receiver base-class Subscribe.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::subscribe_object_class_attributes,
+          "The public process reflection server lost receiver derived-class Subscribe.");
       serveExpected(
           sender,
           senderHandler,
@@ -8562,6 +12020,11 @@ TEST_CASE(
             receiverHandler,
             TransportServiceOperation::receive_interaction,
             "The public process reflection server lost its reflection Receive.");
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::receive_interaction,
+            "The public process reflection server lost the duplicate-delivery check Receive.");
       }
       serveExpected(
           sender,
@@ -8608,6 +12071,25 @@ TEST_CASE(
         federationNameWide);
     receiverJoined = true;
 
+    auto const receiverBaseClass =
+        receiverRti->getObjectClassHandle(baseObjectClassNameWide);
+    auto const receiverBaseAttribute =
+        receiverRti->getAttributeHandle(receiverBaseClass, attributeNameWide);
+    auto const receiverObjectClass =
+        receiverRti->getObjectClassHandle(objectClassNameWide);
+    auto const receiverAttribute =
+        receiverRti->getAttributeHandle(receiverObjectClass, attributeNameWide);
+    REQUIRE(receiverBaseClass.isValid());
+    REQUIRE(receiverObjectClass.isValid());
+    REQUIRE(receiverBaseAttribute.isValid());
+    REQUIRE(receiverBaseAttribute == receiverAttribute);
+    REQUIRE_NOTHROW(receiverRti->subscribeObjectClassAttributes(
+        receiverBaseClass,
+        rti1516_2025::AttributeHandleSet{receiverBaseAttribute}));
+    REQUIRE_NOTHROW(receiverRti->subscribeObjectClassAttributes(
+        receiverObjectClass,
+        rti1516_2025::AttributeHandleSet{receiverAttribute}));
+
     auto const objectClass = senderRti->getObjectClassHandle(objectClassNameWide);
     auto const attribute = senderRti->getAttributeHandle(objectClass, attributeNameWide);
     REQUIRE(objectClass.toString() ==
@@ -8636,12 +12118,17 @@ TEST_CASE(
       static_cast<void>(receiverRti->getObjectClassHandle(objectClassNameWide));
     } else {
       for (std::size_t evokeCount = 0U; evokeCount < 4U &&
-           !receiverFederate.received; ++evokeCount) {
+           !(receiverFederate.discovered && receiverFederate.received); ++evokeCount) {
         static_cast<void>(receiverRti->evokeCallback(0.0));
       }
+      // Drain the receive-order queue once more after the one expected
+      // reflection. A duplicate caused by the overlapping class-level
+      // subscriptions would be delivered on this poll.
+      REQUIRE_FALSE(receiverRti->evokeCallback(0.0));
     }
     REQUIRE(receiverFederate.discovered);
     REQUIRE(receiverFederate.received);
+    REQUIRE(receiverFederate.receivedCount == 1U);
     REQUIRE(receiverFederate.objectInstance == objectInstance);
     REQUIRE(receiverFederate.attributeCount == 1U);
     REQUIRE(receiverFederate.value ==
@@ -8763,8 +12250,8 @@ TEST_CASE(
           TransportServiceOperation::register_object_instance_with_regions,
           TransportServiceOperation::resign_federation_execution};
       for (auto const operation : expected) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -8980,8 +12467,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -9464,8 +12951,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -9931,8 +13418,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -10432,8 +13919,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -10746,8 +14233,8 @@ TEST_CASE(
         ProcessTransportSession session(connection);
         auto handler = service.handlerFor(session);
         auto serveExpected = [&](TransportServiceOperation operation) {
-          return ProcessTransportServiceDispatcher::serveOne(
-              session,
+          return umbra::test::servePrimaryProcessRequest(
+              session, handler,
               [&](TransportServiceMessage const& request) {
                 if (request.operation != operation) {
                   throw std::runtime_error(
@@ -10974,11 +14461,11 @@ TEST_CASE(
           rti1516_2025::ObjectClassHandle const& objectClass,
           std::wstring const& objectInstanceName,
           rti1516_2025::FederateHandle const& producingFederate) override {
-        discovered = true;
         discoveredObjectInstance = objectInstance;
         discoveredObjectClass = objectClass;
         discoveredObjectInstanceName = objectInstanceName;
         discoveredProducingFederate = producingFederate;
+        discovered = true;
       }
 
       bool discovered = false;
@@ -11018,8 +14505,8 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -11498,8 +14985,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -11648,14 +15135,14 @@ TEST_CASE(
             TransportServiceOperation::receive_interaction,
             "The public directed callback server lost directed polling.");
       }
-      // A timestamped event remains in the producer/recipient ledger until
-      // the recipient acknowledges the callback boundary.  The public client
-      // sends that acknowledgement after the FederateAmbassador callback (or
-      // after a pre-delivery retraction is consumed in the push path).  Keep
-      // the fixture's request sequence explicit so a missing ACK cannot be
-      // mistaken for a later Resign or Retract protocol failure.
+      // This fixture deliberately receives timestamped interactions in
+      // RECEIVE order, so normal delivery has no TSO completion to acknowledge.
+      // The pushed pre-delivery retraction path still acknowledges its removed
+      // pending reservation. Expect that explicit handshake only; waiting for
+      // a TSO ACK after ordinary RECEIVE delivery would deadlock the server
+      // before the client can resign or request post-delivery retraction.
       if (timestamped &&
-          (!retractBeforeReceive || callbackModel == HLA_IMMEDIATE)) {
+          retractBeforeReceive && callbackModel == HLA_IMMEDIATE) {
         serveExpected(
             receiver,
             receiverHandler,
@@ -12087,8 +15574,8 @@ TEST_CASE(
       auto serveExpected = [&](ProcessTransportSession& session,
                                auto const& handler,
                                TransportServiceOperation operation) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -12352,6 +15839,16 @@ TEST_CASE("IEEE 1516.1-2025 connection support types have usable value semantics
   ConfigurationResult defaultResult;
   requireIgnoredConfiguration(defaultResult);
 
+  ConfigurationResult configuredResult(
+      true,
+      false,
+      SETTINGS_APPLIED,
+      L"configuration and additional settings were applied");
+  REQUIRE(configuredResult.configurationUsed);
+  REQUIRE_FALSE(configuredResult.addressUsed);
+  REQUIRE(configuredResult.additionalSettingsResult == SETTINGS_APPLIED);
+  REQUIRE(configuredResult.message == L"configuration and additional settings were applied");
+
   std::array<unsigned char, 3> source{0x01, 0x02, 0x03};
   VariableLengthData value(source.data(), source.size());
   source[0] = 0xFF;
@@ -12399,7 +15896,8 @@ TEST_CASE("RTIambassador Connect exposes all four official C++ overloads", "[int
 
 TEST_CASE(
     "Embedded Connect rejects supplied credentials while authorization is disabled",
-    "[integration][connection][authorization][credentials][federation-management]") {
+    "[integration][connection][authorization][credentials][federation-management]"
+    "[connect-credentials-authorization-disabled]") {
   TestFederateAmbassador federate;
   HLAplainTextPassword password(L"test-password");
   RtiConfiguration configuration = RtiConfiguration::createConfiguration()
@@ -12446,7 +15944,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Umbra embedded profile configuration exposes a typed service-report directory",
-    "[integration][connection][mom][service-report-store][service-reporting][configuration]") {
+    "[internal][integration][connection][mom][service-report-store][service-reporting][configuration][typed-service-report-directory-configuration]") {
   auto const directory = temporaryServiceReportDirectory();
   auto configuration = umbra::embedded::makeEmbeddedRtiConfiguration(
       umbra::embedded::ServiceReportConfiguration{directory});
@@ -12683,8 +16181,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -13146,8 +16644,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -13559,8 +17057,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -14074,8 +17572,8 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -14480,8 +17978,8 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -14903,8 +18401,8 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -15260,8 +18758,8 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -15756,14 +19254,14 @@ TEST_CASE(
           rti1516_2025::ObjectClassHandle const& objectClass,
           std::wstring const& objectInstanceName,
           rti1516_2025::FederateHandle const& producingFederate) override {
-        discovered = true;
         discoveredObjectInstance = objectInstance;
         discoveredObjectClass = objectClass;
         discoveredObjectInstanceName = objectInstanceName;
         discoveredProducingFederate = producingFederate;
+        discovered.store(true, std::memory_order_release);
       }
 
-      bool discovered = false;
+      std::atomic_bool discovered{false};
       rti1516_2025::ObjectInstanceHandle discoveredObjectInstance;
       rti1516_2025::ObjectClassHandle discoveredObjectClass;
       std::wstring discoveredObjectInstanceName;
@@ -15826,15 +19324,26 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
-                  [&](TransportServiceMessage const& request) {
-                    if (request.operation != operation) {
-                      throw std::runtime_error(description);
-                    }
-                    return handler(request);
-                  })) {
-            throw std::runtime_error(description);
+          bool expectedOperationServed = false;
+          while (!expectedOperationServed) {
+            if (!umbra::test::servePrimaryProcessRequest(
+                    session, handler,
+                    [&](TransportServiceMessage const& request) {
+                      if (callbackModel == HLA_IMMEDIATE &&
+                          request.operation ==
+                              TransportServiceOperation::receive_interaction &&
+                          operation !=
+                              TransportServiceOperation::receive_interaction) {
+                        return handler(request);
+                      }
+                      if (request.operation != operation) {
+                        throw std::runtime_error(description);
+                      }
+                      expectedOperationServed = true;
+                      return handler(request);
+                    })) {
+              throw std::runtime_error(description);
+            }
           }
         };
 
@@ -15943,10 +19452,16 @@ TEST_CASE(
         serveExpected(
             receiver,
             receiverHandler,
-            callbackModel == HLA_IMMEDIATE
-                ? TransportServiceOperation::get_object_class_handle
-                : TransportServiceOperation::receive_interaction,
+            TransportServiceOperation::receive_interaction,
             "The public process object-discovery server lost receiver discovery delivery.");
+        while (callbackModel == HLA_IMMEDIATE &&
+               !receiverFederate.discovered.load(std::memory_order_acquire)) {
+          serveExpected(
+              receiver,
+              receiverHandler,
+              TransportServiceOperation::receive_interaction,
+              "The public process object-discovery server lost immediate callback polling.");
+        }
         serveExpected(
             sender,
             senderHandler,
@@ -16032,15 +19547,21 @@ TEST_CASE(
                       expectedObjectInstance.load(std::memory_order_acquire)) +
                   L")");
       if (callbackModel == HLA_IMMEDIATE) {
-        static_cast<void>(receiverRti->getObjectClassHandle(objectClassNameWide));
+        auto const deadline =
+            std::chrono::steady_clock::now() + std::chrono::seconds(2);
+        while (!receiverFederate.discovered.load(std::memory_order_acquire) &&
+               std::chrono::steady_clock::now() < deadline) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
       } else {
         for (std::size_t evokeCount = 0U;
-             evokeCount < 4U && !receiverFederate.discovered;
+             evokeCount < 4U &&
+             !receiverFederate.discovered.load(std::memory_order_acquire);
              ++evokeCount) {
           static_cast<void>(receiverRti->evokeCallback(0.0));
         }
       }
-      REQUIRE(receiverFederate.discovered);
+      REQUIRE(receiverFederate.discovered.load(std::memory_order_acquire));
       REQUIRE(receiverFederate.discoveredObjectInstance == objectInstance);
       REQUIRE(receiverFederate.discoveredObjectClass == receiverObjectClass);
       REQUIRE_FALSE(receiverFederate.discoveredObjectInstanceName.empty());
@@ -16130,8 +19651,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -16223,8 +19744,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -16307,8 +19828,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -16400,8 +19921,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -16505,8 +20026,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -16596,8 +20117,8 @@ TEST_CASE(
       auto serveExpected = [&](ProcessTransportSession& session,
                                auto const& handler,
                                TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -16906,8 +20427,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -17257,8 +20778,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -17353,8 +20874,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -17465,8 +20986,8 @@ TEST_CASE(
       auto serveExpected = [&](ProcessTransportSession& session,
                                auto const& handler,
                                TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -17691,8 +21212,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -17787,8 +21308,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -17963,8 +21484,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -18345,8 +21866,8 @@ TEST_CASE(
         auto handler = service.handlerFor(session);
         auto serveExpected = [&](TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -18532,8 +22053,8 @@ TEST_CASE(
         auto handler = service.handlerFor(session);
         auto serveExpected = [&](TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -18725,8 +22246,8 @@ TEST_CASE(
         auto handler = service.handlerFor(session);
         auto serveExpected = [&](TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -18934,8 +22455,8 @@ TEST_CASE(
         auto handler = service.handlerFor(session);
         auto serveExpected = [&](TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -19086,8 +22607,8 @@ TEST_CASE(
         auto serveExpected = [&](TransportServiceOperation operation,
                                  TransportServiceStatus expectedStatus,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -19125,9 +22646,25 @@ TEST_CASE(
             TransportServiceStatus::rejected,
             "The process reverse FOM error server did not reject the unknown dimension.");
         serveExpected(
+            TransportServiceOperation::report_failed_service_invocation,
+            TransportServiceStatus::ok,
+            "The process reverse FOM error server lost the dimension lookup report.");
+        serveExpected(
+            TransportServiceOperation::report_failed_service_invocation,
+            TransportServiceStatus::ok,
+            "The process reverse FOM error server lost the dimension name report.");
+        serveExpected(
             TransportServiceOperation::get_transportation_type_handle,
             TransportServiceStatus::rejected,
             "The process reverse FOM error server did not reject the unknown transportation type.");
+        serveExpected(
+            TransportServiceOperation::report_failed_service_invocation,
+            TransportServiceStatus::ok,
+            "The process reverse FOM error server lost the transportation type lookup report.");
+        serveExpected(
+            TransportServiceOperation::report_failed_service_invocation,
+            TransportServiceStatus::ok,
+            "The process reverse FOM error server lost the transportation type name report.");
         serveExpected(
             TransportServiceOperation::resign_federation_execution,
             TransportServiceStatus::ok,
@@ -19250,8 +22787,8 @@ TEST_CASE(
             TransportServiceOperation::resign_federation_execution};
         std::size_t operationIndex = 0U;
         for (auto const operation : expected) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(
@@ -19457,8 +22994,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -19557,8 +23094,8 @@ TEST_CASE(
           "The multi-recipient process server lost receiver-two Subscribe.");
 
       auto serveSend = [&](char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                sender,
+        if (!umbra::test::servePrimaryProcessRequest(
+                sender, senderHandler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != TransportServiceOperation::send_interaction) {
                     throw std::runtime_error(description);
@@ -19826,8 +23363,9 @@ TEST_CASE(
 
 TEST_CASE(
     "RTIambassadors preserve per-recipient regional interaction scope through a configured process endpoint",
-    "[integration][foundation][data-distribution-management][interaction-management][callbacks][transport][process-boundary][public-endpoint][multi-federate][regional-interaction][multi-recipient-regional-interaction][rti.service.get-convey-region-designator-sets-switch][rti.service.set-convey-region-designator-sets-switch][rti.service.subscribe-interaction-class-with-regions][rti.service.unsubscribe-interaction-class-with-regions][rti.service.send-interaction-with-regions][rti.service.create-region][rti.service.set-range-bounds][rti.service.commit-region-modifications][federate.callback.receive-interaction][2025]") {
-  auto runScenario = [](CallbackModel callbackModel) {
+    "[integration][foundation][data-distribution-management][interaction-management][callbacks][transport][process-boundary][public-endpoint][multi-federate][regional-interaction][allow-relaxed-ddm][multi-recipient-regional-interaction][rti.service.get-allow-relaxed-ddm-switch][rti.service.get-convey-region-designator-sets-switch][rti.service.set-convey-region-designator-sets-switch][rti.service.subscribe-interaction-class-with-regions][rti.service.unsubscribe-interaction-class-with-regions][rti.service.send-interaction-with-regions][rti.service.create-region][rti.service.set-range-bounds][rti.service.commit-region-modifications][federate.callback.receive-interaction][2025]") {
+  auto runScenario = [](CallbackModel callbackModel,
+                        bool const relaxedDdmEnabled = false) {
     class RecordingRegionalFederateAmbassador final : public NullFederateAmbassador {
      public:
       struct Delivery final {
@@ -19902,7 +23440,9 @@ TEST_CASE(
         ProcessFederationServiceOptions serviceOptions;
         serviceOptions.pushReceiveOrderEvents = callbackModel == HLA_IMMEDIATE;
         ProcessFederationService service(
-            registry, composedProcessDefinition(), serviceOptions);
+            registry,
+            composedProcessDefinition(relaxedDdmEnabled),
+            serviceOptions);
 
         auto senderConnection = listener->accept(
             nullptr,
@@ -19915,8 +23455,8 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -19980,6 +23520,22 @@ TEST_CASE(
             receiverTwoHandler,
             TransportServiceOperation::join_federation_execution,
             "The regional interaction process server lost receiver-two Join.");
+
+          serveExpected(
+              sender,
+              senderHandler,
+              TransportServiceOperation::get_allow_relaxed_ddm_switch,
+              "The regional interaction process server lost sender relaxed-DDM lookup.");
+          serveExpected(
+              receiverOne,
+              receiverOneHandler,
+              TransportServiceOperation::get_allow_relaxed_ddm_switch,
+              "The regional interaction process server lost receiver-one relaxed-DDM lookup.");
+          serveExpected(
+              receiverTwo,
+              receiverTwoHandler,
+              TransportServiceOperation::get_allow_relaxed_ddm_switch,
+              "The regional interaction process server lost receiver-two relaxed-DDM lookup.");
 
         // The public clients perform their setup in lockstep across the three
         // sessions (class, parameter, dimension, region, bounds, commit). Keep
@@ -20122,8 +23678,8 @@ TEST_CASE(
             "The regional interaction process server lost receiver-two regional Subscribe.");
 
         auto serveSend = [&](char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  sender,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  sender, senderHandler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation !=
                         TransportServiceOperation::send_interaction_with_regions) {
@@ -20144,16 +23700,39 @@ TEST_CASE(
           }
         };
         serveSend("The regional interaction process server lost first Send.");
-        serveExpected(
-            sender,
-            senderHandler,
-            TransportServiceOperation::set_range_bounds,
-            "The regional interaction process server lost second-send bounds.");
-        serveExpected(
-            sender,
-            senderHandler,
-            TransportServiceOperation::commit_region_modifications,
-            "The regional interaction process server lost second-send region commit.");
+        if (relaxedDdmEnabled) {
+          serveExpected(
+              receiverOne,
+              receiverOneHandler,
+              TransportServiceOperation::set_range_bounds,
+              "The regional interaction process server lost receiver-one relaxed-DDM range update.");
+          serveExpected(
+              receiverOne,
+              receiverOneHandler,
+              TransportServiceOperation::commit_region_modifications,
+              "The regional interaction process server lost receiver-one relaxed-DDM region commit.");
+          serveExpected(
+              receiverTwo,
+              receiverTwoHandler,
+              TransportServiceOperation::set_range_bounds,
+              "The regional interaction process server lost receiver-two relaxed-DDM range update.");
+          serveExpected(
+              receiverTwo,
+              receiverTwoHandler,
+              TransportServiceOperation::commit_region_modifications,
+              "The regional interaction process server lost receiver-two relaxed-DDM region commit.");
+        } else {
+          serveExpected(
+              sender,
+              senderHandler,
+              TransportServiceOperation::set_range_bounds,
+              "The regional interaction process server lost second-send bounds.");
+          serveExpected(
+              sender,
+              senderHandler,
+              TransportServiceOperation::commit_region_modifications,
+              "The regional interaction process server lost second-send region commit.");
+        }
         serveSend("The regional interaction process server lost second Send.");
 
         auto serveReceiverEvents = [&](ProcessTransportSession& session,
@@ -20265,6 +23844,10 @@ TEST_CASE(
       REQUIRE(receiverTwoHandle.isValid());
       receiverTwoJoined = true;
 
+      REQUIRE(senderRti->getAllowRelaxedDDMSwitch() == relaxedDdmEnabled);
+      REQUIRE(receiverOneRti->getAllowRelaxedDDMSwitch() == relaxedDdmEnabled);
+      REQUIRE(receiverTwoRti->getAllowRelaxedDDMSwitch() == relaxedDdmEnabled);
+
       auto const senderInteraction =
           senderRti->getInteractionClassHandle(interactionNameWide);
       auto const receiverOneInteraction =
@@ -20312,19 +23895,27 @@ TEST_CASE(
       REQUIRE(receiverOneRegion.isValid());
       REQUIRE(receiverTwoRegion.isValid());
       REQUIRE_NOTHROW(senderRti->setRangeBounds(
-          senderRegion, senderDimension, rti1516_2025::RangeBounds(0UL, 5UL)));
+          senderRegion,
+          senderDimension,
+          relaxedDdmEnabled
+              ? rti1516_2025::RangeBounds(0UL, 10UL)
+              : rti1516_2025::RangeBounds(0UL, 5UL)));
       REQUIRE_NOTHROW(senderRti->commitRegionModifications(
           rti1516_2025::RegionHandleSet{senderRegion}));
       REQUIRE_NOTHROW(receiverOneRti->setRangeBounds(
           receiverOneRegion,
           receiverOneDimension,
-          rti1516_2025::RangeBounds(0UL, 5UL)));
+          relaxedDdmEnabled
+              ? rti1516_2025::RangeBounds(10UL, 20UL)
+              : rti1516_2025::RangeBounds(0UL, 5UL)));
       REQUIRE_NOTHROW(receiverOneRti->commitRegionModifications(
           rti1516_2025::RegionHandleSet{receiverOneRegion}));
       REQUIRE_NOTHROW(receiverTwoRti->setRangeBounds(
           receiverTwoRegion,
           receiverTwoDimension,
-          rti1516_2025::RangeBounds(10UL, 20UL)));
+          relaxedDdmEnabled
+              ? rti1516_2025::RangeBounds(11UL, 20UL)
+              : rti1516_2025::RangeBounds(10UL, 20UL)));
       REQUIRE_NOTHROW(receiverTwoRti->commitRegionModifications(
           rti1516_2025::RegionHandleSet{receiverTwoRegion}));
 
@@ -20355,10 +23946,32 @@ TEST_CASE(
           parameterValues,
           rti1516_2025::RegionHandleSet{senderRegion},
           VariableLengthData(firstTag.data(), firstTag.size())));
-      REQUIRE_NOTHROW(senderRti->setRangeBounds(
-          senderRegion, senderDimension, rti1516_2025::RangeBounds(10UL, 20UL)));
-      REQUIRE_NOTHROW(senderRti->commitRegionModifications(
-          rti1516_2025::RegionHandleSet{senderRegion}));
+      if (relaxedDdmEnabled) {
+        // The first send uses [0, 10): it touches receiver one's [10, 20)
+        // region but has a positive gap to receiver two's [11, 20) region.
+        // Move the recipients so receiver one has a positive gap and only
+        // receiver two touches the unchanged source; gaps remain ineligible.
+        REQUIRE_NOTHROW(receiverOneRti->setRangeBounds(
+            receiverOneRegion,
+            receiverOneDimension,
+            rti1516_2025::RangeBounds(11UL, 20UL)));
+        REQUIRE_NOTHROW(receiverOneRti->commitRegionModifications(
+            rti1516_2025::RegionHandleSet{receiverOneRegion}));
+        REQUIRE_NOTHROW(receiverTwoRti->setRangeBounds(
+            receiverTwoRegion,
+            receiverTwoDimension,
+            rti1516_2025::RangeBounds(10UL, 20UL)));
+        REQUIRE_NOTHROW(receiverTwoRti->commitRegionModifications(
+            rti1516_2025::RegionHandleSet{receiverTwoRegion}));
+      }
+      if (!relaxedDdmEnabled) {
+        REQUIRE_NOTHROW(senderRti->setRangeBounds(
+            senderRegion,
+            senderDimension,
+            rti1516_2025::RangeBounds(10UL, 20UL)));
+        REQUIRE_NOTHROW(senderRti->commitRegionModifications(
+            rti1516_2025::RegionHandleSet{senderRegion}));
+      }
       std::array<std::uint8_t, 1U> secondTag{0xA2U};
       REQUIRE_NOTHROW(senderRti->sendInteractionWithRegions(
           senderInteraction,
@@ -20464,6 +24077,12 @@ TEST_CASE(
   }
   SECTION("HLA_IMMEDIATE") {
     runScenario(HLA_IMMEDIATE);
+  }
+  SECTION("HLA_EVOKED with the FDD enabling Relaxed DDM") {
+    runScenario(HLA_EVOKED, true);
+  }
+  SECTION("HLA_IMMEDIATE with the FDD enabling Relaxed DDM") {
+    runScenario(HLA_IMMEDIATE, true);
   }
 }
 
@@ -20598,8 +24217,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -20757,8 +24376,8 @@ TEST_CASE(
           TransportServiceOperation::receive_interaction,
           "The timestamped regional process server lost receiver pre-send poll.");
 
-      if (!ProcessTransportServiceDispatcher::serveOne(
-              sender,
+      if (!umbra::test::servePrimaryProcessRequest(
+              sender, senderHandler,
               [&](TransportServiceMessage const& request) {
                 if (request.operation !=
                     TransportServiceOperation::send_interaction_with_regions) {
@@ -21188,8 +24807,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -21323,8 +24942,8 @@ TEST_CASE(
           receiverHandler,
           TransportServiceOperation::receive_interaction,
           "The directed callback-gating server lost pre-send poll.");
-      if (!ProcessTransportServiceDispatcher::serveOne(
-              sender,
+      if (!umbra::test::servePrimaryProcessRequest(
+              sender, senderHandler,
               [&](TransportServiceMessage const& request) {
                 if (request.operation !=
                     TransportServiceOperation::send_directed_interaction) {
@@ -21720,8 +25339,8 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -22187,8 +25806,8 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -22519,7 +26138,8 @@ TEST_CASE(
 
 TEST_CASE(
     "RTIambassador routes regional process class Request Attribute Value Update with its region selector",
-    "[integration][foundation][object-management][ddm][callbacks][callback-controls][transport][process-boundary][public-endpoint][rti.service.request-attribute-value-update-with-regions][rti.service.register-object-instance-with-regions][rti.service.create-region][federate.callback.provide-attribute-value-update]") {
+    "[integration][foundation][object-management][ddm][callbacks][callback-controls][transport][process-boundary][public-endpoint][rti.service.request-attribute-value-update-with-regions][rti.service.register-object-instance-with-regions][rti.service.create-region][rti.service.subscribe-object-class-attributes-with-regions][rti.service.update-attribute-values][federate.callback.provide-attribute-value-update][federate.callback.discover-object-instance][federate.callback.reflect-attribute-values]") {
+  auto runScenario = [&](CallbackModel callbackModel) {
   class RecordingFederateAmbassador final : public NullFederateAmbassador {
    public:
     void provideAttributeValueUpdate(
@@ -22541,7 +26161,66 @@ TEST_CASE(
     std::vector<std::uint8_t> providedTag;
     std::size_t providedCount = 0U;
   } providerFederate;
-  TestFederateAmbassador requesterFederate;
+  class RecordingRequesterFederateAmbassador final
+      : public NullFederateAmbassador {
+   public:
+    void discoverObjectInstance(
+        rti1516_2025::ObjectInstanceHandle const& objectInstance,
+        rti1516_2025::ObjectClassHandle const& objectClass,
+        std::wstring const&,
+        rti1516_2025::FederateHandle const& producingFederate) override {
+      discovered = true;
+      discoveredObject = objectInstance;
+      discoveredClass = objectClass;
+      discoveredProducingFederate = producingFederate;
+    }
+
+    void reflectAttributeValues(
+        rti1516_2025::ObjectInstanceHandle const& objectInstance,
+        rti1516_2025::AttributeHandleValueMap const& attributeValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
+      reflected = true;
+      reflectedObject = objectInstance;
+      reflectedAttributeCount = attributeValues.size();
+      reflectedTransportationType = transportationType;
+      reflectedProducingFederate = producingFederate;
+      reflectedHasSentRegions = optionalSentRegions != nullptr;
+      reflectedSentRegionCount = optionalSentRegions == nullptr
+          ? 0U
+          : optionalSentRegions->size();
+      reflectedTag.clear();
+      if (userSuppliedTag.size() != 0U) {
+        auto const* first = static_cast<std::uint8_t const*>(
+            userSuppliedTag.data());
+        reflectedTag.assign(first, first + userSuppliedTag.size());
+      }
+      reflectedValue.clear();
+      if (!attributeValues.empty()) {
+        auto const& value = attributeValues.begin()->second;
+        if (value.size() != 0U) {
+          auto const* first = static_cast<std::uint8_t const*>(value.data());
+          reflectedValue.assign(first, first + value.size());
+        }
+      }
+    }
+
+    bool discovered = false;
+    rti1516_2025::ObjectInstanceHandle discoveredObject;
+    rti1516_2025::ObjectClassHandle discoveredClass;
+    rti1516_2025::FederateHandle discoveredProducingFederate;
+    bool reflected = false;
+    rti1516_2025::ObjectInstanceHandle reflectedObject;
+    std::size_t reflectedAttributeCount = 0U;
+    rti1516_2025::TransportationTypeHandle reflectedTransportationType;
+    rti1516_2025::FederateHandle reflectedProducingFederate;
+    bool reflectedHasSentRegions = false;
+    std::size_t reflectedSentRegionCount = 0U;
+    std::vector<std::uint8_t> reflectedTag;
+    std::vector<std::uint8_t> reflectedValue;
+  } requesterFederate;
 
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener);
@@ -22572,7 +26251,7 @@ TEST_CASE(
       ProcessFederationService service(
           registry,
           composedProcessDefinition(),
-          ProcessFederationServiceOptions{});
+          ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
       auto providerConnection = listener->accept(
           nullptr,
           {"public-process-regional-class-server", 0x9A21U},
@@ -22599,14 +26278,22 @@ TEST_CASE(
           expectedObjectInstance.store(
               registration.objectInstanceHandle, std::memory_order_release);
         }
+        if (request.operation == TransportServiceOperation::update_attribute_values &&
+            response.status == TransportServiceStatus::ok) {
+          recipientCount.store(
+              umbra::detail::decodeProcessFederationUpdateAttributeValuesResult(
+                  response.payload)
+                  .recipientCount,
+              std::memory_order_release);
+        }
         return response;
       };
       auto serveExpected = [&](ProcessTransportSession& session,
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -22727,8 +26414,38 @@ TEST_CASE(
       serveExpected(
           provider,
           providerHandler,
-          TransportServiceOperation::receive_interaction,
+          callbackModel == HLA_IMMEDIATE
+              ? TransportServiceOperation::get_object_class_handle
+              : TransportServiceOperation::receive_interaction,
           "The regional process class server lost provider Provide polling.");
+      serveExpected(
+          requester,
+          requesterHandler,
+          TransportServiceOperation::subscribe_object_class_attributes_with_regions,
+          "The regional process class server lost requester regional Subscribe.");
+      serveExpected(
+          provider,
+          providerHandler,
+          TransportServiceOperation::update_attribute_values,
+          "The regional process class server lost provider response Update.");
+      if (callbackModel == HLA_IMMEDIATE) {
+        serveExpected(
+            requester,
+            requesterHandler,
+            TransportServiceOperation::get_object_class_handle,
+            "The regional process class server lost requester immediate reflection polling.");
+      } else {
+        serveExpected(
+            requester,
+            requesterHandler,
+            TransportServiceOperation::receive_interaction,
+            "The regional process class server lost requester discovery polling.");
+        serveExpected(
+            requester,
+            requesterHandler,
+            TransportServiceOperation::receive_interaction,
+            "The regional process class server lost requester reflection polling.");
+      }
       serveExpected(
           provider,
           providerHandler,
@@ -22759,7 +26476,7 @@ TEST_CASE(
   bool providerJoined = false;
   bool requesterJoined = false;
   try {
-    REQUIRE(providerRti->connect(providerFederate, HLA_EVOKED, configuration)
+    REQUIRE(providerRti->connect(providerFederate, callbackModel, configuration)
                 .addressUsed);
     providerRti->createFederationExecution(
         federationNameWide, L"server-owned-fom.xml");
@@ -22769,7 +26486,7 @@ TEST_CASE(
         federationNameWide);
     providerJoined = true;
 
-    REQUIRE(requesterRti->connect(requesterFederate, HLA_EVOKED, configuration)
+    REQUIRE(requesterRti->connect(requesterFederate, callbackModel, configuration)
                 .addressUsed);
     requesterRti->joinFederationExecution(
         L"public-process-regional-class-requester",
@@ -22861,12 +26578,58 @@ TEST_CASE(
     VariableLengthData userSuppliedTag(encodedTag.data(), encodedTag.size());
     REQUIRE_NOTHROW(requesterRti->requestAttributeValueUpdateWithRegions(
         requesterObjectClass, requestPairs, userSuppliedTag));
-    static_cast<void>(providerRti->evokeCallback(0.0));
+    if (callbackModel == HLA_IMMEDIATE) {
+      static_cast<void>(providerRti->getObjectClassHandle(objectClassNameWide));
+    } else {
+      static_cast<void>(providerRti->evokeCallback(0.0));
+    }
     REQUIRE(providerFederate.providedCount == 1U);
     REQUIRE(providerFederate.providedObject == objectInstance);
     REQUIRE(providerFederate.providedAttributeCount == 1U);
     REQUIRE(providerFederate.providedTag ==
             std::vector<std::uint8_t>{0x52U, 0x47U, 0x4EU});
+    REQUIRE_NOTHROW(requesterRti->subscribeObjectClassAttributesWithRegions(
+        requesterObjectClass, requestPairs));
+
+    std::array<std::uint8_t, 3U> encodedValue{0x52U, 0x53U, 0x50U};
+    std::array<std::uint8_t, 3U> responseTag{0x52U, 0x53U, 0x54U};
+    rti1516_2025::AttributeHandleValueMap responseValues;
+    responseValues.emplace(
+        providerAttribute,
+        rti1516_2025::VariableLengthData(
+            encodedValue.data(), encodedValue.size()));
+    rti1516_2025::VariableLengthData responseTagData(
+        responseTag.data(), responseTag.size());
+    REQUIRE_NOTHROW(providerRti->updateAttributeValues(
+        objectInstance, responseValues, responseTagData));
+    if (callbackModel == HLA_IMMEDIATE) {
+      static_cast<void>(requesterRti->getObjectClassHandle(objectClassNameWide));
+    } else {
+      for (std::size_t evokeCount = 0U;
+           evokeCount < 4U && !requesterFederate.reflected;
+           ++evokeCount) {
+        static_cast<void>(requesterRti->evokeCallback(0.0));
+      }
+    }
+    REQUIRE(requesterFederate.discovered);
+    REQUIRE(requesterFederate.discoveredObject == objectInstance);
+    REQUIRE(requesterFederate.discoveredClass == requesterObjectClass);
+    REQUIRE(requesterFederate.discoveredProducingFederate ==
+            rti1516_2025::umbra_binding_detail::makeFederateHandle(
+                expectedProviderFederate.load(std::memory_order_acquire)));
+    REQUIRE(requesterFederate.reflected);
+    REQUIRE(requesterFederate.reflectedObject == objectInstance);
+    REQUIRE(requesterFederate.reflectedAttributeCount == 1U);
+    REQUIRE(requesterFederate.reflectedValue ==
+            std::vector<std::uint8_t>{0x52U, 0x53U, 0x50U});
+    REQUIRE(requesterFederate.reflectedTag ==
+            std::vector<std::uint8_t>{0x52U, 0x53U, 0x54U});
+    REQUIRE(requesterFederate.reflectedTransportationType.isValid());
+    REQUIRE(requesterFederate.reflectedProducingFederate ==
+            rti1516_2025::umbra_binding_detail::makeFederateHandle(
+                expectedProviderFederate.load(std::memory_order_acquire)));
+    REQUIRE(requesterFederate.reflectedHasSentRegions);
+    REQUIRE(requesterFederate.reflectedSentRegionCount == 1U);
 
     providerRti->resignFederationExecution(DELETE_OBJECTS);
     providerJoined = false;
@@ -22913,6 +26676,318 @@ TEST_CASE(
   REQUIRE(expectedRequesterFederate.load(std::memory_order_acquire) != 0U);
   REQUIRE_FALSE(providerJoined);
   REQUIRE_FALSE(requesterJoined);
+  };
+
+  SECTION("HLA_EVOKED") {
+    runScenario(HLA_EVOKED);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    runScenario(HLA_IMMEDIATE);
+  }
+}
+
+TEST_CASE(
+    "RTIambassador maps public process regional Request Attribute Value Update selector failures",
+    "[integration][foundation][object-management][ddm][transport][process-boundary][public-endpoint][invalid-regional-selector][rti.service.request-attribute-value-update-with-regions][2025]") {
+  using rti1516_2025::umbra_binding_detail::makeRegionHandle;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  constexpr wchar_t const* federationNameWide =
+      L"public-process-regional-class-invalid-selector-execution";
+  constexpr char const* objectClassName = "HLAobjectRoot.Food.Drink.Soda";
+  constexpr wchar_t const* objectClassNameWide =
+      L"HLAobjectRoot.Food.Drink.Soda";
+  constexpr char const* attributeName = "Flavor";
+  constexpr wchar_t const* attributeNameWide = L"Flavor";
+  constexpr char const* dimensionName = "SodaFlavor";
+  constexpr wchar_t const* dimensionNameWide = L"SodaFlavor";
+  constexpr wchar_t const* wrongDimensionNameWide = L"ServerId";
+
+  std::vector<umbra::detail::AttributeValueUpdateClassRequestStatus>
+      rejectionStatuses;
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+      auto providerConnection = listener->accept(
+          nullptr,
+          {"public-process-regional-class-invalid-selector-server", 0x9B21U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession provider(providerConnection);
+      auto providerBaseHandler = service.handlerFor(provider);
+      auto providerHandler = [&](TransportServiceMessage const& request) {
+        return providerBaseHandler(request);
+      };
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(description);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+
+      serveExpected(
+          provider,
+          providerHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The public invalid-selector server lost Create.");
+      auto const objectClass = registry.objectClassHandleFor(
+          federationNameWide, objectClassName);
+      auto const attribute = registry.attributeHandleFor(
+          federationNameWide, objectClassName, attributeName);
+      auto const dimension = registry.dimensionHandleFor(
+          federationNameWide, dimensionName);
+      if (!objectClass || !attribute || !dimension) {
+        throw std::runtime_error(
+            "The public invalid-selector server could not resolve FOM handles.");
+      }
+      serveExpected(
+          provider,
+          providerHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The public invalid-selector server lost provider Join.");
+
+      auto requesterConnection = listener->accept(
+          nullptr,
+          {"public-process-regional-class-invalid-selector-server", 0x9B22U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession requester(requesterConnection);
+      auto requesterBaseHandler = service.handlerFor(requester);
+      auto requesterHandler = [&](TransportServiceMessage const& request) {
+        auto response = requesterBaseHandler(request);
+        if (request.operation ==
+                TransportServiceOperation::request_attribute_value_update_class_with_regions &&
+            response.status == TransportServiceStatus::rejected &&
+            !response.payload.empty()) {
+          rejectionStatuses.push_back(
+              umbra::detail::decodeProcessFederationRequestAttributeValueUpdateResult(
+                  response.payload)
+                  .status);
+        }
+        return response;
+      };
+
+      serveExpected(
+          requester,
+          requesterHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The public invalid-selector server lost requester Join.");
+      for (auto const operation : {
+               TransportServiceOperation::get_object_class_handle,
+               TransportServiceOperation::get_attribute_handle,
+               TransportServiceOperation::get_dimension_handle,
+               TransportServiceOperation::create_region,
+               TransportServiceOperation::set_range_bounds,
+               TransportServiceOperation::commit_region_modifications,
+           }) {
+        serveExpected(
+            provider,
+            providerHandler,
+            operation,
+            "The public invalid-selector server lost provider region setup.");
+      }
+      for (auto const operation : {
+               TransportServiceOperation::get_object_class_handle,
+               TransportServiceOperation::get_attribute_handle,
+               TransportServiceOperation::get_dimension_handle,
+               TransportServiceOperation::create_region,
+               TransportServiceOperation::get_dimension_handle,
+               TransportServiceOperation::create_region,
+               TransportServiceOperation::set_range_bounds,
+               TransportServiceOperation::commit_region_modifications,
+           }) {
+        serveExpected(
+            requester,
+            requesterHandler,
+            operation,
+            "The public invalid-selector server lost requester region setup.");
+      }
+      for (int index = 0; index < 4; ++index) {
+        serveExpected(
+            requester,
+            requesterHandler,
+            TransportServiceOperation::request_attribute_value_update_class_with_regions,
+            "The public invalid-selector server lost a regional request.");
+      }
+      serveExpected(
+          provider,
+          providerHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The public invalid-selector server lost provider Resign.");
+      serveExpected(
+          requester,
+          requesterHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The public invalid-selector server lost requester Resign.");
+      service.detach(provider);
+      service.detach(requester);
+      providerConnection->close();
+      requesterConnection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  auto providerRti = makeRti();
+  auto requesterRti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"public-process-regional-class-invalid-selector-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  bool providerJoined = false;
+  bool requesterJoined = false;
+  std::exception_ptr clientError;
+  try {
+    // The public connection overload takes an ambassador reference; use
+    // stable local instances so the process callback bridge remains alive.
+    NullFederateAmbassador providerFederate;
+    NullFederateAmbassador requesterFederate;
+    REQUIRE(providerRti->connect(providerFederate, HLA_EVOKED, configuration)
+                .addressUsed);
+    providerRti->createFederationExecution(
+          federationNameWide, L"server-owned-fom.xml");
+      providerRti->joinFederationExecution(
+          L"public-process-invalid-selector-provider",
+          L"public-process-invalid-selector-type",
+          federationNameWide);
+      providerJoined = true;
+
+      REQUIRE(requesterRti->connect(requesterFederate, HLA_EVOKED, configuration)
+                  .addressUsed);
+      requesterRti->joinFederationExecution(
+          L"public-process-invalid-selector-requester",
+          L"public-process-invalid-selector-type",
+          federationNameWide);
+      requesterJoined = true;
+
+      auto const providerObjectClass =
+          providerRti->getObjectClassHandle(objectClassNameWide);
+      auto const providerAttribute =
+          providerRti->getAttributeHandle(providerObjectClass, attributeNameWide);
+      auto const providerDimension =
+          providerRti->getDimensionHandle(dimensionNameWide);
+      auto const providerRegion = providerRti->createRegion(
+          rti1516_2025::DimensionHandleSet{providerDimension});
+      REQUIRE_NOTHROW(providerRti->setRangeBounds(
+          providerRegion,
+          providerDimension,
+          rti1516_2025::RangeBounds(0UL, 2UL)));
+      REQUIRE_NOTHROW(providerRti->commitRegionModifications(
+          rti1516_2025::RegionHandleSet{providerRegion}));
+
+      auto const requesterObjectClass =
+          requesterRti->getObjectClassHandle(objectClassNameWide);
+      auto const requesterAttribute =
+          requesterRti->getAttributeHandle(requesterObjectClass, attributeNameWide);
+      auto const requesterDimension =
+          requesterRti->getDimensionHandle(dimensionNameWide);
+      auto const uncommittedRegion = requesterRti->createRegion(
+          rti1516_2025::DimensionHandleSet{requesterDimension});
+      auto const wrongDimension =
+          requesterRti->getDimensionHandle(wrongDimensionNameWide);
+      auto const wrongContextRegion = requesterRti->createRegion(
+          rti1516_2025::DimensionHandleSet{wrongDimension});
+      REQUIRE_NOTHROW(requesterRti->setRangeBounds(
+          wrongContextRegion,
+          wrongDimension,
+          rti1516_2025::RangeBounds(0UL, 1UL)));
+      REQUIRE_NOTHROW(requesterRti->commitRegionModifications(
+          rti1516_2025::RegionHandleSet{wrongContextRegion}));
+
+      rti1516_2025::AttributeHandleSetRegionHandleSetPairVector const foreignPair{{
+          rti1516_2025::AttributeHandleSet{requesterAttribute},
+          rti1516_2025::RegionHandleSet{providerRegion}}};
+      rti1516_2025::AttributeHandleSetRegionHandleSetPairVector const uncommittedPair{{
+          rti1516_2025::AttributeHandleSet{requesterAttribute},
+          rti1516_2025::RegionHandleSet{uncommittedRegion}}};
+      rti1516_2025::AttributeHandleSetRegionHandleSetPairVector const wrongContextPair{{
+          rti1516_2025::AttributeHandleSet{requesterAttribute},
+          rti1516_2025::RegionHandleSet{wrongContextRegion}}};
+      rti1516_2025::AttributeHandleSetRegionHandleSetPairVector const unknownPair{{
+          rti1516_2025::AttributeHandleSet{requesterAttribute},
+          rti1516_2025::RegionHandleSet{makeRegionHandle(0xFFFFFFFFFFFFFFFFULL)}}};
+      rti1516_2025::VariableLengthData tag;
+
+      REQUIRE_THROWS_AS(
+          requesterRti->requestAttributeValueUpdateWithRegions(
+              requesterObjectClass, unknownPair, tag),
+          rti1516_2025::InvalidRegion);
+      REQUIRE_THROWS_AS(
+          requesterRti->requestAttributeValueUpdateWithRegions(
+              requesterObjectClass, foreignPair, tag),
+          rti1516_2025::RegionNotCreatedByThisFederate);
+      REQUIRE_THROWS_AS(
+          requesterRti->requestAttributeValueUpdateWithRegions(
+              requesterObjectClass, uncommittedPair, tag),
+          rti1516_2025::InvalidRegion);
+      REQUIRE_THROWS_AS(
+          requesterRti->requestAttributeValueUpdateWithRegions(
+              requesterObjectClass, wrongContextPair, tag),
+          rti1516_2025::InvalidRegionContext);
+
+      providerRti->resignFederationExecution(NO_ACTION);
+      providerJoined = false;
+      requesterRti->resignFederationExecution(NO_ACTION);
+      requesterJoined = false;
+      requesterRti->disconnect();
+      providerRti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (requesterJoined) {
+      try {
+        requesterRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (providerJoined) {
+      try {
+        providerRti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      requesterRti->disconnect();
+    } catch (...) {
+    }
+    try {
+      providerRti->disconnect();
+    } catch (...) {
+    }
+  }
+  listener.reset();
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    if (serverError) {
+      std::rethrow_exception(serverError);
+    }
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE(rejectionStatuses ==
+          std::vector<umbra::detail::AttributeValueUpdateClassRequestStatus>{
+              umbra::detail::AttributeValueUpdateClassRequestStatus::invalid_region,
+              umbra::detail::AttributeValueUpdateClassRequestStatus::region_not_created_by_this_federate,
+              umbra::detail::AttributeValueUpdateClassRequestStatus::invalid_region,
+              umbra::detail::AttributeValueUpdateClassRequestStatus::invalid_region_context});
 }
 
 TEST_CASE(
@@ -22984,8 +27059,8 @@ TEST_CASE(
         };
         auto serveExpected = [&](TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, baseHandler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -23194,8 +27269,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -23311,8 +27386,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -23502,8 +27577,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -23608,8 +27683,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -23806,8 +27881,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -23913,8 +27988,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -24060,8 +28135,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -24204,8 +28279,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -24387,8 +28462,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -24404,6 +28479,16 @@ TEST_CASE(
       serveExpected(
           TransportServiceOperation::join_federation_execution,
           "The process order-lookup server lost Join.");
+      for (int index = 0; index < 4; ++index) {
+        serveExpected(
+            TransportServiceOperation::report_successful_service_invocation,
+            "The process order-lookup server lost a suppressed successful service report.");
+      }
+      for (int index = 0; index < 2; ++index) {
+        serveExpected(
+            TransportServiceOperation::report_failed_service_invocation,
+            "The process order-lookup server lost a suppressed failed service report.");
+      }
       serveExpected(
           TransportServiceOperation::resign_federation_execution,
           "The process order-lookup server lost Resign.");
@@ -24474,6 +28559,7 @@ TEST_CASE(
   }
   REQUIRE_FALSE(serverError);
 }
+
 #endif
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
@@ -24601,8 +28687,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -24910,6 +28996,7 @@ TEST_CASE(
   }
   REQUIRE_FALSE(serverError);
 }
+
 #endif
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
@@ -25025,8 +29112,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -25428,7 +29515,7 @@ TEST_CASE(
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassador queries GALT and LITS through a configured process endpoint with immediate callbacks",
-    "[integration][foundation][time-management][callback-immediate][transport][process-boundary][public-endpoint][rti.service.query-galt][rti.service.query-lits][2025]") {
+    "[integration][foundation][time-management][callback-immediate][transport][process-boundary][process-query-time-bounds-immediate][public-endpoint][rti.service.query-galt][rti.service.query-lits][2025]") {
   constexpr wchar_t const* federationName =
       L"process-time-bounds-immediate-execution";
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
@@ -25452,8 +29539,8 @@ TEST_CASE(
       ProcessTransportSession session(connection);
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation) {
-        return ProcessTransportServiceDispatcher::serveOne(
-            session,
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
             [&](TransportServiceMessage const& request) {
               if (request.operation != operation) {
                 throw std::runtime_error(
@@ -25566,8 +29653,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -25782,8 +29869,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -26065,8 +30152,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -26359,8 +30446,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -26788,8 +30875,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -26923,8 +31010,8 @@ TEST_CASE(
       auto serveReceiverUntilAcknowledgements =
           [&](std::size_t target, char const* description) {
             while (receiverAcknowledgements < target && receiverPolls != 8U) {
-              if (!ProcessTransportServiceDispatcher::serveOne(
-                      receiver,
+              if (!umbra::test::servePrimaryProcessRequest(
+                      receiver, receiverHandler,
                       [&](TransportServiceMessage const& request) {
                         if (request.operation ==
                             TransportServiceOperation::receive_interaction) {
@@ -27321,8 +31408,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -27503,8 +31590,8 @@ TEST_CASE(
                                 std::size_t target,
                                 char const* description) {
         while (acknowledgements < target && polls != 12U) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation ==
                         TransportServiceOperation::receive_interaction) {
@@ -28014,8 +32101,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -28264,8 +32351,8 @@ TEST_CASE(
                                 std::size_t target,
                                 char const* description) {
         while (acknowledgements < target && polls != 12U) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation ==
                         TransportServiceOperation::receive_interaction) {
@@ -28756,8 +32843,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -29193,8 +33280,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -29702,8 +33789,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -30176,8 +34263,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -30629,8 +34716,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -30756,8 +34843,8 @@ TEST_CASE(
           "The timestamped fanout process server lost receiver-two Enable Time Constrained.");
 
       auto serveSend = [&](char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                sender,
+        if (!umbra::test::servePrimaryProcessRequest(
+                sender, senderHandler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation !=
                       TransportServiceOperation::send_interaction) {
@@ -31331,8 +35418,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
@@ -31491,8 +35578,8 @@ TEST_CASE(
           TransportServiceOperation::receive_interaction,
           "The regional callback-gating server lost receiver pre-send poll.");
 
-      if (!ProcessTransportServiceDispatcher::serveOne(
-              sender,
+      if (!umbra::test::servePrimaryProcessRequest(
+              sender, senderHandler,
               [&](TransportServiceMessage const& request) {
                 if (request.operation !=
                     TransportServiceOperation::send_interaction_with_regions) {
@@ -31832,8 +35919,8 @@ TEST_CASE(
         ProcessTransportSession session(connection);
         auto handler = service.handlerFor(session);
         auto serveExpected = [&](TransportServiceOperation operation) {
-          return ProcessTransportServiceDispatcher::serveOne(
-              session,
+          return umbra::test::servePrimaryProcessRequest(
+              session, handler,
               [&](TransportServiceMessage const& request) {
                 if (request.operation != operation) {
                   throw std::runtime_error(
@@ -32041,8 +36128,8 @@ TEST_CASE(
         ProcessTransportSession session(connection);
         auto handler = service.handlerFor(session);
         auto serveExpected = [&](TransportServiceOperation operation) {
-          return ProcessTransportServiceDispatcher::serveOne(
-              session,
+          return umbra::test::servePrimaryProcessRequest(
+              session, handler,
               [&](TransportServiceMessage const& request) {
                 if (request.operation != operation) {
                   throw std::runtime_error(
@@ -32253,8 +36340,8 @@ TEST_CASE(
         auto handler = service.handlerFor(session);
         auto serveExpected = [&](TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(
@@ -32527,8 +36614,8 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -33029,8 +37116,8 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(description);
@@ -33210,8 +37297,8 @@ TEST_CASE(
             TransportServiceOperation::receive_interaction,
             "The timestamped regional transportation server lost receiver pre-send poll.");
 
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                sender,
+        if (!umbra::test::servePrimaryProcessRequest(
+                sender, senderHandler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation !=
                       TransportServiceOperation::send_interaction_with_regions) {
@@ -33575,8 +37662,8 @@ TEST_CASE(
                                  auto const& handler,
                                  TransportServiceOperation operation,
                                  char const* description) {
-          if (!ProcessTransportServiceDispatcher::serveOne(
-                  session,
+          if (!umbra::test::servePrimaryProcessRequest(
+                  session, handler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation != operation) {
                       throw std::runtime_error(
@@ -33915,7 +38002,7 @@ TEST_CASE(
 
 TEST_CASE(
     "RTIambassadors apply timestamped federation-save replacement through a configured process endpoint",
-    "[integration][foundation][federation-management][save-restore][time-management][transport][process-boundary][public-endpoint][2025][timed-save][save-replacement][multi-federate-callback-ordering][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.request-federation-save][rti.service.time-advance-request][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
+    "[integration][foundation][federation-management][save-restore][time-management][transport][process-boundary][public-endpoint][2025][timed-save][save-replacement][process-federation-save-timed-replacement][multi-federate-callback-ordering][rti.service.enable-time-regulation][rti.service.enable-time-constrained][rti.service.request-federation-save][rti.service.time-advance-request][rti.service.federate-save-begun][rti.service.federate-save-complete][federate.callback.time-regulation-enabled][federate.callback.time-constrained-enabled][federate.callback.time-advance-grant][federate.callback.initiate-federate-save][federate.callback.federation-saved]") {
   class ReplacementTimedSaveFederateAmbassador final
       : public NullFederateAmbassador {
    public:
@@ -33998,8 +38085,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -34212,7 +38299,7 @@ TEST_CASE(
 }
 TEST_CASE(
     "RTIambassadors carry federation save not-complete through a configured process endpoint",
-    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][save-not-complete][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][federate.callback.initiate-federate-save][federate.callback.federation-not-saved]") {
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][save-not-complete][process-federation-save-not-complete][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][federate.callback.initiate-federate-save][federate.callback.federation-not-saved]") {
   using umbra::detail::ProcessTransportListener;
 
   constexpr wchar_t const* federationName =
@@ -34243,8 +38330,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -34343,7 +38430,7 @@ TEST_CASE(
 }
 TEST_CASE(
     "RTIambassadors coordinate federation save not-complete across a configured process endpoint",
-    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][multi-federate][2025][save-not-complete][multi-federate-callback-ordering][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][federate.callback.initiate-federate-save][federate.callback.federation-not-saved]") {
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][multi-federate][2025][save-not-complete][process-federation-save-not-complete-multi-federate][multi-federate-callback-ordering][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][federate.callback.initiate-federate-save][federate.callback.federation-not-saved]") {
   using umbra::detail::ProcessTransportListener;
 
   constexpr wchar_t const* federationName =
@@ -34378,8 +38465,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -34575,7 +38662,7 @@ TEST_CASE(
 }
 TEST_CASE(
     "RTIambassadors expose terminal federation save status after a process save failure",
-    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][save-not-complete][terminal-save-status][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][rti.service.query-federation-save-status][federate.callback.initiate-federate-save][federate.callback.federation-not-saved][federate.callback.federation-save-status-response]") {
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][2025][save-not-complete][terminal-save-status][process-federation-save-not-complete-status-terminal][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][rti.service.query-federation-save-status][federate.callback.initiate-federate-save][federate.callback.federation-not-saved][federate.callback.federation-save-status-response]") {
   using umbra::detail::ProcessTransportListener;
 
   constexpr wchar_t const* federationName =
@@ -34606,8 +38693,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -34721,7 +38808,7 @@ TEST_CASE(
 }
 TEST_CASE(
     "RTIambassadors expose terminal federation save status to every participant after a process save failure",
-    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][multi-federate][receiver-reporter][2025][save-not-complete][terminal-save-status][multi-federate-callback-ordering][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][rti.service.query-federation-save-status][federate.callback.initiate-federate-save][federate.callback.federation-not-saved][federate.callback.federation-save-status-response]") {
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][multi-federate][receiver-reporter][2025][save-not-complete][terminal-save-status][multi-federate-callback-ordering][process-federation-save-not-complete-status-terminal-multi-federate][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][rti.service.query-federation-save-status][federate.callback.initiate-federate-save][federate.callback.federation-not-saved][federate.callback.federation-save-status-response]") {
   using umbra::detail::ProcessTransportListener;
 
   constexpr wchar_t const* federationName =
@@ -34756,8 +38843,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -34999,7 +39086,7 @@ TEST_CASE(
 }
 TEST_CASE(
     "RTIambassadors preserve terminal federation save status after an owner-reported process save failure",
-    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][multi-federate][owner-reporter][2025][save-not-complete][terminal-save-status][multi-federate-callback-ordering][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][rti.service.query-federation-save-status][federate.callback.initiate-federate-save][federate.callback.federation-not-saved][federate.callback.federation-save-status-response]") {
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][multi-federate][owner-reporter][2025][save-not-complete][terminal-save-status][multi-federate-callback-ordering][process-federation-save-not-complete-status-terminal-owner-reporter][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][rti.service.query-federation-save-status][federate.callback.initiate-federate-save][federate.callback.federation-not-saved][federate.callback.federation-save-status-response]") {
   using umbra::detail::ProcessTransportListener;
 
   constexpr wchar_t const* federationName =
@@ -35034,8 +39121,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -35277,7 +39364,7 @@ TEST_CASE(
 }
 TEST_CASE(
     "RTIambassadors preserve receiver-reported federation save not-complete across a configured process endpoint",
-    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][multi-federate][receiver-reporter][2025][save-not-complete][multi-federate-callback-ordering][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][federate.callback.initiate-federate-save][federate.callback.federation-not-saved]") {
+    "[integration][foundation][federation-management][save-restore][transport][process-boundary][public-endpoint][multi-federate][receiver-reporter][2025][save-not-complete][multi-federate-callback-ordering][process-federation-save-not-complete-receiver-reporter][rti.service.request-federation-save][rti.service.federate-save-begun][rti.service.federate-save-not-complete][federate.callback.initiate-federate-save][federate.callback.federation-not-saved]") {
   using umbra::detail::ProcessTransportListener;
 
   constexpr wchar_t const* federationName =
@@ -35312,8 +39399,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -35540,8 +39627,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -35678,8 +39765,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -35837,8 +39924,8 @@ TEST_CASE(
       auto handler = service.handlerFor(session);
       auto serveExpected = [&](TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -36024,8 +40111,8 @@ TEST_CASE(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!ProcessTransportServiceDispatcher::serveOne(
-                session,
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation != operation) {
                     throw std::runtime_error(
@@ -36400,5 +40487,6586 @@ TEST_CASE(
     std::rethrow_exception(clientError);
   }
   REQUIRE_FALSE(serverError);
+}
+#endif
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+TEST_CASE(
+    "RTIambassador carries HLAsetSwitches adjustments through a configured process endpoint",
+    "[integration][development-profile][foundation][federation-management][mom][switches]"
+    "[mom-process-set-switches][process-mom-set-switches][transport]"
+    "[process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.get-parameter-handle][rti.service.send-interaction]"
+    "[rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-object-class-relevance-advisory-switch]"
+    "[rti.service.get-attribute-relevance-advisory-switch]"
+    "[rti.service.get-attribute-scope-advisory-switch]"
+    "[rti.service.get-interaction-relevance-advisory-switch]"
+    "[rti.service.get-convey-region-designator-sets-switch]"
+    "[rti.service.get-dimension-handle][rti.service.get-dimension-upper-bound]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry :
+         std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  constexpr wchar_t const* federationName =
+      L"public-process-mom-set-switches-execution";
+  constexpr wchar_t const* federateName =
+      L"public-process-mom-set-switches-federate";
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"public-process-mom-set-switches-server", 0x9E01U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      std::wstring stableReportServiceFile;
+      auto assertStableReportServiceFile = [&] {
+        auto const member = registry.memberByName(federationName, federateName);
+        if (!member) {
+          throw std::runtime_error(
+              "The process HLAsetSwitches test lost its joined member.");
+        }
+        auto const momObject = registry.joinedFederateMomObjectFor(
+            federationName, member->id);
+        if (!momObject || momObject->reportServiceFile.empty()) {
+          throw std::runtime_error(
+              "The process HLAsetSwitches Join did not publish HLAreportServiceFile.");
+        }
+        std::filesystem::path const path{momObject->reportServiceFile};
+        if (!path.is_absolute() || !std::filesystem::exists(path)) {
+          throw std::runtime_error(
+              "The process HLAreportServiceFile is not an existing absolute path.");
+        }
+        if (stableReportServiceFile.empty()) {
+          stableReportServiceFile = momObject->reportServiceFile;
+        } else if (momObject->reportServiceFile != stableReportServiceFile) {
+          throw std::runtime_error(
+              "HLAsetSwitches changed the joined federate's static HLAreportServiceFile.");
+        }
+      };
+      auto serveExpected = [&](TransportServiceOperation operation) {
+        auto const served = umbra::test::servePrimaryProcessRequest(
+            session, handler,
+            [&](TransportServiceMessage const& request) {
+              if (request.operation != operation) {
+                throw std::runtime_error(
+                    "The process MOM set-switches server received an unexpected operation.");
+              }
+              return handler(request);
+            });
+        if (served &&
+            (operation == TransportServiceOperation::join_federation_execution ||
+             operation == TransportServiceOperation::send_interaction)) {
+          assertStableReportServiceFile();
+        }
+        return served;
+      };
+      if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
+          !serveExpected(TransportServiceOperation::join_federation_execution) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::get_send_service_reports_to_file_switch) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_object_class_relevance_advisory_switch) ||
+          !serveExpected(TransportServiceOperation::get_attribute_relevance_advisory_switch) ||
+          !serveExpected(TransportServiceOperation::get_attribute_scope_advisory_switch) ||
+          !serveExpected(TransportServiceOperation::get_interaction_relevance_advisory_switch) ||
+          !serveExpected(TransportServiceOperation::get_convey_region_designator_sets_switch) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_dimension_handle) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::get_dimension_upper_bound) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_send_service_reports_to_file_switch) ||
+          !serveExpected(TransportServiceOperation::get_dimension_upper_bound) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_send_service_reports_to_file_switch) ||
+          !serveExpected(TransportServiceOperation::get_dimension_upper_bound) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_send_service_reports_to_file_switch) ||
+          !serveExpected(TransportServiceOperation::get_dimension_upper_bound) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_send_service_reports_to_file_switch) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_object_class_relevance_advisory_switch) ||
+          !serveExpected(TransportServiceOperation::get_attribute_relevance_advisory_switch) ||
+          !serveExpected(TransportServiceOperation::get_attribute_scope_advisory_switch) ||
+          !serveExpected(TransportServiceOperation::get_interaction_relevance_advisory_switch) ||
+          !serveExpected(TransportServiceOperation::get_convey_region_designator_sets_switch) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_object_class_relevance_advisory_switch) ||
+          !serveExpected(TransportServiceOperation::get_attribute_relevance_advisory_switch) ||
+          !serveExpected(TransportServiceOperation::get_attribute_scope_advisory_switch) ||
+          !serveExpected(TransportServiceOperation::get_interaction_relevance_advisory_switch) ||
+          !serveExpected(TransportServiceOperation::get_convey_region_designator_sets_switch) ||
+          !serveExpected(TransportServiceOperation::resign_federation_execution)) {
+        throw std::runtime_error(
+            "The process MOM set-switches server did not receive the complete adjustment sequence.");
+      }
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"public-process-mom-set-switches-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  std::optional<ConfigurationResult> connectionResult;
+  bool joined = false;
+  try {
+    connectionResult = rti->connect(federate, HLA_EVOKED, configuration);
+    REQUIRE(connectionResult->addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    static_cast<void>(rti->joinFederationExecution(
+        federateName, L"public-process-mom-set-switches-type", federationName));
+    joined = true;
+
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+    REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
+    auto const reportFilesAtJoin = reportFiles();
+    REQUIRE(reportFilesAtJoin.size() == 1U);
+    auto const reportFile = reportFilesAtJoin.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialReportText = readReport(reportFile);
+    REQUIRE_FALSE(initialReportText.empty());
+    auto const setSwitches = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    auto const serviceReporting = rti->getParameterHandle(
+        setSwitches, L"HLAserviceReporting");
+    auto const sendServiceReportsToFile = rti->getParameterHandle(
+        setSwitches, L"HLAsendServiceReportsToFile");
+    auto const objectClassRelevance = rti->getParameterHandle(
+        setSwitches, L"HLAobjectClassRelevanceAdvisory");
+    auto const attributeRelevance = rti->getParameterHandle(
+        setSwitches, L"HLAattributeRelevanceAdvisory");
+    auto const attributeScope = rti->getParameterHandle(
+        setSwitches, L"HLAattributeScopeAdvisory");
+    auto const interactionRelevance = rti->getParameterHandle(
+        setSwitches, L"HLAinteractionRelevanceAdvisory");
+    auto const conveyRegionDesignatorSets = rti->getParameterHandle(
+        setSwitches, L"HLAconveyRegionDesignatorSets");
+    REQUIRE(setSwitches.isValid());
+    REQUIRE(serviceReporting.isValid());
+    REQUIRE(sendServiceReportsToFile.isValid());
+    REQUIRE(objectClassRelevance.isValid());
+    REQUIRE(attributeRelevance.isValid());
+    REQUIRE(attributeScope.isValid());
+    REQUIRE(interactionRelevance.isValid());
+    REQUIRE(conveyRegionDesignatorSets.isValid());
+
+    auto const initialObjectClassRelevance =
+        rti->getObjectClassRelevanceAdvisorySwitch();
+    auto const initialAttributeRelevance =
+        rti->getAttributeRelevanceAdvisorySwitch();
+    auto const initialAttributeScope = rti->getAttributeScopeAdvisorySwitch();
+    auto const initialInteractionRelevance =
+        rti->getInteractionRelevanceAdvisorySwitch();
+    auto const initialConveyRegionDesignatorSets =
+        rti->getConveyRegionDesignatorSetsSwitch();
+
+    REQUIRE_THROWS_AS(
+        rti->sendInteraction(
+            setSwitches, ParameterHandleValueMap{}, VariableLengthData()),
+        RTIinternalError);
+    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    REQUIRE(barQuantity.isValid());
+
+    auto encodeSwitch = [](bool const enabled) {
+      return rti1516_2025::HLAinteger32BE(enabled ? 1 : 0).encode();
+    };
+    ParameterHandleValueMap const enabledValues{
+        {serviceReporting, encodeSwitch(true)}};
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches, enabledValues, VariableLengthData()));
+    REQUIRE(rti->getServiceReportingSwitch());
+    REQUIRE(rti->getDimensionUpperBound(barQuantity) == 25UL);
+    REQUIRE(readReport(reportFile) == initialReportText);
+    REQUIRE(reportFiles() == reportFilesAtJoin);
+
+    ParameterHandleValueMap const fileReportingEnabledValues{
+        {sendServiceReportsToFile, encodeSwitch(true)}};
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches, fileReportingEnabledValues, VariableLengthData()));
+    REQUIRE(rti->getSendServiceReportsToFileSwitch());
+    auto const reportTextBeforeFirstEnabledService = readReport(reportFile);
+    REQUIRE(rti->getDimensionUpperBound(barQuantity) == 25UL);
+    auto const reportTextAfterEnable = readReport(reportFile);
+    REQUIRE(reportTextAfterEnable.size() >
+            reportTextBeforeFirstEnabledService.size());
+    REQUIRE(reportFiles() == reportFilesAtJoin);
+
+    ParameterHandleValueMap const fileReportingDisabledValues{
+        {sendServiceReportsToFile, encodeSwitch(false)}};
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches, fileReportingDisabledValues, VariableLengthData()));
+    REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
+    auto const reportTextAfterDisable = readReport(reportFile);
+    REQUIRE(rti->getDimensionUpperBound(barQuantity) == 25UL);
+    REQUIRE(readReport(reportFile) == reportTextAfterDisable);
+    REQUIRE(reportFiles() == reportFilesAtJoin);
+
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches, fileReportingEnabledValues, VariableLengthData()));
+    REQUIRE(rti->getSendServiceReportsToFileSwitch());
+    auto const reportTextBeforeReenabledService = readReport(reportFile);
+    REQUIRE(rti->getDimensionUpperBound(barQuantity) == 25UL);
+    auto const reportTextAfterReenable = readReport(reportFile);
+    REQUIRE(reportTextAfterReenable.size() >
+            reportTextBeforeReenabledService.size());
+    REQUIRE(reportFiles() == reportFilesAtJoin);
+
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches, fileReportingDisabledValues, VariableLengthData()));
+    REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
+
+    ParameterHandleValueMap const disabledValues{
+        {serviceReporting, encodeSwitch(false)}};
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches, disabledValues, VariableLengthData()));
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    ParameterHandleValueMap const advisorySwitchValues{
+        {objectClassRelevance, encodeSwitch(!initialObjectClassRelevance)},
+        {attributeRelevance, encodeSwitch(!initialAttributeRelevance)},
+        {attributeScope, encodeSwitch(!initialAttributeScope)},
+        {interactionRelevance, encodeSwitch(!initialInteractionRelevance)},
+        {conveyRegionDesignatorSets,
+         encodeSwitch(!initialConveyRegionDesignatorSets)},
+    };
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches, advisorySwitchValues, VariableLengthData()));
+    REQUIRE(rti->getObjectClassRelevanceAdvisorySwitch() ==
+            !initialObjectClassRelevance);
+    REQUIRE(rti->getAttributeRelevanceAdvisorySwitch() ==
+            !initialAttributeRelevance);
+    REQUIRE(rti->getAttributeScopeAdvisorySwitch() == !initialAttributeScope);
+    REQUIRE(rti->getInteractionRelevanceAdvisorySwitch() ==
+            !initialInteractionRelevance);
+    REQUIRE(rti->getConveyRegionDesignatorSetsSwitch() ==
+            !initialConveyRegionDesignatorSets);
+
+    ParameterHandleValueMap const restoredAdvisorySwitchValues{
+        {objectClassRelevance, encodeSwitch(initialObjectClassRelevance)},
+        {attributeRelevance, encodeSwitch(initialAttributeRelevance)},
+        {attributeScope, encodeSwitch(initialAttributeScope)},
+        {interactionRelevance, encodeSwitch(initialInteractionRelevance)},
+        {conveyRegionDesignatorSets,
+         encodeSwitch(initialConveyRegionDesignatorSets)},
+    };
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches, restoredAdvisorySwitchValues, VariableLengthData()));
+    REQUIRE(rti->getObjectClassRelevanceAdvisorySwitch() ==
+            initialObjectClassRelevance);
+    REQUIRE(rti->getAttributeRelevanceAdvisorySwitch() ==
+            initialAttributeRelevance);
+    REQUIRE(rti->getAttributeScopeAdvisorySwitch() == initialAttributeScope);
+    REQUIRE(rti->getInteractionRelevanceAdvisorySwitch() ==
+            initialInteractionRelevance);
+    REQUIRE(rti->getConveyRegionDesignatorSetsSwitch() ==
+            initialConveyRegionDesignatorSets);
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::error_code ignored;
+    std::filesystem::remove_all(reportDirectory, ignored);
+    std::rethrow_exception(clientError);
+  }
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  REQUIRE(connectionResult.has_value());
+}
+
+TEST_CASE(
+    "RTIambassador consumes process federation-wide HLAsetSwitches Auto Provide",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[process-mom-federation-set-switches][process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.get-parameter-handle][rti.service.send-interaction]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  constexpr wchar_t const* federationName =
+      L"public-process-federation-mom-switches-execution";
+  constexpr wchar_t const* federateName =
+      L"public-process-federation-mom-switches-federate";
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+      auto connection = listener->accept(
+          nullptr,
+          {"public-process-federation-mom-switches-server", 0x9E02U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation) {
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
+            [&](TransportServiceMessage const& request) {
+              if (request.operation != operation) {
+                throw std::runtime_error(
+                    "The process federation MOM set-switches server received an unexpected operation.");
+              }
+              return handler(request);
+            });
+      };
+      auto requireAutoProvide = [&](bool expected) {
+        auto const member = registry.memberByName(federationName, federateName);
+        auto const value = member
+            ? registry.autoProvideSwitchFor(federationName, member->id)
+            : std::optional<bool>{};
+        if (!value || *value != expected) {
+          throw std::runtime_error(
+              "The process federation did not apply the expected federation-wide HLAsetSwitches value.");
+        }
+      };
+      if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
+          !serveExpected(TransportServiceOperation::join_federation_execution)) {
+        throw std::runtime_error(
+            "The process federation MOM set-switches server did not receive create and join.");
+      }
+      requireAutoProvide(true);
+      if (!serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::send_interaction)) {
+        throw std::runtime_error(
+            "The process federation MOM set-switches server did not receive the disabling adjustment.");
+      }
+      requireAutoProvide(false);
+      if (!serveExpected(TransportServiceOperation::send_interaction)) {
+        throw std::runtime_error(
+            "The process federation MOM set-switches server did not receive the enabling adjustment.");
+      }
+      requireAutoProvide(true);
+      if (!serveExpected(TransportServiceOperation::resign_federation_execution)) {
+        throw std::runtime_error(
+            "The process federation MOM set-switches server did not receive resignation.");
+      }
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"public-process-federation-mom-switches-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  std::optional<ConfigurationResult> connectionResult;
+  bool joined = false;
+  try {
+    connectionResult = rti->connect(federate, HLA_EVOKED, configuration);
+    REQUIRE(connectionResult->addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    static_cast<void>(rti->joinFederationExecution(
+        federateName, L"public-process-federation-mom-switches-type", federationName));
+    joined = true;
+
+    auto const setSwitches = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederation.HLAadjust.HLAsetSwitches");
+    auto const autoProvide = rti->getParameterHandle(setSwitches, L"HLAautoProvide");
+    REQUIRE(setSwitches.isValid());
+    REQUIRE(autoProvide.isValid());
+
+    auto encodeSwitch = [](bool const enabled) {
+      return rti1516_2025::HLAinteger32BE(enabled ? 1 : 0).encode();
+    };
+    ParameterHandleValueMap const disabledValues{
+        {autoProvide, encodeSwitch(false)}};
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches, disabledValues, VariableLengthData()));
+
+    ParameterHandleValueMap const enabledValues{
+        {autoProvide, encodeSwitch(true)}};
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches, enabledValues, VariableLengthData()));
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  REQUIRE(connectionResult.has_value());
+}
+
+TEST_CASE(
+    "RTIambassador reports a malformed process HLAresignAction parameter through HLAreportMOMexception",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[switches][mom-exception][process-mom-malformed-resign-action]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-parameter-handle][rti.service.get-automatic-resign-directive]"
+    "[rti.service.send-interaction][rti.service.get-transportation-type-handle]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  class MalformedResignActionMomFederateAmbassador final
+      : public NullFederateAmbassador {
+   public:
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
+      ++receivedInteractionCount;
+      receivedInteractionClass = interactionClass;
+      receivedParameterValues = parameterValues;
+      receivedTagSize = userSuppliedTag.size();
+      receivedTransportationType = transportationType;
+      receivedProducingFederate = producingFederate;
+      receivedSentRegions = optionalSentRegions != nullptr;
+    }
+
+    std::size_t receivedInteractionCount = 0U;
+    rti1516_2025::InteractionClassHandle receivedInteractionClass;
+    rti1516_2025::ParameterHandleValueMap receivedParameterValues;
+    std::size_t receivedTagSize = 0U;
+    rti1516_2025::TransportationTypeHandle receivedTransportationType;
+    rti1516_2025::FederateHandle receivedProducingFederate;
+    bool receivedSentRegions = false;
+  };
+
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  constexpr wchar_t const* federationName =
+      L"public-process-mom-malformed-resign-action-execution";
+  constexpr wchar_t const* federateName =
+      L"public-process-mom-malformed-resign-action-federate";
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto connection = listener->accept(
+          nullptr,
+          {"public-process-mom-malformed-resign-action-server", 0x9E07U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation) {
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
+            [&](TransportServiceMessage const& request) {
+              if (request.operation != operation) {
+                throw std::runtime_error(
+                    "The process malformed-resign-action server received an unexpected operation.");
+              }
+              return handler(request);
+            });
+      };
+      if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
+          !serveExpected(TransportServiceOperation::join_federation_execution) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::subscribe_interaction_class) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_automatic_resign_directive) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_transportation_type_handle) ||
+          !serveExpected(TransportServiceOperation::get_automatic_resign_directive) ||
+          !serveExpected(TransportServiceOperation::resign_federation_execution)) {
+        throw std::runtime_error(
+            "The process malformed-resign-action server did not receive the complete sequence.");
+      }
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  MalformedResignActionMomFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"public-process-mom-malformed-resign-action-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  std::optional<ConfigurationResult> connectionResult;
+  bool joined = false;
+  try {
+    connectionResult = rti->connect(federate, HLA_EVOKED, configuration);
+    REQUIRE(connectionResult->addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    static_cast<void>(rti->joinFederationExecution(
+        federateName,
+        L"public-process-mom-malformed-resign-action-type",
+        federationName));
+    joined = true;
+
+    auto const reportClass = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception");
+    REQUIRE(reportClass.isValid());
+    auto const serviceParameter = rti->getParameterHandle(
+        reportClass, L"HLAservice");
+    auto const exceptionParameter = rti->getParameterHandle(
+        reportClass, L"HLAexception");
+    auto const parameterErrorParameter = rti->getParameterHandle(
+        reportClass, L"HLAparameterError");
+    REQUIRE(serviceParameter.isValid());
+    REQUIRE(exceptionParameter.isValid());
+    REQUIRE(parameterErrorParameter.isValid());
+    REQUIRE_NOTHROW(rti->subscribeInteractionClass(reportClass, true));
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    auto const setSwitches = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    REQUIRE(setSwitches.isValid());
+    auto const resignAction = rti->getParameterHandle(
+        setSwitches, L"HLAautomaticResignAction");
+    REQUIRE(resignAction.isValid());
+    auto const initialResignAction = rti->getAutomaticResignDirective();
+
+    // HLAresignAction is an HLAinteger32BE enumeration in the standard MIM;
+    // values zero through five are valid, so six must be rejected without
+    // changing the joined federate's automatic-resign directive.
+    rti1516_2025::VariableLengthData malformedValue;
+    std::array<std::uint8_t, 4U> malformedBytes{0U, 0U, 0U, 6U};
+    malformedValue.setData(malformedBytes.data(), malformedBytes.size());
+    rti1516_2025::ParameterHandleValueMap malformedValues{
+        {resignAction, malformedValue}};
+    REQUIRE_THROWS_AS(
+        rti->sendInteraction(
+            setSwitches,
+            malformedValues,
+            VariableLengthData()),
+        RTIinternalError);
+    while (rti->evokeCallback(0.0)) {
+    }
+    REQUIRE(federate.receivedInteractionCount == 1U);
+    REQUIRE(federate.receivedInteractionClass == reportClass);
+    REQUIRE(federate.receivedParameterValues.size() == 4U);
+    REQUIRE(federate.receivedTagSize == 0U);
+    REQUIRE(federate.receivedTransportationType ==
+            rti->getTransportationTypeHandle(L"HLAreliable"));
+    REQUIRE_FALSE(federate.receivedProducingFederate.isValid());
+    REQUIRE_FALSE(federate.receivedSentRegions);
+
+    rti1516_2025::HLAunicodeString decodedService;
+    REQUIRE_NOTHROW(decodedService.decode(
+        federate.receivedParameterValues.at(serviceParameter)));
+    REQUIRE(decodedService.get() ==
+            L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    rti1516_2025::HLAunicodeString decodedException;
+    REQUIRE_NOTHROW(decodedException.decode(
+        federate.receivedParameterValues.at(exceptionParameter)));
+    REQUIRE(decodedException.get().find(L"InteractionParameterNotDefined") !=
+            std::wstring::npos);
+    REQUIRE(decodedException.get().find(L"HLAresignAction value is malformed") !=
+            std::wstring::npos);
+    rti1516_2025::HLAboolean decodedParameterError;
+    REQUIRE_NOTHROW(decodedParameterError.decode(
+        federate.receivedParameterValues.at(parameterErrorParameter)));
+    REQUIRE(decodedParameterError.get());
+    REQUIRE(rti->getAutomaticResignDirective() == initialResignAction);
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  REQUIRE(connectionResult.has_value());
+}
+#endif
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+TEST_CASE(
+    "RTIambassador processes predefined process HLAsetSwitches parameters through a compatible subclass and ignores extensions",
+    "[integration][development-profile][foundation][federation-management][mom][switches]"
+    "[mom-extension][process-mom-extension-parameter][extension-subclass][transport]"
+    "[process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.get-parameter-handle][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-automatic-resign-directive][rti.service.send-interaction]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::FomCompositionStatus;
+  using umbra::detail::FomModuleKind;
+  using umbra::detail::LibXml2FomModuleComposer;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+  using umbra::detail::TransportServiceMessage;
+  using umbra::detail::TransportServiceOperation;
+
+  auto composeExtensionDefinition = [] {
+    std::vector<PrevalidatedFomModule> modules{
+        validatedProcessModule(
+            processResourcePath("mim/HLAstandardMIM-2025.xml"),
+            FomModuleKind::mim,
+            L"urn:umbra:test:process-mom-extension-mim"),
+        validatedProcessModule(
+            processResourcePath("examples/RestaurantFOMmodule-2025.xml"),
+            FomModuleKind::fom,
+            L"urn:umbra:test:process-mom-extension-restaurant"),
+        validatedProcessModule(
+            std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+                "data" / "mom-set-switches-extension-fom.xml",
+            FomModuleKind::fom,
+            L"urn:umbra:test:process-mom-extension-fom"),
+    };
+    LibXml2FomModuleComposer composer(
+        processResourcePath("schemas/IEEE1516-FDD-2025.xsd"));
+    auto result = composer.compose(modules);
+    if (result.status != FomCompositionStatus::valid || !result.catalog ||
+        !result.fdd) {
+      throw std::runtime_error(
+          "The process MOM extension FOM did not compose.");
+    }
+    return FederationDefinition{
+        std::move(result.modules),
+        L"HLAinteger64Time",
+        std::move(result.catalog),
+        std::move(result.fdd),
+    };
+  };
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  constexpr wchar_t const* federationName =
+      L"public-process-mom-extension-parameter-execution";
+  constexpr wchar_t const* federateName =
+      L"public-process-mom-extension-parameter-federate";
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry, composeExtensionDefinition(), ProcessFederationServiceOptions{});
+      auto connection = listener->accept(
+          nullptr,
+          {"public-process-mom-extension-parameter-server", 0x9E21U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation) {
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
+            [&](TransportServiceMessage const& request) {
+              if (request.operation != operation) {
+                throw std::runtime_error(
+                    "The process MOM extension server received an unexpected operation.");
+              }
+              return handler(request);
+            });
+      };
+      if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
+          !serveExpected(TransportServiceOperation::join_federation_execution) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::get_automatic_resign_directive) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::get_automatic_resign_directive) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::get_automatic_resign_directive) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_automatic_resign_directive) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_automatic_resign_directive) ||
+          !serveExpected(TransportServiceOperation::resign_federation_execution)) {
+        throw std::runtime_error(
+            "The process MOM extension server did not receive the complete sequence.");
+      }
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"public-process-mom-extension-parameter-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  std::optional<ConfigurationResult> connectionResult;
+  bool joined = false;
+  try {
+    connectionResult = rti->connect(federate, HLA_EVOKED, configuration);
+    REQUIRE(connectionResult->addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    static_cast<void>(rti->joinFederationExecution(
+        federateName, L"public-process-mom-extension-parameter-type", federationName));
+    joined = true;
+
+    auto const setSwitches = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    auto const extendedSetSwitches = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches.UmbraExtendedSetSwitches");
+    REQUIRE(setSwitches.isValid());
+    REQUIRE(extendedSetSwitches.isValid());
+    auto const extensionPayload = rti->getParameterHandle(
+        setSwitches, L"UmbraExtensionSwitchPayload");
+    auto const subclassPayload = rti->getParameterHandle(
+        extendedSetSwitches, L"UmbraExtendedSwitchPayload");
+    REQUIRE(extensionPayload.isValid());
+    REQUIRE(subclassPayload.isValid());
+    auto const serviceReporting = rti->getParameterHandle(
+        extendedSetSwitches, L"HLAserviceReporting");
+    REQUIRE(serviceReporting.isValid());
+    auto const automaticResign = rti->getParameterHandle(
+        extendedSetSwitches, L"HLAautomaticResignAction");
+    REQUIRE(automaticResign.isValid());
+
+    auto const initialServiceReporting = rti->getServiceReportingSwitch();
+    auto const initialResignAction = rti->getAutomaticResignDirective();
+    REQUIRE_THROWS_AS(
+        rti->sendInteraction(
+            setSwitches,
+            ParameterHandleValueMap{
+                {extensionPayload, VariableLengthData("extension", 9U)},
+            },
+            VariableLengthData()),
+        RTIinternalError);
+    REQUIRE(rti->getServiceReportingSwitch() == initialServiceReporting);
+    REQUIRE(rti->getAutomaticResignDirective() == initialResignAction);
+
+    REQUIRE_THROWS_AS(
+        rti->sendInteraction(
+            extendedSetSwitches,
+            ParameterHandleValueMap{
+                {subclassPayload, VariableLengthData("subclass", 8U)},
+            },
+            VariableLengthData()),
+        RTIinternalError);
+    REQUIRE(rti->getServiceReportingSwitch() == initialServiceReporting);
+    REQUIRE(rti->getAutomaticResignDirective() == initialResignAction);
+
+    auto encodeSwitch = [](bool const enabled) {
+      return rti1516_2025::HLAinteger32BE(enabled ? 1 : 0).encode();
+    };
+    auto const promotedServiceReporting = !initialServiceReporting;
+    auto encodeResignAction = [](rti1516_2025::ResignAction const action) {
+      return rti1516_2025::HLAinteger32BE(
+                 static_cast<std::int32_t>(action))
+          .encode();
+    };
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        extendedSetSwitches,
+        ParameterHandleValueMap{
+            {serviceReporting, encodeSwitch(promotedServiceReporting)},
+            {subclassPayload, VariableLengthData("subclass", 8U)},
+        },
+        VariableLengthData()));
+    REQUIRE(rti->getServiceReportingSwitch() == promotedServiceReporting);
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        extendedSetSwitches,
+        ParameterHandleValueMap{
+            {serviceReporting, encodeSwitch(initialServiceReporting)},
+        },
+        VariableLengthData()));
+    REQUIRE(rti->getServiceReportingSwitch() == initialServiceReporting);
+
+    auto const promotedResignAction = encodeResignAction(DELETE_OBJECTS);
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        extendedSetSwitches,
+        ParameterHandleValueMap{
+            {automaticResign, promotedResignAction},
+            {subclassPayload, VariableLengthData("subclass", 8U)},
+        },
+        VariableLengthData()));
+    REQUIRE(rti->getAutomaticResignDirective() == DELETE_OBJECTS);
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        extendedSetSwitches,
+        ParameterHandleValueMap{
+            {automaticResign, encodeResignAction(initialResignAction)},
+        },
+        VariableLengthData()));
+    REQUIRE(rti->getAutomaticResignDirective() == initialResignAction);
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  REQUIRE(connectionResult.has_value());
+}
+#endif
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+TEST_CASE(
+    "RTIambassador preserves the process HLAsetSwitches Service Reporting interlock",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[switches][service-reporting][mom-service-reporting-interlock]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-parameter-handle][rti.service.send-interaction]"
+    "[rti.service.unsubscribe-interaction-class]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  constexpr wchar_t const* federationName =
+      L"public-process-mom-service-report-interlock-execution";
+  constexpr wchar_t const* federateName =
+      L"public-process-mom-service-report-interlock-federate";
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+      auto connection = listener->accept(
+          nullptr,
+          {"public-process-mom-service-report-interlock-server", 0x9E02U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation) {
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
+            [&](TransportServiceMessage const& request) {
+              if (request.operation != operation) {
+                throw std::runtime_error(
+                    "The process MOM service-report interlock server expected operation " +
+                    std::to_string(static_cast<unsigned>(operation)) +
+                    " but received " +
+                    std::to_string(static_cast<unsigned>(request.operation)) + ".");
+              }
+              return handler(request);
+            });
+      };
+      if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
+          !serveExpected(TransportServiceOperation::join_federation_execution) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::subscribe_interaction_class) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::unsubscribe_interaction_class) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::subscribe_interaction_class) ||
+          !serveExpected(TransportServiceOperation::report_failed_service_invocation) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::resign_federation_execution)) {
+        throw std::runtime_error(
+            "The process MOM service-report interlock server did not receive the complete sequence.");
+      }
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"public-process-mom-service-report-interlock-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  std::optional<ConfigurationResult> connectionResult;
+  bool joined = false;
+  try {
+    connectionResult = rti->connect(federate, HLA_EVOKED, configuration);
+    REQUIRE(connectionResult->addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    static_cast<void>(rti->joinFederationExecution(
+        federateName,
+        L"public-process-mom-service-report-interlock-type",
+        federationName));
+    joined = true;
+
+    auto const reportInvocation = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+    REQUIRE(reportInvocation.isValid());
+    REQUIRE_NOTHROW(rti->subscribeInteractionClass(reportInvocation, true));
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    auto const setSwitches = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    auto const serviceReporting = rti->getParameterHandle(
+        setSwitches, L"HLAserviceReporting");
+    REQUIRE(setSwitches.isValid());
+    REQUIRE(serviceReporting.isValid());
+
+    auto const encodedSwitch =
+        rti1516_2025::HLAinteger32BE(1).encode();
+    ParameterHandleValueMap const enabledValues{
+        {serviceReporting, encodedSwitch}};
+    REQUIRE_THROWS_AS(
+        rti->sendInteraction(
+            setSwitches, enabledValues, VariableLengthData()),
+        RTIinternalError);
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    REQUIRE_NOTHROW(rti->unsubscribeInteractionClass(reportInvocation));
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches, enabledValues, VariableLengthData()));
+    REQUIRE(rti->getServiceReportingSwitch());
+
+    REQUIRE_THROWS_AS(
+        rti->subscribeInteractionClass(reportInvocation, true),
+        rti1516_2025::FederateServiceInvocationsAreBeingReportedViaMOM);
+    REQUIRE(rti->getServiceReportingSwitch());
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  REQUIRE(connectionResult.has_value());
+}
+
+TEST_CASE(
+    "RTIambassador reports a rejected process HLAsetSwitches interaction through HLAreportMOMexception",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[switches][service-reporting][mom-exception][process-mom-exception-report]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-parameter-handle][rti.service.send-interaction]"
+    "[rti.service.unsubscribe-interaction-class]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  class MomExceptionFederateAmbassador final : public NullFederateAmbassador {
+   public:
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
+      ++receivedInteractionCount;
+      receivedInteractionClass = interactionClass;
+      receivedParameterValues = parameterValues;
+      receivedTagSize = userSuppliedTag.size();
+      receivedTransportationType = transportationType;
+      receivedProducingFederate = producingFederate;
+      receivedSentRegions = optionalSentRegions != nullptr;
+    }
+
+    std::size_t receivedInteractionCount = 0U;
+    rti1516_2025::InteractionClassHandle receivedInteractionClass;
+    rti1516_2025::ParameterHandleValueMap receivedParameterValues;
+    std::size_t receivedTagSize = 0U;
+    rti1516_2025::TransportationTypeHandle receivedTransportationType;
+    rti1516_2025::FederateHandle receivedProducingFederate;
+    bool receivedSentRegions = false;
+  };
+
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  constexpr wchar_t const* federationName =
+      L"public-process-mom-exception-report-execution";
+  constexpr wchar_t const* federateName =
+      L"public-process-mom-exception-report-federate";
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto connection = listener->accept(
+          nullptr,
+          {"public-process-mom-exception-report-server", 0x9E03U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation) {
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
+            [&](TransportServiceMessage const& request) {
+              if (request.operation != operation) {
+                throw std::runtime_error(
+                    "The process MOM exception-report server received an unexpected operation.");
+              }
+              return handler(request);
+            });
+      };
+      if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
+          !serveExpected(TransportServiceOperation::join_federation_execution) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::subscribe_interaction_class) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::subscribe_interaction_class) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_transportation_type_handle) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::unsubscribe_interaction_class) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::resign_federation_execution)) {
+        throw std::runtime_error(
+            "The process MOM exception-report server did not receive the complete sequence.");
+      }
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  MomExceptionFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"public-process-mom-exception-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  std::optional<ConfigurationResult> connectionResult;
+  bool joined = false;
+  try {
+    connectionResult = rti->connect(federate, HLA_EVOKED, configuration);
+    REQUIRE(connectionResult->addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    static_cast<void>(rti->joinFederationExecution(
+        federateName,
+        L"public-process-mom-exception-report-type",
+        federationName));
+    joined = true;
+
+    auto const reportClass = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception");
+    REQUIRE(reportClass.isValid());
+    auto const serviceParameter = rti->getParameterHandle(
+        reportClass, L"HLAservice");
+    auto const exceptionParameter = rti->getParameterHandle(
+        reportClass, L"HLAexception");
+    auto const parameterErrorParameter = rti->getParameterHandle(
+        reportClass, L"HLAparameterError");
+    REQUIRE(serviceParameter.isValid());
+    REQUIRE(exceptionParameter.isValid());
+    REQUIRE(parameterErrorParameter.isValid());
+    REQUIRE_NOTHROW(rti->subscribeInteractionClass(reportClass, true));
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    auto const reportInvocation = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+    REQUIRE(reportInvocation.isValid());
+    REQUIRE_NOTHROW(rti->subscribeInteractionClass(reportInvocation, true));
+
+    auto const setSwitches = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    auto const serviceReporting = rti->getParameterHandle(
+        setSwitches, L"HLAserviceReporting");
+    REQUIRE(setSwitches.isValid());
+    REQUIRE(serviceReporting.isValid());
+
+    auto const encodedSwitch = rti1516_2025::HLAinteger32BE(1).encode();
+    REQUIRE_THROWS_AS(
+        rti->sendInteraction(
+            setSwitches,
+            ParameterHandleValueMap{{serviceReporting, encodedSwitch}},
+            VariableLengthData()),
+        RTIinternalError);
+    while (rti->evokeCallback(0.0)) {
+    }
+    REQUIRE(federate.receivedInteractionCount == 1U);
+    REQUIRE(federate.receivedInteractionClass == reportClass);
+    REQUIRE(federate.receivedParameterValues.size() == 4U);
+    REQUIRE(federate.receivedTagSize == 0U);
+    REQUIRE(federate.receivedTransportationType ==
+            rti->getTransportationTypeHandle(L"HLAreliable"));
+    REQUIRE_FALSE(federate.receivedProducingFederate.isValid());
+    REQUIRE_FALSE(federate.receivedSentRegions);
+
+    rti1516_2025::HLAunicodeString decodedService;
+    REQUIRE_NOTHROW(decodedService.decode(
+        federate.receivedParameterValues.at(serviceParameter)));
+    REQUIRE(decodedService.get() ==
+            L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    rti1516_2025::HLAunicodeString decodedException;
+    REQUIRE_NOTHROW(decodedException.decode(
+        federate.receivedParameterValues.at(exceptionParameter)));
+    REQUIRE(decodedException.get().find(L"RTIinternalError") !=
+            std::wstring::npos);
+    rti1516_2025::HLAboolean decodedParameterError;
+    REQUIRE_NOTHROW(decodedParameterError.decode(
+        federate.receivedParameterValues.at(parameterErrorParameter)));
+    REQUIRE_FALSE(decodedParameterError.get());
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    REQUIRE_NOTHROW(rti->unsubscribeInteractionClass(reportInvocation));
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches,
+        ParameterHandleValueMap{{serviceReporting, encodedSwitch}},
+        VariableLengthData()));
+    REQUIRE(rti->getServiceReportingSwitch());
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  REQUIRE(connectionResult.has_value());
+}
+
+TEST_CASE(
+    "RTIambassador reports a malformed process HLAsetSwitches interaction through HLAreportMOMexception",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[switches][mom-exception][process-mom-malformed-exception]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-parameter-handle][rti.service.send-interaction]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  class MalformedMomFederateAmbassador final : public NullFederateAmbassador {
+   public:
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
+      ++receivedInteractionCount;
+      receivedInteractionClass = interactionClass;
+      receivedParameterValues = parameterValues;
+      receivedTagSize = userSuppliedTag.size();
+      receivedTransportationType = transportationType;
+      receivedProducingFederate = producingFederate;
+      receivedSentRegions = optionalSentRegions != nullptr;
+    }
+
+    std::size_t receivedInteractionCount = 0U;
+    rti1516_2025::InteractionClassHandle receivedInteractionClass;
+    rti1516_2025::ParameterHandleValueMap receivedParameterValues;
+    std::size_t receivedTagSize = 0U;
+    rti1516_2025::TransportationTypeHandle receivedTransportationType;
+    rti1516_2025::FederateHandle receivedProducingFederate;
+    bool receivedSentRegions = false;
+  };
+
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  constexpr wchar_t const* federationName =
+      L"public-process-mom-malformed-exception-execution";
+  constexpr wchar_t const* federateName =
+      L"public-process-mom-malformed-exception-federate";
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto connection = listener->accept(
+          nullptr,
+          {"public-process-mom-malformed-exception-server", 0x9E04U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation) {
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
+            [&](TransportServiceMessage const& request) {
+              if (request.operation != operation) {
+                throw std::runtime_error(
+                    "The process malformed MOM server received an unexpected operation.");
+              }
+              return handler(request);
+            });
+      };
+      if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
+          !serveExpected(TransportServiceOperation::join_federation_execution) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::subscribe_interaction_class) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_transportation_type_handle) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::resign_federation_execution)) {
+        throw std::runtime_error(
+            "The process malformed MOM server did not receive the complete sequence.");
+      }
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  MalformedMomFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"public-process-mom-malformed-exception-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  std::optional<ConfigurationResult> connectionResult;
+  bool joined = false;
+  try {
+    connectionResult = rti->connect(federate, HLA_EVOKED, configuration);
+    REQUIRE(connectionResult->addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    static_cast<void>(rti->joinFederationExecution(
+        federateName,
+        L"public-process-mom-malformed-exception-type",
+        federationName));
+    joined = true;
+
+    auto const reportClass = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception");
+    REQUIRE(reportClass.isValid());
+    auto const serviceParameter = rti->getParameterHandle(
+        reportClass, L"HLAservice");
+    auto const exceptionParameter = rti->getParameterHandle(
+        reportClass, L"HLAexception");
+    auto const parameterErrorParameter = rti->getParameterHandle(
+        reportClass, L"HLAparameterError");
+    REQUIRE(serviceParameter.isValid());
+    REQUIRE(exceptionParameter.isValid());
+    REQUIRE(parameterErrorParameter.isValid());
+    REQUIRE_NOTHROW(rti->subscribeInteractionClass(reportClass, true));
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    auto const setSwitches = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    REQUIRE(setSwitches.isValid());
+    REQUIRE_NOTHROW(rti->getParameterHandle(setSwitches, L"HLAserviceReporting"));
+
+    // The process adapter maps a rejected private service response to
+    // RTIinternalError, while the RTI-owned report carries the typed public
+    // exception name required by the MOM contract.
+    REQUIRE_THROWS_AS(
+        rti->sendInteraction(
+            setSwitches,
+            ParameterHandleValueMap{},
+            VariableLengthData()),
+        RTIinternalError);
+    while (rti->evokeCallback(0.0)) {
+    }
+    REQUIRE(federate.receivedInteractionCount == 1U);
+    REQUIRE(federate.receivedInteractionClass == reportClass);
+    REQUIRE(federate.receivedParameterValues.size() == 4U);
+    REQUIRE(federate.receivedTagSize == 0U);
+    REQUIRE(federate.receivedTransportationType ==
+            rti->getTransportationTypeHandle(L"HLAreliable"));
+    REQUIRE_FALSE(federate.receivedProducingFederate.isValid());
+    REQUIRE_FALSE(federate.receivedSentRegions);
+
+    rti1516_2025::HLAunicodeString decodedService;
+    REQUIRE_NOTHROW(decodedService.decode(
+        federate.receivedParameterValues.at(serviceParameter)));
+    REQUIRE(decodedService.get() ==
+            L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    rti1516_2025::HLAunicodeString decodedException;
+    REQUIRE_NOTHROW(decodedException.decode(
+        federate.receivedParameterValues.at(exceptionParameter)));
+    REQUIRE(decodedException.get().find(L"InteractionParameterNotDefined") !=
+            std::wstring::npos);
+    rti1516_2025::HLAboolean decodedParameterError;
+    REQUIRE_NOTHROW(decodedParameterError.decode(
+        federate.receivedParameterValues.at(parameterErrorParameter)));
+    REQUIRE(decodedParameterError.get());
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  REQUIRE(connectionResult.has_value());
+}
+
+TEST_CASE(
+    "RTIambassador reports an unknown process HLAsetSwitches parameter through HLAreportMOMexception",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[switches][mom-exception][process-mom-malformed-parameter]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-parameter-handle][rti.service.send-interaction]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  class UnknownParameterMomFederateAmbassador final : public NullFederateAmbassador {
+   public:
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
+      ++receivedInteractionCount;
+      receivedInteractionClass = interactionClass;
+      receivedParameterValues = parameterValues;
+      receivedTagSize = userSuppliedTag.size();
+      receivedTransportationType = transportationType;
+      receivedProducingFederate = producingFederate;
+      receivedSentRegions = optionalSentRegions != nullptr;
+    }
+
+    std::size_t receivedInteractionCount = 0U;
+    rti1516_2025::InteractionClassHandle receivedInteractionClass;
+    rti1516_2025::ParameterHandleValueMap receivedParameterValues;
+    std::size_t receivedTagSize = 0U;
+    rti1516_2025::TransportationTypeHandle receivedTransportationType;
+    rti1516_2025::FederateHandle receivedProducingFederate;
+    bool receivedSentRegions = false;
+  };
+
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  constexpr wchar_t const* federationName =
+      L"public-process-mom-malformed-parameter-execution";
+  constexpr wchar_t const* federateName =
+      L"public-process-mom-malformed-parameter-federate";
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto connection = listener->accept(
+          nullptr,
+          {"public-process-mom-malformed-parameter-server", 0x9E05U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation) {
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
+            [&](TransportServiceMessage const& request) {
+              if (request.operation != operation) {
+                throw std::runtime_error(
+                    "The process unknown-parameter server received an unexpected operation.");
+              }
+              return handler(request);
+            });
+      };
+      if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
+          !serveExpected(TransportServiceOperation::join_federation_execution) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::subscribe_interaction_class) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_transportation_type_handle) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::resign_federation_execution)) {
+        throw std::runtime_error(
+            "The process unknown-parameter server did not receive the complete sequence.");
+      }
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  UnknownParameterMomFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"public-process-mom-malformed-parameter-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  std::optional<ConfigurationResult> connectionResult;
+  bool joined = false;
+  try {
+    connectionResult = rti->connect(federate, HLA_EVOKED, configuration);
+    REQUIRE(connectionResult->addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    static_cast<void>(rti->joinFederationExecution(
+        federateName,
+        L"public-process-mom-malformed-parameter-type",
+        federationName));
+    joined = true;
+
+    auto const reportClass = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception");
+    REQUIRE(reportClass.isValid());
+    auto const serviceParameter = rti->getParameterHandle(
+        reportClass, L"HLAservice");
+    auto const exceptionParameter = rti->getParameterHandle(
+        reportClass, L"HLAexception");
+    auto const parameterErrorParameter = rti->getParameterHandle(
+        reportClass, L"HLAparameterError");
+    REQUIRE(serviceParameter.isValid());
+    REQUIRE(exceptionParameter.isValid());
+    REQUIRE(parameterErrorParameter.isValid());
+    REQUIRE_NOTHROW(rti->subscribeInteractionClass(reportClass, true));
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    auto const setSwitches = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    REQUIRE(setSwitches.isValid());
+    REQUIRE_NOTHROW(rti->getParameterHandle(setSwitches, L"HLAserviceReporting"));
+
+    // HLAservice is valid, but belongs to HLAreportMOMexception rather than
+    // HLAsetSwitches.  The process service must report this unknown parameter
+    // instead of silently ignoring it or mutating a switch.
+    rti1516_2025::HLAboolean malformedValue(true);
+    rti1516_2025::ParameterHandleValueMap malformedValues{
+        {serviceParameter, malformedValue.encode()}};
+    REQUIRE_THROWS_AS(
+        rti->sendInteraction(
+            setSwitches,
+            malformedValues,
+            VariableLengthData()),
+        RTIinternalError);
+    while (rti->evokeCallback(0.0)) {
+    }
+    REQUIRE(federate.receivedInteractionCount == 1U);
+    REQUIRE(federate.receivedInteractionClass == reportClass);
+    REQUIRE(federate.receivedParameterValues.size() == 4U);
+    REQUIRE(federate.receivedTagSize == 0U);
+    REQUIRE(federate.receivedTransportationType ==
+            rti->getTransportationTypeHandle(L"HLAreliable"));
+    REQUIRE_FALSE(federate.receivedProducingFederate.isValid());
+    REQUIRE_FALSE(federate.receivedSentRegions);
+
+    rti1516_2025::HLAunicodeString decodedService;
+    REQUIRE_NOTHROW(decodedService.decode(
+        federate.receivedParameterValues.at(serviceParameter)));
+    REQUIRE(decodedService.get() ==
+            L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    rti1516_2025::HLAunicodeString decodedException;
+    REQUIRE_NOTHROW(decodedException.decode(
+        federate.receivedParameterValues.at(exceptionParameter)));
+    REQUIRE(decodedException.get().find(L"InteractionParameterNotDefined") !=
+            std::wstring::npos);
+    REQUIRE(decodedException.get().find(L"parameter is not defined") !=
+            std::wstring::npos);
+    rti1516_2025::HLAboolean decodedParameterError;
+    REQUIRE_NOTHROW(decodedParameterError.decode(
+        federate.receivedParameterValues.at(parameterErrorParameter)));
+    REQUIRE(decodedParameterError.get());
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  REQUIRE(connectionResult.has_value());
+}
+
+TEST_CASE(
+    "RTIambassador reports a malformed process HLAsetSwitches value through HLAreportMOMexception",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[switches][mom-exception][process-mom-malformed-value]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-parameter-handle][rti.service.send-interaction]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  class MalformedValueMomFederateAmbassador final : public NullFederateAmbassador {
+   public:
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
+      ++receivedInteractionCount;
+      receivedInteractionClass = interactionClass;
+      receivedParameterValues = parameterValues;
+      receivedTagSize = userSuppliedTag.size();
+      receivedTransportationType = transportationType;
+      receivedProducingFederate = producingFederate;
+      receivedSentRegions = optionalSentRegions != nullptr;
+    }
+
+    std::size_t receivedInteractionCount = 0U;
+    rti1516_2025::InteractionClassHandle receivedInteractionClass;
+    rti1516_2025::ParameterHandleValueMap receivedParameterValues;
+    std::size_t receivedTagSize = 0U;
+    rti1516_2025::TransportationTypeHandle receivedTransportationType;
+    rti1516_2025::FederateHandle receivedProducingFederate;
+    bool receivedSentRegions = false;
+  };
+
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+
+  constexpr wchar_t const* federationName =
+      L"public-process-mom-malformed-value-execution";
+  constexpr wchar_t const* federateName =
+      L"public-process-mom-malformed-value-federate";
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry,
+          composedProcessDefinition(),
+          ProcessFederationServiceOptions{true});
+      auto connection = listener->accept(
+          nullptr,
+          {"public-process-mom-malformed-value-server", 0x9E06U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serveExpected = [&](TransportServiceOperation operation) {
+        return umbra::test::servePrimaryProcessRequest(
+            session, handler,
+            [&](TransportServiceMessage const& request) {
+              if (request.operation != operation) {
+                throw std::runtime_error(
+                    "The process malformed-value server received an unexpected operation.");
+              }
+              return handler(request);
+            });
+      };
+      if (!serveExpected(TransportServiceOperation::create_federation_execution) ||
+          !serveExpected(TransportServiceOperation::join_federation_execution) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::subscribe_interaction_class) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
+          !serveExpected(TransportServiceOperation::get_parameter_handle) ||
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(TransportServiceOperation::get_transportation_type_handle) ||
+          !serveExpected(TransportServiceOperation::get_service_reporting_switch) ||
+          !serveExpected(TransportServiceOperation::resign_federation_execution)) {
+        throw std::runtime_error(
+            "The process malformed-value server did not receive the complete sequence.");
+      }
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  MalformedValueMomFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"public-process-mom-malformed-value-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  std::optional<ConfigurationResult> connectionResult;
+  bool joined = false;
+  try {
+    connectionResult = rti->connect(federate, HLA_EVOKED, configuration);
+    REQUIRE(connectionResult->addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    static_cast<void>(rti->joinFederationExecution(
+        federateName,
+        L"public-process-mom-malformed-value-type",
+        federationName));
+    joined = true;
+
+    auto const reportClass = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception");
+    REQUIRE(reportClass.isValid());
+    auto const serviceParameter = rti->getParameterHandle(
+        reportClass, L"HLAservice");
+    auto const exceptionParameter = rti->getParameterHandle(
+        reportClass, L"HLAexception");
+    auto const parameterErrorParameter = rti->getParameterHandle(
+        reportClass, L"HLAparameterError");
+    REQUIRE(serviceParameter.isValid());
+    REQUIRE(exceptionParameter.isValid());
+    REQUIRE(parameterErrorParameter.isValid());
+    REQUIRE_NOTHROW(rti->subscribeInteractionClass(reportClass, true));
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    auto const setSwitches = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    REQUIRE(setSwitches.isValid());
+    auto const serviceReporting = rti->getParameterHandle(
+        setSwitches, L"HLAserviceReporting");
+    REQUIRE(serviceReporting.isValid());
+
+    // HLAserviceReporting is declared on HLAsetSwitches, but this value is
+    // not a valid HLAinteger32BE boolean encoding (2 is outside {0, 1}).
+    rti1516_2025::VariableLengthData malformedValue;
+    std::array<std::uint8_t, 4U> malformedBytes{0U, 0U, 0U, 2U};
+    malformedValue.setData(malformedBytes.data(), malformedBytes.size());
+    rti1516_2025::ParameterHandleValueMap malformedValues{
+        {serviceReporting, malformedValue}};
+    REQUIRE_THROWS_AS(
+        rti->sendInteraction(
+            setSwitches,
+            malformedValues,
+            VariableLengthData()),
+        RTIinternalError);
+    while (rti->evokeCallback(0.0)) {
+    }
+    REQUIRE(federate.receivedInteractionCount == 1U);
+    REQUIRE(federate.receivedInteractionClass == reportClass);
+    REQUIRE(federate.receivedParameterValues.size() == 4U);
+    REQUIRE(federate.receivedTagSize == 0U);
+    REQUIRE(federate.receivedTransportationType ==
+            rti->getTransportationTypeHandle(L"HLAreliable"));
+    REQUIRE_FALSE(federate.receivedProducingFederate.isValid());
+    REQUIRE_FALSE(federate.receivedSentRegions);
+
+    rti1516_2025::HLAunicodeString decodedService;
+    REQUIRE_NOTHROW(decodedService.decode(
+        federate.receivedParameterValues.at(serviceParameter)));
+    REQUIRE(decodedService.get() ==
+            L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    rti1516_2025::HLAunicodeString decodedException;
+    REQUIRE_NOTHROW(decodedException.decode(
+        federate.receivedParameterValues.at(exceptionParameter)));
+    REQUIRE(decodedException.get().find(L"InteractionParameterNotDefined") !=
+            std::wstring::npos);
+    REQUIRE(decodedException.get().find(L"switch value is malformed") !=
+            std::wstring::npos);
+    rti1516_2025::HLAboolean decodedParameterError;
+    REQUIRE_NOTHROW(decodedParameterError.decode(
+        federate.receivedParameterValues.at(parameterErrorParameter)));
+    REQUIRE(decodedParameterError.get());
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  REQUIRE(connectionResult.has_value());
+}
+#endif
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+TEST_CASE(
+    "RTIambassador carries a predefined process HLAexceptionReporting switch through HLAsetSwitches without mutating other switches",
+    "[integration][development-profile][foundation][mom][switches]"
+    "[process-mom-exception-reporting-switch][transport][process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.get-parameter-handle][rti.service.send-interaction]"
+    "[rti.service.get-exception-reporting-switch][rti.service.set-exception-reporting-switch]"
+    "[rti.service.get-service-reporting-switch][rti.service.get-automatic-resign-directive]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  constexpr wchar_t const* federationName = L"process-exception-reporting-execution";
+  std::exception_ptr serverError;
+  std::vector<TransportServiceOperation> operations;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+      auto connection = listener->accept(
+          nullptr, {"process-exception-reporting-server", 0x9E22U},
+          [](std::wstring) {}, [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      while (ProcessTransportServiceDispatcher::serveOne(
+          session, [&](TransportServiceMessage const& request) {
+            operations.push_back(request.operation);
+            return handler(request);
+          })) {
+      }
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  auto rti = makeRti();
+  TestFederateAmbassador federate;
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(L"process-exception-reporting-client")
+                           .withRtiAddress(L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE_THROWS_AS(rti->getExceptionReportingSwitch(), rti1516_2025::NotConnected);
+    REQUIRE_THROWS_AS(rti->setExceptionReportingSwitch(true), rti1516_2025::NotConnected);
+    auto const result = rti->connect(federate, HLA_EVOKED, configuration);
+    REQUIRE(result.addressUsed);
+    REQUIRE_THROWS_AS(rti->getExceptionReportingSwitch(),
+                      rti1516_2025::FederateNotExecutionMember);
+    REQUIRE_THROWS_AS(rti->setExceptionReportingSwitch(true),
+                      rti1516_2025::FederateNotExecutionMember);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    static_cast<void>(rti->joinFederationExecution(
+        L"process-exception-reporting-federate", L"switch-test", federationName));
+    joined = true;
+
+    REQUIRE_FALSE(rti->getExceptionReportingSwitch());
+    auto const initialServiceReporting = rti->getServiceReportingSwitch();
+    auto const initialResignAction = rti->getAutomaticResignDirective();
+    auto const initialFileReporting = rti->getSendServiceReportsToFileSwitch();
+    auto const setSwitches = rti->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+    auto const exceptionReporting = rti->getParameterHandle(
+        setSwitches, L"HLAexceptionReporting");
+    REQUIRE(setSwitches.isValid());
+    REQUIRE(exceptionReporting.isValid());
+    auto const encodeSwitch = [](bool enabled) {
+      return rti1516_2025::HLAinteger32BE(enabled ? 1 : 0).encode();
+    };
+
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches, {{exceptionReporting, encodeSwitch(true)}}, VariableLengthData{}));
+    REQUIRE(rti->getExceptionReportingSwitch());
+    REQUIRE(rti->getServiceReportingSwitch() == initialServiceReporting);
+    REQUIRE(rti->getAutomaticResignDirective() == initialResignAction);
+    REQUIRE(rti->getSendServiceReportsToFileSwitch() == initialFileReporting);
+
+    REQUIRE_NOTHROW(rti->setExceptionReportingSwitch(false));
+    REQUIRE_FALSE(rti->getExceptionReportingSwitch());
+    REQUIRE_NOTHROW(rti->setExceptionReportingSwitch(true));
+    REQUIRE(rti->getExceptionReportingSwitch());
+    REQUIRE_NOTHROW(rti->sendInteraction(
+        setSwitches, {{exceptionReporting, encodeSwitch(false)}}, VariableLengthData{}));
+    REQUIRE_FALSE(rti->getExceptionReportingSwitch());
+    REQUIRE(rti->getServiceReportingSwitch() == initialServiceReporting);
+    REQUIRE(rti->getAutomaticResignDirective() == initialResignAction);
+    REQUIRE(rti->getSendServiceReportsToFileSwitch() == initialFileReporting);
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    REQUIRE_THROWS_AS(rti->getExceptionReportingSwitch(),
+                      rti1516_2025::FederateNotExecutionMember);
+    REQUIRE_THROWS_AS(rti->setExceptionReportingSwitch(true),
+                      rti1516_2025::FederateNotExecutionMember);
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try { rti->resignFederationExecution(NO_ACTION); } catch (...) {}
+    }
+    try { rti->disconnect(); } catch (...) {}
+  }
+  listener.reset();
+  server.join();
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  REQUIRE(std::count(operations.begin(), operations.end(),
+                     TransportServiceOperation::get_exception_reporting_switch) == 5);
+  REQUIRE(std::count(operations.begin(), operations.end(),
+                     TransportServiceOperation::set_exception_reporting_switch) == 2);
+}
+#endif
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+#include <RTI/encoding/HLAfixedRecord.h>
+#include <RTI/encoding/HLAvariableArray.h>
+TEST_CASE(
+    "RTIambassador reports process service invocation exceptions through HLAreportException when enabled",
+    "[integration][development-profile][foundation][mom][switches]"
+    "[process-mom-service-exception-report][transport][process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.get-parameter-handle][rti.service.get-object-class-handle]"
+    "[rti.service.get-transportation-type-handle][rti.service.subscribe-interaction-class]"
+    "[rti.service.unsubscribe-interaction-class][rti.service.send-interaction]"
+    "[rti.service.get-exception-reporting-switch][rti.service.set-exception-reporting-switch]"
+    "[rti.service.enable-callbacks][rti.service.disable-callbacks][rti.service.evoke-callback]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  struct Report {
+    rti1516_2025::InteractionClassHandle interaction;
+    ParameterHandleValueMap parameters;
+    rti1516_2025::TransportationTypeHandle transportation;
+    rti1516_2025::FederateHandle producer;
+    std::size_t tagSize;
+    bool sentRegions;
+  };
+  class ReportingFederate final : public NullFederateAmbassador {
+   public:
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interaction,
+        ParameterHandleValueMap const& parameters,
+        VariableLengthData const& tag,
+        rti1516_2025::TransportationTypeHandle const& transportation,
+        rti1516_2025::FederateHandle const& producer,
+        rti1516_2025::RegionHandleSet const* sentRegions) override {
+      reports.push_back({interaction, parameters, transportation, producer,
+                         tag.size(), sentRegions != nullptr});
+    }
+    std::vector<Report> reports;
+  };
+
+  auto runScenario = [&](CallbackModel callbackModel, bool pushEvents) {
+    auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+    REQUIRE(listener);
+    auto const port = listener->address().port;
+    REQUIRE(port != 0U);
+    constexpr wchar_t const* federationName = L"process-service-exception-reports";
+    std::exception_ptr serverError;
+    std::atomic<bool> rejectNextReport{false};
+    std::thread server([&] {
+      try {
+        EmbeddedFederationRegistry registry;
+        ProcessFederationService service(
+            registry, composedProcessDefinition(), ProcessFederationServiceOptions{pushEvents});
+        auto connection = listener->accept(
+            nullptr, {"service-exception-report-server", 0x9E23U},
+            [](std::wstring) {}, [](std::wstring) { return false; });
+        ProcessTransportSession session(connection);
+        auto handler = service.handlerFor(session);
+        while (ProcessTransportServiceDispatcher::serveOne(
+            session, [&](TransportServiceMessage const& request) {
+              if (request.operation == TransportServiceOperation::report_service_exception &&
+                  rejectNextReport.exchange(false)) {
+                return TransportServiceMessage{
+                    TransportServiceMessageKind::response, request.operation,
+                    TransportServiceStatus::internal_error, request.requestId, {}};
+              }
+              return handler(request);
+            })) {}
+        service.detach(session);
+        connection->close();
+      } catch (...) {
+        serverError = std::current_exception();
+      }
+    });
+
+    ReportingFederate federate;
+    auto rti = makeRti();
+    auto configuration = RtiConfiguration::createConfiguration()
+                             .withConfigurationName(L"service-exception-report-client")
+                             .withRtiAddress(L"tcp://127.0.0.1:" + std::to_wstring(port));
+    std::exception_ptr clientError;
+    bool joined = false;
+    try {
+      REQUIRE(rti->connect(federate, callbackModel, configuration).addressUsed);
+      rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+      auto const joinedHandle = rti->joinFederationExecution(
+          L"reported-federate", L"exception-report-test", federationName);
+      joined = true;
+      REQUIRE(joinedHandle.isValid());
+      auto const reportClass = rti->getInteractionClassHandle(
+          L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportException");
+      auto const serviceParameter = rti->getParameterHandle(reportClass, L"HLAservice");
+      auto const exceptionParameter = rti->getParameterHandle(reportClass, L"HLAexception");
+      auto const federateParameter = rti->getParameterHandle(reportClass, L"HLAfederate");
+      auto const reliable = rti->getTransportationTypeHandle(L"HLAreliable");
+      REQUIRE(reportClass.isValid());
+      REQUIRE(serviceParameter.isValid());
+      REQUIRE(exceptionParameter.isValid());
+      REQUIRE(federateParameter.isValid());
+      REQUIRE(reliable.isValid());
+      rti->subscribeInteractionClass(reportClass, true);
+      auto drain = [&] {
+        try {
+          while (rti->evokeCallback(0.0)) {}
+        } catch (rti1516_2025::Exception const& error) {
+          auto const diagnostic = error.name() + L": " + error.what();
+          std::string printable;
+          for (auto character : diagnostic) {
+            printable.push_back(character <= 127 ? static_cast<char>(character) : '?');
+          }
+          throw std::runtime_error(printable);
+        }
+      };
+      auto failLookup = [&] {
+        std::wstring description;
+        try {
+          static_cast<void>(rti->getObjectClassHandle(L"HLAobjectRoot.UndefinedReportProbe"));
+        } catch (rti1516_2025::NameNotFound const& exception) {
+          description = exception.name();
+          if (!exception.what().empty()) {
+            description += L": " + exception.what();
+          }
+        }
+        REQUIRE_FALSE(description.empty()); // The original typed service exception survives.
+        return description;
+      };
+
+      REQUIRE_FALSE(rti->getExceptionReportingSwitch());
+      static_cast<void>(failLookup());
+      drain();
+      REQUIRE(federate.reports.empty());
+
+      rti->setExceptionReportingSwitch(true);
+      REQUIRE(rti->getExceptionReportingSwitch());
+      auto const expectedException = failLookup();
+      drain();
+      REQUIRE(federate.reports.size() == 1U);
+      auto const& report = federate.reports.front();
+      REQUIRE(report.interaction == reportClass);
+      REQUIRE(report.parameters.size() == 3U);
+      REQUIRE(report.transportation == reliable);
+      REQUIRE_FALSE(report.producer.isValid());
+      REQUIRE(report.tagSize == 0U);
+      REQUIRE_FALSE(report.sentRegions);
+      rti1516_2025::HLAunicodeString decodedService;
+      REQUIRE_NOTHROW(decodedService.decode(report.parameters.at(serviceParameter)));
+      REQUIRE(decodedService.get() == L"Get Object Class Handle");
+      rti1516_2025::HLAunicodeString decodedException;
+      REQUIRE_NOTHROW(decodedException.decode(report.parameters.at(exceptionParameter)));
+      REQUIRE(decodedException.get() == expectedException);
+      rti1516_2025::HLAvariableArray decodedFederate{rti1516_2025::HLAbyte{}};
+      REQUIRE_NOTHROW(decodedFederate.decode(report.parameters.at(federateParameter)));
+      auto const handleEncoding = joinedHandle.encode();
+      auto const& reportedHandle = report.parameters.at(federateParameter);
+      REQUIRE(reportedHandle.size() == handleEncoding.size());
+      REQUIRE(std::memcmp(reportedHandle.data(), handleEncoding.data(), handleEncoding.size()) == 0);
+
+      // Change the switch through MOM, not through a client-side cached setter.
+      auto const switches = rti->getInteractionClassHandle(
+          L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+      auto const exceptionSwitch = rti->getParameterHandle(switches, L"HLAexceptionReporting");
+      rti->sendInteraction(switches,
+          {{exceptionSwitch, rti1516_2025::HLAinteger32BE(0).encode()}}, VariableLengthData{});
+      static_cast<void>(failLookup());
+      drain();
+      REQUIRE(federate.reports.size() == 1U);
+      rti->sendInteraction(switches,
+          {{exceptionSwitch, rti1516_2025::HLAinteger32BE(1).encode()}}, VariableLengthData{});
+      static_cast<void>(failLookup());
+      drain();
+      REQUIRE(federate.reports.size() == 2U);
+
+      // Subscription is checked again at callback time for already queued reports.
+      rti->disableCallbacks();
+      static_cast<void>(failLookup());
+      REQUIRE(federate.reports.size() == 2U);
+      rti->unsubscribeInteractionClass(reportClass);
+      rti->enableCallbacks();
+      drain();
+      REQUIRE(federate.reports.size() == 2U);
+      static_cast<void>(failLookup());
+      drain();
+      REQUIRE(federate.reports.size() == 2U);
+      rti->subscribeInteractionClass(reportClass, true);
+      static_cast<void>(failLookup());
+      drain();
+      REQUIRE(federate.reports.size() == 3U);
+
+      // Failure to route advisory traffic must not replace the original exception.
+      rejectNextReport.store(true);
+      REQUIRE(failLookup() == expectedException);
+      REQUIRE_FALSE(rejectNextReport.load());
+      drain();
+      REQUIRE(federate.reports.size() == 3U);
+
+      rti->resignFederationExecution(NO_ACTION);
+      joined = false;
+      rti->disconnect();
+    } catch (...) {
+      clientError = std::current_exception();
+      if (joined) {
+        try { rti->resignFederationExecution(NO_ACTION); } catch (...) {}
+      }
+      try { rti->disconnect(); } catch (...) {}
+    }
+    listener.reset();
+    server.join();
+    if (clientError) {
+      std::rethrow_exception(clientError);
+    }
+    REQUIRE_FALSE(serverError);
+    REQUIRE_FALSE(joined);
+  };
+  SECTION("HLA_EVOKED pull") { runScenario(HLA_EVOKED, false); }
+  SECTION("HLA_EVOKED push") { runScenario(HLA_EVOKED, true); }
+  SECTION("HLA_IMMEDIATE pull") { runScenario(HLA_IMMEDIATE, false); }
+  SECTION("HLA_IMMEDIATE push") { runScenario(HLA_IMMEDIATE, true); }
+}
+
+#endif
+
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+TEST_CASE(
+    "RTIambassador preserves process exception-report recheck response ownership during concurrent service requests",
+    "[integration][development-profile][mom][transport][process-boundary][public-endpoint][2025]"
+    "[process-exception-report-concurrency]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-object-class-handle]"
+    "[rti.service.get-object-class-name][rti.service.get-interaction-class-handle]"
+    "[rti.service.get-parameter-handle][rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.set-exception-reporting-switch]"
+    "[rti.service.get-exception-reporting-switch][rti.service.evoke-callback]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  // Gates order operations, not wall-clock sleeps. Deadlines only bound failures.
+  struct Gate {
+    std::mutex mutex;
+    std::condition_variable changed;
+    bool opened = false;
+    void open() {
+      std::lock_guard lock(mutex);
+      opened = true;
+      changed.notify_all();
+    }
+    void wait() {
+      std::unique_lock lock(mutex);
+      if (!changed.wait_for(lock, std::chrono::seconds(5), [&] { return opened; })) {
+        throw std::runtime_error("Timed out at a process-report concurrency gate.");
+      }
+    }
+  };
+  struct Report {
+    rti1516_2025::InteractionClassHandle interaction;
+    ParameterHandleValueMap parameters;
+    rti1516_2025::TransportationTypeHandle transportation;
+    rti1516_2025::FederateHandle producer;
+    std::size_t tagSize;
+    bool sentRegions;
+  };
+  class Observer final : public NullFederateAmbassador {
+   public:
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interaction,
+        ParameterHandleValueMap const& parameters,
+        VariableLengthData const& tag,
+        rti1516_2025::TransportationTypeHandle const& transportation,
+        rti1516_2025::FederateHandle const& producer,
+        rti1516_2025::RegionHandleSet const* regions) override {
+      reports.push_back({interaction, parameters, transportation, producer,
+                         tag.size(), regions != nullptr});
+      if (reports.size() == 1U && firstCallback) {
+        try { firstCallback(); } catch (...) { callbackError = std::current_exception(); }
+      }
+    }
+    std::vector<Report> reports;
+    std::function<void()> firstCallback;
+    std::exception_ptr callbackError;
+  };
+
+  auto runScenario = [&](bool immediate, bool pushEvents, bool queuedResign = false) {
+    Gate recheckEntered;
+    Gate releaseRecheck;
+    Gate lookupStarted;
+    Gate callbackEntered;
+    Gate secondReportProcessed;
+    std::atomic<bool> holdRecheck{false};
+    std::atomic<std::size_t> reportRequests{0U};
+    std::atomic<std::size_t> recheckRequests{0U};
+    auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+    REQUIRE(listener);
+    auto const port = listener->address().port;
+    REQUIRE(port != 0U);
+    std::mutex connectionMutex;
+    std::shared_ptr<ProcessTransportConnection> serverConnection;
+    std::exception_ptr serverError;
+    std::vector<std::uint64_t> requestIds;
+    std::thread server([&] {
+      try {
+        EmbeddedFederationRegistry registry;
+        ProcessFederationService service(
+            registry, composedProcessDefinition(), ProcessFederationServiceOptions{pushEvents});
+        auto connection = listener->accept(
+            nullptr, {"exception-report-concurrency-server", 0x9E25U},
+            [](std::wstring) {}, [](std::wstring) { return false; });
+        {
+          std::lock_guard lock(connectionMutex);
+          serverConnection = connection;
+        }
+        ProcessTransportSession session(connection);
+        auto handler = service.handlerFor(session);
+        while (ProcessTransportServiceDispatcher::serveOne(
+            session, [&](TransportServiceMessage const& request) {
+              requestIds.push_back(request.requestId);
+              if (request.operation == TransportServiceOperation::recheck_exception_report) {
+                ++recheckRequests;
+                if (holdRecheck.exchange(false)) {
+                  recheckEntered.open();
+                  releaseRecheck.wait();
+                }
+              }
+              auto response = handler(request);
+              if (request.operation == TransportServiceOperation::report_service_exception &&
+                  ++reportRequests == 2U) {
+                secondReportProcessed.open();
+              }
+              return response;
+            })) {}
+        service.detach(session);
+        connection->close();
+      } catch (...) {
+        serverError = std::current_exception();
+        std::lock_guard lock(connectionMutex);
+        if (serverConnection) { serverConnection->close(); }
+      }
+    });
+
+    Observer observer;
+    auto rti = makeRti();
+    auto configuration = RtiConfiguration::createConfiguration()
+        .withConfigurationName(L"process-report-concurrency-client")
+        .withRtiAddress(L"tcp://127.0.0.1:" + std::to_wstring(port));
+    std::future<void> first;
+    std::future<void> second;
+    std::exception_ptr clientError;
+    bool joined = false;
+    auto stopServer = [&] {
+      releaseRecheck.open();
+      secondReportProcessed.open();
+      std::lock_guard lock(connectionMutex);
+      if (serverConnection) { serverConnection->close(); }
+    };
+    auto finish = [&](std::future<void>& operation) {
+      if (!operation.valid()) {
+        return;
+      }
+      if (operation.wait_for(std::chrono::seconds(5)) != std::future_status::ready) {
+        stopServer();
+        throw std::runtime_error("Concurrent public RTI operation did not finish.");
+      }
+      operation.get();
+    };
+    try {
+      REQUIRE(rti->connect(observer, immediate ? HLA_IMMEDIATE : HLA_EVOKED,
+                           configuration).addressUsed);
+      rti->createFederationExecution(L"report-concurrency", L"server-owned-fom.xml");
+      auto const federate = rti->joinFederationExecution(
+          L"concurrent-observer", L"test", L"report-concurrency");
+      joined = true;
+      auto const rootClass = rti->getObjectClassHandle(L"HLAobjectRoot");
+      auto const reportClass = rti->getInteractionClassHandle(
+          L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportException");
+      auto const serviceParameter = rti->getParameterHandle(reportClass, L"HLAservice");
+      auto const exceptionParameter = rti->getParameterHandle(reportClass, L"HLAexception");
+      auto const federateParameter = rti->getParameterHandle(reportClass, L"HLAfederate");
+      auto const reliable = rti->getTransportationTypeHandle(L"HLAreliable");
+      rti->subscribeInteractionClass(reportClass, true);
+      rti->setExceptionReportingSwitch(true);
+      std::atomic<std::size_t> typedFailures{0U};
+      std::atomic<std::size_t> successfulLookups{0U};
+      auto failLookup = [&] {
+        try {
+          static_cast<void>(rti->getObjectClassHandle(L"HLAobjectRoot.MissingConcurrentClass"));
+        } catch (rti1516_2025::NameNotFound const&) {
+          ++typedFailures;
+          return;
+        }
+        throw std::runtime_error("Concurrent lookup lost its original NameNotFound exception.");
+      };
+      auto successfulLookup = [&] {
+        if (rti->getObjectClassHandle(L"HLAobjectRoot") != rootClass ||
+            rti->getObjectClassName(rootClass) != L"HLAobjectRoot" ||
+            !rti->getExceptionReportingSwitch()) {
+          throw std::runtime_error("A concurrent request consumed another operation's response.");
+        }
+        ++successfulLookups;
+      };
+      // Join before the lambdas and values captured by workers leave scope,
+      // including when a gate or an assertion fails during setup.
+      struct WorkerGuard {
+        std::future<void>& first;
+        std::future<void>& second;
+        std::function<void()> cancel;
+        ~WorkerGuard() {
+          if (first.valid() || second.valid()) {
+            cancel();
+            if (first.valid()) { first.wait(); }
+            if (second.valid()) { second.wait(); }
+          }
+        }
+      } workerGuard{first, second, stopServer};
+      if (queuedResign) {
+        failLookup();
+        REQUIRE(observer.reports.empty());
+        REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+        joined = false;
+      } else if (!immediate) {
+        failLookup();
+        REQUIRE(observer.reports.empty());
+        holdRecheck = true;
+        first = std::async(std::launch::async, [&] { static_cast<void>(rti->evokeCallback(0.0)); });
+        recheckEntered.wait();
+        second = std::async(std::launch::async, [&] {
+          lookupStarted.open();
+          successfulLookup();
+        });
+        lookupStarted.wait();
+        releaseRecheck.open();
+      } else {
+        // The first immediate callback owns the dispatcher while the second
+        // public call produces a pushed report. A connection lock held across
+        // callback dispatch deadlocks when this callback makes its nested call.
+        observer.firstCallback = [&] {
+          callbackEntered.open();
+          secondReportProcessed.wait();
+          successfulLookup();
+        };
+        first = std::async(std::launch::async, failLookup);
+        callbackEntered.wait();
+        second = std::async(std::launch::async, failLookup);
+      }
+      finish(first);
+      finish(second);
+      while (rti->evokeCallback(0.0)) {}
+      REQUIRE_FALSE(observer.callbackError);
+      auto const expectedReports = immediate ? 2U : queuedResign ? 0U : 1U;
+      REQUIRE(successfulLookups == (queuedResign ? 0U : 1U));
+      REQUIRE(typedFailures == (immediate ? 2U : 1U));
+      REQUIRE(reportRequests == (queuedResign ? 1U : expectedReports));
+      REQUIRE(recheckRequests == (queuedResign ? 0U : expectedReports));
+      REQUIRE(observer.reports.size() == expectedReports);
+      for (auto const& report : observer.reports) {
+        REQUIRE(report.interaction == reportClass);
+        REQUIRE(report.parameters.size() == 3U);
+        REQUIRE(report.transportation == reliable);
+        REQUIRE_FALSE(report.producer.isValid());
+        REQUIRE(report.tagSize == 0U);
+        REQUIRE_FALSE(report.sentRegions);
+        rti1516_2025::HLAunicodeString service;
+        REQUIRE_NOTHROW(service.decode(report.parameters.at(serviceParameter)));
+        REQUIRE(service.get() == L"Get Object Class Handle");
+        rti1516_2025::HLAunicodeString exception;
+        REQUIRE_NOTHROW(exception.decode(report.parameters.at(exceptionParameter)));
+        REQUIRE(exception.get().find(L"NameNotFound") != std::wstring::npos);
+        auto const encodedFederate = federate.encode();
+        auto const& reportedFederate = report.parameters.at(federateParameter);
+        REQUIRE(reportedFederate.size() == encodedFederate.size());
+        REQUIRE(std::memcmp(reportedFederate.data(), encodedFederate.data(),
+                            encodedFederate.size()) == 0);
+      }
+      if (!queuedResign) {
+        rti->resignFederationExecution(NO_ACTION);
+        joined = false;
+      }
+      rti->disconnect();
+    } catch (...) {
+      clientError = std::current_exception();
+      stopServer();
+      if (first.valid()) { first.wait(); }
+      if (second.valid()) { second.wait(); }
+      if (joined) { try { rti->resignFederationExecution(NO_ACTION); } catch (...) {} }
+      try { rti->disconnect(); } catch (...) {}
+    }
+    listener.reset();
+    server.join();
+    if (clientError) { std::rethrow_exception(clientError); }
+    REQUIRE_FALSE(serverError);
+    REQUIRE_FALSE(joined);
+    REQUIRE_FALSE(requestIds.empty());
+    REQUIRE(std::adjacent_find(requestIds.begin(), requestIds.end(),
+                              std::greater_equal<std::uint64_t>{}) == requestIds.end());
+  };
+  SECTION("Evoked report recheck overlaps a public request with pull delivery") {
+    runScenario(false, false);
+  }
+  SECTION("Evoked report recheck overlaps a public request with push delivery") {
+    runScenario(false, true);
+  }
+  SECTION("Immediate callback reenters while another request produces a report") {
+    runScenario(true, true);
+  }
+  SECTION("Resign invalidates an undelivered evoked exception report") {
+    runScenario(false, true, true);
+  }
+}
+
+TEST_CASE(
+    "RTIambassador includes inherited HLAfederate in process HLAreportMOMexception payloads",
+    "[integration][development-profile][foundation][mom][mom-exception]"
+    "[process-mom-exception-report-parameters][transport][process-boundary][public-endpoint][2025]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.get-parameter-handle][rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.get-exception-reporting-switch][rti.service.send-interaction]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  struct Report {
+    rti1516_2025::InteractionClassHandle interaction;
+    ParameterHandleValueMap parameters;
+    rti1516_2025::TransportationTypeHandle transportation;
+    rti1516_2025::FederateHandle producer;
+    std::size_t tagSize;
+    bool sentRegions;
+  };
+  class ReportingFederate final : public NullFederateAmbassador {
+   public:
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interaction,
+        ParameterHandleValueMap const& parameters,
+        VariableLengthData const& tag,
+        rti1516_2025::TransportationTypeHandle const& transportation,
+        rti1516_2025::FederateHandle const& producer,
+        rti1516_2025::RegionHandleSet const* sentRegions) override {
+      reports.push_back({interaction, parameters, transportation, producer,
+                         tag.size(), sentRegions != nullptr});
+    }
+    std::vector<Report> reports;
+  };
+  auto runScenario = [&](CallbackModel model, bool pushEvents) {
+    auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+    REQUIRE(listener);
+    auto const port = listener->address().port;
+    REQUIRE(port != 0U);
+    constexpr wchar_t const* federationName = L"process-mom-exception-parameters";
+    std::exception_ptr serverError;
+    std::thread server([&] {
+      try {
+        EmbeddedFederationRegistry registry;
+        ProcessFederationService service(
+            registry, composedProcessDefinition(), ProcessFederationServiceOptions{pushEvents});
+        auto connection = listener->accept(
+            nullptr, {"mom-exception-parameters-server", 0x9E24U},
+            [](std::wstring) {}, [](std::wstring) { return false; });
+        ProcessTransportSession session(connection);
+        auto handler = service.handlerFor(session);
+        while (ProcessTransportServiceDispatcher::serveOne(session, handler)) {}
+        service.detach(session);
+        connection->close();
+      } catch (...) {
+        serverError = std::current_exception();
+      }
+    });
+    ReportingFederate federate;
+    auto rti = makeRti();
+    auto configuration = RtiConfiguration::createConfiguration()
+                             .withConfigurationName(L"mom-exception-parameters-client")
+                             .withRtiAddress(L"tcp://127.0.0.1:" + std::to_wstring(port));
+    std::exception_ptr clientError;
+    bool joined = false;
+    try {
+      REQUIRE(rti->connect(federate, model, configuration).addressUsed);
+      auto const drain = [&] { while (rti->evokeCallback(0.0)) {} };
+      rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+      auto const joinedHandle = rti->joinFederationExecution(
+          L"reported-federate", L"mom-exception-test", federationName);
+      joined = true;
+      REQUIRE(joinedHandle.isValid());
+      auto const reportClass = rti->getInteractionClassHandle(
+          L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception");
+      auto const federateParameter = rti->getParameterHandle(reportClass, L"HLAfederate");
+      auto const serviceParameter = rti->getParameterHandle(reportClass, L"HLAservice");
+      auto const exceptionParameter = rti->getParameterHandle(reportClass, L"HLAexception");
+      auto const errorParameter = rti->getParameterHandle(reportClass, L"HLAparameterError");
+      auto const reliable = rti->getTransportationTypeHandle(L"HLAreliable");
+      REQUIRE(reportClass.isValid());
+      REQUIRE(federateParameter.isValid());
+      REQUIRE(serviceParameter.isValid());
+      REQUIRE(exceptionParameter.isValid());
+      REQUIRE(errorParameter.isValid());
+      rti->subscribeInteractionClass(reportClass, true);
+      REQUIRE_FALSE(rti->getExceptionReportingSwitch());
+      auto const switches = rti->getInteractionClassHandle(
+          L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+      auto const serviceSwitch = rti->getParameterHandle(switches, L"HLAserviceReporting");
+      ParameterHandleValueMap const malformed{
+          {serviceSwitch, rti1516_2025::HLAinteger32BE(2).encode()}};
+      REQUIRE_THROWS_AS(rti->sendInteraction(switches, malformed, VariableLengthData{}), RTIinternalError);
+      drain();
+      REQUIRE(federate.reports.size() == 1U);
+      auto const& report = federate.reports.front();
+      REQUIRE(report.interaction == reportClass);
+      REQUIRE(report.parameters.size() == 4U);
+      REQUIRE(report.transportation == reliable);
+      REQUIRE_FALSE(report.producer.isValid());
+      REQUIRE(report.tagSize == 0U);
+      REQUIRE_FALSE(report.sentRegions);
+      rti1516_2025::HLAunicodeString service;
+      REQUIRE_NOTHROW(service.decode(report.parameters.at(serviceParameter)));
+      REQUIRE(service.get() ==
+          L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
+      rti1516_2025::HLAunicodeString exception;
+      REQUIRE_NOTHROW(exception.decode(report.parameters.at(exceptionParameter)));
+      REQUIRE(exception.get().find(L"InteractionParameterNotDefined") != std::wstring::npos);
+      rti1516_2025::HLAboolean parameterError;
+      REQUIRE_NOTHROW(parameterError.decode(report.parameters.at(errorParameter)));
+      REQUIRE(parameterError.get());
+      rti1516_2025::HLAvariableArray decodedFederate{rti1516_2025::HLAbyte{}};
+      REQUIRE_NOTHROW(decodedFederate.decode(report.parameters.at(federateParameter)));
+      auto const expectedHandle = joinedHandle.encode();
+      auto const& reportedHandle = report.parameters.at(federateParameter);
+      REQUIRE(reportedHandle.size() == expectedHandle.size());
+      REQUIRE(std::memcmp(reportedHandle.data(), expectedHandle.data(), expectedHandle.size()) == 0);
+      REQUIRE_FALSE(rti->getExceptionReportingSwitch());
+
+      // A parent-class subscription receives only the inherited parameter.
+      auto const parent = rti->getInteractionClassHandle(
+          L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport");
+      auto const inheritedParameter = rti->getParameterHandle(parent, L"HLAfederate");
+      rti->unsubscribeInteractionClass(reportClass);
+      rti->subscribeInteractionClass(parent, true);
+      REQUIRE_THROWS_AS(rti->sendInteraction(switches, malformed, VariableLengthData{}), RTIinternalError);
+      drain();
+      REQUIRE(federate.reports.size() == 2U);
+      auto const& projected = federate.reports.back();
+      REQUIRE(projected.interaction == parent);
+      REQUIRE(projected.parameters.size() == 1U);
+      REQUIRE_NOTHROW(decodedFederate.decode(projected.parameters.at(inheritedParameter)));
+      auto const& projectedHandle = projected.parameters.at(inheritedParameter);
+      REQUIRE(projectedHandle.size() == expectedHandle.size());
+      REQUIRE(std::memcmp(projectedHandle.data(), expectedHandle.data(), expectedHandle.size()) == 0);
+      rti->resignFederationExecution(NO_ACTION);
+      joined = false;
+      rti->disconnect();
+    } catch (...) {
+      clientError = std::current_exception();
+      if (joined) {
+        try { rti->resignFederationExecution(NO_ACTION); } catch (...) {}
+      }
+      try { rti->disconnect(); } catch (...) {}
+    }
+    listener.reset();
+    server.join();
+    if (clientError) { std::rethrow_exception(clientError); }
+    REQUIRE_FALSE(serverError);
+    REQUIRE_FALSE(joined);
+  };
+  SECTION("HLA_EVOKED pull") { runScenario(HLA_EVOKED, false); }
+  SECTION("HLA_EVOKED push") { runScenario(HLA_EVOKED, true); }
+  SECTION("HLA_IMMEDIATE pull") { runScenario(HLA_IMMEDIATE, false); }
+  SECTION("HLA_IMMEDIATE push") { runScenario(HLA_IMMEDIATE, true); }
+}
+
+TEST_CASE(
+    "RTIambassador reports dimension upper bounds through the process service-report file",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-upper-bound]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-dimension-handle]"
+    "[rti.service.get-dimension-upper-bound]"
+    "[rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-dimension-upper-bound-report-execution";
+  constexpr wchar_t const* federateName =
+      L"process-dimension-upper-bound-report-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry :
+         std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-dimension-upper-bound-report-server", 0x9E09U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The dimension-upper-bound process server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The dimension-upper-bound process server lost Join.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The dimension-upper-bound process server lost the initial service-switch query.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The dimension-upper-bound process server lost the initial file-switch query.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The dimension-upper-bound process server lost the BarQuantity lookup.");
+      serve(TransportServiceOperation::get_dimension_upper_bound,
+            "The dimension-upper-bound process server lost the disabled GetDimensionUpperBound.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The dimension-upper-bound process server lost the service-switch enable.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The dimension-upper-bound process server lost the enabled service-switch query.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The dimension-upper-bound process server lost the file-switch enable.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The dimension-upper-bound process server lost the enabled file-switch query.");
+      serve(TransportServiceOperation::get_dimension_upper_bound,
+            "The dimension-upper-bound process server lost the reported GetDimensionUpperBound.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The dimension-upper-bound process server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-dimension-upper-bound-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName,
+                L"process-dimension-upper-bound-report-type",
+                federationName)
+                .isValid());
+    joined = true;
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+    REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
+
+    auto files = reportFiles();
+    REQUIRE(files.size() == 1U);
+    auto const reportFile = files.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialText = readReport(reportFile);
+    REQUIRE_FALSE(initialText.empty());
+
+    auto const barQuantity = rti->getDimensionHandle(L"BarQuantity");
+    REQUIRE(barQuantity.isValid());
+    REQUIRE(rti->getDimensionUpperBound(barQuantity) == 25UL);
+    REQUIRE(readReport(reportFile) == initialText);
+
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE(rti->getServiceReportingSwitch());
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    REQUIRE(rti->getSendServiceReportsToFileSwitch());
+    REQUIRE(rti->getDimensionUpperBound(barQuantity) == 25UL);
+
+    auto asAscii = [](std::wstring const& value) {
+      std::string result;
+      result.reserve(value.size());
+      for (wchar_t const character : value) {
+        REQUIRE(character >= L' ');
+        REQUIRE(character <= L'~');
+        result.push_back(static_cast<char>(character));
+      }
+      return result;
+    };
+    auto const barQuantityValue = asAscii(barQuantity.toString());
+    auto const expectedRecord = std::string{
+        R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentName":"Dimension upper bound","HLAargumentValue":25}],"HLAservice":"GetDimensionUpperBound","HLAsuppliedArguments":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")" +
+        barQuantityValue +
+        R"("}],"HLAsuccessIndicator":true,"HLAexception":null})"};
+    REQUIRE(readReport(reportFile) == initialText + expectedRecord);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador reports dimension handle lookups through the process service-report file",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-handle]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-dimension-handle]"
+    "[rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-dimension-handle-report-execution";
+  constexpr wchar_t const* federateName =
+      L"process-dimension-handle-report-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry :
+         std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-dimension-handle-report-server", 0x9E0AU},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The dimension-handle process server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The dimension-handle process server lost Join.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The dimension-handle process server lost the initial service-switch query.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The dimension-handle process server lost the initial file-switch query.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The dimension-handle process server lost the disabled lookup.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The dimension-handle process server lost the service-switch enable.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The dimension-handle process server lost the enabled service-switch query.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The dimension-handle process server lost the file-switch enable.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The dimension-handle process server lost the enabled file-switch query.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The dimension-handle process server lost the reported lookup.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The dimension-handle process server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-dimension-handle-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName,
+                L"process-dimension-handle-report-type",
+                federationName)
+                .isValid());
+    joined = true;
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+    REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
+
+    auto files = reportFiles();
+    REQUIRE(files.size() == 1U);
+    auto const reportFile = files.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialText = readReport(reportFile);
+    REQUIRE_FALSE(initialText.empty());
+
+    auto const disabledHandle = rti->getDimensionHandle(L"BarQuantity");
+    REQUIRE(disabledHandle.isValid());
+    REQUIRE(readReport(reportFile) == initialText);
+
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE(rti->getServiceReportingSwitch());
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    REQUIRE(rti->getSendServiceReportsToFileSwitch());
+    auto const reportedHandle = rti->getDimensionHandle(L"BarQuantity");
+    REQUIRE(reportedHandle == disabledHandle);
+
+    auto asAscii = [](std::wstring const& value) {
+      std::string result;
+      result.reserve(value.size());
+      for (wchar_t const character : value) {
+        REQUIRE(character >= L' ');
+        REQUIRE(character <= L'~');
+        result.push_back(static_cast<char>(character));
+      }
+      return result;
+    };
+    auto const dimensionHandleValue = asAscii(reportedHandle.toString());
+    auto const expectedRecord = std::string{
+        R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")" +
+        dimensionHandleValue +
+        R"("}],"HLAservice":"GetDimensionHandle","HLAsuppliedArguments":[{"HLAargumentType":53,"HLAargumentName":"Dimension name","HLAargumentValue":"BarQuantity"}],"HLAsuccessIndicator":true,"HLAexception":null})"};
+    REQUIRE(readReport(reportFile) == initialText + expectedRecord);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador reports dimension names through the process service-report file",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-name]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-dimension-handle]"
+    "[rti.service.get-dimension-name]"
+    "[rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-dimension-name-report-execution";
+  constexpr wchar_t const* federateName =
+      L"process-dimension-name-report-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry :
+         std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-dimension-name-report-server", 0x9E0BU},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The dimension-name process server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The dimension-name process server lost Join.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The dimension-name process server lost the initial service-switch query.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The dimension-name process server lost the initial file-switch query.");
+      serve(TransportServiceOperation::get_dimension_handle,
+            "The dimension-name process server lost the BarQuantity lookup.");
+      serve(TransportServiceOperation::get_dimension_name,
+            "The dimension-name process server lost the disabled GetDimensionName.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The dimension-name process server lost the service-switch enable.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The dimension-name process server lost the enabled service-switch query.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The dimension-name process server lost the file-switch enable.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The dimension-name process server lost the enabled file-switch query.");
+      serve(TransportServiceOperation::get_dimension_name,
+            "The dimension-name process server lost the reported GetDimensionName.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The dimension-name process server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-dimension-name-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName,
+                L"process-dimension-name-report-type",
+                federationName)
+                .isValid());
+    joined = true;
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+    REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
+
+    auto files = reportFiles();
+    REQUIRE(files.size() == 1U);
+    auto const reportFile = files.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialText = readReport(reportFile);
+    REQUIRE_FALSE(initialText.empty());
+
+    auto const dimension = rti->getDimensionHandle(L"BarQuantity");
+    REQUIRE(dimension.isValid());
+    REQUIRE(rti->getDimensionName(dimension) == L"BarQuantity");
+    REQUIRE(readReport(reportFile) == initialText);
+
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE(rti->getServiceReportingSwitch());
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    REQUIRE(rti->getSendServiceReportsToFileSwitch());
+    REQUIRE(rti->getDimensionName(dimension) == L"BarQuantity");
+
+    auto asAscii = [](std::wstring const& value) {
+      std::string result;
+      result.reserve(value.size());
+      for (wchar_t const character : value) {
+        REQUIRE(character >= L' ');
+        REQUIRE(character <= L'~');
+        result.push_back(static_cast<char>(character));
+      }
+      return result;
+    };
+    auto const dimensionValue = asAscii(dimension.toString());
+    auto const expectedRecord = std::string{
+        R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":53,"HLAargumentName":"Dimension name","HLAargumentValue":"BarQuantity"}],"HLAservice":"GetDimensionName","HLAsuppliedArguments":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")" +
+        dimensionValue +
+        R"("}],"HLAsuccessIndicator":true,"HLAexception":null})"};
+    REQUIRE(readReport(reportFile) == initialText + expectedRecord);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador reports invalid dimension-name lookups through the process service-report file",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][service-failure][support-services]"
+    "[data-distribution-management][ddm][transport][process-boundary]"
+    "[public-endpoint][2025][process-service-report-dimension-name-failure]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-name]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-dimension-name-failure-report-execution";
+  constexpr wchar_t const* federateName =
+      L"process-dimension-name-failure-report-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry :
+         std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-dimension-name-failure-report-server", 0x9E0CU},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The dimension-name-failure process server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The dimension-name-failure process server lost Join.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The dimension-name-failure process server lost the initial service-switch query.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The dimension-name-failure process server lost the initial file-switch query.");
+      serve(TransportServiceOperation::report_failed_service_invocation,
+            "The dimension-name-failure process server lost the suppressed failed service-report check.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The dimension-name-failure process server lost the service-switch enable.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The dimension-name-failure process server lost the enabled service-switch query.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The dimension-name-failure process server lost the file-switch enable.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The dimension-name-failure process server lost the enabled file-switch query.");
+      serve(TransportServiceOperation::report_failed_service_invocation,
+            "The dimension-name-failure process server lost the failed service-report append.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The dimension-name-failure process server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-dimension-name-failure-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName,
+                L"process-dimension-name-failure-report-type",
+                federationName)
+                .isValid());
+    joined = true;
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+    REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
+
+    auto files = reportFiles();
+    REQUIRE(files.size() == 1U);
+    auto const reportFile = files.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialText = readReport(reportFile);
+    REQUIRE_FALSE(initialText.empty());
+
+    rti1516_2025::DimensionHandle const invalidDimension;
+    REQUIRE_THROWS_AS(
+        rti->getDimensionName(invalidDimension),
+        rti1516_2025::InvalidDimensionHandle);
+    REQUIRE(readReport(reportFile) == initialText);
+
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE(rti->getServiceReportingSwitch());
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    REQUIRE(rti->getSendServiceReportsToFileSwitch());
+    REQUIRE_THROWS_AS(
+        rti->getDimensionName(invalidDimension),
+        rti1516_2025::InvalidDimensionHandle);
+
+    auto asAscii = [](std::wstring const& value) {
+      std::string result;
+      result.reserve(value.size());
+      for (wchar_t const character : value) {
+        REQUIRE(character >= L' ');
+        REQUIRE(character <= L'~');
+        result.push_back(static_cast<char>(character));
+      }
+      return result;
+    };
+    auto const invalidDimensionValue = asAscii(invalidDimension.toString());
+    auto const expectedRecord = std::string{
+        R"({"HLAserialNumber":0,"HLAreturnedArgument":[null],"HLAservice":"GetDimensionName","HLAsuppliedArguments":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")" +
+        invalidDimensionValue +
+        R"("}],"HLAsuccessIndicator":false,"HLAexception":"InvalidDimensionHandle: Get Dimension Name requires a valid DimensionHandle."})"};
+    REQUIRE(readReport(reportFile) == initialText + expectedRecord);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador reports undefined dimension-name lookups through the process service-report file",
+    "[integration][foundation][federation-management][mom][service-report-file]"
+    "[service-reporting][service-failure][support-services]"
+    "[data-distribution-management][ddm][transport][process-boundary]"
+    "[public-endpoint][2025][process-service-report-dimension-name-failure]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-name]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportSession;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-dimension-name-unknown-report-execution";
+  constexpr wchar_t const* federateName =
+      L"process-dimension-name-unknown-report-federate";
+
+  auto reportFiles = [&] {
+    std::vector<std::filesystem::path> files;
+    std::error_code error;
+    if (!std::filesystem::exists(reportDirectory, error)) {
+      return files;
+    }
+    for (auto const& entry : std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (!error && entry.is_regular_file(error)) {
+        files.push_back(entry.path());
+      }
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  auto readReport = [](std::filesystem::path const& path) {
+    std::ifstream stream(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>());
+  };
+
+  std::exception_ptr serverError;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      auto connection = listener->accept(
+          nullptr,
+          {"process-dimension-name-unknown-report-server", 0x9E0DU},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(connection);
+      auto handler = service.handlerFor(session);
+      auto serve = [&](TransportServiceOperation operation, char const* message) {
+        if (!umbra::test::servePrimaryProcessRequest(
+                session, handler,
+                [&](TransportServiceMessage const& request) {
+                  if (request.operation != operation) {
+                    throw std::runtime_error(message);
+                  }
+                  return handler(request);
+                })) {
+          throw std::runtime_error(message);
+        }
+      };
+      serve(TransportServiceOperation::create_federation_execution,
+            "The unknown-dimension process server lost Create.");
+      serve(TransportServiceOperation::join_federation_execution,
+            "The unknown-dimension process server lost Join.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The unknown-dimension process server lost the initial service-switch query.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The unknown-dimension process server lost the initial file-switch query.");
+      serve(TransportServiceOperation::get_dimension_name,
+            "The unknown-dimension process server lost the disabled lookup.");
+      serve(TransportServiceOperation::report_failed_service_invocation,
+            "The unknown-dimension process server lost the suppressed failure report.");
+      serve(TransportServiceOperation::set_service_reporting_switch,
+            "The unknown-dimension process server lost the service-switch enable.");
+      serve(TransportServiceOperation::get_service_reporting_switch,
+            "The unknown-dimension process server lost the enabled service-switch query.");
+      serve(TransportServiceOperation::set_send_service_reports_to_file_switch,
+            "The unknown-dimension process server lost the file-switch enable.");
+      serve(TransportServiceOperation::get_send_service_reports_to_file_switch,
+            "The unknown-dimension process server lost the enabled file-switch query.");
+      serve(TransportServiceOperation::get_dimension_name,
+            "The unknown-dimension process server lost the enabled lookup.");
+      serve(TransportServiceOperation::report_failed_service_invocation,
+            "The unknown-dimension process server lost the failed service-report append.");
+      serve(TransportServiceOperation::resign_federation_execution,
+            "The unknown-dimension process server lost Resign.");
+      service.detach(session);
+      connection->close();
+    } catch (...) {
+      serverError = std::current_exception();
+    }
+  });
+
+  TestFederateAmbassador federate;
+  auto rti = makeRti();
+  auto configuration = RtiConfiguration::createConfiguration()
+                           .withConfigurationName(
+                               L"process-dimension-name-unknown-report-client")
+                           .withRtiAddress(
+                               L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool joined = false;
+  try {
+    REQUIRE(rti->connect(federate, HLA_EVOKED, configuration).addressUsed);
+    rti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    REQUIRE(rti->joinFederationExecution(
+                federateName,
+                L"process-dimension-name-unknown-report-type",
+                federationName)
+                .isValid());
+    joined = true;
+    REQUIRE_FALSE(rti->getServiceReportingSwitch());
+    REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
+
+    auto files = reportFiles();
+    REQUIRE(files.size() == 1U);
+    auto const reportFile = files.front();
+    REQUIRE(reportFile.is_absolute());
+    auto const initialText = readReport(reportFile);
+    REQUIRE_FALSE(initialText.empty());
+
+    auto const unknownDimension =
+        rti1516_2025::umbra_binding_detail::makeDimensionHandle(
+            0xFEDCBA9876543210ULL);
+    REQUIRE(rti1516_2025::umbra_binding_detail::dimensionHandleValue(
+                unknownDimension)
+                .has_value());
+    REQUIRE_THROWS_AS(
+        rti->getDimensionName(unknownDimension),
+        rti1516_2025::InvalidDimensionHandle);
+    REQUIRE(readReport(reportFile) == initialText);
+
+    REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
+    REQUIRE(rti->getServiceReportingSwitch());
+    REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
+    REQUIRE(rti->getSendServiceReportsToFileSwitch());
+    REQUIRE_THROWS_AS(
+        rti->getDimensionName(unknownDimension),
+        rti1516_2025::InvalidDimensionHandle);
+
+    auto asAscii = [](std::wstring const& value) {
+      std::string result;
+      result.reserve(value.size());
+      for (wchar_t const character : value) {
+        REQUIRE(character >= L' ');
+        REQUIRE(character <= L'~');
+        result.push_back(static_cast<char>(character));
+      }
+      return result;
+    };
+    auto const unknownDimensionValue = asAscii(unknownDimension.toString());
+    auto const expectedRecord = std::string{
+        R"({"HLAserialNumber":0,"HLAreturnedArgument":[null],"HLAservice":"GetDimensionName","HLAsuppliedArguments":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")" +
+        unknownDimensionValue +
+        R"("}],"HLAsuccessIndicator":false,"HLAexception":"InvalidDimensionHandle: The supplied DimensionHandle is not known in this federation execution."})"};
+    REQUIRE(readReport(reportFile) == initialText + expectedRecord);
+    REQUIRE(reportFiles() == std::vector<std::filesystem::path>{reportFile});
+
+    rti->resignFederationExecution(NO_ACTION);
+    joined = false;
+    rti->disconnect();
+  } catch (...) {
+    clientError = std::current_exception();
+    if (joined) {
+      try {
+        rti->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      rti->disconnect();
+    } catch (...) {
+    }
+  }
+  if (listener) {
+    listener.reset();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(joined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+enum class ProcessServiceReportInteractionOperation {
+  GetDimensionHandleNameNotFound,
+  GetObjectClassHandleNameNotFound,
+  GetInteractionClassHandleNameNotFound,
+  GetTransportationTypeHandleInvalidName,
+  GetTransportationTypeNameInvalidHandle,
+  GetTransportationTypeNameSuccess,
+  GetOrderNameSuccess,
+  GetOrderTypeSuccess,
+  GetOrderNameInvalidType,
+  GetObjectClassNameInvalidHandle,
+  GetObjectClassNameSuccess,
+  GetInteractionClassNameInvalidHandle,
+  GetInteractionClassNameSuccess,
+  GetDimensionName,
+  GetDimensionUpperBound,
+  GetAvailableDimensionsForObjectClass,
+  GetAvailableDimensionsForInteractionClass,
+  SendInteractionSuccess,
+  SendInteractionWithRegionsSuccess,
+  SendInteractionWithRegionsInvalidRegion,
+  SendInteractionWithRegionsInvalidParameter
+};
+
+enum class ProcessFailedServiceReportHandleState {
+  NotApplicable,
+  BindingInvalid,
+  FederationUnknown
+};
+
+void runProcessServiceReportInteraction(
+    ProcessServiceReportInteractionOperation operation,
+    ProcessFailedServiceReportHandleState handleState,
+    bool selectFileDestination = false) {
+  auto const bindingInvalidHandle =
+      handleState == ProcessFailedServiceReportHandleState::BindingInvalid;
+  auto const dimensionHandleNameNotFound =
+      operation ==
+      ProcessServiceReportInteractionOperation::GetDimensionHandleNameNotFound;
+  auto const objectClassHandleNameNotFound =
+      operation ==
+      ProcessServiceReportInteractionOperation::GetObjectClassHandleNameNotFound;
+  auto const interactionClassHandleNameNotFound =
+      operation == ProcessServiceReportInteractionOperation::
+                       GetInteractionClassHandleNameNotFound;
+  auto const transportationTypeHandleInvalidName =
+      operation == ProcessServiceReportInteractionOperation::
+                       GetTransportationTypeHandleInvalidName;
+  auto const transportationTypeNameInvalidHandle =
+      operation == ProcessServiceReportInteractionOperation::
+                       GetTransportationTypeNameInvalidHandle;
+  auto const transportationTypeNameSuccess =
+      operation == ProcessServiceReportInteractionOperation::
+                       GetTransportationTypeNameSuccess &&
+      handleState == ProcessFailedServiceReportHandleState::NotApplicable;
+  auto const orderNameInvalidType =
+      operation == ProcessServiceReportInteractionOperation::GetOrderNameInvalidType;
+  auto const orderNameSuccess =
+      operation == ProcessServiceReportInteractionOperation::GetOrderNameSuccess;
+  auto const orderTypeSuccess =
+      operation == ProcessServiceReportInteractionOperation::GetOrderTypeSuccess;
+  auto const dimensionNameSuccess =
+      operation == ProcessServiceReportInteractionOperation::GetDimensionName &&
+      handleState == ProcessFailedServiceReportHandleState::NotApplicable;
+  auto const objectClassNameSuccess =
+      operation ==
+          ProcessServiceReportInteractionOperation::GetObjectClassNameSuccess &&
+      handleState == ProcessFailedServiceReportHandleState::NotApplicable;
+  auto const interactionClassNameSuccess =
+      operation == ProcessServiceReportInteractionOperation::
+                       GetInteractionClassNameSuccess &&
+      handleState == ProcessFailedServiceReportHandleState::NotApplicable;
+  auto const objectClassNameInvalidHandle =
+      operation ==
+      ProcessServiceReportInteractionOperation::GetObjectClassNameInvalidHandle;
+  auto const interactionClassNameInvalidHandle =
+      operation == ProcessServiceReportInteractionOperation::
+                       GetInteractionClassNameInvalidHandle;
+  auto const dimensionUpperBoundLookup =
+      operation == ProcessServiceReportInteractionOperation::GetDimensionUpperBound;
+  auto const dimensionUpperBoundSuccess =
+      dimensionUpperBoundLookup &&
+      handleState == ProcessFailedServiceReportHandleState::NotApplicable;
+  auto const availableDimensionsForObjectClassLookup =
+      operation ==
+      ProcessServiceReportInteractionOperation::GetAvailableDimensionsForObjectClass;
+  auto const availableDimensionsForObjectClassSuccess =
+      availableDimensionsForObjectClassLookup &&
+      handleState == ProcessFailedServiceReportHandleState::NotApplicable;
+  auto const availableDimensionsForInteractionClassLookup =
+      operation == ProcessServiceReportInteractionOperation::
+                       GetAvailableDimensionsForInteractionClass;
+  auto const availableDimensionsForInteractionClassSuccess =
+      availableDimensionsForInteractionClassLookup &&
+      handleState == ProcessFailedServiceReportHandleState::NotApplicable;
+  auto const sendInteractionSuccess =
+      operation == ProcessServiceReportInteractionOperation::SendInteractionSuccess;
+  auto const sendInteractionWithRegionsSuccess =
+      operation == ProcessServiceReportInteractionOperation::
+                       SendInteractionWithRegionsSuccess;
+  auto const sendInteractionWithRegionsInvalidRegion =
+      operation == ProcessServiceReportInteractionOperation::
+                       SendInteractionWithRegionsInvalidRegion;
+  auto const sendInteractionWithRegionsInvalidParameter =
+      operation == ProcessServiceReportInteractionOperation::
+                       SendInteractionWithRegionsInvalidParameter;
+  auto const regionalSend = sendInteractionWithRegionsSuccess ||
+      sendInteractionWithRegionsInvalidRegion ||
+      sendInteractionWithRegionsInvalidParameter;
+  auto const sendInteractionServiceSuccess =
+      sendInteractionSuccess || sendInteractionWithRegionsSuccess;
+  auto const sendInteractionService =
+      sendInteractionServiceSuccess || sendInteractionWithRegionsInvalidRegion ||
+      sendInteractionWithRegionsInvalidParameter;
+  class ServiceReportObserver final : public NullFederateAmbassador {
+   public:
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const& interactionClass,
+        rti1516_2025::ParameterHandleValueMap const& parameterValues,
+        rti1516_2025::VariableLengthData const& userSuppliedTag,
+        rti1516_2025::TransportationTypeHandle const& transportationType,
+        rti1516_2025::FederateHandle const& producingFederate,
+        rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
+      ++receivedInteractionCount;
+      receivedInteractionClass = interactionClass;
+      receivedParameterValues = parameterValues;
+      receivedTag = userSuppliedTag;
+      receivedTransportationType = transportationType;
+      receivedProducingFederate = producingFederate;
+      receivedSentRegions = optionalSentRegions != nullptr;
+    }
+
+    std::size_t receivedInteractionCount = 0U;
+    rti1516_2025::InteractionClassHandle receivedInteractionClass;
+    ParameterHandleValueMap receivedParameterValues;
+    VariableLengthData receivedTag;
+    rti1516_2025::TransportationTypeHandle receivedTransportationType;
+    rti1516_2025::FederateHandle receivedProducingFederate;
+    bool receivedSentRegions = false;
+  };
+
+  using umbra::detail::EmbeddedFederationRegistry;
+  using umbra::detail::ProcessFederationService;
+  using umbra::detail::ProcessFederationServiceOptions;
+  using umbra::detail::ProcessTransportListener;
+  using umbra::detail::ProcessTransportServiceDispatcher;
+  using umbra::detail::ProcessTransportSession;
+  using umbra::detail::TransportServiceMessage;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener);
+  auto const port = listener->address().port;
+  REQUIRE(port != 0U);
+  auto const reportDirectory = temporaryServiceReportDirectory();
+  constexpr wchar_t const* federationName =
+      L"process-dimension-lookup-interaction-report-execution";
+
+  std::exception_ptr serverError;
+  std::mutex serverErrorMutex;
+  std::thread server([&] {
+    try {
+      EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions options;
+      options.serviceReportDirectory = reportDirectory;
+      ProcessFederationService service(
+          registry, composedProcessDefinition(), std::move(options));
+      std::vector<std::unique_ptr<ProcessTransportSession>> sessions;
+      std::vector<std::shared_ptr<umbra::detail::ProcessTransportConnection>>
+          connections;
+      std::vector<std::thread> workers;
+      auto acceptAndServe = [&](char const* endpointName, std::uint64_t endpointId) {
+        auto connection = listener->accept(
+            nullptr,
+            {endpointName, endpointId},
+            [](std::wstring) {},
+            [](std::wstring) { return false; });
+        auto session = std::make_unique<ProcessTransportSession>(connection);
+        auto* sessionPointer = session.get();
+        auto handler = service.handlerFor(*sessionPointer);
+        sessions.push_back(std::move(session));
+        connections.push_back(connection);
+        workers.emplace_back(
+            [&, sessionPointer, connection, handler = std::move(handler)]() mutable {
+              try {
+                while (ProcessTransportServiceDispatcher::serveOne(
+                    *sessionPointer, handler)) {
+                }
+                service.detach(*sessionPointer);
+                connection->close();
+              } catch (...) {
+                service.detach(*sessionPointer);
+                connection->close();
+                std::scoped_lock lock(serverErrorMutex);
+                if (!serverError) {
+                  serverError = std::current_exception();
+                }
+              }
+            });
+      };
+
+      // Start servicing the reporting federate before accepting the observer;
+      // its Create and Join requests are synchronous public API calls.
+      acceptAndServe("process-service-report-interaction-reporter", 0x9E31U);
+      acceptAndServe("process-service-report-interaction-observer", 0x9E32U);
+      for (auto& worker : workers) {
+        worker.join();
+      }
+    } catch (...) {
+      std::scoped_lock lock(serverErrorMutex);
+      if (!serverError) {
+        serverError = std::current_exception();
+      }
+    }
+  });
+
+  TestFederateAmbassador reporterCallbacks;
+  ServiceReportObserver observerCallbacks;
+  auto reporter = makeRti();
+  auto observer = makeRti();
+  auto reporterConfiguration = RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(
+                                       L"process-service-report-interaction-reporter")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
+  auto observerConfiguration = RtiConfiguration::createConfiguration()
+                                   .withConfigurationName(
+                                       L"process-service-report-interaction-observer")
+                                   .withRtiAddress(
+                                       L"tcp://127.0.0.1:" + std::to_wstring(port));
+  std::exception_ptr clientError;
+  bool reporterJoined = false;
+  bool observerJoined = false;
+  auto reportFiles = [&] {
+    std::vector<std::pair<std::filesystem::path, std::string>> files;
+    std::error_code error;
+    for (auto const& entry :
+         std::filesystem::directory_iterator(reportDirectory, error)) {
+      if (error) {
+        break;
+      }
+      if (!entry.is_regular_file(error) || error) {
+        continue;
+      }
+      std::ifstream stream(entry.path(), std::ios::binary);
+      files.emplace_back(
+          entry.path(),
+          std::string(
+              std::istreambuf_iterator<char>(stream),
+              std::istreambuf_iterator<char>()));
+    }
+    std::sort(files.begin(), files.end());
+    return files;
+  };
+  std::string successfulObjectClassText;
+  std::string successfulInteractionClassText;
+  std::string successfulTransportationTypeText;
+  std::string successfulDimensionText;
+  std::string successfulSendInteractionClassText;
+  std::string successfulSendInteractionParameterText;
+  std::string successfulSendInteractionRegionText;
+  std::string failedSendInteractionParameterText;
+  auto toAscii = [](std::wstring const& value) {
+    std::string result;
+    result.reserve(value.size());
+    for (wchar_t const character : value) {
+      REQUIRE(character >= L' ');
+      REQUIRE(character <= L'~');
+      result.push_back(static_cast<char>(character));
+    }
+    return result;
+  };
+  auto expectedSuccessFileRecord = [&](std::size_t serial) {
+    auto const serialText = std::to_string(serial);
+    if (sendInteractionSuccess) {
+      return std::string{R"({"HLAserialNumber":)"} + serialText +
+          R"(,"HLAreturnedArgument":[null],"HLAservice":"SendInteraction","HLAsuppliedArguments":[{"HLAargumentType":27,"HLAargumentName":"Interaction class designator","HLAargumentValue":")" +
+          successfulSendInteractionClassText +
+          R"("},{"HLAargumentType":40,"HLAargumentName":"Constrained set of interaction parameter designator and value pairs","HLAargumentValue":{")" +
+          successfulSendInteractionParameterText +
+          R"(":"ECA="}},{"HLAargumentType":63,"HLAargumentName":"User-supplied tag","HLAargumentValue":"UFVC"},{"HLAargumentType":34,"HLAargumentName":"Optional timestamp","HLAargumentValue":null}],"HLAsuccessIndicator":true,"HLAexception":null})";
+    }
+    if (sendInteractionWithRegionsSuccess) {
+      return std::string{R"({"HLAserialNumber":)"} + serialText +
+          R"(,"HLAreturnedArgument":[null],"HLAservice":"SendInteractionWithRegions","HLAsuppliedArguments":[{"HLAargumentType":27,"HLAargumentName":"Interaction class designator","HLAargumentValue":")" +
+          successfulSendInteractionClassText +
+          R"("},{"HLAargumentType":40,"HLAargumentName":"Constrained set of interaction parameter designator and value pairs","HLAargumentValue":{")" +
+          successfulSendInteractionParameterText +
+          R"(":"ECA="}},{"HLAargumentType":43,"HLAargumentName":"Set of region designators","HLAargumentValue":[")" +
+          successfulSendInteractionRegionText +
+          R"("]},{"HLAargumentType":63,"HLAargumentName":"User-supplied tag","HLAargumentValue":"UFVC"},{"HLAargumentType":34,"HLAargumentName":"Optional timestamp","HLAargumentValue":null}],"HLAsuccessIndicator":true,"HLAexception":null})";
+    }
+    if (availableDimensionsForObjectClassSuccess) {
+      return std::string{R"({"HLAserialNumber":)"} + serialText +
+          R"(,"HLAreturnedArgument":[{"HLAargumentType":11,"HLAargumentName":"A set of dimension handles","HLAargumentValue":[")" +
+          successfulDimensionText +
+          R"("]}],"HLAservice":"GetAvailableDimensionsForObjectClass","HLAsuppliedArguments":[{"HLAargumentType":36,"HLAargumentName":"Object class handle","HLAargumentValue":")" +
+          successfulObjectClassText +
+          R"("}],"HLAsuccessIndicator":true,"HLAexception":null})";
+    }
+    if (availableDimensionsForInteractionClassSuccess) {
+      return std::string{R"({"HLAserialNumber":)"} + serialText +
+          R"(,"HLAreturnedArgument":[{"HLAargumentType":11,"HLAargumentName":"A set of dimension handles","HLAargumentValue":[")" +
+          successfulDimensionText +
+          R"("]}],"HLAservice":"GetAvailableDimensionsForInteractionClass","HLAsuppliedArguments":[{"HLAargumentType":27,"HLAargumentName":"Interaction class handle","HLAargumentValue":")" +
+          successfulInteractionClassText +
+          R"("}],"HLAsuccessIndicator":true,"HLAexception":null})";
+    }
+    if (objectClassNameSuccess) {
+      return std::string{R"({"HLAserialNumber":)"} + serialText +
+          R"(,"HLAreturnedArgument":[{"HLAargumentType":53,"HLAargumentName":"Object class name","HLAargumentValue":"HLAobjectRoot.Food.Drink"}],"HLAservice":"GetObjectClassName","HLAsuppliedArguments":[{"HLAargumentType":36,"HLAargumentName":"Object class handle","HLAargumentValue":")" +
+          successfulObjectClassText +
+          R"("}],"HLAsuccessIndicator":true,"HLAexception":null})";
+    }
+    if (interactionClassNameSuccess) {
+      return std::string{R"({"HLAserialNumber":)"} + serialText +
+          R"(,"HLAreturnedArgument":[{"HLAargumentType":53,"HLAargumentName":"Interaction class name","HLAargumentValue":"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed"}],"HLAservice":"GetInteractionClassName","HLAsuppliedArguments":[{"HLAargumentType":27,"HLAargumentName":"Interaction class handle","HLAargumentValue":")" +
+          successfulInteractionClassText +
+          R"("}],"HLAsuccessIndicator":true,"HLAexception":null})";
+    }
+    if (transportationTypeNameSuccess) {
+      return std::string{R"({"HLAserialNumber":)"} + serialText +
+          R"(,"HLAreturnedArgument":[{"HLAargumentType":53,"HLAargumentName":"Transportation type name","HLAargumentValue":"HLAreliable"}],"HLAservice":"GetTransportationTypeName","HLAsuppliedArguments":[{"HLAargumentType":59,"HLAargumentName":"Transportation type handle","HLAargumentValue":")" +
+          successfulTransportationTypeText +
+          R"("}],"HLAsuccessIndicator":true,"HLAexception":null})";
+    }
+    if (dimensionNameSuccess) {
+      return std::string{R"({"HLAserialNumber":)"} + serialText +
+          R"(,"HLAreturnedArgument":[{"HLAargumentType":53,"HLAargumentName":"Dimension name","HLAargumentValue":"ServerId"}],"HLAservice":"GetDimensionName","HLAsuppliedArguments":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")" +
+          successfulDimensionText +
+          R"("}],"HLAsuccessIndicator":true,"HLAexception":null})";
+    }
+    if (dimensionUpperBoundSuccess) {
+      return std::string{R"({"HLAserialNumber":)"} + serialText +
+          R"(,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentName":"Dimension upper bound","HLAargumentValue":25}],"HLAservice":"GetDimensionUpperBound","HLAsuppliedArguments":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")" +
+          successfulDimensionText +
+          R"("}],"HLAsuccessIndicator":true,"HLAexception":null})";
+    }
+    if (orderNameSuccess) {
+      return std::string{R"({"HLAserialNumber":)"} + serialText +
+          R"(,"HLAreturnedArgument":[{"HLAargumentType":53,"HLAargumentName":"Order name","HLAargumentValue":"Receive"}],"HLAservice":"GetOrderName","HLAsuppliedArguments":[{"HLAargumentType":38,"HLAargumentName":"Order type","HLAargumentValue":"RECEIVE"}],"HLAsuccessIndicator":true,"HLAexception":null})";
+    }
+    return std::string{R"({"HLAserialNumber":)"} + serialText +
+        R"(,"HLAreturnedArgument":[{"HLAargumentType":38,"HLAargumentName":"Order type","HLAargumentValue":"TIMESTAMP"}],"HLAservice":"GetOrderType","HLAsuppliedArguments":[{"HLAargumentType":53,"HLAargumentName":"Order name","HLAargumentValue":"TimeStamp"}],"HLAsuccessIndicator":true,"HLAexception":null})";
+  };
+  auto verifySingleSuccessfulFileAppend = [&](auto const& before,
+                                              auto const& after,
+                                              std::filesystem::path const& reporterPath) {
+    REQUIRE(before.size() == after.size());
+    bool foundReporterFile = false;
+    for (std::size_t index = 0U; index < before.size(); ++index) {
+      REQUIRE(before[index].first == after[index].first);
+      if (before[index].first != reporterPath) {
+        REQUIRE(before[index].second == after[index].second);
+        continue;
+      }
+      foundReporterFile = true;
+      REQUIRE(after[index].second.size() > before[index].second.size());
+      REQUIRE(after[index].second.compare(
+                  0U,
+                  before[index].second.size(),
+                  before[index].second) == 0);
+      auto const appendedRecord = after[index].second.substr(
+          before[index].second.size());
+      constexpr std::string_view serialPrefix = R"({"HLAserialNumber":)";
+      REQUIRE(appendedRecord.rfind(serialPrefix, 0U) == 0U);
+      auto const serialEnd = appendedRecord.find(',', serialPrefix.size());
+      REQUIRE(serialEnd != std::string::npos);
+      auto const serial = static_cast<std::size_t>(std::stoull(
+          appendedRecord.substr(serialPrefix.size(), serialEnd - serialPrefix.size())));
+      REQUIRE(appendedRecord == expectedSuccessFileRecord(serial));
+    }
+    REQUIRE(foundReporterFile);
+  };
+  auto verifySingleFailedFileAppend = [&](auto const& before,
+                                          auto const& after,
+                                          std::filesystem::path const& reporterPath,
+                                          std::string_view expectedServiceName,
+                                          std::string_view expectedException,
+                                          std::string_view expectedAppendedRecord = {}) {
+    REQUIRE(before.size() == after.size());
+    bool foundReporterFile = false;
+    for (std::size_t index = 0U; index < before.size(); ++index) {
+      REQUIRE(before[index].first == after[index].first);
+      if (before[index].first != reporterPath) {
+        REQUIRE(before[index].second == after[index].second);
+        continue;
+      }
+      foundReporterFile = true;
+      REQUIRE(after[index].second.size() > before[index].second.size());
+      REQUIRE(after[index].second.compare(
+                  0U,
+                  before[index].second.size(),
+                  before[index].second) == 0);
+      auto const appendedRecord = after[index].second.substr(
+          before[index].second.size());
+      constexpr std::string_view serialPrefix = R"({"HLAserialNumber":)";
+      REQUIRE(appendedRecord.rfind(serialPrefix, 0U) == 0U);
+      auto const serialEnd = appendedRecord.find(',', serialPrefix.size());
+      REQUIRE(serialEnd != std::string::npos);
+      REQUIRE_NOTHROW(static_cast<void>(std::stoull(
+          appendedRecord.substr(serialPrefix.size(), serialEnd - serialPrefix.size()))));
+      auto const serviceFragment = std::string{R"("HLAservice":")"} +
+          std::string{expectedServiceName} + '"';
+      auto const exceptionFragment = std::string{R"("HLAexception":")"} +
+          std::string{expectedException} + '"';
+      REQUIRE(appendedRecord.find(serviceFragment) != std::string::npos);
+      REQUIRE(appendedRecord.find(R"("HLAsuccessIndicator":false)") !=
+              std::string::npos);
+      REQUIRE(appendedRecord.find(R"("HLAreturnedArgument":[null])") !=
+              std::string::npos);
+      REQUIRE(appendedRecord.find(exceptionFragment) != std::string::npos);
+      if (!expectedAppendedRecord.empty()) {
+        REQUIRE(appendedRecord.compare(expectedAppendedRecord) == 0);
+      }
+    }
+    REQUIRE(foundReporterFile);
+  };
+  try {
+    REQUIRE(reporter->connect(
+                reporterCallbacks, HLA_EVOKED, reporterConfiguration)
+                .addressUsed);
+    REQUIRE_NOTHROW(reporter->createFederationExecution(
+        federationName, L"server-owned-fom.xml"));
+    auto const reporterHandle = reporter->joinFederationExecution(
+        L"process-service-report-interaction-reporter",
+        L"process-service-report-interaction-type",
+        federationName);
+    REQUIRE(reporterHandle.isValid());
+    reporterJoined = true;
+    REQUIRE_FALSE(reporter->getServiceReportingSwitch());
+    REQUIRE_FALSE(reporter->getSendServiceReportsToFileSwitch());
+
+    auto const reporterInitialFile = reportFiles();
+    REQUIRE(reporterInitialFile.size() == 1U);
+    REQUIRE_FALSE(reporterInitialFile.front().second.empty());
+    rti1516_2025::InteractionClassHandle successfulSendInteractionClass;
+    rti1516_2025::ParameterHandle successfulSendInteractionParameter;
+    rti1516_2025::ParameterHandle invalidSendInteractionParameter;
+    rti1516_2025::RegionHandle successfulSendInteractionRegion;
+    if (sendInteractionService) {
+      successfulSendInteractionClass = reporter->getInteractionClassHandle(
+          L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+      REQUIRE(successfulSendInteractionClass.isValid());
+      successfulSendInteractionParameter = reporter->getParameterHandle(
+          successfulSendInteractionClass, L"TimelinessOk");
+      REQUIRE(successfulSendInteractionParameter.isValid());
+      successfulSendInteractionClassText =
+          toAscii(successfulSendInteractionClass.toString());
+      successfulSendInteractionParameterText =
+          toAscii(successfulSendInteractionParameter.toString());
+      if (sendInteractionWithRegionsInvalidParameter) {
+        failedSendInteractionParameterText =
+            toAscii(invalidSendInteractionParameter.toString());
+      }
+      if (sendInteractionWithRegionsSuccess ||
+          sendInteractionWithRegionsInvalidParameter) {
+        auto const dimension = reporter->getDimensionHandle(L"ServerId");
+        REQUIRE(dimension.isValid());
+        successfulSendInteractionRegion = reporter->createRegion(
+            rti1516_2025::DimensionHandleSet{dimension});
+        REQUIRE(successfulSendInteractionRegion.isValid());
+        REQUIRE_NOTHROW(reporter->setRangeBounds(
+            successfulSendInteractionRegion,
+            dimension,
+            rti1516_2025::RangeBounds(0UL, 1UL)));
+        REQUIRE_NOTHROW(reporter->commitRegionModifications(
+            rti1516_2025::RegionHandleSet{successfulSendInteractionRegion}));
+        successfulSendInteractionRegionText =
+            toAscii(successfulSendInteractionRegion.toString());
+      }
+      REQUIRE_NOTHROW(
+          reporter->publishInteractionClass(successfulSendInteractionClass));
+    }
+    REQUIRE_NOTHROW(reporter->setServiceReportingSwitch(true));
+    auto const failedDimension = bindingInvalidHandle
+                                     ? rti1516_2025::DimensionHandle{}
+                                     : rti1516_2025::umbra_binding_detail::makeDimensionHandle(
+                                           0xFEDCBA9876543210ULL);
+    auto const failedObjectClass = bindingInvalidHandle
+                                       ? rti1516_2025::ObjectClassHandle{}
+                                       : rti1516_2025::umbra_binding_detail::makeObjectClassHandle(
+                                             0xFEDCBA9876543210ULL);
+    auto const failedInteractionClass = bindingInvalidHandle
+                                            ? rti1516_2025::InteractionClassHandle{}
+                                            : rti1516_2025::umbra_binding_detail::makeInteractionClassHandle(
+                                                  0xFEDCBA9876543210ULL);
+    auto const failedTransportationType = bindingInvalidHandle
+                                              ? rti1516_2025::TransportationTypeHandle{}
+                                              : rti1516_2025::umbra_binding_detail::makeTransportationTypeHandle(
+                                                    0xFEDCBA9876543210ULL);
+    auto const successfulTransportationType = transportationTypeNameSuccess
+                                                  ? reporter->getTransportationTypeHandle(
+                                                        L"HLAreliable")
+                                                  : rti1516_2025::TransportationTypeHandle{};
+    constexpr wchar_t const* failedDimensionName = L"MissingDimension";
+    constexpr wchar_t const* failedObjectClassName = L"MissingObjectClass";
+    constexpr wchar_t const* failedInteractionClassName =
+        L"MissingInteractionClass";
+    constexpr wchar_t const* failedTransportationTypeName =
+        L"MissingTransportation";
+    auto const successfulObjectClass =
+        (availableDimensionsForObjectClassSuccess || objectClassNameSuccess)
+                                           ? reporter->getObjectClassHandle(
+                                                 L"HLAobjectRoot.Food.Drink")
+                                           : rti1516_2025::ObjectClassHandle{};
+    auto const successfulInteractionClass =
+        (availableDimensionsForInteractionClassSuccess ||
+         interactionClassNameSuccess)
+            ? reporter->getInteractionClassHandle(
+                  L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed")
+            : rti1516_2025::InteractionClassHandle{};
+    auto const successfulDimension =
+        (availableDimensionsForObjectClassSuccess ||
+         dimensionUpperBoundSuccess)
+                                         ? reporter->getDimensionHandle(L"BarQuantity")
+                                         : (availableDimensionsForInteractionClassSuccess ||
+                                            dimensionNameSuccess)
+                                               ? reporter->getDimensionHandle(L"ServerId")
+                                               : rti1516_2025::DimensionHandle{};
+    REQUIRE(failedDimension.isValid() != bindingInvalidHandle);
+    if (availableDimensionsForObjectClassSuccess || objectClassNameSuccess ||
+        availableDimensionsForInteractionClassSuccess ||
+        interactionClassNameSuccess || transportationTypeNameSuccess ||
+        dimensionNameSuccess ||
+        dimensionUpperBoundSuccess) {
+      if (availableDimensionsForObjectClassSuccess || objectClassNameSuccess) {
+        REQUIRE(successfulObjectClass.isValid());
+        successfulObjectClassText = toAscii(successfulObjectClass.toString());
+      }
+      if (availableDimensionsForInteractionClassSuccess ||
+          interactionClassNameSuccess) {
+        REQUIRE(successfulInteractionClass.isValid());
+        successfulInteractionClassText =
+            toAscii(successfulInteractionClass.toString());
+      }
+      if (transportationTypeNameSuccess) {
+        REQUIRE(successfulTransportationType.isValid());
+        successfulTransportationTypeText =
+            toAscii(successfulTransportationType.toString());
+      }
+      if (availableDimensionsForObjectClassSuccess ||
+          availableDimensionsForInteractionClassSuccess || dimensionNameSuccess ||
+          dimensionUpperBoundSuccess) {
+        REQUIRE(successfulDimension.isValid());
+        successfulDimensionText = toAscii(successfulDimension.toString());
+      }
+    }
+    if ((!availableDimensionsForObjectClassSuccess &&
+         availableDimensionsForObjectClassLookup) ||
+        objectClassNameInvalidHandle) {
+      REQUIRE(failedObjectClass.isValid() != bindingInvalidHandle);
+    }
+    if ((!availableDimensionsForInteractionClassSuccess &&
+         availableDimensionsForInteractionClassLookup) ||
+        interactionClassNameInvalidHandle) {
+      REQUIRE(failedInteractionClass.isValid() != bindingInvalidHandle);
+    }
+    if (transportationTypeNameInvalidHandle) {
+      REQUIRE(failedTransportationType.isValid() != bindingInvalidHandle);
+    }
+    auto invokeService = [&] {
+      if (dimensionHandleNameNotFound) {
+        static_cast<void>(reporter->getDimensionHandle(failedDimensionName));
+      } else if (objectClassHandleNameNotFound) {
+        static_cast<void>(
+            reporter->getObjectClassHandle(failedObjectClassName));
+      } else if (interactionClassHandleNameNotFound) {
+        static_cast<void>(
+            reporter->getInteractionClassHandle(failedInteractionClassName));
+      } else if (transportationTypeHandleInvalidName) {
+        static_cast<void>(reporter->getTransportationTypeHandle(
+            failedTransportationTypeName));
+      } else if (transportationTypeNameInvalidHandle) {
+        static_cast<void>(
+            reporter->getTransportationTypeName(failedTransportationType));
+      } else if (transportationTypeNameSuccess) {
+        REQUIRE(reporter->getTransportationTypeName(
+                    successfulTransportationType) == L"HLAreliable");
+      } else if (orderNameSuccess) {
+        REQUIRE(reporter->getOrderName(rti1516_2025::OrderType::RECEIVE) == L"Receive");
+      } else if (orderTypeSuccess) {
+        REQUIRE(reporter->getOrderType(L"TimeStamp") ==
+                rti1516_2025::OrderType::TIMESTAMP);
+      } else if (orderNameInvalidType) {
+        static_cast<void>(reporter->getOrderName(
+            static_cast<rti1516_2025::OrderType>(0x7f)));
+      } else if (objectClassNameSuccess) {
+        REQUIRE(reporter->getObjectClassName(successfulObjectClass) ==
+                L"HLAobjectRoot.Food.Drink");
+      } else if (interactionClassNameSuccess) {
+        REQUIRE(reporter->getInteractionClassName(successfulInteractionClass) ==
+                L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+      } else if (objectClassNameInvalidHandle) {
+        static_cast<void>(reporter->getObjectClassName(failedObjectClass));
+      } else if (interactionClassNameInvalidHandle) {
+        static_cast<void>(
+            reporter->getInteractionClassName(failedInteractionClass));
+      } else if (availableDimensionsForObjectClassSuccess) {
+        REQUIRE(reporter->getAvailableDimensionsForObjectClass(
+                    successfulObjectClass) ==
+                rti1516_2025::DimensionHandleSet{successfulDimension});
+      } else if (availableDimensionsForObjectClassLookup &&
+                 !availableDimensionsForObjectClassSuccess) {
+        static_cast<void>(
+            reporter->getAvailableDimensionsForObjectClass(failedObjectClass));
+      } else if (availableDimensionsForInteractionClassSuccess) {
+        REQUIRE(reporter->getAvailableDimensionsForInteractionClass(
+                    successfulInteractionClass) ==
+                rti1516_2025::DimensionHandleSet{successfulDimension});
+      } else if (dimensionNameSuccess) {
+        REQUIRE(reporter->getDimensionName(successfulDimension) == L"ServerId");
+      } else if (dimensionUpperBoundSuccess) {
+        REQUIRE(reporter->getDimensionUpperBound(successfulDimension) == 25UL);
+      } else if (sendInteractionSuccess) {
+        std::array<std::uint8_t, 2U> encodedParameter{0x10U, 0x20U};
+        ParameterHandleValueMap parameterValues;
+        parameterValues.emplace(
+            successfulSendInteractionParameter,
+            VariableLengthData(encodedParameter.data(), encodedParameter.size()));
+        std::array<std::uint8_t, 3U> encodedTag{0x50U, 0x55U, 0x42U};
+        reporter->sendInteraction(
+            successfulSendInteractionClass,
+            parameterValues,
+            VariableLengthData(encodedTag.data(), encodedTag.size()));
+      } else if (sendInteractionWithRegionsSuccess) {
+        std::array<std::uint8_t, 2U> encodedParameter{0x10U, 0x20U};
+        ParameterHandleValueMap parameterValues;
+        parameterValues.emplace(
+            successfulSendInteractionParameter,
+            VariableLengthData(encodedParameter.data(), encodedParameter.size()));
+        std::array<std::uint8_t, 3U> encodedTag{0x50U, 0x55U, 0x42U};
+        reporter->sendInteractionWithRegions(
+            successfulSendInteractionClass,
+            parameterValues,
+            rti1516_2025::RegionHandleSet{successfulSendInteractionRegion},
+            VariableLengthData(encodedTag.data(), encodedTag.size()));
+      } else if (sendInteractionWithRegionsInvalidRegion) {
+        std::array<std::uint8_t, 2U> encodedParameter{0x10U, 0x20U};
+        ParameterHandleValueMap parameterValues;
+        parameterValues.emplace(
+            successfulSendInteractionParameter,
+            VariableLengthData(encodedParameter.data(), encodedParameter.size()));
+        std::array<std::uint8_t, 3U> encodedTag{0x50U, 0x55U, 0x42U};
+        reporter->sendInteractionWithRegions(
+            successfulSendInteractionClass,
+            parameterValues,
+            rti1516_2025::RegionHandleSet{rti1516_2025::RegionHandle{}},
+            VariableLengthData(encodedTag.data(), encodedTag.size()));
+      } else if (sendInteractionWithRegionsInvalidParameter) {
+        std::array<std::uint8_t, 2U> encodedParameter{0x10U, 0x20U};
+        ParameterHandleValueMap parameterValues;
+        parameterValues.emplace(
+            invalidSendInteractionParameter,
+            VariableLengthData(encodedParameter.data(), encodedParameter.size()));
+        std::array<std::uint8_t, 3U> encodedTag{0x50U, 0x55U, 0x42U};
+        reporter->sendInteractionWithRegions(
+            successfulSendInteractionClass,
+            parameterValues,
+            rti1516_2025::RegionHandleSet{successfulSendInteractionRegion},
+            VariableLengthData(encodedTag.data(), encodedTag.size()));
+      } else if (availableDimensionsForInteractionClassLookup) {
+        static_cast<void>(reporter->getAvailableDimensionsForInteractionClass(
+            failedInteractionClass));
+      } else if (dimensionUpperBoundLookup) {
+        static_cast<void>(reporter->getDimensionUpperBound(failedDimension));
+      } else {
+        static_cast<void>(reporter->getDimensionName(failedDimension));
+      }
+    };
+    auto invokeAndVerifyService = [&] {
+      if (orderNameSuccess || orderTypeSuccess || dimensionNameSuccess ||
+          objectClassNameSuccess || interactionClassNameSuccess ||
+          transportationTypeNameSuccess ||
+          dimensionUpperBoundSuccess ||
+          availableDimensionsForObjectClassSuccess ||
+          availableDimensionsForInteractionClassSuccess ||
+          sendInteractionServiceSuccess) {
+        invokeService();
+      } else if (sendInteractionWithRegionsInvalidRegion) {
+        REQUIRE_THROWS_AS(invokeService(), rti1516_2025::InvalidRegion);
+      } else if (sendInteractionWithRegionsInvalidParameter) {
+        REQUIRE_THROWS_AS(
+            invokeService(), rti1516_2025::InteractionParameterNotDefined);
+      } else if (dimensionHandleNameNotFound || objectClassHandleNameNotFound ||
+                 interactionClassHandleNameNotFound) {
+        REQUIRE_THROWS_AS(invokeService(), rti1516_2025::NameNotFound);
+      } else if (transportationTypeHandleInvalidName) {
+        REQUIRE_THROWS_AS(
+            invokeService(), rti1516_2025::InvalidTransportationName);
+      } else if (transportationTypeNameInvalidHandle) {
+        REQUIRE_THROWS_AS(
+            invokeService(), rti1516_2025::InvalidTransportationTypeHandle);
+      } else if (orderNameInvalidType) {
+        REQUIRE_THROWS_AS(invokeService(), rti1516_2025::InvalidOrderType);
+      } else if (objectClassNameInvalidHandle ||
+                 (availableDimensionsForObjectClassLookup &&
+                  !availableDimensionsForObjectClassSuccess)) {
+        REQUIRE_THROWS_AS(
+            invokeService(), rti1516_2025::InvalidObjectClassHandle);
+      } else if (availableDimensionsForInteractionClassLookup ||
+                 interactionClassNameInvalidHandle) {
+        REQUIRE_THROWS_AS(
+            invokeService(), rti1516_2025::InvalidInteractionClassHandle);
+      } else {
+        REQUIRE_THROWS_AS(
+            invokeService(), rti1516_2025::InvalidDimensionHandle);
+      }
+    };
+    invokeAndVerifyService();
+    REQUIRE(reportFiles() == reporterInitialFile);
+
+    REQUIRE(observer->connect(
+                observerCallbacks, HLA_EVOKED, observerConfiguration)
+                .addressUsed);
+    auto const observerHandle = observer->joinFederationExecution(
+        L"process-service-report-interaction-observer",
+        L"process-service-report-interaction-type",
+        federationName);
+    REQUIRE(observerHandle.isValid());
+    observerJoined = true;
+
+    auto const reportClass = observer->getInteractionClassHandle(
+        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+    REQUIRE(reportClass.isValid());
+    std::array<rti1516_2025::ParameterHandle, 8> reportParameters;
+    std::array<wchar_t const*, 8> const parameterNames{
+        L"HLAservice",
+        L"HLAserviceType",
+        L"HLAsuccessIndicator",
+        L"HLAsuppliedArguments",
+        L"HLAreturnedArgument",
+        L"HLAexception",
+        L"HLAserialNumber",
+        L"HLAfederate",
+    };
+    for (std::size_t index = 0U; index < parameterNames.size(); ++index) {
+      reportParameters[index] = observer->getParameterHandle(
+          reportClass, parameterNames[index]);
+      REQUIRE(reportParameters[index].isValid());
+    }
+    auto const reliableTransportation =
+        observer->getTransportationTypeHandle(L"HLAreliable");
+    REQUIRE(reliableTransportation.isValid());
+    REQUIRE_NOTHROW(observer->subscribeInteractionClass(reportClass, true));
+    if (selectFileDestination) {
+      REQUIRE_NOTHROW(reporter->setSendServiceReportsToFileSwitch(true));
+    }
+    REQUIRE(
+        reporter->getSendServiceReportsToFileSwitch() ==
+        selectFileDestination);
+    if (selectFileDestination) {
+      std::size_t drainedCallbacks = 0U;
+      while (observer->evokeCallback(0.0)) {
+        REQUIRE(drainedCallbacks < 16U);
+        ++drainedCallbacks;
+      }
+    }
+
+    auto const initialReportFiles = reportFiles();
+    REQUIRE(initialReportFiles.size() == 2U);
+    REQUIRE(std::all_of(
+        initialReportFiles.begin(), initialReportFiles.end(),
+        [](auto const& file) { return !file.second.empty(); }));
+    auto const interactionCountBeforeService =
+        observerCallbacks.receivedInteractionCount;
+
+    invokeAndVerifyService();
+    auto const reportFilesAfterService = reportFiles();
+    if (selectFileDestination) {
+      if (sendInteractionWithRegionsInvalidRegion) {
+        verifySingleFailedFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first,
+            "SendInteractionWithRegions",
+            "InvalidRegion: Send Interaction With Regions requires valid RegionHandle values.");
+        auto const reporterBefore = std::find_if(
+            initialReportFiles.begin(), initialReportFiles.end(),
+            [&](auto const& file) {
+              return file.first == reporterInitialFile.front().first;
+            });
+        auto const reporterAfter = std::find_if(
+            reportFilesAfterService.begin(), reportFilesAfterService.end(),
+            [&](auto const& file) {
+              return file.first == reporterInitialFile.front().first;
+            });
+        REQUIRE(reporterBefore != initialReportFiles.end());
+        REQUIRE(reporterAfter != reportFilesAfterService.end());
+        auto const appendedRecord = reporterAfter->second.substr(
+            reporterBefore->second.size());
+        constexpr std::string_view serialPrefix = R"({"HLAserialNumber":)";
+        REQUIRE(appendedRecord.rfind(serialPrefix, 0U) == 0U);
+        auto const serialEnd = appendedRecord.find(',', serialPrefix.size());
+        REQUIRE(serialEnd != std::string::npos);
+        auto const serial = std::to_string(static_cast<std::size_t>(
+            std::stoull(appendedRecord.substr(
+                serialPrefix.size(), serialEnd - serialPrefix.size()))));
+        auto const invalidRegionText =
+            toAscii(rti1516_2025::RegionHandle{}.toString());
+        auto const expectedFailedRegionalFileRecord =
+            std::string{R"({"HLAserialNumber":)"} + serial +
+            R"(,"HLAreturnedArgument":[null],"HLAservice":"SendInteractionWithRegions","HLAsuppliedArguments":[{"HLAargumentType":27,"HLAargumentName":"Interaction class designator","HLAargumentValue":")" +
+            successfulSendInteractionClassText +
+            R"("},{"HLAargumentType":40,"HLAargumentName":"Constrained set of interaction parameter designator and value pairs","HLAargumentValue":{")" +
+            successfulSendInteractionParameterText +
+            R"(":"ECA="}},{"HLAargumentType":43,"HLAargumentName":"Set of region designators","HLAargumentValue":[")" +
+            invalidRegionText +
+            R"("]},{"HLAargumentType":63,"HLAargumentName":"User-supplied tag","HLAargumentValue":"UFVC"},{"HLAargumentType":34,"HLAargumentName":"Optional timestamp","HLAargumentValue":null}],"HLAsuccessIndicator":false,"HLAexception":"InvalidRegion: Send Interaction With Regions requires valid RegionHandle values."})";
+        REQUIRE(appendedRecord == expectedFailedRegionalFileRecord);
+      } else if (sendInteractionWithRegionsInvalidParameter) {
+        constexpr char const* invalidParameterException =
+            "InteractionParameterNotDefined: Send Interaction With Regions requires defined ParameterHandle values.";
+        verifySingleFailedFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first,
+            "SendInteractionWithRegions",
+            invalidParameterException);
+        auto const reporterBefore = std::find_if(
+            initialReportFiles.begin(), initialReportFiles.end(),
+            [&](auto const& file) {
+              return file.first == reporterInitialFile.front().first;
+            });
+        auto const reporterAfter = std::find_if(
+            reportFilesAfterService.begin(), reportFilesAfterService.end(),
+            [&](auto const& file) {
+              return file.first == reporterInitialFile.front().first;
+            });
+        REQUIRE(reporterBefore != initialReportFiles.end());
+        REQUIRE(reporterAfter != reportFilesAfterService.end());
+        auto const appendedRecord = reporterAfter->second.substr(
+            reporterBefore->second.size());
+        constexpr std::string_view serialPrefix = R"({"HLAserialNumber":)";
+        REQUIRE(appendedRecord.rfind(serialPrefix, 0U) == 0U);
+        auto const serialEnd = appendedRecord.find(',', serialPrefix.size());
+        REQUIRE(serialEnd != std::string::npos);
+        auto const serial = std::to_string(static_cast<std::size_t>(
+            std::stoull(appendedRecord.substr(
+                serialPrefix.size(), serialEnd - serialPrefix.size()))));
+        auto const expectedFailedRegionalFileRecord =
+            std::string{R"({"HLAserialNumber":)"} + serial +
+            R"(,"HLAreturnedArgument":[null],"HLAservice":"SendInteractionWithRegions","HLAsuppliedArguments":[{"HLAargumentType":27,"HLAargumentName":"Interaction class designator","HLAargumentValue":")" +
+            successfulSendInteractionClassText +
+            R"("},{"HLAargumentType":40,"HLAargumentName":"Constrained set of interaction parameter designator and value pairs","HLAargumentValue":{")" +
+            failedSendInteractionParameterText +
+            R"(":"ECA="}},{"HLAargumentType":43,"HLAargumentName":"Set of region designators","HLAargumentValue":[")" +
+            successfulSendInteractionRegionText +
+            R"("]},{"HLAargumentType":63,"HLAargumentName":"User-supplied tag","HLAargumentValue":"UFVC"},{"HLAargumentType":34,"HLAargumentName":"Optional timestamp","HLAargumentValue":null}],"HLAsuccessIndicator":false,"HLAexception":"InteractionParameterNotDefined: Send Interaction With Regions requires defined ParameterHandle values."})";
+        REQUIRE(appendedRecord == expectedFailedRegionalFileRecord);
+      } else if (interactionClassHandleNameNotFound) {
+        verifySingleFailedFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first,
+            "GetInteractionClassHandle",
+            "NameNotFound: The supplied interaction class name is not defined in this federation execution.",
+            R"({"HLAserialNumber":0,"HLAreturnedArgument":[null],"HLAservice":"GetInteractionClassHandle","HLAsuppliedArguments":[{"HLAargumentType":53,"HLAargumentName":"Interaction class name","HLAargumentValue":"MissingInteractionClass"}],"HLAsuccessIndicator":false,"HLAexception":"NameNotFound: The supplied interaction class name is not defined in this federation execution."})");
+      } else if (transportationTypeHandleInvalidName) {
+        verifySingleFailedFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first,
+            "GetTransportationTypeHandle",
+            "InvalidTransportationName: The supplied transportation type name is not declared in this federation execution.");
+      } else if (transportationTypeNameInvalidHandle) {
+        verifySingleFailedFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first,
+            "GetTransportationTypeName",
+            bindingInvalidHandle
+                ? "InvalidTransportationTypeHandle: Get Transportation Type Name requires a valid TransportationTypeHandle."
+                : "InvalidTransportationTypeHandle: The supplied TransportationTypeHandle is not declared in this federation execution.");
+      } else if (orderNameInvalidType) {
+        verifySingleFailedFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first,
+            "GetOrderName",
+            "InvalidOrderType: The supplied OrderType is not supported by this embedded profile.");
+      } else if (objectClassNameInvalidHandle) {
+        verifySingleFailedFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first,
+            "GetObjectClassName",
+            bindingInvalidHandle
+                ? "InvalidObjectClassHandle: Get Object Class Name requires a valid ObjectClassHandle."
+                : "InvalidObjectClassHandle: The supplied ObjectClassHandle is not known in this federation execution.");
+      } else if (interactionClassNameInvalidHandle) {
+        verifySingleFailedFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first,
+            "GetInteractionClassName",
+            bindingInvalidHandle
+                ? "InvalidInteractionClassHandle: Get Interaction Class Name requires a valid InteractionClassHandle."
+                : "InvalidInteractionClassHandle: The supplied InteractionClassHandle is not known in this federation execution.");
+      } else if (dimensionUpperBoundLookup && !dimensionUpperBoundSuccess) {
+        verifySingleFailedFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first,
+            "GetDimensionUpperBound",
+            bindingInvalidHandle
+                ? "InvalidDimensionHandle: Get Dimension Upper Bound requires a valid DimensionHandle."
+                : "InvalidDimensionHandle: The supplied DimensionHandle is not known in this federation execution.");
+      } else if (dimensionHandleNameNotFound) {
+        verifySingleFailedFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first,
+            "GetDimensionHandle",
+            "NameNotFound: The supplied dimension name is not defined in this federation execution.");
+      } else if (
+          operation == ProcessServiceReportInteractionOperation::GetDimensionName &&
+          !dimensionNameSuccess) {
+        verifySingleFailedFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first,
+            "GetDimensionName",
+            bindingInvalidHandle
+                ? "InvalidDimensionHandle: Get Dimension Name requires a valid DimensionHandle."
+                : "InvalidDimensionHandle: The supplied DimensionHandle is not known in this federation execution.");
+      } else if (availableDimensionsForObjectClassLookup &&
+                 !availableDimensionsForObjectClassSuccess) {
+        verifySingleFailedFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first,
+            "GetAvailableDimensionsForObjectClass",
+            bindingInvalidHandle
+                ? "InvalidObjectClassHandle: Get Available Dimensions for Object Class requires a valid ObjectClassHandle."
+                : "InvalidObjectClassHandle: The supplied ObjectClassHandle is not known in this federation execution.");
+      } else if (availableDimensionsForInteractionClassLookup &&
+                 !availableDimensionsForInteractionClassSuccess) {
+        verifySingleFailedFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first,
+            "GetAvailableDimensionsForInteractionClass",
+            bindingInvalidHandle
+                ? "InvalidInteractionClassHandle: Get Available Dimensions for Interaction Class requires a valid InteractionClassHandle."
+                : "InvalidInteractionClassHandle: The supplied InteractionClassHandle is not known in this federation execution.");
+      } else {
+        verifySingleSuccessfulFileAppend(
+            initialReportFiles,
+            reportFilesAfterService,
+            reporterInitialFile.front().first);
+      }
+    } else {
+      REQUIRE(reportFilesAfterService == initialReportFiles);
+    }
+
+    if (selectFileDestination) {
+      std::size_t drainedCallbacks = 0U;
+      while (observer->evokeCallback(0.0)) {
+        REQUIRE(drainedCallbacks < 16U);
+        ++drainedCallbacks;
+      }
+      REQUIRE(
+          observerCallbacks.receivedInteractionCount ==
+          interactionCountBeforeService);
+    } else {
+      static_cast<void>(observer->evokeCallback(0.0));
+    }
+    if (selectFileDestination) {
+      REQUIRE(observerCallbacks.receivedInteractionCount ==
+              interactionCountBeforeService);
+    } else {
+    REQUIRE(observerCallbacks.receivedInteractionCount == 1U);
+    REQUIRE(observerCallbacks.receivedInteractionClass == reportClass);
+    REQUIRE(observerCallbacks.receivedParameterValues.size() == 8U);
+    REQUIRE(observerCallbacks.receivedTag.size() == 0U);
+    REQUIRE(observerCallbacks.receivedTransportationType == reliableTransportation);
+    REQUIRE_FALSE(observerCallbacks.receivedProducingFederate.isValid());
+    REQUIRE_FALSE(observerCallbacks.receivedSentRegions);
+
+    auto const& values = observerCallbacks.receivedParameterValues;
+    rti1516_2025::HLAunicodeString serviceName;
+    REQUIRE_NOTHROW(serviceName.decode(values.at(reportParameters[0])));
+    wchar_t const* expectedServiceName = nullptr;
+    switch (operation) {
+      case ProcessServiceReportInteractionOperation::GetDimensionHandleNameNotFound:
+        expectedServiceName = L"GetDimensionHandle";
+        break;
+      case ProcessServiceReportInteractionOperation::GetObjectClassHandleNameNotFound:
+        expectedServiceName = L"GetObjectClassHandle";
+        break;
+      case ProcessServiceReportInteractionOperation::GetInteractionClassHandleNameNotFound:
+        expectedServiceName = L"GetInteractionClassHandle";
+        break;
+      case ProcessServiceReportInteractionOperation::GetTransportationTypeHandleInvalidName:
+        expectedServiceName = L"GetTransportationTypeHandle";
+        break;
+      case ProcessServiceReportInteractionOperation::GetTransportationTypeNameInvalidHandle:
+      case ProcessServiceReportInteractionOperation::GetTransportationTypeNameSuccess:
+        expectedServiceName = L"GetTransportationTypeName";
+        break;
+      case ProcessServiceReportInteractionOperation::GetOrderNameSuccess:
+        expectedServiceName = L"GetOrderName";
+        break;
+      case ProcessServiceReportInteractionOperation::GetOrderTypeSuccess:
+        expectedServiceName = L"GetOrderType";
+        break;
+      case ProcessServiceReportInteractionOperation::GetOrderNameInvalidType:
+        expectedServiceName = L"GetOrderName";
+        break;
+      case ProcessServiceReportInteractionOperation::GetObjectClassNameInvalidHandle:
+      case ProcessServiceReportInteractionOperation::GetObjectClassNameSuccess:
+        expectedServiceName = L"GetObjectClassName";
+        break;
+      case ProcessServiceReportInteractionOperation::GetInteractionClassNameInvalidHandle:
+      case ProcessServiceReportInteractionOperation::GetInteractionClassNameSuccess:
+        expectedServiceName = L"GetInteractionClassName";
+        break;
+      case ProcessServiceReportInteractionOperation::GetDimensionName:
+        expectedServiceName = L"GetDimensionName";
+        break;
+      case ProcessServiceReportInteractionOperation::GetDimensionUpperBound:
+        expectedServiceName = L"GetDimensionUpperBound";
+        break;
+      case ProcessServiceReportInteractionOperation::GetAvailableDimensionsForObjectClass:
+        expectedServiceName = L"GetAvailableDimensionsForObjectClass";
+        break;
+      case ProcessServiceReportInteractionOperation::GetAvailableDimensionsForInteractionClass:
+        expectedServiceName = L"GetAvailableDimensionsForInteractionClass";
+        break;
+      case ProcessServiceReportInteractionOperation::SendInteractionSuccess:
+        expectedServiceName = L"SendInteraction";
+        break;
+      case ProcessServiceReportInteractionOperation::SendInteractionWithRegionsSuccess:
+      case ProcessServiceReportInteractionOperation::SendInteractionWithRegionsInvalidRegion:
+      case ProcessServiceReportInteractionOperation::SendInteractionWithRegionsInvalidParameter:
+        expectedServiceName = L"SendInteractionWithRegions";
+        break;
+    }
+    REQUIRE(serviceName.get() == expectedServiceName);
+    rti1516_2025::HLAinteger16BE serviceType;
+    REQUIRE_NOTHROW(serviceType.decode(values.at(reportParameters[1])));
+    REQUIRE(serviceType.get() == (sendInteractionService ? 2 : 6));
+    rti1516_2025::HLAboolean success;
+    REQUIRE_NOTHROW(success.decode(values.at(reportParameters[2])));
+    REQUIRE(success.get() ==
+            (orderNameSuccess || orderTypeSuccess || dimensionNameSuccess ||
+             objectClassNameSuccess || interactionClassNameSuccess ||
+             transportationTypeNameSuccess ||
+             dimensionUpperBoundSuccess ||
+             availableDimensionsForObjectClassSuccess ||
+             availableDimensionsForInteractionClassSuccess ||
+             sendInteractionServiceSuccess));
+
+    rti1516_2025::HLAfixedRecord argumentPrototype;
+    argumentPrototype.appendElement(rti1516_2025::HLAinteger32BE{})
+        .appendElement(rti1516_2025::HLAunicodeString{})
+        .appendElement(rti1516_2025::HLAunicodeString{});
+    rti1516_2025::HLAvariableArray suppliedArguments{argumentPrototype};
+    REQUIRE_NOTHROW(suppliedArguments.decode(values.at(reportParameters[3])));
+    REQUIRE(suppliedArguments.size() ==
+            (sendInteractionSuccess
+                 ? 4U
+                 : (sendInteractionWithRegionsSuccess ||
+                    sendInteractionWithRegionsInvalidRegion ||
+                    sendInteractionWithRegionsInvalidParameter) ? 5U : 1U));
+    auto const& suppliedArgument =
+        dynamic_cast<rti1516_2025::HLAfixedRecord const&>(
+            suppliedArguments.get(0U));
+    if (dimensionHandleNameNotFound) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  suppliedArgument.get(0U)).get() == 53);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(1U)).get() == L"Dimension name");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(2U)).get() == L"\"MissingDimension\"");
+    } else if (objectClassHandleNameNotFound) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  suppliedArgument.get(0U)).get() == 53);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(1U)).get() == L"Object class name");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(2U)).get() ==
+              L"\"MissingObjectClass\"");
+    } else if (interactionClassHandleNameNotFound) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  suppliedArgument.get(0U)).get() == 53);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(1U)).get() == L"Interaction class name");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(2U)).get() ==
+              L"\"MissingInteractionClass\"");
+    } else if (transportationTypeHandleInvalidName) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  suppliedArgument.get(0U)).get() == 53);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(1U)).get() == L"Transportation type name");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(2U)).get() ==
+              L"\"MissingTransportation\"");
+    } else if (transportationTypeNameInvalidHandle ||
+               transportationTypeNameSuccess) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  suppliedArgument.get(0U)).get() == 59);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(1U)).get() == L"Transportation type handle");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(2U)).get() ==
+              L"\"" +
+                  (transportationTypeNameSuccess
+                       ? successfulTransportationType.toString()
+                       : failedTransportationType.toString()) +
+                  L"\"");
+    } else if (orderNameSuccess || orderNameInvalidType) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  suppliedArgument.get(0U)).get() == 38);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(1U)).get() == L"Order type");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(2U)).get() ==
+              (orderNameSuccess ? L"\"RECEIVE\"" : L"\"UNSUPPORTED\""));
+    } else if (orderTypeSuccess) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  suppliedArgument.get(0U)).get() == 53);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(1U)).get() == L"Order name");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(2U)).get() == L"\"TimeStamp\"");
+    } else if (availableDimensionsForObjectClassLookup ||
+               objectClassNameInvalidHandle || objectClassNameSuccess) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  suppliedArgument.get(0U)).get() == 36);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(1U)).get() == L"Object class handle");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(2U)).get() ==
+              L"\"" +
+                  ((availableDimensionsForObjectClassSuccess ||
+                    objectClassNameSuccess)
+                       ? successfulObjectClass.toString()
+                       : failedObjectClass.toString()) +
+                  L"\"");
+    } else if (availableDimensionsForInteractionClassLookup ||
+               interactionClassNameInvalidHandle ||
+               interactionClassNameSuccess) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  suppliedArgument.get(0U)).get() == 27);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(1U)).get() == L"Interaction class handle");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(2U)).get() ==
+              L"\"" +
+                  ((availableDimensionsForInteractionClassSuccess ||
+                    interactionClassNameSuccess)
+                       ? successfulInteractionClass.toString()
+                       : failedInteractionClass.toString()) +
+                  L"\"");
+    } else if (sendInteractionService) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  suppliedArgument.get(0U)).get() == 27);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(1U)).get() == L"Interaction class designator");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(2U)).get() ==
+              L"\"" + successfulSendInteractionClass.toString() + L"\"");
+    } else if (dimensionNameSuccess || dimensionUpperBoundSuccess) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  suppliedArgument.get(0U)).get() == 10);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(1U)).get() == L"Dimension handle");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(2U)).get() ==
+              L"\"" + successfulDimension.toString() + L"\"");
+    } else {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  suppliedArgument.get(0U)).get() == 10);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(1U)).get() == L"Dimension handle");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  suppliedArgument.get(2U)).get() ==
+              L"\"" + failedDimension.toString() + L"\"");
+    }
+    if (sendInteractionService) {
+      auto const& parameterMapArgument =
+          dynamic_cast<rti1516_2025::HLAfixedRecord const&>(
+              suppliedArguments.get(1U));
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  parameterMapArgument.get(0U)).get() == 40);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  parameterMapArgument.get(1U)).get() ==
+              L"Constrained set of interaction parameter designator and value pairs");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  parameterMapArgument.get(2U)).get() ==
+              L"{\"" + (sendInteractionWithRegionsInvalidParameter
+                            ? invalidSendInteractionParameter.toString()
+                            : successfulSendInteractionParameter.toString()) +
+                  L"\":\"ECA=\"}");
+
+      if (regionalSend) {
+        auto const& regionSetArgument =
+            dynamic_cast<rti1516_2025::HLAfixedRecord const&>(
+                suppliedArguments.get(2U));
+        REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                    regionSetArgument.get(0U)).get() == 43);
+        REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                    regionSetArgument.get(1U)).get() ==
+                L"Set of region designators");
+        REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                    regionSetArgument.get(2U)).get() ==
+                (sendInteractionWithRegionsSuccess ||
+                         sendInteractionWithRegionsInvalidParameter
+                     ? L"[\"" + successfulSendInteractionRegion.toString() + L"\"]"
+                     : L"[\"" + rti1516_2025::RegionHandle{}.toString() + L"\"]"));
+      }
+      auto const tagIndex = regionalSend ? 3U : 2U;
+      auto const timestampIndex = regionalSend ? 4U : 3U;
+      auto const& tagArgument = dynamic_cast<rti1516_2025::HLAfixedRecord const&>(
+          suppliedArguments.get(tagIndex));
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  tagArgument.get(0U)).get() == 60);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  tagArgument.get(1U)).get() == L"User-supplied tag");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  tagArgument.get(2U)).get() == L"\"UFVC\"");
+
+      auto const& timestampArgument =
+          dynamic_cast<rti1516_2025::HLAfixedRecord const&>(
+              suppliedArguments.get(timestampIndex));
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  timestampArgument.get(0U)).get() == 34);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  timestampArgument.get(1U)).get() == L"Optional timestamp");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  timestampArgument.get(2U)).get() == L"null");
+    }
+
+    rti1516_2025::HLAfixedRecord returnedArgument;
+    returnedArgument.appendElement(rti1516_2025::HLAinteger32BE{})
+        .appendElement(rti1516_2025::HLAunicodeString{})
+        .appendElement(rti1516_2025::HLAunicodeString{});
+    REQUIRE_NOTHROW(returnedArgument.decode(values.at(reportParameters[4])));
+    if (transportationTypeNameSuccess) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  returnedArgument.get(0U)).get() == 53);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(1U)).get() == L"Transportation type name");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(2U)).get() == L"\"HLAreliable\"");
+    } else if (orderNameSuccess) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  returnedArgument.get(0U)).get() == 53);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(1U)).get() == L"Order name");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(2U)).get() == L"\"Receive\"");
+    } else if (orderTypeSuccess) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  returnedArgument.get(0U)).get() == 38);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(1U)).get() == L"Order type");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(2U)).get() == L"\"TIMESTAMP\"");
+    } else if (objectClassNameSuccess) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  returnedArgument.get(0U)).get() == 53);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(1U)).get() == L"Object class name");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(2U)).get() ==
+              L"\"HLAobjectRoot.Food.Drink\"");
+    } else if (interactionClassNameSuccess) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  returnedArgument.get(0U)).get() == 53);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(1U)).get() == L"Interaction class name");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(2U)).get() ==
+              L"\"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed\"");
+    } else if (dimensionUpperBoundSuccess) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  returnedArgument.get(0U)).get() == 35);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(1U)).get() == L"Dimension upper bound");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(2U)).get() == L"25");
+    } else if (dimensionNameSuccess) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  returnedArgument.get(0U)).get() == 53);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(1U)).get() == L"Dimension name");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(2U)).get() == L"\"ServerId\"");
+    } else if (availableDimensionsForObjectClassSuccess ||
+               availableDimensionsForInteractionClassSuccess) {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  returnedArgument.get(0U)).get() == 11);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(1U)).get() ==
+              L"A set of dimension handles");
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(2U)).get() ==
+              L"[\"" + successfulDimension.toString() + L"\"]");
+    } else {
+      REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+                  returnedArgument.get(0U)).get() == 34);
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(1U)).get().empty());
+      REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+                  returnedArgument.get(2U)).get() == L"null");
+    }
+
+    rti1516_2025::HLAunicodeString exception;
+    REQUIRE_NOTHROW(exception.decode(values.at(reportParameters[5])));
+    wchar_t const* expectedException = nullptr;
+    switch (operation) {
+      case ProcessServiceReportInteractionOperation::GetDimensionHandleNameNotFound:
+        expectedException =
+            L"NameNotFound: The supplied dimension name is not defined in this federation execution.";
+        break;
+      case ProcessServiceReportInteractionOperation::GetObjectClassHandleNameNotFound:
+        expectedException =
+            L"NameNotFound: The supplied object class name is not defined in this federation execution.";
+        break;
+      case ProcessServiceReportInteractionOperation::GetInteractionClassHandleNameNotFound:
+        expectedException =
+            L"NameNotFound: The supplied interaction class name is not defined in this federation execution.";
+        break;
+      case ProcessServiceReportInteractionOperation::GetTransportationTypeHandleInvalidName:
+        expectedException =
+            L"InvalidTransportationName: The supplied transportation type name is not declared in this federation execution.";
+        break;
+      case ProcessServiceReportInteractionOperation::GetTransportationTypeNameInvalidHandle:
+        expectedException = bindingInvalidHandle
+                                ? L"InvalidTransportationTypeHandle: Get Transportation Type Name requires a valid TransportationTypeHandle."
+                                : L"InvalidTransportationTypeHandle: The supplied TransportationTypeHandle is not declared in this federation execution.";
+        break;
+      case ProcessServiceReportInteractionOperation::GetTransportationTypeNameSuccess:
+        expectedException = L"";
+        break;
+      case ProcessServiceReportInteractionOperation::GetOrderNameSuccess:
+        expectedException = L"";
+        break;
+      case ProcessServiceReportInteractionOperation::GetOrderTypeSuccess:
+        expectedException = L"";
+        break;
+      case ProcessServiceReportInteractionOperation::GetOrderNameInvalidType:
+        expectedException =
+            L"InvalidOrderType: The supplied OrderType is not supported by this embedded profile.";
+        break;
+      case ProcessServiceReportInteractionOperation::GetObjectClassNameInvalidHandle:
+        expectedException = bindingInvalidHandle
+                                ? L"InvalidObjectClassHandle: Get Object Class Name requires a valid ObjectClassHandle."
+                                : L"InvalidObjectClassHandle: The supplied ObjectClassHandle is not known in this federation execution.";
+        break;
+      case ProcessServiceReportInteractionOperation::GetObjectClassNameSuccess:
+        expectedException = L"";
+        break;
+      case ProcessServiceReportInteractionOperation::GetInteractionClassNameInvalidHandle:
+        expectedException = bindingInvalidHandle
+                                ? L"InvalidInteractionClassHandle: Get Interaction Class Name requires a valid InteractionClassHandle."
+                                : L"InvalidInteractionClassHandle: The supplied InteractionClassHandle is not known in this federation execution.";
+        break;
+      case ProcessServiceReportInteractionOperation::GetInteractionClassNameSuccess:
+        expectedException = L"";
+        break;
+      case ProcessServiceReportInteractionOperation::GetDimensionName:
+        expectedException = dimensionNameSuccess
+                                ? L""
+                                : bindingInvalidHandle
+                                ? L"InvalidDimensionHandle: Get Dimension Name requires a valid DimensionHandle."
+                                : L"InvalidDimensionHandle: The supplied DimensionHandle is not known in this federation execution.";
+        break;
+      case ProcessServiceReportInteractionOperation::GetDimensionUpperBound:
+        expectedException = dimensionUpperBoundSuccess
+                                ? L""
+                                : bindingInvalidHandle
+                                ? L"InvalidDimensionHandle: Get Dimension Upper Bound requires a valid DimensionHandle."
+                                : L"InvalidDimensionHandle: The supplied DimensionHandle is not known in this federation execution.";
+        break;
+      case ProcessServiceReportInteractionOperation::GetAvailableDimensionsForObjectClass:
+        expectedException = availableDimensionsForObjectClassSuccess
+                                ? L""
+                                : bindingInvalidHandle
+                                ? L"InvalidObjectClassHandle: Get Available Dimensions for Object Class requires a valid ObjectClassHandle."
+                                : L"InvalidObjectClassHandle: The supplied ObjectClassHandle is not known in this federation execution.";
+        break;
+      case ProcessServiceReportInteractionOperation::GetAvailableDimensionsForInteractionClass:
+        expectedException = availableDimensionsForInteractionClassSuccess
+                                ? L""
+                                : bindingInvalidHandle
+                                ? L"InvalidInteractionClassHandle: Get Available Dimensions for Interaction Class requires a valid InteractionClassHandle."
+                                : L"InvalidInteractionClassHandle: The supplied InteractionClassHandle is not known in this federation execution.";
+        break;
+      case ProcessServiceReportInteractionOperation::SendInteractionSuccess:
+      case ProcessServiceReportInteractionOperation::SendInteractionWithRegionsSuccess:
+        expectedException = L"";
+        break;
+      case ProcessServiceReportInteractionOperation::SendInteractionWithRegionsInvalidRegion:
+        expectedException =
+            L"InvalidRegion: Send Interaction With Regions requires valid RegionHandle values.";
+        break;
+      case ProcessServiceReportInteractionOperation::SendInteractionWithRegionsInvalidParameter:
+        expectedException =
+            L"InteractionParameterNotDefined: Send Interaction With Regions requires defined ParameterHandle values.";
+        break;
+    }
+    REQUIRE(exception.get() == expectedException);
+    rti1516_2025::HLAinteger32BE serialNumber;
+    REQUIRE_NOTHROW(serialNumber.decode(values.at(reportParameters[6])));
+    REQUIRE(serialNumber.get() == (selectFileDestination ? 1 : 0));
+    auto const expectedReporterHandle = reporterHandle.encode();
+    auto const& encodedReporterHandle = values.at(reportParameters[7]);
+    REQUIRE(encodedReporterHandle.size() == expectedReporterHandle.size());
+    auto const* expectedHandleBytes =
+        static_cast<std::uint8_t const*>(expectedReporterHandle.data());
+    auto const* encodedHandleBytes =
+        static_cast<std::uint8_t const*>(encodedReporterHandle.data());
+    REQUIRE(std::equal(
+        expectedHandleBytes,
+        expectedHandleBytes + expectedReporterHandle.size(),
+        encodedHandleBytes));
+    }
+    REQUIRE(reportFiles() == reportFilesAfterService);
+
+    REQUIRE_NOTHROW(reporter->resignFederationExecution(NO_ACTION));
+    reporterJoined = false;
+    REQUIRE_NOTHROW(observer->unsubscribeInteractionClass(reportClass));
+    REQUIRE_NOTHROW(observer->resignFederationExecution(NO_ACTION));
+    observerJoined = false;
+    REQUIRE_NOTHROW(reporter->disconnect());
+    REQUIRE_NOTHROW(observer->disconnect());
+  } catch (...) {
+    clientError = std::current_exception();
+    if (observerJoined) {
+      try {
+        observer->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (reporterJoined) {
+      try {
+        reporter->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      observer->disconnect();
+    } catch (...) {
+    }
+    try {
+      reporter->disconnect();
+    } catch (...) {
+    }
+  }
+
+  listener.reset();
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientError) {
+    std::rethrow_exception(clientError);
+  }
+  REQUIRE_FALSE(serverError);
+  REQUIRE_FALSE(reporterJoined);
+  REQUIRE_FALSE(observerJoined);
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process dimension-name reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][data-distribution-management]"
+    "[ddm][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-name-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetDimensionName,
+      ProcessFailedServiceReportHandleState::FederationUnknown);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process dimension-name binding-handle reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][data-distribution-management]"
+    "[ddm][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-name-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetDimensionName,
+      ProcessFailedServiceReportHandleState::BindingInvalid);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process dimension-handle lookup reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][data-distribution-management]"
+    "[ddm][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-name-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetDimensionHandleNameNotFound,
+      ProcessFailedServiceReportHandleState::NotApplicable);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetDimensionHandle",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-handle-failure-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetDimensionHandleNameNotFound,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process dimension-upper-bound reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][data-distribution-management]"
+    "[ddm][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-upper-bound-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-upper-bound]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetDimensionUpperBound,
+      ProcessFailedServiceReportHandleState::BindingInvalid);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process dimension-upper-bound unknown-handle reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][data-distribution-management]"
+    "[ddm][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-upper-bound-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-upper-bound]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetDimensionUpperBound,
+      ProcessFailedServiceReportHandleState::FederationUnknown);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process dimension-name unknown-handle reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][data-distribution-management]"
+    "[ddm][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-name-unknown-handle-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetDimensionName,
+      ProcessFailedServiceReportHandleState::FederationUnknown);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetAvailableDimensionsForObjectClass reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][data-distribution-management]"
+    "[ddm][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-available-dimensions-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-available-dimensions-for-object-class]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetAvailableDimensionsForObjectClass,
+      ProcessFailedServiceReportHandleState::BindingInvalid);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetAvailableDimensionsForInteractionClass reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][data-distribution-management]"
+    "[ddm][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-available-interaction-dimensions-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-available-dimensions-for-interaction-class]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetAvailableDimensionsForInteractionClass,
+      ProcessFailedServiceReportHandleState::BindingInvalid);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetAvailableDimensionsForInteractionClass unknown-handle reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][data-distribution-management]"
+    "[ddm][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-available-interaction-dimensions-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-available-dimensions-for-interaction-class]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetAvailableDimensionsForInteractionClass,
+      ProcessFailedServiceReportHandleState::FederationUnknown);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetAvailableDimensionsForObjectClass unknown-handle reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][data-distribution-management]"
+    "[ddm][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-available-dimensions-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-available-dimensions-for-object-class]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetAvailableDimensionsForObjectClass,
+      ProcessFailedServiceReportHandleState::FederationUnknown);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetObjectClassHandle unknown-name reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][object-management]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-object-class-name-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-object-class-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetObjectClassHandleNameNotFound,
+      ProcessFailedServiceReportHandleState::NotApplicable);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetObjectClassName invalid-handle reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][object-management]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-object-class-name-invalid-handle-interaction]"
+    "[process-service-report-object-class-name-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-object-class-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetObjectClassNameInvalidHandle,
+      ProcessFailedServiceReportHandleState::FederationUnknown);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetObjectClassName malformed-handle reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][object-management]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-object-class-name-malformed-handle-interaction]"
+    "[process-service-report-object-class-name-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-object-class-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetObjectClassNameInvalidHandle,
+      ProcessFailedServiceReportHandleState::BindingInvalid);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetInteractionClassName invalid-handle reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][object-management]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-interaction-class-name-invalid-handle-interaction]"
+    "[process-service-report-interaction-class-name-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-interaction-class-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetInteractionClassNameInvalidHandle,
+      ProcessFailedServiceReportHandleState::FederationUnknown);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetInteractionClassName malformed-handle reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][object-management]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-interaction-class-name-malformed-handle-interaction]"
+    "[process-service-report-interaction-class-name-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-interaction-class-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetInteractionClassNameInvalidHandle,
+      ProcessFailedServiceReportHandleState::BindingInvalid);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetInteractionClassHandle unknown-name reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][object-management]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-interaction-class-handle-name-not-found-interaction]"
+    "[process-service-report-interaction-class-name-lookup-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-interaction-class-handle]"
+    "[rti.service.get-parameter-handle][rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetInteractionClassHandleNameNotFound,
+      ProcessFailedServiceReportHandleState::NotApplicable);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetTransportationTypeHandle invalid-name reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][object-management]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-transportation-type-handle-invalid-name-interaction]"
+    "[process-service-report-transportation-type-name-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetTransportationTypeHandleInvalidName,
+      ProcessFailedServiceReportHandleState::NotApplicable);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetTransportationTypeName federation-unknown-handle reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][object-management]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-transportation-type-name-federation-unknown-handle-interaction]"
+    "[process-service-report-transportation-type-name-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-transportation-type-name]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetTransportationTypeNameInvalidHandle,
+      ProcessFailedServiceReportHandleState::FederationUnknown);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetTransportationTypeName malformed-handle reports through the MOM interaction",
+    "[integration][foundation][federation-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services][object-management]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-transportation-type-name-malformed-handle-interaction]"
+    "[process-service-report-transportation-type-name-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-transportation-type-name]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetTransportationTypeNameInvalidHandle,
+      ProcessFailedServiceReportHandleState::BindingInvalid);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process GetOrderName invalid-enum reports through the MOM interaction",
+    "[integration][foundation][time-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][support-services]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-order-name-invalid-enum-interaction]"
+    "[process-service-report-order-name-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-order-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetOrderNameInvalidType,
+      ProcessFailedServiceReportHandleState::NotApplicable);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetOrderName invalid enum",
+    "[integration][development-profile][foundation][time-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][transport][process-boundary][public-endpoint]"
+    "[2025][process-service-report-order-name-invalid-enum-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-order-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetOrderNameInvalidType,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetObjectClassName",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][object-management][transport]"
+    "[process-boundary][public-endpoint][2025]"
+    "[process-service-report-object-class-name-invalid-handle-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-object-class-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetObjectClassNameInvalidHandle,
+      ProcessFailedServiceReportHandleState::FederationUnknown,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetObjectClassName with malformed handle",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][object-management][transport]"
+    "[process-boundary][public-endpoint][2025]"
+    "[process-service-report-object-class-name-malformed-handle-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-object-class-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetObjectClassNameInvalidHandle,
+      ProcessFailedServiceReportHandleState::BindingInvalid,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetInteractionClassName",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][object-management][transport]"
+    "[process-boundary][public-endpoint][2025]"
+    "[process-service-report-interaction-class-name-invalid-handle-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-interaction-class-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetInteractionClassNameInvalidHandle,
+      ProcessFailedServiceReportHandleState::FederationUnknown,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetInteractionClassName with malformed handle",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][object-management][transport]"
+    "[process-boundary][public-endpoint][2025]"
+    "[process-service-report-interaction-class-name-malformed-handle-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-interaction-class-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetInteractionClassNameInvalidHandle,
+      ProcessFailedServiceReportHandleState::BindingInvalid,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador delivers successful process SendInteraction reports through the MOM interaction with file reporting disabled",
+    "[integration][development-profile][foundation][interaction-management][mom]"
+    "[service-reporting][service-report-interaction][service-success][transport]"
+    "[process-boundary][public-endpoint][2025]"
+    "[process-service-report-send-interaction-success-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.publish-interaction-class][rti.service.send-interaction]"
+    "[rti.service.subscribe-interaction-class][rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][federate.callback.receive-interaction]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::SendInteractionSuccess,
+      ProcessFailedServiceReportHandleState::NotApplicable);
+}
+
+TEST_CASE(
+    "RTIambassador delivers successful process GetOrderName reports through the MOM interaction with file reporting disabled",
+    "[integration][development-profile][foundation][time-management][mom]"
+    "[service-reporting][service-report-interaction][service-success][support-services]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-order-name-success-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-order-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetOrderNameSuccess,
+      ProcessFailedServiceReportHandleState::NotApplicable);
+}
+
+TEST_CASE(
+    "RTIambassador delivers successful process GetOrderType reports through the MOM interaction with file reporting disabled",
+    "[integration][development-profile][foundation][time-management][mom]"
+    "[service-reporting][service-report-interaction][service-success][support-services]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-order-type-success-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.get-order-type]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetOrderTypeSuccess,
+      ProcessFailedServiceReportHandleState::NotApplicable);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for successful SendInteraction",
+    "[integration][development-profile][foundation][interaction-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-success][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-send-interaction-success-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch][rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.publish-interaction-class][rti.service.send-interaction]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::SendInteractionSuccess,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador delivers successful process SendInteractionWithRegions reports through the MOM interaction with file reporting disabled",
+    "[integration][development-profile][foundation][interaction-management][data-distribution-management][mom]"
+    "[service-reporting][service-report-interaction][service-success][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-send-interaction-with-regions-success-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch][rti.service.set-service-reporting-switch]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-dimension-handle][rti.service.create-region]"
+    "[rti.service.set-range-bounds][rti.service.commit-region-modifications]"
+    "[rti.service.publish-interaction-class][rti.service.send-interaction-with-regions]"
+    "[rti.service.subscribe-interaction-class][rti.service.evoke-callback]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::SendInteractionWithRegionsSuccess,
+      ProcessFailedServiceReportHandleState::NotApplicable);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for successful SendInteractionWithRegions",
+    "[integration][development-profile][foundation][interaction-management][data-distribution-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction][service-success][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-send-interaction-with-regions-success-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch][rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-dimension-handle][rti.service.create-region]"
+    "[rti.service.set-range-bounds][rti.service.commit-region-modifications]"
+    "[rti.service.publish-interaction-class][rti.service.send-interaction-with-regions]"
+    "[rti.service.subscribe-interaction-class][rti.service.evoke-callback]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::SendInteractionWithRegionsSuccess,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador delivers failed process SendInteractionWithRegions reports through the MOM interaction with file reporting disabled",
+    "[integration][development-profile][foundation][interaction-management][data-distribution-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-send-interaction-with-regions-invalid-region-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch][rti.service.set-service-reporting-switch]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.publish-interaction-class][rti.service.send-interaction-with-regions]"
+    "[rti.service.get-transportation-type-handle][rti.service.subscribe-interaction-class]"
+    "[rti.service.unsubscribe-interaction-class][rti.service.evoke-callback]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::
+          SendInteractionWithRegionsInvalidRegion,
+      ProcessFailedServiceReportHandleState::NotApplicable);
+}
+
+TEST_CASE(
+    "RTIambassador records invalid RegionHandle failures from process SendInteractionWithRegions in the selected service-report file",
+    "[integration][development-profile][foundation][interaction-management][data-distribution-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction][service-failure][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-send-interaction-with-regions-invalid-region-failure-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch][rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.publish-interaction-class][rti.service.send-interaction-with-regions]"
+    "[rti.service.get-transportation-type-handle][rti.service.subscribe-interaction-class]"
+    "[rti.service.unsubscribe-interaction-class][rti.service.evoke-callback]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::
+          SendInteractionWithRegionsInvalidRegion,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador records InteractionParameterNotDefined failures from process SendInteractionWithRegions in the selected service-report file",
+    "[integration][development-profile][foundation][interaction-management][data-distribution-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction][service-failure][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-send-interaction-with-regions-invalid-parameter-failure-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch][rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-dimension-handle][rti.service.create-region]"
+    "[rti.service.set-range-bounds][rti.service.commit-region-modifications]"
+    "[rti.service.publish-interaction-class][rti.service.send-interaction-with-regions]"
+    "[rti.service.get-transportation-type-handle][rti.service.subscribe-interaction-class]"
+    "[rti.service.unsubscribe-interaction-class][rti.service.evoke-callback]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::
+          SendInteractionWithRegionsInvalidParameter,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador delivers InteractionParameterNotDefined failures from process SendInteractionWithRegions through the MOM interaction with file reporting disabled",
+    "[integration][development-profile][foundation][interaction-management][data-distribution-management][mom][service-report-interaction]"
+    "[service-reporting][service-failure][transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-send-interaction-with-regions-invalid-parameter-failure-interaction]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch][rti.service.set-service-reporting-switch]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-dimension-handle][rti.service.create-region]"
+    "[rti.service.set-range-bounds][rti.service.commit-region-modifications]"
+    "[rti.service.publish-interaction-class][rti.service.send-interaction-with-regions]"
+    "[rti.service.get-transportation-type-handle][rti.service.subscribe-interaction-class]"
+    "[rti.service.unsubscribe-interaction-class][rti.service.evoke-callback]"
+    "[rti.service.resign-federation-execution][rti.service.disconnect]"
+    "[federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::
+          SendInteractionWithRegionsInvalidParameter,
+      ProcessFailedServiceReportHandleState::NotApplicable);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM when file reporting is enabled for GetOrderName",
+    "[integration][development-profile][foundation][time-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-success][support-services][transport][process-boundary][public-endpoint]"
+    "[2025][process-service-report-order-name-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-order-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetOrderNameSuccess,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM when file reporting is enabled for GetOrderType",
+    "[integration][development-profile][foundation][time-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-success][support-services][transport][process-boundary][public-endpoint]"
+    "[2025][process-service-report-order-type-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-order-type]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetOrderTypeSuccess,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetTransportationTypeName",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][transport][process-boundary][public-endpoint]"
+    "[2025][process-service-report-transportation-type-name-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-transportation-type-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetTransportationTypeNameInvalidHandle,
+      ProcessFailedServiceReportHandleState::FederationUnknown,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetTransportationTypeName with malformed handle",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][transport][process-boundary][public-endpoint]"
+    "[2025][process-service-report-transportation-type-name-malformed-handle-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-transportation-type-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetTransportationTypeNameInvalidHandle,
+      ProcessFailedServiceReportHandleState::BindingInvalid,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetTransportationTypeHandle invalid name",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][transport][process-boundary][public-endpoint]"
+    "[2025][process-service-report-transportation-type-handle-invalid-name-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetTransportationTypeHandleInvalidName,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetInteractionClassHandle unknown name",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][object-management][transport]"
+    "[process-boundary][public-endpoint][2025]"
+    "[process-service-report-interaction-class-handle-name-not-found-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetInteractionClassHandleNameNotFound,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetTransportationTypeName with federation-unknown handle",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][transport][process-boundary][public-endpoint]"
+    "[2025][process-service-report-transportation-type-name-federation-unknown-handle-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-transportation-type-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetTransportationTypeNameInvalidHandle,
+      ProcessFailedServiceReportHandleState::FederationUnknown,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for successful GetTransportationTypeName",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-success][support-services][transport][process-boundary][public-endpoint]"
+    "[2025][process-service-report-transportation-type-name-success-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-transportation-type-name]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetTransportationTypeNameSuccess,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetDimensionUpperBound with binding-invalid handle",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-upper-bound-invalid-handle-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-upper-bound]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetDimensionUpperBound,
+      ProcessFailedServiceReportHandleState::BindingInvalid,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetDimensionUpperBound with federation-unknown handle",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-upper-bound-unknown-handle-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-upper-bound]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetDimensionUpperBound,
+      ProcessFailedServiceReportHandleState::FederationUnknown,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetDimensionName with binding-invalid handle",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-name-binding-invalid-handle-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetDimensionName,
+      ProcessFailedServiceReportHandleState::BindingInvalid,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetAvailableDimensionsForObjectClass with binding-invalid handle",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-available-dimensions-invalid-object-class-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-available-dimensions-for-object-class]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetAvailableDimensionsForObjectClass,
+      ProcessFailedServiceReportHandleState::BindingInvalid,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetAvailableDimensionsForInteractionClass with binding-invalid handle",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-available-interaction-dimensions-invalid-handle-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-available-dimensions-for-interaction-class]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetAvailableDimensionsForInteractionClass,
+      ProcessFailedServiceReportHandleState::BindingInvalid,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetAvailableDimensionsForInteractionClass with federation-unknown handle",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-available-interaction-dimensions-unknown-handle-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-available-dimensions-for-interaction-class]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetAvailableDimensionsForInteractionClass,
+      ProcessFailedServiceReportHandleState::FederationUnknown,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetAvailableDimensionsForObjectClass with federation-unknown handle",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-available-dimensions-unknown-object-class-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-available-dimensions-for-object-class]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetAvailableDimensionsForObjectClass,
+      ProcessFailedServiceReportHandleState::FederationUnknown,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for successful GetAvailableDimensionsForObjectClass",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-success][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-available-dimensions-success-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-available-dimensions-for-object-class]"
+    "[rti.service.get-object-class-handle][rti.service.get-dimension-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetAvailableDimensionsForObjectClass,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for successful GetAvailableDimensionsForInteractionClass",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-success][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-available-interaction-dimensions-success-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-available-dimensions-for-interaction-class]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-dimension-handle]"
+    "[rti.service.get-parameter-handle][rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetAvailableDimensionsForInteractionClass,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for successful GetDimensionName",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-success][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-name-success-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-name][rti.service.get-dimension-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetDimensionName,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for successful GetObjectClassName",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-success][support-services][object-management][transport]"
+    "[process-boundary][public-endpoint][2025]"
+    "[process-service-report-object-class-name-success-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-object-class-name][rti.service.get-object-class-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetObjectClassNameSuccess,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for successful GetInteractionClassName",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-success][support-services][object-management][transport]"
+    "[process-boundary][public-endpoint][2025]"
+    "[process-service-report-interaction-class-name-success-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-interaction-class-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetInteractionClassNameSuccess,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for failed GetDimensionName with federation-unknown handle",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-failure][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-name-unknown-handle-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-name]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetDimensionName,
+      ProcessFailedServiceReportHandleState::FederationUnknown,
+      true);
+}
+
+TEST_CASE(
+    "RTIambassador selects the process service-report file instead of MOM for successful GetDimensionUpperBound",
+    "[integration][development-profile][foundation][federation-management][mom]"
+    "[service-reporting][service-report-file][service-report-interaction]"
+    "[service-success][support-services][data-distribution-management][ddm]"
+    "[transport][process-boundary][public-endpoint][2025]"
+    "[process-service-report-dimension-upper-bound-success-file-destination-selection]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-service-reporting-switch]"
+    "[rti.service.set-service-reporting-switch]"
+    "[rti.service.get-send-service-reports-to-file-switch]"
+    "[rti.service.set-send-service-reports-to-file-switch]"
+    "[rti.service.get-dimension-upper-bound][rti.service.get-dimension-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
+    "[rti.service.evoke-callback][rti.service.resign-federation-execution]"
+    "[rti.service.disconnect][federate.callback.receive-interaction]") {
+  runProcessServiceReportInteraction(
+      ProcessServiceReportInteractionOperation::GetDimensionUpperBound,
+      ProcessFailedServiceReportHandleState::NotApplicable,
+      true);
 }
 #endif

@@ -12,6 +12,7 @@
 #include <fstream>
 #include <functional>
 #include <iterator>
+#include <map>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -205,16 +206,30 @@ std::filesystem::path reportFileFor(
 
 std::string expectedUpdateRecord(
     ObjectInstanceHandle const& objectInstance,
-    AttributeHandle const& attribute,
+    std::map<AttributeHandle, std::string> const& attributeValues,
     std::uint32_t serialNumber,
     std::string const& tagValue) {
+  std::string encodedAttributeValueMap{"{"};
+  for (auto iterator = attributeValues.begin();
+       iterator != attributeValues.end();
+       ++iterator) {
+    if (iterator != attributeValues.begin()) {
+      encodedAttributeValueMap.push_back(',');
+    }
+    encodedAttributeValueMap.push_back('"');
+    encodedAttributeValueMap += ascii(iterator->first.toString());
+    encodedAttributeValueMap += "\":\"";
+    encodedAttributeValueMap += iterator->second;
+    encodedAttributeValueMap.push_back('"');
+  }
+  encodedAttributeValueMap.push_back('}');
   return std::string{
       R"({"HLAserialNumber":)"} + std::to_string(serialNumber) +
       R"(,"HLAreturnedArgument":[null],"HLAservice":"UpdateAttributeValues","HLAsuppliedArguments":[{"HLAargumentType":37,"HLAargumentName":"Object instance designator","HLAargumentValue":")" +
       ascii(objectInstance.toString()) +
-      R"("},{"HLAargumentType":2,"HLAargumentName":"Constrained set of attribute designator and value pairs","HLAargumentValue":{")" +
-      ascii(attribute.toString()) +
-      R"(":"AQI="}},{"HLAargumentType":63,"HLAargumentName":"User-supplied tag","HLAargumentValue":")" +
+      R"("},{"HLAargumentType":2,"HLAargumentName":"Constrained set of attribute designator and value pairs","HLAargumentValue":)" +
+      encodedAttributeValueMap +
+      R"(},{"HLAargumentType":63,"HLAargumentName":"User-supplied tag","HLAargumentValue":")" +
       tagValue +
       R"("},{"HLAargumentType":34,"HLAargumentName":"Optional timestamp","HLAargumentValue":null}],"HLAsuccessIndicator":true,"HLAexception":null})";
 }
@@ -226,6 +241,8 @@ TEST_CASE(
     "[integration][development-profile][federation-management][object-management]"
     "[mom][service-report-file][service-reporting]"
     "[update-attribute-values-service-report-file]"
+    "[attribute-handle-value-map-pair-list-encoding]"
+    "[binary-data-base64-encoding]"
     "[rti.service.update-attribute-values]"
     "[federate.callback.reflect-attribute-values]") {
   ReportingFederateAmbassador publisherReports;
@@ -307,10 +324,16 @@ TEST_CASE(
   REQUIRE(publisherBeforeUpdate.find("HLAfederateName") != std::string::npos);
 
   std::vector<unsigned char> const valueBytes{0x01U, 0x02U};
+  std::vector<unsigned char> const additionalValueBytes{0x03U, 0x04U, 0x05U};
   std::vector<unsigned char> const tagBytes{'r', 'e', 'g'};
   VariableLengthData const value(valueBytes.data(), valueBytes.size());
+  VariableLengthData const additionalValue(
+      additionalValueBytes.data(), additionalValueBytes.size());
   VariableLengthData const tag(tagBytes.data(), tagBytes.size());
-  AttributeHandleValueMap const values{{reliableBaseA, value}};
+  AttributeHandleValueMap const values{
+      {reliableBaseA, value},
+      {reliableChild, additionalValue},
+  };
 
   ObjectInstanceHandle const unknownObject;
   REQUIRE_THROWS_AS(
@@ -325,8 +348,16 @@ TEST_CASE(
   REQUIRE(publisher->getSendServiceReportsToFileSwitch());
   REQUIRE(readTextFile(publisherReportFile) == publisherBeforeUpdate);
 
+  // Table 5 BinaryData values are base-64 text; the two payloads below have
+  // distinct exact encodings in the expected service-report record.
   auto const expectedRecord = expectedUpdateRecord(
-      objectInstance, reliableBaseA, 0U, "cmVn");
+      objectInstance,
+      std::map<AttributeHandle, std::string>{
+          {reliableBaseA, "AQI="},
+          {reliableChild, "AwQF"},
+      },
+      0U,
+      "cmVn");
   std::vector<std::string> publisherFileAtReflectionEntry;
   receiverReports.onAttributeReflection = [&] {
     publisherFileAtReflectionEntry.push_back(readTextFile(publisherReportFile));

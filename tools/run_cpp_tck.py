@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -120,6 +121,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="CMake build directory (default: .build/cpp-tck-python)",
     )
     parser.add_argument("--generator", help="Optional CMake generator name")
+    parser.add_argument(
+        "--cxx-compiler",
+        default="",
+        help="Optional CMake C++ compiler path or executable name",
+    )
     parser.add_argument("--cmake", default="cmake", help="CMake executable")
     parser.add_argument("--ctest", default="ctest", help="CTest executable")
     parser.add_argument(
@@ -271,6 +277,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser.add_argument("--object-class", default="HLAobjectRoot.TckObject")
     parser.add_argument("--attribute", default="Value")
+    parser.add_argument("--secondary-attribute", default="Name")
+    parser.add_argument("--object-class-third-attribute", default="PayRate")
     parser.add_argument(
         "--auto-provide-object-class",
         default="HLAobjectRoot.TckAutoProvideObject",
@@ -293,6 +301,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fom-update-rate", default="TckFast")
     parser.add_argument("--fom-additional-update-rate", default="TckAdditionalRate")
     parser.add_argument("--interaction-class", default="HLAinteractionRoot.TckInteraction")
+    parser.add_argument(
+        "--secondary-directed-object-class",
+        default="HLAobjectRoot.TckObject.TckSecondaryObject",
+    )
+    parser.add_argument(
+        "--secondary-directed-interaction-class",
+        default="HLAinteractionRoot.TckSecondaryDirectedInteraction",
+    )
     parser.add_argument("--parameter", default="Payload")
     parser.add_argument(
         "--known-class-object-class",
@@ -325,6 +341,16 @@ def build_parser() -> argparse.ArgumentParser:
             "Adapter-managed connection-loss fixture executable. When supplied, "
             "the Python adapter harness contributes the connection-loss evidence "
             "to the direct result instead of invoking that scenario in-process."
+        ),
+    )
+    parser.add_argument(
+        "--ownership-service-report-fixture",
+        "--confirm-divestiture-fixture",
+        dest="ownership_service_report_fixture",
+        default="",
+        help=(
+            "Optional process fixture executable for public Query Ownership, "
+            "Cancel Acquisition, and Confirm Divestiture service-report scenarios"
         ),
     )
     parser.add_argument("--connection-loss-fom", default="")
@@ -518,6 +544,8 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_CUSTOM_REGIONAL_PARAMETER": arguments.custom_regional_parameter,
         "HLA_RTI_TCK_ADAPTER_OBJECT_CLASS": arguments.object_class,
         "HLA_RTI_TCK_ADAPTER_ATTRIBUTE": arguments.attribute,
+        "HLA_RTI_TCK_ADAPTER_SECONDARY_ATTRIBUTE": arguments.secondary_attribute,
+        "HLA_RTI_TCK_ADAPTER_OBJECT_CLASS_THIRD_ATTRIBUTE": arguments.object_class_third_attribute,
         "HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_OBJECT_CLASS": arguments.auto_provide_object_class,
         "HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_FIRST": arguments.auto_provide_first,
         "HLA_RTI_TCK_ADAPTER_AUTO_PROVIDE_SECOND": arguments.auto_provide_second,
@@ -525,6 +553,12 @@ def cmake_definitions(arguments: argparse.Namespace, inputs: dict[str, Any]) -> 
         "HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FIRST": arguments.multi_attribute_first,
         "HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_SECOND": arguments.multi_attribute_second,
         "HLA_RTI_TCK_ADAPTER_INTERACTION_CLASS": arguments.interaction_class,
+        "HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_OBJECT_CLASS": (
+            arguments.secondary_directed_object_class
+        ),
+        "HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_INTERACTION_CLASS": (
+            arguments.secondary_directed_interaction_class
+        ),
         "HLA_RTI_TCK_ADAPTER_PARAMETER": arguments.parameter,
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_OBJECT_CLASS": arguments.known_class_object_class,
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DERIVED_OBJECT_CLASS": (
@@ -574,6 +608,8 @@ def configure(arguments: argparse.Namespace, inputs: dict[str, Any]) -> None:
     ]
     if arguments.generator:
         command.extend(["-G", arguments.generator])
+    if arguments.cxx_compiler:
+        command.append(f"-DCMAKE_CXX_COMPILER={arguments.cxx_compiler}")
     command.extend(cmake_definitions(arguments, inputs))
     run_command(command, cwd=ROOT)
 
@@ -591,7 +627,32 @@ def build(arguments: argparse.Namespace, inputs: dict[str, Any]) -> None:
     run_command(command, cwd=ROOT)
 
 
-def run_ctest(arguments: argparse.Namespace, inputs: dict[str, Any]) -> None:
+def ctest_scenario_regex(selected: list[dict[str, Any]]) -> str | None:
+    """Return an exact CTest-name filter for a selected catalog slice.
+
+    CMake applies the scenario filter while configuring the adapter, but a
+    caller may intentionally reuse an existing build with ``--skip-configure``.
+    In that case the old CTest matrix can still contain every promoted case;
+    constrain the invocation itself so a focused run never silently expands to
+    the full label matrix.
+    """
+    if not selected:
+        return None
+    slugs = {
+        re.sub(r"[^A-Za-z0-9_]", "_", scenario["id"])
+        for scenario in selected
+    }
+    alternatives = sorted(
+        f"hla_rti_cpp_tck\\.{re.escape(slug)}\\." for slug in slugs
+    )
+    return "(" + "|".join(alternatives) + ")"
+
+
+def run_ctest(
+    arguments: argparse.Namespace,
+    inputs: dict[str, Any],
+    selected: list[dict[str, Any]],
+) -> None:
     command = [
         arguments.ctest,
         "--test-dir",
@@ -600,8 +661,11 @@ def run_ctest(arguments: argparse.Namespace, inputs: dict[str, Any]) -> None:
         arguments.configuration,
         "-L",
         "^portable-cpp-tck$",
-        "--output-on-failure",
     ]
+    scenario_regex = ctest_scenario_regex(selected) if arguments.scenario else None
+    if scenario_regex:
+        command.extend(["-R", scenario_regex])
+    command.append("--output-on-failure")
     run_command(command, cwd=ROOT)
 
 
@@ -713,6 +777,10 @@ def direct_arguments(
         arguments.object_class,
         "--attribute",
         arguments.attribute,
+        "--secondary-attribute",
+        arguments.secondary_attribute,
+        "--object-class-third-attribute",
+        arguments.object_class_third_attribute,
         "--auto-provide-object-class",
         arguments.auto_provide_object_class,
         "--auto-provide-first",
@@ -751,6 +819,10 @@ def direct_arguments(
         arguments.custom_regional_parameter,
         "--interaction-class",
         arguments.interaction_class,
+        "--secondary-directed-object-class",
+        arguments.secondary_directed_object_class,
+        "--secondary-directed-interaction-class",
+        arguments.secondary_directed_interaction_class,
         "--parameter",
         arguments.parameter,
         "--known-class-object-class",
@@ -861,6 +933,8 @@ CONNECTION_LOSS_SCENARIO = "cpp-tck.connection-loss-cleanup"
 CONNECTION_LOSS_SCENARIOS = (
     CONNECTION_LOSS_SCENARIO,
     "cpp-tck.connection-loss-cleanup-contract",
+    "cpp-tck.federate-lost-mom-report",
+    "cpp-tck.federate-lost-mom-report-contract",
     "cpp-tck.connection-loss-automatic-unconditional-divestiture",
     "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
     "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
@@ -940,6 +1014,22 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "cpp-tck.joined-federate-mom-registered-object-count-contract",
     "cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report",
     "cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report-contract",
+    "cpp-tck.joined-federate-mom-object-instances-updated-report",
+    "cpp-tck.joined-federate-mom-object-instances-updated-report-contract",
+    "cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report",
+    "cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report-contract",
+    "cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report",
+    "cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report-contract",
+    "cpp-tck.joined-federate-mom-object-instances-updated-null-report",
+    "cpp-tck.joined-federate-mom-object-instances-updated-null-report-contract",
+    "cpp-tck.joined-federate-mom-object-instances-reflected-null-report",
+    "cpp-tck.joined-federate-mom-object-instances-reflected-null-report-contract",
+    "cpp-tck.joined-federate-mom-object-instances-reflected-report",
+    "cpp-tck.joined-federate-mom-object-instances-reflected-report-contract",
+    "cpp-tck.joined-federate-mom-object-instances-reflected-timestamped-report",
+    "cpp-tck.joined-federate-mom-object-instances-reflected-timestamped-report-contract",
+    "cpp-tck.joined-federate-mom-object-instances-reflected-multi-class-report",
+    "cpp-tck.joined-federate-mom-object-instances-reflected-multi-class-report-contract",
     "cpp-tck.joined-federate-mom-deletable-object-count",
     "cpp-tck.joined-federate-mom-deletable-object-count-contract",
     "cpp-tck.receive-order-attribute-update",
@@ -980,6 +1070,36 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "cpp-tck.auto-provide-disabled-discovery-only-contract",
     "cpp-tck.auto-provide-disabled-explicit-request",
     "cpp-tck.auto-provide-disabled-explicit-request-contract",
+    "cpp-tck.federation-auto-provide-mom-switch",
+    "cpp-tck.federation-auto-provide-mom-switch-contract",
+    "cpp-tck.federate-service-reporting-mom-switch",
+    "cpp-tck.federate-service-reporting-mom-switch-contract",
+    "cpp-tck.federate-exception-reporting-mom-switch",
+    "cpp-tck.federate-exception-reporting-mom-switch-contract",
+    "cpp-tck.federate-exception-report-delivery",
+    "cpp-tck.federate-exception-report-delivery-contract",
+    "cpp-tck.federate-mom-exception-report-delivery",
+    "cpp-tck.federate-mom-exception-report-delivery-contract",
+    "cpp-tck.federate-mom-exception-missing-parameter",
+    "cpp-tck.federate-mom-exception-missing-parameter-contract",
+    "cpp-tck.federation-mom-exception-missing-fom-module-indicator",
+    "cpp-tck.federation-mom-exception-missing-fom-module-indicator-contract",
+    "cpp-tck.federate-mom-fom-module-content-report",
+    "cpp-tck.federate-mom-fom-module-content-report-contract",
+    "cpp-tck.federate-mom-object-instance-information",
+    "cpp-tck.federate-mom-object-instance-information-contract",
+    "cpp-tck.federate-mom-publication-query",
+    "cpp-tck.federate-mom-publication-query-contract",
+    "cpp-tck.federate-mom-multiple-directed-publication-query",
+    "cpp-tck.federate-mom-multiple-directed-publication-query-contract",
+    "cpp-tck.federate-mom-multiple-directed-publication-partial-unpublish-query",
+    "cpp-tck.federate-mom-multiple-directed-publication-partial-unpublish-query-contract",
+    "cpp-tck.federate-mom-exception-report-service-precondition",
+    "cpp-tck.federate-mom-exception-report-service-precondition-contract",
+    "cpp-tck.federate-send-service-reports-to-file-mom-switch",
+    "cpp-tck.federate-send-service-reports-to-file-mom-switch-contract",
+    "cpp-tck.federate-automatic-resign-action-mom-switch",
+    "cpp-tck.federate-automatic-resign-action-mom-switch-contract",
     "cpp-tck.object-registration-service-boundaries",
     "cpp-tck.object-registration-service-boundaries-contract",
     "cpp-tck.object-deletion-service-boundaries",
@@ -1057,10 +1177,26 @@ CONNECTION_LOSS_ADAPTER = (
     ROOT / "packages" / "hla-rti-cpp-tck" / "adapters" / "current-process" /
     "run_connection_loss.py"
 )
+OWNERSHIP_SERVICE_REPORT_SCENARIOS = (
+    "cpp-tck.service-report-query-attribute-ownership",
+    "cpp-tck.service-report-query-attribute-ownership-contract",
+    "cpp-tck.service-report-cancel-attribute-ownership-acquisition",
+    "cpp-tck.service-report-cancel-attribute-ownership-acquisition-contract",
+    "cpp-tck.service-report-confirm-divestiture",
+    "cpp-tck.service-report-confirm-divestiture-contract",
+)
+OWNERSHIP_SERVICE_REPORT_ADAPTER = (
+    ROOT / "packages" / "hla-rti-cpp-tck" / "adapters" / "current-process" /
+    "run_confirm_divestiture.py"
+)
 
 
 def is_connection_loss_scenario(scenario_id: str) -> bool:
     return scenario_id in CONNECTION_LOSS_SCENARIOS
+
+
+def is_ownership_service_report_scenario(scenario_id: str) -> bool:
+    return scenario_id in OWNERSHIP_SERVICE_REPORT_SCENARIOS
 
 
 def is_public_handle_decoding_scenario(scenario_id: str) -> bool:
@@ -1154,6 +1290,8 @@ def run_executable_direct(
         temporary_root = Path(temporary_directory)
         result_parts: list[Path] = []
         junit_parts: list[Path] = []
+        failed_scenarios: list[tuple[str, subprocess.CalledProcessError]] = []
+        missing_evidence: list[str] = []
         for index, scenario in enumerate(selected):
             chunk_results = (
                 temporary_root / f"chunk-{index}.json" if results is not None else None
@@ -1168,15 +1306,45 @@ def run_executable_direct(
                 chunk_results,
                 chunk_junit,
             )
-            run_command(command, cwd=ROOT)
-            if chunk_results is not None:
+            try:
+                run_command(command, cwd=ROOT)
+            except subprocess.CalledProcessError as error:
+                failed_scenarios.append((scenario["id"], error))
+            if chunk_results is not None and chunk_results.is_file():
                 result_parts.append(chunk_results)
-            if chunk_junit is not None:
+            elif chunk_results is not None:
+                missing_evidence.append(f"{scenario['id']} (JSON)")
+            if chunk_junit is not None and chunk_junit.is_file():
                 junit_parts.append(chunk_junit)
-        if results is not None:
+            elif chunk_junit is not None:
+                missing_evidence.append(f"{scenario['id']} (JUnit)")
+        if results is not None and result_parts:
             merge_json_evidence_parts(result_parts, results)
-        if junit is not None:
+        if junit is not None and junit_parts:
             merge_junit_evidence_parts(junit_parts, junit)
+
+        if failed_scenarios or missing_evidence:
+            details = [
+                f"{scenario_id} (exit {error.returncode})"
+                for scenario_id, error in failed_scenarios
+            ]
+            if missing_evidence:
+                details.append("missing evidence for " + ", ".join(missing_evidence))
+            preserved = []
+            if results is not None and result_parts:
+                preserved.append(f"JSON: {results}")
+            if junit is not None and junit_parts:
+                preserved.append(f"JUnit: {junit}")
+            evidence_note = (
+                "; preserved " + " and ".join(preserved)
+                if preserved
+                else "; no evidence was produced"
+            )
+            raise ValueError(
+                "direct scenario run did not complete cleanly: "
+                + "; ".join(details)
+                + evidence_note
+            )
 
 
 def run_connection_loss_adapter(
@@ -1209,6 +1377,8 @@ def run_connection_loss_adapter(
     ]
     optional_arguments = (
         ("--fom-path", arguments.connection_loss_fom),
+        ("--mim-fom", str(inputs["mim_fom"])),
+        ("--time-implementation", arguments.time_implementation),
         ("--federation-name", arguments.connection_loss_federation_name),
         ("--owner-name", arguments.connection_loss_owner_name),
         ("--member-name", arguments.connection_loss_member_name),
@@ -1252,6 +1422,78 @@ def run_connection_loss_check(
                 scenario_id,
                 temporary_root / f"connection-loss-{index}.json",
                 temporary_root / f"connection-loss-{index}.xml",
+            )
+
+
+def run_ownership_service_report_adapter(
+    arguments: argparse.Namespace,
+    inputs: dict[str, Any],
+    executable: Path,
+    scenario_id: str,
+    results: Path,
+    junit: Path,
+) -> None:
+    command = [
+        sys.executable,
+        str(OWNERSHIP_SERVICE_REPORT_ADAPTER),
+        "--tck-executable",
+        str(executable),
+        "--process-fixture",
+        arguments.ownership_service_report_fixture,
+        "--scenario",
+        scenario_id,
+        "--callback-model",
+        arguments.callback_model,
+        "--provider-id",
+        arguments.provider_id,
+        "--timeout-ms",
+        str(arguments.timeout_ms),
+        "--results",
+        str(results),
+        "--junit",
+        str(junit),
+    ]
+    optional_arguments = (
+        ("--fom-path", str(inputs["multi_attribute_fom"])),
+        ("--mim-fom", str(inputs["mim_fom"])),
+        ("--time-implementation", arguments.time_implementation),
+        ("--federation-name", arguments.federation_name),
+        ("--owner-name", arguments.owner_name),
+        ("--member-name", arguments.member_name),
+        ("--federate-type", arguments.federate_type),
+        ("--owner-configuration-name", arguments.owner_configuration_name),
+        ("--member-configuration-name", arguments.member_configuration_name),
+        ("--configuration-name", arguments.configuration_name),
+        ("--additional-settings", arguments.additional_settings),
+        ("--object-class", arguments.multi_attribute_object_class),
+        ("--attribute", arguments.multi_attribute_first),
+        ("--secondary-attribute", arguments.multi_attribute_second),
+    )
+    for flag, value in optional_arguments:
+        if value:
+            command.extend([flag, value])
+    run_command(command, cwd=ROOT)
+
+
+def run_ownership_service_report_check(
+    arguments: argparse.Namespace,
+    inputs: dict[str, Any],
+    executable: Path,
+    scenario_ids: list[str],
+) -> None:
+    with tempfile.TemporaryDirectory(
+        prefix="cpp-tck-ownership-service-report-",
+        dir=inputs["build_directory"],
+    ) as temporary_directory:
+        temporary_root = Path(temporary_directory)
+        for index, scenario_id in enumerate(scenario_ids):
+            run_ownership_service_report_adapter(
+                arguments,
+                inputs,
+                executable,
+                scenario_id,
+                temporary_root / f"ownership-service-report-{index}.json",
+                temporary_root / f"ownership-service-report-{index}.xml",
             )
 
 
@@ -1433,6 +1675,12 @@ def run_direct(
     managed_connection_loss_selected = (
         connection_loss_selected if arguments.connection_loss_fixture else []
     )
+    managed_ownership_service_report_selected = [
+        scenario
+        for scenario in selected
+        if arguments.ownership_service_report_fixture
+        and is_ownership_service_report_scenario(scenario["id"])
+    ]
     portable_dispatch_selected = [
         scenario
         for scenario in selected
@@ -1440,6 +1688,10 @@ def run_direct(
         and not (
             arguments.connection_loss_fixture
             and is_connection_loss_scenario(scenario["id"])
+        )
+        and not (
+            arguments.ownership_service_report_fixture
+            and is_ownership_service_report_scenario(scenario["id"])
         )
     ]
     special_selected = (
@@ -1455,6 +1707,7 @@ def run_direct(
         + custom_transportation_timestamped_regional_interaction_selected
         + portable_dispatch_selected
         + managed_connection_loss_selected
+        + managed_ownership_service_report_selected
     )
     if special_selected:
         special_ids = {scenario["id"] for scenario in special_selected}
@@ -1759,6 +2012,21 @@ def run_direct(
                 )
                 loss_results_parts.append(loss_results)
                 loss_junit_parts.append(loss_junit)
+            ownership_service_report_results_parts: list[Path] = []
+            ownership_service_report_junit_parts: list[Path] = []
+            for index, scenario in enumerate(managed_ownership_service_report_selected):
+                service_results = temporary_root / f"ownership-service-report-{index}.json"
+                service_junit = temporary_root / f"ownership-service-report-{index}.xml"
+                run_ownership_service_report_adapter(
+                    arguments,
+                    inputs,
+                    executable,
+                    scenario["id"],
+                    service_results,
+                    service_junit,
+                )
+                ownership_service_report_results_parts.append(service_results)
+                ownership_service_report_junit_parts.append(service_junit)
             if results is not None:
                 json_parts = (
                     [base_results] if base_results is not None else []
@@ -1778,7 +2046,9 @@ def run_direct(
                     custom_transportation_timestamped_directed_interaction_alternate_advances_results_parts
                 ) + (
                     custom_transportation_timestamped_regional_interaction_results_parts
-                ) + portable_dispatch_results_parts + loss_results_parts
+                ) + portable_dispatch_results_parts + loss_results_parts + (
+                    ownership_service_report_results_parts
+                )
                 merge_json_evidence_parts(json_parts, results)
             if junit is not None:
                 junit_parts = (
@@ -1799,7 +2069,9 @@ def run_direct(
                     custom_transportation_timestamped_directed_interaction_alternate_advances_junit_parts
                 ) + (
                     custom_transportation_timestamped_regional_interaction_junit_parts
-                ) + portable_dispatch_junit_parts + loss_junit_parts
+                ) + portable_dispatch_junit_parts + loss_junit_parts + (
+                    ownership_service_report_junit_parts
+                )
                 merge_junit_evidence_parts(junit_parts, junit)
     else:
         run_executable_direct(arguments, inputs, executable, selected, results, junit)
@@ -1828,7 +2100,7 @@ def main() -> int:
         if not arguments.skip_build:
             build(arguments, inputs)
         if not arguments.skip_ctest:
-            run_ctest(arguments, inputs)
+            run_ctest(arguments, inputs, selected)
             if (
                 arguments.connection_loss_fixture
                 and not (arguments.results or arguments.junit)
@@ -1845,6 +2117,24 @@ def main() -> int:
                         scenario["id"]
                         for scenario in selected
                         if is_connection_loss_scenario(scenario["id"])
+                    ],
+                )
+            if (
+                arguments.ownership_service_report_fixture
+                and not (arguments.results or arguments.junit)
+                and any(
+                    is_ownership_service_report_scenario(scenario["id"])
+                    for scenario in selected
+                )
+            ):
+                run_ownership_service_report_check(
+                    arguments,
+                    inputs,
+                    find_executable(inputs["build_directory"], arguments.configuration),
+                    [
+                        scenario["id"]
+                        for scenario in selected
+                        if is_ownership_service_report_scenario(scenario["id"])
                     ],
                 )
         direct_summary = None

@@ -2,14 +2,20 @@
 
 #include "hla_test_names.hpp"
 #include "internal/fom/hla_names.hpp"
+#include <umbra/embedded_profile_configuration.hpp>
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
 
 #include <atomic>
 #include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include <system_error>
+#include <utility>
 #include <vector>
 
 #ifndef UMBRA_SOURCE_DIRECTORY
@@ -113,11 +119,85 @@ void drainCallbacks(RTIambassador& rti) {
   }
 }
 
+class ScopedServiceReportDirectory final {
+ public:
+  explicit ScopedServiceReportDirectory(std::filesystem::path path)
+      : path_(std::move(path)) {}
+  ScopedServiceReportDirectory(ScopedServiceReportDirectory const&) = delete;
+  ScopedServiceReportDirectory& operator=(ScopedServiceReportDirectory const&) = delete;
+  ~ScopedServiceReportDirectory() {
+    std::error_code ignored;
+    std::filesystem::remove_all(path_, ignored);
+  }
+
+  [[nodiscard]] std::filesystem::path const& path() const noexcept {
+    return path_;
+  }
+
+ private:
+  std::filesystem::path path_;
+};
+
+ScopedServiceReportDirectory temporaryServiceReportDirectory() {
+  static std::atomic_uint64_t sequence{0U};
+  auto const parent = std::filesystem::temp_directory_path();
+  for (std::size_t attempt = 0U; attempt != 1024U; ++attempt) {
+    auto const path = parent /
+        ("umbra-associate-regions-service-report-" +
+         std::to_string(sequence.fetch_add(1U, std::memory_order_relaxed)) +
+         "-" + std::to_string(attempt));
+    std::error_code error;
+    if (std::filesystem::create_directory(path, error)) {
+      return ScopedServiceReportDirectory(path);
+    }
+    if (error && error != std::errc::file_exists) {
+      throw std::filesystem::filesystem_error(
+          "Unable to reserve temporary service-report directory", path, error);
+    }
+  }
+  throw std::runtime_error(
+      "Unable to reserve a unique temporary service-report directory.");
+}
+
+std::string readTextFile(std::filesystem::path const& path) {
+  std::ifstream input(path, std::ios::binary);
+  REQUIRE(input.good());
+  return {
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+}
+
+std::string ascii(std::wstring const& value) {
+  std::string result;
+  result.reserve(value.size());
+  for (wchar_t const character : value) {
+    REQUIRE(character >= L' ');
+    REQUIRE(character <= L'~');
+    result.push_back(static_cast<char>(character));
+  }
+  return result;
+}
+
+std::filesystem::path serviceReportFileFor(
+    std::filesystem::path const& directory,
+    std::string const& federateName) {
+  auto const marker = std::string{"\"HLAfederateName\":\""} + federateName + "\"";
+  for (auto const& entry : std::filesystem::directory_iterator(directory)) {
+    if (entry.is_regular_file() &&
+        readTextFile(entry.path()).find(marker) != std::string::npos) {
+      return entry.path();
+    }
+  }
+  FAIL("joined federate service-report file was not found");
+  return {};
+}
+
 }  // namespace
 
 TEST_CASE(
     "Embedded regional object attributes filter 2025 no-time updates by overlap",
     "[integration][development-profile][federation-management][ddm]"
+    "[ddm-clause6-service-expansion]"
     "[regional-object-attribute-routing]"
     "[rti.service.register-object-instance-with-regions]"
     "[rti.service.associate-regions-for-updates]"
@@ -629,6 +709,100 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(subscriber->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded service reporting records Table 5 AttributeRegionAssociation through Associate Regions for Updates",
+    "[integration][development-profile][federation-management][ddm]"
+    "[mom][service-report-file][service-reporting]"
+    "[associate-regions-for-updates-service-report-file]"
+    "[attribute-region-association-list-array-encoding]"
+    "[rti.service.associate-regions-for-updates]") {
+  auto directory = temporaryServiceReportDirectory();
+  ReportingFederateAmbassador federateReports;
+  auto publisher = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+  auto configuration = umbra::embedded::makeEmbeddedRtiConfiguration(
+      umbra::embedded::ServiceReportConfiguration{directory.path()});
+  configuration.withRtiAddress(L"in-process");
+
+  REQUIRE_NOTHROW(publisher->connect(
+      federateReports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"associate-regions-service-report-publisher",
+      L"publisher",
+      federationName));
+  auto const reportFile = serviceReportFileFor(
+      directory.path(), "associate-regions-service-report-publisher");
+
+  REQUIRE_NOTHROW(publisher->setSendServiceReportsToFileSwitch(false));
+  REQUIRE_NOTHROW(publisher->setServiceReportingSwitch(false));
+
+  auto const soda = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.Food.Drink.Soda");
+  auto const flavor = publisher->getAttributeHandle(soda, L"Flavor");
+  auto const numberCups = publisher->getAttributeHandle(soda, L"NumberCups");
+  auto const sodaFlavor = publisher->getDimensionHandle(L"SodaFlavor");
+  auto const barQuantity = publisher->getDimensionHandle(L"BarQuantity");
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+  REQUIRE(numberCups.isValid());
+  REQUIRE(sodaFlavor.isValid());
+  REQUIRE(barQuantity.isValid());
+  AttributeHandleSet const attributes{flavor, numberCups};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(soda, attributes));
+
+  DimensionHandleSet const dimensions{sodaFlavor, barQuantity};
+  auto const region = publisher->createRegion(dimensions);
+  auto const additionalRegion = publisher->createRegion(dimensions);
+  REQUIRE(region.isValid());
+  REQUIRE(additionalRegion.isValid());
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      region, sodaFlavor, RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      region, barQuantity, RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      additionalRegion, sodaFlavor, RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      additionalRegion, barQuantity, RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(
+      RegionHandleSet{region, additionalRegion}));
+  auto const objectInstance = publisher->registerObjectInstance(soda);
+  REQUIRE(objectInstance.isValid());
+
+  AttributeHandleSetRegionHandleSetPairVector const associations{
+      {AttributeHandleSet{flavor}, RegionHandleSet{region}},
+      {AttributeHandleSet{numberCups}, RegionHandleSet{additionalRegion}},
+  };
+  auto const beforeAssociation = readTextFile(reportFile);
+  REQUIRE(beforeAssociation.find("HLAfederateName") != std::string::npos);
+  REQUIRE_NOTHROW(publisher->setServiceReportingSwitch(true));
+  REQUIRE_NOTHROW(publisher->setSendServiceReportsToFileSwitch(true));
+  REQUIRE(readTextFile(reportFile) == beforeAssociation);
+
+  REQUIRE_NOTHROW(publisher->associateRegionsForUpdates(
+      objectInstance, associations));
+  auto const expectedRecord =
+      R"json({"HLAserialNumber":0,"HLAreturnedArgument":[null],"HLAservice":"AssociateRegionsForUpdates","HLAsuppliedArguments":[{"HLAargumentType":37,"HLAargumentName":"Object instance designator","HLAargumentValue":")json" +
+      ascii(objectInstance.toString()) +
+      R"json("},{"HLAargumentType":4,"HLAargumentName":"Collection of attribute designator set and region designator set pairs","HLAargumentValue":[{"attributeHandleSet":[")json" +
+      ascii(flavor.toString()) +
+      R"json("],"regionHandleSet":[")json" +
+      ascii(region.toString()) +
+      R"json("]},{"attributeHandleSet":[")json" +
+      ascii(numberCups.toString()) +
+      R"json("],"regionHandleSet":[")json" +
+      ascii(additionalRegion.toString()) +
+      R"json("]}]}],"HLAsuccessIndicator":true,"HLAexception":null})json";
+  REQUIRE(readTextFile(reportFile) == beforeAssociation + expectedRecord);
+
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(publisher->disconnect());
 }
 

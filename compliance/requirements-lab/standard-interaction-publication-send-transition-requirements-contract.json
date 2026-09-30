@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-traceability-not-conformance-evidence",
+  "notes": "The case verifies the adapter-selected ordinary Send Interaction service before unpublication, requires the exact InteractionClassNotPublished exception after unpublication, and verifies successful delivery again after republishing. Callback-count/payload consistency checks are test-oracle assertions; no additional normative claim is inferred from them.",
+  "requirements": [
+    {
+      "id": "cpp-tck-interaction-publication-transition-sent-class",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l17-5",
+      "clause_id": "clause-5.1.4",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "sendInteraction",
+      "statement": "The test verifies that each received interaction uses the adapter-selected interaction class supplied to Send Interaction.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransition",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransitionContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-interaction-publication-transition-received-class",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l44-14",
+      "clause_id": "clause-5.1.4",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "receiveInteraction",
+      "statement": "The test checks the interaction-class handle supplied to the receiver's Receive Interaction callback against the adapter-selected class.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransition",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransitionContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-interaction-publication-transition-sent-parameters",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l74-24",
+      "clause_id": "clause-5.1.4",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "sendInteraction",
+      "statement": "The test verifies the parameter value supplied to Send Interaction is present in each successful Receive Interaction callback.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransition",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransitionContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-interaction-publication-transition-received-parameters",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l83-27",
+      "clause_id": "clause-5.1.4",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "receiveInteraction",
+      "statement": "The test checks the parameter map delivered to Receive Interaction, including its handle and value, after both publication and republishing.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransition",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransitionContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-interaction-publication-transition-available-parameter-subset",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l92-30",
+      "clause_id": "clause-5.1.4",
+      "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
+      "source_symbol": "receiveInteraction",
+      "statement": "With the same FOM-selected sent and received interaction class and a declared parameter, the test checks the received parameter subset and payload exactly.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransition",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransitionContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-interaction-publication-transition-send",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-123-l145-40",
+      "clause_id": "clause-6.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "sendInteraction",
+      "statement": "The 2025 Send Interaction service is exercised while the selected interaction class is published, both before unpublication and after republishing. The receiver must observe the sent interaction with the supplied parameter value and tag on both sends.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransition",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransitionContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-interaction-publication-transition-exception",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-093-l140-35",
+      "clause_id": "clause-5.5",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "unpublishInteractionClass",
+      "statement": "The publisher withdraws the selected ordinary interaction-class publication through the standard Unpublish Interaction Class service.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransition",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransitionContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-interaction-publication-transition-unpublished-send-rejection",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-123-l145-40",
+      "clause_id": "clause-6.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "sendInteraction",
+      "statement": "The Send Interaction declaration in the official IEEE 1516.1-2025 API lists InteractionClassNotPublished; after unpublication, the case requires that exact exception from the subsequent ordinary send.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransition",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransitionContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-interaction-publication-transition-republish-recovery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-093-l140-35",
+      "clause_id": "clause-5.5",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "publishInteractionClass",
+      "statement": "The publisher republishes the selected interaction class through the standard Publish Interaction Class service, after which the test verifies successful ordinary Send Interaction delivery again.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransition",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionPublicationSendTransitionContract"
+      ]
+    }
+  ]
+}

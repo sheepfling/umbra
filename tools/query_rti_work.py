@@ -47,11 +47,13 @@ explicit ``focused_lane_tags`` aliases; the default still exposes broad
 cross-cutting tags for taxonomy review.
 It also accepts an exact indexed roadmap family id as an aggregate handle.
 ``roadmap`` is the bounded family search: an optional title/tag/action,
-    Requirements-Lab id, canonical 2025 subsection, or official C++ API query
+Requirements-Lab id, canonical 2025 subsection, or official C++ API query
 returns live family counts and copyable work/focus/matrix handles without
 printing roadmap prose. An exact Catch2 lane-tag query additionally embeds the
-lane's representative test/source/trace and focused CTest handles, so lane
-ownership and mapping can be resolved in one command.
+lane's representative test/source/case/trace and focused CTest handles, so
+lane ownership and mapping can be resolved in one command. The same card
+adds exact case/trace and requirement-/section-grouped matrix handles for the
+roadmap's ``next_test`` pointer.
 ``dashboard`` composes the live roadmap/checklist and mapping counts with one
 ready implementation handoff and a small open-family queue preview.  Use
 ``resume`` for the smaller first-read projection when resuming work.
@@ -121,7 +123,7 @@ _CATCH2_TEST_CASE = re.compile(
     re.MULTILINE,
 )
 _CPP_CONDITIONAL_DIRECTIVE = re.compile(
-    r"^\s*#\s*(if|ifdef|ifndef|endif)\b"
+    r"^\s*#\s*(if|ifdef|ifndef|elif|else|endif)\b(.*)$"
 )
 
 
@@ -158,41 +160,62 @@ def text_gap_preview(option: dict[str, Any], prefix: str = "  ") -> list[str]:
     """Render the bounded uncovered-requirement handoff for one family row.
 
     ``ready``/``next``/``resume`` all use the same family-choice projection.
-    Keep the human-readable form as small as the JSON form: one coverage-head
-    requirement in canonical corpus order, its 2025 subsection, and copyable
-    reverse-lookups.  This is a bounded inventory pointer, not semantic
-    prioritization; the complete gap inventory remains behind ``gaps``.
+    Keep the human-readable form as small as the JSON form: one globally
+    uncovered requirement from the family's subsection with the largest gap,
+    its 2025 subsection, and copyable reverse-lookups. Explicitly non-callable
+    table-structure rows remain in the full ``gaps`` inventory, not as work
+    candidates.
     """
 
     preview = option.get("gap_preview")
     if not isinstance(preview, dict):
         return []
-    requirement = preview.get("requirement")
-    if not isinstance(requirement, dict):
-        return []
-    requirement_id = requirement.get("id") or "<unidentified>"
-    standard_section = requirement.get("standard_section") or "<unresolved>"
     covered = preview.get("covered_requirement_count")
     total = preview.get("total_requirement_count")
     uncovered = preview.get("uncovered_requirement_count")
     coverage_percent = preview.get("coverage_percent")
-    if isinstance(covered, int) and isinstance(total, int):
-        coverage_text = (
-            f"{covered}/{total} covered"
-            + (
-                f" ({coverage_percent:.2f}%)"
-                if isinstance(coverage_percent, (int, float))
-                else ""
-            )
-        )
-        if isinstance(uncovered, int):
-            coverage_text += f"; {uncovered} uncovered"
+    family_mapped = preview.get("family_mapped_requirement_count", covered)
+    family_section_count = preview.get("family_section_count")
+    if isinstance(family_mapped, int):
+        coverage_text = f"family-mapped requirements={family_mapped}"
+        if isinstance(family_section_count, int):
+            coverage_text += f"; represented subsections={family_section_count}"
+        global_candidates = preview.get("global_uncovered_candidate_count")
+        if isinstance(global_candidates, int):
+            previewable = preview.get("preview_candidate_count", 0)
+            inventory_only = preview.get("inventory_only_gap_count", 0)
+            out_of_scope = preview.get("out_of_scope_candidate_count", 0)
+            coverage_text += f"; {global_candidates} global gaps in represented subsections"
+            if (
+                isinstance(previewable, int)
+                and isinstance(inventory_only, int)
+                and isinstance(out_of_scope, int)
+            ):
+                coverage_text += (
+                    f" ({previewable} IEEE 1516.1-2025 previewable; "
+                    f"{out_of_scope} other-document gaps excluded; "
+                    f"{inventory_only} inventory-only excluded)"
+                )
         lines = [f"{prefix}gap_scope={coverage_text}"]
     else:
         lines = []
+    requirement = preview.get("requirement")
+    if not isinstance(requirement, dict):
+        inventory_only = preview.get("inventory_only_gap_count", 0)
+        if isinstance(inventory_only, int) and inventory_only:
+            lines.append(
+                f"{prefix}gap_candidate=none; {inventory_only} uncovered structural rows are inventory-only because the corpus says table structure is not itself a callable API mapping"
+            )
+        else:
+            lines.append(
+                f"{prefix}gap_candidate=none; no previewable uncovered row in the family's mapped subsections"
+            )
+        return lines
+    requirement_id = requirement.get("id") or "<unidentified>"
+    standard_section = requirement.get("standard_section") or "<unresolved>"
     lines.append(
-        f"{prefix}gap_head={requirement_id} -> {standard_section} "
-        "(canonical corpus order)"
+        f"{prefix}gap_inventory_head={requirement_id} -> {standard_section} "
+        "(coverage inventory only; not a queued implementation task)"
     )
     requirement_query = requirement.get("requirement_query")
     if isinstance(requirement_query, str) and requirement_query:
@@ -545,15 +568,26 @@ def lab_issues_snapshot(
     ):
         raise ValueError(f"Requirements Lab issue ledger has invalid issues: {path}")
     normalized_query = search_key(query) if query else ""
+    exact_id_query = bool(normalized_query) and any(
+        search_key(issue.get("id")) == normalized_query for issue in raw_issues
+    )
     selected: list[dict[str, Any]] = []
     for issue in raw_issues:
         issue_status = str(issue.get("status") or "unknown")
         if status != "all" and issue_status.casefold() != status.casefold():
             continue
         if normalized_query:
-            haystack = " ".join(_issue_search_values(issue))
-            if normalized_query not in search_key(haystack):
-                continue
+            # A stable issue ID is an exact identifier, not a fuzzy text
+            # query. In particular, RL-252 must not also return later issues
+            # whose `recurrence_of` field cites RL-252.
+            exact_issue_id = search_key(issue.get("id")) == normalized_query
+            if exact_id_query:
+                if not exact_issue_id:
+                    continue
+            else:
+                haystack = " ".join(_issue_search_values(issue))
+                if normalized_query not in search_key(haystack):
+                    continue
         selected.append(issue)
     selected.sort(key=lambda issue: str(issue.get("id") or ""))
     shown = selected if limit == 0 else selected[: max(limit, 0)]
@@ -580,6 +614,76 @@ def decode_cpp_string(value: str) -> str:
     """Decode the small escape subset used in Catch2 test names."""
 
     return re.sub(r'\\(["\\])', r"\1", value)
+
+
+def _known_cpp_if_value(expression: str) -> bool | None:
+    """Return a value only for literal preprocessor conditions we can prove."""
+
+    expression = expression.split("//", 1)[0].split("/*", 1)[0].strip()
+    if re.fullmatch(r"0+[uUlL]*", expression):
+        return False
+    if re.fullmatch(r"1+[uUlL]*", expression):
+        return True
+    return None
+
+
+def _mask_disabled_cpp_source(source: str) -> str:
+    """Hide declarations inside provably disabled literal-zero branches.
+
+    Keep line endings so derived source pointers retain their original line
+    numbers. Unknown macro conditions remain searchable: either branch may
+    be active in the project's configured build.
+    """
+
+    masked_lines: list[str] = []
+    conditional_stack: list[tuple[bool, bool | None]] = []
+    disabled = False
+    for line in source.splitlines(keepends=True):
+        directive = _CPP_CONDITIONAL_DIRECTIVE.match(line)
+        if directive is None:
+            if disabled:
+                masked_lines.append(
+                    "".join(character if character in "\r\n" else " " for character in line)
+                )
+            else:
+                masked_lines.append(line)
+            continue
+
+        keyword, expression = directive.groups()
+        if keyword in {"if", "ifdef", "ifndef"}:
+            parent_disabled = disabled
+            condition = (
+                _known_cpp_if_value(expression)
+                if keyword == "if"
+                else None
+            )
+            conditional_stack.append((parent_disabled, condition))
+            disabled = parent_disabled or condition is False
+        elif keyword == "elif" and conditional_stack:
+            parent_disabled, prior_condition = conditional_stack[-1]
+            condition = _known_cpp_if_value(expression)
+            disabled = (
+                parent_disabled
+                or prior_condition is True
+                or condition is False
+            )
+            if prior_condition is False and condition is True:
+                conditional_stack[-1] = (parent_disabled, True)
+            elif condition is None:
+                conditional_stack[-1] = (parent_disabled, None)
+        elif keyword == "else" and conditional_stack:
+            parent_disabled, prior_condition = conditional_stack[-1]
+            disabled = parent_disabled or prior_condition is True
+            conditional_stack[-1] = (
+                parent_disabled,
+                True if prior_condition is False else None,
+            )
+        elif keyword == "endif":
+            if conditional_stack:
+                parent_disabled, _ = conditional_stack.pop()
+                disabled = parent_disabled
+        masked_lines.append(line)
+    return "".join(masked_lines)
 
 
 def load_test_source_locations(
@@ -622,12 +726,13 @@ def load_test_source_locations(
             directive = _CPP_CONDITIONAL_DIRECTIVE.match(line)
             if not directive:
                 continue
-            if directive.group(1) == "endif":
+            keyword = directive.group(1)
+            if keyword == "endif":
                 if conditional_depth == 0:
                     unbalanced_conditionals.append(line_number)
                 else:
                     conditional_depth -= 1
-            else:
+            elif keyword in {"if", "ifdef", "ifndef"}:
                 conditional_depth += 1
         if conditional_depth or unbalanced_conditionals:
             health["status"] = "attention"
@@ -663,9 +768,10 @@ def load_test_source_locations(
                         "codepoint": f"U+{ord(character):04X}",
                     }
                 )
-        for match in _CATCH2_TEST_CASE.finditer(source):
+        indexed_source = _mask_disabled_cpp_source(source)
+        for match in _CATCH2_TEST_CASE.finditer(indexed_source):
             name = decode_cpp_string(match.group(1))
-            line = source.count("\n", 0, match.start()) + 1
+            line = indexed_source.count("\n", 0, match.start()) + 1
             locations[name].append(
                 {
                     "path": relative_path(path),
@@ -823,21 +929,21 @@ def queue_action_state(
     source work look like the next implementation target.  Keep the coarse
     state for compatibility, but publish this separate, deterministic action
     classification so resume callers can distinguish runnable work from an
-    evidence-complete family and from an external review handoff.
+    evidence-complete family, backlog shaping, and external review.
 
     The classification is derived from the already indexed plan/source join;
     it never searches the Requirements Lab or infers a new requirement.
     """
 
     # A completed lane remains evidence-complete even when its roadmap family
-    # has a different planned companion queued next.  The lane state is the
-    # narrower scope; only a planned lane should inherit the planned action.
+    # has a different planned companion queued next.  Conversely, a planned
+    # row on the family's explicitly owned lane is a planned action even when
+    # next_test_role has not been duplicated into the family metadata.
     if lane_state == "complete-pointer":
         return "evidence-complete"
-    if item.get("next_test_role") == "planned" and lane_state in {
-        None,
-        "planned",
-    }:
+    if lane_state == "planned" or (
+        item.get("next_test_role") == "planned" and lane_state is None
+    ):
         return "planned"
     if candidate_count:
         return "implementation"
@@ -849,11 +955,18 @@ def queue_action_state(
     action = str(item.get("next_action") or "").casefold()
     if action.lstrip().startswith("submit ") or "submit the existing raw" in action[:240]:
         return "external-review"
+    if (
+        "no executable c++ implementation slice is currently queued" in action
+        or "not a new-case task" in action
+    ):
+        return "backlog-shaping"
+    if item.get("next_source_state") == "exhausted":
+        return "evidence-complete"
     if lane_state == "complete-pointer":
         return "evidence-complete"
     if "keep this item open for newly identified evidence only" in action:
         return "evidence-complete"
-    if "queues are exhausted" in action or "queue is exhausted" in action:
+    if "queue" in action and "exhaust" in action:
         return "evidence-complete"
     return "new-case-needed"
 
@@ -997,7 +1110,10 @@ def unplanned_source_summary(
     return result
 
 
-def load_standard_requirements(bundle: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def load_standard_requirements(
+    bundle: dict[str, Any],
+    contract_directory: Path | None = None,
+) -> dict[str, dict[str, Any]]:
     requirements: dict[str, dict[str, Any]] = {}
     for document in bundle.get("documents", []):
         if not isinstance(document, dict):
@@ -1023,8 +1139,56 @@ def load_standard_requirements(bundle: dict[str, Any]) -> dict[str, dict[str, An
                 "kind": requirement.get("kind"),
                 "coverage_kind": requirement.get("coverage_kind"),
                 "semantic_group_id": requirement.get("semantic_group_id"),
+                "api_surface_scope": requirement.get("api_surface_scope"),
+                "api_surface_note": requirement.get("api_surface_note"),
                 "transition_ids": strings(requirement.get("transition_ids")),
                 "source": requirement.get("source"),
+            }
+    # Keep immutable Lab identifiers and exported metadata intact, while
+    # applying only an explicit, source-backed Umbra crosswalk when a known
+    # extraction defect assigns the wrong canonical subsection. This makes
+    # section queries useful without rewriting the pinned corpus bundle.
+    directory = contract_directory or DEFAULT_CONTRACT_DIRECTORY
+    for path in sorted(directory.glob("*-requirements-contract.json")):
+        contract = load_json(path)
+        overrides = contract.get("canonical_standard_section_overrides", [])
+        if not isinstance(overrides, list):
+            raise ValueError(
+                f"{relative_path(path)} canonical_standard_section_overrides must be an array"
+            )
+        for override in overrides:
+            if not isinstance(override, dict):
+                raise ValueError(
+                    f"{relative_path(path)} has a non-object canonical section override"
+                )
+            requirement_id = override.get("requirements_lab_requirement_id")
+            document_id = override.get("document_id")
+            exported_clause_id = override.get("exported_clause_id")
+            canonical_clause_id = override.get("canonical_clause_id")
+            standard = requirements.get(requirement_id) if isinstance(requirement_id, str) else None
+            if (
+                standard is None
+                or standard.get("document_id") != document_id
+                or standard.get("clause_id") != exported_clause_id
+                or not isinstance(canonical_clause_id, str)
+                or not canonical_clause_id.startswith("clause-")
+            ):
+                raise ValueError(
+                    f"{relative_path(path)} has a stale or incomplete canonical section override "
+                    f"for {requirement_id!r}"
+                )
+            previous = standard.get("canonical_section_override")
+            if isinstance(previous, dict) and previous.get("canonical_clause_id") != canonical_clause_id:
+                raise ValueError(
+                    f"conflicting canonical section overrides for {requirement_id}"
+                )
+            standard["exported_clause_id"] = exported_clause_id
+            standard["exported_clause"] = standard.get("clause")
+            standard["clause_id"] = canonical_clause_id
+            standard["clause"] = canonical_clause_id.removeprefix("clause-")
+            standard["canonical_section_override"] = {
+                key: value for key, value in override.items()
+                if key != "requirements_lab_requirement_id"
             }
     return requirements
 
@@ -1199,6 +1363,8 @@ def requirement_gap_inventory(
             "kind": requirement.get("kind"),
             "coverage_kind": requirement.get("coverage_kind"),
             "semantic_group_id": requirement.get("semantic_group_id"),
+            "api_surface_scope": requirement.get("api_surface_scope"),
+            "api_surface_note": requirement.get("api_surface_note"),
             "transition_ids": strings(requirement.get("transition_ids")),
             "source": source,
             "requirement_query": (
@@ -1287,13 +1453,15 @@ def family_gap_preview(
     standard_requirements: dict[str, dict[str, Any]] | None,
     family: str | None,
 ) -> dict[str, Any] | None:
-    """Return one bounded uncovered-requirement handoff for a roadmap family.
+    """Return one bounded coverage-inventory pointer for a roadmap family.
 
     Family queue rows deliberately avoid printing the full 2025 gap inventory.
-    When a family is explicitly marked ``new-case-needed``, however, a
-    contributor should not have to issue a second broad search just to obtain
-    a bounded coverage head.  This helper joins the already-loaded plan and
-    pinned corpus only; it never reads or mutates the Requirements Lab.
+    When a family is explicitly marked ``new-case-needed``, this helper picks
+    one globally uncovered inventory row from a subsection already represented
+    by that family's C++ tests. The row is not an implementation
+    recommendation. It avoids surfacing requirements already covered
+    elsewhere and corpus rows explicitly identified as non-callable table
+    structure. It only joins the already-loaded plan and pinned corpus.
     """
 
     if not isinstance(standard_requirements, dict) or not isinstance(family, str):
@@ -1305,7 +1473,11 @@ def family_gap_preview(
         tests,
         index=index,
         family=family,
-        limit=1,
+        # The family prompt should lead with its largest uncovered subsection,
+        # not the first generic requirement in corpus order. Keeping the
+        # complete filtered inventory here is bounded to the pinned corpus
+        # and lets us select an exact candidate from that subsection.
+        limit=0,
     )
     records = gaps.get("requirements")
     if not isinstance(records, list) or not records:
@@ -1314,12 +1486,123 @@ def family_gap_preview(
             "total_requirement_count": gaps.get("total_requirement_count", 0),
             "covered_requirement_count": gaps.get("covered_requirement_count", 0),
             "uncovered_requirement_count": gaps.get("uncovered_requirement_count", 0),
+            "global_uncovered_candidate_count": 0,
             "coverage_percent": gaps.get("coverage_percent", 0.0),
             "requirement": None,
         }
-    record = records[0]
+    family_entry = next(
+        (
+            item
+            for item in index.get("items", [])
+            if isinstance(item, dict)
+            and str(item.get("id") or "").casefold() == family.casefold()
+        ),
+        None,
+    )
+    family_tests = (
+        item_tests(family_entry, tests, index=index)
+        if isinstance(family_entry, dict)
+        else []
+    )
+    family_pairs = {
+        (row.get("lab_requirement_id"), row.get("standard_section"))
+        for test in family_tests
+        for row in requirement_section_mapping_rows(test)
+        if isinstance(row, dict)
+        and row.get("lab_requirement_id")
+        and row.get("standard_section")
+    }
+    family_section_counts: Counter[str] = Counter(
+        str(section) for _, section in family_pairs if section
+    )
+    family_sections = set(family_section_counts)
+    globally_covered_ids = {
+        requirement_id
+        for test in tests
+        for requirement_id in strings(test.get("lab_requirement_ids"))
+        if requirement_id in standard_requirements
+    }
+    globally_uncovered_ids = set(standard_requirements).difference(
+        globally_covered_ids
+    )
+    global_candidates = [
+        record
+        for record in records
+        if isinstance(record, dict)
+        and record.get("id") in globally_uncovered_ids
+        and record.get("standard_section") in family_sections
+    ]
+    # This RTI roadmap family needs callable 1516.1 requirements. The shared
+    # corpus also contains 1516.2 OMT requirements; they remain visible in the
+    # inventory, but must not be promoted as the next RTI implementation
+    # handoff merely because an FOM-related case represents that subsection.
+    out_of_scope_candidates = [
+        candidate
+        for candidate in global_candidates
+        if str(candidate.get("document_id") or "").casefold()
+        != "hla-1516.1-2025"
+    ]
+    implementation_candidates = [
+        candidate
+        for candidate in global_candidates
+        if str(candidate.get("document_id") or "").casefold()
+        == "hla-1516.1-2025"
+    ]
+    # The pinned corpus explicitly labels these table-shape entries as
+    # cross-cutting and says the table structure is not a callable API
+    # mapping. Keep them in `gaps` and the total inventory, but do not present
+    # them as a suggested Catch2 implementation task.
+    inventory_only_candidates = [
+        candidate
+        for candidate in implementation_candidates
+        if str(candidate.get("api_surface_scope") or "").casefold()
+        == "cross-cutting"
+        and str(candidate.get("api_surface_note") or "").strip().casefold()
+        == "table structure is not itself a callable api mapping."
+    ]
+    preview_candidates = [
+        candidate
+        for candidate in implementation_candidates
+        if candidate not in inventory_only_candidates
+    ]
+    candidate_sections = {
+        str(candidate.get("standard_section"))
+        for candidate in preview_candidates
+        if candidate.get("standard_section")
+    }
+    selected_section = min(
+        candidate_sections,
+            key=lambda section: (-sum(
+                candidate.get("standard_section") == section
+                for candidate in preview_candidates
+            ), -family_section_counts.get(section, 0), section),
+        default=None,
+    )
+    record = next(
+        (
+            candidate
+            for candidate in preview_candidates
+            if candidate.get("standard_section") == selected_section
+        ),
+        None,
+    )
     if not isinstance(record, dict):
-        return None
+        return {
+            "family": family,
+            "total_requirement_count": gaps.get("total_requirement_count", 0),
+            "covered_requirement_count": gaps.get("covered_requirement_count", 0),
+            "uncovered_requirement_count": gaps.get("uncovered_requirement_count", 0),
+            "global_uncovered_candidate_count": len(global_candidates),
+            "out_of_scope_candidate_count": len(out_of_scope_candidates),
+            "preview_candidate_count": len(preview_candidates),
+            "inventory_only_gap_count": len(inventory_only_candidates),
+            "family_mapped_requirement_count": len(
+                {requirement_id for requirement_id, _ in family_pairs}
+            ),
+            "family_section_count": len(family_sections),
+            "coverage_percent": gaps.get("coverage_percent", 0.0),
+            "requirement": None,
+        }
     requirement_id = record.get("id")
     standard_section = record.get("standard_section")
     clause_id = record.get("clause_id")
@@ -1328,9 +1611,21 @@ def family_gap_preview(
         "total_requirement_count": gaps.get("total_requirement_count", 0),
         "covered_requirement_count": gaps.get("covered_requirement_count", 0),
         "uncovered_requirement_count": gaps.get("uncovered_requirement_count", 0),
+        "global_uncovered_candidate_count": len(global_candidates),
+        "out_of_scope_candidate_count": len(out_of_scope_candidates),
+        "preview_candidate_count": len(preview_candidates),
+        "inventory_only_gap_count": len(inventory_only_candidates),
+        "family_mapped_requirement_count": len(
+            {requirement_id for requirement_id, _ in family_pairs}
+        ),
+        "family_section_count": len(family_sections),
         "coverage_percent": gaps.get("coverage_percent", 0.0),
+        "selection_basis": (
+            "largest globally uncovered IEEE 1516.1-2025 requirement gap within a subsection already mapped by this family; inventory only"
+        ),
         "requirement": {
             "id": requirement_id,
+            "document_id": record.get("document_id"),
             "standard_section": standard_section,
             "clause_id": clause_id,
             "title": compact_prose(record.get("title"), 160),
@@ -1720,18 +2015,18 @@ def mapped_test(
         for standard in standards
         if standard.get("document_id") and standard.get("clause_id")
     }
-    # A development-profile case can have no row-level Requirements-Lab
-    # candidate while still being explicitly anchored to canonical standard
-    # sections. Preserve that deliberate disposition in every query view
-    # instead of making the case appear section-less merely because its Lab
-    # requirement list is empty.
-    if not requirement_ids:
-        clauses.update(
-            section
-            for section in strings(test.get("standard_sections"))
-            if ":" in section
-        )
-    clauses = sorted(clauses)
+    # Keep the two useful views together: ``standard_clauses`` is the exact
+    # requirement-to-subsection join, while ``standard_sections`` also keeps
+    # any additional clause explicitly declared on the test row. This lets a
+    # case card show its complete standards slice without implying that every
+    # listed clause has a direct Requirements-Lab requirement pair.
+    requirement_clauses = sorted(clauses)
+    explicit_sections = {
+        section
+        for section in strings(test.get("standard_sections"))
+        if ":" in section
+    }
+    all_sections = sorted(set(requirement_clauses) | explicit_sections)
     locations = preferred_source_locations(
         test,
         source_locations_for_test(test.get("test_case"), source_locations),
@@ -1753,11 +2048,14 @@ def mapped_test(
     return {
         "id": test.get("id"),
         "test_case": test.get("test_case"),
+        "ctest_filter": test.get("ctest_filter"),
+        "source_target": test.get("source_target"),
         "primary_lane": test.get("primary_lane"),
         "requirements_lab_mapping_id": test.get("requirements_lab_mapping_id"),
         "requirements_lab_api_surface_status": test.get(
             "requirements_lab_api_surface_status"
         ),
+        "replacement_plan_ids": strings(test.get("replacement_plan_ids")),
         "traceability_state": traceability_state(test),
         "tags": strings(test.get("tags")),
         "selected_cpp_api_surface_ids": strings(
@@ -1778,11 +2076,12 @@ def mapped_test(
         "source_alias_of": test.get("source_alias_of"),
         "source_alias_location": test.get("source_alias_location"),
         "source_missing_reason": test.get("source_missing_reason"),
+        "replacement_plan_ids": strings(test.get("replacement_plan_ids")),
         "next_action": test.get("next_action"),
         "requirements": requirements,
         "lab_requirement_ids": requirement_ids,
-        "standard_clauses": clauses,
-        "standard_sections": clauses,
+        "standard_clauses": requirement_clauses,
+        "standard_sections": all_sections,
         "source_locations": locations,
         "source_state": "located" if locations else "unlocated",
         "unresolved_requirement_ids": [
@@ -2032,6 +2331,44 @@ def item_tests(
     if not tags:
         return []
     return [test for test in tests if tags.intersection(test.get("tags", []))]
+
+
+def planned_tests_for_item(
+    item: dict[str, Any],
+    tests: list[dict[str, Any]],
+    *,
+    index: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Return planned rows owned by this family, not broad-tag neighbors.
+
+    Catch2 plan tags intentionally support cross-cutting searches, so a planned
+    row may overlap several broad families.  When its primary lane has one
+    explicit roadmap owner, count and queue that planned row only under that
+    owner.  Rows without a lane-owner decision retain the legacy tag-based
+    relationship until they are classified.
+    """
+
+    mapping = index.get("mapping", {})
+    lane_owners = mapping.get("lane_owners", {}) if isinstance(mapping, dict) else {}
+    family_id = item.get("id")
+    planned: list[dict[str, Any]] = []
+    for test in item_tests(item, tests, index=index):
+        if not is_planned_test(test):
+            continue
+        test_lane = test.get("primary_lane")
+        lane_owner = (
+            lane_owners.get(test_lane)
+            if isinstance(lane_owners, dict) and isinstance(test_lane, str)
+            else None
+        )
+        if (
+            isinstance(family_id, str)
+            and isinstance(lane_owner, str)
+            and lane_owner.casefold() != family_id.casefold()
+        ):
+            continue
+        planned.append(test)
+    return planned
 
 
 def test_lane_identifiers(test: dict[str, Any]) -> list[str]:
@@ -2518,8 +2855,24 @@ def next_test_pointer(item: dict[str, Any], tests: list[dict[str, Any]]) -> dict
             str(row.get("standard_section") or ""),
         )
     )
+    unique_plan_ids = sorted(
+        {
+            str(test.get("id"))
+            for test in matches
+            if isinstance(test.get("id"), str) and test.get("id")
+        },
+        key=str.casefold,
+    )
+    # Keep the exact next-test pointer self-contained.  A caller should not
+    # have to translate a roadmap title into a plan id before it can open the
+    # case/trace/matrix cards that carry the direct requirement-to-subsection
+    # joins.  Prefer a unique plan id; when a title deliberately resolves to
+    # several plan rows, retain the exact title so the ambiguity remains
+    # visible to the normal ``case`` command.
+    case_query = unique_plan_ids[0] if len(unique_plan_ids) == 1 else query
     result = {
         "query": query,
+        "case_query": case_query,
         "state": state,
         "match_count": len(matches),
         "statuses": dict(sorted(status_counts.items())),
@@ -2541,6 +2894,23 @@ def next_test_pointer(item: dict[str, Any], tests: list[dict[str, Any]]) -> dict
         ),
         "source_locations": source_locations[:8],
     }
+    if isinstance(case_query, str) and case_query:
+        result["case_command"] = (
+            f'python tools/query_rti_work.py case "{case_query}" '
+            "--summary --compact"
+        )
+        result["trace_command"] = (
+            f'python tools/query_rti_work.py trace "{case_query}" '
+            "--summary --compact"
+        )
+        result["matrix_requirement_command"] = (
+            f'python tools/query_rti_work.py matrix "{case_query}" '
+            "--group-by requirement --summary --compact"
+        )
+        result["matrix_section_command"] = (
+            f'python tools/query_rti_work.py matrix "{case_query}" '
+            "--group-by section --summary --compact"
+        )
     if len(source_locations) > 8:
         result["source_locations_remaining"] = len(source_locations) - 8
     if len(pair_rows) > 12:
@@ -2679,15 +3049,42 @@ def roadmap_inventory(
             for item in items
             if item.get("id") and search_key(item.get("id")) == folded_query
         }
-        exact_index_ids = exact_family_ids or {
-            str(item.get("id"))
-            for item in items
-            if any(
-                folded_query == search_key(value)
-                for value in roadmap_search_values(item)
+        if exact_family_ids:
+            exact_index_ids = exact_family_ids
+        else:
+            # An exact lane owner is stronger than a shared taxonomy tag.  A
+            # focused plan row can carry ``process-boundary`` (or another
+            # broad tag) that appears under several roadmap families; the
+            # explicit owner map is the deterministic join for the one lane
+            # the contributor actually named.
+            lane_owners = (
+                index.get("mapping", {}).get("lane_owners", {})
+                if isinstance(index.get("mapping"), dict)
+                else {}
             )
-            and item.get("id")
-        }
+            exact_lane_owner = next(
+                (
+                    owner
+                    for lane, owner in lane_owners.items()
+                    if search_key(lane) == folded_query
+                    and isinstance(owner, str)
+                    and owner
+                ),
+                None,
+            ) if isinstance(lane_owners, dict) else None
+            exact_index_ids = (
+                {exact_lane_owner}
+                if exact_lane_owner is not None
+                else {
+                    str(item.get("id"))
+                    for item in items
+                    if any(
+                        folded_query == search_key(value)
+                        for value in roadmap_search_values(item)
+                    )
+                    and item.get("id")
+                }
+            )
         if active_handoff_family is not None and any(
             str(item.get("id") or "").casefold()
             == active_handoff_family.casefold()
@@ -2802,8 +3199,20 @@ def roadmap_inventory(
                         "representative_standard_sections": lane_row.get(
                             "representative_standard_sections", []
                         ),
+                        "representative_case_command": (
+                            f'python tools/query_rti_work.py case "{lane_row.get("representative_test_id")}" '
+                            "--summary --compact"
+                            if lane_row.get("representative_test_id")
+                            else None
+                        ),
                         "representative_trace_command": lane_row.get(
                             "representative_trace_command"
+                        ),
+                        "next_case_command": (
+                            f'python tools/query_rti_work.py case "{lane_row.get("next_test_id")}" '
+                            "--summary --compact"
+                            if lane_row.get("next_test_id")
+                            else None
                         ),
                         "focus_command": lane_row.get("focus_command"),
                         "ctest_command": lane_row.get("ctest_command"),
@@ -2811,6 +3220,7 @@ def roadmap_inventory(
                     }
                 )
         mapping_counts = live_item_mapping_counts(item, tests, index=index)
+        family_planned_tests = planned_tests_for_item(item, tests, index=index)
         pointer = next_test_pointer(item, tests)
         pointer_owner = next(
             (
@@ -2835,6 +3245,17 @@ def roadmap_inventory(
             if isinstance(action_lane, str) and action_lane.strip()
             else None
         )
+        lane_state_for_action = None
+        if (
+            isinstance(lane_snapshot, dict)
+            and lane_snapshot.get("lane_state") == "complete"
+        ):
+            lane_state_for_action = "complete-pointer"
+        elif (
+            isinstance(lane_snapshot, dict)
+            and lane_snapshot.get("lane_state") == "planned"
+        ) or family_planned_tests:
+            lane_state_for_action = "planned"
         action_state = queue_action_state(
             item,
             candidate_count=(
@@ -2855,16 +3276,12 @@ def roadmap_inventory(
                 and lane_snapshot.get("lane_state") != "missing"
                 else sum(
                     not test.get("source_locations")
+                    and not is_planned_test(test)
                     and not is_non_executable_source_status(test)
                     for test in matching_tests
                 )
             ),
-            lane_state=(
-                "complete-pointer"
-                if isinstance(lane_snapshot, dict)
-                and lane_snapshot.get("lane_state") == "complete"
-                else None
-            ),
+            lane_state=lane_state_for_action,
         )
         assertion_count = sum(
             value
@@ -2876,6 +3293,28 @@ def roadmap_inventory(
             "work": f"python tools/query_rti_work.py work {item.get('id')} --summary --compact",
             "matrix": f"python tools/query_rti_work.py matrix {item.get('id')} --summary --compact",
         }
+        pointer_case_query = pointer.get("case_query")
+        if isinstance(pointer_case_query, str) and pointer_case_query:
+            commands.update(
+                {
+                    "case": (
+                        f'python tools/query_rti_work.py case "{pointer_case_query}" '
+                        "--summary --compact"
+                    ),
+                    "trace": (
+                        f'python tools/query_rti_work.py trace "{pointer_case_query}" '
+                        "--summary --compact"
+                    ),
+                    "matrix_requirement": (
+                        f'python tools/query_rti_work.py matrix "{pointer_case_query}" '
+                        "--group-by requirement --summary --compact"
+                    ),
+                    "matrix_section": (
+                        f'python tools/query_rti_work.py matrix "{pointer_case_query}" '
+                        "--group-by section --summary --compact"
+                    ),
+                }
+            )
         if isinstance(lane, str) and lane.strip():
             commands["focus"] = (
                 f"python tools/query_rti_work.py focus {lane} --summary --compact"
@@ -3751,6 +4190,17 @@ def validate_index(
                 errors.append(
                     "active_handoff acceptance must contain only non-empty strings"
                 )
+            api_surfaces = active_handoff.get("api_surfaces")
+            if api_surfaces is not None and (
+                not isinstance(api_surfaces, list)
+                or any(
+                    not isinstance(value, str) or not value.strip()
+                    for value in api_surfaces
+                )
+            ):
+                errors.append(
+                    "active_handoff api_surfaces must contain only non-empty strings"
+                )
     if focus_lane is not None and focus_lane.casefold() not in {
         str(tag).casefold() for tag in known_tags
     }:
@@ -4024,7 +4474,13 @@ def validate_index(
         for test in tests
         if isinstance(test, dict) and isinstance(test.get("id"), str)
     }
-    for test in plan.get("tests", []):
+    # A lane/family check is the fast focused gate used while developing a
+    # slice.  Validate only the selected test rows here; the unqualified
+    # ``check`` command still receives all tests through ``scoped_tests`` and
+    # remains the repository-wide integrity audit.  Keeping this aligned with
+    # the roadmap-item scope prevents unrelated mapping defects from blocking
+    # a focused lane check.
+    for test in scoped_tests:
         if not isinstance(test, dict):
             continue
         legacy_requirement_ids = strings(test.get("requirements_lab_requirement_ids"))
@@ -4453,6 +4909,8 @@ def text_test_summary(test: dict[str, Any]) -> str:
         f"- {test.get('id', '<unnamed>')}: {test.get('test_case', '<unnamed test>')}",
         f"  status: {test.get('status', '<unspecified>')}",
         f"  source: {source_location_text(test)}",
+        "  replacement plan ids: "
+        + (", ".join(strings(test.get("replacement_plan_ids"))) or "<none>"),
         f"  assertions: {test.get('assertions', '<unspecified>')}; "
         f"callback_models={', '.join(strings(test.get('callback_models'))) or '<unspecified>'}; "
         f"delivery_modes={', '.join(strings(test.get('delivery_modes'))) or '<unspecified>'}; "
@@ -4522,6 +4980,9 @@ def text_test_summary(test: dict[str, Any]) -> str:
     reason = test.get("source_missing_reason")
     if isinstance(reason, str) and reason.strip():
         lines.append(f"  source-missing reason: {compact_prose(reason, 180)}")
+    replacements = strings(test.get("replacement_plan_ids"))
+    if replacements:
+        lines.append("  replacement plan ids: " + ", ".join(replacements))
     return "\n".join(lines)
 
 
@@ -4580,6 +5041,9 @@ def test_summary_data(test: dict[str, Any]) -> dict[str, Any]:
     reason = test.get("source_missing_reason")
     if isinstance(reason, str) and reason.strip():
         result["source_missing_reason"] = reason
+    replacements = strings(test.get("replacement_plan_ids"))
+    if replacements:
+        result["replacement_plan_ids"] = replacements
     if "contract_candidates" in test:
         result["contract_candidates"] = test.get("contract_candidates")
     return result
@@ -5308,8 +5772,8 @@ def indexed_work_queue(
     classifies a row as ready, complete-pointer, source-drift-only, or
     new-case-needed without changing the plan or re-reading the Lab.  The
     separate ``action_state`` says whether that row is an implementation,
-    mapping, source-reconciliation, external-review, deliberate-new-case, or
-    evidence-complete handoff.  It also
+    mapping, source-reconciliation, external-review, backlog-shaping,
+    deliberate-new-case, or evidence-complete handoff.  It also
     exposes the bounded source-unlocated backlog so a planned next case is
     visible without dumping the full plan; those rows are never executable
     candidates until a matching C++ declaration exists.  Disabled source
@@ -5333,10 +5797,13 @@ def indexed_work_queue(
     )
     if not isinstance(lane_handles, dict):
         lane_handles = {}
+    lane_owners = mapping.get("lane_owners", {}) if isinstance(mapping, dict) else {}
+    if not isinstance(lane_owners, dict):
+        lane_owners = {}
     rows: list[dict[str, Any]] = []
     for item in items:
         selected = item_tests(item, tests, index=index)
-        planned = [test for test in selected if is_planned_test(test)]
+        planned = planned_tests_for_item(item, tests, index=index)
         unlocated = [
             test
             for test in selected
@@ -5362,9 +5829,15 @@ def indexed_work_queue(
             for test in selected
         )
         lane = item.get("next_lane")
+        lane_owner = lane_owners.get(lane) if isinstance(lane, str) else None
+        lane_owner_matches = not isinstance(lane_owner, str) or (
+            lane_owner.casefold() == str(item.get("id") or "").casefold()
+        )
         lane_snapshot: dict[str, Any] | None = None
         if isinstance(lane, str) and lane:
-            lane_snapshot = focused_lane_result(index, tests, lane, limit=1)
+            lane_snapshot = focused_lane_result(
+                index, tests, lane, limit=1
+            )
         if lane_snapshot and lane_snapshot.get("lane_state") != "missing":
             case_count = lane_snapshot.get("test_count", 0)
             mapped_count = lane_snapshot.get("mapped_test_count", mapped_count)
@@ -5375,7 +5848,8 @@ def indexed_work_queue(
             actionable_source_drift_count = lane_snapshot.get(
                 "actionable_source_drift_count", actionable_source_drift_count
             )
-            planned_count = lane_snapshot.get("planned_count", planned_count)
+            if lane_owner_matches:
+                planned_count = lane_snapshot.get("planned_count", planned_count)
             candidate_count = lane_snapshot.get("candidate_count", candidate_count)
             if candidate_count:
                 state = "ready"
@@ -5402,10 +5876,22 @@ def indexed_work_queue(
             state = "new-case-needed"
         action_state = queue_action_state(
             item,
-            candidate_count=candidate_count,
-            unclassified_count=unclassified_count,
-            actionable_source_drift_count=actionable_source_drift_count,
-            lane_state=state,
+            candidate_count=(
+                candidate_count
+                if lane_owner_matches
+                else family_mapping_counts.get("executable_candidate_count", 0)
+            ),
+            unclassified_count=(
+                unclassified_count
+                if lane_owner_matches
+                else family_mapping_counts.get("unclassified_count", 0)
+            ),
+            actionable_source_drift_count=(
+                actionable_source_drift_count
+                if lane_owner_matches
+                else family_mapping_counts.get("actionable_source_drift_count", 0)
+            ),
+            lane_state=state if lane_owner_matches else None,
         )
         # Disabled source artifacts remain in the diagnostic backlog, but they
         # are not implementation handoffs. Keep the total visible while using
@@ -5615,6 +6101,68 @@ def dashboard_snapshot(
     indexed_snapshot = {
         key: indexed_counts.get(key) for key in comparable_keys
     }
+    mapping_index = index.get("mapping", {})
+    if not isinstance(mapping_index, dict):
+        mapping_index = {}
+    stored_traceability = mapping_index.get("current_snapshot", {})
+    if not isinstance(stored_traceability, dict):
+        stored_traceability = {}
+    live_pairs = {
+        (row.get("lab_requirement_id"), row.get("standard_section"))
+        for test in tests
+        for row in requirement_section_mapping_rows(test)
+        if isinstance(row, dict) and row.get("lab_requirement_id")
+    }
+    live_mapped_requirement_ids = {
+        requirement_id
+        for requirement_id, section in live_pairs
+        if section
+    }
+    live_standard_requirement_total = (
+        len(standard_requirements)
+        if isinstance(standard_requirements, dict)
+        else None
+    )
+    live_coverage_percent = (
+        round(
+            100.0 * len(live_mapped_requirement_ids)
+            / live_standard_requirement_total,
+            2,
+        )
+        if isinstance(live_standard_requirement_total, int)
+        and live_standard_requirement_total > 0
+        else None
+    )
+    live_traceability = {
+        "direct_requirement_section_pairs": len(live_pairs),
+        "standard_requirement_total": live_standard_requirement_total,
+        "standard_requirement_coverage_percent": live_coverage_percent,
+    }
+    comparable_traceability_keys = [
+        key
+        for key, value in live_traceability.items()
+        if value is not None and key in stored_traceability
+    ]
+    stale_traceability_fields = [
+        key
+        for key in comparable_traceability_keys
+        if stored_traceability.get(key) != live_traceability.get(key)
+    ]
+    traceability_matches = (
+        bool(comparable_traceability_keys) and not stale_traceability_fields
+    )
+    traceability_snapshot = {
+        "matches_live": traceability_matches,
+        "indexed": {
+            key: stored_traceability.get(key)
+            for key in comparable_traceability_keys
+        },
+        "live": {
+            key: live_traceability.get(key)
+            for key in comparable_traceability_keys
+        },
+        "stale_fields": stale_traceability_fields,
+    }
 
     active = indexed_work_slice(
         index,
@@ -5737,6 +6285,7 @@ def dashboard_snapshot(
             "title": owner.get("title"),
             "test_case": ready.get("test_case"),
             "plan_id": ready.get("plan_id"),
+            "plan_id_status": ready.get("plan_id_status"),
             "source_location": ready.get("source_location"),
             "source_target": ready.get("source_target"),
             "source_lane": ready.get("source_lane"),
@@ -5744,6 +6293,7 @@ def dashboard_snapshot(
             "post_mapping_focus_command": ready.get("post_mapping_focus_command"),
             "post_mapping_check_command": ready.get("post_mapping_check_command"),
             "ctest_target": ready.get("ctest_target"),
+            "ctest_filter": ready.get("ctest_filter"),
             "mapping_status": ready.get("mapping_status"),
             "mapping_seed_plan_id": ready.get("mapping_seed_plan_id"),
             "mapping_seed_test_case": ready.get("mapping_seed_test_case"),
@@ -5772,11 +6322,17 @@ def dashboard_snapshot(
             else 0,
             "next_action": compact_prose(ready.get("next_action"), 320),
             "acceptance": ready.get("acceptance", []),
+            "case_command": ready.get("case_command"),
+            "matrix_requirement_command": ready.get("matrix_requirement_command"),
+            "matrix_section_command": ready.get("matrix_section_command"),
             "seed_trace_command": ready.get("seed_trace_command"),
             "commands": [
                 command
                 for command in (
+                    ready.get("case_command"),
                     ready.get("trace_command"),
+                    ready.get("matrix_requirement_command"),
+                    ready.get("matrix_section_command"),
                     ready.get("seed_trace_command"),
                     ready.get("implementation_command"),
                     ready.get("focus_command"),
@@ -5794,7 +6350,10 @@ def dashboard_snapshot(
                 "--summary --compact"
             )
         for handle_name, field_name in (
+            ("case", "case_command"),
             ("trace", "trace_command"),
+            ("matrix_requirement", "matrix_requirement_command"),
+            ("matrix_section", "matrix_section_command"),
             ("focus", "focus_command"),
             ("lane_check", "check_command"),
             ("post_mapping_focus", "post_mapping_focus_command"),
@@ -6028,10 +6587,13 @@ def dashboard_snapshot(
         "active_pointer": active_card,
         "queue": queue,
         "index_snapshot": {
-            "matches_live": indexed_snapshot == live_snapshot,
+            "matches_live": (
+                indexed_snapshot == live_snapshot and traceability_matches
+            ),
             "comparable_keys": comparable_keys,
             "indexed_counts": indexed_snapshot,
             "live_counts": live_snapshot,
+            "traceability": traceability_snapshot,
         },
         "handles": handles,
     }
@@ -6080,6 +6642,8 @@ def resume_snapshot(
         result = {
             key: value.get(key)
             for key in (
+                "found",
+                "active_handoff_id",
                 "state",
                 "runnable",
                 "handoff_kind",
@@ -6089,6 +6653,7 @@ def resume_snapshot(
                 "title",
                 "test_case",
                 "plan_id",
+                "plan_id_status",
                 "source_location",
                 "source_target",
                 "source_lane",
@@ -6096,6 +6661,7 @@ def resume_snapshot(
                 "post_mapping_focus_command",
                 "post_mapping_check_command",
                 "ctest_target",
+                "ctest_filter",
                 "mapping_status",
                 "mapping_seed_plan_id",
                 "mapping_seed_test_case",
@@ -6107,6 +6673,12 @@ def resume_snapshot(
                 "requirement_section_pairs",
                 "next_action",
                 "seed_trace_command",
+                "seed_matrix_requirement_command",
+                "seed_matrix_section_command",
+                "case_command",
+                "trace_command",
+                "matrix_requirement_command",
+                "matrix_section_command",
                 "acceptance",
                 "commands",
                 "reason",
@@ -6114,7 +6686,6 @@ def resume_snapshot(
                 "recommended_family_id",
                 "family_choice_command",
                 "family_queue_count",
-                "gap_preview",
             )
             if key in value
         }
@@ -6153,7 +6724,6 @@ def resume_snapshot(
                             "gap_query",
                             "matrix_requirement_command",
                             "matrix_section_command",
-                            "gap_preview",
                             "next_action",
                         )
                         if key in option
@@ -6193,6 +6763,18 @@ def resume_snapshot(
                 if isinstance(row, dict)
             ]
             next_card["requirement_section_pairs"] = pairs[:8]
+
+    active_handoff_card = compact_next(dashboard.get("active_handoff"))
+    if (
+        isinstance(next_card, dict)
+        and next_card.get("selection_required")
+        and isinstance(active_handoff_card, dict)
+        and active_handoff_card.get("found")
+    ):
+        # If the exhaustive indexed queues have no runnable next slice, honor
+        # the explicitly recorded handoff instead of asking the developer to
+        # choose a family and rediscover that same work.
+        next_card = active_handoff_card
 
     active = dashboard.get("active_pointer")
     active_summary = None
@@ -6307,7 +6889,7 @@ def resume_snapshot(
         "source_health": dashboard.get("source_health", {}),
         "index_snapshot": dashboard.get("index_snapshot", {}),
         "next": next_card,
-        "active_handoff": dashboard.get("active_handoff"),
+        "active_handoff": active_handoff_card,
         "deferred_slices": deferred_summary,
         "active_pointer": active_summary,
         "latest_completed_slice": latest_summary,
@@ -6347,7 +6929,7 @@ def indexed_unlocated_plan_summary(
             if isinstance(family_item, dict)
             else []
         )
-        planned = [test for test in selected if is_planned_test(test)]
+        planned = planned_tests_for_item(family_item, tests, index=index)
         diagnostic_unlocated = [
             test
             for test in selected
@@ -6391,6 +6973,8 @@ def indexed_unlocated_plan_summary(
                 "plan_id": head_test.get("id"),
                 "test_case": head_test.get("test_case"),
                 "lane": head_lane,
+                "source_target": head_lane_handles.get("source"),
+                "ctest_target": head_lane_handles.get("catch2_target"),
                 "ctest_filter": head_lane_handles.get("ctest_filter"),
                 "assertions": head_test.get("assertions"),
                 "requirement_ids": strings(head_test.get("lab_requirement_ids")),
@@ -6426,6 +7010,16 @@ def indexed_unlocated_plan_summary(
     planned_head = head.get("planned_head")
     planned_head_id = head.get("planned_head_id")
     planned_head_is_present = isinstance(planned_head, str) and bool(planned_head.strip())
+    mapping = index.get("mapping", {})
+    lane_handles = mapping.get("lane_handles", {}) if isinstance(mapping, dict) else {}
+    planned_head_lane = head.get("planned_head_lane") if planned_head_is_present else None
+    planned_head_handles = (
+        lane_handles.get(planned_head_lane, {})
+        if isinstance(lane_handles, dict) and isinstance(planned_head_lane, str)
+        else {}
+    )
+    if not isinstance(planned_head_handles, dict):
+        planned_head_handles = {}
     return {
         "count": queue.get("planned_case_count", 0)
         + queue.get(
@@ -6447,11 +7041,9 @@ def indexed_unlocated_plan_summary(
                 if planned_head_is_present
                 else head.get("unlocated_head")
             ),
-            "lane": (
-                head.get("planned_head_lane")
-                if planned_head_is_present
-                else None
-            ),
+            "lane": planned_head_lane,
+            "source_target": planned_head_handles.get("source"),
+            "ctest_target": planned_head_handles.get("catch2_target"),
             "ctest_filter": (
                 head.get("planned_head_ctest_filter")
                 if planned_head_is_present
@@ -6538,7 +7130,9 @@ def indexed_active_handoff_record(
 
     requirement_ids = strings(seed.get("lab_requirement_ids"))
     standard_sections = strings(seed.get("standard_sections"))
-    api_surfaces = strings(seed.get("selected_cpp_api_surface_ids"))
+    api_surfaces = strings(card.get("api_surfaces")) or strings(
+        seed.get("selected_cpp_api_surface_ids")
+    )
     pairs = requirement_section_mapping_rows(seed)
     raw_commands = card.get("commands")
     commands = (
@@ -6552,6 +7146,7 @@ def indexed_active_handoff_record(
         if isinstance(seed_case, str) and seed_case
         else None
     )
+    quoted_seed_id = json.dumps(str(seed_id), ensure_ascii=False) if seed_id else None
     return {
         "found": True,
         "runnable": False,
@@ -6559,6 +7154,8 @@ def indexed_active_handoff_record(
         "state": str(card.get("state") or "new-case-needed"),
         "active_handoff_id": card.get("id"),
         "family_id": family_id,
+        "plan_id": card.get("plan_id"),
+        "plan_id_status": "proposed" if card.get("plan_id") else None,
         "test_case": test_case,
         "source_location": None,
         "source_target": card.get("source_target"),
@@ -6579,6 +7176,18 @@ def indexed_active_handoff_record(
         "acceptance": card.get("acceptance", []),
         "commands": commands,
         "seed_trace_command": seed_trace_command,
+        "seed_matrix_requirement_command": (
+            "python tools/query_rti_work.py matrix "
+            f"{quoted_seed_id} --group-by requirement --summary --compact"
+            if quoted_seed_id
+            else None
+        ),
+        "seed_matrix_section_command": (
+            "python tools/query_rti_work.py matrix "
+            f"{quoted_seed_id} --group-by section --summary --compact"
+            if quoted_seed_id
+            else None
+        ),
         "implementation_command": (
             f"python tools/query_rti_work.py case {seed_id} --summary --compact"
             if isinstance(seed_id, str) and seed_id
@@ -6750,7 +7359,9 @@ def ready_slice(
                     "plan_id": head.get("plan_id"),
                     "test_case": head.get("test_case"),
                     "source_location": None,
+                    "source_target": head.get("source_target"),
                     "source_lane": head.get("lane"),
+                    "ctest_target": head.get("ctest_target"),
                     "requirement_ids": strings(head.get("requirement_ids")),
                     "standard_sections": strings(head.get("standard_sections")),
                     "api_surfaces": strings(head.get("api_surfaces")),
@@ -6993,11 +7604,14 @@ def ready_slice(
         for option in family_options:
             if not isinstance(option, dict):
                 continue
-            # Only a deliberate new-case queue should surface a coverage head
-            # as a bounded inventory pointer. Evidence-complete and
+            # A deliberate new-case or backlog-shaping queue may show one
+            # bounded coverage-inventory pointer. Evidence-complete and
             # external-review families retain their existing handles and are
             # not presented as implementation work.
-            if option.get("action_state") != "new-case-needed":
+            if option.get("action_state") not in {
+                "new-case-needed",
+                "backlog-shaping",
+            }:
                 continue
             family_id = option.get("id")
             gap = family_gap_preview(
@@ -7026,10 +7640,21 @@ def ready_slice(
                 "no runnable indexed action is queued"
             )
         elif family_options:
-            reason = (
-                "the indexed source and planned-row queues are exhausted; "
-                "only explicitly queued family actions remain"
-            )
+            action_states = {
+                str(option.get("action_state"))
+                for option in family_options
+                if isinstance(option, dict)
+            }
+            if action_states <= {"backlog-shaping", "external-review"}:
+                reason = (
+                    "no executable C++ implementation is queued; only "
+                    "backlog-shaping and external-review actions remain"
+                )
+            else:
+                reason = (
+                    "the indexed source and planned-row queues are exhausted; "
+                    "only explicitly queued family actions remain"
+                )
         else:
             reason = (
                 "the indexed implementation queues are exhausted; "
@@ -7069,6 +7694,26 @@ def ready_slice(
         }
 
     family_id = record.get("family_id")
+    # Global planned queues can surface a case through a broad taxonomy tag
+    # shared by several roadmap families.  For a case with an explicit lane,
+    # the lane-owner index is the narrow, authoritative handoff destination;
+    # otherwise a perfectly mapped planned test can be shown under an
+    # unrelated high-priority family.  Keep the queued action aligned with
+    # its case/focus/check handles.
+    mapping = index.get("mapping", {})
+    lane_owners = mapping.get("lane_owners", {}) if isinstance(mapping, dict) else {}
+    source_lane = record.get("source_lane")
+    lane_owner = (
+        lane_owners.get(source_lane)
+        if isinstance(lane_owners, dict) and isinstance(source_lane, str)
+        else None
+    )
+    if isinstance(lane_owner, str) and any(
+        isinstance(item, dict) and item.get("id") == lane_owner
+        for item in index.get("items", [])
+    ):
+        family_id = lane_owner
+        record["family_id"] = family_id
     family_item = next(
         (
             item
@@ -7080,6 +7725,46 @@ def ready_slice(
     record["found"] = True
     record["requested_family"] = requested_family
     record["include_source_only"] = include_source_only
+    case_query = record.get("plan_id")
+    if record.get("state") == "new-case-needed":
+        # The proposed ID is reserved for the future plan row, not yet
+        # queryable as a Catch2 case. Surface seed commands instead of giving
+        # callers a case/matrix command that cannot resolve until the row is
+        # added.
+        case_query = None
+        if record.get("plan_id"):
+            record["plan_id_status"] = "proposed"
+    elif not case_query and record.get("state") in {"planned", "mapping"}:
+        case_query = record.get("test_case")
+    exact_record_test = next(
+        (
+            test
+            for test in tests
+            if isinstance(test, dict)
+            and (
+                test.get("id") == record.get("plan_id")
+                or test.get("test_case") == record.get("test_case")
+            )
+        ),
+        None,
+    )
+    if isinstance(exact_record_test, dict):
+        exact_pairs = requirement_section_mapping_rows(exact_record_test)
+        record["requirement_section_pairs"] = exact_pairs
+        record["requirement_section_pair_count"] = len(exact_pairs)
+    if isinstance(case_query, str) and case_query:
+        record["case_command"] = (
+            f'python tools/query_rti_work.py case "{case_query}" '
+            "--summary --compact"
+        )
+        record["matrix_requirement_command"] = (
+            f'python tools/query_rti_work.py matrix "{case_query}" '
+            "--group-by requirement --summary --compact"
+        )
+        record["matrix_section_command"] = (
+            f'python tools/query_rti_work.py matrix "{case_query}" '
+            "--group-by section --summary --compact"
+        )
     record["owner"] = parent
     record["roadmap_owner"] = (
         roadmap_item_summary(family_item)
@@ -7463,6 +8148,7 @@ def trace_record(
         "requirements_lab_api_surface_status": test.get(
             "requirements_lab_api_surface_status"
         ),
+        "replacement_plan_ids": strings(test.get("replacement_plan_ids")),
         "tags": strings(test.get("tags")),
         "cpp_api_surfaces": strings(test.get("selected_cpp_api_surface_ids")),
         "standard_sections": strings(test.get("standard_sections")),
@@ -7524,12 +8210,17 @@ def case_card_record(
             lane_tags = [primary_lane] + [
                 tag for tag in lane_tags if tag.casefold() != primary_lane.casefold()
             ]
-        for tag in lane_tags:
-            configured = lane_handles_by_tag.get(tag)
+            lane = primary_lane
+            configured = lane_handles_by_tag.get(primary_lane)
             if isinstance(configured, dict):
-                lane = tag
                 lane_handles = dict(configured)
-                break
+        if lane is None:
+            for tag in lane_tags:
+                configured = lane_handles_by_tag.get(tag)
+                if isinstance(configured, dict):
+                    lane = tag
+                    lane_handles = dict(configured)
+                    break
 
     case_id = str(test.get("id") or query)
     case_title = str(test.get("test_case") or case_id)
@@ -7547,6 +8238,14 @@ def case_card_record(
             "python tools/query_rti_work.py matrix "
             f"{quoted_id} --summary --compact"
         ),
+        "matrix_requirement": (
+            "python tools/query_rti_work.py matrix "
+            f"{quoted_id} --group-by requirement --summary --compact"
+        ),
+        "matrix_section": (
+            "python tools/query_rti_work.py matrix "
+            f"{quoted_id} --group-by section --summary --compact"
+        ),
     }
     if lane:
         commands["focus"] = (
@@ -7557,9 +8256,23 @@ def case_card_record(
             "python tools/query_rti_work.py check --lane "
             f"{lane} --summary --compact"
         )
-    ctest = lane_ctest_command(lane_handles)
-    if ctest:
-        commands["ctest"] = ctest
+    case_ctest_filter = test.get("ctest_filter")
+    if isinstance(case_ctest_filter, str) and case_ctest_filter.strip():
+        commands["ctest"] = (
+            'ctest --test-dir <build-dir> -C Debug -R '
+            f'"{case_ctest_filter}" --output-on-failure'
+        )
+    else:
+        ctest = lane_ctest_command(lane_handles)
+        if ctest:
+            commands["ctest"] = ctest
+
+    has_case_source = bool(
+        test.get("source_location") or test.get("source_locations")
+    )
+    source_target = test.get("source_target")
+    if not source_target and not has_case_source:
+        source_target = lane_handles.get("source")
 
     return {
         "query": query,
@@ -7568,6 +8281,7 @@ def case_card_record(
         "status": test.get("status"),
         "traceability_state": traceability_state(test),
         "source_locations": test.get("source_locations", []),
+        "source_target": source_target,
         "source_state": test.get("source_state"),
         "assertions": test.get("assertions"),
         "callback_models": strings(test.get("callback_models")),
@@ -7578,6 +8292,7 @@ def case_card_record(
         "requirements_lab_api_surface_status": test.get(
             "requirements_lab_api_surface_status"
         ),
+        "replacement_plan_ids": strings(test.get("replacement_plan_ids")),
         "next_action": test.get("next_action"),
         "roadmap_owner": owner.get("id") if owner else None,
         "roadmap_items": roadmap_items,
@@ -7613,12 +8328,22 @@ def text_case_card(card: dict[str, Any], compact: bool = False) -> str:
         for row in mappings
         if isinstance(row, dict)
     ]
+    source_text = source_location_text(card)
+    if is_planned_test(card) and card.get("source_target"):
+        source_text = "<TEST_CASE not declared yet>"
+    assertions = card.get("assertions")
+    if assertions is None:
+        if is_planned_test(card):
+            assertions = "<not recorded; case is not implemented>"
+        else:
+            assertions = "<unspecified>"
+
     lines = [
         f"Case card: {card.get('id', '<unnamed>')}: {card.get('test_case', '<unnamed test>')}",
         f"status: {card.get('status', '<unspecified>')}",
         f"traceability: {card.get('traceability_state', '<unspecified>')}",
-        f"source: {source_location_text(card)}",
-        f"assertions: {card.get('assertions', '<unspecified>')}; "
+        f"source: {source_text}",
+        f"assertions: {assertions}; "
         f"callback_models={', '.join(strings(card.get('callback_models'))) or '<unspecified>'}",
         f"roadmap_owner: {card.get('roadmap_owner') or '<none>'}",
         f"lane: {card.get('lane') or '<none>'}",
@@ -7628,8 +8353,11 @@ def text_case_card(card: dict[str, Any], compact: bool = False) -> str:
         f"standard_sections: {preview(sections)}",
         f"requirement_section_mappings: {preview(mapping_preview)}",
         f"cpp_api_surfaces: {preview(api_surfaces)}",
-        "commands:",
     ]
+    source_target = card.get("source_target")
+    if isinstance(source_target, str) and source_target.strip():
+        lines.append(f"source_target: {source_target}")
+    lines.append("commands:")
     disposition = card.get("requirements_lab_api_surface_status")
     if isinstance(disposition, str) and disposition.strip():
         lines.insert(
@@ -7639,9 +8367,21 @@ def text_case_card(card: dict[str, Any], compact: bool = False) -> str:
     next_action = card.get("next_action")
     if isinstance(next_action, str) and next_action.strip():
         lines.insert(4, "next_action: " + compact_prose(next_action, 360))
+    replacements = strings(card.get("replacement_plan_ids"))
+    if replacements:
+        lines.insert(5, "replacement_plan_ids: " + ", ".join(replacements))
     commands = card.get("commands")
     if isinstance(commands, dict):
-        for name in ("test", "trace", "matrix", "focus", "check", "ctest"):
+        for name in (
+            "test",
+            "trace",
+            "matrix",
+            "matrix_requirement",
+            "matrix_section",
+            "focus",
+            "check",
+            "ctest",
+        ):
             command = commands.get(name)
             if isinstance(command, str) and command:
                 lines.append(f"  {name}={command}")
@@ -7669,6 +8409,8 @@ def text_trace(record: dict[str, Any], summary: bool = False) -> str:
         f"  status: {record.get('status', '<unspecified>')}",
         f"  source: {source_location_text(record)}",
         f"  mapping id: {record.get('requirements_lab_mapping_id') or '<none>'}",
+        "  replacement plan ids: "
+        + (", ".join(strings(record.get("replacement_plan_ids"))) or "<none>"),
         f"  tags: {preview(tags) if summary else ', '.join(tags) or '<none>'}",
         f"  cpp api surfaces: {preview(api_surfaces) if summary else ', '.join(api_surfaces) or '<none>'}",
         "  roadmap owner: "
@@ -7731,11 +8473,14 @@ def text_trace(record: dict[str, Any], summary: bool = False) -> str:
             for value in (mapping.get("document_id"), mapping.get("clause_id"))
             if value
         ) or "<unmapped section>"
-        title = mapping.get("title") or ""
-        lines.append(f"    - {requirement_id} -> {section}; {title}")
-        statement = mapping.get("statement")
-        if isinstance(statement, str) and statement.strip():
-            lines.append(f"      statement: {compact_prose(statement, 220)}")
+        if summary:
+            lines.append(f"    - {requirement_id} -> {section}")
+        else:
+            title = mapping.get("title") or ""
+            lines.append(f"    - {requirement_id} -> {section}; {title}")
+            statement = mapping.get("statement")
+            if isinstance(statement, str) and statement.strip():
+                lines.append(f"      statement: {compact_prose(statement, 220)}")
     remaining = len(mappings) - len(shown)
     if remaining > 0:
         lines.append(f"    - ... (+{remaining}); use trace --json for all rows")
@@ -7914,6 +8659,7 @@ def matrix_crosswalk_rows(
                     "requirement_titles": {},
                     "tests": [],
                     "assertion_count": 0,
+                    "assertions_unspecified_test_count": 0,
                     "pair_count": 0,
                 },
             )
@@ -7932,6 +8678,8 @@ def matrix_crosswalk_rows(
                 assertions = test.get("assertions")
                 if isinstance(assertions, int):
                     group["assertion_count"] += assertions
+                else:
+                    group["assertions_unspecified_test_count"] += 1
                 group["tests"].append(
                     {
                         "id": test_id,
@@ -7962,6 +8710,9 @@ def matrix_crosswalk_rows(
             "pair_count": group["pair_count"],
             "test_count": len(tests_for_group),
             "assertion_count": group["assertion_count"],
+            "assertions_unspecified_test_count": group[
+                "assertions_unspecified_test_count"
+            ],
             "tests": tests_for_group[:8],
         }
         if len(tests_for_group) > 8:
@@ -7988,15 +8739,59 @@ def text_matrix_crosswalk_row(row: dict[str, Any]) -> str:
         case_preview += f", ... (+{remaining})"
     sections = ", ".join(strings(row.get("standard_sections"))) or "<none>"
     requirements = ", ".join(strings(row.get("lab_requirement_ids"))) or "<none>"
+    assertion_count = row.get("assertion_count", 0)
+    unspecified_assertion_cases = row.get("assertions_unspecified_test_count", 0)
+    test_count = row.get("test_count", 0)
+    if isinstance(unspecified_assertion_cases, int) and unspecified_assertion_cases:
+        if isinstance(test_count, int) and unspecified_assertion_cases >= test_count:
+            assertion_text = "<unspecified>"
+        else:
+            assertion_text = (
+                f"{assertion_count} recorded; "
+                f"{unspecified_assertion_cases} unspecified"
+            )
+    else:
+        assertion_text = str(assertion_count)
     lines = [
         f"- {key}: tests={row.get('test_count', 0)} "
-        f"pairs={row.get('pair_count', 0)} assertions={row.get('assertion_count', 0)}",
+        f"pairs={row.get('pair_count', 0)} assertions={assertion_text}",
         f"  cases: {case_preview}",
     ]
     if group_by == "requirement":
         lines.append(f"  standard_sections: {sections}")
     else:
         lines.append(f"  requirements: {requirements}")
+    return "\n".join(lines)
+
+
+def text_search_summary_row(test: dict[str, Any]) -> str:
+    """Render a small search hit; use ``case`` for the mapping details."""
+
+    requirements = strings(test.get("lab_requirement_ids"))
+    sections = strings(test.get("standard_sections"))
+    mappings = requirement_section_mapping_rows(test)
+    mapping_preview_limit = 1
+    mapping_preview = [
+        f"{row.get('lab_requirement_id') or '<unnamed requirement>'} -> "
+        f"{row.get('standard_section') or '<unresolved>'}"
+        for row in mappings[:mapping_preview_limit]
+    ]
+    if len(mappings) > mapping_preview_limit:
+        mapping_preview.append(f"... (+{len(mappings) - mapping_preview_limit})")
+    api_surfaces = strings(
+        test.get("selected_cpp_api_surface_ids") or test.get("cpp_api_surfaces")
+    )
+    lines = [
+        f"- {test.get('id', '<unnamed>')}: {test.get('test_case', '<unnamed test>')}",
+        f"  status={test.get('status', '<unspecified>')}; "
+        f"source={source_location_text(test)}; "
+        f"assertions={test.get('assertions', '<unspecified>')}; "
+        f"traceability={traceability_state(test)}; "
+        f"requirements={len(requirements)}; sections={len(sections)}; "
+        f"direct_pairs={len(mappings)}; api_surfaces={len(api_surfaces)}",
+    ]
+    if mapping_preview:
+        lines.append("  requirement_section_mappings: " + ", ".join(mapping_preview))
     return "\n".join(lines)
 
 
@@ -8031,12 +8826,20 @@ def text_query_summary_row(
                 # case makes a bounded lookup look like a fuzzy aggregate.
                 mapping_rows = matched_rows
             elif command == "requirement":
+                # Use the discovery matcher for contract/clause/document
+                # queries too; filtering only by a literal Lab id loses the
+                # direct pairs for otherwise valid reverse lookups.
+                matched_ids = {
+                    requirement.get("lab_requirement_id")
+                    for requirement in test.get("requirements", [])
+                    if isinstance(requirement, dict)
+                    and select_tests([{"requirements": [requirement]}], query, "requirement")
+                }
                 matched_rows = [
                     row
                     for row in mapping_rows
                     if isinstance(row, dict)
-                    and str(row.get("lab_requirement_id") or "").casefold()
-                    == query.casefold()
+                    and row.get("lab_requirement_id") in matched_ids
                 ]
                 mapping_rows = matched_rows
         return text_matrix_row(
@@ -8111,8 +8914,8 @@ def select_search_tests(
     normalized_terms = [search_key(query) for query in queries if search_key(query)]
     if not normalized_terms:
         return []
-    selected: list[dict[str, Any]] = []
-    for test in tests:
+    selected: list[tuple[tuple[int, int, int, int], int, dict[str, Any]]] = []
+    for position, test in enumerate(tests):
         values = [search_key(value) for value in test_search_values(test)]
         if all_terms:
             matches = all(
@@ -8123,8 +8926,38 @@ def select_search_tests(
                 any(term in value for value in values) for term in normalized_terms
             )
         if matches:
-            selected.append(test)
-    return selected
+            primary_values = [
+                search_key(value)
+                for field in ("id", "test_case", "tags", "selected_cpp_api_surface_ids")
+                for value in strings(test.get(field))
+            ]
+            title_values = [
+                search_key(value)
+                for value in (test.get("id"), test.get("test_case"))
+                if isinstance(value, str)
+            ]
+            primary_matches = sum(
+                any(term in value for value in primary_values)
+                for term in normalized_terms
+            )
+            title_matches = sum(
+                any(term in value for value in title_values)
+                for term in normalized_terms
+            )
+            phrase = search_key(" ".join(queries))
+            exact_title_phrase = int(
+                bool(phrase)
+                and any(phrase in value for value in title_values)
+            )
+            score = (
+                exact_title_phrase,
+                int(primary_matches == len(normalized_terms)),
+                primary_matches,
+                title_matches,
+            )
+            selected.append((score, position, test))
+    selected.sort(key=lambda row: (tuple(-part for part in row[0]), row[1]))
+    return [test for _score, _position, test in selected]
 
 
 def select_tests(tests: list[dict[str, Any]], query: str, mode: str) -> list[dict[str, Any]]:
@@ -8204,7 +9037,18 @@ def select_tests(tests: list[dict[str, Any]], query: str, mode: str) -> list[dic
 
 
 def build_parser() -> argparse.ArgumentParser:
-    value = argparse.ArgumentParser(description=__doc__)
+    value = argparse.ArgumentParser(
+        description=(
+            "Read-only RTI work and traceability queries against the pinned 2025 "
+            "baseline. Start with 'resume'; use 'case' for one test's source, "
+            "requirement/subsection pairs and focused execution handles."
+        ),
+        epilog=(
+            "Command card: docs/planning/QUERY-CARD.md. "
+            "Use '<command> --help' for options; --summary --compact for bounded "
+            "detail. No command here synchronizes the Requirements Lab."
+        ),
+    )
     value.add_argument("--index", type=Path, default=DEFAULT_INDEX)
     value.add_argument("--plan", type=Path, default=DEFAULT_PLAN)
     value.add_argument("--bundle", type=Path, default=DEFAULT_BUNDLE)
@@ -8399,8 +9243,8 @@ def build_parser() -> argparse.ArgumentParser:
     roadmap.add_argument(
         "--limit",
         type=int,
-        default=12,
-        help="maximum family rows to print (default: 12; use 0 for all)",
+        default=None,
+        help="maximum family rows (default: 3 in text, 12 with JSON/verbose; 0 for all)",
     )
     add_output_flags(roadmap)
     ready = subcommands.add_parser(
@@ -8486,8 +9330,8 @@ def build_parser() -> argparse.ArgumentParser:
     item.add_argument(
         "--limit",
         type=int,
-        default=20,
-        help="maximum tests to print (default: 20; use 0 for all)",
+        default=5,
+        help="maximum tests to print (default: 5; use 0 for all)",
     )
     add_output_flags(item)
     plan_outline = subcommands.add_parser(
@@ -8674,8 +9518,8 @@ def build_parser() -> argparse.ArgumentParser:
     requirement.add_argument(
         "--limit",
         type=int,
-        default=20,
-        help="maximum tests to print (default: 20; use 0 for all)",
+        default=None,
+        help="maximum tests (default: 5 in text, 20 with JSON/verbose; 0 for all)",
     )
     add_output_flags(requirement)
     section = subcommands.add_parser(
@@ -8686,8 +9530,8 @@ def build_parser() -> argparse.ArgumentParser:
     section.add_argument(
         "--limit",
         type=int,
-        default=20,
-        help="maximum tests to print (default: 20; use 0 for all)",
+        default=None,
+        help="maximum tests (default: 5 in text, 20 with JSON/verbose; 0 for all)",
     )
     add_output_flags(section)
     trace = subcommands.add_parser(
@@ -8773,8 +9617,8 @@ def build_parser() -> argparse.ArgumentParser:
     search.add_argument(
         "--limit",
         type=int,
-        default=20,
-        help="maximum tests to print (default: 20; use 0 for all)",
+        default=None,
+        help="maximum tests (default: 5 in text, 20 with JSON/verbose; 0 for all)",
     )
     add_output_flags(search)
     unplanned = subcommands.add_parser(
@@ -8904,6 +9748,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     arguments = build_parser().parse_args()
+    discovery_commands = {"requirement", "section", "search"}
+    if arguments.command in discovery_commands | {"roadmap"}:
+        if arguments.limit is None:
+            detailed = arguments.json or arguments.verbose
+            arguments.limit = (12 if detailed else 3) if arguments.command == "roadmap" else (20 if detailed else 5)
+        if arguments.command == "roadmap" and not arguments.json and not arguments.verbose:
+            arguments.compact = True
     if arguments.command == "lab-issues":
         try:
             result = lab_issues_snapshot(
@@ -8971,7 +9822,10 @@ def main() -> int:
         index = load_json(arguments.index)
         plan = load_json(arguments.plan)
         bundle = load_json(arguments.bundle)
-        standard_requirements = load_standard_requirements(bundle)
+        standard_requirements = load_standard_requirements(
+            bundle,
+            arguments.contract_directory,
+        )
         contract_links = load_contract_links(arguments.contract_directory)
         # Keep the normal roadmap/test queries cheap and bounded.  The reverse
         # contract index is built only for the explicit discovery view; it is
@@ -9071,8 +9925,10 @@ def main() -> int:
             f"{roadmap_counts.get('complete', 0)} roadmap items complete, "
             f"{roadmap_counts.get('open', 0)} open; "
             f"{plan_counts.get('catch2_plan_cases', 0)} Catch2 cases, "
-            f"{plan_counts.get('mapped_cases', 0)} mapped, "
-            f"{plan_counts.get('unmapped_cases', 0)} unmapped."
+            f"{plan_counts.get('mapped_cases', 0)} requirement-mapped, "
+            f"{plan_counts.get('unmapped_cases', 0)} without a requirement mapping "
+            f"({plan_counts.get('explicit_unmapped_dispositions', 0)} explicitly dispositioned; "
+            f"{plan_counts.get('unclassified_unmapped_cases', 0)} unclassified)."
         )
         print(
             "Mapping health: "
@@ -9088,51 +9944,50 @@ def main() -> int:
                 f"family={next_card.get('family_id', '?')} "
                 f"lane={next_card.get('source_lane') or '<none>'}"
             )
+            if next_card.get("plan_id"):
+                plan_label = (
+                    "proposed_plan_id"
+                    if next_card.get("plan_id_status") == "proposed"
+                    else "plan_id"
+                )
+                print(f"  {plan_label}={next_card['plan_id']}")
             print(
                 f"  case={compact_prose(next_card.get('test_case'), 220)} "
-                f"plan_id={next_card.get('plan_id') or '<none>'} "
                 f"source={next_card.get('source_location') or next_card.get('source_target') or '<unlocated>'}"
             )
             if next_card.get("ctest_target"):
                 print(f"  ctest_target={next_card['ctest_target']}")
+            if next_card.get("ctest_filter"):
+                print(f"  ctest_filter={next_card['ctest_filter']}")
             print(
-                "  mapping="
-                f"{next_card.get('requirement_count', 0)} requirements; "
+                ("  mapping_seed_only=" if next_card.get("mapping_seed_plan_id") else "  mapping=")
+                + f"{next_card.get('requirement_count', 0)} requirements; "
                 f"{next_card.get('standard_section_count', 0)} sections; "
                 f"{next_card.get('requirement_section_pair_count', 0)} direct pairs; "
                 f"{next_card.get('cpp_api_surface_count', 0)} APIs"
             )
-
-            def resume_preview(values: Any, remaining_key: str) -> str:
-                preview = strings(values)
-                if not preview:
-                    return "<none>"
-                remaining = next_card.get(remaining_key, 0)
-                suffix = f", ... (+{remaining})" if remaining else ""
-                return ", ".join(preview) + suffix
-
-            if next_card.get("requirement_ids"):
-                print(
-                    "  requirements="
-                    + resume_preview(next_card.get("requirement_ids"), "requirement_ids_remaining")
-                )
-            if next_card.get("standard_sections"):
-                print(
-                    "  standard_sections="
-                    + resume_preview(next_card.get("standard_sections"), "standard_sections_remaining")
-                )
-            pairs = next_card.get("requirement_section_pairs")
-            if isinstance(pairs, list) and pairs:
-                pair_text = ", ".join(
-                    f"{pair.get('lab_requirement_id')} -> {pair.get('standard_section') or '<unresolved>'}"
-                    for pair in pairs
+            mapping_pairs = next_card.get("requirement_section_pairs")
+            if isinstance(mapping_pairs, list) and mapping_pairs:
+                pair_text = [
+                    f"{pair.get('lab_requirement_id')} -> {pair.get('standard_section')}"
+                    for pair in mapping_pairs[:4]
                     if isinstance(pair, dict)
-                )
-                remaining = next_card.get("requirement_section_pairs_remaining", 0)
-                if remaining:
-                    pair_text += f", ... (+{remaining})"
+                    and pair.get("lab_requirement_id")
+                    and pair.get("standard_section")
+                ]
+                remaining_pairs = max(0, len(mapping_pairs) - len(pair_text))
                 if pair_text:
-                    print(f"  direct_pairs={pair_text}")
+                    suffix = f"; +{remaining_pairs} more" if remaining_pairs else ""
+                    print("  mapping_pairs=" + "; ".join(pair_text) + suffix)
+
+            for handle_name in (
+                "case_command",
+                "matrix_requirement_command",
+                "matrix_section_command",
+            ):
+                handle = next_card.get(handle_name)
+                if isinstance(handle, str) and handle:
+                    print(f"  {handle_name.removesuffix('_command')}={handle}")
             if next_card.get("next_action"):
                 print(f"  next={compact_prose(next_card.get('next_action'), 260)}")
             if next_card.get("mapping_seed_plan_id"):
@@ -9171,6 +10026,12 @@ def main() -> int:
                         f"requirements={option.get('requirement_count', 0)} "
                         f"sections={option.get('standard_section_count', 0)}"
                     )
+                    next_action = option.get("next_action")
+                    if isinstance(next_action, str) and next_action.strip():
+                        print(
+                            "  next_action="
+                            f"{compact_prose(next_action, 360)}"
+                        )
                     for name in (
                         "work_query",
                         "lane_discovery_command",
@@ -9182,29 +10043,14 @@ def main() -> int:
                         handle = option.get(name)
                         if isinstance(handle, str) and handle:
                             print(f"  {name.removesuffix('_command')}={handle}")
-                    for line in text_gap_preview(option):
-                        print(line)
+                    if not (arguments.summary or arguments.compact):
+                        for line in text_gap_preview(option):
+                            print(line)
                 remaining = next_card.get("family_options_remaining", 0)
                 if remaining:
                     print(f"  ... {remaining} more family choice(s); use dashboard for the preview")
         else:
             print("Next: no bounded indexed handoff")
-
-        deferred = result.get("deferred_slices")
-        if isinstance(deferred, list) and deferred:
-            first_deferred = deferred[0]
-            if isinstance(first_deferred, dict):
-                print(
-                    "Deferred seam: "
-                    f"{first_deferred.get('id', '<unnamed>')} "
-                    f"[{first_deferred.get('state', '<unspecified>')}] "
-                    f"lane={first_deferred.get('lane', '<none>')}"
-                )
-                if first_deferred.get("next_step"):
-                    print(
-                        "  next_step="
-                        + compact_prose(first_deferred.get("next_step"), 300)
-                    )
 
         latest = result.get("latest_completed_slice")
         if isinstance(latest, dict):
@@ -9216,39 +10062,13 @@ def main() -> int:
                 f"{latest.get('requirements', '?')} requirements; "
                 f"{latest.get('standard_sections', '?')} sections)"
             )
-        verified_restore = result.get("latest_verified_restore_slice")
-        if isinstance(verified_restore, dict):
-            verification = verified_restore.get("verification")
-            run_count = (
-                verification.get("focused_runs")
-                if isinstance(verification, dict)
-                else None
-            )
-            print(
-                "Verified fix: "
-                f"{verified_restore.get('id', '<unnamed>')} "
-                f"({run_count if run_count is not None else '?'} focused C++ runs)"
-            )
-            queries = verified_restore.get("queries")
-            if isinstance(queries, dict) and queries.get("representative_case"):
-                print(
-                    "  verified_case="
-                    + queries["representative_case"]
-                )
         handles = result.get("handles")
         if isinstance(handles, dict):
             selected_handles = [
                 (name, handles.get(name))
                 for name in (
-                    "work",
-                    "trace",
-                    "matrix",
-                    "focus",
-                    "lane_check",
-                    "post_mapping_focus",
-                    "post_mapping_check",
                     "ready",
-                    "check",
+                    "post_mapping_check",
                 )
                 if isinstance(handles.get(name), str) and handles.get(name)
             ]
@@ -9388,9 +10208,15 @@ def main() -> int:
                 print(
                     "   test: "
                     f"{compact_prose(next_card.get('test_case'), 180)} "
-                    f"plan_id={next_card.get('plan_id', '<none>')} "
                     f"source={next_card.get('source_location') or next_card.get('source_target') or '<unlocated>'}"
                 )
+                if next_card.get("plan_id"):
+                    plan_label = (
+                        "proposed_plan_id"
+                        if next_card.get("plan_id_status") == "proposed"
+                        else "plan_id"
+                    )
+                    print(f"   {plan_label}={next_card['plan_id']}")
                 print(
                     "   mapping: "
                     f"{next_card.get('assertion_count') or '<unrecorded>'} assertions; "
@@ -9495,6 +10321,8 @@ def main() -> int:
                         f"direct_pairs={option.get('requirement_section_pair_count', 0)} "
                         f"work={option.get('work_query') or '<none>'}"
                     )
+                    if arguments.summary:
+                        continue
                     if option.get("lane_discovery_command"):
                         print(
                             "      lane_discovery="
@@ -9517,8 +10345,9 @@ def main() -> int:
                             "      matrix_sections="
                             f"{option['matrix_section_command']}"
                         )
-                    for line in text_gap_preview(option, prefix="      "):
-                        print(line)
+                    if not arguments.summary:
+                        for line in text_gap_preview(option, prefix="      "):
+                            print(line)
             elif (
                 isinstance(next_card, dict)
                 and next_card.get("state") == "none"
@@ -10241,7 +11070,7 @@ def main() -> int:
             )
             if owner.get("id") != roadmap_owner.get("id"):
                 print(
-                    f"active_pointer: {owner.get('id', '<none>')}: "
+                    f"fallback_queue_pointer: {owner.get('id', '<none>')}: "
                     f"{owner.get('title', '<unnamed roadmap family>')}"
                 )
             print(f"state: {ready_result.get('state')}")
@@ -10273,8 +11102,30 @@ def main() -> int:
                 print("standard_sections: " + ", ".join(standard_sections[:8]))
             if ready_result.get("trace_command"):
                 print(f"trace_command: {ready_result['trace_command']}")
+            if ready_result.get("case_command"):
+                print(f"case_command: {ready_result['case_command']}")
+            if ready_result.get("matrix_requirement_command"):
+                print(
+                    "matrix_requirement_command: "
+                    f"{ready_result['matrix_requirement_command']}"
+                )
+            if ready_result.get("matrix_section_command"):
+                print(
+                    "matrix_section_command: "
+                    f"{ready_result['matrix_section_command']}"
+                )
             if ready_result.get("seed_trace_command"):
                 print(f"seed_trace_command: {ready_result['seed_trace_command']}")
+            if ready_result.get("seed_matrix_requirement_command"):
+                print(
+                    "seed_matrix_requirement_command: "
+                    f"{ready_result['seed_matrix_requirement_command']}"
+                )
+            if ready_result.get("seed_matrix_section_command"):
+                print(
+                    "seed_matrix_section_command: "
+                    f"{ready_result['seed_matrix_section_command']}"
+                )
             if ready_result.get("mapping_seed_plan_id"):
                 print(
                     "mapping_seed: "
@@ -10613,6 +11464,26 @@ def main() -> int:
             )
         for row in result["families"]:
             counts = row.get("live_mapping_counts") or {}
+            if arguments.summary:
+                print(
+                    f"- {row.get('id', '<unnamed>')}: "
+                    f"status={row.get('status', '<unspecified>')} "
+                    f"action={row.get('action_state', '<unspecified>')} "
+                    f"cases={row.get('matching_test_count', 0)} "
+                    f"mapped={counts.get('mapped_case_count', 0)} "
+                    f"candidates={counts.get('executable_candidate_count', 0)} "
+                    f"requirements={counts.get('requirement_count', 0)} "
+                    f"sections={counts.get('standard_section_count', 0)} "
+                    f"pairs={counts.get('requirement_section_pair_count', 0)}"
+                )
+                print(
+                    "  work=python tools/query_rti_work.py work "
+                    f"{row.get('id', '<unnamed>')} --summary --compact"
+                )
+                action = row.get("next_action")
+                if isinstance(action, str) and action.strip():
+                    print(f"  next={compact_prose(action, 180)}")
+                continue
             print(
                 f"- {row.get('id', '<unnamed>')} [{row.get('kind', '<unspecified>')}] "
                 f"priority={row.get('priority', '<unspecified>')} "
@@ -10698,7 +11569,9 @@ def main() -> int:
                         )
                     for label in (
                         "focus_command",
+                        "representative_case_command",
                         "representative_trace_command",
+                        "next_case_command",
                         "next_trace_command",
                         "ctest_command",
                     ):
@@ -10768,7 +11641,15 @@ def main() -> int:
                                 + suffix
                             )
             commands = row.get("commands") or {}
-            for label in ("work", "focus", "matrix"):
+            for label in (
+                "case",
+                "trace",
+                "matrix_requirement",
+                "matrix_section",
+                "work",
+                "focus",
+                "matrix",
+            ):
                 if commands.get(label):
                     print(f"  {label}: {commands[label]}")
             action = row.get("next_action")
@@ -10795,7 +11676,10 @@ def main() -> int:
             if result.get("requested_family"):
                 print(f"family_selection: {result['requested_family']}")
             if result.get("selection_required"):
-                print("select one bounded family action (no Requirements Lab rescan)")
+                print(
+                    "no executable indexed C++ case is ready; select one bounded "
+                    "roadmap action (no Requirements Lab rescan)"
+                )
                 if result.get("recommended_family_id"):
                     print(f"recommended_family: {result['recommended_family_id']}")
                 if result.get("family_choice_command"):
@@ -10824,7 +11708,14 @@ def main() -> int:
                     )
                     requirement_preview = option.get("requirement_ids_preview") or []
                     section_preview = option.get("standard_sections_preview") or []
-                    if result.get("requested_family") and requirement_preview:
+                    show_mapping_preview = not (
+                        arguments.summary or arguments.compact
+                    )
+                    if (
+                        result.get("requested_family")
+                        and requirement_preview
+                        and show_mapping_preview
+                    ):
                         suffix = (
                             f", ... (+{option.get('requirement_ids_remaining', 0)})"
                             if option.get("requirement_ids_remaining")
@@ -10835,7 +11726,11 @@ def main() -> int:
                             + ",".join(requirement_preview)
                             + suffix
                         )
-                    if result.get("requested_family") and section_preview:
+                    if (
+                        result.get("requested_family")
+                        and section_preview
+                        and show_mapping_preview
+                    ):
                         suffix = (
                             f", ... (+{option.get('standard_sections_remaining', 0)})"
                             if option.get("standard_sections_remaining")
@@ -10847,7 +11742,11 @@ def main() -> int:
                             + suffix
                         )
                     pair_preview = option.get("requirement_section_pairs_preview") or []
-                    if result.get("requested_family") and pair_preview:
+                    if (
+                        result.get("requested_family")
+                        and pair_preview
+                        and show_mapping_preview
+                    ):
                         pairs = ", ".join(
                             f"{pair.get('lab_requirement_id')} -> {pair.get('standard_section') or '<unresolved>'}"
                             for pair in pair_preview
@@ -10897,8 +11796,9 @@ def main() -> int:
                             "  matrix_sections="
                             f"{option['matrix_section_command']}"
                         )
-                    for line in text_gap_preview(option):
-                        print(line)
+                    if not (arguments.summary or arguments.compact):
+                        for line in text_gap_preview(option):
+                            print(line)
                     if option.get("next_action"):
                         # The exhausted-queue response is itself an
                         # implementation handoff. Keep the action visible in
@@ -10930,7 +11830,7 @@ def main() -> int:
         )
         if owner.get("id") != roadmap_owner.get("id"):
             print(
-                f"active_pointer: {owner.get('id', '<none>')}: "
+                f"fallback_queue_pointer: {owner.get('id', '<none>')}: "
                 f"{owner.get('title', '<unnamed roadmap family>')}"
             )
         print(f"state: {result.get('state')}")
@@ -10942,7 +11842,12 @@ def main() -> int:
         if result.get("family_id"):
             print(f"family: {result['family_id']}")
         if result.get("plan_id"):
-            print(f"plan_id: {result['plan_id']}")
+            plan_label = (
+                "proposed_plan_id"
+                if result.get("plan_id_status") == "proposed"
+                else "plan_id"
+            )
+            print(f"{plan_label}: {result['plan_id']}")
         print(f"test: {result.get('test_case', '<unnamed>')}")
         if result.get("source_location"):
             print(f"source: {result['source_location']}")
@@ -10973,16 +11878,30 @@ def main() -> int:
                 return ", ".join(values)
             return f"{', '.join(values[:limit])}, ... (+{len(values) - limit})"
 
-        if result.get("requirement_ids"):
+        ready_pairs = result.get("requirement_section_pairs")
+        has_ready_pairs = isinstance(ready_pairs, list) and bool(ready_pairs)
+        if result.get("requirement_ids") and not (arguments.compact and has_ready_pairs):
             print(
                 "requirements: "
                 f"{ready_preview(strings(result['requirement_ids']))}"
             )
-        if result.get("standard_sections"):
+        if result.get("standard_sections") and not (arguments.compact and has_ready_pairs):
             print(
                 "standard_sections: "
                 f"{ready_preview(strings(result['standard_sections']))}"
             )
+        if has_ready_pairs:
+            pair_text = [
+                f"{pair.get('lab_requirement_id')} -> {pair.get('standard_section')}"
+                for pair in ready_pairs[:4]
+                if isinstance(pair, dict)
+                and pair.get("lab_requirement_id")
+                and pair.get("standard_section")
+            ]
+            if pair_text:
+                remaining_pairs = max(0, len(ready_pairs) - len(pair_text))
+                suffix = f"; +{remaining_pairs} more" if remaining_pairs else ""
+                print("direct_pairs: " + "; ".join(pair_text) + suffix)
         if result.get("api_surfaces") and not arguments.compact:
             print(f"api_surfaces: {', '.join(result['api_surfaces'])}")
         if result.get("planned_queue_count"):
@@ -11009,17 +11928,27 @@ def main() -> int:
         if result.get("acceptance") and not arguments.compact:
             for acceptance in result["acceptance"]:
                 print(f"acceptance: {acceptance}")
-        for label in (
-            "trace_command",
-            "seed_trace_command",
-            "implementation_command",
-            "focus_command",
-            "check_command",
-            "post_mapping_focus_command",
-            "post_mapping_check_command",
+        for display_name, field_name in (
+            ("case", "case_command"),
+            ("matrix_requirements", "matrix_requirement_command"),
+            ("matrix_sections", "matrix_section_command"),
+            ("trace_command", "trace_command"),
+            ("seed_trace_command", "seed_trace_command"),
+            ("seed_matrix_requirement_command", "seed_matrix_requirement_command"),
+            ("seed_matrix_section_command", "seed_matrix_section_command"),
+            ("implementation_command", "implementation_command"),
+            ("focus_command", "focus_command"),
+            ("check_command", "check_command"),
+            ("post_mapping_focus_command", "post_mapping_focus_command"),
+            ("post_mapping_check_command", "post_mapping_check_command"),
         ):
-            if result.get(label):
-                print(f"{label}: {result[label]}")
+            if result.get(field_name):
+                separator = "=" if display_name in {
+                    "case",
+                    "matrix_requirements",
+                    "matrix_sections",
+                } else ": "
+                print(f"{display_name}{separator}{result[field_name]}")
         return 0
 
     if arguments.command == "focus":
@@ -11169,7 +12098,7 @@ def main() -> int:
                 f"(status {result.get('work_status')})"
             )
             if result.get("task"):
-                print(f"task: {compact_prose(result['task'], 240)}")
+                print(f"task: {compact_prose(result['task'], 360)}")
             if result.get("lane"):
                 lane_count = result.get("lane_case_count")
                 suffix = f" ({lane_count} cases)" if lane_count is not None else ""
@@ -11270,13 +12199,20 @@ def main() -> int:
                 requirement_preview = strings(
                     work_mapping.get("requirement_ids_preview")
                 )
-                if requirement_preview:
+                show_mapping_preview = not (
+                    arguments.summary or arguments.compact
+                )
+                if requirement_preview and show_mapping_preview:
                     print(f"work_requirements: {', '.join(requirement_preview)}")
                 section_preview = strings(work_mapping.get("standard_sections_preview"))
-                if section_preview:
+                if section_preview and show_mapping_preview:
                     print(f"work_standard_sections: {', '.join(section_preview)}")
                 pair_preview = work_mapping.get("requirement_section_pairs_preview")
-                if isinstance(pair_preview, list) and pair_preview:
+                if (
+                    isinstance(pair_preview, list)
+                    and pair_preview
+                    and show_mapping_preview
+                ):
                     pairs = [
                         f"{row.get('lab_requirement_id')} -> {row.get('standard_section')}"
                         for row in pair_preview
@@ -11295,7 +12231,7 @@ def main() -> int:
                 f"catalog_gaps={len(strings(result.get('catalog_gap_plan_ids')))}"
             )
             if result.get("next_action"):
-                print(f"next_action: {compact_prose(result['next_action'], 240)}")
+                print(f"next_action: {compact_prose(result['next_action'], 360)}")
             if result.get("process_package_junit_artifact"):
                 print(
                     "process_package_junit_artifact: "
@@ -11688,6 +12624,41 @@ def main() -> int:
             if arguments.summary:
                 result["tests"] = [test_summary_data(test) for test in shown_tests]
             print(json.dumps(result, indent=2, sort_keys=True))
+            return 0
+        if arguments.summary:
+            print(f"{item_value.get('id')}: {item_value.get('title')}")
+            print(
+                f"status={item_value.get('status')}; "
+                f"priority={item_value.get('priority')}; "
+                f"cases={len(matching_tests)}; showing={len(shown_tests)}"
+            )
+            live_focus = live_item_focus(item_value, matching_tests, index=index)
+            if live_focus:
+                print(f"focus={compact_prose(live_focus, 180)}")
+            live_action = live_next_action(item_value)
+            if live_action:
+                print(f"next={compact_prose(live_action, 180)}")
+            for test in shown_tests:
+                requirements = strings(test.get("lab_requirement_ids"))
+                sections = strings(test.get("standard_sections"))
+                pair_count = len(requirement_section_mapping_rows(test))
+                query = test.get("id") or test.get("test_case") or "<unnamed>"
+                print(
+                    f"- {query}: {compact_prose(test.get('test_case'), 120)}; "
+                    f"state={test.get('status', '<unspecified>')}; "
+                    f"source={source_location_text(test)}; "
+                    f"requirements={len(requirements)}; sections={len(sections)}; "
+                    f"direct_pairs={pair_count}"
+                )
+                print(
+                    "  case=python tools/query_rti_work.py case "
+                    f'"{query}" --summary --compact'
+                )
+            if len(shown_tests) < len(matching_tests):
+                print(
+                    f"... {len(matching_tests) - len(shown_tests)} more cases; "
+                    "use --limit 0 to list all or query one exact case for mappings"
+                )
             return 0
         print(f"{item_value.get('id')}: {item_value.get('title')}")
         print(f"status: {item_value.get('status')}; priority: {item_value.get('priority')}")
@@ -12556,6 +13527,7 @@ def main() -> int:
                             "status",
                             "source_locations",
                             "source_state",
+                            "replacement_plan_ids",
                             "assertions",
                             "callback_models",
                             "requirements",
@@ -12849,13 +13821,35 @@ def main() -> int:
     # ``matrix`` so ``section``/``requirement`` do not expand into a large
     # repeated report.  The full ``test`` view remains available when callers
     # need every field.
-    if arguments.summary:
-        renderer = lambda test: text_query_summary_row(
-            arguments.command,
-            test,
-            index,
-            getattr(arguments, "query", None),
-        )
+    if arguments.summary or (arguments.command in discovery_commands and not arguments.verbose):
+        def renderer(test: dict[str, Any]) -> str:
+            if arguments.command == "search":
+                row = (
+                    text_test(test, True, arguments.compact)
+                    if arguments.verbose
+                    else text_search_summary_row(test)
+                )
+            else:
+                row = text_query_summary_row(
+                    arguments.command,
+                    test,
+                    index,
+                    getattr(arguments, "query", None),
+                )
+            if arguments.command in discovery_commands:
+                case_id = json.dumps(str(test.get("id")), ensure_ascii=False)
+                case_handle = f"case: python tools/query_rti_work.py case {case_id}"
+                if arguments.command == "search":
+                    # Search is the broadest normal discovery surface. Keep
+                    # five-hit output within its line budget by attaching the
+                    # exact follow-up to the bounded mapping preview.
+                    row += f"; {case_handle}"
+                else:
+                    row += f"\n  {case_handle}"
+            return row
+
+        if arguments.command in discovery_commands:
+            print("Use the case command for focused execution; --verbose for provenance; --limit 0 for all matches.")
     else:
         renderer = lambda test: text_test(
             test,

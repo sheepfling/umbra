@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The subject publishes two distinct adapter-selected ordinary interaction classes and withdraws both using IEEE 1516.1-2025 Unpublish Interaction Class. A fresh IEEE 1516.2-2025 HLArequestPublications query must return the exact HLAreportInteractionPublication NULL response: one HLAinteractionClassList parameter with an empty encoded list. Independent object and directed-publication reports are also checked.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-mom-multiple-interaction-class-full-unpublication",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-093-l140-35",
+      "clause_id": "clause-5.5",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "482-491",
+      "source_symbol": "unpublishInteractionClass",
+      "statement": "The federate withdraws publication of both distinct adapter-selected ordinary interaction classes through the standard Unpublish Interaction Class service.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionClassFullUnpublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionClassFullUnpublicationQueryContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-mom-multiple-interaction-class-full-unpublication-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "1063-1069, 1262-1278",
+      "source_symbol": "HLAreportInteractionPublication",
+      "statement": "After neither ordinary interaction class remains published, the publication query returns the MIM NULL response containing exactly one HLAinteractionClassList parameter whose encoded list is empty.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionClassFullUnpublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionClassFullUnpublicationQueryContract"
+      ]
+    }
+  ]
+}

@@ -47,7 +47,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The embedded TransportationTypeHandle encoding is an HLAvariableArray-wrapped identity",
-    "[unit][kernel][transportation-type-handle][foundation]") {
+    "[unit][kernel][transportation-type-handle][foundation][handle-encoding]") {
   auto const handle = makeTransportationTypeHandle(0x0102030405060708ULL);
   std::array<unsigned char, 12> const expected{
       0x00, 0x00, 0x00, 0x08, 0x01, 0x02,

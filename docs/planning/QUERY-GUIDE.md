@@ -1,36 +1,38 @@
 # Roadmap and test traceability query guide
 
-This is the detailed reference. Start with the small
-[QUERY-CARD.md](QUERY-CARD.md) so a normal resume does not load the full
-example catalog.
+This is the detailed reference. Start with
+[ROADMAP-QUICKSTART.md](ROADMAP-QUICKSTART.md) so a normal resume does not load
+the full example catalog.
 
 Use this page as the detailed reference for selecting work. The checked-in
 roadmap index, Catch2 plan, pinned 2025 corpus, and derived C++ source
 locations are joined by `tools/query_rti_work.py`. The command is read-only;
-it does not rescan or rewrite the Requirements Lab. Once `next` identifies a
+it does not rescan or rewrite the Requirements Lab. Once `resume` identifies a
 slice, query that exact lane or test before opening source; a repository-wide
 search is not part of normal work selection.
 
 ## Start here
 
-Run these in order from the repository root:
+Run `resume` from the repository root for one current task (or one family
+choice when no task is queued). Select only the follow-up needed; this is not
+a sequence of required preflight queries:
 
 ```powershell
 python tools/query_rti_work.py resume
-python tools/query_rti_work.py lab-issues --summary --compact
-python tools/query_rti_work.py status --summary --compact
+# Acceptance criteria and target source
 python tools/query_rti_work.py ready --summary --compact
-python tools/query_rti_work.py work
-python tools/query_rti_work.py queue --summary --compact
-python tools/query_rti_work.py focus --summary --compact
-python tools/query_rti_work.py recent --summary --compact --limit 10
-python tools/query_rti_work.py check --lane process-boundary --compact
-python tools/query_rti_work.py trace "RTIambassador removes a regional subscription through a configured process endpoint" --summary
-python tools/query_rti_work.py test "Private process transport exchanges framed data after endpoint handshake" --summary --compact
-python tools/query_rti_work.py unplanned --path libxml2_fom_composer_catch2.cpp --summary
-python tools/query_rti_work.py check --compact
-python tools/query_rti_work.py check --json
+# Completion history
+python tools/query_rti_work.py recent --summary --compact
+# Exact source, direct requirement -> 2025 subsection pairs, and focused CTest
+python tools/query_rti_work.py case <exact-plan-id> --summary --compact
+# Reverse views for the selected case, lane, or family
+python tools/query_rti_work.py matrix <exact-handle> --group-by requirement --summary --compact
+python tools/query_rti_work.py matrix <exact-handle> --group-by section --summary --compact
 ```
+
+Open only the selected source location and run the focused CTest selector
+printed by its card. Consult the examples below only for a specific query
+question; historical slice descriptions do not select the current task.
 
 A preceding process Flush Queue slice remains intentionally one-command
 queryable. It is a 110-assertion native C++ case mapped to 22 pinned 2025
@@ -109,6 +111,11 @@ the remaining inventory.
 The dashboard also exposes the first source-only reconciliation declaration as
 `source_only_reconciliation`, including its source location and a bounded
 `ready_command`; use that opt-in only when reconciling an existing C++ case.
+
+Historical aggregate rows that were intentionally split are also explicit:
+`case`, `trace`, and `--summary` include `replacement_plan_ids`. Follow those
+exact plan IDs to the live focused cases instead of searching the source tree
+for a declaration that no longer exists.
 
 Each queue row also carries an `action_state`: `implementation`, `mapping`,
 `source-reconciliation`, `external-review`, `new-case-needed`, or
@@ -218,21 +225,19 @@ Use `test` or `search` only to discover an exact handle, then switch to `case`
 for implementation and review. This keeps a common one-case lookup from
 requiring separate plan, trace, matrix, and CTest searches.
 
-The current indexed snapshot is 1,285 Catch2 cases (1,221 mapped), including
-155 process-boundary cases and 6,717 indexed assertions; 6,869 assertions are
-recorded by the plan rows; no mapped row is
-currently planned, 64 rows are explicit no-standalone-surface dispositions,
-and zero mappings are unclassified. The latest completed 2025 slice is the
-HLA_IMMEDIATE restored ownership-assumption work-item lane; retrieve its full
-case/trace/matrix/check card with:
+The current indexed snapshot is read from the live query card. `resume` owns
+the current task selection; `ready --summary --compact` owns its acceptance
+criteria and target source, and `recent --summary --compact` supplies the
+completion history. Do not copy changing titles, counts, or next-task claims
+into this reference. Follow the returned exact plan id with `case` for source,
+direct requirement-to-2025-subsection pairs, and focused CTest handles; use
+`matrix <exact-handle> --group-by requirement` or `--group-by section` with
+`--summary --compact` only when a reverse view is needed.
 
-```powershell
-python tools/query_rti_work.py case umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration --summary --compact
-python tools/query_rti_work.py focus process-federation-restore-work-item-ownership-assumption-immediate --summary --compact
-python tools/query_rti_work.py trace umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration --summary --compact
-python tools/query_rti_work.py matrix umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration --summary --compact
-python tools/query_rti_work.py check --lane process-federation-restore-work-item-ownership-assumption-immediate --summary --compact
-```
+A proposed new-case handoff is not a live plan row, and its mapping seed is
+not evidence. Establish the new case's own direct requirement/subsection
+pairs before promotion. Completed lanes remain independently queryable; their
+historical examples below do not replace the indexed current handoff.
 
 The other completed 2025 slices are the
 durable HLA_EVOKED pushed ownership-assumption save/restore lane, its no-save
@@ -793,6 +798,53 @@ Keep FOM composition/identity separate from delivery, timestamped, DDM,
 save/restore, package, and conformance evidence. `ready --summary --compact`
 selects the next indexed handoff; an unlocated row is a source-reconciliation
 queue item until a focused C++ declaration exists.
+
+The pinned Summary Rule 1 requirement now has its own exact FOM-presence lane:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-fom-summary-rule-1-integration --summary --compact
+python tools/query_rti_work.py focus fom-summary-rule-1 --summary --compact
+python tools/query_rti_work.py matrix fom-summary-rule-1 --group-by section --summary --compact
+python tools/query_rti_work.py check --lane fom-summary-rule-1 --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.fom_declaration_management\.catch2\.Embedded joined federates retain a validated 2025 HLA FOM$" --output-on-failure
+```
+
+This 11-assertion HLA_EVOKED case maps `summary-rule-1` directly to
+`hla-1516-2025:clause-4` and proves the joined member can round-trip an OMT
+class and declared attribute through the official lookup APIs. It does not
+claim complete FOM/MIM composition or conformance.
+
+The next pinned Summary Rule 2 requirement reuses the focused object-instance
+registration/discovery case and is independently addressable:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-object-instance-registration-discovery-integration --summary --compact
+python tools/query_rti_work.py focus summary-rule-2 --summary --compact
+python tools/query_rti_work.py matrix summary-rule-2 --group-by section --summary --compact
+python tools/query_rti_work.py check --lane summary-rule-2 --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.object_instance_registration_discovery\.catch2\.Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle$" --output-on-failure
+```
+
+This 81-assertion HLA_EVOKED/HLA_IMMEDIATE case maps `summary-rule-2` to
+`hla-1516-2025:clause-4` as bounded public evidence that the application
+federate registers the object instance and the receiving federate discovers it.
+It does not claim exhaustive visibility into private RTI representation or
+conformance.
+
+Summary Rule 3 has a separate process-boundary handle:
+
+```powershell
+python tools/query_rti_work.py case umbra-cpp-process-federation-additional-fom-join-public-integration --summary --compact
+python tools/query_rti_work.py focus summary-rule-3 --summary --compact
+python tools/query_rti_work.py matrix summary-rule-3 --group-by section --summary --compact
+python tools/query_rti_work.py check --lane summary-rule-3 --summary --compact
+ctest --test-dir <build-dir> -C Debug -R "^umbra\.process_boundary_private\.catch2\.RTIambassador carries additional FOM modules through a configured process Join$" --output-on-failure
+```
+
+This 13-assertion case maps `summary-rule-3` to `hla-1516-2025:clause-4` as
+bounded evidence that FOM data crosses the configured RTI process boundary
+during Create/Join composition and becomes visible through official lookup.
+It does not claim every FOM exchange path, interoperability, or conformance.
 
 The latest object-lifecycle slice is the independently runnable unnamed
 object-instance registration/discovery case:
@@ -2928,9 +2980,10 @@ handshake/data exchange, verify the registry-bound service baseline, verify the
 independently launched process baseline, and then use the roadmap's
 `next_work_query` for the installable-profile process gate:
 
-The live `[process-boundary]` lane currently reports 155 mapped plan rows / 6,717
-indexed Catch2 assertions (6,869 assertions recorded by plan rows) and has no actionable unlocated rows; use the bounded
-`focus process-boundary` command above for the authoritative count. Its stable
+The live `[process-boundary]` lane's mapped-row, assertion, and source-health
+counts are intentionally not duplicated here; use the bounded
+`focus process-boundary --summary --compact` command above for the
+authoritative current card. Its stable
 CTest label selects 209 registered test instances. The JUnit target executes
 the 119 independently buildable registrations; its merged aggregate contains
 214 emitted section-level testcases and 5,458 assertions,
@@ -3023,7 +3076,7 @@ python tools/query_rti_work.py lane callback-controls --summary --compact
 python tools/query_rti_work.py test "Private process transport exchanges framed data after endpoint handshake" --summary --compact
 python tools/query_rti_work.py test "Private process service binds create join and receive-order interaction to the federation registry" --summary --compact
 python tools/query_rti_work.py test "Private registry-bound service exchanges federation traffic across independently launched processes" --summary --compact
-python tools/query_rti_work.py test "RTIambassador routes public Create, Join, and Resign through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py test "RTIambassador routes public Create, Join, Resign, and Destroy through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes public Send Interaction through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador resolves interaction and parameter handles through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador delivers a directed interaction through the official Evoke callback surface" --summary --compact
@@ -3040,7 +3093,7 @@ python tools/query_rti_work.py test "RTIambassador routes Delete Object Instance
 python tools/query_rti_work.py trace "RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py lane federate.callback.request-retraction --summary --compact
 python tools/query_rti_work.py lane callback-gating --summary --compact
-python tools/query_rti_work.py test "RTIambassador publishes object-class attributes and registers an object through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py test "RTIambassador publishes and unpublishes object-class attributes and registers an object through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py trace "RTIambassador delivers object discovery through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador reserves a name and registers a named object through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador projects the 2025 region lifecycle and regional registration through a configured process endpoint" --summary --compact
@@ -3676,7 +3729,7 @@ python tools/query_rti_work.py lane process-boundary --summary --compact
 python tools/query_rti_work.py test "Private process service dispatch correlates federation operations over framed data" --summary --compact
 python tools/query_rti_work.py test "Private process service binds create join and receive-order interaction to the federation registry" --summary --compact
 python tools/query_rti_work.py test "Private registry-bound service exchanges federation traffic across independently launched processes" --summary --compact
-python tools/query_rti_work.py test "RTIambassador routes public Create, Join, and Resign through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py test "RTIambassador routes public Create, Join, Resign, and Destroy through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes public Send Interaction through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador resolves interaction and parameter handles through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador receives a process interaction through the official Evoke callback surface" --summary --compact

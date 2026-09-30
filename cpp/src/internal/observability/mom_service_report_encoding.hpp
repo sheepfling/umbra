@@ -4,10 +4,12 @@
 #include <RTI/Handle.h>
 #include <RTI/Typedefs.h>
 #include <RTI/VariableLengthData.h>
+#include <RTI/auth/Credentials.h>
 #include <RTI/time/LogicalTime.h>
 #include <RTI/time/LogicalTimeInterval.h>
 
 #include <cstdint>
+#include <optional>
 #include <set>
 #include <string>
 #include <utility>
@@ -28,10 +30,16 @@ enum class MomServiceType : std::uint16_t {
   support_services = 6,
 };
 
+struct MomServiceReportCredentials final {
+  std::wstring type;
+  std::vector<std::uint8_t> data;
+};
+
 // The argument-type values below match the static MIM HLAargumentType
 // enumeration except where a Table 5 service-report example gives a conflicting
 // literal. The first report slices need AttributeHandle, AttributeHandleSet,
-// AttributeHandleValueMap, Null, Boolean, DimensionHandle, FederateHandle, FederateHandleSet,
+// AttributeHandleValueMap, Credentials, Null, Boolean, DimensionHandle,
+// FederateHandle, FederateHandleSet,
 // AttributeSetRegionSetPairList,
 // InteractionClassHandle, ParameterHandle,
 // InteractionClassHandleSet, LogicalTime, LogicalTimeInterval,
@@ -50,6 +58,8 @@ enum class MomArgumentType : std::int32_t {
   attribute_handle_value_map = 2,
   attribute_set_region_set_pair_list = 4,
   boolean = 6,
+  configuration_result = 8,
+  credentials = 9,
   dimension_handle = 10,
   dimension_handle_set = 11,
   federate_handle = 15,
@@ -78,11 +88,11 @@ enum class MomArgumentType : std::int32_t {
   string_set = 54,
   synchronization_point_failure_reason = 56,
   transportation_type_handle = 59,
-  // Table 5's UserSuppliedTag service-report example uses 63, while the
-  // unmodified 2025 standard MIM assigns UserSuppliedTag value 60. File-report
-  // serialization follows the Table 5 literal, but a future emitted MOM
-  // interaction must revisit that source conflict rather than treating 63 as a
-  // static-MIM value. See RL-077.
+  // The 2025 standard MIM uses 60 for UserSuppliedTag in HLAreportServiceInvocation.
+  user_supplied_tag = 60,
+  // Table 5's service-report file record uses 63 for the same logical argument.
+  // Keep the file-report literal distinct; the MOM interaction encoder maps it
+  // to the MIM value above.
   table_5_user_supplied_tag = 63,
 };
 
@@ -101,6 +111,7 @@ struct MomServiceReportInitialRecord {
   std::wstring configurationName;
   std::wstring rtiAddress;
   std::wstring additionalSettings;
+  std::optional<MomServiceReportCredentials> credentials;
   std::vector<std::pair<std::wstring, std::wstring>> optionalInternalData;
 
   std::wstring federationName;
@@ -124,6 +135,11 @@ struct MomServiceReportInitialRecord {
 [[nodiscard]] std::wstring formatMomBoolean(bool value);
 [[nodiscard]] std::wstring formatMomNumber(std::wstring const& value);
 [[nodiscard]] std::wstring formatMomString(std::wstring const& value);
+// Table 5 encodes ConfigurationResult as a record with the four named public
+// fields. The HLAstandardMIM-2025 HLAargumentType code for ConfigurationResult
+// is 8, represented by MomArgumentType::configuration_result above.
+[[nodiscard]] std::wstring formatMomConfigurationResult(
+    rti1516_2025::ConfigurationResult const& value);
 // Table 5 specifies StringSet as Array<String>.  The official C++ multiple
 // name services use std::set<std::wstring>; preserve that deterministic native
 // iteration order and emit the standard bracketed, quoted String elements.
@@ -242,6 +258,13 @@ struct MomServiceReportInitialRecord {
 // replacement for VariableLengthData.
 [[nodiscard]] std::wstring formatMomBinaryData(
     rti1516_2025::VariableLengthData const& value);
+// Table 5 encodes Credentials as Record<Type:String, Data:BinaryData>. The
+// binary credential payload is represented as report text only; this helper
+// does not authorize, retain, redact, or publish credentials by itself.
+[[nodiscard]] std::wstring formatMomCredentials(
+    MomServiceReportCredentials const& value);
+[[nodiscard]] std::wstring formatMomCredentials(
+    rti1516_2025::Credentials const& value);
 // Table 5 gives UserSuppliedTag the Binary Data form. Retain this descriptive
 // wrapper at the call sites whose argument is specifically a user-supplied
 // tag, rather than conflating its special Table 5 type literal with the value

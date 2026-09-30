@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice maps the same receiver's ordinary Send Interaction overload to the receive-order callback and its timestamped overload to the timestamped callback and metadata. The applicable canonical requirement is IEEE 1516.1-2025 clause 8.1.4; this is adapter-backed test evidence, not a conformance claim.",
+  "requirements": [
+    {
+      "id": "standard-interaction-message-order-classification",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+      "clause_id": "clause-8.1.4",
+      "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
+      "source_symbol": "scenarioInteractionOrderClassification",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionOrderClassification",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioInteractionOrderClassificationContract"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The subject begins with three adapter-configured application attributes published on its object class, then unpublishes that entire application set through IEEE 1516.1-2025. The requester checks a fresh IEEE 1516.2-2025 HLAreportObjectClassPublication NULL response: one count parameter set to zero, with no object-class or attribute-list parameters, as prescribed when no object classes contain attributes published by the federate. The MIM defines both the inherited HLAprivilegeToDeleteObject attribute and the report/NULL-response semantics. No DDM services are used.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-mom-object-class-full-application-attribute-unpublication",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l121-35",
+      "clause_id": "clause-5.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "457-469",
+      "source_symbol": "unpublishObjectClassAttributes",
+      "statement": "The federate unpublishes the complete adapter-configured application attribute set through the standard Unpublish Object Class Attributes service. A new standard publication query then reflects the resulting declaration state.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassFullAttributeUnpublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassFullAttributeUnpublicationQueryContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-mom-object-class-full-application-attribute-unpublication-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "29-42, 1067-1073, 1232-1256",
+      "source_symbol": "HLAreportObjectClassPublication",
+      "statement": "After all adapter-configured application attributes are unpublished, no object class contains attributes published by the federate. The publication query therefore returns the exact MIM NULL response: zero classes and omitted object-class and attribute-list parameters.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassFullAttributeUnpublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassFullAttributeUnpublicationQueryContract"
+      ]
+    }
+  ]
+}

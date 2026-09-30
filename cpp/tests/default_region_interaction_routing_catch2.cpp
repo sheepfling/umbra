@@ -93,7 +93,7 @@ TEST_CASE(
     "[rti.service.create-region][rti.service.set-range-bounds]"
     "[rti.service.commit-region-modifications][rti.service.publish-interaction-class]"
     "[rti.service.subscribe-interaction-class][rti.service.subscribe-interaction-class-with-regions]"
-    "[rti.service.unsubscribe-interaction-class-with-regions]"
+    "[rti.service.unsubscribe-interaction-class][rti.service.unsubscribe-interaction-class-with-regions]"
     "[rti.service.send-interaction][rti.service.send-interaction-with-regions]"
     "[rti.service.set-convey-region-designator-sets-switch]"
     "[federate.callback.receive-interaction][callback-evoked][2025]") {
@@ -144,12 +144,19 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
 
   auto const sourceRegion = publisher->createRegion(DimensionHandleSet{serverId});
+  auto const disjointSourceRegion = publisher->createRegion(DimensionHandleSet{serverId});
   auto const regionalRegion = regional->createRegion(DimensionHandleSet{serverId});
   auto const mixedRegion = mixed->createRegion(DimensionHandleSet{serverId});
   REQUIRE_NOTHROW(publisher->setRangeBounds(
       sourceRegion,
       serverId,
       rti1516_2025::RangeBounds(0UL, 1UL)));
+  REQUIRE_NOTHROW(publisher->setRangeBounds(
+      disjointSourceRegion,
+      serverId,
+      rti1516_2025::RangeBounds(4UL, 5UL)));
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(
+      RegionHandleSet{disjointSourceRegion}));
   REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{sourceRegion}));
   REQUIRE_NOTHROW(regional->setRangeBounds(
       regionalRegion,
@@ -165,12 +172,29 @@ TEST_CASE(
   REQUIRE_NOTHROW(regional->subscribeInteractionClassWithRegions(
       interactionClass,
       RegionHandleSet{regionalRegion}));
+  // §9.10 requires ordinary class subscribe/unsubscribe calls to leave this
+  // established regional subscription intact.
+  REQUIRE_NOTHROW(regional->subscribeInteractionClass(interactionClass));
+  REQUIRE_NOTHROW(regional->unsubscribeInteractionClass(interactionClass));
   REQUIRE_NOTHROW(mixed->subscribeInteractionClass(interactionClass));
   REQUIRE_NOTHROW(mixed->subscribeInteractionClassWithRegions(
       interactionClass,
       RegionHandleSet{mixedRegion}));
 
   VariableLengthData const tag;
+  // The regional-only subscriber's ordinary default subscription was removed.
+  // A disjoint source remains filtered; the following overlapping source
+  // proves its regional subscription survived both ordinary calls.
+  REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
+      interactionClass,
+      parameters,
+      RegionHandleSet{disjointSourceRegion},
+      tag));
+  drain(*regional);
+  drain(*mixed);
+  REQUIRE(regionalCallbacks.received.empty());
+  REQUIRE(mixedCallbacks.received.empty());
+
   // A matching explicit source region reaches the regional subscriber.  The
   // mixed subscriber's disjoint regional realization suppresses its retained
   // ordinary/default declaration.
@@ -226,6 +250,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(regional->unsubscribeInteractionClassWithRegions(
       interactionClass,
       RegionHandleSet{regionalRegion}));
+  REQUIRE_NOTHROW(publisher->deleteRegion(disjointSourceRegion));
   REQUIRE_NOTHROW(publisher->deleteRegion(sourceRegion));
   REQUIRE_NOTHROW(regional->deleteRegion(regionalRegion));
   REQUIRE_NOTHROW(mixed->deleteRegion(mixedRegion));

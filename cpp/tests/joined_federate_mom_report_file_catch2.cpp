@@ -2,14 +2,18 @@
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
+#include <RTI/auth/HLAnoCredentials.h>
 #include <RTI/encoding/BasicDataElements.h>
 
 #include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <stdexcept>
 #include <system_error>
+#include <string>
 #include <vector>
 
 #include <umbra/embedded_profile_configuration.hpp>
@@ -252,4 +256,59 @@ TEST_CASE(
   std::error_code ignored;
   std::filesystem::remove_all(subjectDirectory, ignored);
   std::filesystem::remove_all(observerDirectory, ignored);
+}
+
+TEST_CASE(
+    "Embedded service-report initial record includes explicit Connect credentials",
+    "[integration][development-profile][federation-management][mom]"
+    "[service-report-file][service-reporting][service-report-credentials-initial-record]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][2025]") {
+  using rti1516_2025::NO_ACTION;
+
+  auto const reportDirectory = reserveDirectory();
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+      "data" / "switch-nrg-disabled-fom.xml";
+
+  RTIambassadorFactory factory;
+  auto ambassador = factory.createRTIambassador();
+  NullFederateAmbassador federateReports;
+  rti1516_2025::HLAnoCredentials credentials;
+
+  REQUIRE_NOTHROW(ambassador->connect(
+      federateReports,
+      HLA_EVOKED,
+      configurationFor(reportDirectory),
+      credentials));
+  REQUIRE_NOTHROW(ambassador->createFederationExecution(
+      federationName, fomModule.wstring(), L"HLAinteger64Time"));
+  auto const federate = ambassador->joinFederationExecution(
+      L"joined-federate-report-credentials", L"subject", federationName);
+  REQUIRE(federate.isValid());
+
+  std::vector<std::filesystem::path> reportFiles;
+  for (auto const& entry : std::filesystem::directory_iterator(reportDirectory)) {
+    if (entry.is_regular_file()) {
+      reportFiles.push_back(entry.path());
+    }
+  }
+  REQUIRE(reportFiles.size() == 1U);
+
+  std::ifstream reportFile(reportFiles.front(), std::ios::binary);
+  REQUIRE(reportFile.good());
+  std::string const initialRecord{
+      std::istreambuf_iterator<char>{reportFile},
+      std::istreambuf_iterator<char>{}};
+  REQUIRE(initialRecord.find(
+              "\"Credentials\":{\"Type\":\"HLAnoCredentials\",\"Data\":\"\"}") !=
+      std::string::npos);
+
+  REQUIRE_NOTHROW(ambassador->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(ambassador->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(ambassador->disconnect());
+
+  std::error_code ignored;
+  std::filesystem::remove_all(reportDirectory, ignored);
 }

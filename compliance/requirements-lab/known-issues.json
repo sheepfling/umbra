@@ -25,6 +25,474 @@
       "workaround": "Keep the stable Lab ids and exported clause in traceability data; record the source-heading correction here and use the pinned source page when selecting or reviewing a focused test. Do not mutate the Lab export in the RTI repository.",
       "reproduction": "python tools/query_rti_work.py gaps --family object-ddm-ownership --clause 6.18 --summary --compact --limit 40",
       "detected": "2026-09-09"
+    },
+    {
+      "id": "RL-248",
+      "status": "open",
+      "kind": "semantic-extraction-clause-boundary",
+      "title": "Page-236 regional-registration invalid-region precondition is exported as clause 9.10",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l32-9"
+      ],
+      "exported_clause": "9.10",
+      "normative_clause": "9.5.3",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/09-data-distribution-management-page-236.tex",
+        "lines": "32-37",
+        "page": 236
+      },
+      "symptom": "The exported statement is the Invalid region precondition in the Register Object Instance With Regions service. The reconstructed page groups it under the 9.5.3 Preconditions heading before 9.5.4 Postconditions, while the pinned requirement record assigns semantic_group_id m16.clause.9.10 and clause 9.10.",
+      "impact": "A gap query places this registration exception under the wrong 2025 subsection, and mapping a Catch2 case to the exported clause would create a false test-to-standard crosswalk. Keep the stable requirement id, but do not treat 9.10 as its normative section until the export is corrected.",
+      "workaround": "Do not remap or rewrite the pinned export in Umbra. Preserve this issue id and source evidence; defer a normative mapping for this record until the Lab repairs its clause assignment. Continue using the official C++ service declaration and source-page headings to avoid coding against the wrong clause.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-content-clauses-09-data-distribution-management-page-236-l32-9 --summary --compact",
+      "detected": "2026-09-23"
+    },
+    {
+      "id": "RL-249",
+      "status": "open",
+      "kind": "semantic-extraction-text-corruption",
+      "title": "Page-109 interaction-receipt requirement loses federate/subscription notation and is incomplete",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-109-l10-1"
+      ],
+      "exported_clause": "6.1.9",
+      "normative_clause": "6.1.9",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/06-object-management-page-109.tex",
+        "lines": "10",
+        "page": 109
+      },
+      "symptom": "The pinned statement contains corrupted fragments such as 'Fned federate Fscribed' and terminates mid-sentence at 'at a joined'. The reconstructed semantic page separately defines candidate received class as the sent interaction class when subscribed, otherwise the closest subscribed superclass.",
+      "impact": "The requirement id and clause remain queryable, but the extracted prose is not self-contained and obscures the federate/subscription condition. It can mislead test design if copied without the separate candidate-received-class definition.",
+      "workaround": "Do not rewrite the pinned export in Umbra. Preserve the stable requirement id and §6.1.9 mapping; use the reconstructed candidate-received-class definition and focused C++ evidence while the Lab repairs the statement extraction.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-content-clauses-06-object-management-page-109-l10-1 --summary --compact",
+      "detected": "2026-09-23"
+    },
+    {
+      "id": "RL-250",
+      "status": "open",
+      "kind": "semantic-extraction-text-segmentation",
+      "title": "Page-224 Receive Interaction requirement is split across adjacent records",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l89-29",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l92-30"
+      ],
+      "exported_clause": "9.1.6",
+      "normative_clause": "9.1.6",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/09-data-distribution-management-page-224.tex",
+        "lines": "89-100",
+        "page": 224
+      },
+      "symptom": "The l89 requirement statement ends mid-sentence at 'subscribed'; the adjacent l92 record begins with the continuation 'interaction class as an argument.' and then includes a separate at-most-once reception requirement.",
+      "impact": "The l89 requirement is not self-contained in the exported query result, making its exact condition ambiguous and unsafe to map without reconstructing the missing text. The separate l92 requirement is independently clear and can be mapped to at-most-once reception evidence.",
+      "workaround": "Do not rewrite the pinned export or infer the remainder of l89. Keep l89 unmapped until the Lab repairs or clarifies the split. Preserve l92 as its own stable requirement and map it only to a focused test that proves at-most-once delivery for overlapping subscriptions.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-content-clauses-09-data-distribution-management-page-224-l89-29 --summary --compact",
+      "detected": "2026-09-23"
+    },
+    {
+      "id": "RL-251",
+      "status": "open",
+      "kind": "semantic-extraction-incomplete-list",
+      "title": "Page-224 DDM reinterpretation requirement omits its service list",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l137-44"
+      ],
+      "exported_clause": "9.1.6",
+      "normative_clause": "9.1.6",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/09-data-distribution-management-page-224.tex",
+        "lines": "137-147",
+        "page": 224
+      },
+      "symptom": "The exported l137 statement ends after introducing 'the following three object management services' with a colon and omits the enumerated services. The reconstructed standard page lists Register Object Instance With Regions, Send Interaction With Regions, and Request Attribute Value Update With Regions.",
+      "impact": "A standalone requirement query does not identify which three Clause 6 services are intended, making the requirement hard to implement or map accurately without opening the reconstructed source page.",
+      "workaround": "Keep the l137 identifier and exported text unchanged; use the reconstructed IEEE page to guide implementation. Keep l137 unmapped until the Lab export preserves the enumeration, and map the self-contained l125 requirement only to focused tests covering each of the three regional service forms.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-content-clauses-09-data-distribution-management-page-224-l137-44 --summary --compact",
+      "detected": "2026-09-23"
+    },
+    {
+      "id": "RL-252",
+      "status": "resolved-in-umbra",
+      "kind": "traceability-query-crosswalk-regression",
+      "title": "Delay Subscription Evaluation section query repeated the known stale clause mapping",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
+        "requirement-candidate-content-clauses-08-time-management-page-187-l40-11",
+        "requirement-candidate-content-clauses-08-time-management-page-187-l46-13"
+      ],
+      "exported_clause": "8.1.10",
+      "normative_clause": "8.1.8",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/08-time-management-page-187.tex",
+        "lines": "25-52",
+        "page": 187
+      },
+      "symptom": "Although RL-018 and the local Delay Subscription Evaluation contract already recorded the authoritative §8.1.8 heading, the normal section query still returned no cases for 8.1.8 and attached the three stable Lab ids to the exported §8.1.10 label.",
+      "impact": "A contributor following the canonical-subsection query could not find the relevant Catch2 cases and was liable to use the stale exported subsection, repeating a previously documented traceability problem.",
+      "workaround": "Umbra now applies an explicit source-backed canonical-section crosswalk in the local contract. The pinned Lab ids and exported §8.1.10 values remain preserved and visible as provenance; the Lab export was not rewritten.",
+      "reproduction": "python tools/query_rti_work.py section 8.1.8 --summary --compact",
+      "recurrence_of": "RL-018",
+      "verification": "python tools/query_rti_work_regression.py; section 8.1.8 now returns eight Catch2 cases with direct Lab-id-to-§8.1.8 pairs",
+      "detected": "2026-09-23"
+    },
+    {
+      "id": "RL-253",
+      "status": "open",
+      "kind": "semantic-extraction-missing-api-exception",
+      "title": "Get Dimension Handle NameNotFound is declared by the 2025 C++ API but not extracted as a separate requirement",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-259-l144-44"
+      ],
+      "exported_clause": "10.23.3",
+      "normative_clause": "10.23",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/10-support-services-page-259.tex",
+        "lines": "144-146",
+        "page": 259
+      },
+      "official_api_source": {
+        "path": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+        "lines": "1902-1912"
+      },
+      "symptom": "The candidate at §10.23.3 states that Get Dimension Handle returns the handle associated with the supplied dimension name. It does not separately capture the NameNotFound outcome declared for the §10.23 C++ API, so the pinned requirement corpus has no direct row for this failure condition.",
+      "impact": "A focused test can verify the official NameNotFound exception and map the lookup service plus service-report payload, but a requirement-to-subsection matrix alone cannot show that the Lab extracted this specific API failure obligation. Treating the positive lookup row as if it independently specified NameNotFound would overstate traceability.",
+      "workaround": "Keep the §10.23.3 lookup candidate and §11.5/§11.5.1 report candidates linked to the development test, verify NameNotFound against the official §10.23 C++ declaration, and retain this issue as an extraction limitation. Do not claim API-exception conformance until the Lab adds an explicit requirement/crosswalk.",
+      "reproduction": "python tools/query_rti_work.py gaps --family transport-and-conformance --clause hla-1516.1-2025:clause-10.23 --summary --compact --limit 8",
+      "verification": "The clause gap query exposes the §10.23.3 positive lookup candidate; the official C++ declaration at RTIambassador.h:1902-1912 lists NameNotFound. The process Catch2 case remains mapped to §10.23.3, §11.5, and §11.5.1 with this limitation stated.",
+      "detected": "2026-09-24"
+    },
+    {
+      "id": "RL-254",
+      "status": "resolved-in-umbra",
+      "kind": "requirements-lab-plan-json-syntax-error",
+      "title": "Catch2 test plan contains a truncated API-surface entry and cannot be parsed",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "42926-42927"
+      },
+      "symptom": "The working test plan has a truncated JSON string at line 42926 (the literal starts with `api.1`), followed by the next object field at line 42927 without closing the array or string. `python tools/query_rti_work.py resume` fails with `Invalid control character` at line 42926, column 15.",
+      "impact": "The bounded work-resume query cannot load the Requirements Lab plan, so current roadmap detail and requirement-to-section checks that depend on this plan are unavailable until the malformed entry is repaired.",
+      "workaround": "The damaged rows were restored from Git after checking the exact plan ID, test title, source declaration, and CTest target. The pinned Requirements Lab export was not resynchronized.",
+      "reproduction": "python tools/query_rti_work.py resume",
+      "verification": "The working Catch2 plan parses; python tools/query_rti_work.py resume --summary --compact and check --summary --compact both succeed. A separate ID/title crosswire found during recovery is recorded as RL-255.",
+      "detected": "2026-09-26"
+    },
+    {
+      "id": "RL-255",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-plan-id-title-crosswire",
+      "title": "Catch2 plan recovery left two crossed test ID/title pairs",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "42572,42732,68010,68091"
+      },
+      "symptom": "During RL-254 recovery, two rows still mismatched Git-backed IDs and titles: the directed-restore schema ID carried the RPR payload test title while its proper RPR row was missing; the public fresh-registry restore ID carried the external 2010 object-registration title while that test's proper row was missing. This repeated the plan ID/title crosswire failure that the preceding recovery had believed fixed. Title-only reconciliation hid both missing rows from the source queue.",
+      "impact": "Requirement mappings and roadmap ownership could be attributed to the wrong C++ behavior, while the actual source declarations were not discoverable through their intended plan IDs. Source-only counts and test-to-standard traces were therefore unreliable.",
+      "workaround": "Restore each complete ID/title pair from Git, then rebind source locations and exact CTest selectors from the live C++ declarations and a registered test build. Never treat title presence alone as proof that its planned ID is intact.",
+      "reproduction": "Compare the affected worktree rows with their matching IDs in git show HEAD:compliance/requirements-lab/catch2-test-plan.json; before correction, unplanned --summary listed the public restore declaration despite a row carrying its title under the external-2010 ID.",
+      "verification": "The corrected plan has 1,380 unique rows, unplanned reports no C++ declarations without plan rows, the focused global mapping check passes, both restored cases pass their exact .build-fom-services CTest selectors, and the targeted Git ID/title comparison reports zero remaining crosswires.",
+      "detected": "2026-09-26"
+    },
+    {
+      "id": "RL-256",
+      "status": "open",
+      "kind": "requirements-lab-table5-source-text-anomaly",
+      "title": "Table 5 candidates may contain spelling and markup defects in ConfigurationResult fields",
+      "affected_requirement_ids": [
+        "requirement-candidate-table-5-p296-r004",
+        "requirement-candidate-table-5-p296-r005"
+      ],
+      "exported_clause": "11.5.1",
+      "normative_clause": "11.5.1",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/11-management-object-model-page-296.tex",
+        "lines": "32-35",
+        "page": 296
+      },
+      "symptom": "The pinned candidate for Table 5 row additionalSettingsResultCode:AdditionalSettingsResultCode states the example key as `addtionalSettingsResultCode` and the enum value as `SETTINGS _APPLIED`; the next row is typed `message:String>` with an unmatched closing angle bracket. Umbra's focused C++ formatter test emits `additionalSettingsResultCode`, `SETTINGS_APPLIED`, and message strings. The official PDF page was not available in this workspace, so these are recorded as apparent Lab/source-text anomalies pending primary-source comparison, not confirmed IEEE errata.",
+      "impact": "A contributor following the extracted text literally could encode a misspelled service-report field or enum value, while mapping coverage could misleadingly appear complete despite ambiguous source wording.",
+      "workaround": "Keep the pinned requirement IDs and canonical clause 11.5.1 mapping, preserve the correct implementation spelling in the C++ test, and do not rewrite the Lab export until the official 2025 source page is checked directly.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-table-5-p296-r004 --summary --compact; python tools/query_rti_work.py requirement requirement-candidate-table-5-p296-r005 --summary --compact",
+      "verification": "Both bounded requirement queries reproduce the wording above. The focused Table 5 Catch2 case maps rows r001-r005 to clause 11.5.1; confirmation against the official 1516.1-2025 PDF remains open.",
+      "detected": "2026-09-26"
+    },
+    {
+      "id": "RL-257",
+      "status": "open",
+      "kind": "requirements-lab-table5-source-text-anomaly",
+      "title": "Table 5 Credentials candidate omits its full local encoding and example",
+      "affected_requirement_ids": [
+        "requirement-candidate-table-5-p296-r006"
+      ],
+      "exported_clause": "11.5.1",
+      "normative_clause": "11.5.1",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/11-management-object-model-page-296.tex",
+        "lines": "56",
+        "page": 296
+      },
+      "symptom": "The pinned Table 5 Credentials candidate renders its encoding only as `Record<` and its example as `unspecified`. The tracked local semantic page layout contains the complete row: `Record< Type:String, Data:BinaryData>` and an example with Type `HLAplainTextPassword` and Data `xFDcMA`. The issue is incomplete candidate extraction, not missing text in the local semantic source.",
+      "impact": "A contributor could infer an unsupported credentials record shape or incorrectly treat an incomplete extraction as normative, affecting both report encoding and traceability.",
+      "workaround": "Use the local semantic layout for the exact Record<Type:String, Data:BinaryData> fields and the example only. The internal serializer case and the embedded Connect-to-Join initial-record integration now cover this encoding with synthetic HLAplainTextPassword and explicit empty HLAnoCredentials values. Do not infer additional rules from the example; nonempty authorization remains disabled, process-endpoint propagation is not implemented, and canonical-PDF verification remains open before validation promotion.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-table-5-p296-r006 --summary --compact",
+      "verification": "The bounded requirement query reproduces the clipped `Record<` / unspecified candidate. The unchanged local Document-Recreation semantic page 296 layout contains the full Record fields and example noted above. The focused `service-report-credentials` serializer case and public embedded `service-report-credentials-initial-record` case pass; the latter maps the Credentials row and the §11.5.2 connect-information initial-record requirement and checks explicit HLAnoCredentials in the real file. This is development-profile evidence, not nonempty-credential authorization, process transport, validation, or conformance, and does not close canonical-PDF verification. The defect is a local candidate-extraction anomaly, not IEEE errata.",
+      "detected": "2026-09-26"
+    },
+    {
+      "id": "RL-258",
+      "status": "open",
+      "kind": "requirements-lab-incomplete-normative-statement",
+      "title": "Page 187 Delay Subscription Evaluation candidate clips intact local source context",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-187-l16-3"
+      ],
+      "exported_clause": "8.1.10",
+      "normative_clause": "8.1.8",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/08-time-management-page-187.tex",
+        "lines": "16-21",
+        "page": 187
+      },
+      "symptom": "The raw requirements row begins mid-sentence with `switch shall come from the FDD at federation execution creation time` and ends mid-reference at `IEEE Std`. The tracked local semantic page body contains the surrounding Delay Subscription Evaluation paragraph under an explicit §8.1.8 heading, but the candidate points to lines 16-21 of `content/clauses/08-time-management-page-187.tex`, which is only a one-line include wrapper. This is an extraction/source-locator mismatch, not evidence that the local source prose is absent.",
+      "impact": "A contributor cannot audit the candidate from its reported source lines or determine the full statement from the candidate alone; treating the excerpt as complete risks false traceability.",
+      "workaround": "Keep the C++ integration mapped to §8.1.8 using the explicit local semantic heading. Do not select this candidate until the Lab provides a complete statement and a source locator that resolves to the actual page content. Do not rewrite the pinned Lab export or claim canonical verification from inference.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-content-clauses-08-time-management-page-187-l16-3 --json --summary",
+      "verification": "The raw semantic requirements row reproduces the clipped statement. In the tracked Document-Recreation semantic page body, page 187 has a full layout beginning with the explicit `8.1.8 Delay Subscription Evaluation Switch` heading and containing the complete surrounding paragraph; the referenced generated .tex file contains only a one-line include. The sibling source worktree is clean for these files. This verifies a local extraction/source-locator defect, not the canonical IEEE wording. The existing public C++ test's FDD enabled/omitted-default paths and both public getters pass; primary-source verification remains open.",
+      "detected": "2026-09-26"
+    },
+    {
+      "id": "RL-259",
+      "status": "open",
+      "kind": "traceability-query-crosswalk-regression",
+      "title": "Page 187 Delay Subscription Evaluation candidate repeats the §8.1.10 crosswalk error",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-187-l16-3"
+      ],
+      "exported_clause": "8.1.10",
+      "normative_clause": "8.1.8",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/08-time-management-page-187.tex",
+        "lines": "16-21",
+        "page": 187
+      },
+      "symptom": "The candidate row assigns clause and semantic group 8.1.10 / m16.clause.8.1.10, but the page's tracked semantic layout places this FDD Delay Subscription Evaluation text under the explicit §8.1.8 heading. This repeats the stale exported-clause pattern recorded for adjacent page-187 Delay Subscription Evaluation candidates in RL-252; this is a new candidate ID and therefore a new occurrence, not a rewrite of RL-252.",
+      "impact": "A contributor querying by canonical subsection is directed to §8.1.10 Mixing use of TSO and RO messages instead of §8.1.8 Delay Subscription Evaluation, obscuring the relevant C++ test lane and creating a false clause mapping.",
+      "workaround": "Map Delay Subscription Evaluation tests and their direct source evidence to §8.1.8. Preserve the exported §8.1.10 label as provenance, and do not select this candidate until the Lab corrects its clause boundary/crosswalk and source locator.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-content-clauses-08-time-management-page-187-l16-3 --json --summary",
+      "recurrence_of": "RL-252",
+      "verification": "The raw semantic requirements record assigns clause 8.1.10; the matching page-187 semantic layout begins with the explicit 8.1.8 Delay Subscription Evaluation heading before the full FDD-switch paragraph. The source files are unchanged in the sibling worktree. The focused C++ mapping now lists only §8.1.8; no conformance claim is made.",
+      "detected": "2026-09-26"
+    },
+    {
+      "id": "RL-260",
+      "status": "resolved-in-umbra",
+      "kind": "requirements-lab-plan-json-syntax-error",
+      "title": "Catch2 test plan JSON corruption recurred after the prior syntax repair",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "43645-43841"
+      },
+      "symptom": "The working plan contained a truncated API-surface string at line 43645 and API/callback fields spliced into another row. A later requirements_lab_api_surface_status/next_action field was concatenated, and a second API-surface/status boundary was fused at line 43841. `python tools/query_rti_work.py resume` failed while parsing JSON. This is a recurrence of the plan-syntax failure recorded in RL-254, not a rewrite of that resolved occurrence.",
+      "impact": "The bounded resume and roadmap mapping queries cannot load the current plan, so requirement-to-section and current-work handoffs are unavailable. TCK catalog and runtime verification remain independently usable.",
+      "workaround": "Do not resynchronize Requirements Lab or replace the dirty plan wholesale. Restore only the affected plan row boundaries and strings after comparing their exact IDs, titles, source declarations, and selectors with the current source and Git-backed versions.",
+      "reproduction": "python tools/query_rti_work.py resume",
+      "recurrence_of": "RL-254",
+      "verification": "Restored the Join automatic-resign row from the Git-backed version, split the joined-federate MOM regional DDM row using its current roadmap and C++ source, repaired the fused API/status boundary, and added exact source/test labels. The Catch2 plan parses (1,373 rows), the focused DSE lane check passes, and the global roadmap/test mapping check passes with only the existing nonactionable source-unlocated transportation-type-change case. No Requirements Lab resynchronization was performed.",
+      "detected": "2026-09-26"
+    },
+    {
+      "id": "RL-261",
+      "status": "open",
+      "kind": "requirements-lab-plan-json-syntax-error",
+      "title": "Catch2 plan JSON syntax and row identity corruption recurred after RL-260 repair",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "35514-35521"
+      },
+      "symptom": "The bounded `python tools/query_rti_work.py resume` command fails parsing the current working plan at line 35517, column 48 with an invalid control character. The surrounding row is identified as `umbra-cpp-custom-transportation-handle-stability-integration` / `m39.embedded-custom-transportation-handle-stability`, but its selected API-surface string is truncated at `api.2025.cpp.rtiambassador.joind` immediately before the array closes, and its test-case title describes failed timestamped Update Attribute Values service reporting. This repeats the resolved plan-syntax corruption recorded in RL-260 and also contains an apparent row ID/title crosswire.",
+      "impact": "Requirements Lab resume and other plan-backed bounded queries cannot load the current working plan. Portable TCK catalog validation and installed-package test execution remain independently usable.",
+      "workaround": "Do not resynchronize Requirements Lab or replace the dirty plan wholesale. Compare only this row's canonical test ID, title, API surfaces, and source location with the matching C++ test and Git-backed evidence before a narrow repair.",
+      "reproduction": "python tools/query_rti_work.py resume",
+      "recurrence_of": "RL-260",
+      "verification": "Confirmed the parser location and corrupted surrounding row by inspecting only lines 35514-35521. The plan was not edited and Requirements Lab was not resynchronized; this occurrence is logged separately from RL-260.",
+      "detected": "2026-09-27"
+    },
+    {
+      "id": "RL-262",
+      "status": "resolved-in-umbra",
+      "kind": "requirements-lab-plan-json-duplicate-key-row-identity-corruption",
+      "title": "Catch2 plan merged ownership and timestamped interaction rows with duplicate keys after RL-261",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "42018 (pre-repair merged row)"
+      },
+      "symptom": "A plan object retained the negotiated-ownership row's ID, API surfaces, and requirement IDs, then contained a second `test_case` and `tags` pair for the timestamped process-interaction row. The JSON parser accepted last-key-wins semantics, silently crossing two test identities and leaving the process case with ownership mappings. This is a new recurrence after RL-261, not a rewrite of either earlier occurrence.",
+      "impact": "Case lookup and traceability could attach the wrong C++ test, API surfaces, and requirements to a plan ID while ordinary JSON loading appeared successful; strict duplicate-key validation correctly stopped the roadmap regression.",
+      "workaround": "Do not resynchronize the Lab or replace the dirty plan wholesale. Recover only the affected row boundary and canonical identity from Git, then verify each title and source pointer against its live Catch2 declaration and run the focused mapping check.",
+      "reproduction": "python tools/query_rti_work_regression.py",
+      "recurrence_of": "RL-261",
+      "verification": "Restored the process timestamped-interaction row under its Git-backed ID and current declaration line, kept the expanded ownership-cancellation case as a separate row, and repaired current source pointers for recent rows. The plan has zero duplicate JSON keys; the global mapping check passes at 1,396 cases (1,319 mapped, 77 explicit dispositions, 0 unclassified), and the ownership lane check passes. Its case card now exposes 11 direct requirement-section pairs, 22 C++ APIs, and the exact focused CTest selector. No Requirements Lab resynchronization was performed.",
+      "detected": "2026-09-27"
+    },
+    {
+      "id": "RL-263",
+      "status": "open",
+      "kind": "requirements-lab-incomplete-normative-statement",
+      "title": "Page 290 §11.4.1 candidate contains only a trailing new-parameters fragment",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l12-3"
+      ],
+      "exported_clause": "11.4.1",
+      "normative_clause": "11.4.1",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/11-management-object-model-page-290.tex",
+        "lines": "12-14",
+        "page": 290
+      },
+      "symptom": "The bounded requirement record exposes only the continuation 'sent by the RTI shall not contain the new parameters.' It does not identify the antecedent, which RTI-sent interaction is in scope, or what 'new parameters' means. The source locator names lines 12-14, but the pinned requirement record provides no surrounding sentence context. This is a distinct page-290 occurrence of the incomplete-statement pattern logged in RL-258, not a rewrite of that page-187 issue.",
+      "impact": "A contributor cannot safely derive the expected outgoing MOM parameter set or select a public C++ service test from this candidate alone; mapping it to an arbitrary RTI-sent interaction would invent scope and could create false conformance evidence.",
+      "workaround": "Leave this requirement uncovered and do not infer the antecedent from adjacent §11.4.1 candidates or the HLAsetSwitches implementation. Ask the Lab export to retain the complete normative sentence and enough neighboring source context; verify against the canonical IEEE wording before test mapping or validation promotion. Continue with independently clear requirements meanwhile.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-content-clauses-11-management-object-model-page-290-l12-3 --json --limit 1",
+      "recurrence_of": "RL-258",
+      "verification": "The exact JSON query returns one uncovered requirement, maps it to hla-1516.1-2025:clause-11.4.1, reports source lines 12-14, and exposes only the quoted trailing fragment with no tests or surrounding context. The canonical PDF is not present in this checkout or the named 1516_downloads folder; IEEE lists the standard as subscription access at https://standards.ieee.org/ieee/1516.1/6688/. This documents a Lab candidate-context defect, not IEEE errata. No implementation or normative test mapping is claimed.",
+      "detected": "2026-09-27"
+    },
+    {
+      "id": "RL-264",
+      "status": "open",
+      "kind": "requirements-lab-incomplete-normative-statement",
+      "title": "Adjacent page 290 §11.4.1 candidates split the ignored-interaction statement",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l75-24",
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l78-25"
+      ],
+      "exported_clause": "11.4.1",
+      "normative_clause": "11.4.1",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/11-management-object-model-page-290.tex",
+        "lines": "75-78",
+        "page": 290
+      },
+      "symptom": "The p.290 l.75 candidate ends with the incomplete subject 'These classes of interaction', while the adjacent l.78 candidate begins with the detached predicate 'shall be ignored by the RTI and may be formed in any way that is consistent with IEEE 1516.2 federation object model (FOM) development.' Neither record supplies a complete, independently interpretable normative statement or the full class context.",
+      "impact": "Contributors cannot safely identify which interaction classes are covered or derive the expected RTI behavior from either requirement record alone. Mapping an arbitrary MOM or extension interaction to these fragments could invent scope and create false conformance evidence.",
+      "workaround": "Leave both candidates uncovered. Do not infer the affected class set from adjacent HLAsetSwitches requirements or apply the fragments to all extension classes. Ask the Lab export to preserve the full statement and relevant neighboring class/table context, then verify against canonical IEEE wording before test mapping or validation promotion.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-content-clauses-11-management-object-model-page-290-l75-24 --json --limit 1; python tools/query_rti_work.py requirement requirement-candidate-content-clauses-11-management-object-model-page-290-l78-25 --summary --compact",
+      "recurrence_of": "RL-263",
+      "verification": "The exact JSON query for p.290 l.75 returns one uncovered candidate at source lines 75-77 ending in 'These classes of interaction'; the exact query for p.290 l.78 returns one uncovered candidate beginning 'shall be ignored by the RTI'. The records are adjacent but expose no complete statement or tests. This is a separate occurrence from RL-263, not a rewrite of that issue and not a claim of IEEE errata. No Lab resynchronization or normative test mapping was performed.",
+      "detected": "2026-09-27"
+    },
+    {
+      "id": "RL-265",
+      "status": "open",
+      "kind": "traceability-query-crosswalk-regression",
+      "title": "Page 288 HLAfederate MOM candidate is assigned to 11.3 instead of 11.2",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-288-l9-2"
+      ],
+      "exported_clause": "11.3",
+      "normative_clause": "11.2",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/10-support-services-page-288.tex",
+        "lines": "9",
+        "page": 288
+      },
+      "symptom": "The exact requirement query returns this stable candidate as clause 11.3 from content/clauses/10-support-services-page-288.tex:9. The current pinned semantic page for source page 288 explicitly places the text under 11.2 MOM object classes; the candidate locator resolves to a generated adapter rather than the semantic text. The statement covers publishing, registering, and updating the HLAfederate MOM instance, not removal on resignation or callback ordering.",
+      "impact": "A contributor querying canonical 11.2 cannot find the candidate, while attaching it to a MOM removal-before-rediscovery test would overstate its behavior and create false conformance evidence.",
+      "workaround": "Preserve the stable Lab id and exported 11.3 clause as provenance. Do not use this candidate as normative mapping for MOM removal or callback ordering. Keep the process callback-order case explicitly internal, and ask the Requirements Lab to correct the clause crosswalk and point the source locator to the semantic page. Do not rewrite the pinned Lab export in Umbra.",
+      "reproduction": "python tools/query_rti_work.py requirement requirement-candidate-content-clauses-10-support-services-page-288-l9-2 --summary --compact --limit 1",
+      "recurrence_of": "RL-252",
+      "verification": "The bounded requirement query assigns the candidate to hla-1516.1-2025:clause-11.3 and points to content/clauses/10-support-services-page-288.tex:9. In the sibling pinned 2025 semantic source, output/semantic/content-block-content-15161-page-287.tex declares source page 288 and the 11.2 MOM object classes heading at line 91; its HLAfederate text at lines 103-117 requires publish/register/update. This is a distinct candidate occurrence of the stale crosswalk pattern recorded in RL-252/RL-259, not a rewrite of those issues or a claim of IEEE errata. No normative mapping or Lab resynchronization was performed.",
+      "detected": "2026-09-27"
+    },
+    {
+      "id": "RL-266",
+      "status": "resolved",
+      "kind": "requirements-lab-plan-json-syntax-error",
+      "title": "Catch2 plan syntax and adjacent row boundaries are corrupted after RL-261",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "30362-30365, 30468-30474"
+      },
+      "symptom": "The bounded `python tools/query_rti_work.py resume` command fails with `Expecting ':' delimiter` at line 30363, column 76. The directed-interaction retraction restore row's `next_action` is spliced with an API identifier and orphan callback API strings; following fields belong to a separate timestamped object-deletion case whose row boundary and identity are not intact. A later malformed `next_action` splice is also present around line 30471. This is a new occurrence after RL-261, not a rewrite of it.",
+      "impact": "Resume and plan-backed requirement mapping checks cannot load the working Catch2 plan. Portable TCK catalog validation and installed-package execution remain independently usable.",
+      "workaround": "Do not resynchronize Requirements Lab or replace the dirty plan wholesale. Recover each affected row from its current source declaration and exact test identity before repairing the boundaries; avoid retaining partial row-level edits.",
+      "reproduction": "python tools/query_rti_work.py resume",
+      "recurrence_of": "RL-261",
+      "verification": "The original failure is no longer reproducible in the current worktree: `python tools/query_rti_work.py resume` succeeds and the current `compliance/requirements-lab/catch2-test-plan.json` parses as JSON. The cited malformed spans are historical evidence from the earlier state, not a current blocker. No Requirements Lab resynchronization was performed.",
+      "detected": "2026-09-27"
+    },
+    {
+      "id": "RL-267",
+      "status": "open",
+      "kind": "semantic-extraction-clause-boundary",
+      "title": "Page-67 Initiate Federate Save label candidate recurs under Federate Save Begun",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l22-3"
+      ],
+      "exported_clause": "4.21.1",
+      "normative_clause": "4.20",
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "content/clauses/04-federation-management-page-067.tex",
+        "lines": "22",
+        "page": 67
+      },
+      "symptom": "While mapping the single-federate process save-not-complete case, its Initiate Federate Save label assertion again exposes the page-67 ownership mismatch: the pinned candidate is an Initiate Federate Save/§4.20 statement, but the export attaches it to §4.21.1. The existing local save-control contract records the mismatch for this candidate; RL-082 recorded the same page/service-boundary issue for adjacent §4.20 candidates.",
+      "impact": "A test can verify the requested label reaches Initiate Federate Save, but selecting this candidate with its exported clause would attach evidence to Federate Save Begun. The focused row therefore leaves the label assertion unmapped instead of repeating that incorrect normative association.",
+      "workaround": "Keep the immutable candidate ID and exported clause visible in traceability notes. Do not treat §4.21.1 as the label callback's canonical clause; map it to §4.20 only after source-backed review accepts the existing extraction correction. Do not mutate or resynchronize the pinned Lab export as part of RTI implementation.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-process-endpoint-federation-save-not-complete-integration --summary --compact; inspect candidate requirement-candidate-content-clauses-04-federation-management-page-067-l22-3 and compliance/requirements-lab/save-control-requirements-contract.json.",
+      "recurrence_of": "RL-082",
+      "verification": "The save-control requirements contract identifies this candidate as the §4.20 label statement while preserving exported clause-4.21.1. Current source asserts the label in the Initiate Federate Save callback. The focused test plan deliberately maps the other directly supported requirements and excludes this candidate pending Requirements Lab refinement.",
+      "detected": "2026-09-28"
+    },
+    {
+      "id": "RL-268",
+      "status": "open",
+      "kind": "requirements-lab-plan-validation-drift",
+      "title": "Global Catch2 plan audit reports stale mappings and missing next actions in unrelated rows",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+        "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
+        "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
+        "requirement-candidate-content-clauses-08-time-management-page-210-l21-3"
+      ],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "validator-reported rows: timestamped attribute update, negotiated/confirmed divestiture, timestamped directed interaction, and process restore status"
+      },
+      "symptom": "The global `python tools/requirements_lab.py check-plan --plan compliance/requirements-lab/catch2-test-plan.json` audit reports eight findings outside the currently verified portable TCK slice: two rows lack a non-empty `next_action`; three rows reference the absent API surface `api.2025.cpp.rtiambassador.setservicereportingswitch.86951e8b3e77`; and one timestamped directed-interaction row contains four requirement/API identifiers absent from the pinned Lab surfaces.",
+      "impact": "The full Catch2 traceability-plan audit exits unsuccessfully even though focused portable TCK validation and its IEEE 1516.1-2025 / IEEE 1516.2-2025 contract mappings pass. These unrelated rows cannot be treated as verified normative mappings until their source identities and metadata are repaired.",
+      "workaround": "Keep this unrelated plan drift separate from portable TCK evidence. Repair each affected row only after checking its exact source and pinned 2025 Lab/API identities; do not resynchronize or rewrite the Requirements Lab export to silence validation findings.",
+      "reproduction": "python tools/requirements_lab.py check-plan --plan compliance/requirements-lab/catch2-test-plan.json",
+      "verification": "The command exits with the eight findings summarized above. Focused portable TCK promoted-evidence validation passes for the current interaction-publication slice; no edits to the affected Catch2 rows or Requirements Lab synchronization were made.",
+      "detected": "2026-09-28"
     }
   ]
 }

@@ -7,6 +7,12 @@ project(
   LANGUAGES CXX
 )
 
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  # Match MSVC's /bigobj allowance for the standards-shaped, high-fanout
+  # dispatch translation units when emitting MinGW COFF object files.
+  add_compile_options(-Wa,-mbig-obj)
+endif()
+
 include(GNUInstallDirs)
 include(CTest)
 include(CMakePackageConfigHelpers)
@@ -248,12 +254,19 @@ add_library(umbra_rti STATIC
   cpp/src/internal/time/update_rate_gate.cpp
   cpp/src/internal/time/tso_message_queue.cpp
   cpp/src/internal/runtime/umbra_rti_ambassador.cpp
+  cpp/src/internal/runtime/rti_initialization_data.cpp
   cpp/src/internal/runtime/utf8_string.cpp
 )
 add_library(umbra::rti ALIAS umbra_rti)
 set_target_properties(umbra_rti PROPERTIES EXPORT_NAME rti)
 target_compile_features(umbra_rti PUBLIC cxx_std_20)
 target_compile_definitions(umbra_rti PUBLIC STATIC_RTI)
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  # The unmodified IEEE 1516.1-2025 encoding header uses Microsoft's _int64
+  # keyword for every _WIN32 compiler. Keep the licensed header baseline exact
+  # and supply its MinGW spelling through the public CMake target instead.
+  target_compile_definitions(umbra_rti PUBLIC "_int64=long long")
+endif()
 if(MSVC)
   # The standards-shaped registry and ambassador intentionally keep the
   # vertical-slice state machine in translation units shared by every build
@@ -270,7 +283,7 @@ target_include_directories(umbra_rti
 )
 target_link_libraries(umbra_rti PUBLIC umbra::ieee1516_2025_headers)
 if(WIN32)
-  target_link_libraries(umbra_rti PRIVATE ws2_32)
+  target_link_libraries(umbra_rti PRIVATE ws2_32 advapi32)
 endif()
 
 # IEEE 1516.1-2010 / 1516e bounded binding. This target owns the official
@@ -3325,8 +3338,6 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
       )
       target_link_libraries(umbra_process_federation_service_probe PRIVATE
-        umbra_fom_validation_backend
-        umbra::rti
         umbra::fedtime
       )
       target_sources(umbra_ieee1516_2025_catch2 PRIVATE
@@ -3432,6 +3443,7 @@ if(BUILD_TESTING)
       if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
         target_sources(umbra_ieee1516_2025_catch2 PRIVATE
           cpp/tests/ieee1516_2025_federation_management_catch2.cpp
+          cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp
           cpp/tests/attribute_relevance_advisory_catch2.cpp
           cpp/tests/attribute_scope_advisory_catch2.cpp
           cpp/tests/auto_provide_baseline_catch2.cpp
@@ -3502,7 +3514,6 @@ if(BUILD_TESTING)
       endif()
       target_link_libraries(umbra_ieee1516_2025_catch2 PRIVATE umbra_fom_validation_backend)
       target_compile_definitions(umbra_ieee1516_2025_catch2 PRIVATE
-        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
         UMBRA_PROCESS_SERVICE_PROBE_PATH="$<TARGET_FILE:umbra_process_federation_service_probe>"
       )
       add_dependencies(umbra_ieee1516_2025_catch2
@@ -9077,6 +9088,9 @@ if(BUILD_TESTING)
       endif()
     endif()
     target_compile_features(umbra_ieee1516_2025_catch2 PRIVATE cxx_std_20)
+    target_compile_definitions(umbra_ieee1516_2025_catch2 PRIVATE
+      UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
+    )
     if(MSVC)
       # The focused federation-management Catch2 translation unit intentionally
       # keeps the C++ service matrix in one source file.  MSVC's default object
@@ -10397,6 +10411,11 @@ if(BUILD_TESTING)
     target_compile_definitions(umbra_service_report_store_catch2 PRIVATE
       UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
     )
+    if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+      target_compile_definitions(umbra_service_report_store_catch2 PRIVATE
+        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
+      )
+    endif()
     target_link_libraries(umbra_service_report_store_catch2 PRIVATE
       umbra::rti
       Catch2::Catch2WithMain

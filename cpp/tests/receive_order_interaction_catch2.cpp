@@ -97,7 +97,9 @@ void drainCallbacks(RTIambassador& rti) {
 TEST_CASE(
     "Embedded receive-order Send Interaction honors 2025 promotion and callback lifecycle",
     "[integration][development-profile][interaction-management]"
-    "[rti.service.send-interaction][federate.callback.receive-interaction]") {
+    "[interaction-sent-class-preservation]"
+    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
+    "[federate.callback.receive-interaction]") {
   TestFederateAmbassador unjoinedFederate;
   ReportingFederateAmbassador publisherReports;
   ReportingFederateAmbassador exactReports;
@@ -201,9 +203,11 @@ TEST_CASE(
       publisher->sendInteraction(child, invalidParameterValues, tag),
       rti1516_2025::InteractionParameterNotDefined);
 
-  // Passive superclass subscriptions remain declaration state. An active
-  // child subscription selects the closest received class and yields one
-  // callback even when the same federate also has a passive base subscription.
+  // The child class passed to Send Interaction remains the sent class. A
+  // passive base-only recipient still receives once another joined federate
+  // has established relevance, with its callback class promoted to the base
+  // per §6.1.9. A recipient subscribed to both base and child receives only
+  // once, with the original parameter value preserved.
   REQUIRE_NOTHROW(exact->subscribeInteractionClass(child));
   REQUIRE_NOTHROW(promoted->subscribeInteractionClass(base, false));
   REQUIRE_NOTHROW(dualSubscription->subscribeInteractionClass(base, false));
@@ -245,7 +249,8 @@ TEST_CASE(
 
   REQUIRE(exactReports.interactionReports.size() == 1U);
   requireDelivery(exactReports.interactionReports.front(), child);
-  REQUIRE(promotedReports.interactionReports.empty());
+  REQUIRE(promotedReports.interactionReports.size() == 1U);
+  requireDelivery(promotedReports.interactionReports.front(), base);
   REQUIRE(dualSubscriptionReports.interactionReports.size() == 1U);
   requireDelivery(dualSubscriptionReports.interactionReports.front(), child);
   REQUIRE(immediateReports.interactionReports.size() == 1U);

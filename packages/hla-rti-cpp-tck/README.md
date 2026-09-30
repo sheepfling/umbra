@@ -101,6 +101,8 @@ The executable covers these ordinary public-API workflows, under both
  | `cpp-tck.federation-mom-synchronization-queries-contract` | Pure standard C++ contract for federation MOM synchronization-point list/status queries using adapter-supplied MIM, FOM, endpoint, and callbacks |
  | `cpp-tck.service-report-order-transportation-lookups` | Standard MOM service reports for order and transportation lookup return values, typed arguments, reliable metadata, and serial progression |
  | `cpp-tck.service-report-order-transportation-lookups-contract` | Standard adapter-backed order/transportation lookup service-report contract using the official MIM and public APIs |
+| `cpp-tck.service-report-confirm-divestiture` | Standard MOM report for successful negotiated ownership confirmation, typed tag argument, and confirmed ownership transfer |
+| `cpp-tck.service-report-confirm-divestiture-contract` | Adapter-backed standard contract for ConfirmDivestiture report and ownership-transfer behavior |
 | `cpp-tck.service-report-order-transportation-lookup-failures` | Standard MOM failure reports for invalid order and transportation lookups, including typed null returns, exception classes, and serial progression |
 | `cpp-tck.service-report-order-transportation-lookup-failures-contract` | Standard adapter-backed order/transportation lookup failure-report contract using provider-neutral invalid inputs |
 | `cpp-tck.service-report-dimension-handle` | Standard-MIM `GetDimensionHandle` result and typed success report, including reliable delivery and reporter identity |
@@ -245,12 +247,34 @@ The executable covers these ordinary public-API workflows, under both
   | `cpp-tck.federate-mom-object-instance-information-contract` | Pure standard C++ contract for object-information MOM reports before and after local deletion |
   | `cpp-tck.federate-mom-publication-query` | Verifies published object class/attribute and interaction class reports plus the required empty directed-interaction publication report |
   | `cpp-tck.federate-mom-publication-query-contract` | Pure standard C++ contract for federate MOM publication reports and the directed-publication NULL response |
+  | `cpp-tck.federate-mom-multiple-directed-publication-query` | Verifies one MIM directed-publication report per adapter-selected object class and the aggregate class count |
+  | `cpp-tck.federate-mom-multiple-directed-publication-query-contract` | Pure standard C++ contract for directed-publication reports across object classes |
+  | `cpp-tck.federate-mom-multiple-directed-publication-partial-unpublish-query` | Uses a 2025 FDD-valid derived object class with one inherited and one class-specific directed interaction; removes the inherited interaction and verifies the class-specific interaction and distinct base-class publication remain |
+  | `cpp-tck.federate-mom-multiple-directed-publication-partial-unpublish-query-contract` | Pure IEEE 1516.1-2025 C++ contract for standard MIM publication reports after set-based partial unpublication across an inherited directed interaction |
+  | `cpp-tck.federate-mom-interaction-class-whole-unpublication-query` | Unpublishes the adapter-selected ordinary interaction class and verifies the exact MIM empty-list response |
+  | `cpp-tck.federate-mom-interaction-class-partial-unpublication-query` | Unpublishes one of two adapter-selected ordinary interaction classes and verifies the one-class report |
+  | `cpp-tck.federate-mom-multiple-interaction-class-full-unpublication-query` | Unpublishes both adapter-selected ordinary interaction classes and verifies the exact IEEE 1516.2-2025 NULL response |
+  | `cpp-tck.federate-mom-multiple-interaction-class-full-unpublication-query-contract` | Pure IEEE 1516.1-2025 C++ contract for full ordinary interaction unpublication and the standard MIM empty-list response |
+  | `cpp-tck.interaction-publication-send-transition` | Delivers an ordinary interaction while published, requires the exact 2025 `InteractionClassNotPublished` exception after unpublication, then verifies delivery recovers after republishing |
+  | `cpp-tck.interaction-publication-send-transition-contract` | Pure IEEE 1516.1-2025 contract for send delivery, withdrawal rejection, and republish recovery |
+  | `cpp-tck.federate-mom-multiple-directed-publication-full-unpublish-query` | Removes every remaining directed publication after the populated and partial states, then verifies the exact IEEE 1516.2-2025 zero-class NULL response while ordinary publications remain |
+  | `cpp-tck.federate-mom-multiple-directed-publication-full-unpublish-query-contract` | Pure IEEE 1516.1-2025 C++ contract for class-scoped full unpublish and the standard MIM directed-publication NULL response |
+  | `cpp-tck.federate-mom-multiple-directed-subscription-full-unsubscribe-query` | Removes the remaining directed subscription after populated and partial states, then verifies the exact IEEE 1516.2-2025 zero-class NULL response while ordinary subscription reports remain |
+  | `cpp-tck.federate-mom-multiple-directed-subscription-full-unsubscribe-query-contract` | Pure IEEE 1516.1-2025 C++ contract for class-scoped full unsubscribe and the standard MIM directed-subscription NULL response |
   | `cpp-tck.federate-mom-subscription-query` | Verifies an active object-attribute subscription, active interaction subscriptions, and the required empty directed-interaction subscription report |
   | `cpp-tck.federate-mom-subscription-query-contract` | Pure standard C++ contract for federate MOM subscription reports |
   | `cpp-tck.federate-mom-passive-subscription-query` | Verifies a passive object-attribute subscription, active interaction subscription, and required empty directed-interaction report |
   | `cpp-tck.federate-mom-passive-subscription-query-contract` | Pure standard C++ contract for passive federate MOM subscription reporting |
   | `cpp-tck.federate-mom-passive-interaction-subscription-query` | Verifies an active object-attribute subscription, passive interaction subscription, and required empty directed-interaction report |
   | `cpp-tck.federate-mom-passive-interaction-subscription-query-contract` | Pure standard C++ contract for passive interaction subscription reporting |
+  | `cpp-tck.federate-mom-passive-interaction-subscription-activation-query` | Verifies the standard MIM reports a passive interaction subscription as inactive, then active after the standard service changes its state |
+  | `cpp-tck.federate-mom-passive-interaction-subscription-activation-query-contract` | Pure IEEE 1516.1-2025 C++ contract for interaction-subscription state transition reporting |
+  | `cpp-tck.federate-mom-multiple-interaction-subscription-query` | Verifies the MIM reports exactly two interaction classes with distinct active and passive states |
+  | `cpp-tck.federate-mom-multiple-interaction-subscription-query-contract` | Pure IEEE 1516.1-2025 C++ contract for mixed active/passive interaction-subscription reports |
+  | `cpp-tck.federate-mom-multiple-interaction-subscription-unsubscribe-query` | Removes the passive MIM interaction subscription, then verifies the MIM retains only the active application interaction |
+  | `cpp-tck.federate-mom-multiple-interaction-subscription-unsubscribe-query-contract` | Pure IEEE 1516.1-2025 C++ contract for partial interaction unsubscription reporting |
+  | `cpp-tck.federate-mom-multiple-interaction-subscription-full-unsubscribe-query` | Unsubscribes the remaining active interaction and verifies the standard MIM empty-list NULL response |
+  | `cpp-tck.federate-mom-multiple-interaction-subscription-full-unsubscribe-query-contract` | Pure IEEE 1516.1-2025 C++ contract for the final interaction-subscription NULL report |
   | `cpp-tck.federate-mom-exception-report-service-precondition` | Service Reporting enablement failure while subscribed to HLAreportServiceInvocation reports HLAparameterError false |
   | `cpp-tck.federate-mom-exception-report-service-precondition-contract` | Pure standard C++ contract for the Service Reporting MOM precondition report |
   | `cpp-tck.federate-send-service-reports-to-file-mom-switch` | Standard federate-level HLAsetSwitches changes for the service-report destination switch without activating report emission |
@@ -378,6 +402,8 @@ The executable covers these ordinary public-API workflows, under both
  | `cpp-tck.receive-order-interaction-contract` | Pure standard C++ contract for ordinary receive-order interaction publication, subscription, delivery ordering, metadata, and teardown |
 | `cpp-tck.receive-order-object-removal` | Deliver an ordinary object removal after discovery, preserving removal tag and producer metadata without publisher loopback |
 | `cpp-tck.receive-order-object-removal-contract` | Pure standard C++ contract for ordinary object registration/discovery, deletion, removal metadata, and teardown |
+| `cpp-tck.object-removal-order-classification` | At one time-constrained receiver, prove receive-order removal is released by either enabling asynchronous delivery or advancing time while it is disabled, then classify timestamped removal with time/order/retraction metadata and removal-before-grant |
+| `cpp-tck.object-removal-order-classification-contract` | Standard adapter-backed contract for asynchronous-delivery and time-advance release of receive-order removal, plus timestamp-order object removal |
 | `cpp-tck.object-deletion-service-boundaries` | Object-deletion pre-connect and pre-join failures, unknown-object rejection, local deletion, remote removal metadata, resign-time deletion, and lookup cleanup |
 | `cpp-tck.object-deletion-service-boundaries-contract` | Pure standard C++ contract for object-deletion service boundaries, removal metadata, and resignation cleanup |
 | `cpp-tck.object-registration-service-boundaries` | Object-registration pre-connect and pre-join failures, publication/subscription boundaries, discovery, stable handle lookups, and standard cleanup |
@@ -399,26 +425,27 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.object-attribute-subscription-lifecycle` | Passive ordinary object-attribute subscriptions suppress discovery/reflection, active replacement discovers existing objects and enables reflection, downgrade suppresses later updates, reactivation restores reflection, and unsubscribe removes delivery |
 | `cpp-tck.object-publication-registration-fence` | Whole-class unpublication fences object registration with `ObjectClassNotPublished`; republishing restores registration, discovery, and stable identity lookups |
 | `cpp-tck.object-publication-registration-fence-contract` | Standard adapter-backed ordinary object publication and registration fence contract using official publication, subscription, registration, lookup, discovery, and lifecycle APIs |
-| `cpp-tck.timestamped-interactions` | Timestamped Send/Receive, invalid interaction-class and retraction-handle boundaries, constrained grant delivery, timestamp/order metadata, retraction designators, and Request Retraction callbacks |
+| `cpp-tck.timestamped-interactions` | Timestamped Send/Receive, invalid interaction-class and retraction-handle boundaries, constrained grant delivery, timestamp/order metadata, retraction designators, and Request Retraction callbacks; Java focused parity for delivered/queued retraction: `java-tck.timestamped-interaction-retraction` |
 | `cpp-tck.timestamped-interactions-contract` | Standard adapter-backed timestamped interaction and retraction contract using official time-role and interaction callbacks |
 | `cpp-tck.timestamped-interaction-source-resignation-contract` | Standard adapter-backed queued timestamped interaction source-resignation contract, including the post-resignation retraction boundary and preserved delivery metadata |
 | `cpp-tck.timestamped-interaction-source-resignation-fanout-contract` | Standard adapter-backed timestamped interaction source-resignation fan-out contract with independent recipient TAR/NMR servicing and preserved per-recipient delivery metadata |
 | `cpp-tck.timestamped-interaction-source-resignation` | A queued timestamped interaction remains deliverable after producer resignation, preserving parameter, tag, producer, time/order, transport, and retraction metadata before the recipient TAR grant |
 | `cpp-tck.timestamped-interaction-source-resignation-fanout` | Queued timestamped interactions remain deliverable to each constrained recipient after producer resignation, using independent TAR/NMR frontiers and preserving payload, producer, time/order, and retraction metadata |
-| `cpp-tck.timestamped-interaction-mixed-advances` | One queued timestamped interaction is delivered before Flush Queue, Time Advance Request Available, and Next Message Request Available grants, with callback ordering, logical-time queries, and retraction metadata |
+| `cpp-tck.timestamped-interaction-mixed-advances` | One queued timestamped interaction is delivered before Flush Queue, Time Advance Request Available, and Next Message Request Available grants, with callback ordering, logical-time queries, and retraction metadata; Java parity: `java-tck.timestamped-interaction-mixed-advances` |
 | `cpp-tck.timestamped-interaction-mixed-advances-contract` | Standard adapter-backed timestamped interaction contract for mixed Flush Queue, Time Advance Request Available, and Next Message Request Available delivery |
 | `cpp-tck.timestamped-interaction-flush-queue-future-input` | Future timestamped interactions accepted around a Flush Queue request are delivered before its grant, preserving callback order, payload, time/order, transport, and retraction metadata while reporting the optimistic frontier |
 | `cpp-tck.timestamped-interaction-flush-queue-future-input-contract` | Standard adapter-backed future-input timestamped interaction and Flush Queue contract with frontier, retraction, callback, and cleanup assertions |
 | `cpp-tck.timestamped-interaction-tso-designator-terminalization` | All standard producer advance forms terminalize expired timestamped-interaction retraction handles without delivering to an idle constrained receiver |
 | `cpp-tck.timestamped-interaction-tso-designator-terminalization-contract` | Standard adapter-backed timestamped interaction retraction-terminalization contract across all alternate advance forms |
-| `cpp-tck.timestamped-interaction-cross-producer-order` | Timestamp order is preserved across multiple interaction producers for each constrained recipient, while equal-timestamp ordering remains unconstrained and producer/tag identity is preserved |
+| `cpp-tck.timestamped-interaction-cross-producer-order` | Timestamp order is preserved across multiple interaction producers for each constrained recipient, while equal-timestamp ordering remains unconstrained and producer/tag identity is preserved; Java focused parity: `java-tck.timestamped-interaction-cross-producer-order` |
 | `cpp-tck.timestamped-interaction-cross-producer-order-contract` | Standard adapter-backed timestamped interaction ordering contract across multiple producers and constrained recipients |
-| `cpp-tck.timestamped-interaction-no-fanout` | Timestamped interaction sends return usable retraction handles and preserve terminal retraction behavior when no subscribing federate is eligible |
+| `cpp-tck.timestamped-interaction-no-fanout` | Timestamped interaction sends return usable retraction handles and preserve terminal retraction behavior when no subscribing federate is eligible; Java focused parity: `java-tck.timestamped-interaction-no-fanout` |
 | `cpp-tck.timestamped-interaction-no-fanout-contract` | Standard adapter-backed timestamped interaction no-fan-out and terminal-retraction contract |
-| `cpp-tck.timestamped-interaction-retraction-fanout` | Delivered timestamped interaction copies produce Request Retraction callbacks while still-queued fan-out copies are suppressed, including post-resignation immediate delivery |
+| `cpp-tck.timestamped-interaction-retraction-fanout` | Delivered timestamped interaction copies produce Request Retraction callbacks while still-queued fan-out copies are suppressed, including post-resignation immediate delivery; Java focused parity: `java-tck.timestamped-interaction-retraction-fanout` |
 | `cpp-tck.timestamped-interaction-retraction-fanout-contract` | Standard adapter-backed timestamped interaction delivered/queued retraction fan-out contract with recipient cleanup |
-| `cpp-tck.timestamped-interaction-regulation-reenable` | Queued timestamped interaction survives Time Regulation disable/re-enable with changed lookahead, including Query Lookahead, grant ordering, metadata, and retraction |
+| `cpp-tck.timestamped-interaction-regulation-reenable` | Queued timestamped interaction survives Time Regulation disable/re-enable with changed lookahead, including Query Lookahead, grant ordering, metadata, and retraction; Java focused parity: `java-tck.timestamped-interaction-regulation-reenable` |
 | `cpp-tck.timestamped-interaction-regulation-reenable-contract` | Standard adapter-backed timestamped interaction Time Regulation re-enable contract for changed lookahead, grant ordering, metadata, and retraction |
+| `cpp-tck.timestamped-interaction-reenable` | Queued timestamped interaction survives Time Constrained disable/re-enable without early delivery; grant ordering, metadata, and terminal retraction are checked; Java focused parity: `java-tck.timestamped-interaction-reenable` |
 | `cpp-tck.timestamped-interaction-reenable-contract` | Standard adapter-backed timestamped interaction Time Constrained re-enable contract for queued delivery, grant ordering, metadata, and retraction |
 | `cpp-tck.timestamped-directed-interaction-reenable-contract` | Standard adapter-backed timestamped directed-interaction Time Constrained re-enable contract for target routing, grant ordering, metadata, and retraction |
 | `cpp-tck.timestamped-directed-interaction-regulation-reenable` | Queued timestamped directed interaction survives Time Regulation disable/re-enable with changed lookahead, including target routing, Query Lookahead, grant ordering, metadata, and terminal retraction |
@@ -444,7 +471,7 @@ The executable covers these ordinary public-API workflows, under both
 | `cpp-tck.timestamped-attribute-update-queued-passel-retraction` | Timestamped multi-attribute updates retain their adapter-defined passel shape, suppress a retracted queued update, and preserve value, tag, time, producer, order, transportation, and retraction metadata before the grant |
 | `cpp-tck.timestamped-attribute-update-queued-passel-retraction-contract` | Standard adapter-backed timestamped multi-attribute passel retraction contract |
 | `cpp-tck.timestamped-attribute-update-no-fanout-contract` | Standard adapter-backed timestamped attribute no-fan-out and terminal-retraction contract |
-| `cpp-tck.timestamped-attribute-update-alternate-advances` | Timestamped ordinary Update/Reflect through Flush Queue Request, Time Advance Request Available, and Next Message Request Available, with callback-before-grant ordering, grant/query checks, and terminal retraction |
+| `cpp-tck.timestamped-attribute-update-alternate-advances` | Timestamped ordinary Update/Reflect through Flush Queue Request, Time Advance Request Available, and Next Message Request Available, with callback-before-grant ordering, grant/query checks, and terminal retraction; Java focused parity: `java-tck.timestamped-attribute-update-alternate-advances` |
 | `cpp-tck.timestamped-attribute-update-alternate-advances-contract` | Standard adapter-backed timestamped attribute contract across alternate advance services |
 | `cpp-tck.timestamped-attribute-update-flush-queue-future-input` | Future timestamped attribute updates accepted beyond a Flush Queue boundary are delivered before its grant, preserving value, tag, time/order, transport, and retraction metadata while reporting the optimistic frontier |
 | `cpp-tck.timestamped-attribute-update-flush-queue-future-input-contract` | Standard adapter-backed future timestamped attribute input and Flush Queue contract |
@@ -4409,20 +4436,701 @@ callback models. Evidence is in
 `.build/cpp-tck-federate-mom-empty-subscription-query-candidate-a-clean-20260928/`
 and
 `.build/cpp-tck-federate-mom-empty-subscription-query-candidate-b-clean-20260928/`.
-The next promoted pair verifies one populated directed-interaction subscription
-through standard `HLArequestSubscriptions`: exactly one object class and one
-interaction class are decoded and matched to adapter-selected FOM handles; the
-empty NULL response remains covered by its prior scenario. Two independent
-installed-package consumer trees passed 20/20 focused CTest regressions across
-the active, passive-object, passive-interaction, empty, and populated-directed
-states in both callback models. Direct evidence passed all ten scenario IDs in
-both callback models. Evidence is in
+The promoted directed-subscription pair verifies one populated
+directed-interaction subscription through standard `HLArequestSubscriptions`:
+exactly one object class and one interaction class are decoded and matched to
+adapter-selected FOM handles; the empty NULL response remains covered by its
+prior scenario. Two independent installed-package consumer trees passed 20/20
+focused CTest regressions across the active, passive-object,
+passive-interaction, empty, and populated-directed states in both callback
+models. Direct evidence passed all ten scenario IDs in both callback models.
+Evidence is in
 `.build/cpp-tck-federate-mom-directed-subscription-query-candidate-a-clean-20260928/`
 and
 `.build/cpp-tck-federate-mom-directed-subscription-query-candidate-b-clean-20260928/`.
-The pair is promoted. The catalog now contains 960 IDs (958 promoted, 2
-candidates); Java parity remains 21/21. The API-surface audit still accounts
-for all 164 official RTIambassador methods and 56 FederateAmbassador callbacks.
-Next bounded handoff: survey standard MIM and native evidence for multiple
-directed-subscription object classes or multiple interaction classes before
-adding broader populated-report cases.
+The newly promoted multiple-directed-subscription pair covers two distinct
+object-class groups, each paired with its FOM-defined directed interaction.
+The MIM reports one interaction per object-class group and the total number of
+subscribed object classes; set-based unsubscribe removes the primary group and
+the next request must retain exactly the secondary group. Two independent
+installed-package consumer trees passed all 24/24 focused CTest regressions
+across active, passive-object, passive-interaction, empty, single-directed, and
+multiple-directed states under evoked and immediate callbacks. Direct evidence
+passed both new scenario IDs in both callback models. Evidence is in
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-a-clean-20260928/`
+and
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-b-clean-20260928/`.
+The newly promoted multiple-directed-publication pair verifies two FOM-linked
+object-class groups through standard `HLArequestPublications`. Each
+`HLAreportDirectedInteractionPublication` identifies its object class and one
+matching interaction class, while `HLAnumberOfClasses` reports two published
+object classes. Two independent installed-package consumer trees passed the
+32/32 focused publication-and-subscription regressions across evoked and
+immediate callbacks. Direct evidence passed both new scenario IDs in both
+callback models. Evidence is in
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-a-clean-20260928/`
+and
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-b-clean-20260928/`.
+The partial-unpublication pair calls the standard set-based
+`unpublishObjectClassDirectedInteractions` overload on a 2025 FDD-valid
+derived class. The derived class inherits `TckInteraction` from its base and
+defines `TckSecondaryDirectedInteraction`; a distinct publication on the base
+class remains active. The test removes only the inherited interaction from the
+derived class, then verifies that its class-specific interaction and the
+independent base-class publication remain, with both directed reports carrying
+`HLAnumberOfClasses == 2`; ordinary object/interaction publication reports also
+remain unchanged. Two independent installed-package consumer trees each passed
+16/16 focused CTest executions across ordinary and multiple directed
+publication/subscription cases under evoked and immediate callbacks. The new
+pair also passed candidate-only direct evidence validation in both trees
+before promotion. Its API and requirement contracts validate against the
+existing Requirements Lab export. Evidence is in
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-a-clean-20260928/`
+and
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-b-clean-20260928/`.
+
+The promoted full-unpublication pair extends that lifecycle: after verifying
+the populated and partial states, it removes all remaining directed
+publications through the standard class-scoped overload, then checks the
+single IEEE 1516.2-2025 `HLAreportDirectedInteractionPublication` NULL response
+exactly (zero class count, omitted object-class parameter, empty interaction
+list). It also proves that ordinary object-attribute and interaction
+publications remain unchanged. Both independent installed-package consumer
+trees passed 20/20 focused publication/subscription CTest executions across
+evoked and immediate callbacks; candidate-only direct evidence and both
+Requirements Lab contracts validated in each tree. Evidence is in
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-a-clean-20260928/`
+and
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-b-clean-20260928/`.
+
+The newly promoted full-unsubscription pair verifies the directed equivalent:
+after populated and partial states, it removes the remaining directed
+subscription using the official class-scoped 2025 API, then checks the exact
+IEEE 1516.2-2025 NULL report (zero class count, omitted object-class parameter,
+empty interaction list), while ordinary object-attribute and interaction
+subscription reports remain present and unchanged. Both independent
+installed-package consumer trees passed 16/16 focused CTest executions across
+evoked and immediate callbacks; candidate-only direct evidence and both
+Requirements Lab contracts validated before promotion. Evidence is in
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-a-clean-20260928/`
+and
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-b-clean-20260928/`.
+
+The catalog now contains 980 IDs (978 promoted, 2 candidates); Java parity
+remains 21/21. The API-surface audit still accounts for all 164 official
+RTIambassador methods and 56 FederateAmbassador callbacks. The promoted
+passive-to-active interaction subscription pair changes one adapter-selected
+interaction class from passive to active, requests fresh MIM reports, and
+checks the HLAinteractionClassList status transition while requiring exactly
+one fresh report of each standard subscription kind. Both independent
+installed-package consumer trees passed 4/4 focused CTest executions across
+evoked and immediate callbacks; direct candidate evidence and both
+Requirements Lab contracts validated before promotion. Evidence is in
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-a-clean-20260928/`
+and
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-b-clean-20260928/`.
+
+The promoted multiple-interaction pair uses the standard MIM's
+`HLAreportServiceInvocation` interaction alongside the adapter-selected
+application interaction. It verifies the list contains exactly those two
+distinct handles with active=true for the application interaction and
+active=false for the MIM interaction, independent of list ordering. Both
+installed-package consumer trees passed 4/4 focused CTest executions across
+evoked and immediate callbacks; the candidate evidence and both Requirements
+Lab contracts validated before promotion. Evidence is in
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-a-clean-20260928/`
+and
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-b-clean-20260928/`.
+
+The promoted partial-unsubscription pair starts with those two mixed-state
+classes, unsubscribes only the passive `HLAreportServiceInvocation` class, and
+issues a fresh request. The report must contain exactly the still-active
+application interaction, while the request still yields exactly one object,
+interaction, and directed-subscription report. Both installed-package
+consumer trees passed 4/4 focused CTest executions across evoked and immediate
+callbacks; direct candidate evidence and both Requirements Lab contracts
+validated before promotion. Evidence is in
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-a-clean-20260928/`
+and
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-b-clean-20260928/`.
+
+The promoted full-unsubscription pair extends that sequence by removing the
+remaining active application interaction and verifying that the final MIM
+interaction-subscription report contains only the HLAinteractionClassList
+parameter with an empty decoded list. Each request still yields exactly one
+object, interaction, and directed-subscription report. Both installed-package
+consumer trees passed 4/4 focused CTest executions across evoked and immediate
+callbacks; candidate evidence and both Requirements Lab contracts validated
+before promotion. Evidence is in
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-a-clean-20260928/`
+and
+`.build/cpp-tck-federate-mom-directed-subscription-query-candidate-b-clean-20260928/`.
+
+The promoted object-attribute partial-unsubscription pair uses two adapter-
+selected attributes on the ordinary, dimensionless P0 `TckObject` class. It
+removes one attribute using `unsubscribeObjectClassAttributes`, then queries
+again and verifies the 1516.2-2025 MIM report retains the class, active state,
+update-rate name, and only the still-subscribed attribute. It does not load the
+DDM multi-attribute fixture or call any region service. Both independent
+installed-package consumer trees passed 4/4 focused CTest executions across
+evoked and immediate callbacks; direct evoked/immediate evidence, the API and
+requirements contracts, catalog/source-boundary checks, Java parity, and API
+surface audit all passed before promotion. Evidence is in
+`.build/cpp-tck-object-attribute-partial-unsubscribe-candidate-a-20260928/`
+and
+`.build/cpp-tck-object-attribute-partial-unsubscribe-candidate-b-20260928/`.
+
+The promoted full object-attribute unsubscription pair starts with those two
+adapter-selected attributes, removes both in one
+`unsubscribeObjectClassAttributes` call, and checks the exact 1516.2-2025 MIM
+NULL report: zero classes, with class, active, update-rate, and attribute-list
+parameters omitted. It also verifies the ordinary interaction and directed-
+interaction NULL reports remain present. No DDM fixture or region service is
+used. Both independent installed-package consumer trees passed 4/4 focused
+CTest executions across evoked and immediate callbacks; direct both-model
+evidence, both Requirements Lab contracts, catalog/source-boundary checks,
+Java parity, and API surface audit all passed before promotion. Evidence is in
+`.build/cpp-tck-object-attribute-full-unsubscribe-candidate-a-20260928/` and
+`.build/cpp-tck-object-attribute-full-unsubscribe-candidate-b-20260928/`.
+
+The promoted whole-class unsubscription pair separately invokes
+`unsubscribeObjectClass` after establishing an active two-attribute object
+subscription. It verifies the same exact object-class NULL response and checks
+the ordinary interaction and directed-interaction NULL reports remain present.
+This exercises the whole-class service independently of the attribute-set
+overload, with the same dimensionless P0 FOM and no region services. Both
+independent installed-package consumer trees passed 4/4 focused CTest executions
+across evoked and immediate callbacks; direct both-model evidence, both
+Requirements Lab contracts, catalog/source-boundary checks, Java parity, and
+API surface audit all passed before promotion. Evidence is in
+`.build/cpp-tck-object-class-unsubscribe-candidate-a-20260928/` and
+`.build/cpp-tck-object-class-unsubscribe-candidate-b-20260928/`.
+
+The promoted complete-object-class subscription pair uses the standard
+`subscribeObjectClassAttributes` service with all three adapter-configured
+ordinary P0 `TckObject` attributes (`Value`, `Name`, `PayRate`). The 2025 C++
+API has no separate `subscribeObjectClass` method, so this verifies the
+whole-class-equivalent attribute set without inventing an API surface. A fresh
+standard MIM query confirms the exact three-handle list, active state, and
+update-rate designator. Both independent installed-package consumer trees
+passed 4/4 focused CTest executions across evoked and immediate callbacks;
+direct both-model evidence, both Requirements Lab contracts, catalog/source-
+boundary checks, Java parity, and API-surface audit passed before promotion.
+This ordinary dimensionless P0 scenario uses no DDM region services. Evidence
+is in `.build/cpp-tck-object-class-all-subscription-candidate-a-20260928/` and
+`.build/cpp-tck-object-class-all-subscription-candidate-b-20260928/`.
+
+The promoted passive complete-object-class subscription pair uses
+`subscribeObjectClassAttributes` with the adapter FOM's full ordinary class
+attribute set and `active=false`; the fresh standard MIM report must preserve
+that passive state, update-rate designator, class handle, and exact three-
+attribute list. This is distinct from the existing passive single-attribute
+case and uses only the dimensionless P0 fixture. Both independent installed-
+package consumer trees passed 4/4 focused CTest executions across evoked and
+immediate callbacks; direct both-model evidence, both Requirements Lab
+contracts, catalog/source-boundary checks, Java parity, and API-surface audit
+passed before promotion. Evidence is in
+`.build/cpp-tck-object-class-passive-all-subscription-candidate-a-20260928/`
+and `.build/cpp-tck-object-class-passive-all-subscription-candidate-b-20260928/`.
+
+The promoted object-class subscription activation pair begins with a passive
+subscription to all three adapter-configured P0 attributes, requests and checks
+the initial passive MIM state, then repeats the standard 2025
+`subscribeObjectClassAttributes` call for the same set with `active=true`. A
+fresh report verifies the active state, all three handles, and the unchanged
+update-rate designator. Both independent installed-package consumer trees
+passed 4/4 focused CTest executions across evoked and immediate callbacks;
+direct both-model evidence, both 2025 contracts, catalog/source-boundary
+checks, Java parity, and API-surface audit passed before promotion. Evidence is
+in `.build/cpp-tck-object-class-activation-candidate-a-20260928/` and
+`.build/cpp-tck-object-class-activation-candidate-b-20260928/`.
+
+The catalog now contains 992 IDs (990 promoted, 2 candidates); Java parity
+remains 21/21. The ordinary object-class publication completeness pair now
+checks exactly the three adapter-configured application attributes plus the
+inherited `HLAprivilegeToDeleteObject` named by the IEEE 1516.2-2025 MIM. Two
+independent installed-package consumer trees passed the focused verified-set
+CTest matrix (4/4 each) and direct execution under both callback models. The
+2025 API/MIM contracts, catalog evidence, API-surface audit, Java parity, and
+source boundary all validate. Evidence is in
+`.build/cpp-tck-complete-object-class-publication-candidate-a-20260928/` and
+`.build/cpp-tck-complete-object-class-publication-candidate-b-20260928/`.
+
+Next bounded handoff: add a distinct ordinary attribute-publication transition
+query that publishes the adapter-configured application set, unpublishes one
+attribute, and verifies the exact post-transition standard MIM report (while
+accounting for the inherited HLA privilege attribute); keep it DDM-free and
+ground every assertion in IEEE 1516.1-2025 / IEEE 1516.2-2025.
+
+Follow-up complete: `cpp-tck.federate-mom-object-class-attribute-unpublication-query`
+now performs that transition. After unpublishing adapter-selected `Name`, a
+fresh 1516.2-2025 MIM query must report exactly `Value`, `PayRate`, and inherited
+`HLAprivilegeToDeleteObject`, with no duplicate or unrelated publication
+reports. Both independent installed-package consumer trees passed the promoted
+verified-set gate (4/4 focused CTest executions each) and direct both-callback
+evidence. The official-header API contract, 1516.1-2025 / 1516.2-2025
+requirement mappings, catalog evidence, API-surface audit, Java parity, and
+source-boundary check are green. Evidence is in
+`.build/cpp-tck-object-class-attribute-unpublication-candidate-a-20260928/`
+and `.build/cpp-tck-object-class-attribute-unpublication-candidate-b-20260928/`.
+The catalog now contains 994 IDs (992 promoted, 2 candidates); Java parity
+remains 21/21.
+
+Next bounded handoff: test full unpublication of the adapter-configured
+ordinary application-attribute set and verify the exact subsequent 2025 MIM
+publication report, including the standard inherited HLA privilege attribute.
+Confirm the expected empty/non-empty report shape against the 2025 MIM before
+encoding the oracle; do not use 1516e or DDM behavior as a basis.
+
+Follow-up complete: the 2025 MIM says a publication query returns one report
+per object class containing published attributes, and a NULL response with
+count zero when none remain. Therefore, after unpublishing all three
+adapter-configured application attributes, the test requires the exact NULL
+shape: one count parameter set to zero, with the object-class and attribute
+list parameters omitted. This supersedes the tentative inherited-privilege
+expectation in the prior handoff; the separate partial-unpublication case
+continues to verify the inherited `HLAprivilegeToDeleteObject` handle while
+the object class still has published application attributes. The new pair
+passed the promoted verified-set CTest gate (4/4) in two independent
+installed-package consumer trees and direct evoked/immediate execution. The
+2025 API/MIM contracts, API-surface audit, Java parity, and source-boundary
+checks pass. Evidence is in
+`.build/cpp-tck-object-class-full-attribute-unpublication-candidate-a-20260928/`
+and `.build/cpp-tck-object-class-full-attribute-unpublication-candidate-b-20260928/`.
+The catalog now contains 996 IDs (994 promoted, 2 candidates); Java parity
+remains 21/21.
+
+Follow-up complete: the new whole-class declaration transition calls the
+official IEEE 1516.1-2025 `RTIambassador::unpublishObjectClass` service, then
+issues a fresh publication query. The test requires exactly one reliable
+object-class publication report in the exact IEEE 1516.2-2025 MIM NULL shape
+(class count zero, object-class and attribute-list parameters omitted), plus
+the unchanged interaction and directed-interaction publication reports. Both
+the focused scenario and its contract twin passed CTest and direct evoked and
+immediate callback execution in two independent installed-package consumer
+build trees. The 2025 API/MIM requirement contracts, catalog validation,
+official API-surface audit, Java parity audit, and source-boundary check are
+green. Evidence is in
+`.build/cpp-tck-whole-class-unpublication-candidate-a-20260928/` and
+`.build/cpp-tck-whole-class-unpublication-candidate-b-20260928/`. The catalog
+now contains 998 IDs (996 promoted, 2 candidates); Java parity remains 21/21.
+
+Follow-up complete: the new whole ordinary interaction-class transition calls
+the official IEEE 1516.1-2025 `RTIambassador::unpublishInteractionClass` API,
+then verifies a fresh IEEE 1516.2-2025 `HLArequestPublications` query. The
+interaction-publication report must be the exact NULL response: one
+`HLAinteractionClassList` parameter with an empty encoded list. The object
+publication remains present. The directed report is checked against its exact
+MIM-defined NULL or populated shape without imposing an unverified cross-service
+side effect. The pair passed all four focused CTest cases and direct evoked and
+immediate runs in two independent installed-package consumer build trees. The
+2025 contracts, catalog, API-surface audit, Java parity, and source-boundary
+checks are green. Evidence is in
+`.build/cpp-tck-interaction-class-unpublication-candidate-a-20260928/` and
+`.build/cpp-tck-interaction-class-unpublication-candidate-b-20260928/`. The
+catalog now contains 1000 IDs (998 promoted, 2 candidates); Java parity remains
+21/21.
+
+Follow-up complete: the new case publishes two adapter-supplied ordinary
+interaction classes, unpublishes the secondary through
+`RTIambassador::unpublishInteractionClass`, and requires a fresh 2025 MIM
+interaction-publication report containing exactly the still-published primary
+class. It also checks that the ordinary object publication remains present and
+the directed report has an exact MIM-defined NULL or populated shape, without
+assuming an unverified cross-service side effect. Both scenario IDs passed all
+four focused CTest callback-model cases and direct evoked/immediate execution
+in two independent installed-package consumer trees. The 2025 API/MIM
+contracts, catalog, API-surface audit, Java parity, and source-boundary checks
+are green. Evidence is in
+`.build/cpp-tck-interaction-class-partial-unpublication-candidate-c-20260928/`
+and `.build/cpp-tck-interaction-class-partial-unpublication-candidate-d-20260928/`.
+The promoted interaction-publication cases also passed the 10-scenario shared
+publication regression set in both consumer trees, covering 20 CTest callback
+model cases per tree plus direct evoked/immediate runs. The catalog now contains
+1002 IDs (1000 promoted, 2 candidates); Java parity remains 21/21.
+
+Follow-up complete: the new case starts with two distinct adapter-supplied
+ordinary interaction publications, withdraws both using the standard
+`RTIambassador::unpublishInteractionClass` service, then verifies the exact
+IEEE 1516.2-2025 `HLAreportInteractionPublication` NULL response: one
+`HLAinteractionClassList` parameter with an empty encoded list. The independent
+object-publication and directed-publication reports are checked as well. The
+scenario pair and its full 12-scenario publication regression group passed in
+two independent installed-package consumer builds, with 24 CTest callback
+model cases per tree and direct evoked/immediate execution. Both 2025 API/MIM
+contracts, catalog evidence validation, API-surface audit, Java parity, and
+source-boundary checks are green. Evidence is in
+`.build/cpp-tck-multiple-interaction-class-full-unpublication-candidate-e-20260928/`
+and `.build/cpp-tck-multiple-interaction-class-full-unpublication-candidate-f-20260928/`.
+The catalog now contains 1006 IDs (1004 promoted, 2 candidates); Java parity
+remains 21/21.
+
+Follow-up complete: `cpp-tck.interaction-publication-send-transition` sends
+the adapter-selected ordinary interaction while its class is published and
+checks the receiver's class, parameter, value, tag, and producer. It then
+unpublishes the class and requires the exact `InteractionClassNotPublished`
+exception from the same ordinary Send Interaction overload. Finally, it
+republishes the class and verifies delivery recovers, including evoked callback
+servicing behavior. Both scenario IDs passed all four evoked/immediate CTest
+cases in each of two independent installed-package consumer builds (8/8
+total). The IEEE 1516.1-2025 API and requirements contracts, catalog
+validation, official API-surface audit, Java parity audit, and source-boundary
+checks are green.
+
+The promoted pair `cpp-tck.interaction-active-and-passive-subscription-modes`
+and its contract twin declare active and passive subscription modes on distinct
+federates, then verify ordinary class and parameter delivery only at the active
+receiver. Both IDs passed all four
+evoked/immediate CTest cases in each of two independent installed-package
+consumer builds (8/8 total) against a provider rebuilt from this checkout. The
+2025 API and requirements contracts and focused catalog validation are green.
+Passive-recipient delivery and unmapped callback metadata are intentionally not
+asserted: the cited 2025 clauses establish declaration mode and Receive
+Interaction class/parameter data, not those additional expectations.
+
+The existing ordinary-interaction callback-control pair
+`cpp-tck.callback-controls` is also verified in both callback models and both
+independent installed-package consumer builds (8/8). Its catalog now resolves
+to Java scenario `java-tck.attribute-interaction`; the implementation-only
+connection contract was removed from its references, and the callback-gating
+assertions map directly to IEEE 1516.1-2025 §10.60.6. The evoked-model servicing
+path remains separately described by the standard callback API contract.
+
+MinGW portability verification then used GCC 15.2/Ninja and a clean consumer
+against the scratch-installed provider package. One consolidated run of five
+promoted scenario/contract pairs—callback controls, interaction publication
+and send transition, active/passive interaction subscription, ordinary
+attribute Update/Reflect, and multi-recipient object registration/discovery—
+passed all 20 focused CTests across evoked and immediate callback models
+(20/20). The run used `tools/run_cpp_tck.py` and the installed-package adapter.
+These reruns exercise existing promoted cases; they do not add or promote
+scenario IDs.
+
+Two additional promoted object-management slices also passed with the same
+MinGW-installed package: `cpp-tck.object-registration-discovery-lifecycle` and
+its contract, plus `cpp-tck.named-registration` and its contract, passed 8/8
+focused CTests across both callback models. No scenario IDs changed promotion
+state.
+
+The MinGW gate then passed another 22/22 focused CTests in both callback
+models: federation lifecycle contract, federation-list services and contract,
+federate lookup lifecycle and contract, plus object-name reservation lifecycle
+and contract. These are additional installed-package reruns of existing
+promoted scenarios; catalog inventory and promotion state are unchanged.
+
+The `cpp-tck.federate-lost-mom-report` candidate was retried with the MinGW-built
+portable executable and process fixture. This time Create and both Joins
+succeeded; the observer then timed out waiting for the subscribed
+`HLAreportFederateLost` interaction in both callback models. The fixture's
+subsequent observer-Resign diagnostic is cleanup after that timeout, not the
+initial failure. By contrast, the already-promoted
+`cpp-tck.connection-loss-cleanup` scenario and its standard contract passed
+both callback models (4/4 executions) through the same MinGW process fixture.
+Source tracing isolates the remaining gap: the embedded loss path calls
+`planFederateLostReport` before membership removal and queues its report, while
+the process service's loss-dispatch path forwards cleanup work but no
+Federate-Lost report. Keep the report pair unpromoted until process-profile
+delivery is implemented and the same standard assertions pass; do not weaken
+the portable assertions to accommodate the missing delivery.
+
+The 2025 API-surface, Java parity, focused callback-controls catalog, and direct
+requirements-contract audits were rerun successfully. Both existing installed-
+package consumer trees again passed the four callback-controls tests each
+(8/8 total). GCC 15.2 and Ninja are now available through Scoop. The portable
+TCK translation unit compiles against only the official IEEE 1516.1-2025
+headers, and the provider's MinGW static-library target builds in a separate
+scratch tree using `_int64=__int64` and GNU assembler large-object mode. The
+complete provider package was installed into a scratch prefix, and a fresh
+portable TCK consumer linked against it and passed its CTest help smoke test
+(1/1). Then `tools/run_cpp_tck.py` configured and built a fresh installed-
+package consumer with GCC 15.2/Ninja and ran the promoted
+`cpp-tck.callback-controls` interaction scenario plus its standard contract in
+both callback models; all four focused CTest cases passed (4/4). This verifies
+that slice against the MinGW-built installed package, not merely at compile or
+smoke-test level. The MinGW current-process adapter also verifies ordinary
+connection-loss cleanup in both callback models; the Federate-Lost report
+remains gated on the process service delivery gap described above.
+
+The promoted custom-transportation interaction-delivery scenario and its
+standard contract passed 4/4 focused CTests with the installed-package adapter
+under GCC 15.2/Ninja, covering both evoked and immediate callbacks. The
+adapter supplied the rich FOM that declares `TckBestEffort`; the portable test
+used only the standard API and checked received transportation identity.
+The directed-interaction custom-transportation scenario and its standard
+contract then passed another 4/4 CTests under the same matrix. These runs add
+no scenario IDs or promotion changes. Next verify the promoted timestamped
+directed-interaction transportation pair under both callback models before
+starting another transportation slice.
+
+The promoted timestamped directed-interaction custom-transportation scenario
+and its standard contract passed 4/4 focused CTests under the same installed-
+package MinGW matrix, including both callback models. The portable checks
+retain the timestamped delivery/retraction and directed target assertions;
+provider and time-implementation choices remain adapter-owned. No scenario
+IDs or promotion state changed. Next verify the ordinary timestamped
+interaction transportation pair before moving into region-dependent cases.
+
+The promoted timestamped ordinary-interaction custom-transportation scenario
+and its standard contract passed 4/4 focused CTests with both callback models.
+The portable assertions cover timestamped receipt, logical-time/order data,
+retraction identity, and adapter-declared transport identity. No scenario IDs
+or promotion states changed. Next verify the custom-transportation alternate
+time-advance pair before moving into region-dependent cases.
+
+The promoted timestamped custom-transportation interaction alternate-advance
+scenario and its standard contract passed 4/4 focused CTests with both
+callback models. The test exercises Flush Queue, Time Advance Request
+Available, and Next Message Request Available while checking timestamped
+interaction receipt and transport identity. No scenario IDs or promotion
+states changed. Next verify the equivalent timestamped attribute alternate-
+advance pair before moving into region-dependent cases.
+
+The promoted timestamped attribute custom-transportation alternate-advance
+scenario and its standard contract passed 4/4 focused CTests with both
+callback models. The checks cover ordinary attribute Update/Reflect through
+Flush Queue, Time Advance Request Available, and Next Message Request
+Available, retaining the standard timestamp, grant, retraction, and transport
+identity assertions. No scenario IDs or promotion states changed. Next
+continue the focused portable service audit with transport delivery complete
+for ordinary and timestamped interaction/attribute routes, before enabling
+region-dependent variants.
+
+The promoted ownership-acquisition-if-available scenario and its standard
+contract passed 4/4 focused CTests with both callback models. The follow-on
+attribute ownership acquisition-cancellation scenario and contract also passed
+4/4. Both pairs passed their direct TCK evidence/mapping audits; provider,
+FOM, and callback configuration stayed in the installed-package adapter. No
+scenario IDs or promotion states changed. Next verify the standard ownership
+release/divestiture transition pair before broader ownership transfer cases.
+
+The promoted attribute ownership divest-if-wanted scenario and its standard
+contract passed 4/4 focused CTests with both callback models. Its direct
+evidence/mapping audit passed with no findings. The portable test remains
+limited to standard ownership services and callbacks; provider and FOM
+configuration stay in the adapter. No scenario IDs or promotion states
+changed. Next verify unconditional attribute divestiture and its contract.
+
+The promoted unconditional attribute divestiture scenario and its standard
+contract passed 4/4 focused CTests with both callback models. The direct TCK
+evidence/mapping audit passed; portable assertions retain the required
+ownership-transfer callbacks and resulting attribute ownership state. No
+scenario IDs or promotion states changed. Next verify the standard
+query-attribute-ownership owner-report pair.
+
+The promoted query-attribute-ownership owner-report scenario and its standard
+contract passed 4/4 focused CTests under both callback models. Direct TCK
+evidence and requirement mapping validation passed with no findings. No
+scenario IDs or promotion states changed. Next verify the complementary
+unowned-attribute query result pair.
+
+The promoted query-attribute-ownership unowned-result scenario and its
+standard contract passed 4/4 focused CTests under both callback models. The
+direct evidence/mapping audit passed without findings. No scenario IDs or
+promotion states changed. Next verify the RTI-owned attribute query-result
+pair to complete the standard ownership-query triad.
+
+The promoted query-attribute-ownership RTI-owned-result scenario and its
+standard contract passed 4/4 focused CTests under both callback models. This
+completes the owner/unowned/RTI-owned query triad: all three scenario-contract
+pairs passed their direct evidence/mapping audits. No scenario IDs or
+promotion states changed. Next verify the standard denied-release boundary.
+
+The promoted attribute-ownership release-denied scenario and its standard
+contract passed 4/4 focused CTests across evoked and immediate callbacks. Its
+direct evidence/mapping audit passed with no findings; the denial is asserted
+through standard service results and callbacks. No scenario IDs or promotion
+states changed. Next verify the timestamped ownership-transfer Update/Reflect
+pair.
+
+The promoted timestamped attribute-update ownership-transfer scenario and
+its standard contract passed 4/4 focused CTests with both callback models.
+Its direct evidence/mapping audit passed without findings. No scenario IDs or
+promotion states changed. Next run the broader standard ownership-service
+boundary pair before moving to additional transfer variants.
+
+The promoted resign-cancel-pending-ownership-acquisitions-action pair passed
+4/4 installed-package CTests under GCC 15.2/Ninja with both callback models;
+its direct evidence/mapping audit is clean. The synchronization-points pair
+and explicit-set late-join pair then passed 8/8, and federation-save-restore,
+callback-controls-save-restore, callback-controls-save-restore-failures, and
+federation-save-restore-interlocks passed another 16/16. All six pairs passed
+their direct evidence audits. This brings the focused installed-package gate
+to 146 CTests. The resumed run added four timestamped save/restore pairs
+(16/16) and revalidated `cpp-tck.object-name-reservation-lifecycle` plus its
+contract (4/4), reaching 166. This run then passed
+`cpp-tck.object-management-contract` (2/2), the attribute-value request
+baseline pair (4/4), named-registration multi-recipient and local-delete pairs
+(8/8), and the object-class attribute-value request pair (4/4), bringing the
+focused installed-package gate to 184 CTests. All direct evidence/mapping
+audits are clean. This run then passed the attribute-value-update-response
+and multi-requester request/response pairs (8/8) and the ordinary multi-
+attribute request/response pair (4/4), bringing the focused installed-package
+gate to 196 CTests. The promoted QueryAttributeOwnership and
+CancelAttributeOwnershipAcquisition report pairs then passed 8/8; the
+ConfirmDivestiture service-report pair passed 4/4 in both callback models and
+was promoted after direct evidence audit. The focused gate now totals 208
+CTests. Catalog inventory is 1,010 scenarios (1,008 promoted, 2 candidate);
+the official API audit covers all 164 RTIambassador methods and 56
+FederateAmbassador callbacks, and Java parity remains 21/21. The ordinary
+object-value request/response slice has green gates for instance and class
+requests, multi-requester fan-out, multi-attribute values, response metadata,
+and local deletion/named-recipient behavior. The Java batch-name-reservation
+addition remains under the existing `java-tck.object-management` ID; its API
+compile and catalog validation pass, but behavioral execution still needs an
+external Java provider. ConfirmDivestiture process-endpoint parity is now
+verified: the adapter-owned three-federate process fixture ran both promoted
+report IDs under `HLA_EVOKED` and `HLA_IMMEDIATE` (4/4 direct results), and the
+installed-package CTest gate passed the same pair under both callback models
+(4/4). Reproduce that boundary gate with:
+
+```text
+python tools/run_cpp_tck.py --package-prefix <installed-package> --generator Ninja --cxx-compiler <mingw-g++> --scenario cpp-tck.service-report-confirm-divestiture --scenario cpp-tck.service-report-confirm-divestiture-contract --callback-model both --ownership-service-report-fixture <fixture-executable>
+```
+
+The same process fixture now verifies the already-promoted Query Attribute
+Ownership and Cancel Attribute Ownership Acquisition report pairs. Successful
+process calls emit their typed service reports through the standard reporting
+route. All four scenario/contract IDs pass under both callback models: 8/8
+installed-package CTests and 8/8 process results. Evidence is in
+`out/mgw/evidence/ownership-service-report-fixed.json`; the Confirm Divestiture
+regression remains green at 4/4 CTests and 4/4 process results in
+`out/mgw/evidence/ownership-service-report-confirm-regression.json`.
+Reproduce the full ownership service-report process gate with:
+
+```text
+python tools/run_cpp_tck.py --package-prefix <installed-package> --generator Ninja --cxx-compiler <mingw-g++> --scenario cpp-tck.service-report-query-attribute-ownership --scenario cpp-tck.service-report-query-attribute-ownership-contract --scenario cpp-tck.service-report-cancel-attribute-ownership-acquisition --scenario cpp-tck.service-report-cancel-attribute-ownership-acquisition-contract --scenario cpp-tck.service-report-confirm-divestiture --scenario cpp-tck.service-report-confirm-divestiture-contract --callback-model both --ownership-service-report-fixture <fixture-executable>
+```
+
+the C++ TCK still supplies the FOM, MIM, endpoint, and callback configuration
+through its adapter inputs and contains no process-fixture dependency. Keep this
+external-consumer evidence separate from embedded-only implementation claims.
+The adapter-required `cpp-tck.federate-lost-mom-report` pair is now promoted.
+`ProcessFederationService::connectionLost` captures the registry's standard
+Federate-Lost routing plan before membership cleanup and projects the encoded
+RTI-owned receive-order report through the process interaction path. The
+portable base and contract scenarios passed 4/4 direct installed-package
+executions across `HLA_EVOKED` and `HLA_IMMEDIATE`; candidate-evidence
+validation reported no findings. The previously promoted connection-loss
+cleanup pair also passed its 4/4 direct regression executions. This closes the
+last candidate: the catalog now contains 1,010 promoted IDs and zero
+candidates. Reproduce with the process-loss fixture via `tools/run_cpp_tck.py`
+and the two scenario IDs. These adapter-required cases
+run through the Python process adapter rather than standalone CTest selectors.
+Provider, FOM, endpoint, fault injection, and callback configuration remain
+adapter-owned; the portable TCK contains no fixture or private-provider code.
+
+The promoted `cpp-tck.pending-alternate-time-advance-state` pair checks that a
+pending TAR blocks Time Advance Request Available, Next Message Request
+Available, Flush Queue Request, and a second TAR with the standard
+`InTimeAdvancingState` exception; rejected calls do not deliver a grant, and
+the original TAR completes after the regulator advances. Two fresh GCC
+15.2/Ninja installed-package consumers each passed both callback-model tests
+(4/4 total); focused evidence audits are clean. Evidence is in
+`out/mgw/evidence/pending-advance-parity-20260929.json` and
+`out/mgw/evidence/pending-advance-parity-b-20260929.json`. The catalog remains
+at 1,020 promoted IDs and zero candidates; the Java catalog now contains 24
+scenarios, including this mixed-advance interaction counterpart.
+
+The promoted `cpp-tck.timestamped-interaction-mixed-advances` pair sends one
+queued timestamped interaction to three constrained receivers using Flush
+Queue, Time Advance Request Available, and Next Message Request Available. It
+checks callback-before-grant ordering, payload/tag and producer identity,
+timestamp/order/retraction metadata, grant times, and logical-time query
+consistency. Two fresh GCC 15.2/Ninja installed-package consumers each passed
+both callback-model tests (4/4 total), and both focused evidence audits were
+clean. Evidence is in
+`out/mgw/evidence/timestamped-interaction-baseline-a-20260929.json` and
+`out/mgw/evidence/timestamped-interaction-baseline-b-20260929.json`. Its Java
+counterpart compiles against the official API JAR and catalog validation passes;
+runtime remains capability-gated until a Java provider adapter is configured.
+
+The promoted `cpp-tck.timestamped-interactions` scenario now has a focused Java
+counterpart for its delivered/queued retraction behavior. Two fresh MinGW 15.2 /
+Ninja installed-package consumers each passed 2/2 focused CTests and 2/2 direct
+scenario executions across both callback models (4/4 in each path overall),
+and both focused evidence audits are clean. Evidence is in
+`out/mgw/evidence/timestamped-interactions-a-20260929.json` and
+`out/mgw/evidence/timestamped-interactions-b-20260929.json`. The Java source
+compiles against the official API JAR and catalog validation passes at 26
+scenarios; provider runtime remains capability-gated and unverified.
+
+The promoted `cpp-tck.timestamped-attribute-update-alternate-advances` scenario
+now has a Java focused-parity case using the standard update/reflection callbacks.
+Two fresh MinGW 15.2/Ninja installed-package consumers each passed 2/2 focused
+CTests and 2/2 direct scenario executions across both callback models (4/4 in
+each path overall); both evidence audits are clean. Evidence is in
+`out/mgw/evidence/timestamped-attribute-alternate-a-20260929.json` and
+`out/mgw/evidence/timestamped-attribute-alternate-b-20260929.json`. The Java
+scenario compiles against the official API JAR and the catalog validates at 27
+scenarios; its provider runtime remains unsupported and unverified.
+
+The promoted `cpp-tck.timestamped-interaction-cross-producer-order` scenario
+now has a Java focused-parity counterpart. Two fresh MinGW 15.2/Ninja
+installed-package consumers each passed 2/2 focused CTests and 2/2 direct
+scenario runs across both callback models (4/4 in each path overall); both
+evidence audits are clean. Evidence is in
+`out/mgw/evidence/timestamped-cross-producer-a-20260929.json` and
+`out/mgw/evidence/timestamped-cross-producer-b-20260929.json`. The Java source
+compiles against the official API JAR and catalog validation passes at 27
+scenarios; Java provider runtime remains unsupported and unverified.
+
+The promoted `cpp-tck.interaction-order-classification` pair closes the bounded
+clause 8.1.4 interaction-order slice. At the same receiver, it proves that the
+ordinary Send Interaction overload reaches only the receive-order callback,
+then that the timestamped overload reaches the timestamped callback with exact
+time/order/retraction metadata before its matching grant. Two independent
+GCC 15.2/Ninja installed-package consumer trees each passed 4/4 focused CTests
+across `HLA_EVOKED` and `HLA_IMMEDIATE` (8/8 total); both evidence audits were
+clean. Evidence is in
+`out/mgw/evidence/interaction-order-classification-a-20260929.json` and
+`out/mgw/evidence/interaction-order-classification-b-20260929.json`. The
+catalog now has 1,015 promoted IDs, zero candidates, and Java parity is 22/22.
+
+The promoted `cpp-tck.attribute-update-order-classification` pair closes the
+attribute-update counterpart of that clause 8.1.4 gap. At one receiver, an
+ordinary update is confined to the receive-order callback with no timestamped
+delivery; a later timestamped update is confined to the timestamped callback
+with exact time/order/retraction metadata and reflection-before-grant. Two
+independent GCC 15.2/Ninja installed-package consumer trees each passed 4/4
+focused CTests across `HLA_EVOKED` and `HLA_IMMEDIATE` (8/8 total), and both
+candidate evidence audits were clean. Evidence is in
+`out/mgw/evidence/attribute-update-order-classification-a-20260929.json` and
+`out/mgw/evidence/attribute-update-order-classification-b-20260929.json`. The
+catalog now has 1,017 promoted IDs, zero candidates, and Java parity remains
+22/22.
+
+The promoted `cpp-tck.object-removal-order-classification` pair closes the
+object-removal counterpart of the clause 8.1.4 classification gap and checks
+the asynchronous-delivery gate in clause 8.15.3. With the receiver time
+constrained and asynchronous delivery disabled, one ordinary delete remains
+held until `enableAsynchronousDelivery`. After delivery is disabled again, a
+second ordinary delete remains held until time advance; the timestamped delete
+and held receive-order delete are both observed at that receiver, with exact
+time/order/retraction metadata and the timestamped removal before its matching
+grant. Two independent GCC 15.2/Ninja installed-package consumer trees each
+passed 6/6 focused CTests across `HLA_EVOKED` and `HLA_IMMEDIATE` (12/12 total),
+including the Java-parity runner alias, and both evidence audits were clean.
+Evidence is in
+`out/mgw/evidence/object-removal-order-classification-a-20260929.json` and
+`out/mgw/evidence/object-removal-order-classification-b-20260929.json`. The
+catalog now has 1,020 promoted IDs, zero candidates, and the Java catalog has
+24 scenarios. The earlier timeout was expected with asynchronous delivery disabled;
+the receiver's enable-asynchronous-delivery and time-advance release paths are
+now explicit assertions. The official API surface audit confirms all 164
+`RTIambassador` methods and all 56 `FederateAmbassador` callbacks are present in
+the portable C++ TCK catalog and source.
+
+The shared `java-tck.timestamped-object-removal` runner alias also passed both
+callback models in two independent installed-package consumer trees (4/4 focused
+CTests as part of the 12/12 total). The Java implementation compiles against
+the official 1516.1-2025 API, but remains unsupported until a Java provider and
+FOM adapter supply behavioral evidence.
+
+Next bounded handoff: resolve
+`requirement-candidate-content-clauses-08-time-management-page-178-l15-2` from
+the pinned requirement ledger and compare it against the existing portable
+time-role/time-bounds scenarios. Add a case only if the canonical clause
+establishes a distinct observable behavior; preserve the two-consumer,
+two-callback-model gate and do not resync unchanged Requirements Lab inputs.
+Java provider execution remains separately unsupported until an adapter
+supplies a compatible 2025 Java RTI.

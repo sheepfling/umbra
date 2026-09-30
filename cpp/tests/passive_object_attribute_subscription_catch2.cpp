@@ -120,6 +120,7 @@ void drainCallbacks(RTIambassador& rti) {
 TEST_CASE(
     "Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
     "[integration][development-profile][object-management][ddm][passive-subscription]"
+    "[subscribe-object-class-attributes-passive-mode]"
     "[rti.service.subscribe-object-class-attributes]"
     "[rti.service.subscribe-object-class-attributes-with-regions]"
     "[rti.service.update-attribute-values]"
@@ -209,7 +210,10 @@ TEST_CASE(
       flavor,
       VariableLengthData(passiveOrdinaryBytes, sizeof(passiveOrdinaryBytes)));
   REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(soda, flavorOnly, false));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      soda, AttributeHandleSet{}, true));
   drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.attributeReflectionReports.empty());
   REQUIRE_NOTHROW(publisher->updateAttributeValues(
       objectInstance,
       passiveOrdinaryValues,
@@ -223,7 +227,10 @@ TEST_CASE(
       flavor,
       VariableLengthData(activeOrdinaryBytes, sizeof(activeOrdinaryBytes)));
   REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(soda, flavorOnly, true));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      soda, AttributeHandleSet{}, false));
   drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.attributeReflectionReports.empty());
   REQUIRE_NOTHROW(publisher->updateAttributeValues(
       objectInstance,
       activeOrdinaryValues,
@@ -338,6 +345,137 @@ TEST_CASE(
   REQUIRE_NOTHROW(subscriber->deleteRegion(subscriberRegion));
   REQUIRE_NOTHROW(subscriber->resignFederationExecution(
       rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(publisher->disconnect());
+  REQUIRE_NOTHROW(subscriber->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Subscribe Object Class Attributes accumulates subscriptions and changes per-attribute active mode",
+    "[integration][development-profile][declaration-management][object-management]"
+    "[subscribe-object-class-attributes-additive-subscriptions][2025][callbacks]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-object-class-handle]"
+    "[rti.service.get-attribute-handle]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.evoke-callback]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.register-object-instance]"
+    "[rti.service.update-attribute-values]"
+    "[rti.service.unsubscribe-object-class-attributes]"
+    "[rti.service.resign-federation-execution]"
+    "[rti.service.destroy-federation-execution][rti.service.disconnect]"
+    "[federate.callback.discover-object-instance]"
+    "[federate.callback.reflect-attribute-values]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador subscriberReports;
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+                          "data" / "attribute-update-passel-fom.xml")
+                             .wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      publisher->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"additive-subscription-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"additive-subscription-subscriber", L"subscriber", federationName));
+
+  auto const objectClass = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAttributeFixtureBase");
+  auto const attributeA = publisher->getAttributeHandle(objectClass, L"ReliableBaseA");
+  auto const attributeB = publisher->getAttributeHandle(objectClass, L"ReliableBaseB");
+  REQUIRE(objectClass.isValid());
+  REQUIRE(attributeA.isValid());
+  REQUIRE(attributeB.isValid());
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(
+      objectClass,
+      AttributeHandleSet{attributeA, attributeB}));
+
+  // The second declaration adds B without replacing A.  Its passive flag
+  // applies to B, while A remains active.
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      objectClass,
+      AttributeHandleSet{attributeA},
+      true));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      objectClass,
+      AttributeHandleSet{attributeB},
+      false));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(objectClass));
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE(subscriberReports.objectDiscoveryReports.front().objectInstance == objectInstance);
+
+  unsigned char const attributeABytes[] = {0xA1};
+  unsigned char const attributeBBytes[] = {0xB1};
+  AttributeHandleValueMap bothValues;
+  bothValues.emplace(attributeA, VariableLengthData(attributeABytes, sizeof(attributeABytes)));
+  bothValues.emplace(attributeB, VariableLengthData(attributeBBytes, sizeof(attributeBBytes)));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      bothValues,
+      VariableLengthData()));
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 1U);
+  REQUIRE(
+      subscriberReports.attributeReflectionReports.front().attributeValues.size() == 1U);
+  REQUIRE(
+      subscriberReports.attributeReflectionReports.front().attributeValues.contains(attributeA));
+  REQUIRE_FALSE(
+      subscriberReports.attributeReflectionReports.front().attributeValues.contains(attributeB));
+
+  // Re-declaring A as passive and B as active changes only those selected
+  // attributes; it does not discard either class-attribute declaration.
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      objectClass,
+      AttributeHandleSet{attributeA},
+      false));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      objectClass,
+      AttributeHandleSet{attributeB},
+      true));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      bothValues,
+      VariableLengthData()));
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 2U);
+  REQUIRE(
+      subscriberReports.attributeReflectionReports.back().attributeValues.size() == 1U);
+  REQUIRE(
+      subscriberReports.attributeReflectionReports.back().attributeValues.contains(attributeB));
+  REQUIRE_FALSE(
+      subscriberReports.attributeReflectionReports.back().attributeValues.contains(attributeA));
+
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      objectClass,
+      AttributeHandleSet{attributeA},
+      true));
+  REQUIRE_NOTHROW(publisher->updateAttributeValues(
+      objectInstance,
+      bothValues,
+      VariableLengthData()));
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.attributeReflectionReports.size() == 3U);
+  REQUIRE(
+      subscriberReports.attributeReflectionReports.back().attributeValues.size() == 2U);
+  REQUIRE(
+      subscriberReports.attributeReflectionReports.back().attributeValues.contains(attributeA));
+  REQUIRE(
+      subscriberReports.attributeReflectionReports.back().attributeValues.contains(attributeB));
+
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(
+      objectClass,
+      AttributeHandleSet{attributeA, attributeB}));
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(publisher->resignFederationExecution(
       rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));

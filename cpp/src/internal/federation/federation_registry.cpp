@@ -163,6 +163,7 @@ constexpr char kMomServiceReportParameterNames[][24] = {
     "HLAreturnedArgument",
     "HLAexception",
     "HLAserialNumber",
+    "HLAfederate",
 };
 
 constexpr char kFederateLostFederateParameterName[] = "HLAfederate";
@@ -18295,7 +18296,11 @@ EmbeddedFederationRegistry::objectInstanceScopeChangesForSubscription(
           objectInstance,
           receivingFederateId,
           attributeHandle);
-      if (wasInScope == isInScope) {
+      // §10.1.3 treats loss of scope caused by the joined federate's own
+      // unsubscribe as implicit out-of-scope: do not advise that same
+      // federate when its last applicable subscription is removed. An In
+      // transition caused by a new subscription is still advisory.
+      if (wasInScope == isInScope || !isInScope) {
         continue;
       }
 
@@ -20105,7 +20110,7 @@ InteractionClassDeclarationStatus EmbeddedFederationRegistry::setInteractionClas
   // enabled regardless of whether the caller requests an active or passive
   // subscription.  A passive declaration is still a subscription for the
   // §11.5 interlock and must not create a path around the MOM restriction.
-  if (member->second.serviceReportingSwitch &&
+  if (active.has_value() && member->second.serviceReportingSwitch &&
       isReportServiceInvocationInteractionClass(federation->second, interactionClassHandle)) {
     return InteractionClassDeclarationStatus::
         federate_service_invocations_are_being_reported_via_mom;
@@ -22515,6 +22520,77 @@ EmbeddedFederationRegistry::planObjectInstanceDiscoveriesForFederate(
       }
     }
     throw;
+  }
+  return result;
+}
+
+std::vector<ObjectInstanceInitialAttributeReflection>
+EmbeddedFederationRegistry::planInitialObjectInstanceAttributeReflectionsForDiscovery(
+    std::wstring const& federationName,
+    std::uint64_t receivingFederateId,
+    std::uint64_t objectInstanceHandle) const {
+  std::scoped_lock lock(mutex_);
+  auto const federation = federations_.find(federationName);
+  if (federation == federations_.end() ||
+      !federation->second.members.contains(receivingFederateId)) {
+    return {};
+  }
+  auto const instance = federation->second.objectInstances.find(objectInstanceHandle);
+  if (instance == federation->second.objectInstances.end() ||
+      instance->second.deleteAccepted ||
+      !instance->second.knownObjectClassHandlesByFederate.contains(receivingFederateId) ||
+      instance->second.producingFederateId == receivingFederateId ||
+      !federation->second.definition.catalog ||
+      !federation->second.objectClassHandles ||
+      !federation->second.attributeHandles) {
+    return {};
+  }
+
+  std::vector<std::uint64_t> availableAttributeHandles;
+  availableAttributeHandles.reserve(instance->second.attributeValues.size());
+  for (auto const& [attributeHandle, value] : instance->second.attributeValues) {
+    static_cast<void>(value);
+    availableAttributeHandles.push_back(attributeHandle);
+  }
+  if (availableAttributeHandles.empty()) {
+    return {};
+  }
+
+  auto const recipient = candidateReceiveOrderAttributeUpdateRecipient(
+      federation->second,
+      instance->second.producingFederateId,
+      receivingFederateId,
+      objectInstanceHandle,
+      availableAttributeHandles,
+      nullptr);
+  if (!recipient || recipient->receivedAttributeHandles.empty()) {
+    return {};
+  }
+
+  std::map<std::string, std::map<std::uint64_t, rti1516_2025::VariableLengthData>>
+      valuesByTransportation;
+  for (std::uint64_t const attributeHandle : recipient->receivedAttributeHandles) {
+    auto const value = instance->second.attributeValues.find(attributeHandle);
+    if (value == instance->second.attributeValues.end()) {
+      continue;
+    }
+    auto const transportationName = effectiveAttributeTransportationName(
+        federation->second,
+        instance->second,
+        attributeHandle);
+    if (!transportationName) {
+      return {};
+    }
+    valuesByTransportation[*transportationName].insert_or_assign(
+        attributeHandle, value->second);
+  }
+
+  std::vector<ObjectInstanceInitialAttributeReflection> result;
+  result.reserve(valuesByTransportation.size());
+  for (auto& [transportationName, attributeValues] : valuesByTransportation) {
+    if (!attributeValues.empty()) {
+      result.push_back({transportationName, std::move(attributeValues)});
+    }
   }
   return result;
 }
@@ -27989,6 +28065,12 @@ ReservedMomServiceReport EmbeddedFederationRegistry::reserveMomServiceReport(
       result.routing.disposition != MomServiceReportDisposition::report_to_file) {
     return result;
   }
+  if (result.routing.disposition == MomServiceReportDisposition::interaction &&
+      result.routing.recipients.empty()) {
+    // No eligible observer means no interaction is emitted; do not advance
+    // the joined-federate's sequence for a report with no destination.
+    return result;
+  }
   auto const reportedMember = federation->second.members.find(reportedFederateId);
   if (reportedMember == federation->second.members.end()) {
     // The private helper already checked this invariant. Preserve an explicit
@@ -28251,12 +28333,16 @@ EmbeddedFederationRegistry::exceptionReportRoutingFor(
       federation.definition.catalog.get(),
       kReportExceptionInteractionClassName,
       kExceptionReportServiceParameterName);
+  auto const federateParameterHandle = federation.parameterHandles->handleFor(
+      federation.definition.catalog.get(),
+      kReportExceptionInteractionClassName,
+      kFederateLostFederateParameterName);
   auto const exceptionParameterHandle = federation.parameterHandles->handleFor(
       federation.definition.catalog.get(),
       kReportExceptionInteractionClassName,
       kExceptionReportExceptionParameterName);
   if (!reportClassHandle || !federateDimensionHandle ||
-      !serviceParameterHandle || !exceptionParameterHandle) {
+      !federateParameterHandle || !serviceParameterHandle || !exceptionParameterHandle) {
     return std::nullopt;
   }
 
@@ -28266,6 +28352,7 @@ EmbeddedFederationRegistry::exceptionReportRoutingFor(
       kFederateNormalizationKind);
   ExceptionReportRouting result;
   result.interactionClassHandle = *reportClassHandle;
+  result.federateParameterHandle = *federateParameterHandle;
   result.serviceParameterHandle = *serviceParameterHandle;
   result.exceptionParameterHandle = *exceptionParameterHandle;
   result.endpointRegionHandle = kMomExceptionReportEndpointRegionHandle;
@@ -28306,6 +28393,7 @@ ExceptionReportPlan EmbeddedFederationRegistry::planExceptionReport(
   result.status = ExceptionReportStatus::applied;
   result.routing = std::move(*routing);
   std::vector<std::uint64_t> const sentParameterHandles{
+      result.routing.federateParameterHandle,
       result.routing.serviceParameterHandle,
       result.routing.exceptionParameterHandle,
   };
@@ -28354,6 +28442,7 @@ EmbeddedFederationRegistry::exceptionReportRecipientFor(
     return std::nullopt;
   }
   std::vector<std::uint64_t> const sentParameterHandles{
+      routing->federateParameterHandle,
       routing->serviceParameterHandle,
       routing->exceptionParameterHandle,
   };
@@ -28401,6 +28490,10 @@ MomExceptionReportPlan EmbeddedFederationRegistry::planMomExceptionReport(
       kReportMomExceptionInteractionClassName);
   auto const federateDimensionHandle = federation->second.dimensionHandles->handleFor(
       kHlaFederateDimensionName);
+  auto const federateParameterHandle = federation->second.parameterHandles->handleFor(
+      federation->second.definition.catalog.get(),
+      kReportMomExceptionInteractionClassName,
+      kFederateLostFederateParameterName);
   auto const serviceParameterHandle = federation->second.parameterHandles->handleFor(
       federation->second.definition.catalog.get(),
       kReportMomExceptionInteractionClassName,
@@ -28414,7 +28507,7 @@ MomExceptionReportPlan EmbeddedFederationRegistry::planMomExceptionReport(
       kReportMomExceptionInteractionClassName,
       kMomExceptionReportParameterErrorParameterName);
   if (!reportClassHandle || !federateDimensionHandle ||
-      !serviceParameterHandle || !exceptionParameterHandle ||
+      !federateParameterHandle || !serviceParameterHandle || !exceptionParameterHandle ||
       !parameterErrorParameterHandle) {
     result.status = MomExceptionReportStatus::inconsistent_catalog;
     return result;
@@ -28425,6 +28518,7 @@ MomExceptionReportPlan EmbeddedFederationRegistry::planMomExceptionReport(
       reportedFederateId,
       kFederateNormalizationKind);
   result.routing.interactionClassHandle = *reportClassHandle;
+  result.routing.federateParameterHandle = *federateParameterHandle;
   result.routing.serviceParameterHandle = *serviceParameterHandle;
   result.routing.exceptionParameterHandle = *exceptionParameterHandle;
   result.routing.parameterErrorParameterHandle = *parameterErrorParameterHandle;
@@ -28435,6 +28529,7 @@ MomExceptionReportPlan EmbeddedFederationRegistry::planMomExceptionReport(
       true,
   };
   std::vector<std::uint64_t> const sentParameterHandles{
+      result.routing.federateParameterHandle,
       result.routing.serviceParameterHandle,
       result.routing.exceptionParameterHandle,
       result.routing.parameterErrorParameterHandle,
@@ -28482,6 +28577,10 @@ EmbeddedFederationRegistry::momExceptionReportRecipientFor(
       kReportMomExceptionInteractionClassName);
   auto const federateDimensionHandle = federation->second.dimensionHandles->handleFor(
       kHlaFederateDimensionName);
+  auto const federateParameterHandle = federation->second.parameterHandles->handleFor(
+      federation->second.definition.catalog.get(),
+      kReportMomExceptionInteractionClassName,
+      kFederateLostFederateParameterName);
   auto const serviceParameterHandle = federation->second.parameterHandles->handleFor(
       federation->second.definition.catalog.get(),
       kReportMomExceptionInteractionClassName,
@@ -28495,7 +28594,7 @@ EmbeddedFederationRegistry::momExceptionReportRecipientFor(
       kReportMomExceptionInteractionClassName,
       kMomExceptionReportParameterErrorParameterName);
   if (!reportClassHandle || !federateDimensionHandle ||
-      !serviceParameterHandle || !exceptionParameterHandle ||
+      !federateParameterHandle || !serviceParameterHandle || !exceptionParameterHandle ||
       !parameterErrorParameterHandle) {
     return std::nullopt;
   }
@@ -28519,7 +28618,8 @@ EmbeddedFederationRegistry::momExceptionReportRecipientFor(
       InteractionProducer::rti(),
       receivingFederateId,
       *reportClassHandle,
-      {*serviceParameterHandle,
+      {*federateParameterHandle,
+       *serviceParameterHandle,
        *exceptionParameterHandle,
        *parameterErrorParameterHandle},
       &endpointRegionHandles,

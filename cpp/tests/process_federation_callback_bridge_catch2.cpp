@@ -8,11 +8,179 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <future>
 #include <memory>
 #include <optional>
 #include <set>
 #include <string>
+#include <thread>
 #include <vector>
+
+TEST_CASE(
+    "Private process exception-report projections cancel queued work and drain client lifetime before close",
+    "[unit][internal][callbacks][process-boundary][process-exception-report-projection-lifetime]") {
+  // Internal concurrency evidence only: the synthetic event and projection
+  // gate do not claim a normative MOM report mapping.
+  class RecordingFederateAmbassador final
+      : public rti1516_2025::NullFederateAmbassador {
+   public:
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const&,
+        rti1516_2025::ParameterHandleValueMap const&,
+        rti1516_2025::VariableLengthData const&,
+        rti1516_2025::TransportationTypeHandle const&,
+        rti1516_2025::FederateHandle const&,
+        rti1516_2025::RegionHandleSet const*) override {
+      ++callbacks;
+      if (onReceive) {
+        onReceive();
+      }
+    }
+
+    std::size_t callbacks = 0U;
+    std::function<void()> onReceive;
+  } recipient;
+
+  using Event = umbra::detail::ProcessFederationInteractionEvent;
+  auto event = Event{};
+  event.receivingFederateId = 0x21U;
+  event.interactionClassHandle = 0x22U;
+  event.transportationName = "HLAreliable";
+  event.rtiOwnedMomInteraction = true;
+  event.exceptionReportFederateId = 0x23U;
+  auto dispatcher = std::make_shared<umbra::detail::CallbackDispatcher>(
+      umbra::detail::CallbackDispatchModel::evoked);
+  auto session =
+      std::make_shared<rti1516_2025::umbra_binding_detail::CallbackSession>(
+          recipient);
+  umbra::detail::ProcessFederationCallbackBridge bridge(dispatcher, session);
+
+  SECTION("resignation cancels queued generation while allowing later membership") {
+    std::size_t projections = 0U;
+    bridge.setExceptionReportProjectionHandler(
+        [&projections](Event incoming) -> std::optional<Event> {
+          ++projections;
+          return incoming;
+        });
+    bridge.submitReceiveOrder(event);
+    bridge.cancelExceptionReportProjections();
+    REQUIRE_FALSE(bridge.evokeOne(std::chrono::milliseconds{0}));
+    REQUIRE(projections == 0U);
+    REQUIRE(recipient.callbacks == 0U);
+
+    bridge.submitReceiveOrder(event);
+    REQUIRE_FALSE(bridge.evokeOne(std::chrono::milliseconds{0}));
+    REQUIRE(projections == 1U);
+    REQUIRE(recipient.callbacks == 1U);
+  }
+
+  SECTION("close drains in-flight projection and suppresses its result") {
+    std::promise<void> entered;
+    auto projectionEntered = entered.get_future();
+    std::promise<void> release;
+    auto releaseProjection = release.get_future().share();
+    std::atomic_bool ownerAlive{true};
+    bool projectionKeptOwnerAlive = false;
+    bridge.setExceptionReportProjectionHandler(
+        [&](Event incoming) -> std::optional<Event> {
+          entered.set_value();
+          releaseProjection.wait();
+          projectionKeptOwnerAlive = ownerAlive.load(std::memory_order_acquire);
+          return incoming;
+        });
+    bridge.submitReceiveOrder(event);
+    bridge.submitReceiveOrder(event);
+    auto evoker = std::async(std::launch::async, [&] {
+      return bridge.evokeOne(std::chrono::milliseconds{0});
+    });
+    auto const enteredStatus = projectionEntered.wait_for(std::chrono::seconds{2});
+    if (enteredStatus != std::future_status::ready) {
+      release.set_value();
+      REQUIRE(enteredStatus == std::future_status::ready);
+    }
+    auto closer = std::async(std::launch::async, [&] {
+      bridge.close();
+      ownerAlive.store(false, std::memory_order_release);
+    });
+
+    // A second queued event keeps pendingCount nonzero until close publishes
+    // cancellation. Observe that gate, not a scheduling delay, before proving
+    // teardown is blocked on the projection's borrowed-client lease.
+    auto const deadline = std::chrono::steady_clock::now() + std::chrono::seconds{2};
+    while (bridge.pendingCount() != 0U &&
+           std::chrono::steady_clock::now() < deadline) {
+      std::this_thread::yield();
+    }
+    auto const cancellationPublished = bridge.pendingCount() == 0U;
+    auto const waitingForProjection =
+        closer.wait_for(std::chrono::milliseconds{0}) == std::future_status::timeout;
+    release.set_value();
+    auto const evokerStatus = evoker.wait_for(std::chrono::seconds{2});
+    auto const closerStatus = closer.wait_for(std::chrono::seconds{2});
+    REQUIRE(cancellationPublished);
+    REQUIRE(waitingForProjection);
+    REQUIRE(evokerStatus == std::future_status::ready);
+    REQUIRE(closerStatus == std::future_status::ready);
+    evoker.get();
+    closer.get();
+    REQUIRE(projectionKeptOwnerAlive);
+    REQUIRE(recipient.callbacks == 0U);
+    REQUIRE(dispatcher->pendingCount() == 0U);
+  }
+
+  SECTION("resignation cancels a projected report still waiting for session entry") {
+    std::promise<void> sessionEntered;
+    auto sessionHasEntered = sessionEntered.get_future();
+    std::promise<void> releaseSession;
+    auto releaseSessionGate = releaseSession.get_future().share();
+    auto sessionBlocker = std::async(std::launch::async, [&] {
+      session->invoke([&](rti1516_2025::FederateAmbassador&) {
+        sessionEntered.set_value();
+        releaseSessionGate.wait();
+      });
+    });
+    auto const sessionStatus = sessionHasEntered.wait_for(std::chrono::seconds{2});
+    if (sessionStatus != std::future_status::ready) {
+      releaseSession.set_value();
+      REQUIRE(sessionStatus == std::future_status::ready);
+    }
+    std::promise<void> projected;
+    auto reportHasProjected = projected.get_future();
+    bridge.setExceptionReportProjectionHandler(
+        [&](Event incoming) -> std::optional<Event> {
+          projected.set_value();
+          return incoming;
+        });
+    bridge.submitReceiveOrder(event);
+    auto evoker = std::async(std::launch::async, [&] {
+      return bridge.evokeOne(std::chrono::milliseconds{0});
+    });
+    auto const projectionStatus = reportHasProjected.wait_for(std::chrono::seconds{2});
+    if (projectionStatus == std::future_status::ready) {
+      // This drains project(), but must not wait for the user callback gate.
+      bridge.cancelExceptionReportProjections();
+    }
+    releaseSession.set_value();
+    auto const blockerStatus = sessionBlocker.wait_for(std::chrono::seconds{2});
+    auto const evokerStatus = evoker.wait_for(std::chrono::seconds{2});
+    REQUIRE(projectionStatus == std::future_status::ready);
+    REQUIRE(blockerStatus == std::future_status::ready);
+    REQUIRE(evokerStatus == std::future_status::ready);
+    sessionBlocker.get();
+    evoker.get();
+    REQUIRE(recipient.callbacks == 0U);
+  }
+
+  SECTION("user callback can close after projection retires") {
+    bridge.setExceptionReportProjectionHandler(
+        [](Event incoming) -> std::optional<Event> { return incoming; });
+    recipient.onReceive = [&] { bridge.close(); };
+    bridge.submitReceiveOrder(event);
+    REQUIRE_FALSE(bridge.evokeOne(std::chrono::milliseconds{0}));
+    REQUIRE(recipient.callbacks == 1U);
+    REQUIRE(bridge.pendingCount() == 0U);
+  }
+}
 
 TEST_CASE(
     "Private process callback bridge suppresses a queued Attribute Relevance Advisory after switch disable",

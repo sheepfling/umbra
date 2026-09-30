@@ -1,0 +1,74 @@
+{
+    "schema_version": 1,
+    "kind": "requirements-reference",
+    "document_id": "hla-1516.1-2025",
+    "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+    "notes": "The candidate covers two object-class groups, each with one FOM-defined directed interaction subscription, followed by removal of the primary group through the standard set-based unsubscribe overload. The first request checks both MIM reports and their object-class/interaction pairings; the second request checks that precisely the secondary object-class group remains. No DDM region behavior is included.",
+    "requirements": [
+        {
+            "id": "cpp-tck-federate-mom-multiple-directed-subscription-query-send",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-123-l145-40",
+            "clause_id": "clause-6.12",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "750-764",
+            "source_symbol": "sendInteraction",
+            "statement": "The requester sends standard HLArequestSubscriptions requests for the joined subject before and after the directed subscription set changes.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedSubscriptionQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-multiple-directed-subscription-query-report-subscriptions",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-099-l75-20",
+            "clause_id": "clause-5.10",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "577-579",
+            "source_symbol": "subscribeInteractionClass",
+            "statement": "The requester uses the standard subscription service for the MIM object, ordinary-interaction, and directed-interaction report classes.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedSubscriptionQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-multiple-directed-subscription-query-declaration",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
+            "clause_id": "clause-5.12",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "593-606",
+            "source_symbol": "subscribeObjectClassDirectedInteractions",
+            "statement": "The subject declares one adapter-selected directed interaction class under each of two adapter-selected object classes, with universal subscription disabled.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedSubscriptionQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-multiple-directed-subscription-query-partial-unsubscribe",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-102-l172-49",
+            "clause_id": "clause-5.13",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "620-632",
+            "source_symbol": "unsubscribeObjectClassDirectedInteractions",
+            "statement": "The subject removes the primary object's directed interaction subscription through the standard set overload; the following MIM report retains exactly the secondary object-class group.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedSubscriptionQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-multiple-directed-subscription-query-reports",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+            "clause_id": "clause-11.4.1",
+            "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+            "source_lines": "909-918, 1077-1090, 1393-1426, 3625-3638, 3718-3733",
+            "source_symbol": "HLArequestSubscriptions",
+            "statement": "For two object classes with directed interaction subscriptions, the MIM produces one report per object class and reports the total number of subscribed object classes. Each report identifies its object class and corresponding directed interaction handle. After set-based removal of the primary group, a new request reports only the secondary object-class group.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedSubscriptionQueryContract"
+            ]
+        }
+    ]
+}

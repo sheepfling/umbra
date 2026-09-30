@@ -512,7 +512,7 @@ TEST_CASE(
     "The embedded federation registry reports a directed interaction transportation override",
     "[unit][kernel][federation-registry][interaction-management][declaration-management]"
     "[directed-interaction][directed-routing][interaction-transportation-type-change]"
-    "[transportation-management][rti.service.publish-object-class-directed-interactions]"
+    "[transportation-management][federation-registry-directed-transportation-override][rti.service.publish-object-class-directed-interactions]"
     "[rti.service.request-interaction-transportation-type-change]"
     "[rti.service.query-interaction-transportation-type]") {
   EmbeddedFederationRegistry registry;
@@ -12546,7 +12546,7 @@ TEST_CASE(
 TEST_CASE(
     "Filesystem fresh-registry restore seeds declaration relevance before the next mutation",
     "[unit][kernel][federation-registry][save-restore][durable-save][filesystem][restore]"
-    "[process-restart][declaration-relevance-state][declaration-management]") {
+    "[process-restart][declaration-relevance-state][declaration-management][declaration-relevance-restore-baseline]") {
   auto const directory = temporarySaveCommitDirectory();
   std::error_code ignored;
   std::filesystem::remove_all(directory, ignored);

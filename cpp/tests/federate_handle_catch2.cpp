@@ -38,7 +38,7 @@ TEST_CASE("The official FederateHandle has stable embedded value semantics", "[u
   REQUIRE(stream.str() == handle.toString());
 }
 
-TEST_CASE("The embedded FederateHandle encoding is an HLAvariableArray-wrapped identity", "[unit][kernel][federate-handle][foundation][federation-management]") {
+TEST_CASE("The embedded FederateHandle encoding is an HLAvariableArray-wrapped identity", "[unit][kernel][federate-handle][foundation][federation-management][handle-encoding]") {
   auto const handle = makeFederateHandle(0x0102030405060708ULL);
   std::array<unsigned char, 12> const expected{
       0x00, 0x00, 0x00, 0x08, 0x01, 0x02,

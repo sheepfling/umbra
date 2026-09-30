@@ -44,7 +44,13 @@ def main() -> int:
         return 2
 
     java_ids = set(SCENARIO_ID.findall(java_source))
-    missing = sorted(java_ids - catalog_ids)
+    parity_targets = {
+        row["parity"]
+        for row in rows
+        if isinstance(row.get("parity"), str)
+        and row["parity"].startswith("java-tck.")
+    }
+    missing = sorted(java_ids - catalog_ids - parity_targets)
     stale_catalog_ids = sorted(
         scenario_id
         for scenario_id in catalog_ids - java_ids
@@ -72,8 +78,8 @@ def main() -> int:
         return 1
 
     print(
-        f"cpp/java parity audit: {len(java_ids)} Java scenario IDs are represented; "
-        "all Java parity targets resolve."
+        f"cpp/java parity audit: {len(java_ids)} Java scenario IDs are represented "
+        "by catalog IDs or explicit parity links; all Java parity targets resolve."
     )
     return 0
 

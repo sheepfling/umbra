@@ -267,3 +267,82 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
 }
+
+TEST_CASE(
+    "A joined federate not using time regulation may timestamp an attribute update",
+    "[integration][development-profile][object-management][time-management]"
+    "[timestamped-attribute-update][unregulated-federate-timestamped-attribute-update]"
+    "[rti.service.update-attribute-values][federate.callback.reflect-attribute-values][2025]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador receiverReports;
+  auto publisher = makeRti();
+  auto receiver = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = sourcePath(
+      std::filesystem::path("cpp") / "tests" / "data" /
+      "attribute-update-passel-fom.xml");
+  unsigned char const valueBytes[] = {0x55U, 0x4EU, 0x52U, 0x2DU, 0x41U};
+  unsigned char const tagBytes[] = {0x55U, 0x4EU, 0x52U, 0x2DU, 0x54U};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(receiver->connect(receiverReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      fomModule.wstring(),
+      standard_hla::mom::integer64_time));
+  FederateHandle publisherHandle;
+  REQUIRE_NOTHROW(publisherHandle = publisher->joinFederationExecution(
+      L"unregulated-attribute-timestamp-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(receiver->joinFederationExecution(
+      L"unregulated-attribute-timestamp-receiver", L"subscriber", federationName));
+
+  auto const objectClass = publisher->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const attribute = publisher->getAttributeHandle(
+      objectClass,
+      fixture_hla::fixture::reliable_base_a);
+  REQUIRE(objectClass.isValid());
+  REQUIRE(attribute.isValid());
+  AttributeHandleSet const attributes{attribute};
+  AttributeHandleValueMap values;
+  values.emplace(attribute, VariableLengthData(valueBytes, sizeof(valueBytes)));
+
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(receiver->subscribeObjectClassAttributes(objectClass, attributes));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = publisher->registerObjectInstance(objectClass));
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.discoveredObjectInstances.size() == 1U);
+
+  // Neither member uses time-management services. Clause 8 permits an
+  // unregulated joined federate to attach a timestamp to its activity.
+  static_cast<void>(publisher->updateAttributeValues(
+      objectInstance,
+      values,
+      tag,
+      rti1516_2025::HLAinteger64Time(6)));
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 1U);
+
+  auto const& report = receiverReports.attributeReflectionReports.front();
+  REQUIRE(report.objectInstance == objectInstance);
+  REQUIRE(report.attributeValues.size() == 1U);
+  REQUIRE(report.attributeValues.contains(attribute));
+  REQUIRE(variableLengthDataBytes(report.attributeValues.at(attribute)) ==
+          std::vector<unsigned char>(valueBytes, valueBytes + sizeof(valueBytes)));
+  REQUIRE(variableLengthDataBytes(report.userSuppliedTag) ==
+          std::vector<unsigned char>(tagBytes, tagBytes + sizeof(tagBytes)));
+  REQUIRE(report.producingFederate == publisherHandle);
+  REQUIRE_FALSE(report.sentRegionsSupplied);
+  REQUIRE(report.timeImplementationName == standard_hla::mom::integer64_time);
+  REQUIRE(report.timeValue == L"6");
+
+  REQUIRE_NOTHROW(receiver->unsubscribeObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(receiver->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}

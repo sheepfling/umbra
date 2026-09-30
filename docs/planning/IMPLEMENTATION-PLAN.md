@@ -44,9 +44,10 @@ green and queryable at `cpp/tests/federation_registry_catch2.cpp:511`. It
 carries 22 assertions, ten direct Lab requirements, four canonical 2025
 sections, and three official C++ API surfaces; the process-boundary delivery
 slice remains separately indexed and green. The process-boundary slice is now green and is no longer an open
-implementation queue: its 155 source-located Catch2 cases are mapped to the
-current canonical 2025 requirement/section index and retain 6,717 indexed
-Catch2 assertions. One separately queryable bounded process slice is the
+implementation queue. Its live case and assertion totals are available from
+`python tools/query_rti_work.py focus process-boundary --summary --compact`,
+which is the authoritative current canonical-2025 requirement/section index
+and source-health handoff. One separately queryable bounded process slice is the
 directed query/report transportation override case at
 `cpp/tests/ieee1516_2025_connection_catch2.cpp:27231`, with 44 assertions,
 17 Lab requirements, ten canonical 2025 sections, and ten official C++ API
@@ -188,7 +189,13 @@ endpoint adds 86 assertions under both callback models, and the regional
 subscription-removal endpoint adds 112 assertions under both callback models;
 the disjoint regional-update endpoint adds 50, the remote regional
 subscription/update endpoint adds 66, the regional-registration endpoint adds 34,
-and the object-registration endpoint adds 20 under both callback models; the
+and the object-registration endpoint adds 20 under both callback models. Its
+process-boundary companion now also exercises subset and whole-class
+`Unpublish Object Class Attributes` through the remote registry, adding 32
+assertions in the exact `process-unpublish-object-class-attributes` lane at
+`cpp/tests/ieee1516_2025_connection_catch2.cpp:5827`; query it with `focus`,
+`trace`, `matrix`, or `check --lane` before extending declaration behavior.
+The public object-class subscription endpoint adds 24 under both callback models, and the
 public object-class subscription endpoint adds 24 under both callback models, and
 the public object-discovery endpoint adds 44 under both callback models through
 the official `discoverObjectInstance` callback. The private registry-binding
@@ -842,7 +849,7 @@ python tools/query_rti_work.py lane process-boundary --summary --compact
 python tools/query_rti_work.py test "Private registry-bound service exchanges federation traffic across independently launched processes" --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes public Send Interaction through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador resolves interaction and parameter handles through a configured process endpoint" --summary --compact
-python tools/query_rti_work.py test "RTIambassador publishes object-class attributes and registers an object through a configured process endpoint" --summary --compact
+python tools/query_rti_work.py test "RTIambassador publishes and unpublishes object-class attributes and registers an object through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes ordinary interaction declarations through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py test "RTIambassador receives a process interaction through the official Evoke callback surface" --summary --compact
 python tools/query_rti_work.py test "RTIambassador preserves a timestamped process interaction through the official Evoke callback surface" --summary --compact
@@ -867,7 +874,7 @@ python tools/query_rti_work.py test "RTIambassador routes Local Delete Object In
 python tools/query_rti_work.py trace "RTIambassador routes Local Delete Object Instance through a configured process endpoint" --summary --compact
 python tools/query_rti_work.py lane rti.service.subscribe-object-class-attributes --summary --compact
 python tools/query_rti_work.py test "RTIambassador routes public Update Attribute Values through a configured process endpoint" --summary --compact
-python tools/query_rti_work.py test "RTIambassador delivers a process Update Attribute Values event through the official Reflect callback" --summary --compact
+python tools/query_rti_work.py test "RTIambassador reflects an update only once for overlapping process subscriptions" --summary --compact
 python tools/query_rti_work.py check --lane process-boundary --summary --compact
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-object-registration --output-on-failure
 ctest --test-dir <build-dir>/package-smoke-consumer -C Debug -L package-process-named-registration --output-on-failure
@@ -2127,9 +2134,13 @@ service report is emitted after the registry lock is released, so an
 `HLAreportServiceInvocation` before the restored ordinary release callback is
 queued. The interaction case decodes the official service type, object and
 attribute-set supplied arguments, Null return, success indicator, empty
-exception, and serial zero. The Table 5 user-tag forms for the neighboring
-negotiated/confirm/divestiture services remain filesystem-only until the
-type-63/Table-5 versus type-60/MIM conflict in RL-077 is resolved.
+exception, and serial zero. Successful Unconditional Attribute Ownership
+Divestiture now also emits through the public MOM route: its Table 5 file tag
+remains type 63, while the interaction encoder uses static MIM type 60. The
+negotiated-divestiture, confirmation, acquisition, acquisition-if-available,
+and release-denied wrappers still need their own post-lock interaction paths
+and focused tests. RL-077 remains a Requirements-Lab extraction limitation,
+not an unresolved runtime encoding choice.
 
 The accepted timestamped `Retract` service now uses the same public selector
 after the federation-owned retraction ledger accepts its designator. A focused
@@ -2189,6 +2200,18 @@ returned forms plus success, empty exception, invalid producer, and no-region
 metadata. RL-151 remains the Lab's missing positive ReturnArgument export;
 failure families, protected review, package/JUnit evidence, validation, and
 conformance remain open.
+The latest configured-filesystem companion is now source-backed at
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32604` with 18
+HLA_EVOKED assertions, one direct Requirements-Lab anchor, one canonical 2025
+section, and six official C++ API surfaces. Two ambassadors share one
+configured directory and prove distinct eager initial-record files for
+simultaneously joined federates. Use the exact
+`service-report-file-multifederate` focus/trace/matrix/check handles; append
+records, preflight directory validation, switch-cycle append behavior, rejoin
+identity, MOM reflection, push-mode and remote transport, package/JUnit/
+protected review, validation, interoperability, and conformance remain
+separate. The preceding process file-loss, preflight, rejoin, switch-cycle, and
+public MOM discovery/reflection companions remain independently queryable.
 
 The public-MOM route also covers the accepted §10.13--§10.16 interaction-class
 and parameter lookup pairs. With file reporting disabled, an HLA_IMMEDIATE
@@ -3170,15 +3193,21 @@ service claim.
 > case from an older paragraph below. The authoritative current pointer is
 > always the bounded query output from `ready`, `work`, `queue`, and `focus`;
 > use `plan <heading-query>` only to locate this section without loading its
-> prose. The latest completed implementation slice is the HLA_IMMEDIATE restored
-> ownership-assumption work-item case at
-> `cpp/tests/attribute_ownership_acquisition_catch2.cpp:3437`; query
-> `umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-immediate-integration`
-> for its exact source, tests, and requirement pairs (52 assertions; 9 Lab
-> requirements; 7 clauses; 11 official C++ API surfaces). It gates callbacks
-> across restore, preserves the pending reservation, and verifies
-> `Federation Restored` before exactly one assumption callback; it does not
-> claim Evoke, package, JUnit, review, or conformance evidence. The preceding
+> prose. The latest completed implementation slice is the public regional
+> class Request Attribute Value Update invalid-selector/error matrix at
+> `cpp/tests/ieee1516_2025_connection_catch2.cpp:24261`; query
+> `umbra-cpp-process-regional-class-request-attribute-value-update-invalid-region-public`
+> or focus lane
+> `process-regional-class-request-attribute-value-update-invalid-region-public`
+> for its exact source, tests, and requirement pair (14 assertions; 4 Lab
+> requirements; 1 clause; 12 official C++ API surfaces). It proves typed
+> exception mapping for unknown, foreign-owned, uncommitted, and wrong-dimension
+> regions across the public process endpoint before provider delivery; it does
+> not claim service-report, package, review, validation, interoperability, or
+> conformance evidence. The paired private rejection matrix and preceding
+> HLA_IMMEDIATE restored ownership-assumption work-item case at
+> `cpp/tests/attribute_ownership_acquisition_catch2.cpp:3437` remains
+> independently queryable as
 > HLA_IMMEDIATE pushed ownership-assumption save/restore case is queryable as
 > `umbra-cpp-process-endpoint-federation-restore-work-item-ownership-assumption-push-integration`
 > at `cpp/tests/attribute_ownership_acquisition_catch2.cpp:3854` (55
@@ -3224,8 +3253,8 @@ Run `python tools/query_rti_work.py ready --summary --compact` for bounded
 family choices; no active handoff is pending, so the completed re-enable row
 is not presented as new work.
 Use `python tools/query_rti_work.py focus process-boundary --summary --compact`
-for its 155-case mapped C++/JUnit card (6,717 indexed assertions; 6,869
-assertions recorded by the plan rows). The completed
+for the authoritative mapped C++/JUnit card and live assertion totals. The
+completed
 `application-value-state` slice is intentionally
 small: it adds the typed latest object-attribute value ledger, maps it to the
 existing object-update/save/restore requirements, and includes a route-free

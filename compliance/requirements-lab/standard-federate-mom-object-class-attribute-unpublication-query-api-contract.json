@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK case publishes the adapter-configured ordinary application attributes, unpublishes one selected attribute through the official IEEE 1516.1-2025 RTIambassador API, and queries the current publication state through the standard 1516.2-2025 MIM. The API surface is taken from the official public header; provider, FOM, endpoint, callback model, class/attribute names, and MIM module are adapter-supplied. No vendor implementation hooks or DDM region APIs are used by the test scenario.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-object-class-attribute-unpublication-mim-query",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unpublishobjectclassattributes.d1f7aabcadc7",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unpublishObjectClassAttributes( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes) = 0",
+      "exception_types": [
+        "OwnershipAcquisitionPending",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "unpublishObjectClassAttributes",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassAttributeUnpublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassAttributeUnpublicationQueryContract"
+      ]
+    }
+  ]
+}

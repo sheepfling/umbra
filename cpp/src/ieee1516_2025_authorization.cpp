@@ -121,12 +121,12 @@ class ReferenceHlaAuthorizerFactory final : public rti1516_2025::AuthorizerFacto
   ReferenceAuthorizerConfiguration configuration_;
 };
 
-[[nodiscard]] std::unique_ptr<rti1516_2025::AuthorizerFactory>
-makeReferenceAuthorizerFactory(ReferenceAuthorizerConfiguration configuration) {
+}  // namespace
+
+std::unique_ptr<rti1516_2025::AuthorizerFactory> makeReferenceAuthorizerFactory(
+    ReferenceAuthorizerConfiguration configuration) {
   return std::make_unique<ReferenceHlaAuthorizerFactory>(std::move(configuration));
 }
-
-}  // namespace
 
 std::unique_ptr<rti1516_2025::Authorizer> makeReferenceAuthorizer(
     ReferenceAuthorizerConfiguration configuration) {

@@ -188,10 +188,12 @@ TEST_CASE(
 
   // A predefined interaction subclass is promoted to the standard behavior;
   // its extension-only parameter is received but does not mutate state.
-  REQUIRE_NOTHROW(subject->sendInteraction(
-      extendedSetSwitches,
-      ParameterHandleValueMap{{subclassPayload, opaqueBytes({0x04, 0x05})}},
-      VariableLengthData{}));
+  REQUIRE_THROWS_AS(
+      subject->sendInteraction(
+          extendedSetSwitches,
+          ParameterHandleValueMap{{subclassPayload, opaqueBytes({0x04, 0x05})}},
+          VariableLengthData{}),
+      rti1516_2025::InteractionParameterNotDefined);
   REQUIRE_FALSE(subject->getServiceReportingSwitch());
   REQUIRE(subject->getAutomaticResignDirective() == rti1516_2025::NO_ACTION);
 

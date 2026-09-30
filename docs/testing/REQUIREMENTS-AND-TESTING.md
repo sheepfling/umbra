@@ -1462,10 +1462,12 @@ Unconditional Attribute Ownership Divestiture likewise records an accepted
 Object instance designator (type 37), Set of attribute designators (type 1),
 and its user-supplied tag as double-quoted base-64 Binary Data before the later
 Request Attribute Ownership Assumption callback. Table 5 depicts that tag as
-type 63, while the bundled official MIM assigns `UserSuppliedTag` type 60;
-Umbra keeps the Table 5 literal isolated to the filesystem record and records
-the unresolved source conflict in RL-077 rather than presenting it as a live
-MOM interaction encoding.
+type 63, while the bundled official MIM assigns `UserSuppliedTag` type 60. The
+filesystem formatter retains type 63; the public MOM interaction encoder maps
+the logical tag argument to MIM type 60. A focused C++ integration case now
+verifies the successful divestiture report. RL-077 remains a Requirements-Lab
+cross-document extraction limitation, not a runtime encoding blocker or
+conformance claim.
 Local Delete Object Instance records its accepted §6.18 Object instance
 designator as type 37 using the quoted exact `ObjectInstanceHandle::toString()`
 form after the invoking federate has forgotten the instance. An unknown-object
@@ -5076,8 +5078,12 @@ registry transaction releases its native locks, an `HLA_IMMEDIATE` observer
 receives one reliable `HLAreportServiceInvocation` with service type 3, the
 type-37 object and type-1 attribute-set supplied records, a Null return, true
 success, empty exception, and serial zero before the restored ordinary release
-callback is queued. User-tag-bearing ownership reports remain filesystem-only
-while RL-077's Table 5 type-63 versus MIM type-60 conflict is unresolved.
+callback is queued. Unconditional Attribute Ownership Divestiture now also
+has a public MOM route: file records retain Table 5 type 63 and the interaction
+uses static MIM type 60. Negotiated divestiture, confirmation, acquisition,
+acquisition-if-available, and release-denied still need their own interaction
+wrappers and tests. RL-077 remains a Requirements-Lab extraction limitation,
+not an unresolved runtime encoding choice.
 The accepted timestamped `Retract` service now has a companion public-MOM
 case. Its three-federate setup keeps the timestamped recipient on
 `HLA_EVOKED` and uses an `HLA_IMMEDIATE` observer for the RTI-originated

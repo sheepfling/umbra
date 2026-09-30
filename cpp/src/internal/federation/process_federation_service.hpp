@@ -2,9 +2,11 @@
 
 #include "internal/federation/federation_registry.hpp"
 #include "internal/federation/process_transport_session.hpp"
+#include "internal/observability/service_report_store.hpp"
 
 #include <cstdint>
 #include <deque>
+#include <filesystem>
 #include <functional>
 #include <map>
 #include <memory>
@@ -38,6 +40,14 @@ struct ProcessFederationCreateRequest final {
   bool hasFomInputs = false;
 };
 
+struct ProcessFederationJoinConnectionSnapshot final {
+  std::wstring callbackModel = L"HLA_EVOKED";
+  std::wstring configurationName;
+  std::wstring rtiAddress;
+  std::wstring additionalSettings;
+  std::optional<std::pair<std::wstring, std::vector<std::uint8_t>>> credentials;
+};
+
 struct ProcessFederationJoinRequest final {
   std::wstring federationName;
   std::wstring federateType;
@@ -47,12 +57,36 @@ struct ProcessFederationJoinRequest final {
   // compatible. The service validates and composes them before membership
   // becomes visible.
   std::vector<std::wstring> additionalFomModules;
+  // Connect-time values are retained for the join-created service-report
+  // initial record. Appending this member preserves private aggregate callers
+  // that initialize only the original Join request values.
+  ProcessFederationJoinConnectionSnapshot connection;
 };
 
 struct ProcessFederationResignRequest final {
   std::wstring federationName;
   std::uint64_t federateId = 0U;
   rti1516_2025::ResignAction resignAction = rti1516_2025::NO_ACTION;
+};
+
+// Destroy is a federation-wide lifecycle service.  Keep the registry outcome
+// typed across the private process seam so the public ambassador can preserve
+// FederationExecutionDoesNotExist and FederatesCurrentlyJoined instead of
+// collapsing remote failures into a generic transport error.
+struct ProcessFederationDestroyRequest final {
+  std::wstring federationName;
+};
+
+enum class ProcessFederationDestroyStatus : std::uint8_t {
+  applied = 0U,
+  federation_does_not_exist = 1U,
+  federates_currently_joined = 2U,
+  invalid_request = 3U,
+};
+
+struct ProcessFederationDestroyResult final {
+  ProcessFederationDestroyStatus status =
+      ProcessFederationDestroyStatus::invalid_request;
 };
 
 // Federation synchronization-point control crosses the private process seam
@@ -630,6 +664,19 @@ struct ProcessFederationGetKnownObjectClassHandleRequest final {
   std::uint64_t objectInstanceHandle = 0U;
 };
 
+struct ProcessFederationGetUpdateRateValueRequest final {
+  std::wstring federationName;
+  std::uint64_t federateId = 0U;
+  std::string updateRateDesignator;
+};
+
+struct ProcessFederationGetUpdateRateValueForAttributeRequest final {
+  std::wstring federationName;
+  std::uint64_t federateId = 0U;
+  std::uint64_t objectInstanceHandle = 0U;
+  std::uint64_t attributeHandle = 0U;
+};
+
 struct ProcessFederationInteractionClassDeclarationRequest final {
   std::wstring federationName;
   std::uint64_t federateId = 0U;
@@ -830,6 +877,10 @@ struct ProcessFederationJoinResult final {
   // existing private callers while allowing a client to construct the
   // official LogicalTimeFactory without consulting its process-local registry.
   std::wstring logicalTimeImplementationName;
+  // A configured process service allocates the joined federate's immutable
+  // filesystem report path before Join succeeds.  This is a trailing,
+  // optional result value so older private clients remain wire-compatible.
+  std::wstring reportServiceFile;
 };
 
 struct ProcessFederationQueryLogicalTimeResult final {
@@ -1145,6 +1196,55 @@ struct ProcessFederationAttributeScopeAdvisorySwitchRequest final {
   bool switchValue = false;
 };
 
+struct ProcessFederationExceptionReportingSwitchResult final {
+  FederationServiceOperationStatus status =
+      FederationServiceOperationStatus::available;
+  bool value = false;
+};
+
+struct ProcessFederationServiceExceptionRequest final {
+  std::wstring federationName;
+  std::uint64_t federateId = 0U;
+  std::wstring service;
+  std::wstring exception;
+};
+
+struct ProcessFederationFailedServiceInvocationRequest final {
+  std::wstring federationName;
+  std::uint64_t federateId = 0U;
+  MomServiceType serviceType = MomServiceType::support_services;
+  std::wstring service;
+  std::vector<MomServiceArgument> suppliedArguments;
+  std::wstring exception;
+};
+
+struct ProcessFederationSuccessfulServiceInvocationRequest final {
+  std::wstring federationName;
+  std::uint64_t federateId = 0U;
+  MomServiceType serviceType = MomServiceType::support_services;
+  std::wstring service;
+  std::vector<MomServiceArgument> suppliedArguments;
+  MomServiceArgument returnedArgument;
+};
+
+struct ProcessFederationServiceInvocationReport final {
+  std::wstring federationName;
+  std::uint64_t federateId = 0U;
+  MomServiceType serviceType = MomServiceType::support_services;
+  std::wstring service;
+  std::vector<MomServiceArgument> suppliedArguments;
+  bool successful = false;
+  bool successfulVoid = false;
+  std::optional<MomServiceArgument> returnedArgument;
+  std::wstring exception;
+};
+
+struct ProcessFederationExceptionReportRecheckRequest final {
+  std::wstring federationName;
+  std::uint64_t receivingFederateId = 0U;
+  std::uint64_t reportedFederateId = 0U;
+};
+
 struct ProcessFederationObjectInstanceRegionAssociationResult final {
   ObjectInstanceRegionAssociationStatus status =
       ObjectInstanceRegionAssociationStatus::applied;
@@ -1174,6 +1274,22 @@ struct ProcessFederationDimensionUpperBoundResult final {
 struct ProcessFederationAvailableDimensionsResult final {
   bool found = false;
   std::vector<std::uint64_t> dimensionHandles;
+};
+
+enum class ProcessFederationUpdateRateValueStatus : std::uint8_t {
+  applied = 0U,
+  federation_does_not_exist = 1U,
+  federate_not_member = 2U,
+  invalid_update_rate_designator = 3U,
+  object_instance_not_known = 4U,
+  attribute_not_defined = 5U,
+  inconsistent_catalog = 6U,
+};
+
+struct ProcessFederationUpdateRateValueResult final {
+  ProcessFederationUpdateRateValueStatus status =
+      ProcessFederationUpdateRateValueStatus::inconsistent_catalog;
+  double value = 0.0;
 };
 
 // The first process service carried an opaque interaction payload because the
@@ -1218,6 +1334,13 @@ struct ProcessFederationInteractionEvent final {
   // FederateAmbassador overload.
   std::optional<rti1516_2025::OrderType> sentOrderType;
   std::optional<rti1516_2025::OrderType> receivedOrderType;
+  // RTI-originated MOM interactions use an invalid producer designator in
+  // the official callback.  Keep this marker trailing so ordinary process
+  // interaction aggregates and legacy wire payloads remain compatible.
+  bool rtiOwnedMomInteraction = false;
+  // Only HLAreportException carries this private routing identity. It is
+  // never exposed as the callback producer or as an application parameter.
+  std::optional<std::uint64_t> exceptionReportFederateId;
 };
 
 struct ProcessFederationAttributeUpdateEvent final {
@@ -1239,6 +1362,10 @@ struct ProcessFederationAttributeUpdateEvent final {
   // under an execution-owned message-retraction identity. Appended for
   // compatibility with existing ordinary/timestamp-preservation events.
   std::optional<std::uint64_t> retractionMessageId;
+  // RTI-owned joined-federate MOM reflections use an invalid producer handle
+  // in the official callback. Keep this marker trailing so ordinary process
+  // attribute-event aggregates and legacy wire payloads remain compatible.
+  bool rtiOwnedMomObject = false;
 };
 
 // One accepted object-instance Request Attribute Value Update provider
@@ -1337,6 +1464,12 @@ struct ProcessFederationObjectInstanceDiscoveryEvent final {
   std::uint64_t objectClassHandle = 0U;
   std::wstring objectInstanceName;
   std::uint64_t producingFederateId = 0U;
+  // The RTI-owned MOM discovery callback carries an invalid producer handle;
+  // ordinary federate-created discoveries continue to require a producer.
+  bool rtiOwnedMomObject = false;
+  // Orders queued pull-mode discoveries against Remove Object Instance
+  // callbacks for the same receiving process session.
+  std::uint64_t callbackOrderSequence = 0U;
 };
 
 // A receive-order Remove Object Instance callback crosses the same
@@ -1363,6 +1496,11 @@ struct ProcessFederationObjectInstanceRemovalEvent final {
   // RECEIVE/RECEIVE.
   std::optional<rti1516_2025::OrderType> sentOrderType;
   std::optional<rti1516_2025::OrderType> receivedOrderType;
+  // RTI-owned MOM objects are removed by the RTI and therefore carry an
+  // invalid producing-federate handle. This internal projection flag is
+  // appended to the process payload for backward compatibility.
+  bool rtiOwnedMomObject = false;
+  std::uint64_t callbackOrderSequence = 0U;
 };
 
 // A planned Attribute In/Out Of Scope transition projected across the private
@@ -1533,6 +1671,12 @@ struct ProcessFederationReceiveInteractionResult final {
 
 struct ProcessFederationRequestAttributeValueUpdateResult final {
   std::uint32_t recipientCount = 0U;
+  // A regional class request carries the registry's typed planning outcome
+  // alongside the transport status.  Ordinary request forms leave this at
+  // applied; the public adapter uses it to preserve the official exception
+  // surface across a process boundary.
+  AttributeValueUpdateClassRequestStatus status =
+      AttributeValueUpdateClassRequestStatus::applied;
 };
 
 struct ProcessFederationUpdateAttributeValuesResult final {
@@ -1575,6 +1719,10 @@ struct ProcessFederationServiceOptions final {
       FederationDefinition const& existing,
       std::vector<std::wstring> const& additionalFomModules)>;
   AdditionalFomPreparation additionalFomPreparation;
+  // The process service exposes only the production storage decision: a
+  // filesystem directory.  Test-only memory stores remain an internal
+  // injection seam and are not selected by this runtime option.
+  std::filesystem::path serviceReportDirectory;
 };
 
 class ProcessFederationServiceProtocolError final : public std::runtime_error {
@@ -1595,6 +1743,15 @@ class ProcessFederationServiceProtocolError final : public std::runtime_error {
 [[nodiscard]] std::vector<std::uint8_t> encodeProcessFederationResignRequest(
     ProcessFederationResignRequest const& request);
 [[nodiscard]] ProcessFederationResignRequest decodeProcessFederationResignRequest(
+    std::span<std::uint8_t const> encoded);
+
+[[nodiscard]] std::vector<std::uint8_t> encodeProcessFederationDestroyRequest(
+    ProcessFederationDestroyRequest const& request);
+[[nodiscard]] ProcessFederationDestroyRequest decodeProcessFederationDestroyRequest(
+    std::span<std::uint8_t const> encoded);
+[[nodiscard]] std::vector<std::uint8_t> encodeProcessFederationDestroyResult(
+    ProcessFederationDestroyResult const& result);
+[[nodiscard]] ProcessFederationDestroyResult decodeProcessFederationDestroyResult(
     std::span<std::uint8_t const> encoded);
 
 [[nodiscard]] std::vector<std::uint8_t>
@@ -1914,6 +2071,20 @@ encodeProcessFederationGetKnownObjectClassHandleRequest(
     ProcessFederationGetKnownObjectClassHandleRequest const& request);
 [[nodiscard]] ProcessFederationGetKnownObjectClassHandleRequest
 decodeProcessFederationGetKnownObjectClassHandleRequest(
+    std::span<std::uint8_t const> encoded);
+
+[[nodiscard]] std::vector<std::uint8_t>
+encodeProcessFederationGetUpdateRateValueRequest(
+    ProcessFederationGetUpdateRateValueRequest const& request);
+[[nodiscard]] ProcessFederationGetUpdateRateValueRequest
+decodeProcessFederationGetUpdateRateValueRequest(
+    std::span<std::uint8_t const> encoded);
+
+[[nodiscard]] std::vector<std::uint8_t>
+encodeProcessFederationGetUpdateRateValueForAttributeRequest(
+    ProcessFederationGetUpdateRateValueForAttributeRequest const& request);
+[[nodiscard]] ProcessFederationGetUpdateRateValueForAttributeRequest
+decodeProcessFederationGetUpdateRateValueForAttributeRequest(
     std::span<std::uint8_t const> encoded);
 
 [[nodiscard]] std::vector<std::uint8_t>
@@ -2270,6 +2441,37 @@ encodeProcessFederationAttributeScopeAdvisorySwitchRequest(
 [[nodiscard]] ProcessFederationAttributeScopeAdvisorySwitchRequest
 decodeProcessFederationAttributeScopeAdvisorySwitchRequest(
     std::span<std::uint8_t const> encoded);
+[[nodiscard]] std::vector<std::uint8_t>
+encodeProcessFederationExceptionReportingSwitchResult(
+    ProcessFederationExceptionReportingSwitchResult const& result);
+[[nodiscard]] ProcessFederationExceptionReportingSwitchResult
+decodeProcessFederationExceptionReportingSwitchResult(
+    std::span<std::uint8_t const> encoded);
+
+[[nodiscard]] std::vector<std::uint8_t>
+encodeProcessFederationServiceExceptionRequest(
+    ProcessFederationServiceExceptionRequest const& request);
+[[nodiscard]] ProcessFederationServiceExceptionRequest
+decodeProcessFederationServiceExceptionRequest(
+    std::span<std::uint8_t const> encoded);
+[[nodiscard]] std::vector<std::uint8_t>
+encodeProcessFederationFailedServiceInvocationRequest(
+    ProcessFederationFailedServiceInvocationRequest const& request);
+[[nodiscard]] ProcessFederationFailedServiceInvocationRequest
+decodeProcessFederationFailedServiceInvocationRequest(
+    std::span<std::uint8_t const> encoded);
+[[nodiscard]] std::vector<std::uint8_t>
+encodeProcessFederationSuccessfulServiceInvocationRequest(
+    ProcessFederationSuccessfulServiceInvocationRequest const& request);
+[[nodiscard]] ProcessFederationSuccessfulServiceInvocationRequest
+decodeProcessFederationSuccessfulServiceInvocationRequest(
+    std::span<std::uint8_t const> encoded);
+[[nodiscard]] std::vector<std::uint8_t>
+encodeProcessFederationExceptionReportRecheckRequest(
+    ProcessFederationExceptionReportRecheckRequest const& request);
+[[nodiscard]] ProcessFederationExceptionReportRecheckRequest
+decodeProcessFederationExceptionReportRecheckRequest(
+    std::span<std::uint8_t const> encoded);
 [[nodiscard]] std::vector<std::uint8_t> encodeProcessFederationBooleanResult(
     ProcessFederationBooleanResult const& result);
 [[nodiscard]] ProcessFederationBooleanResult decodeProcessFederationBooleanResult(
@@ -2431,6 +2633,13 @@ decodeProcessFederationAvailableDimensionsResult(
     std::span<std::uint8_t const> encoded);
 
 [[nodiscard]] std::vector<std::uint8_t>
+encodeProcessFederationUpdateRateValueResult(
+    ProcessFederationUpdateRateValueResult const& result);
+[[nodiscard]] ProcessFederationUpdateRateValueResult
+decodeProcessFederationUpdateRateValueResult(
+    std::span<std::uint8_t const> encoded);
+
+[[nodiscard]] std::vector<std::uint8_t>
 encodeProcessFederationInteractionEnvelope(
     ProcessFederationInteractionEnvelope const& envelope);
 // An absent value means the payload is from the legacy opaque process probe
@@ -2506,7 +2715,17 @@ class ProcessFederationService final {
   [[nodiscard]] bool dispatchConnectionLossResult(
       std::wstring const& federationName,
       FederationRegistryResult result,
-      std::optional<std::uint64_t> departedFederateId = std::nullopt);
+      std::optional<std::uint64_t> departedFederateId = std::nullopt,
+      std::optional<FederateLostReportPlan> federateLostReport = std::nullopt,
+      std::wstring faultDescription = {});
+
+  // Apply an unexpected process-endpoint loss and project the resulting
+  // standard callbacks, including HLAreportFederateLost when subscribed.
+  // Capture the MOM routing plan before the registry removes the lost member.
+  [[nodiscard]] bool connectionLost(
+      std::wstring const& federationName,
+      std::uint64_t departedFederateId,
+      std::wstring faultDescription);
 
  private:
   struct SessionState final {
@@ -2518,12 +2737,17 @@ class ProcessFederationService final {
     // ownership boundary explicit and lets later role/grant operations use
     // the exact state established at Join.
     std::shared_ptr<FederateTimeState> timeState;
+    // One writer and one immutable location belong to this joined-federate
+    // lifetime.  Resign clears the state; rejoin allocates a new writer.
+    std::unique_ptr<ServiceReportWriter> serviceReportWriter;
+    std::filesystem::path serviceReportLocation;
     std::deque<ProcessFederationInteractionEvent> interactionEvents;
     std::deque<ProcessFederationAttributeUpdateEvent> attributeUpdateEvents;
     std::deque<ProcessFederationObjectInstanceDiscoveryEvent>
         objectInstanceDiscoveryEvents;
     std::deque<ProcessFederationObjectInstanceRemovalEvent>
         objectInstanceRemovalEvents;
+    std::uint64_t nextObjectLifecycleCallbackOrderSequence = 1U;
     std::deque<ProcessFederationObjectInstanceScopeChangeEvent>
         objectInstanceScopeChangeEvents;
     std::deque<ProcessFederationAttributeRelevanceAdvisoryEvent>
@@ -2559,6 +2783,8 @@ class ProcessFederationService final {
       ProcessTransportSession& session,
       TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage handleCreate(
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleDestroy(
       TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage handleJoin(
       ProcessTransportSession& session,
@@ -2751,6 +2977,13 @@ class ProcessFederationService final {
   [[nodiscard]] TransportServiceMessage handleGetKnownObjectClassHandle(
       ProcessTransportSession& session,
       TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleGetUpdateRateValue(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage
+  handleGetUpdateRateValueForAttribute(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage handleGetObjectClassName(
       ProcessTransportSession& session,
       TransportServiceMessage const& request);
@@ -2883,7 +3116,15 @@ class ProcessFederationService final {
       ProcessTransportSession& session,
       TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage
+  handleGetObjectClassRelevanceAdvisorySwitch(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage
   handleGetAttributeRelevanceAdvisorySwitch(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage
+  handleGetInteractionRelevanceAdvisorySwitch(
       ProcessTransportSession& session,
       TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage
@@ -2895,7 +3136,53 @@ class ProcessFederationService final {
       ProcessTransportSession& session,
       TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage
+  handleGetAllowRelaxedDDMSwitch(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage
   handleSetConveyRegionDesignatorSetsSwitch(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleGetServiceReportingSwitch(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleSetServiceReportingSwitch(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleGetExceptionReportingSwitch(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleReportServiceException(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage
+  handleReportFailedServiceInvocation(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage
+  handleReportSuccessfulServiceInvocation(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage
+  handleReportSuccessfulVoidServiceInvocation(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleServiceInvocationReport(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request,
+      ProcessFederationServiceInvocationReport report);
+  [[nodiscard]] TransportServiceMessage handleRecheckExceptionReport(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleSetExceptionReportingSwitch(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage
+  handleGetSendServiceReportsToFileSwitch(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage
+  handleSetSendServiceReportsToFileSwitch(
       ProcessTransportSession& session,
       TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage
@@ -2921,6 +3208,11 @@ class ProcessFederationService final {
   [[nodiscard]] bool enqueueObjectInstanceDiscoveries(
       std::wstring const& federationName,
       std::vector<ObjectInstanceDiscoveryRecipient> discoveries);
+
+  [[nodiscard]] bool enqueueJoinedFederateMomConditionalAttributeUpdate(
+      std::wstring const& federationName,
+      std::uint64_t federateId,
+      std::vector<std::string> const& attributeNames);
 
   [[nodiscard]] bool enqueueObjectInstanceRemovals(
       std::wstring const& federationName,
@@ -2981,6 +3273,18 @@ class ProcessFederationService final {
       std::wstring const& federationName,
       std::vector<FederationRestoreNotification> notifications);
 
+  // Append one selected service-report record for a process-owned joined
+  // federate.  The registry remains authoritative for switch gating and
+  // serial allocation; the session retains the immutable filesystem writer
+  // allocated at Join.  Suppressed/interaction destinations are successful
+  // no-ops, while a selected-file write failure is surfaced to the request.
+  [[nodiscard]] bool appendSelectedServiceReportRecord(
+      ProcessTransportSession& session,
+      std::wstring const& federationName,
+      std::uint64_t federateId,
+      std::uint16_t serviceGroup,
+      FederateServiceReportRecordEncoder encodeRecord);
+
   // Execute registry-owned time-grant work only after the registry lock has
   // been released.  A grant may make another pending request eligible, so the
   // helper drains bounded re-evaluation rounds until the federation reaches a
@@ -3010,6 +3314,7 @@ class ProcessFederationService final {
   EmbeddedFederationRegistry& registry_;
   std::shared_ptr<FederationDefinition const> federationDefinition_;
   ProcessFederationServiceOptions options_;
+  std::unique_ptr<ServiceReportStore> serviceReportStore_;
   // Pushed directed events may be buffered in a receiver process client even
   // after they leave the service's queue. Retain the recipient sessions long
   // enough to send a matching retraction notification.

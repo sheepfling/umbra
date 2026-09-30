@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The subject publishes an adapter-configured object class, then unpublishes that entire class through IEEE 1516.1-2025. A fresh standard IEEE 1516.2-2025 publication query verifies the MIM NULL response: one class-count parameter set to zero, with no object-class or attribute-list parameters. No DDM services are used.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-mom-object-class-whole-unpublication",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l121-35",
+      "clause_id": "clause-5.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "443-444",
+      "source_symbol": "unpublishObjectClass",
+      "statement": "The federate unpublishes its complete object-class publication through the standard Unpublish Object Class service. A subsequent standard publication query reflects that declaration state.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassWholeUnpublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassWholeUnpublicationQueryContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-mom-object-class-whole-unpublication-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "1067-1073, 1232-1256",
+      "source_symbol": "HLAreportObjectClassPublication",
+      "statement": "After whole-class unpublication leaves no published object classes, the publication query returns the exact MIM NULL response: a zero class count and omitted object-class and attribute-list parameters.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassWholeUnpublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassWholeUnpublicationQueryContract"
+      ]
+    }
+  ]
+}

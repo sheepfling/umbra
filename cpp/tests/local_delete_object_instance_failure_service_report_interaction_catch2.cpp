@@ -158,7 +158,7 @@ TEST_CASE(
                                 std::wstring const& serviceException) {
     auto const& report = observerReports.interactionReports.at(index);
     REQUIRE(report.interactionClass == reportClass);
-    REQUIRE(report.parameterValues.size() == 7U);
+    REQUIRE(report.parameterValues.size() == 8U);
     REQUIRE(report.userSuppliedTag.size() == 0U);
     REQUIRE_FALSE(report.producingFederate.isValid());
 

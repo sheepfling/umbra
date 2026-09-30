@@ -55,6 +55,54 @@
       "cacheVariables": {
         "UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT": "ON"
       }
+    },
+    {
+      "name": "mingw-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/mingw-scoop.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "mingw-default",
+      "displayName": "MinGW default",
+      "description": "Core native MinGW build and offline-friendly baseline tests.",
+      "inherits": "mingw-base",
+      "binaryDir": "${sourceDir}/out/mgw/default"
+    },
+    {
+      "name": "mingw-catch2",
+      "displayName": "MinGW Catch2",
+      "description": "Native behavior tests; downloads Catch2 when it is not already available.",
+      "inherits": "mingw-base",
+      "binaryDir": "${sourceDir}/out/mgw/catch2",
+      "cacheVariables": {
+        "UMBRA_FETCH_CATCH2": "ON"
+      }
+    },
+    {
+      "name": "mingw-fom",
+      "displayName": "MinGW FOM validator",
+      "description": "FOM/XML validation tests; downloads the pinned Catch2 and libxml2 dependencies when needed.",
+      "inherits": "mingw-catch2",
+      "binaryDir": "${sourceDir}/out/mgw/fom",
+      "cacheVariables": {
+        "UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR": "ON",
+        "UMBRA_FETCH_LIBXML2": "ON"
+      }
+    },
+    {
+      "name": "mingw-fom-services",
+      "displayName": "MinGW installable federation-management profile",
+      "description": "Installable embedded FOM-services profile with packaged resources and process endpoint configuration.",
+      "inherits": "mingw-fom",
+      "binaryDir": "${sourceDir}/out/mgw/embedded",
+      "cacheVariables": {
+        "UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -80,6 +128,26 @@
       "name": "windows-fom-services-debug",
       "configurePreset": "windows-fom-services",
       "configuration": "Debug",
+      "jobs": 1
+    },
+    {
+      "name": "mingw-default-debug",
+      "configurePreset": "mingw-default",
+      "jobs": 1
+    },
+    {
+      "name": "mingw-catch2-debug",
+      "configurePreset": "mingw-catch2",
+      "jobs": 1
+    },
+    {
+      "name": "mingw-fom-debug",
+      "configurePreset": "mingw-fom",
+      "jobs": 1
+    },
+    {
+      "name": "mingw-fom-services-debug",
+      "configurePreset": "mingw-fom-services",
       "jobs": 1
     }
   ],
@@ -112,6 +180,34 @@
       "name": "windows-fom-services-debug",
       "configurePreset": "windows-fom-services",
       "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "mingw-default-debug",
+      "configurePreset": "mingw-default",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "mingw-catch2-debug",
+      "configurePreset": "mingw-catch2",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "mingw-fom-debug",
+      "configurePreset": "mingw-fom",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "mingw-fom-services-debug",
+      "configurePreset": "mingw-fom-services",
       "output": {
         "outputOnFailure": true
       }

@@ -1,14 +1,20 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "internal/federation/federation_registry.hpp"
+#include "internal/federation/process_federation_client.hpp"
 #include "internal/federation/process_federation_service.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
+#include <RTI/NullFederateAmbassador.h>
 #include <RTI/time/HLAinteger64Interval.h>
 #include <RTI/time/HLAinteger64Time.h>
 
+#include <algorithm>
 #include <atomic>
 #include <filesystem>
+#include <fstream>
+#include <future>
+#include <iterator>
 #include <memory>
 #include <set>
 #include <stdexcept>
@@ -53,6 +59,7 @@ using umbra::detail::ProcessFederationRequestAttributeValueUpdateResult;
 using umbra::detail::ProcessFederationUpdateAttributeValuesRequest;
 using umbra::detail::ProcessFederationUpdateAttributeValuesResult;
 using umbra::detail::ProcessFederationService;
+using umbra::detail::ProcessFederationServiceOptions;
 using umbra::detail::ProcessTransportConnection;
 using umbra::detail::ProcessTransportListener;
 using umbra::detail::ProcessTransportServiceDispatcher;
@@ -124,6 +131,152 @@ TransportServiceMessage request(
 }
 
 }  // namespace
+
+TEST_CASE(
+    "Private process service allocates one filesystem service-report file and MOM identity per joined federate",
+    "[integration][development-profile][federation-management][mom]"
+    "[service-reporting][service-report-file][process-boundary][registry-binding][2025]") {
+  static std::atomic_uint64_t sequence{0U};
+  auto const reportDirectory = std::filesystem::temp_directory_path() /
+      ("umbra-process-service-report-" + std::to_string(
+          sequence.fetch_add(1U, std::memory_order_relaxed)));
+  std::error_code cleanupError;
+  std::filesystem::remove_all(reportDirectory, cleanupError);
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener != nullptr);
+
+  EmbeddedFederationRegistry registry;
+  ProcessFederationServiceOptions options;
+  options.serviceReportDirectory = reportDirectory;
+  ProcessFederationService service(registry, composedRestaurantDefinition(), options);
+  std::exception_ptr serverFailure;
+  std::thread server([&] {
+    try {
+      auto connection = listener->accept(
+          nullptr,
+          {"process-report-server", 0xE1U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(std::move(connection));
+      auto handler = service.handlerFor(session);
+      if (!ProcessTransportServiceDispatcher::serveOne(session, handler) ||
+          !ProcessTransportServiceDispatcher::serveOne(session, handler)) {
+        throw std::runtime_error(
+            "The process service lost the report-file lifecycle requests.");
+      }
+
+      auto const member = registry.memberByName(
+          L"process-report-execution", L"process-report-federate");
+      if (!member) {
+        throw std::runtime_error(
+            "The process report-file test lost its joined member.");
+      }
+      auto const snapshot = registry.joinedFederateMomObjectFor(
+          L"process-report-execution", member->id);
+      auto const federationMom = registry.federationMomObjectFor(
+          L"process-report-execution");
+      if (!snapshot || !federationMom || snapshot->reportServiceFile.empty() ||
+          !std::filesystem::exists(snapshot->reportServiceFile)) {
+        throw std::runtime_error(
+            "The process Join did not establish filesystem-backed MOM state.");
+      }
+      std::ifstream input(snapshot->reportServiceFile, std::ios::binary);
+      std::string initialText{
+          std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
+      if (initialText.find("HLAfederateName") == std::string::npos ||
+          initialText.find("process-report-federate") == std::string::npos) {
+        throw std::runtime_error(
+            "The process report file does not begin with the joined-federate initial record.");
+      }
+      if (!ProcessTransportServiceDispatcher::serveOne(session, handler)) {
+        throw std::runtime_error(
+            "The process service lost the report-file resign request.");
+      }
+      if (registry.joinedFederateMomObjectFor(
+              L"process-report-execution", member->id)) {
+        throw std::runtime_error(
+            "The process report-file test retained the MOM object after resign.");
+      }
+      if (!std::filesystem::exists(snapshot->reportServiceFile)) {
+        throw std::runtime_error(
+            "The process report file was removed when the federate resigned.");
+      }
+      service.detach(session);
+      session.connection()->close();
+    } catch (...) {
+      serverFailure = std::current_exception();
+    }
+  });
+
+  std::exception_ptr clientFailure;
+  std::shared_ptr<ProcessTransportConnection> connection;
+  std::filesystem::path reportFile;
+  try {
+    connection = ProcessTransportConnection::connectClient(
+        nullptr,
+        {"127.0.0.1", listener->address().port},
+        {"process-report-client", 0xE2U},
+        [](std::wstring) {},
+        [](std::wstring) { return false; });
+    ProcessTransportSession session(connection);
+    TransportServiceMessage response;
+    REQUIRE(session.request(
+        request(
+            TransportServiceOperation::create_federation_execution,
+            1U,
+            umbra::detail::encodeProcessFederationCreateRequest(
+                ProcessFederationCreateRequest{L"process-report-execution"})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    REQUIRE(session.request(
+        request(
+            TransportServiceOperation::join_federation_execution,
+            2U,
+            umbra::detail::encodeProcessFederationJoinRequest(
+                ProcessFederationJoinRequest{
+                    L"process-report-execution",
+                    L"process-report-federate",
+                    L"process-report-federate"})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const joinResult = umbra::detail::decodeProcessFederationJoinResult(
+        response.payload);
+    REQUIRE_FALSE(joinResult.reportServiceFile.empty());
+    reportFile = joinResult.reportServiceFile;
+    REQUIRE(reportFile.is_absolute());
+    REQUIRE(std::filesystem::exists(reportFile));
+
+    REQUIRE(session.request(
+        request(
+            TransportServiceOperation::resign_federation_execution,
+            3U,
+            umbra::detail::encodeProcessFederationResignRequest(
+                ProcessFederationResignRequest{
+                    L"process-report-execution",
+                    joinResult.federateId,
+                    rti1516_2025::NO_ACTION})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    REQUIRE(std::filesystem::exists(reportFile));
+    connection->close();
+  } catch (...) {
+    clientFailure = std::current_exception();
+    if (connection) {
+      connection->close();
+    }
+  }
+
+  listener.reset();
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientFailure) {
+    std::rethrow_exception(clientFailure);
+  }
+  REQUIRE_FALSE(serverFailure);
+  std::filesystem::remove_all(reportDirectory, cleanupError);
+}
 
 TEST_CASE(
     "Private process service releases timestamped Update Attribute Values before a constrained grant",
@@ -2453,7 +2606,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Private process service preserves regions for regional class Request Attribute Value Update",
-    "[unit][foundation][object-management][ddm][callbacks][transport][process-boundary][service-dispatch][registry-binding][transport-contract][rti.service.request-attribute-value-update-with-regions][rti.service.register-object-instance-with-regions][federate.callback.provide-attribute-value-update][2025]") {
+    "[unit][foundation][object-management][ddm][callbacks][transport][process-boundary][service-dispatch][registry-binding][transport-contract][disjoint-regional-selector][rti.service.request-attribute-value-update-with-regions][rti.service.register-object-instance-with-regions][federate.callback.provide-attribute-value-update][2025]") {
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener != nullptr);
 
@@ -2611,6 +2764,31 @@ TEST_CASE(
           providerHandler,
           TransportServiceOperation::receive_interaction,
           "The regional class-request service lost provider callback polling.");
+      if (registry.setRangeBounds(
+              L"process-regional-class-execution",
+              requesterMember->id,
+              requesterRegion.regionHandle,
+              *dimension,
+              umbra::detail::RegionRangeBounds{3UL, 4UL}) !=
+              umbra::detail::RegionServiceStatus::applied ||
+          registry.commitRegionModifications(
+              L"process-regional-class-execution",
+              requesterMember->id,
+              {requesterRegion.regionHandle}) !=
+              umbra::detail::RegionServiceStatus::applied) {
+        throw std::runtime_error(
+            "The regional class-request service rejected its disjoint requester region.");
+      }
+      serveExpected(
+          requester,
+          requesterHandler,
+          TransportServiceOperation::request_attribute_value_update_class_with_regions,
+          "The regional class-request service lost its disjoint regional request.");
+      serveExpected(
+          provider,
+          providerHandler,
+          TransportServiceOperation::receive_interaction,
+          "The regional class-request service lost disjoint callback polling.");
       serveExpected(
           provider,
           providerHandler,
@@ -2742,6 +2920,40 @@ TEST_CASE(
             std::set<std::uint64_t>{attribute});
     REQUIRE(callback.attributeValueUpdateRequestEvent->userSuppliedTag == tag);
 
+    std::vector<std::uint8_t> const disjointTag{0x44U, 0x49U, 0x53U};
+    REQUIRE(requester.request(
+        request(
+            TransportServiceOperation::request_attribute_value_update_class_with_regions,
+            4U,
+            umbra::detail::encodeProcessFederationRequestAttributeValueUpdateClassWithRegionsRequest(
+                ProcessFederationRequestAttributeValueUpdateClassWithRegionsRequest{
+                    L"process-regional-class-execution",
+                    requesterJoin.federateId,
+                    objectClass,
+                    {attribute},
+                    std::map<std::uint64_t, std::set<std::uint64_t>>{
+                        {attribute, {requesterRegion}}},
+                    disjointTag})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const disjointResult =
+        umbra::detail::decodeProcessFederationRequestAttributeValueUpdateResult(
+            response.payload);
+    REQUIRE(disjointResult.recipientCount == 0U);
+    REQUIRE(provider.request(
+        request(
+            TransportServiceOperation::receive_interaction,
+            5U,
+            umbra::detail::encodeProcessFederationReceiveInteractionRequest(
+                ProcessFederationReceiveInteractionRequest{
+                    L"process-regional-class-execution", providerJoin.federateId})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const disjointCallback =
+        umbra::detail::decodeProcessFederationReceiveInteractionResult(
+            response.payload);
+    REQUIRE_FALSE(disjointCallback.attributeValueUpdateRequestEvent.has_value());
+
     REQUIRE(provider.request(
         request(
             TransportServiceOperation::resign_federation_execution,
@@ -2785,4 +2997,678 @@ TEST_CASE(
     std::rethrow_exception(clientFailure);
   }
   REQUIRE_FALSE(serverFailure);
+}
+
+TEST_CASE(
+    "Private process service rejects invalid regional class Request Attribute Value Update selectors deterministically",
+    "[unit][foundation][object-management][ddm][callbacks][transport][process-boundary][service-dispatch][registry-binding][transport-contract][invalid-regional-selector][rti.service.request-attribute-value-update-with-regions][2025]") {
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener != nullptr);
+
+  EmbeddedFederationRegistry registry;
+  ProcessFederationService service(registry, composedRestaurantDefinition());
+  std::atomic_uint64_t objectClassHandle{0U};
+  std::atomic_uint64_t attributeHandle{0U};
+  std::atomic_uint64_t providerRegionHandle{0U};
+  std::atomic_uint64_t uncommittedRegionHandle{0U};
+  std::atomic_uint64_t wrongContextRegionHandle{0U};
+  std::exception_ptr serverFailure;
+  std::thread server([&] {
+    try {
+      auto providerConnection = listener->accept(
+          nullptr,
+          {"process-regional-error-provider", 0xE5U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession provider(std::move(providerConnection));
+      auto requesterConnection = listener->accept(
+          nullptr,
+          {"process-regional-error-requester", 0xE6U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession requester(std::move(requesterConnection));
+      auto const providerHandler = service.handlerFor(provider);
+      auto const requesterHandler = service.handlerFor(requester);
+      auto serveExpected = [&](ProcessTransportSession& session,
+                               auto const& handler,
+                               TransportServiceOperation operation,
+                               char const* description) {
+        if (!ProcessTransportServiceDispatcher::serveOne(
+                session,
+                [&](TransportServiceMessage const& incoming) {
+                  if (incoming.operation != operation) {
+                    throw std::runtime_error(description);
+                  }
+                  return handler(incoming);
+                })) {
+          throw std::runtime_error(description);
+        }
+      };
+
+      serveExpected(
+          provider,
+          providerHandler,
+          TransportServiceOperation::create_federation_execution,
+          "The regional error matrix lost Create.");
+      serveExpected(
+          provider,
+          providerHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The regional error matrix lost provider Join.");
+      serveExpected(
+          requester,
+          requesterHandler,
+          TransportServiceOperation::join_federation_execution,
+          "The regional error matrix lost requester Join.");
+
+      auto const providerMember = registry.memberByName(
+          L"process-regional-error-execution",
+          L"process-regional-error-provider");
+      auto const requesterMember = registry.memberByName(
+          L"process-regional-error-execution",
+          L"process-regional-error-requester");
+      auto const objectClass = registry.objectClassHandleFor(
+          L"process-regional-error-execution", "HLAobjectRoot.Food.Drink.Soda");
+      auto const attribute = registry.attributeHandleFor(
+          L"process-regional-error-execution",
+          "HLAobjectRoot.Food.Drink.Soda",
+          "Flavor");
+      auto const sodaDimension = registry.dimensionHandleFor(
+          L"process-regional-error-execution", "SodaFlavor");
+      auto const federateDimension = registry.dimensionHandleFor(
+          L"process-regional-error-execution", "HLAfederate");
+      if (!providerMember || !requesterMember || !objectClass || !attribute ||
+          !sodaDimension || !federateDimension) {
+        throw std::runtime_error(
+            "The regional error matrix could not resolve its FOM handles.");
+      }
+
+      auto const providerRegion = registry.createRegion(
+          L"process-regional-error-execution",
+          providerMember->id,
+          {*sodaDimension});
+      auto const uncommittedRegion = registry.createRegion(
+          L"process-regional-error-execution",
+          requesterMember->id,
+          {*sodaDimension});
+      auto const wrongContextRegion = registry.createRegion(
+          L"process-regional-error-execution",
+          requesterMember->id,
+          {*federateDimension});
+      auto const invalidBoundsRegion = registry.createRegion(
+          L"process-regional-error-execution",
+          requesterMember->id,
+          {*sodaDimension});
+      if (providerRegion.status != umbra::detail::RegionServiceStatus::applied ||
+          uncommittedRegion.status !=
+              umbra::detail::RegionServiceStatus::applied ||
+          wrongContextRegion.status !=
+              umbra::detail::RegionServiceStatus::applied ||
+          invalidBoundsRegion.status !=
+              umbra::detail::RegionServiceStatus::applied ||
+          registry.setRangeBounds(
+              L"process-regional-error-execution",
+              providerMember->id,
+              providerRegion.regionHandle,
+              *sodaDimension,
+              umbra::detail::RegionRangeBounds{0UL, 2UL}) !=
+              umbra::detail::RegionServiceStatus::applied ||
+          registry.commitRegionModifications(
+              L"process-regional-error-execution",
+              providerMember->id,
+              {providerRegion.regionHandle}) !=
+              umbra::detail::RegionServiceStatus::applied ||
+          registry.setRangeBounds(
+              L"process-regional-error-execution",
+              requesterMember->id,
+              uncommittedRegion.regionHandle,
+              *sodaDimension,
+              umbra::detail::RegionRangeBounds{0UL, 2UL}) !=
+              umbra::detail::RegionServiceStatus::applied ||
+          registry.setRangeBounds(
+              L"process-regional-error-execution",
+              requesterMember->id,
+              wrongContextRegion.regionHandle,
+              *federateDimension,
+              umbra::detail::RegionRangeBounds{0UL, 2UL}) !=
+              umbra::detail::RegionServiceStatus::applied ||
+          registry.commitRegionModifications(
+              L"process-regional-error-execution",
+              requesterMember->id,
+              {wrongContextRegion.regionHandle}) !=
+              umbra::detail::RegionServiceStatus::applied ||
+          registry.setRangeBounds(
+              L"process-regional-error-execution",
+              requesterMember->id,
+              invalidBoundsRegion.regionHandle,
+              *sodaDimension,
+              umbra::detail::RegionRangeBounds{4UL, 3UL}) !=
+              umbra::detail::RegionServiceStatus::invalid_range_bound) {
+        throw std::runtime_error(
+            "The regional error matrix could not establish its region cases.");
+      }
+
+      objectClassHandle.store(*objectClass, std::memory_order_release);
+      attributeHandle.store(*attribute, std::memory_order_release);
+      providerRegionHandle.store(
+          providerRegion.regionHandle, std::memory_order_release);
+      uncommittedRegionHandle.store(
+          uncommittedRegion.regionHandle, std::memory_order_release);
+      wrongContextRegionHandle.store(
+          wrongContextRegion.regionHandle, std::memory_order_release);
+
+      for (int i = 0; i < 4; ++i) {
+        serveExpected(
+            requester,
+            requesterHandler,
+            TransportServiceOperation::request_attribute_value_update_class_with_regions,
+            "The regional error matrix lost a rejected regional request.");
+      }
+      serveExpected(
+          provider,
+          providerHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The regional error matrix lost provider Resign.");
+      serveExpected(
+          requester,
+          requesterHandler,
+          TransportServiceOperation::resign_federation_execution,
+          "The regional error matrix lost requester Resign.");
+      service.detach(provider);
+      service.detach(requester);
+      provider.connection()->close();
+      requester.connection()->close();
+    } catch (...) {
+      serverFailure = std::current_exception();
+    }
+  });
+
+  std::exception_ptr clientFailure;
+  std::shared_ptr<ProcessTransportConnection> providerConnection;
+  std::shared_ptr<ProcessTransportConnection> requesterConnection;
+  try {
+    providerConnection = ProcessTransportConnection::connectClient(
+        nullptr,
+        {"127.0.0.1", listener->address().port},
+        {"process-regional-error-provider", 0xF5U},
+        [](std::wstring) {},
+        [](std::wstring) { return false; });
+    requesterConnection = ProcessTransportConnection::connectClient(
+        nullptr,
+        {"127.0.0.1", listener->address().port},
+        {"process-regional-error-requester", 0xF6U},
+        [](std::wstring) {},
+        [](std::wstring) { return false; });
+    ProcessTransportSession provider(providerConnection);
+    ProcessTransportSession requester(requesterConnection);
+    TransportServiceMessage response;
+    REQUIRE(provider.request(
+        request(
+            TransportServiceOperation::create_federation_execution,
+            1U,
+            umbra::detail::encodeProcessFederationCreateRequest(
+                ProcessFederationCreateRequest{
+                    L"process-regional-error-execution"})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    REQUIRE(provider.request(
+        request(
+            TransportServiceOperation::join_federation_execution,
+            2U,
+            umbra::detail::encodeProcessFederationJoinRequest(
+                ProcessFederationJoinRequest{
+                    L"process-regional-error-execution",
+                    L"process-regional-error-provider",
+                    L"process-regional-error-provider"})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const providerJoin =
+        umbra::detail::decodeProcessFederationJoinResult(response.payload);
+    REQUIRE(requester.request(
+        request(
+            TransportServiceOperation::join_federation_execution,
+            1U,
+            umbra::detail::encodeProcessFederationJoinRequest(
+                ProcessFederationJoinRequest{
+                    L"process-regional-error-execution",
+                    L"process-regional-error-requester",
+                    L"process-regional-error-requester"})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    auto const requesterJoin =
+        umbra::detail::decodeProcessFederationJoinResult(response.payload);
+    REQUIRE(providerJoin.federateId != requesterJoin.federateId);
+
+    while (objectClassHandle.load(std::memory_order_acquire) == 0U ||
+           attributeHandle.load(std::memory_order_acquire) == 0U ||
+           providerRegionHandle.load(std::memory_order_acquire) == 0U ||
+           uncommittedRegionHandle.load(std::memory_order_acquire) == 0U ||
+           wrongContextRegionHandle.load(std::memory_order_acquire) == 0U) {
+      std::this_thread::yield();
+    }
+    auto const objectClass = objectClassHandle.load(std::memory_order_acquire);
+    auto const attribute = attributeHandle.load(std::memory_order_acquire);
+    auto const providerRegion =
+        providerRegionHandle.load(std::memory_order_acquire);
+    auto const uncommittedRegion =
+        uncommittedRegionHandle.load(std::memory_order_acquire);
+    auto const wrongContextRegion =
+        wrongContextRegionHandle.load(std::memory_order_acquire);
+    auto sendRejected = [&](std::uint64_t requestId,
+                            std::uint64_t regionHandle,
+                            std::vector<std::uint8_t> tag) {
+      REQUIRE(requester.request(
+          request(
+              TransportServiceOperation::request_attribute_value_update_class_with_regions,
+              requestId,
+              umbra::detail::encodeProcessFederationRequestAttributeValueUpdateClassWithRegionsRequest(
+                  ProcessFederationRequestAttributeValueUpdateClassWithRegionsRequest{
+                      L"process-regional-error-execution",
+                      requesterJoin.federateId,
+                      objectClass,
+                      {attribute},
+                      std::map<std::uint64_t, std::set<std::uint64_t>>{
+                          {attribute, {regionHandle}}},
+                      std::move(tag)})),
+          response));
+      REQUIRE(response.status == TransportServiceStatus::rejected);
+    };
+    sendRejected(3U, std::uint64_t{0xFFFFFFFFFFFFFFFFULL}, {0x55U});
+    sendRejected(4U, providerRegion, {0x46U});
+    sendRejected(5U, uncommittedRegion, {0x55U, 0x4EU});
+    sendRejected(6U, wrongContextRegion, {0x43U});
+
+    REQUIRE(provider.request(
+        request(
+            TransportServiceOperation::resign_federation_execution,
+            7U,
+            umbra::detail::encodeProcessFederationResignRequest(
+                ProcessFederationResignRequest{
+                    L"process-regional-error-execution",
+                    providerJoin.federateId,
+                    rti1516_2025::DELETE_OBJECTS})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    REQUIRE(requester.request(
+        request(
+            TransportServiceOperation::resign_federation_execution,
+            7U,
+            umbra::detail::encodeProcessFederationResignRequest(
+                ProcessFederationResignRequest{
+                    L"process-regional-error-execution",
+                    requesterJoin.federateId,
+                    rti1516_2025::NO_ACTION})),
+        response));
+    REQUIRE(response.status == TransportServiceStatus::ok);
+    provider.connection()->close();
+    requester.connection()->close();
+  } catch (...) {
+    clientFailure = std::current_exception();
+    if (providerConnection) {
+      providerConnection->close();
+    }
+    if (requesterConnection) {
+      requesterConnection->close();
+    }
+  }
+
+  listener.reset();
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientFailure) {
+    std::rethrow_exception(clientFailure);
+  }
+  REQUIRE_FALSE(serverFailure);
+}
+
+TEST_CASE(
+    "Private process Exception Reporting Switch preserves save restore gates and session identity",
+    "[unit][support-services][mom][save-restore][transport][process-boundary]"
+    "[process-exception-reporting-switch-gates][registry-binding][2025]") {
+  using umbra::detail::FederationServiceOperationStatus;
+  using umbra::detail::ProcessFederationClient;
+  using umbra::detail::ProcessFederationClientError;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener != nullptr);
+  EmbeddedFederationRegistry registry;
+  ProcessFederationService service(registry, composedRestaurantDefinition());
+  std::exception_ptr serverFailure;
+  std::thread server([&] {
+    try {
+      auto connection = listener->accept(
+          nullptr, {"exception-switch-gates-server", 0xF7U},
+          [](std::wstring) {}, [](std::wstring) { return false; });
+      ProcessTransportSession session(std::move(connection));
+      auto handler = service.handlerFor(session);
+      while (ProcessTransportServiceDispatcher::serveOne(session, handler)) {}
+      service.detach(session);
+      session.connection()->close();
+    } catch (...) {
+      serverFailure = std::current_exception();
+    }
+  });
+  std::exception_ptr clientFailure;
+  try {
+    ProcessFederationClient client(
+        {"127.0.0.1", listener->address().port},
+        {"exception-switch-gates-client", 0xF8U});
+    std::wstring const federation = L"exception-switch-gates";
+    client.createFederationExecution(federation);
+    auto const joined = client.joinFederationExecution(
+        federation, L"tester", L"exception-switch-gates-member");
+    auto const federate = joined.federateId;
+    auto initial = client.getExceptionReportingSwitch(federation, federate);
+    REQUIRE(initial.status == FederationServiceOperationStatus::available);
+    REQUIRE_FALSE(initial.value);
+    REQUIRE(client.setExceptionReportingSwitch(federation, federate, true).status ==
+            FederationServiceOperationStatus::available);
+    REQUIRE(client.getExceptionReportingSwitch(federation, federate).value);
+    REQUIRE_THROWS_AS(
+        client.setExceptionReportingSwitch(federation, federate + 1U, false),
+        ProcessFederationClientError);
+    REQUIRE_THROWS_AS(
+        client.getExceptionReportingSwitch(L"other-federation", federate),
+        ProcessFederationClientError);
+    REQUIRE(registry.exceptionReportingSwitchFor(federation, federate) == true);
+
+    REQUIRE(registry.requestFederationSave(federation, federate, L"checkpoint").status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(client.getExceptionReportingSwitch(federation, federate).status ==
+            FederationServiceOperationStatus::save_in_progress);
+    REQUIRE(client.setExceptionReportingSwitch(federation, federate, false).status ==
+            FederationServiceOperationStatus::save_in_progress);
+    REQUIRE(registry.exceptionReportingSwitchFor(federation, federate) == true);
+    REQUIRE(registry.federateSaveBegun(federation, federate).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(registry.federateSaveComplete(federation, federate).saveCompletedSuccessfully);
+    REQUIRE(client.getExceptionReportingSwitch(federation, federate).status ==
+            FederationServiceOperationStatus::available);
+
+    REQUIRE(registry.requestFederationRestore(federation, federate, L"checkpoint").status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+    REQUIRE(client.getExceptionReportingSwitch(federation, federate).status ==
+            FederationServiceOperationStatus::restore_in_progress);
+    REQUIRE(client.setExceptionReportingSwitch(federation, federate, false).status ==
+            FederationServiceOperationStatus::restore_in_progress);
+    REQUIRE(registry.exceptionReportingSwitchFor(federation, federate) == true);
+    REQUIRE(registry.federateRestoreComplete(federation, federate).status ==
+            umbra::detail::FederationRestoreControlStatus::applied);
+    REQUIRE(client.setExceptionReportingSwitch(federation, federate, false).status ==
+            FederationServiceOperationStatus::available);
+    REQUIRE_FALSE(client.getExceptionReportingSwitch(federation, federate).value);
+    REQUIRE(client.getExceptionReportingSwitch(federation, federate).status ==
+            FederationServiceOperationStatus::available);
+    client.resignFederationExecution(federation, federate, rti1516_2025::NO_ACTION);
+    REQUIRE_THROWS_AS(client.getExceptionReportingSwitch(federation, federate),
+                      ProcessFederationClientError);
+    REQUIRE_THROWS_AS(client.setExceptionReportingSwitch(federation, federate, true),
+                      ProcessFederationClientError);
+  } catch (...) {
+    clientFailure = std::current_exception();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientFailure) {
+    std::rethrow_exception(clientFailure);
+  }
+  REQUIRE_FALSE(serverFailure);
+}
+
+TEST_CASE(
+    "Private ProcessFederationClient close releases a blocked exception-report recheck before draining projection leases",
+    "[unit][internal][callbacks][process-boundary][process-client-close-exception-recheck]") {
+  using umbra::detail::ProcessFederationClient;
+  using umbra::detail::ProcessFederationInteractionEvent;
+  using umbra::detail::TransportServiceOperation;
+
+  class CountingFederateAmbassador final
+      : public rti1516_2025::NullFederateAmbassador {
+   public:
+    void receiveInteraction(
+        rti1516_2025::InteractionClassHandle const&,
+        rti1516_2025::ParameterHandleValueMap const&,
+        rti1516_2025::VariableLengthData const&,
+        rti1516_2025::TransportationTypeHandle const&,
+        rti1516_2025::FederateHandle const&,
+        rti1516_2025::RegionHandleSet const*) override {
+      ++callbacks;
+    }
+
+    std::size_t callbacks = 0U;
+  } recipient;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener != nullptr);
+  EmbeddedFederationRegistry registry;
+  ProcessFederationService service(registry, composedRestaurantDefinition());
+  std::promise<void> recheckStartedPromise;
+  auto recheckStarted = recheckStartedPromise.get_future();
+  std::promise<void> releaseRecheckPromise;
+  auto releaseRecheck = releaseRecheckPromise.get_future().share();
+  std::atomic_bool releaseRequested{false};
+  std::atomic_bool closeRequested{false};
+  std::exception_ptr serverFailure;
+  std::thread server([&] {
+    try {
+      auto connection = listener->accept(
+          nullptr,
+          {"blocked-recheck-server", 0xE7U},
+          [](std::wstring) {},
+          [](std::wstring) { return false; });
+      ProcessTransportSession session(std::move(connection));
+      auto serviceHandler = service.handlerFor(session);
+      ProcessTransportServiceDispatcher::Handler handler =
+          [&](TransportServiceMessage const& request) {
+            if (request.operation ==
+                TransportServiceOperation::recheck_exception_report) {
+              recheckStartedPromise.set_value();
+              releaseRecheck.wait();
+            }
+            return serviceHandler(request);
+          };
+      while (ProcessTransportServiceDispatcher::serveOne(session, handler)) {}
+      service.detach(session);
+      session.connection()->close();
+    } catch (...) {
+      if (!closeRequested.load(std::memory_order_acquire)) {
+        serverFailure = std::current_exception();
+      }
+    }
+  });
+
+  auto releaseServer = [&] {
+    if (!releaseRequested.exchange(true, std::memory_order_acq_rel)) {
+      releaseRecheckPromise.set_value();
+    }
+  };
+  std::unique_ptr<ProcessFederationClient> client;
+  std::future<bool> evoker;
+  std::future<void> closer;
+  std::exception_ptr clientFailure;
+  bool recheckWasBlocked = false;
+  bool closeFinishedBeforeResponseRelease = false;
+  bool closeFinishedAfterCleanup = false;
+  bool evokerFinished = false;
+  try {
+    client = std::make_unique<ProcessFederationClient>(
+        umbra::detail::ProcessTransportAddress{
+            "127.0.0.1", listener->address().port},
+        umbra::detail::TransportEndpointIdentity{
+            "blocked-recheck-client", 0xE8U});
+    std::wstring const federationName = L"blocked-recheck-execution";
+    client->createFederationExecution(federationName);
+    auto const joined = client->joinFederationExecution(
+        federationName, L"tester", L"blocked-recheck-member");
+    client->attachCallbackBridge(
+        recipient, umbra::detail::CallbackDispatchModel::evoked);
+
+    ProcessFederationInteractionEvent event;
+    event.receivingFederateId = joined.federateId;
+    event.interactionClassHandle = 0xE9U;
+    event.parameterHandles = {0xEAU};
+    event.payload = {0xEBU};
+    event.transportationName = "HLAreliable";
+    event.rtiOwnedMomInteraction = true;
+    event.exceptionReportFederateId = joined.federateId;
+    client->dispatchReceiveOrder(std::move(event));
+    evoker = std::async(std::launch::async, [&] {
+      return client->evokeOne(std::chrono::milliseconds{0});
+    });
+
+    recheckWasBlocked =
+        recheckStarted.wait_for(std::chrono::seconds{3}) ==
+        std::future_status::ready;
+    if (recheckWasBlocked) {
+      closeRequested.store(true, std::memory_order_release);
+      closer = std::async(std::launch::async, [&] { client->close(); });
+      auto const closeStatus = closer.wait_for(std::chrono::seconds{2});
+      closeFinishedBeforeResponseRelease =
+          closeStatus == std::future_status::ready &&
+          !releaseRequested.load(std::memory_order_acquire);
+      releaseServer();
+      closeFinishedAfterCleanup =
+          closeStatus == std::future_status::ready ||
+          closer.wait_for(std::chrono::seconds{5}) ==
+              std::future_status::ready;
+      if (closeFinishedAfterCleanup) {
+        closer.get();
+      }
+      evokerFinished =
+          evoker.wait_for(std::chrono::seconds{5}) ==
+          std::future_status::ready;
+      if (evokerFinished) {
+        (void)evoker.get();
+      }
+    } else {
+      releaseServer();
+      closeRequested.store(true, std::memory_order_release);
+      client->close();
+      evokerFinished =
+          evoker.wait_for(std::chrono::seconds{5}) ==
+          std::future_status::ready;
+      if (evokerFinished) {
+        (void)evoker.get();
+      }
+    }
+  } catch (...) {
+    clientFailure = std::current_exception();
+    releaseServer();
+    closeRequested.store(true, std::memory_order_release);
+    if (client) {
+      client->close();
+    }
+    if (evoker.valid() &&
+        evoker.wait_for(std::chrono::seconds{5}) == std::future_status::ready) {
+      try {
+        (void)evoker.get();
+      } catch (...) {
+      }
+    }
+    if (closer.valid() &&
+        closer.wait_for(std::chrono::seconds{5}) == std::future_status::ready) {
+      closer.get();
+    }
+  }
+  releaseServer();
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientFailure) {
+    std::rethrow_exception(clientFailure);
+  }
+
+  REQUIRE(recheckWasBlocked);
+  REQUIRE(closeFinishedBeforeResponseRelease);
+  REQUIRE(closeFinishedAfterCleanup);
+  REQUIRE(evokerFinished);
+  REQUIRE(recipient.callbacks == 0U);
+  REQUIRE(client->connection() == nullptr);
+  REQUIRE_FALSE(serverFailure);
+}
+
+TEST_CASE(
+    "Process exception-report event codec preserves private source metadata and legacy MOM suffixes",
+    "[transport][process-boundary][process-exception-report-codec]") {
+  using umbra::detail::ProcessFederationInteractionEvent;
+  using umbra::detail::ProcessFederationServiceProtocolError;
+  using umbra::detail::decodeProcessFederationReceiveInteractionResult;
+  using umbra::detail::encodeProcessFederationReceiveInteractionResult;
+
+  ProcessFederationInteractionEvent event;
+  event.receivingFederateId = 7U;
+  event.interactionClassHandle = 11U;
+  event.parameterHandles = {2U, 3U, 5U};
+  event.payload = {10U, 20U, 30U};
+  event.transportationName = "HLAreliable";
+  event.rtiOwnedMomInteraction = true;
+  event.exceptionReportFederateId = 19U;
+
+  SECTION("Report without explicit order metadata") {
+    auto const decoded = decodeProcessFederationReceiveInteractionResult(
+        encodeProcessFederationReceiveInteractionResult({event}));
+    REQUIRE(decoded.event.has_value());
+    CHECK(decoded.event->rtiOwnedMomInteraction);
+    CHECK(decoded.event->exceptionReportFederateId == 19U);
+    CHECK(decoded.event->producingFederateId == 0U);
+    CHECK(decoded.event->receivingFederateId == 7U);
+    CHECK(decoded.event->parameterHandles == event.parameterHandles);
+    CHECK(decoded.event->payload == event.payload);
+    CHECK_FALSE(decoded.event->sentOrderType.has_value());
+    CHECK_FALSE(decoded.event->receivedOrderType.has_value());
+  }
+  SECTION("Report after explicit order metadata") {
+    event.sentOrderType = rti1516_2025::RECEIVE;
+    event.receivedOrderType = rti1516_2025::RECEIVE;
+    auto const decoded = decodeProcessFederationReceiveInteractionResult(
+        encodeProcessFederationReceiveInteractionResult({event}));
+    REQUIRE(decoded.event.has_value());
+    CHECK(decoded.event->rtiOwnedMomInteraction);
+    CHECK(decoded.event->exceptionReportFederateId == 19U);
+    CHECK(decoded.event->sentOrderType == rti1516_2025::RECEIVE);
+    CHECK(decoded.event->receivedOrderType == rti1516_2025::RECEIVE);
+  }
+  SECTION("Legacy RTI-owned marker without exception report source") {
+    event.exceptionReportFederateId.reset();
+    auto const decoded = decodeProcessFederationReceiveInteractionResult(
+        encodeProcessFederationReceiveInteractionResult({event}));
+    REQUIRE(decoded.event.has_value());
+    CHECK(decoded.event->rtiOwnedMomInteraction);
+    CHECK_FALSE(decoded.event->exceptionReportFederateId.has_value());
+  }
+  SECTION("Ordinary interaction remains unmarked") {
+    event.exceptionReportFederateId.reset();
+    event.rtiOwnedMomInteraction = false;
+    event.producingFederateId = 19U;
+    auto const decoded = decodeProcessFederationReceiveInteractionResult(
+        encodeProcessFederationReceiveInteractionResult({event}));
+    REQUIRE(decoded.event.has_value());
+    CHECK_FALSE(decoded.event->rtiOwnedMomInteraction);
+    CHECK_FALSE(decoded.event->exceptionReportFederateId.has_value());
+    CHECK(decoded.event->producingFederateId == 19U);
+  }
+  SECTION("Malformed source suffixes are rejected") {
+    auto truncated = encodeProcessFederationReceiveInteractionResult({event});
+    truncated.pop_back();
+    CHECK_THROWS_AS(decodeProcessFederationReceiveInteractionResult(truncated),
+                    ProcessFederationServiceProtocolError);
+    auto zeroSource = encodeProcessFederationReceiveInteractionResult({event});
+    std::fill(zeroSource.end() - 8, zeroSource.end(), 0U);
+    CHECK_THROWS_AS(decodeProcessFederationReceiveInteractionResult(zeroSource),
+                    ProcessFederationServiceProtocolError);
+    auto trailing = encodeProcessFederationReceiveInteractionResult({event});
+    trailing.push_back(0U);
+    CHECK_THROWS_AS(decodeProcessFederationReceiveInteractionResult(trailing),
+                    ProcessFederationServiceProtocolError);
+    event.exceptionReportFederateId = 0U;
+    CHECK_THROWS_AS(encodeProcessFederationReceiveInteractionResult({event}),
+                    ProcessFederationServiceProtocolError);
+    event.exceptionReportFederateId = 19U;
+    event.rtiOwnedMomInteraction = false;
+    event.producingFederateId = 19U;
+    CHECK_THROWS_AS(encodeProcessFederationReceiveInteractionResult({event}),
+                    ProcessFederationServiceProtocolError);
+  }
 }

@@ -212,4 +212,70 @@ TEST_CASE(
   REQUIRE_NOTHROW(owner->disconnect());
 }
 
+TEST_CASE(
+    "Embedded ordinary Subscribe Object Class Attributes uses the default update rate when omitted",
+    "[integration][development-profile][declaration-management][object-management]"
+    "[subscribe-object-class-attributes-default-update-rate][2025][callbacks]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-object-class-handle]"
+    "[rti.service.get-attribute-handle][rti.service.publish-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.register-object-instance][rti.service.evoke-callback]"
+    "[rti.service.get-update-rate-value-for-attribute]"
+    "[rti.service.unsubscribe-object-class-attributes]"
+    "[rti.service.unpublish-object-class-attributes]"
+    "[rti.service.resign-federation-execution]"
+    "[rti.service.destroy-federation-execution][rti.service.disconnect]"
+    "[federate.callback.discover-object-instance]") {
+  RecordingFederateAmbassador ownerReports;
+  RecordingFederateAmbassador subscriberReports;
+  auto owner = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      fomModule,
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"ordinary-default-rate-owner", L"owner", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"ordinary-default-rate-subscriber", L"subscriber", federationName));
+
+  auto const objectClass =
+      owner->getObjectClassHandle(fixture_hla::fom::food_drink_soda);
+  auto const attribute =
+      owner->getAttributeHandle(objectClass, fixture_hla::fixture::flavor);
+  REQUIRE(objectClass.isValid());
+  REQUIRE(attribute.isValid());
+  AttributeHandleSet const attributes{attribute};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(objectClass, attributes));
+
+  // Omitting both optional subscription arguments is the public 2025 API
+  // default: active subscription, with no update-rate reduction.
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(objectClass, attributes));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(objectClass));
+  REQUIRE(objectInstance.isValid());
+  REQUIRE_NOTHROW(subscriber->evokeCallback(0.0));
+  REQUIRE_FALSE(subscriber->evokeCallback(0.0));
+  REQUIRE(subscriberReports.discoveryReports.size() == 1U);
+  REQUIRE(subscriberReports.discoveryReports.front().objectInstance == objectInstance);
+  REQUIRE(subscriberReports.discoveryReports.front().objectClass == objectClass);
+  REQUIRE(subscriber->getUpdateRateValueForAttribute(objectInstance, attribute) ==
+          Catch::Approx(0.0));
+
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(owner->unpublishObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(subscriber->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
 }  // namespace

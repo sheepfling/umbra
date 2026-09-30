@@ -15,13 +15,18 @@
 #include "internal/federation/federate_lifecycle.hpp"
 #include "internal/time/federate_time_state.hpp"
 
+#include <atomic>
 #include <cstdint>
+#include <RTI/auth/Authorizer.h>
+#include <RTI/auth/AuthorizerFactory.h>
+#include <RTI/auth/Credentials.h>
 #include <filesystem>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <set>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <thread>
 
@@ -37,6 +42,7 @@ struct ServiceReportConnectionSnapshot final {
   std::wstring configurationName;
   std::wstring rtiAddress;
   std::wstring additionalSettings;
+  std::optional<Credentials> credentials;
 };
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
@@ -65,6 +71,15 @@ struct JoinedServiceReportState final {
 class UmbraRtiAmbassador final : public RtiAmbassadorShell {
  public:
   UmbraRtiAmbassador() = default;
+
+  // Non-installed construction seam used to exercise the official factory ->
+  // authorizer -> Connect path without exposing credentials in public RTI
+  // configuration. Production factory/RID selection remains a separate step.
+  struct AuthorizerFactoryTestSeam final {};
+
+  explicit UmbraRtiAmbassador(
+      AuthorizerFactoryTestSeam,
+      std::unique_ptr<rti1516_2025::AuthorizerFactory> authorizerFactory);
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   // This tag and constructor live only in Umbra's non-installed internal
@@ -698,7 +713,16 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   ConfigurationResult connectImpl(
       FederateAmbassador& federateAmbassador,
       CallbackModel callbackModel,
-      RtiConfiguration const* configuration);
+      RtiConfiguration const* configuration,
+      Credentials const* credentials);
+
+  void authorizeFederationOperationForConnectedFederate(
+      std::wstring const& federationName,
+      std::wstring_view operationName);
+  void authorizeFederateOperationForConnectedFederate(
+      std::wstring const& federationName,
+      std::wstring const& federateName,
+      std::wstring const& federateType);
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   enum class EmbeddedMembershipLossKind {
@@ -834,6 +858,7 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
 #endif
 
   mutable std::mutex mutex_;
+  mutable std::atomic<std::int64_t> lastRtiCallStartNanoseconds_{0};
   umbra::detail::FederateLifecycle lifecycle_;
   std::shared_ptr<umbra::detail::RuntimeInstrumentation> instrumentation_ =
       std::make_shared<umbra::detail::RuntimeInstrumentation>();
@@ -843,6 +868,8 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
           instrumentation_);
   std::shared_ptr<CallbackSession> callbackSession_;
   CallbackModel callbackModel_ = HLA_EVOKED;
+  std::mutex authorizerMutex_;
+  std::unique_ptr<rti1516_2025::Authorizer> authorizer_;
   // A factory-created ambassador always retains a filesystem store selected
   // from its connection configuration. The federation-management profile
   // later uses it to allocate a per-joined-federate writer.
@@ -872,6 +899,10 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   // registry. Retain the server-selected time implementation returned by
   // Join so getTimeFactory can still expose the official factory.
   std::optional<std::wstring> processLogicalTimeImplementationName_;
+  // The process service publishes the server-owned immutable HLAreportServiceFile
+  // location as part of Join.  Retain it only for the joined-federate lifetime;
+  // the writer itself remains owned by the process service.
+  std::optional<std::filesystem::path> processServiceReportFile_;
   umbra::detail::FomStandardEdition fomStandardEdition_ =
       umbra::detail::FomStandardEdition::ieee1516_2025;
   std::shared_ptr<umbra::detail::FederateTimeState> federateTimeState_;

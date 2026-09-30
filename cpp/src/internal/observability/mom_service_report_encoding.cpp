@@ -137,6 +137,32 @@ std::wstring formatMomString(std::wstring const& value) {
   return result;
 }
 
+std::wstring formatMomConfigurationResult(
+    rti1516_2025::ConfigurationResult const& value) {
+  wchar_t const* settingsResultCode = nullptr;
+  switch (value.additionalSettingsResult) {
+    case rti1516_2025::SETTINGS_IGNORED:
+      settingsResultCode = L"SETTINGS_IGNORED";
+      break;
+    case rti1516_2025::SETTINGS_FAILED_TO_PARSE:
+      settingsResultCode = L"SETTINGS_FAILED_TO_PARSE";
+      break;
+    case rti1516_2025::SETTINGS_APPLIED:
+      settingsResultCode = L"SETTINGS_APPLIED";
+      break;
+    default:
+      throw rti1516_2025::EncoderException(
+          L"The supplied AdditionalSettingsResultCode has no Table 5 textual representation.");
+  }
+
+  return std::wstring{L"{\"configurationUsed\":"} +
+      formatMomBoolean(value.configurationUsed) +
+      L",\"addressUsed\":" + formatMomBoolean(value.addressUsed) +
+      L",\"additionalSettingsResultCode\":" +
+      formatMomString(settingsResultCode) + L",\"message\":" +
+      formatMomString(value.message) + L"}";
+}
+
 std::wstring formatMomStringSet(std::set<std::wstring> const& values) {
   std::vector<std::wstring> orderedValues;
   orderedValues.reserve(values.size());
@@ -441,6 +467,25 @@ std::wstring formatMomBinaryData(VariableLengthData const& value) {
   return result;
 }
 
+std::wstring formatMomCredentials(rti1516_2025::Credentials const& value) {
+  // Table 5's Credentials row preserves the credential type and encodes its
+  // opaque payload using the section 11.5.1 Binary Data text form.
+  auto const data = value.getData();
+  auto const* first = static_cast<std::uint8_t const*>(data.data());
+  std::vector<std::uint8_t> bytes;
+  if (data.size() != 0U) {
+    bytes.assign(first, first + data.size());
+  }
+  return formatMomCredentials(
+      MomServiceReportCredentials{value.getType(), std::move(bytes)});
+}
+
+std::wstring formatMomCredentials(MomServiceReportCredentials const& value) {
+  auto const data = VariableLengthData(value.data.data(), value.data.size());
+  return L"{\"Type\":" + formatMomString(value.type) +
+      L",\"Data\":" + formatMomBinaryData(data) + L"}";
+}
+
 std::wstring formatMomUserSuppliedTag(VariableLengthData const& value) {
   return formatMomBinaryData(value);
 }
@@ -595,11 +640,16 @@ std::wstring formatMomServiceReportInitialRecord(
   // semantically unordered, but preserving the published order gives log
   // readers stable output and makes independent conformance comparison
   // practical.
+  std::wstring credentialField;
+  if (record.credentials) {
+    credentialField = L",\"Credentials\":" + formatMomCredentials(*record.credentials);
+  }
   return std::wstring{L"{\"Configuration\":{\"CallbackModel\":"} +
       formatMomString(record.callbackModel) +
       L",\"ConfigurationName\":" + formatMomString(record.configurationName) +
       L",\"RTIaddress\":" + formatMomString(record.rtiAddress) +
       L",\"AdditionalSettings\":" + formatMomString(record.additionalSettings) +
+      credentialField +
       L",\"OptionalInternalData\":" + formatMomStringPairList(record.optionalInternalData) +
       L"}," + formatMomJsonKey(umbra::detail::hla::wide::mom::manager_federation_json) + L"{" +
       formatMomJsonKey(umbra::detail::hla::wide::mom::federation_name) +
@@ -687,7 +737,12 @@ std::wstring formatMomFailedServiceReportRecord(
 
 VariableLengthData encodeMomServiceArgument(MomServiceArgument const& argument) {
   std::vector<Octet> bytes;
-  rti1516_2025::HLAinteger32BE type{static_cast<rti1516_2025::Integer32>(argument.type)};
+  auto const interactionType =
+      argument.type == MomArgumentType::table_5_user_supplied_tag
+          ? MomArgumentType::user_supplied_tag
+          : argument.type;
+  rti1516_2025::HLAinteger32BE type{
+      static_cast<rti1516_2025::Integer32>(interactionType)};
   rti1516_2025::HLAunicodeString name{argument.name};
   rti1516_2025::HLAunicodeString value{argument.value};
   appendDataElement(bytes, type);

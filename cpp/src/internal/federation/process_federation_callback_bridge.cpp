@@ -18,6 +18,7 @@
 #include <RTI/time/LogicalTime.h>
 
 #include <algorithm>
+#include <condition_variable>
 #include <memory>
 #include <utility>
 
@@ -89,7 +90,7 @@ std::unique_ptr<rti1516_2025::LogicalTime> decodeRoleEnableTime(
 void deliverReceiveOrder(
     ProcessFederationInteractionEvent const& event,
     rti1516_2025::FederateAmbassador& recipient) {
-  if (event.producingFederateId == 0U ||
+  if ((!event.rtiOwnedMomInteraction && event.producingFederateId == 0U) ||
       event.interactionClassHandle == 0U ||
       event.receivingFederateId == 0U) {
     throw ProcessFederationCallbackBridgeError(
@@ -147,9 +148,10 @@ void deliverReceiveOrder(
   auto transportationType =
       rti1516_2025::umbra_binding_detail::makeTransportationTypeHandle(
           *transportationValue);
-  auto producingFederate =
-      rti1516_2025::umbra_binding_detail::makeFederateHandle(
-          event.producingFederateId);
+  auto producingFederate = event.rtiOwnedMomInteraction
+      ? rti1516_2025::FederateHandle{}
+      : rti1516_2025::umbra_binding_detail::makeFederateHandle(
+            event.producingFederateId);
   std::optional<rti1516_2025::RegionHandleSet> optionalSentRegions;
   if (event.sentRegionHandles.has_value() || event.defaultRegionUsed) {
     optionalSentRegions.emplace();
@@ -259,7 +261,7 @@ void deliverRequestRetraction(
 void deliverAttributeUpdate(
     ProcessFederationAttributeUpdateEvent const& event,
     rti1516_2025::FederateAmbassador& recipient) {
-  if (event.producingFederateId == 0U ||
+  if ((!event.rtiOwnedMomObject && event.producingFederateId == 0U) ||
       event.receivingFederateId == 0U ||
       event.objectInstanceHandle == 0U ||
       event.attributeValues.empty()) {
@@ -315,9 +317,10 @@ void deliverAttributeUpdate(
   auto const transportationType =
       rti1516_2025::umbra_binding_detail::makeTransportationTypeHandle(
           *transportationValue);
-  auto const producingFederate =
-      rti1516_2025::umbra_binding_detail::makeFederateHandle(
-          event.producingFederateId);
+  auto const producingFederate = event.rtiOwnedMomObject
+      ? rti1516_2025::FederateHandle{}
+      : rti1516_2025::umbra_binding_detail::makeFederateHandle(
+            event.producingFederateId);
   std::optional<rti1516_2025::MessageRetractionHandle> optionalRetraction;
   if (event.retractionMessageId) {
     optionalRetraction.emplace(
@@ -610,7 +613,7 @@ void deliverObjectInstanceDiscovery(
   if (event.receivingFederateId == 0U ||
       event.objectInstanceHandle == 0U ||
       event.objectClassHandle == 0U ||
-      event.producingFederateId == 0U ||
+      (!event.rtiOwnedMomObject && event.producingFederateId == 0U) ||
       event.objectInstanceName.empty()) {
     throw ProcessFederationCallbackBridgeError(
         "A process discovery callback requires recipient, object, class, producer, and name.");
@@ -621,8 +624,10 @@ void deliverObjectInstanceDiscovery(
       rti1516_2025::umbra_binding_detail::makeObjectClassHandle(
           event.objectClassHandle),
       event.objectInstanceName,
-      rti1516_2025::umbra_binding_detail::makeFederateHandle(
-          event.producingFederateId));
+      event.rtiOwnedMomObject
+          ? rti1516_2025::FederateHandle{}
+          : rti1516_2025::umbra_binding_detail::makeFederateHandle(
+                event.producingFederateId));
 }
 
 void deliverObjectInstanceRemoval(
@@ -630,9 +635,10 @@ void deliverObjectInstanceRemoval(
     rti1516_2025::FederateAmbassador& recipient) {
   if (event.receivingFederateId == 0U ||
       event.objectInstanceHandle == 0U ||
-      event.producingFederateId == 0U) {
+      (!event.rtiOwnedMomObject && event.producingFederateId == 0U) ||
+      (event.rtiOwnedMomObject && event.producingFederateId != 0U)) {
     throw ProcessFederationCallbackBridgeError(
-        "A process removal callback requires recipient, object, and producer identities.");
+        "A process removal callback requires valid recipient, object, and producer identities.");
   }
   rti1516_2025::VariableLengthData userSuppliedTag;
   if (!event.userSuppliedTag.empty()) {
@@ -642,9 +648,10 @@ void deliverObjectInstanceRemoval(
   auto const objectInstance =
       rti1516_2025::umbra_binding_detail::makeObjectInstanceHandle(
           event.objectInstanceHandle);
-  auto const producingFederate =
-      rti1516_2025::umbra_binding_detail::makeFederateHandle(
-          event.producingFederateId);
+  auto const producingFederate = event.rtiOwnedMomObject
+      ? rti1516_2025::FederateHandle{}
+      : rti1516_2025::umbra_binding_detail::makeFederateHandle(
+            event.producingFederateId);
   if (event.timestamp) {
     auto timestamp = decodeEventTimestamp(*event.timestamp);
     std::optional<rti1516_2025::MessageRetractionHandle> optionalRetraction;
@@ -1026,20 +1033,88 @@ void deliverFederationRestore(
 
 }  // namespace
 
+struct ProcessFederationCallbackBridge::ExceptionReportProjectionState final {
+  std::mutex mutex;
+  std::condition_variable idle;
+  ExceptionReportProjectionHandler handler;
+  std::uint64_t generation = 0U;
+  std::size_t inFlight = 0U;
+  std::atomic_bool closed{false};
+
+  std::uint64_t currentGeneration() {
+    std::scoped_lock lock(mutex);
+    return generation;
+  }
+
+  bool admitCallback(std::uint64_t admittedGeneration) {
+    std::scoped_lock lock(mutex);
+    return !closed && generation == admittedGeneration;
+  }
+
+  std::optional<ProcessFederationInteractionEvent> project(
+      ProcessFederationInteractionEvent event,
+      std::uint64_t admittedGeneration) {
+    ExceptionReportProjectionHandler projection;
+    {
+      std::scoped_lock lock(mutex);
+      if (closed || generation != admittedGeneration || !handler) {
+        return std::nullopt;
+      }
+      projection = handler;
+      ++inFlight;
+    }
+
+    // The owning client cannot be destroyed until this call retires. Do not
+    // keep this lease across a user callback: that callback may Disconnect.
+    std::optional<ProcessFederationInteractionEvent> result;
+    try {
+      result = projection(std::move(event));
+    } catch (...) {
+      std::scoped_lock lock(mutex);
+      --inFlight;
+      idle.notify_all();
+      throw;
+    }
+    {
+      std::scoped_lock lock(mutex);
+      --inFlight;
+      if (closed || generation != admittedGeneration) {
+        result.reset();
+      }
+      idle.notify_all();
+    }
+    return result;
+  }
+
+  void cancel(bool permanently) noexcept {
+    std::unique_lock lock(mutex);
+    ++generation;
+    if (permanently) {
+      closed.store(true, std::memory_order_release);
+      handler = {};
+    }
+    idle.wait(lock, [this] { return inFlight == 0U; });
+  }
+};
+
 ProcessFederationCallbackBridge::ProcessFederationCallbackBridge(
     rti1516_2025::FederateAmbassador& recipient,
     CallbackDispatchModel model)
     : dispatcher_(std::make_shared<CallbackDispatcher>(model)),
       callbackSession_(
           std::make_shared<rti1516_2025::umbra_binding_detail::CallbackSession>(
-              recipient)) {}
+              recipient)),
+      exceptionReportProjection_(
+          std::make_shared<ExceptionReportProjectionState>()) {}
 
 ProcessFederationCallbackBridge::ProcessFederationCallbackBridge(
     std::shared_ptr<CallbackDispatcher> dispatcher,
     std::shared_ptr<rti1516_2025::umbra_binding_detail::CallbackSession>
         callbackSession)
     : dispatcher_(std::move(dispatcher)),
-      callbackSession_(std::move(callbackSession)) {
+      callbackSession_(std::move(callbackSession)),
+      exceptionReportProjection_(
+          std::make_shared<ExceptionReportProjectionState>()) {
   if (!dispatcher_ || !callbackSession_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge requires the runtime callback controls.");
@@ -1053,7 +1128,7 @@ ProcessFederationCallbackBridge::~ProcessFederationCallbackBridge() {
 void ProcessFederationCallbackBridge::submitReceiveOrder(
     ProcessFederationInteractionEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1064,6 +1139,8 @@ void ProcessFederationCallbackBridge::submitReceiveOrder(
     retractionStates_[*event.retractionMessageId] = retractionState;
   }
   auto const tsoCompletion = tsoDeliveryCompletion_;
+  auto const exceptionReportProjection = exceptionReportProjection_;
+  auto const projectionGeneration = exceptionReportProjection->currentGeneration();
   // Immediate timestamped removals retain a private retraction identity so a
   // producer can suppress a not-yet-started callback, but they have no TSO
   // queue entry to acknowledge. Only a grant-boundary TIMESTAMP receive
@@ -1077,6 +1154,8 @@ void ProcessFederationCallbackBridge::submitReceiveOrder(
       [session,
        retractionState = std::move(retractionState),
        tsoCompletion,
+       exceptionReportProjection,
+       projectionGeneration,
        tsoMessageId,
        event = std::move(event)]() mutable {
         bool acknowledgeSuppressed = false;
@@ -1097,9 +1176,28 @@ void ProcessFederationCallbackBridge::submitReceiveOrder(
           }
           return;
         }
+        if (event.exceptionReportFederateId) {
+          auto projected = exceptionReportProjection->project(
+              std::move(event), projectionGeneration);
+          if (!projected) {
+            return;
+          }
+          event = std::move(*projected);
+        }
         session->invoke(
-            [event = std::move(event)](
+            [exceptionReportProjection,
+             projectionGeneration,
+             event = std::move(event)](
                 rti1516_2025::FederateAmbassador& recipient) mutable {
+              // Session entry can wait behind another callback after project
+              // retires its client lease. Revalidate at callback admission so
+              // resignation also suppresses that prepared-but-not-entered
+              // report. Once admitted, an already-started callback may finish;
+              // no projection/client lock is held across user callback code.
+              if (event.exceptionReportFederateId &&
+                  !exceptionReportProjection->admitCallback(projectionGeneration)) {
+                return;
+              }
               deliverReceiveOrder(event, recipient);
             });
         bool acknowledge = false;
@@ -1124,7 +1222,7 @@ void ProcessFederationCallbackBridge::submitRequestRetraction(
   }
   auto const session = callbackSession_;
   auto const dispatcher = dispatcher_;
-  if (!session || !dispatcher) {
+  if (isClosed() || !session || !dispatcher) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1183,7 +1281,7 @@ void ProcessFederationCallbackBridge::submitRequestRetraction(
 void ProcessFederationCallbackBridge::submitAttributeUpdate(
     ProcessFederationAttributeUpdateEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1241,7 +1339,7 @@ void ProcessFederationCallbackBridge::submitAttributeUpdate(
 void ProcessFederationCallbackBridge::submitAttributeValueUpdateRequest(
     ProcessFederationAttributeValueUpdateRequestEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1258,7 +1356,7 @@ void ProcessFederationCallbackBridge::submitAttributeValueUpdateRequest(
 void ProcessFederationCallbackBridge::submitAttributeOwnershipQuery(
     ProcessFederationAttributeOwnershipQueryEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1275,7 +1373,7 @@ void ProcessFederationCallbackBridge::submitAttributeOwnershipQuery(
 void ProcessFederationCallbackBridge::submitAttributeOwnershipAcquisitionIfAvailable(
     ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1292,7 +1390,7 @@ void ProcessFederationCallbackBridge::submitAttributeOwnershipAcquisitionIfAvail
 void ProcessFederationCallbackBridge::submitAttributeOwnershipAcquisition(
     ProcessFederationAttributeOwnershipAcquisitionEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1309,7 +1407,7 @@ void ProcessFederationCallbackBridge::submitAttributeOwnershipAcquisition(
 void ProcessFederationCallbackBridge::submitAttributeOwnershipUnavailable(
     ProcessFederationAttributeOwnershipUnavailableEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1326,7 +1424,7 @@ void ProcessFederationCallbackBridge::submitAttributeOwnershipUnavailable(
 void ProcessFederationCallbackBridge::submitObjectInstanceDiscovery(
     ProcessFederationObjectInstanceDiscoveryEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1343,7 +1441,7 @@ void ProcessFederationCallbackBridge::submitObjectInstanceDiscovery(
 void ProcessFederationCallbackBridge::submitObjectInstanceRemoval(
     ProcessFederationObjectInstanceRemovalEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1409,7 +1507,7 @@ void ProcessFederationCallbackBridge::submitObjectInstanceRemoval(
 void ProcessFederationCallbackBridge::submitObjectInstanceScopeChange(
     ProcessFederationObjectInstanceScopeChangeEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1426,7 +1524,7 @@ void ProcessFederationCallbackBridge::submitObjectInstanceScopeChange(
 void ProcessFederationCallbackBridge::submitAttributeRelevanceAdvisory(
     ProcessFederationAttributeRelevanceAdvisoryEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1452,7 +1550,7 @@ void ProcessFederationCallbackBridge::submitAttributeRelevanceAdvisory(
 void ProcessFederationCallbackBridge::submitAttributeTransportationTypeChange(
     ProcessFederationAttributeTransportationTypeChangeEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1469,7 +1567,7 @@ void ProcessFederationCallbackBridge::submitAttributeTransportationTypeChange(
 void ProcessFederationCallbackBridge::submitAttributeTransportationTypeQuery(
     ProcessFederationAttributeTransportationTypeQueryEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1486,7 +1584,7 @@ void ProcessFederationCallbackBridge::submitAttributeTransportationTypeQuery(
 void ProcessFederationCallbackBridge::submitInteractionTransportationTypeChange(
     ProcessFederationInteractionTransportationTypeChangeEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1503,7 +1601,7 @@ void ProcessFederationCallbackBridge::submitInteractionTransportationTypeChange(
 void ProcessFederationCallbackBridge::submitInteractionTransportationTypeQuery(
     ProcessFederationInteractionTransportationTypeQueryEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1520,7 +1618,8 @@ void ProcessFederationCallbackBridge::submitInteractionTransportationTypeQuery(
 void ProcessFederationCallbackBridge::submitSynchronizationPointRegistrationSucceeded(
     std::wstring label) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_ || label.empty()) {
+  if (isClosed() || !session || !dispatcher_ ||
+      label.empty()) {
     throw ProcessFederationCallbackBridgeError(
         "A process synchronization-point registration callback bridge is closed or has an invalid label.");
   }
@@ -1538,7 +1637,8 @@ void ProcessFederationCallbackBridge::submitSynchronizationPointRegistrationFail
     std::wstring label,
     rti1516_2025::SynchronizationPointFailureReason failureReason) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_ || label.empty()) {
+  if (isClosed() || !session || !dispatcher_ ||
+      label.empty()) {
     throw ProcessFederationCallbackBridgeError(
         "A process synchronization-point registration callback bridge is closed or has an invalid label.");
   }
@@ -1556,7 +1656,7 @@ void ProcessFederationCallbackBridge::submitSynchronizationPointRegistrationFail
 void ProcessFederationCallbackBridge::submitSynchronizationPointAnnouncement(
     ProcessFederationSynchronizationPointAnnouncementEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1573,7 +1673,7 @@ void ProcessFederationCallbackBridge::submitSynchronizationPointAnnouncement(
 void ProcessFederationCallbackBridge::submitFederationSynchronized(
     ProcessFederationFederationSynchronizedEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1590,7 +1690,7 @@ void ProcessFederationCallbackBridge::submitFederationSynchronized(
 void ProcessFederationCallbackBridge::submitFederationSave(
     ProcessFederationSaveEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1607,7 +1707,7 @@ void ProcessFederationCallbackBridge::submitFederationSave(
 void ProcessFederationCallbackBridge::submitFederationRestore(
     ProcessFederationRestoreEvent event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1625,7 +1725,7 @@ void ProcessFederationCallbackBridge::submitTimeRegulationEnabled(
     ProcessFederationLogicalTime event) {
   auto const session = callbackSession_;
   auto const completion = timeRegulationEnabledCompletion_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1647,7 +1747,7 @@ void ProcessFederationCallbackBridge::submitTimeConstrainedEnabled(
     ProcessFederationLogicalTime event) {
   auto const session = callbackSession_;
   auto const completion = timeConstrainedEnabledCompletion_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1677,10 +1777,22 @@ void ProcessFederationCallbackBridge::setTsoDeliveryCompletionHandler(
   tsoDeliveryCompletion_ = std::move(handler);
 }
 
+void ProcessFederationCallbackBridge::setExceptionReportProjectionHandler(
+    ExceptionReportProjectionHandler handler) {
+  std::scoped_lock lock(exceptionReportProjection_->mutex);
+  if (!exceptionReportProjection_->closed) {
+    exceptionReportProjection_->handler = std::move(handler);
+  }
+}
+
+void ProcessFederationCallbackBridge::cancelExceptionReportProjections() noexcept {
+  exceptionReportProjection_->cancel(false);
+}
+
 void ProcessFederationCallbackBridge::submitTimeAdvanceGrant(
     ProcessFederationLogicalTime event) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1699,7 +1811,7 @@ void ProcessFederationCallbackBridge::submitFlushQueueGrant(
     ProcessFederationLogicalTime grantedTime,
     ProcessFederationLogicalTime optimisticTime) {
   auto const session = callbackSession_;
-  if (!session || !dispatcher_) {
+  if (isClosed() || !session || !dispatcher_) {
     throw ProcessFederationCallbackBridgeError(
         "A process callback bridge is closed.");
   }
@@ -1725,7 +1837,7 @@ void ProcessFederationCallbackBridge::setAttributeRelevanceAdvisorySwitchState(
 
 bool ProcessFederationCallbackBridge::evokeOne(
     std::chrono::milliseconds minimumWait) {
-  if (!dispatcher_) {
+  if (isClosed() || !dispatcher_) {
     return false;
   }
   return dispatcher_->evokeOne(minimumWait);
@@ -1734,17 +1846,27 @@ bool ProcessFederationCallbackBridge::evokeOne(
 bool ProcessFederationCallbackBridge::evokeMultiple(
     std::chrono::milliseconds minimumWait,
     std::chrono::milliseconds maximumWait) {
-  if (!dispatcher_) {
+  if (isClosed() || !dispatcher_) {
     return false;
   }
   return dispatcher_->evokeMultiple(minimumWait, maximumWait);
 }
 
 std::size_t ProcessFederationCallbackBridge::pendingCount() const {
-  return dispatcher_ ? dispatcher_->pendingCount() : 0U;
+  return !isClosed() && dispatcher_
+      ? dispatcher_->pendingCount()
+      : 0U;
+}
+
+bool ProcessFederationCallbackBridge::isClosed() const noexcept {
+  return exceptionReportProjection_->closed.load(std::memory_order_acquire);
 }
 
 void ProcessFederationCallbackBridge::close() noexcept {
+  // Cancel and drain pre-callback client work before waiting on user callback
+  // lifetime. Neither this wait nor session close owns the dispatcher lock or
+  // the client's stream transaction mutex.
+  exceptionReportProjection_->cancel(true);
   {
     std::scoped_lock lock(retractionMutex_);
     retractionStates_.clear();
@@ -1755,8 +1877,6 @@ void ProcessFederationCallbackBridge::close() noexcept {
   if (dispatcher_) {
     dispatcher_->reset();
   }
-  callbackSession_.reset();
-  dispatcher_.reset();
 }
 
 }  // namespace umbra::detail

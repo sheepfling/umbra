@@ -122,6 +122,10 @@ set(HLA_RTI_TCK_ADAPTER_OBJECT_CLASS "HLAobjectRoot.TckObject"
   CACHE STRING "Ordinary object class supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_ATTRIBUTE "Value"
   CACHE STRING "Ordinary object attribute supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_SECONDARY_ATTRIBUTE "Name"
+  CACHE STRING "Second ordinary object attribute used by partial-unsubscription tests")
+set(HLA_RTI_TCK_ADAPTER_OBJECT_CLASS_THIRD_ATTRIBUTE "PayRate"
+  CACHE STRING "Third ordinary object attribute in the adapter's complete object-class subscription test")
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_OBJECT_CLASS
   "HLAobjectRoot.TckKnownClassObject"
   CACHE STRING "Known-class advisory base object class supplied by this adapter")
@@ -148,6 +152,12 @@ set(HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_SECOND "SecondValue"
   CACHE STRING "Second multi-attribute DDM attribute supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_INTERACTION_CLASS "HLAinteractionRoot.TckInteraction"
   CACHE STRING "Ordinary interaction class supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_OBJECT_CLASS
+  "HLAobjectRoot.TckObject.TckSecondaryObject"
+  CACHE STRING "Second directed-interaction object class supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_INTERACTION_CLASS
+  "HLAinteractionRoot.TckSecondaryDirectedInteraction"
+  CACHE STRING "Second directed-interaction class supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_PARAMETER "Payload"
   CACHE STRING "Ordinary interaction parameter supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_ADDITIONAL_FOM_MODULES
@@ -369,6 +379,9 @@ set(_tck_common_arguments
   --custom-regional-parameter "${HLA_RTI_TCK_ADAPTER_CUSTOM_REGIONAL_PARAMETER}"
   --object-class "${HLA_RTI_TCK_ADAPTER_OBJECT_CLASS}"
   --attribute "${HLA_RTI_TCK_ADAPTER_ATTRIBUTE}"
+   --secondary-attribute "${HLA_RTI_TCK_ADAPTER_SECONDARY_ATTRIBUTE}"
+   --object-class-third-attribute
+     "${HLA_RTI_TCK_ADAPTER_OBJECT_CLASS_THIRD_ATTRIBUTE}"
   --known-class-object-class
     "${HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_OBJECT_CLASS}"
   --known-class-derived-object-class
@@ -385,6 +398,8 @@ set(_tck_common_arguments
   --multi-attribute-first "${HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_FIRST}"
   --multi-attribute-second "${HLA_RTI_TCK_ADAPTER_MULTI_ATTRIBUTE_SECOND}"
   --interaction-class "${HLA_RTI_TCK_ADAPTER_INTERACTION_CLASS}"
+  --secondary-directed-object-class "${HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_OBJECT_CLASS}"
+  --secondary-directed-interaction-class "${HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_INTERACTION_CLASS}"
   --parameter "${HLA_RTI_TCK_ADAPTER_PARAMETER}"
   --mim-fom "${HLA_RTI_TCK_ADAPTER_MIM_FOM}"
   --switches-fom "${HLA_RTI_TCK_ADAPTER_SWITCHES_FOM}"

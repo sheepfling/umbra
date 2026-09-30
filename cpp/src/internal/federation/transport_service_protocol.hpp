@@ -301,6 +301,52 @@ enum class TransportServiceOperation : std::uint16_t {
   // Restore status queries have a typed response plus a queued status event;
   // keep the control boundary distinct from abort and completion.
   query_federation_restore_status = 124U,
+  // Service-report switch controls are execution-member state and must be
+  // resolved by the process-owned registry. Keep the file/report gates
+  // distinct so a peer cannot silently apply one switch to the other.
+  get_service_reporting_switch = 125U,
+  set_service_reporting_switch = 126U,
+  get_send_service_reports_to_file_switch = 127U,
+  set_send_service_reports_to_file_switch = 128U,
+  // Federation destruction is a federation-management service, not a
+  // client-local registry mutation.  Append its private operation id so
+  // existing process peers retain their established numeric assignments.
+  destroy_federation_execution = 129U,
+  // Object-class unpublication is split from publication so a process peer
+  // cannot silently treat a declaration removal as a new publication.  The
+  // whole-class and subset forms remain distinct at the private boundary.
+  unpublish_object_class_attributes = 130U,
+  unpublish_object_class = 131U,
+  // Update-rate lookups are FDD/instance queries owned by the process
+  // registry. Keep the designator and per-attribute forms distinct so a
+  // private peer cannot silently substitute a different lookup contract.
+  get_update_rate_value = 132U,
+  get_update_rate_value_for_attribute = 133U,
+  // Exception reporting is an independent execution-member switch. Keep
+  // its controls distinct from service-report and report-to-file switches.
+  get_exception_reporting_switch = 134U,
+  set_exception_reporting_switch = 135U,
+  // Public service exceptions may originate in the binding as well as the
+  // process service. The service owns reporting eligibility and routing.
+  report_service_exception = 136U,
+  recheck_exception_report = 137U,
+  // The Allow Relaxed DDM switch is federation/FDD policy and must be read
+  // from the process-owned registry, never from a client-local projection.
+  get_allow_relaxed_ddm_switch = 138U,
+  // Local binding validation can fail before a service request reaches the
+  // process owner. Forward the invocation metadata so the owner can append it
+  // to the joined federate's selected service-report destination.
+  report_failed_service_invocation = 139U,
+  // A locally-served public API operation (for example fixed order-name data)
+  // still reports its successful invocation to the process-owned file/MOM route.
+  report_successful_service_invocation = 140U,
+  // Object-class and interaction relevance switch readbacks must query the
+  // process-owned registry, just like the existing attribute-advisory reads.
+  get_object_class_relevance_advisory_switch = 141U,
+  get_interaction_relevance_advisory_switch = 142U,
+  // Successful void service reports use Table 5's [null] file form rather
+  // than a typed ReturnArgument record.
+  report_successful_void_service_invocation = 143U,
 };
 
 enum class TransportServiceStatus : std::uint16_t {
@@ -308,6 +354,7 @@ enum class TransportServiceStatus : std::uint16_t {
   rejected = 1U,
   invalid_request = 2U,
   internal_error = 3U,
+  service_reporting_interlock = 4U,
 };
 
 struct TransportServiceMessage final {

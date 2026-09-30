@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK case unpublishes an adapter-configured ordinary interaction class through the official IEEE 1516.1-2025 RTIambassador API, then requests publication state through the IEEE 1516.2-2025 MIM. The interaction-publication NULL report is exact; the accompanying directed-publication report is checked against its MIM-defined NULL or populated shape without asserting a cross-service side effect beyond this case's mapped requirement. Provider library, FOM, endpoint, callback model, and names remain adapter-supplied; the case uses no vendor hooks or DDM region APIs.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-interaction-class-whole-unpublication-mim-query",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unpublishinteractionclass.eebfcdf14b8a",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unpublishInteractionClass( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "unpublishInteractionClass",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomInteractionClassWholeUnpublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomInteractionClassWholeUnpublicationQueryContract"
+      ]
+    }
+  ]
+}

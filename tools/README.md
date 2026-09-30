@@ -15,11 +15,11 @@ For command arguments, use:
 Use the bounded query tool as the first stop for roadmap work. It resolves
 one family, lane, or exact Catch2 case without reopening the full Requirements
 Lab extraction. The `case` card is the shortest handoff: it includes the C++
-source, selected 2025 requirement IDs, direct standard sections/subsections,
-API surfaces, owner, and focused execution commands.
+source (or explicit target for a planned case), selected 2025 requirement IDs,
+direct standard sections/subsections, API surfaces, owner, and focused execution
+commands.
 
-    python tools/query_rti_work.py dashboard --summary --compact
-    python tools/query_rti_work.py next --summary --compact
+    python tools/query_rti_work.py resume --summary --compact
     python tools/query_rti_work.py case <plan-id-or-exact-catch2-title> --summary --compact
     python tools/query_rti_work.py focus <lane-tag> --summary --compact
     python tools/query_rti_work.py trace <exact-catch2-title> --summary --compact
@@ -29,6 +29,10 @@ API surfaces, owner, and focused execution commands.
     python tools/query_rti_work.py requirement <lab-requirement-id> --summary --compact
     python tools/query_rti_work.py section <document:clause> --summary --compact
     python tools/query_rti_work.py check --lane <lane-tag> --summary --compact
+
+`resume` is the compact first-read card. Use `dashboard` only when the wider
+open-family preview is actually useful; ordinary implementation should go
+straight from `resume` to the returned exact `case` or `work` handle.
 
 Current ownership-management process handoff (owner-release-denied):
 
@@ -66,6 +70,12 @@ one key; a family or lane query retains the complete bounded crosswalk.
 `resume`/`dashboard` also expose the latest verified implementation-fix card
 from `ROADMAP-INDEX.json`; use its exact case, focus, matrix, and CTest handles
 to re-run a regression without reopening the full save/restore inventory.
+
+`roadmap <family-or-lane>` now emits exact `case`, `trace`, and
+requirement-/section-grouped `matrix` commands for both the lane representative
+and the roadmap `next_test` pointer. Those handles are derived from the live
+Catch2 plan row, so a roadmap lookup goes straight to the source location and
+direct requirement-to-2025-subsection pairs without a second discovery query.
 
 ### Run a route-aware CI lane
 
@@ -116,7 +126,7 @@ filter by its test name:
 
     python tools/ci.py native-catch2 --stage configure
     python tools/ci.py native-catch2 --stage build
-    ctest --test-dir out/cmake/catch2 -C Debug -R federation_registry --output-on-failure
+    ctest --test-dir out/mgw/catch2 -C Debug -R federation_registry --output-on-failure
 
 ### Run the portable C++ TCK
 
@@ -124,15 +134,24 @@ Use the standard-library-only Python orchestrator for an installed provider
 package. It configures and builds the CMake adapter, runs the configured CTest
 matrix, and can optionally invoke the executable for JSON/JUnit evidence. All
 child processes receive argument lists directly; the runner does not invoke a
-shell. Large direct selections are partitioned into bounded child-process
-batches and their JSON/JUnit evidence is merged, so the full catalog remains
-usable on platforms with conservative process command-line limits.
+shell. Each direct scenario runs in its own child process because the portable
+C++ launcher selects a specialized scenario family from its argument list;
+their JSON/JUnit evidence is then merged, so no scenario can be silently
+dropped when families are mixed.
+For multi-scenario runs, a nonzero child result no longer stops later
+scenarios: all available per-scenario JSON/JUnit reports are merged before the
+runner exits unsuccessfully with the failed scenario IDs. The standard-library
+regression guard is `python tools/run_cpp_tck_regression.py` and is included in
+the CI integrity checks.
 
     python tools/run_cpp_tck.py --package-prefix .build/package-smoke-install --build-directory .build/cpp-tck-python --scenario-set verified --callback-model both
 
 To run a focused scenario, repeat `--scenario`; the selected IDs constrain both
-the adapter's CTest matrix and the direct evidence run. After that focused CTest
-gate has passed, add `--skip-ctest` when only a direct evidence refresh is needed:
+the adapter's CTest matrix and the direct evidence run. This remains true when
+`--skip-configure --skip-build` reuses an existing build: the runner adds an
+exact CTest-name filter instead of falling back to the full label matrix. After
+that focused CTest gate has passed, add `--skip-ctest` when only a direct
+evidence refresh is needed:
 
     python tools/run_cpp_tck.py --package-prefix .build/package-smoke-install --build-directory .build/cpp-tck-python --scenario cpp-tck.regional-three-dimensional-overlap --skip-configure --skip-build --skip-ctest --results .build/cpp-tck-all/three-dimensional.json
 
@@ -144,6 +163,9 @@ artifact with:
 
     python tools/cpp_tck.py --results .build/cpp-tck-all/api-surface-inventory-full.json --promotion promoted
 
+The Python runner also checks that every selected ID has a result for each
+requested callback model before reporting the direct run as successful.
+
 The validator rejects failed or unapproved skipped cases; it permits only the
 explicit `cpp-tck.connection-loss-cleanup` skip whose message states that an
 adapter-managed connection-loss fixture is required.
@@ -153,6 +175,14 @@ Use the standard-library-only API-surface audit to compare the official IEEE
 source. It does not load a provider or require a shell:
 
     python tools/audit_cpp_tck_api_surface.py
+
+Use the standard-library-only periodic-MIM survey to list periodic
+`HLAfederate` attributes from the pinned standard MIM and their lexical source
+references. Source hits are review hints, not proof that scenario assertions
+cover the stated semantics. Add `--details` to include each source line and
+MIM definition:
+
+    python tools/audit_cpp_tck_mim_periodic.py
 
 Use the standard-library-only native-gap survey to compare the native Catch2
 inventory with the portable catalog. It records explicit semantic native-to-
@@ -168,8 +198,8 @@ The same validator requires every Java catalog entry marked `run` to have
 either a direct Java scenario ID or an explicit C++ parity mapping; entries
 marked unsupported remain excluded.
 
-    The verified lane is all 612 promoted scenario IDs (1224 callback-model cases).
-  `--scenario-set all` configures the same 612 IDs (1224 cases), because the
+    The verified lane is all 702 promoted scenario IDs (1404 callback-model cases).
+  `--scenario-set all` configures the same 702 IDs (1404 cases), because the
   catalog has no unpromoted scenarios. The promoted
   `cpp-tck.callback-reentrancy` pair passed all 4/4 focused installed-package callback-model
   cases using only the official C++ API and standard library. The automatic connection-loss

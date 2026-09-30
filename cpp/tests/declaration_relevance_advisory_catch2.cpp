@@ -100,7 +100,8 @@ TEST_CASE(
     "[rti.service.set-object-class-relevance-advisory-switch]"
     "[rti.service.get-interaction-relevance-advisory-switch]"
     "[rti.service.set-interaction-relevance-advisory-switch]"
-    "[declaration-relevance-advisory-service-report][2025]") {
+    "[declaration-relevance-advisory-service-report]"
+    "[advisory-switch-condition-change][2025]") {
   DeclarationFederateAmbassador publisherReports;
   DeclarationFederateAmbassador subscriberReports;
   auto publisher = makeRti();
@@ -147,6 +148,28 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->setInteractionRelevanceAdvisorySwitch(true));
   REQUIRE(publisher->getObjectClassRelevanceAdvisorySwitch());
   REQUIRE(publisher->getInteractionRelevanceAdvisorySwitch());
+
+  // Clause 10.1.3 requires the advisory switch to gate condition changes,
+  // not just expose mutable getter/setter state. Suppress both transitions
+  // while disabled, then let the enabled publication/subscription transitions
+  // below demonstrate that advisories resume normally.
+  REQUIRE_NOTHROW(publisher->setObjectClassRelevanceAdvisorySwitch(false));
+  REQUIRE_FALSE(publisher->getObjectClassRelevanceAdvisorySwitch());
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      employee, AttributeHandleSet{name}, true));
+  REQUIRE_NOTHROW(
+      publisher->publishObjectClassAttributes(employee, AttributeHandleSet{name}));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.startRegistrationForObjectClassReports.empty());
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(
+      employee, AttributeHandleSet{name}));
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.stopRegistrationForObjectClassReports.empty());
+  REQUIRE_NOTHROW(publisher->setObjectClassRelevanceAdvisorySwitch(true));
+  REQUIRE(publisher->getObjectClassRelevanceAdvisorySwitch());
+  REQUIRE_FALSE(publisher->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(publisherReports.startRegistrationForObjectClassReports.empty());
+  REQUIRE(publisherReports.stopRegistrationForObjectClassReports.empty());
 
   // An active object subscription followed by publication establishes one
   // Start advisory at the publisher. Repeating the declaration is idempotent.

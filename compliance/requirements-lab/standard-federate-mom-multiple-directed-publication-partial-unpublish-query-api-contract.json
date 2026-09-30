@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice uses an adapter-supplied derived object class that inherits one directed interaction and defines a second class-specific directed interaction; a distinct base object class retains a separate directed publication. It removes only the inherited interaction from the derived class using the set-based Unpublish Object Class Directed Interactions overload, then queries publication state through standard MIM interactions and requires the derived class's other interaction and the distinct base-class publication to remain. This FDD-valid inheritance fixture permits a true same-object-class partial unpublish while respecting the FDD schema's one directly declared directed interaction per object class. It uses only official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard MIM, public handle decoders, standard encoding DataElements, and the C++ standard library. Provider package, FOM modules, endpoint, callback configuration, class names, and logical-time implementation come from the adapter. No DDM regions, private headers, provider registry, or vendor-specific API are used.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-partial-directed-publication-query-declaration",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.publishobjectclassdirectedinteractions.39b5cf61292d",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void publishObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "publishObjectClassDirectedInteractions",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedPublicationPartialUnpublishQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedPublicationPartialUnpublishQueryContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-partial-directed-publication-unpublish",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unpublishobjectclassdirectedinteractions.0a6bcc7d4a86",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unpublishObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "unpublishObjectClassDirectedInteractions",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedPublicationPartialUnpublishQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedPublicationPartialUnpublishQueryContract"
+      ]
+    }
+  ]
+}

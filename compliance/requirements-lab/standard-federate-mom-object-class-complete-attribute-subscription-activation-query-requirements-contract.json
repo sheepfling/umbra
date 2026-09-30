@@ -1,0 +1,35 @@
+{
+    "schema_version": 1,
+    "kind": "requirements-reference",
+    "document_id": "hla-1516.1-2025",
+    "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+    "notes": "The scenario verifies the object-class subscription active-state transition for the complete adapter-configured attribute set. An initial passive subscription is queried, the same attribute set is resubscribed actively with the standard service, and a fresh standard MIM report must reflect active=true without losing attributes or changing the adapter-selected update-rate designator. The sequence exercises only the ordinary non-regional service.",
+    "requirements": [
+        {
+            "id": "cpp-tck-federate-mom-complete-object-class-subscription-activation",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4",
+            "clause_id": "clause-5.9.4",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "535-539",
+            "source_symbol": "subscribeObjectClassAttributes",
+            "statement": "The federate first subscribes passively to every adapter-configured attribute in the selected object class, then invokes the same standard service for that same set with active=true. The standard MIM report must show active=true and preserve the full set and configured update-rate designator.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassCompleteAttributeSubscriptionActivationQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassCompleteAttributeSubscriptionActivationQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-complete-object-class-subscription-activation-report",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+            "clause_id": "clause-11.4.1",
+            "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+            "source_lines": "1077-1090, 1316-1367",
+            "source_symbol": "HLAreportObjectClassSubscription",
+            "statement": "A fresh standard MIM subscription report identifies the subject class, reports the active indicator as true after the state transition, and contains exactly the complete adapter-configured attribute-handle list and unchanged update-rate designator.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassCompleteAttributeSubscriptionActivationQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassCompleteAttributeSubscriptionActivationQueryContract"
+            ]
+        }
+    ]
+}

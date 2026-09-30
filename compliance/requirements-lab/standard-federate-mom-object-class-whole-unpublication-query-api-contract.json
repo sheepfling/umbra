@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK case unpublishes an adapter-configured object class through the official IEEE 1516.1-2025 RTIambassador API and queries the resulting publication state through the standard IEEE 1516.2-2025 MIM. The provider, FOM, endpoint, callback model, names, and MIM module remain adapter-supplied; the test uses no vendor implementation hooks or DDM region APIs.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-object-class-whole-unpublication-mim-query",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unpublishobjectclass.b67906bda1e7",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unpublishObjectClass ( ObjectClassHandle const & objectClass) = 0",
+      "exception_types": [
+        "OwnershipAcquisitionPending",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "unpublishObjectClass",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassWholeUnpublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassWholeUnpublicationQueryContract"
+      ]
+    }
+  ]
+}

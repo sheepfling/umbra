@@ -44,7 +44,8 @@ TEST_CASE(
 
 TEST_CASE(
     "The embedded ObjectInstanceHandle encoding is an HLAvariableArray-wrapped identity",
-    "[unit][kernel][object-instance-handle][foundation][object-management]") {
+    "[unit][kernel][object-instance-handle][foundation][object-management]"
+    "[handle-encoding]") {
   auto const handle = makeObjectInstanceHandle(0x0102030405060708ULL);
   std::array<unsigned char, 12> const expected{
       0x00, 0x00, 0x00, 0x08, 0x01, 0x02,

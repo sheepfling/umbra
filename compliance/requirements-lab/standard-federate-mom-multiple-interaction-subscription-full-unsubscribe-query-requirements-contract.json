@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This candidate verifies both partial and final class-scoped interaction unsubscriptions and the final MIM empty-list response. It does not claim overall MOM conformance or test interaction delivery.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-mom-multiple-interaction-full-unsubscribe-service",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-099-l75-20",
+      "clause_id": "clause-5.10",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "590-591",
+      "source_symbol": "unsubscribeInteractionClass",
+      "statement": "The subject first removes only the passive secondary interaction subscription and confirms the active application interaction remains, then invokes unsubscribeInteractionClass on that final interaction class.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQueryContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-mom-multiple-interaction-full-unsubscribe-null-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "1376-1389",
+      "source_symbol": "HLAreportInteractionSubscription",
+      "statement": "After the final interaction class is unsubscribed, a fresh HLArequestSubscriptions response contains the HLAreportInteractionSubscription with exactly one HLAinteractionClassList parameter decoding to an empty list, the standard NULL response. The object and directed-subscription reports also remain present once for the request.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQueryContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-mom-multiple-interaction-full-unsubscribe-query-request",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-123-l145-40",
+      "clause_id": "clause-6.12",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "750-764",
+      "source_symbol": "sendInteraction",
+      "statement": "A separate requester sends HLArequestSubscriptions through standard sendInteraction before and after the final unsubscription, identifying the joined subject through the inherited HLAfederate parameter.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQueryContract"
+      ]
+    }
+  ]
+}

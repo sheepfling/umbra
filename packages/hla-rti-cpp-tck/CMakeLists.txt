@@ -34,6 +34,12 @@ endif()
 target_include_directories(hla_rti_cpp_tck PRIVATE
   "${HLA_RTI_TCK_API_INCLUDE_DIR}"
 )
+if(MINGW)
+  # The official IEEE encoding headers select Microsoft's _int64 spelling
+  # for all Windows compilers. GCC's Windows target provides the equivalent
+  # __int64 type, but does not define the Microsoft alias itself.
+  target_compile_definitions(hla_rti_cpp_tck PRIVATE _int64=__int64)
+endif()
 target_compile_definitions(hla_rti_cpp_tck PRIVATE
   ${HLA_RTI_TCK_PROVIDER_COMPILE_DEFINITIONS}
 )

@@ -243,7 +243,7 @@ TEST_CASE(
 
   auto const& report = observerReports.interactionReports.front();
   REQUIRE(report.interactionClass == reportClass);
-  REQUIRE(report.parameterValues.size() == 7U);
+  REQUIRE(report.parameterValues.size() == 8U);
   REQUIRE(report.userSuppliedTag.size() == 0U);
   REQUIRE(report.transportationType ==
           observer->getTransportationTypeHandle(standard_hla::mom::reliable));
@@ -281,7 +281,7 @@ TEST_CASE(
       37,
       L"Object instance designator",
       L"\"" + objectInstance.toString() + L"\"");
-  verifyArgument(1U, 63, L"User-supplied tag", L"\"dHNv\"");
+  verifyArgument(1U, 60, L"User-supplied tag", L"\"dHNv\"");
   verifyArgument(2U, 31, L"Optional timestamp", L"\"" + timestamp.toString() + L"\"");
 
   rti1516_2025::HLAfixedRecord returnedArgument;

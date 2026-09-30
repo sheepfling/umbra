@@ -111,7 +111,7 @@ void drainCallbacks(RTIambassador& rti) {
 
 TEST_CASE(
     "Embedded directed interactions distinguish ownership and universal subscriptions",
-    "[integration][development-profile][interaction-management][directed][ownership]"
+    "[integration][development-profile][interaction-management][directed][ownership][directed-interaction-subscription-kind]"
     "[rti.service.publish-object-class-directed-interactions]"
     "[rti.service.subscribe-object-class-directed-interactions]"
     "[rti.service.send-directed-interaction]"

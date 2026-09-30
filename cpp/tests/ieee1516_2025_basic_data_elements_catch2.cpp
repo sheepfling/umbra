@@ -110,7 +110,7 @@ TEST_CASE("Official basic encoding helpers use 1516.2 big-endian wire forms", "[
 
 TEST_CASE(
     "Official octet, byte, and ASCII basic encoding helpers use their 1516.2 wire representations",
-    "[baseline][encoding][basic-data-elements][ascii][unit][foundation]") {
+    "[baseline][encoding][basic-data-elements][ascii][unit][foundation][octet-byte-ascii-wire-format]") {
   using namespace rti1516_2025;
 
   auto const rawHighBitOctet = static_cast<Octet>(0xa5U);
@@ -172,7 +172,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Official IEEE-754 basic encoding helpers use 1516.2 Table 29 wire forms",
-    "[baseline][encoding][basic-data-elements][float][unit][foundation]") {
+    "[baseline][encoding][basic-data-elements][float][unit][foundation][ieee754-basic-encoding-wire-format]") {
   using namespace rti1516_2025;
 
   HLAfloat32BE singleBigEndian{-2.5F};
@@ -215,7 +215,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Official HLAunicodeChar uses one UTF-16BE code unit",
-    "[baseline][encoding][basic-data-elements][unicode][unit][foundation]") {
+    "[baseline][encoding][basic-data-elements][unicode][unit][foundation][hlaunicodechar-utf16be-unit]") {
   using namespace rti1516_2025;
 
   HLAunicodeChar bmpCharacter{static_cast<wchar_t>(0x03a9U)};
@@ -248,7 +248,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Official 16-bit basic encoding helpers use 1516.2 Table 29 wire forms",
-    "[baseline][encoding][basic-data-elements][unit][foundation]") {
+    "[baseline][encoding][basic-data-elements][unit][foundation][integer16-octet-pair-wire-formats]") {
   using namespace rti1516_2025;
 
   HLAinteger16BE signedBigEndian{-2};
@@ -364,7 +364,7 @@ TEST_CASE(
   REQUIRE_THROWS_AS(decodedUnsignedLittleEndian.decode(truncated), EncoderException);
 }
 
-TEST_CASE("Official HLAunicodeString uses a UTF-16BE element-count payload", "[baseline][encoding][unit][foundation]") {
+TEST_CASE("Official HLAunicodeString uses a UTF-16BE element-count payload", "[baseline][encoding][unit][foundation][hlaunicodestring-utf16be-variable-array-payload]") {
   using namespace rti1516_2025;
 
   HLAunicodeString value{L"A\U0001f600"};
@@ -399,7 +399,7 @@ TEST_CASE("Official HLAunicodeString uses a UTF-16BE element-count payload", "[b
 
 TEST_CASE(
     "Official HLAopaqueData uses an HLAbyte HLAvariableArray payload",
-    "[baseline][encoding][opaque-data][predefined-data][unit][foundation]") {
+    "[baseline][encoding][opaque-data][predefined-data][unit][foundation][hlaopaque-data-byte-variable-array-payload]") {
   using namespace rti1516_2025;
 
   auto const payload = byteValues({0xa5U, 0U, 0x5aU});
@@ -441,7 +441,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Official HLAopaqueData retains caller-owned external storage without inventing ownership",
-    "[baseline][encoding][opaque-data][external-storage][unit][foundation]") {
+    "[baseline][encoding][opaque-data][external-storage][unit][foundation][hlaopaque-data-external-storage-contract]") {
   using namespace rti1516_2025;
 
   std::array<Octet, 6U> firstStorage{
@@ -504,7 +504,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Official HLAfixedRecord uses declaration order and zero padding for the next field",
-    "[baseline][encoding][fixed-record][constructed-data][unit][foundation]") {
+    "[baseline][encoding][fixed-record][constructed-data][unit][foundation][hlafixedrecord-declaration-order-padding]") {
   using namespace rti1516_2025;
 
   HLAoctet first{static_cast<Octet>(0xa5U)};
@@ -565,7 +565,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Official HLAfixedRecord copies or borrows elements through its declared operations",
-    "[baseline][encoding][fixed-record][element-lifetime][unit][foundation]") {
+    "[baseline][encoding][fixed-record][element-lifetime][unit][foundation][internal][hlafixedrecord-element-lifetime-policy]") {
   using namespace rti1516_2025;
 
   HLAoctet source{static_cast<Octet>(0x11U)};

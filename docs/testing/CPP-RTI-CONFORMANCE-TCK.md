@@ -15,7 +15,7 @@ objects.
 The catalog and the executable's default `all` inventory are kept as a
 one-to-one set. Run `python tools/cpp_tck.py` to verify the catalog, the
 official-header boundary, and that inventory before running a provider. The
-current gate reports 724 catalog scenarios and 724 executable scenarios; the
+current gate reports 790 catalog scenarios and 790 executable scenarios; the
 official C++ API audit reports all 164 `RTIambassador` methods and all 56
 `FederateAmbassador` callbacks represented.
 
@@ -25,6 +25,22 @@ adapter. The connection-boundaries pair passed all four focused CTest cases
 callback models in a direct run. Evidence is recorded in
 `.build/cpp-tck-connection-credentials-adapter-config-current-ctest.json` and
 `.build/cpp-tck-connection-credentials-adapter-config-java-parity-current.json`.
+The negotiated-ownership save/restore base and contract pair also passed all four
+focused CTest cases and both direct callback-model runs against the installed
+package. Evidence is in
+`.build/cpp-tck-ownership-state-save-restore-20260926.json` and
+`.build/cpp-tck-ownership-state-save-restore-20260926.xml`.
+The pending negotiated-ownership save/restore base and contract pair likewise
+passed all four focused CTest cases and both direct callback-model runs against
+the installed package. Evidence is in
+`.build/cpp-tck-pending-ownership-save-restore-20260926.json` and
+`.build/cpp-tck-pending-ownership-save-restore-20260926.xml`.
+The ownership-acquisition-cancellation and If Available unavailable-callback
+save/restore pairs passed their focused installed-package runs as well. The
+combined four-pair ownership save/restore lane passed all 16 CTest cases and all
+16 direct callback-model results; evidence is in
+`.build/cpp-tck-ownership-save-restore-slices-20260926.json` and
+`.build/cpp-tck-ownership-save-restore-slices-20260926.xml`.
 The adapter continues to provide the provider library, FOMs, logical-time
 choice, and endpoint settings; the portable source remains independent of those
 details.
@@ -41,10 +57,12 @@ models passed (16/16), with machine-readable evidence in
 `.build/cpp-tck-connection-loss-fixture-current-20260923.json` and `.xml`.
 Together these runs verify every one of the 1,428 pre-addition scenario/callback pairs. The
 targeted service-report family independently passed 156/156 cases, and
-joined-federate MOM object-count coverage passed 4/4. These checks caught and
-corrected an invalid extra `HLAfederate` service-report parameter expectation:
-IEEE 1516.2-2025 defines it as a routing dimension, not a parameter of
-`HLAreportServiceInvocation`.
+joined-federate MOM object-count coverage passed 4/4. An earlier audit in this
+checkpoint mistakenly treated `HLAfederate` solely as a service-report routing
+dimension. The standard MIM also declares it as a parameter on the parent
+`HLAmanager.HLAfederate` interaction, inherited by
+`HLAreportServiceInvocation`; current report checks validate all eight fields
+and decode this one as the reported federate identity.
 
 The 2026-09-23 interaction-inheritance slice adds
 `cpp-tck.inherited-interaction-class-delivery` and its contract runner. Using the
@@ -108,14 +126,73 @@ Both IDs passed under evoked and immediate callbacks against the installed
 package (4/4 cases). Evidence is recorded in
 `.build-cpp-tck-current-package/directed-derived-object-target-eligibility-promoted.json`
 and `.build-cpp-tck-current-package/directed-derived-object-target-eligibility-promoted.xml`;
-the promoted evidence gate and inventory validator both pass. Verified
-evidence now covers 1,448 scenario/callback pairs across 724 catalog IDs.
+the promoted evidence gate and inventory validator both pass. Historical
+checkpoint (2026-09-23): the earlier report listed 1,456 scenario/callback
+pairs across 728 IDs. That count is superseded by the provider-package audit in
+the current checkpoint below; it is not current clean-package evidence.
 
-A follow-up portability scan found six pre-existing delay-subscription-evaluation
-scenario families whose catalog requirement IDs are Umbra-prefixed. They were
-not changed in this slice. Before counting them as pure-HLA evidence, verify
-whether each behavior maps directly to a canonical IEEE 1516.1-2025
-subsection; otherwise classify and separate those cases as provider-specific.
+The bounded audit of the six pre-existing delay-subscription-evaluation
+families is complete. All six base scenarios and their six API-contract runners
+passed under both callback models (24/24 focused installed-package cases).
+The catalog now uses the three pinned Lab candidate IDs and the standard
+public-API contract; its canonical mapping is §8.1.8 via the resolved RL-252
+crosswalk. The Lab's stale exported §8.1.10 metadata remains visible and
+unchanged. The optional disabled-switch path is not treated as a must: the TCK
+accepts generation-time rejection or later filtering when disabled, while
+requiring enabled deferral and current-subscription filtering at the actual
+callback/grant boundary. The contract remains experimental, not conformance
+evidence.
+Focused JSON/JUnit evidence is in
+`.build-cpp-tck-current-package/delay-subscription-evaluation-focused.json`
+and `.build-cpp-tck-current-package/delay-subscription-evaluation-focused.xml`;
+the promoted catalog/evidence validator passes for all twelve IDs. The next
+regional timestamped attribute slice is now promoted as
+`cpp-tck.delay-subscription-evaluation-timestamped-regional-attribute-update`
+and its contract twin. It reuses the indexed native case's direct mappings to
+§8.1.8 and §8.1.10. The installed-package CTest gate passed 4/4 cases across
+both callback models; the 14-scenario DSE/DDM regression passed 28/28 direct
+callback-model runs. Evidence is in
+`.build-cpp-tck-current-package/delay-subscription-evaluation-timestamped-regional-focused.json`
+and `.build-cpp-tck-current-package/delay-subscription-evaluation-regression.json`;
+both promoted-evidence checks pass. The shared DDM fixture leaves the DSE
+switch at the standard Disabled default unless the adapter supplies the switch
+FOM. The Java TCK's `java-tck.ddm` covers basic regional declarations and
+filtering, but not timestamped regional interaction re-evaluation at a grant.
+There is no direct Java scenario-ID counterpart, so the catalog marks this as
+a C++ extension.
+The corresponding timestamped regional-interaction scenario and contract twin
+are now promoted. An initially unsubscribed receiver adds an overlapping
+regional declaration before its time-2 grant; Enabled requires the interaction,
+while Disabled remains standard-permissive. The delivered interaction is
+checked for parameter/tag, time/order, producer/transport, retraction when
+supplied, and source-region metadata. A later interaction is suppressed after
+unsubscribe before its grant. Both IDs passed both callback models against the
+installed package (4/4); the combined DSE/DDM regression passed 40/40 runs.
+Evidence and the promotion validator are recorded in
+`.build-cpp-tck-current-package/delay-subscription-evaluation-timestamped-regional-interaction-focused.json`
+and `.build-cpp-tck-current-package/delay-subscription-evaluation-regional-interaction-regression.json`.
+The pinned requirements map to §§8.1.8 and 8.1.10. A fresh portable-gap audit
+found no unrepresented portable native test stem across 297 Catch2 stems. The
+two pure unmatched stems map to the existing encoder-round-trip and
+variable-length-data TCK coverage. The current native support-service proposal
+requires a well-formed but execution-unknown opaque `TransportationTypeHandle`;
+the standard-invalid-handle exception and its `HLAreportServiceInvocation`
+payload are already covered by
+`cpp-tck.service-report-order-transportation-lookup-failures`, so the extra
+case is not generically constructible through the standard API. The current
+catalog validator remains green at 766 promoted scenarios with zero candidates,
+and all 21 Java scenario IDs are represented. The newly promoted ownership-query
+save/restore pair verifies all three standard outcomes—federate-owned, unowned,
+and RTI-owned—after a live ownership transfer is undone by restore. The bounded
+ownership-service audit found no additional behavior with a direct normative
+mapping missing from the promoted TCK rows. Native pending-query restore and
+pushed-callback persistence cases inspect provider save-image, registry, or
+callback-queue details; they are not portable evidence on the current mapping.
+Next handoff: verify the open Table 5 Credentials candidate
+`requirement-candidate-table-5-p296-r006` against the licensed official IEEE
+1516.1-2025 text before considering a scenario. The current extraction says
+`Record<` with an unspecified example, so do not infer its encoding or add a
+normative test until the source row is confirmed.
 
 The timestamped directed-interaction case distinguishes three destination
 roles: the target owner receives the interaction, a universal subscriber also
@@ -480,7 +557,7 @@ The initial green slice exercises:
 - zero-dimensional, partial, wrong-context, foreign-region, and in-use region
   boundary cases.
 
-    The verified lane currently runs all 724 promoted scenarios (1448
+The verified lane currently runs all 766 promoted scenarios (1532
 callback-model cases) under `HLA_EVOKED` and `HLA_IMMEDIATE`; the catalog has no
 remaining candidate IDs outside that lane. Shared ordinary-service runner IDs are the same IDs used by
 the Java TCK; C++-specific time, DDM, synchronization, callback, and
@@ -799,6 +876,17 @@ verified matrix passed 828/830 cases with the two expected adapter-managed
 connection-loss skips and zero failures. The source uses only the official
 IEEE C++ API and standard library, with provider, multi-attribute FOM,
 endpoint, and callback configuration supplied by the adapter.
+The promoted `cpp-tck.ownership-query-save-restore-results` pair extends that
+slice across federation restore. It saves an object with one federate-owned
+and one unowned attribute, transfers the owned attribute after saving, restores,
+and checks the exact federate-owned and unowned callback partitions. It then
+queries the restored joined-federate MOM object and checks the separate
+RTI-owned callback. The focused installed-package run passed 4/4 CTest cases
+and 4/4 direct results under both callback models; evidence is in
+`.build/cpp-tck-ownership-query-restore-all-results-20260926.json` and
+`.build/cpp-tck-ownership-query-restore-all-results-20260926.xml`. The code uses the
+official IEEE C++ API and standard library; provider, multi-attribute FOM,
+MIM, endpoint, and callback configuration stay adapter-owned.
 The newly promoted
 `cpp-tck.ownership-query-partition-cleanup` scenario and its pure standard
 contract twin isolate mixed owned/unowned `queryAttributeOwnership` results,
@@ -1719,19 +1807,49 @@ retraction ledger remains correct across recipient departure.
 
 The promoted `cpp-tck.delay-subscription-evaluation-interaction` scenario
 composes an adapter-supplied switch module with the portable FOM. It verifies
-that the standard Delay Subscription Evaluation switch retains an ordinary
-interaction generated before subscription, while the disabled/default mode
-does not; both modes recheck the current subscription at the callback boundary
-and suppress a message after unsubscribe.
+that the enabled Delay Subscription Evaluation switch retains an ordinary
+interaction generated before subscription. When disabled, the standard permits
+generation-time eligibility evaluation; the TCK therefore accepts either
+rejection at generation or later delivery filtering. Both modes use the current
+subscription at the callback boundary and suppress a message after unsubscribe.
 
 The promoted `cpp-tck.delay-subscription-evaluation-attribute-update` scenario
 applies the same switch boundary to a known object and ordinary attribute
 update. It establishes discovery first, removes the attribute declaration,
-then verifies enabled late-declaration delivery and disabled generation-time
-suppression, followed by callback-boundary suppression after unsubscribe.
-The promoted timestamped interaction and timestamped attribute-update variants
-repeat that matrix at the time-constrained grant boundary and verify the
-standard timestamp, order, transportation, producer, and retraction metadata.
+then verifies enabled late-declaration delivery and permits either valid
+disabled-mode eligibility strategy. It then verifies callback-boundary
+suppression after unsubscribe. The directed-interaction variants apply the
+same rules to their target owner and current directed subscription. The
+timestamped interaction, directed-interaction, and attribute-update variants
+repeat the checks at the time-constrained grant boundary and verify applicable
+timestamp, order, transportation, producer, and retraction metadata.
+
+The promoted `cpp-tck.delay-subscription-evaluation-timestamped-regional-attribute-update`
+scenario adds regional attribute eligibility to the timestamped grant-boundary
+check. It establishes object discovery under a matching regional declaration,
+withdraws that declaration, sends an update, then restores it before the
+receiver's grant. Enabled delay evaluation must deliver that update with its
+source-region designator and timestamp metadata; when disabled, the standard
+permits either generation-time rejection or later filtering. A second update
+generated while subscribed is suppressed when the declaration is removed
+before its grant. The adapter supplies the dimensional FOM, switch FOM, and
+logical-time implementation; the portable source remains vendor-neutral. The
+case maps directly to §§8.1.8 and 8.1.10. Java's `java-tck.ddm` covers basic
+regional declaration and reflection behavior, not timestamped DSE interactions.
+
+The promoted `cpp-tck.delay-subscription-evaluation-timestamped-regional-interaction`
+scenario applies the same grant-boundary re-evaluation to region-qualified
+timestamped interactions. It sends the first interaction before a regional
+subscription exists, adds an overlapping declaration before the constrained
+grant, and requires enabled-switch delivery with timestamp, parameter, tag,
+transport, producer, order, retraction, and source-region metadata. Disabled
+mode is standard-permissive. A second interaction generated while subscribed
+is suppressed when the declaration is removed before its grant. The adapter
+supplies the dimensional FOM, switch FOM, endpoint, callback model, and logical
+time implementation; the source remains vendor-neutral. Its pinned DSE
+candidates map directly to §§8.1.8 and 8.1.10. Java's `java-tck.ddm` does not
+cover this timestamped DSE interaction behavior, so there is no direct Java
+scenario-ID counterpart.
 
 The promoted `cpp-tck.timestamped-default-region-attribute-alternate-advances`
 scenario complements the explicit-source alternate-advance cases with ordinary
@@ -3772,3 +3890,737 @@ The promoted `cpp-tck.data-element-contract` runner exposes the official
 C++ `DataElement` base clone, type, encoding, boundary, hash, and decode
 contract as an independently selectable, provider- and FOM-independent
 slice.
+
+## Current portable verification checkpoint — 2026-09-26
+
+The catalog and language-parity gates are green: 766 C++ scenarios are
+promoted with zero candidates, the Java catalog validates at 21 IDs, and each
+Java runner ID occurs exactly once in C++. The source-boundary validator is
+green. The service-report oracle includes inherited standard-MIM
+`HLAfederate` in all 50 parameter lists and decodes it to check the reported
+federate handle.
+
+Audit correction: the earlier full-matrix and 133-scenario HLAfloat64Time
+artifacts were produced from a reused CMake build whose `umbra_rti_DIR` and API
+include path still pointed to
+`.build-cpp-tck-current-package/package-install`, not
+`.build/package-tck-current`. The installed header hash matched the pinned
+IEEE header, but the provider target was stale. Do not count
+`.build/cpp-tck-verified-current-source.json`,
+`.build/cpp-tck-connection-loss-all-current.json`, or
+`.build/cpp-tck-float64-timestamped-matched-current.json` as evidence for the
+current package.
+
+A clean build at `.build/cpp-tck-float64-installed-20260925` now resolves both
+the imported provider target and API include directory to
+`.build/package-tck-current`; its TCK project has no other non-system include
+directory. The standard `RTIambassador.h` installed there hashes identically
+to the pinned IEEE header. Against this build, the focused float64 profile
+passed `cpp-tck.alternate-time-advances`,
+`cpp-tck.timestamped-attribute-update`, and
+`cpp-tck.timestamped-interactions` in both callback models (6/6), with a
+matching adapter model FOM. The first six adapter-managed connection-loss
+IDs also passed both callback models (12/12). Their artifacts are
+`.build/cpp-tck-current-float64-core-time.json` and
+`.build/cpp-tck-current-connection-loss-core.json`.
+
+The clean-package float64 run also passed a focused timestamped object-deletion
+slice: ordinary delivery, no-fanout, tombstone, source-resignation fanout,
+regulation disable/re-enable, and mixed advances, each with its contract twin.
+All 12 scenario IDs passed both callback models (24/24), and each per-scenario
+artifact under `.build/cpp-tck-current-cpp-tck-timestamped-object-deletion*.json`
+passed the promoted-evidence validator. This is a verified focused slice, not a
+full-matrix result.
+
+The timestamped-attribute update follow-on slice is green as well: no-fanout,
+alternate advances, flush-queue future input, re-enable, regulation
+disable/re-enable, ownership transfer, and queued passel retraction, each with
+its contract twin. All 14 IDs passed both callback models (28/28) and the
+promoted-evidence validator; their artifacts are under
+`.build/cpp-tck-current-cpp-tck-timestamped-attribute-update*.json`.
+
+The full catalogued FOM family is green on the clean package: all 26 FOM
+scenario IDs passed both callback models (52/52) and the promoted-evidence
+validator, covering module composition and atomic join/create failures, handle
+stability, invalid and empty MIM/modules, and the standard-invalid input
+corpus. Their per-scenario results use the `.build/cpp-tck-current-cpp-tck-fom-*.json`
+artifact prefix.
+
+Object-attribute declarations and subscriptions are green in a further focused
+slice: service-report declaration, ordinary subscription lifecycle, and
+multi-attribute subscription projection, each with its contract twin (6 IDs,
+12/12 callback runs and evidence validations).
+
+Ordinary standard-MIM service-report coverage is green for successful and
+failed object deletion and attribute update, plus interaction publication,
+subscription, and delivery; all seven scenarios and contract twins passed both
+callback models (14 IDs, 28/28), with promoted-evidence validation.
+
+Of the timestamped standard-MIM service-report family, directed interaction,
+attribute update, successful deletion, failed attribute update, interaction
+failure, and interaction delivery (each with its contract twin) passed and
+validated in both callback models (12 IDs, 24/24). The timestamped deletion
+failure scenario and its contract twin each fail in both models because the
+provider cannot reserve its selected report interaction; both per-scenario
+failure artifacts are under `.build/cpp-tck-current-cpp-tck-service-report-timestamped-delete-object-instance-failure*.json`.
+
+The complete 78-ID service-report family now has per-scenario outcomes: 74 IDs
+pass both callback models and the promoted-evidence validator; four IDs fail
+(base and contract cases for timestamped deletion failure and the reporting
+interlock). The interlock failure occurs at the active
+`subscribeInteractionClass` check: the provider returns `RTIinternalError`
+instead of `FederateServiceInvocationsAreBeingReportedViaMOM`.
+
+Additional clean-package float64 slices passed both callback models and the
+promoted-evidence validator: object registration/discovery and named
+registration (8 IDs, 16/16); ordinary receive-order attribute update and
+interaction delivery plus interaction publication/subscription lifecycle
+(8 IDs, 16/16); directed-interaction contracts, target lifecycle, subscription
+kind, publication/send fence, multi-recipient FIFO, and mixed-subscription
+fanout (11 IDs, 22/22); and federate, object-class, attribute, interaction-class,
+parameter, and dimension handle lookup with their contract twins (12 IDs,
+24/24). Together with the core time, connection-loss, and timestamped-deletion
+slices above, these groups account for 60 individually validated IDs. Their
+per-scenario artifacts are under
+`.build/cpp-tck-current-cpp-tck-*.json`.
+
+The synchronization-point and federation save/restore slices are also green on
+the clean package: federation lifecycle contract, synchronization registration
+and callback servicing, and synchronization MOM queries (7 IDs, 14/14); save
+and restore callback control, federation save/restore, save/restore interlocks,
+and restore abort, with contract twins (8 IDs, 16/16). All 15 IDs passed the
+promoted-evidence validator in both callback models and are included in the
+cumulative total below.
+
+The full `callback-controls` catalog family is also green: all 70 IDs, from
+object discovery/removal and name reservation through ownership, time, save/
+restore, timestamped delivery/retraction, advisories, and federation reports,
+passed both callback models and the promoted-evidence validator (140/140).
+
+The entire C++ catalog slice whose IDs cover ownership, acquisition, or
+divestiture is green as well: all 59 IDs have both-model passing evidence
+(118/118) and passed the promoted-evidence validator, including ordinary and
+negotiated transfer, cancellation races, resign cleanup, restore assumptions,
+regional-update transfer, and connection-loss cleanup. This inventory overlaps
+the focused groups above and is not an additional count of distinct IDs.
+
+The complete federation/federate MOM query family is green: all 40 catalog IDs
+covering FDD/content, save state, object inventory, update/interaction/reflection
+counters, and time-state reports passed both models and the promoted-evidence
+validator (80/80). Its count overlaps the focused groups above.
+
+The ordinary resignation cleanup slice is green too: delete-objects, multi-
+recipient removal FIFO, final-federate cleanup/name reuse, post-resignation
+service boundaries, and cancellation of pending if-available and negotiated
+acquisitions, each with its contract twin (12 IDs, 24/24 validated callback
+runs).
+
+Object/interaction boundaries are green in another focused slice: object
+registration-service boundaries, interaction FIFO and service boundaries,
+inherited interaction-class delivery, and directed interactions targeting a
+derived object instance, each with its contract twin (10 IDs, 20/20 validated
+callback runs).
+
+The non-regional timestamped-interaction slice is green: timestamped Send/Receive,
+queued delivery after producer resignation (single- and multi-recipient), mixed
+advances, Flush Queue future input, TSO designator terminalization, cross-producer
+ordering, no-fanout, retraction fanout, regulation disable/re-enable, and
+time-constrained re-enable, each with a contract twin. All 22 IDs passed both
+callback models (44/44); every per-scenario artifact under
+`.build/cpp-tck-current-cpp-tck-timestamped-interaction*.json` passed the
+promoted-evidence validator. These runs use `HLAfloat64Time` and the matched
+adapter model FOM. The base `timestamped-interactions` ID was already in the
+previous count, so this slice adds 21 distinct IDs.
+
+The ordinary transportation/order slice is green too. The base scenario,
+standard contract twin, and Java-parity ID `java-tck.transport-order` all ran
+against the installed package with `HLAfloat64Time` and the adapter model FOM;
+all three passed both callback models (6/6), and each artifact passed the
+promoted-evidence validator. The Java-parity ID maps to the same portable C++
+transport/order runner, preserving the shared scenario contract.
+
+The ordinary object-management and attribute-value request slice is green:
+`java-tck.object-management` and its C++ contract twin, the instance-level and
+object-class-level Request Attribute Value Update baselines and their contract
+twins, plus multi-requester and multi-attribute request/response with contract
+twins. All ten IDs passed both callback models (20/20), and each artifact passed
+the promoted-evidence validator. The Java-parity object-management ID is run by
+the same portable C++ scenario contract; provider and FOM selection remain in
+the adapter.
+
+The declaration-management parity slice is green: `java-tck.declaration-management`
+and the C++ contract twin cover object/interaction publication and withdrawal,
+active and passive subscriptions, and declaration lifecycle boundaries. Both
+IDs passed both callback models (4/4), and both artifacts passed the
+promoted-evidence validator.
+
+The non-regional custom-transportation delivery slice is green for ordinary
+attribute updates, ordinary interactions, and directed interactions, each with
+its contract twin. All six IDs passed both callback models (12/12), and every
+artifact passed the promoted-evidence validator. The FOM-defined transportation
+type and model FOM are selected by the adapter; the test runners use only the
+standard API surface.
+
+The timestamped non-regional custom-transportation slice is green for attribute
+updates and interaction delivery, each with its contract twin. All four IDs
+passed both callback models (8/8) and the promoted-evidence validator. The
+adapter supplies the logical-time implementation, transportation type, and
+model FOM.
+
+The custom-transportation alternate-advance slice is green for timestamped
+attribute updates and interactions through Flush Queue, Time Advance Request
+Available, and Next Message Request Available, each with its contract twin. All
+four IDs passed both callback models (8/8) and the promoted-evidence validator,
+using the adapter-selected `HLAfloat64Time` implementation and model FOM.
+
+The directed timestamped custom-transportation slice is green for directed
+interaction delivery and its alternate-advance variants, each with a contract
+twin. All four IDs passed both callback models (8/8) and the promoted-evidence
+validator, using the adapter-selected `HLAfloat64Time` implementation and model
+FOM.
+
+The regional ordinary custom-transportation slice is green for attribute and
+interaction delivery, each with a contract twin. All four IDs passed both
+callback models (8/8) and the promoted-evidence validator. Region data, the
+transportation type, and the DDM/FOM configuration come from the adapter.
+
+The timestamped regional custom-transportation slice is green for attribute
+reflection and interaction delivery, each with a contract twin. All four IDs
+passed both callback models (8/8) and the promoted-evidence validator. The
+adapter supplies `HLAfloat64Time`, region data, the transportation type, and the
+model FOM.
+
+The remaining ordinary object-management cases are green: attribute-value
+update response, named-registration lifecycle, and object-deletion service
+boundaries, each with its contract twin. All six IDs passed both callback
+models (12/12), and each evidence artifact validates.
+
+Federation-management follow-ons are green: the Java-parity federation
+membership ID, unnamed-join overload, and federation-list services with their
+contract twins. All five IDs passed both callback models (10/10); provider,
+endpoint, and FOM remain adapter choices.
+
+The connection slice is green across callback contract, connection-service
+boundaries, callback reentrancy, and the Java-parity overloads-and-exceptions
+ID. The three C++ base/contract pairs plus the parity ID cover six scenario IDs;
+all passed both callback models (12/12) and validate independently.
+
+The alternate-time-advance follow-on is green: the standard contract and the
+inclusive-GALT available-advance scenario with its contract twin. All three IDs
+passed both callback models (6/6) with adapter-selected float64 time and model
+FOM. Asynchronous-delivery base/contract and the Java-parity synchronization
+ID also passed both models (three IDs, 6/6); the C++ synchronization scenarios
+were already green.
+
+Save/restore parity and timed coverage are green: `java-tck.save-restore` and
+the timed federation save/restore base and contract IDs passed both callback
+models (6/6). The logical-time/time-advance slice is green as well: logical-time
+contract, factory-factory, logical-time data elements, Java-parity time factory
+and time advance, plus the C++ time-advance contract. All six IDs passed both
+models (12/12).
+
+The public support-service and standard order/transport lookup slice is green
+for the Java-parity support-services ID, its C++ contract twin, and the standard
+order/transport lookup pair (four IDs, 8/8). Handle encoding/decoding is green
+for wire formats and public handle decoding, each with a contract twin (four
+IDs, 8/8).
+
+The provider-independent API-surface gate is green across the Java API-surface
+inventory and eleven C++ contracts for variable-length data, exception
+hierarchy/boundaries, enums, handles and collections, configuration and
+authorization, authorizer factory, runtime identity, ambassador factory, and
+null federate ambassador. All 12 IDs passed both callback models (24/24).
+
+Ordinary attribute/interaction delivery and Request Attribute Value Update
+boundaries are green across the Java-parity attribute/interaction ID, its C++
+contract, and both service-boundary base/contract pairs (six IDs, 12/12).
+Object lifecycle coverage also gained the publication-registration fence and
+local deletion/rediscovery base/contract pairs (four IDs, 8/8). Next Message
+Request and GALT/LITS query boundaries passed in both models (four IDs, 8/8).
+
+Ordinary declaration edges, order controls, and transportation-type changes
+are green across the Java-parity ordinary-edges ID and contract, order-control
+base/contract, and transportation-change base/contract (six IDs, 12/12).
+Federation teardown isolation and its contract passed both models (two IDs,
+4/4). The custom-transportation delivery family now has all 26 IDs green
+(52/52 callback results), including the timestamped regional pair above.
+
+The declaration-relevance family is green across the Java-parity advisory case,
+its C++ contract, known-class enabled/disabled policy pairs, and regional
+advisories. All eight IDs passed both callback models (16/16). Delay Subscription
+Evaluation is also green through staged ordinary, timestamped, and regional
+gates: interaction, directed interaction, and attribute update in each applicable
+delivery mode, with contract twins. All 16 IDs passed both models (32/32).
+
+The provider-independent data-element encoding slice is green for the Java
+encoder round trip and the C++ data-element, basic, and composite contracts
+(four IDs, 8/8). Ownership parity and negotiated willing-to-acquire continuation
+are green as well: the Java ownership ID and the continuation base/contract
+passed both models (three IDs, 6/6).
+
+Ordinary Auto Provide is green for the solicitation/response baseline and both
+disabled-mode paths (discovery-only and explicit value request), each with its
+contract twin. All six IDs passed both models (12/12). Explicit standard-MIM
+federation creation and its contract also passed both models (two IDs, 4/4),
+using adapter-supplied MIM and FOM inputs.
+
+The full regional Auto Provide slice is green across response, timestamped
+response, overlap suppression, multi-source, multi-provider, and callback
+control, each with a contract twin. All 12 IDs passed both models (24/24); the
+adapter supplies the region/FOM configuration, time implementation, provider,
+and callback model.
+
+A further installed-package expansion covered the remaining 179 promoted IDs
+after the 543-ID checkpoint. It adds regional interaction management, region
+lifecycle and relaxed-DDM cases; regional object/value-request and ownership
+save/restore paths; receive-order FIFO/callback cancellation; timestamped
+directed interactions, attribute updates, deletion/retraction, alternate
+advances, and inherited delivery; regional and default-region timestamped
+attribute/interaction routing and lifecycle; and query/rate/order/lookahead,
+MOM, passive-subscription, advisory, and Java-parity edges. The promoted-ID
+inventory now has complete evoked and immediate result evidence for all 730
+IDs: 724 pass in both callback models (1,448 passing callback results), and the
+six reproducible provider failures below fail in both models. No promoted ID is
+unverified. This is 1,460 unique scenario/callback outcomes total; the focused
+and core-time copies of `cpp-tck.timestamped-interactions` are deduplicated by
+scenario ID and callback model. All passing per-scenario evidence validates,
+with zero catalog or source-boundary findings. The audit also confirmed that
+these runs use the clean installed-package target and its pinned standard API
+include root; the installed `RTIambassador.h` hash matches the pinned IEEE
+header.
+
+The clean full float64 run is not green. It stops at
+`cpp-tck.service-report-timestamped-delete-object-instance-failure`. The base
+case and contract twin fail in both callback models with
+`RTIinternalError: Umbra could not reserve the selected service-report
+interaction.` Isolated integer-time and matched-float64 runs reproduce the base
+failure. Evidence is in
+`.build/cpp-tck-installed-integer-service-report-failure.json`,
+`.build/cpp-tck-installed-float64-service-report-failure.json`, and the two
+per-scenario artifacts named above.
+
+The two service-report-interlock IDs also fail in both callback models with
+`RTIinternalError` instead of the standard `FederateServiceInvocationsAreBeingReportedViaMOM`
+exception from `subscribeInteractionClass`. Their artifacts are
+`.build/cpp-tck-current-cpp-tck-service-report-interlock.json` and
+`.build/cpp-tck-current-cpp-tck-service-report-interlock-contract.json`.
+
+The two adapter-managed `automatic-resign-directive-delete-objects` scenarios
+also fail in both callback models: the surviving federate receives the single
+removal callback, but a subsequent standard name lookup returns
+`RTIinternalError` instead of `ObjectInstanceNotKnown`. The base and contract
+artifacts are `.build/cpp-tck-current-automatic-resign-delete-failure.json`
+and `.build/cpp-tck-current-automatic-resign-delete-contract-failure.json`.
+These are provider-visible failures, not reasons to weaken the portable
+assertions.
+
+The failure-oracle audit confirms that the official API declares
+`ObjectInstanceNotKnown` for `getObjectInstanceHandle` and
+`FederateServiceInvocationsAreBeingReportedViaMOM` for
+`subscribeInteractionClass`; both test oracles match those public exception
+contracts. The provider-visible failures are not reasons to weaken the portable
+assertions.
+
+The fresh `hla_rti_cpp_tck` source build succeeded on 2026-09-26 after pinning
+the installed Windows SDK root/version and `TargetPlatformSdkPath`, while
+leaving normal Visual Studio toolset discovery enabled. This avoids MSBuild's
+otherwise denied per-user SDK metadata lookup; setting only
+`WindowsTargetPlatformVersion` was insufficient. On that rebuilt executable,
+`cpp-tck.connection-callback-contract`,
+`cpp-tck.configuration-and-authorization-contract`, and their Java-parity IDs
+`java-tck.overloads-and-exceptions` and `java-tck.api-surface-inventory` passed
+both callback models (8/8). The artifacts
+`.build/cpp-tck-current-credential-baseline.json` and
+`.build/cpp-tck-current-credential-parity.json` validate against the promoted
+catalog.
+
+The fresh installed-package CTest matrix nevertheless exercised all 720
+registered promoted IDs in both callback models (1,440 results): 716 IDs passed
+both models (1,432 passes), while four existing service-report IDs failed both
+models (eight failures). The failures are
+`cpp-tck.service-report-timestamped-delete-object-instance-failure` and its
+contract twin, plus `cpp-tck.service-report-interlock` and its contract twin.
+`ctest --rerun-failed` reproduced the same provider-visible failure oracles.
+The eight connection-loss IDs omitted from CTest were then run through the
+Python process adapter against the same installed-package executable. The six
+cleanup, automatic-divestiture, and pending-acquisition scenarios passed both
+models (12/12), recorded in
+`.build/cpp-tck-current-connection-loss-core-20260926.json`. The two
+automatic-resign deletion scenarios failed both models (4/4) with
+`RTIinternalError` instead of `ObjectInstanceNotKnown`; their evidence is in
+`.build/cpp-tck-current-automatic-resign-delete-20260926.json` and
+`.build/cpp-tck-current-automatic-resign-delete-contract-20260926.json`. These
+split runs now provide fresh evidence for all 730 IDs and 1,460 callback-model
+outcomes: 724 IDs pass both models, six known provider failures fail both, and
+no promoted ID is unverified. The CTest transcript is
+`.build/cpp-tck-current-registered-matrix-20260926.log`. The process fixture
+and installed package use identical `umbra_rti.lib` content (SHA-256
+`a22c9f896d8d651cfc83e63e6a96154b62fb02b0901dac930b8a4bad0feeb6e5`).
+
+A focused follow-up on that rebuilt executable ran six existing scenarios under
+both callback models (12/12): `cpp-tck.attribute-relevance-rate-reissue` and
+its contract twin, `java-tck.relevance-advisories` and its C++ contract twin,
+and the callback-controls advisory scenario and its contract twin. The result
+artifacts `.build/cpp-tck-current-update-rate-callback.json` and
+`.build/cpp-tck-current-update-rate-callback-followup.json` both validate
+against the promoted catalog. These are fresh verification runs of existing
+IDs, not additional scenarios.
+
+The source-surface audit found all 165 distinct `RTIambassador` method names and
+the declared argument-count shapes represented in the runner. This is a
+textual-use check, not behavioral coverage or proof that same-arity overloads
+have distinct tests. A parallel header-to-catalog scan found all 56 distinct
+`FederateAmbassador` callback names in catalog `api_methods`; that is likewise
+only a name-level crosswalk, not evidence every overload is delivered. For the
+rate-designator `turnUpdatesOnForObjectInstance` callback, a targeted source and
+header audit now distinguishes that overload in the six rate/advisory catalog
+rows; the focused reruns above verify its named-rate behavior under both
+callback models for all six scenarios. A remaining semantic candidate is
+credentialed connection:
+the connection scenario exercises all four `connect` overload shapes, but uses
+`HLAnoCredentials` whenever a credential argument is supplied. The
+configuration/authorization contract checks `HLAnoCredentials`,
+`HLAplainTextPassword`, and custom `Credentials` as value objects, but does not
+pass non-empty credentials to `connect`. Current runner adapter options expose
+configuration name, RTI address, and additional settings, but no credential
+payload or credential-profile input.
+
+The Java `overloads-and-exceptions` runner has the same gap: its credential-
+bearing overloads also use only `HLAnoCredentials`. No current Java or C++ case
+passes non-empty credentials through `connect`. There is a provider Catch2 case
+for rejecting supplied credentials when authorization is disabled, but its
+Requirements Lab record classifies it as internal implementation evidence, not
+conformance evidence; its clause provenance also has documented source-export
+drift. Do not lift that oracle or mapping directly into the portable TCK.
+
+The official C++ API header exposes `HLAplainTextPassword` construction from
+encoded bytes and `decode()`, but does not specify malformed-payload exception
+semantics in its API comments. The provider Catch2 checks for `EncoderException`
+on truncated, trailing, or malformed Unicode payloads therefore remain
+provider-internal and are not portable TCK oracles unless the exact normative
+text is independently confirmed.
+
+The existing positive credential contract now also round-trips `p\u00E4ss`
+through `HLAplainTextPassword` and checks its bytes against `HLAunicodeString`
+encoding. The rebuilt installed-package TCK passed
+`cpp-tck.configuration-and-authorization-contract` in both callback models
+(2/2); the focused evidence is
+`.build/cpp-tck-current-password-unicode-20260926.json` with JUnit sibling
+`.build/cpp-tck-current-password-unicode-20260926.xml`.
+
+A header/catalog cross-check found four ownership save/restore scenarios using
+the incorrect callback label
+`FederateAmbassador.attributeOwnershipAcquisitionCancellation`. The official
+callback is `FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation`,
+which the TCK records and asserts; all four affected scenarios passed both
+callback models (8/8) after correcting their catalog API inventories. Evidence:
+`.build/cpp-tck-current-ownership-callback-labels-20260926.json`.
+The base ordinary acquisition-cancellation case is also a Java-parity slice:
+`java-tck.ownership` invokes `cancelAttributeOwnershipAcquisition` and checks
+the standard cancellation-confirmation callback, so the catalog's previous
+no-Java-counterpart classification was corrected. The C++ base and contract
+IDs both passed in both callback models (4/4):
+`.build/cpp-tck-current-acquisition-cancellation-parity-20260926.json`.
+
+The official-header overload audit found that whole-class and explicit-set
+forms of `unpublishObjectClassDirectedInteractions` and
+`unsubscribeObjectClassDirectedInteractions` were behaviorally exercised but
+not distinguished in the catalog. The service-report declaration/publication
+base cases and their contract twins now identify both exact standard C++
+signatures. All 15 overloaded official `RTIambassador` methods now have
+distinct catalog variants. The ordinary directed-interaction base/contract
+pair passed both callback models (4/4), and the four service-report
+base/contract scenarios passed both models (8/8), against the installed
+package. Evidence is in
+`.build/cpp-tck-current-directed-declaration-overloads-20260926.json` and
+`.build/cpp-tck-current-directed-overloads-service-reports-20260926.json`.
+The C++ catalog remains valid at 740 promoted IDs with no candidates; the
+Java catalog remains valid at 21 IDs.
+
+The source-only synchronization-point audit identified an observable standard
+boundary not isolated by the existing shared synchronization scenario: a
+federate joining after an explicit synchronization set is registered cannot
+achieve that label. The new pure C++ scenario checks the synchronous
+`SynchronizationPointLabelNotAnnounced` exception, then confirms the explicit
+set can still complete; it does not infer failure from callback silence. Its
+base and contract IDs passed both callback models (4/4) against the installed
+package in `.build/cpp-tck-current-sync-explicit-late-join-20260926.json`. This
+is C++-only for now: the Java scenario covers an excluded member that was
+already joined when the set was registered, not this late-join boundary.
+
+The negotiated-ownership save/restore scenario uses only standard API calls:
+it completes a transfer before saving, restores, resolves the object by its
+standard instance name, and verifies the restored owner using both local
+ownership checks and `queryAttributeOwnership`. It does not inspect save-image
+bytes, depend on a private registry, or assert callback silence. Both scenario
+IDs pass in evoked and immediate modes (4/4 CTest; 4/4 direct results).
+
+The pending negotiated-ownership save/restore scenario preserves an outstanding
+acquisition request and owner confirmation across the standard save/restore
+lifecycle, then confirms the divestiture after restore and verifies the
+notification, ownership checks, and owner query. The evoked model uses
+`attributeOwnershipAcquisitionIfAvailable`; immediate delivery uses the regular
+pending acquisition service because an unavailable If Available request is
+reported inline in that callback model. The base/contract pair passed both
+models (4/4 CTest and direct results) against the installed package. It uses
+only standard API services and callbacks and makes no save-image, private
+registry, or callback-silence assertions.
+
+The ownership-acquisition-cancellation save/restore pair checks that a pending
+acquisition cancellation confirmation is delivered once across the standard
+save/restore lifecycle, with no transfer and unchanged owner-query results.
+The If Available restore pair separately checks delivery of the standard
+`attributeOwnershipUnavailable` callback after restore when the current owner
+retains the attribute. Both pairs use adapter-supplied provider/FOM settings and
+only standard API calls; each passed 4/4 callback-model CTest and direct cases.
+The combined four-pair lane passed 16/16 in both reports linked above.
+
+The no-authorizer `connect` audit found no missing portable case: the existing
+connection scenario exercises both uncredentialed overloads, the credentials
+overloads with standard `HLAnoCredentials`, and the adapter-configuration form.
+The standard API header identifies these under §4.2, and the promoted connection
+service-boundaries pair already covers them in the installed-package lane; no
+duplicate ID was added.
+
+The standard-MIM, non-region dimension service-report slice now includes
+successful `GetDimensionHandle`, `GetDimensionName`,
+`GetDimensionUpperBound`, `GetAvailableDimensionsForInteractionClass`, and
+`GetAvailableDimensionsForObjectClass` base and contract scenarios. Each pair
+uses the adapter's provider/FOM/endpoint/callback configuration and only the
+public IEEE C++ API; it checks the API result and typed
+`HLAreportServiceInvocation` payload, including service type, quoted handle/name
+values or dimension sets where required, serial zero, reliable delivery, and
+reporting federate. The direct normative mapping is §§11.5 and 11.5.1, with
+federation setup covered by the existing federation-execution contract. All ten
+scenario IDs passed both callback models against the installed package (20/20).
+Combined evidence is `.build/cpp-tck-service-report-dimension-queries-20260926.json`
+with its JUnit sibling. This is focused evidence, not a full-matrix result.
+
+The bounded lookup-matrix cross-check also confirms existing portable cases for
+`GetKnownObjectClassHandle`, `GetObjectInstanceHandle`, `GetObjectInstanceName`,
+`GetAttributeHandle`, `GetAttributeName`, and both update-rate queries. The
+remaining successful DDM lookup, `GetDimensionHandleSet`, now has a separate
+base/contract pair. It creates a standard one-dimension region only to query its
+dimension set, checks the typed success report including inherited
+`HLAfederate` reporter identity, and makes no regional routing assertion. The
+pair passed both callback models in CTest and the direct process lane (4/4 each)
+against `.build/package-tck-current`; its evidence is
+`.build/cpp-tck-service-report-dimension-query-family-verified-20260926.json`
+and the JUnit sibling, both accepted by the promoted-evidence validator. With
+the five existing non-region dimension-query/report pairs, this completes the
+six-operation, 12-ID dimension-query/report family (24/24 CTest cases and
+24/24 direct callback-model runs). The new `GetRangeBounds` base/contract pair
+uses a committed one-dimension region range, checks both the standard API result
+and typed MOM success report (including the inherited `HLAfederate` reporter),
+and makes no regional-routing assertion. It passed both callback models in
+CTest and the direct process lane (4/4 each) against
+`.build/package-tck-current`; its evidence is
+`.build/cpp-tck-service-report-range-bounds-corrected-20260926.json` and the
+JUnit sibling. Together the seven standard dimension/range query-report
+operations now comprise 14 scenario IDs and passed 28/28 focused CTest cases
+and 28/28 direct callback-model runs. The new `SetRangeBounds` validation
+base/contract pair separately accepts `[0, dimension upper bound]` and requires
+the standard `InvalidRangeBound` exception for equal and reversed endpoints.
+It asserts no MOM failure payload and passed 4/4 focused CTest cases and 4/4
+direct callback-model runs against `.build/package-tck-current`; evidence is
+`.build/cpp-tck-region-range-validation-candidate-20260926.json` and its JUnit
+sibling. The range-dimension membership base/contract pair confirms that both
+`GetRangeBounds` and `SetRangeBounds` throw the standard
+`RegionDoesNotContainSpecifiedDimension` for a handle absent from the region.
+It passed 4/4 focused CTest cases and 4/4 direct callback-model runs against
+`.build/package-tck-current`; evidence is
+`.build/cpp-tck-region-range-dimension-validation-candidate-20260926.json` and
+its JUnit sibling. These API scenarios assert no MOM failure payload. The
+successful `SetRangeBounds` service-report base/contract pair checks the
+standard region service type, four typed supplied arguments, the null return
+marker, serial zero, reliable delivery, and inherited `HLAfederate` identity.
+It passed 4/4 focused CTest cases and 4/4 direct callback-model runs against
+`.build/package-tck-current`; evidence is
+`.build/cpp-tck-service-report-set-range-bounds-candidate-20260926.json` and its
+JUnit sibling. The full region-query, range-validation, and service-report
+slice now has 20 IDs, 40/40 focused CTest cases, and 40/40 direct callback-model
+runs. The successful `CommitRegionModifications` service-report base/contract
+pair checks the standard region-set argument, null return marker, success and
+empty-exception fields, serial zero, region service type 5, reliable delivery,
+and inherited `HLAfederate` identity. It passed 4/4 focused CTest cases and 4/4
+direct callback-model runs against `.build/package-tck-current`; evidence is
+`.build/cpp-tck-service-report-commit-region-modifications-candidate-20260926.json`
+and its JUnit sibling. The successful `DeleteRegion` service-report
+base/contract pair checks the standard region-designator argument, null return
+marker, success and empty-exception fields, serial zero, region service type 5,
+reliable delivery, and inherited `HLAfederate` identity. It also verifies that
+the deleted region is no longer queryable through the standard API. Both
+callback models passed all four focused CTest cases and all four direct runs
+against `.build/package-tck-current`; evidence is in
+`.build/cpp-tck-service-report-delete-region-candidate-20260926.json` and its
+JUnit sibling. The successful `CreateRegion` service-report base/contract pair
+checks the standard set-of-dimension-designators argument (type 11), returned
+region designator (type 42), success and empty-exception fields, serial zero,
+region service type 5, reliable delivery, and inherited `HLAfederate` identity.
+It then disables reporting and deletes the region through the standard API.
+Both callback models passed all four focused CTest cases and all four direct
+runs against `.build/package-tck-current`; evidence is in
+`.build/cpp-tck-service-report-create-region-candidate-20260926.json` and its
+JUnit sibling. The combined region-query, validation, and successful
+service-report slice now has 26 IDs, 52/52 focused CTest cases, and 52/52 direct
+callback-model runs. Continue excluding conditional failure-report payload
+details absent a row-level mapping.
+
+The next installed-package slice promoted the pure standard-MIM
+`QueryAttributeOwnership` and `CancelAttributeOwnershipAcquisition` report pairs.
+The Query pair covers clauses 7.17.5, 7.18.4, and 11.5/11.5.1/11.5.2/11.5.2.1;
+the cancellation pair covers 7.15, 7.16, and 11.5/11.5.2/11.5.2.1. They verify
+the standard report identity and payload, successful-void result, empty
+exception, serial zero, reliable delivery, and the corresponding standard
+ownership result/confirmation callbacks. Together the four promoted IDs passed
+8/8 focused CTest cases and 8/8 direct callback-model runs against the installed
+package. Their contracts explicitly leave the inherited `HLAfederate` value
+undecoded. The catalog now has 772 promoted IDs and no candidates; the
+two-model per-ID audit has 766 IDs passing and six known provider failures.
+
+The promoted `cpp-tck.joined-federate-mom-object-lifecycle` pair now covers
+ordinary discovery, reflected federate identity and Join-scoped FOM designators,
+known-object value requests, public object-name lookups, and removal on resign.
+The installed-package focused CTest matrix passed 4/4 cases and direct evidence
+passed both callback models for both IDs. It is a C++-only extension for now;
+the Java TCK has no matching scenario.
+
+A trial for a provider-side `ProvideAttributeValueUpdate` MOM interaction was
+not retained: the standard callback arrived, but the installed package emitted
+no such `HLAreportServiceInvocation` in either callback model. The native oracle
+checks a separate service-report-file effect, for which the portable suite has
+no mapped file-format contract. This is not counted as a TCK failure or a
+promoted scenario.
+
+The promoted `cpp-tck.service-report-resign-federation-execution` pair now
+invokes `resignFederationExecution` through the public API and checks the
+observer's standard `HLAreportServiceInvocation`. It verifies all eight report
+parameters are present, the service name and type, success and empty exception,
+reliable delivery, a nonnegative serial, and the original joined federate
+identity. The forced `FederateResigned` native test remains intentionally
+untranslated because its trigger is a private RTI-side hook. Both new IDs passed
+4/4 focused CTest cases and 4/4 direct callback-model runs against
+`.build/package-tck-current`; evidence is in
+`.build/cpp-tck-service-report-resign-promoted-20260926.json` and its JUnit
+sibling. The catalog now has 788 promoted IDs and 2 candidates; 782 promoted
+IDs pass both callback models and six known provider failures remain. The
+`HLAreportFederateLost` candidate pair uses only standard C++ API calls in the
+portable source and maps to the exact IEEE 1516.2-2025 standard MIM element
+`HLAreportFederateLost`; loss injection stays in the process adapter. The
+installed-package connection-loss baseline passes in both callback models,
+but the candidate fails during federation creation with
+`RTIinternalError: resource deadlock would occur`. This was reproduced with
+`createFederationExecutionWithMIM` using application FOM plus MIM, ordinary
+`createFederationExecution` using the adapter-supplied FOM and MIM modules, and
+`createFederationExecutionWithMIM` using an empty application-FOM list with the
+standard MIM alone. Each failure occurs before join, fault injection, or report
+delivery, so it is not a report-delivery verdict. Keep both IDs unpromoted
+until a standard-MIM process execution can be created and the full scenario
+passes both callback models. The adapter baseline and candidate
+outputs are in `.build/cpp-tck-federate-lost-report-20260926/connection-loss-baseline-both.json`,
+`federate-lost-report-results.json`, `federate-lost-report-evoked.json`, and
+`federate-lost-report-mim-only.json` with its JUnit sibling.
+
+The promoted `cpp-tck.handle-normalization-membership-boundaries` pair fills
+the missing call-state checks for `normalizeServiceGroup` and the four handle
+normalizers (§§10.29–10.33). It supplies the valid `SUPPORT_SERVICES` group and
+valid peer handles to a disconnected ambassador (`NotConnected`) and to a
+connected, non-member ambassador both before joining and after resigning
+(`FederateNotExecutionMember`); it makes no assertion about handle encoding or
+provider-specific normalization values. Both IDs passed in evoked
+and immediate callback models (4/4) against the installed package. The focused
+build, catalog validation, official-API audit, Java parity audit, and CTest
+smoke/exception-contract selectors passed. Evidence is in
+`.build/cpp-tck-federate-lost-report-20260926/handle-normalization-boundaries-both.json`
+and its JUnit sibling.
+
+The promoted `cpp-tck.dimension-lookup-valid-handles-after-resignation` pair
+checks `FederateNotExecutionMember` after resignation, while still connected,
+for `getDimensionName`, `getDimensionUpperBound`, and both available-class-
+dimensions services (§§10.21–10.25). The dimension and class handles are first
+verified valid against the adapter-supplied DDM FOM, avoiding invalid-handle
+precedence. Both IDs passed both callback models (4/4) against the installed
+package; evidence is in
+`.build/cpp-tck-federate-lost-report-20260926/dimension-lookup-valid-handles-after-resignation-both.json`
+and its JUnit sibling.
+
+The promoted `cpp-tck.update-rate-lookup-valid-inputs-after-resignation` pair
+checks `FederateNotExecutionMember` after resignation, while still connected,
+for `getUpdateRateValue` and `getUpdateRateValueForAttribute` (§§10.11–10.12).
+The adapter-supplied rate FOM and named subscription first prove the designator,
+known object, and defined attribute are valid while joined, isolating membership
+as the changed condition. Both IDs passed all four focused CTest cases and all
+four direct callback-model cases against the installed package; evidence is in
+`.build/cpp-tck-federate-lost-report-20260926/update-rate-lookup-valid-inputs-after-resignation-both.json`
+and its JUnit sibling.
+
+The promoted `cpp-tck.support-lookup-valid-inputs-after-resignation` pair
+checks `FederateNotExecutionMember` after resignation for valid object-class,
+attribute, interaction-class, and parameter handle/name lookups (§§10.4–10.5,
+10.9–10.10, 10.13–10.16). Adapter-supplied FOM and member names first prove all
+eight lookups round-trip while joined. Both IDs passed all four focused CTest
+cases and all four direct callback-model cases against the installed package;
+evidence is in
+`.build/cpp-tck-federate-lost-report-20260926/support-lookup-valid-inputs-after-resignation-both.json`
+and its JUnit sibling.
+
+The promoted `cpp-tck.standard-order-transport-lookups-after-resignation` pair
+checks valid standard Receive/TimeStamp order and HLAreliable/HLAbestEffort
+transportation lookups after resignation (§§10.17–10.20). Each standard name
+and handle is first round-tripped while joined. Both IDs passed all four focused
+CTest cases and all four direct callback-model cases against the installed
+package; evidence is in
+`.build/cpp-tck-federate-lost-report-20260926/standard-order-transport-lookups-after-resignation-both.json`
+and its JUnit sibling.
+
+The promoted `cpp-tck.object-attribute-declarations-valid-inputs-after-resignation`
+pair checks `FederateNotExecutionMember` after resignation for six ordinary
+object-class/attribute publication and subscription services (§§5.2–5.3,
+5.8–5.9). The adapter FOM provides class/member names; each service is also
+successfully exercised while joined before the same valid handles and attribute
+set are reused after resignation. Both IDs passed all four focused CTest cases
+and all four direct callback-model cases; evidence is in
+`.build/cpp-tck-federate-lost-report-20260926/object-attribute-declarations-valid-inputs-after-resignation-both.json`
+and its JUnit sibling.
+
+The promoted `cpp-tck.interaction-declarations-valid-inputs-after-resignation`
+pair applies the same valid-input boundary to interaction publish, unpublish,
+subscribe, and unsubscribe (§§5.4–5.5, 5.10–5.11). The adapter-supplied
+interaction class is first resolved and used successfully while joined. Both
+IDs passed all four focused CTest cases and all four direct callback-model
+cases; evidence is in
+`.build/cpp-tck-federate-lost-report-20260926/interaction-declarations-valid-inputs-after-resignation-both.json`
+and its JUnit sibling.
+
+The adapter inventory confirms `current-process` is the only installed-package
+fault-injection adapter; `current-package` is the build/integration profile,
+not an alternate process-loss source. The three standard-MIM creation
+configurations above cover the available public setup choices for this profile;
+park this pair until a MIM-enabled execution can be created. Do not reinterpret
+the setup failure as a conformance failure or weaken the report assertions.
+
+The Java parity audit found all 21 registered Java TCK IDs in the C++ catalog.
+Run `python tools/audit_cpp_java_tck_parity.py` after either catalog or Java
+runner changes. A fresh installed-package run of
+`java-tck.federation-membership` passed evoked and immediate callback models
+(2/2); its JSON and JUnit evidence are in
+`.build/cpp-tck-federate-lost-report-20260926/federation-membership-parity-both.json`
+and `.build/cpp-tck-federate-lost-report-20260926/federation-membership-parity-both.xml`.
+The native-to-portable survey (`python tools/survey_cpp_tck_native_gaps.py`)
+found zero confidently portable candidates among 297 native Catch2 files; do
+not translate unmatched tests that close over private helpers. Next handoff:
+audit class-scoped directed-interaction publication/subscription lifecycle
+services after resignation using valid adapter-FOM handles; map each assertion
+to the official API header, and keep region-qualified DDM overloads out of that
+slice.
+Continue excluding conditional DDM failure-payload detail until it has its own
+row-level mapping.
+The open RL-257 `Credentials` candidate remains excluded until its incomplete
+Table 5 extraction can be checked against the licensed IEEE text; do not infer
+that encoding. The ownership-service audit is complete, with provider-internal
+pending-query restore and callback-queue persistence still excluded from
+portable evidence.
+Java parity for the explicit late-join synchronization boundary remains pending
+until a current Java API/provider JAR is available. The six known provider
+failures remain separate; do not weaken their assertions or claim the package
+gate is fully green.

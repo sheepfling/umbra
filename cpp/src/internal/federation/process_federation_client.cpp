@@ -1,7 +1,10 @@
 #include "internal/federation/process_federation_client.hpp"
 
+#include <RTI/Exception.h>
+
 #include <algorithm>
 #include <limits>
+#include <type_traits>
 #include <utility>
 
 namespace umbra::detail {
@@ -17,6 +20,8 @@ namespace {
       return "invalid-request";
     case TransportServiceStatus::internal_error:
       return "internal-error";
+    case TransportServiceStatus::service_reporting_interlock:
+      return "service-reporting-interlock";
   }
   return "unknown";
 }
@@ -26,6 +31,16 @@ namespace {
   switch (operation) {
     case TransportServiceOperation::create_federation_execution:
       return "create-federation-execution";
+    case TransportServiceOperation::destroy_federation_execution:
+      return "destroy-federation-execution";
+    case TransportServiceOperation::unpublish_object_class_attributes:
+      return "unpublish-object-class-attributes";
+    case TransportServiceOperation::unpublish_object_class:
+      return "unpublish-object-class";
+    case TransportServiceOperation::get_update_rate_value:
+      return "get-update-rate-value";
+    case TransportServiceOperation::get_update_rate_value_for_attribute:
+      return "get-update-rate-value-for-attribute";
     case TransportServiceOperation::join_federation_execution:
       return "join-federation-execution";
     case TransportServiceOperation::resign_federation_execution:
@@ -78,6 +93,8 @@ namespace {
       return "get-available-dimensions-for-interaction-class";
     case TransportServiceOperation::get_convey_region_designator_sets_switch:
       return "get-convey-region-designator-sets-switch";
+    case TransportServiceOperation::get_allow_relaxed_ddm_switch:
+      return "get-allow-relaxed-ddm-switch";
     case TransportServiceOperation::set_convey_region_designator_sets_switch:
       return "set-convey-region-designator-sets-switch";
     case TransportServiceOperation::subscribe_interaction_class_with_regions:
@@ -162,6 +179,8 @@ namespace {
       return "get-attribute-scope-advisory-switch";
     case TransportServiceOperation::set_attribute_scope_advisory_switch:
       return "set-attribute-scope-advisory-switch";
+    case TransportServiceOperation::get_object_class_relevance_advisory_switch:
+      return "get-object-class-relevance-advisory-switch";
     case TransportServiceOperation::associate_regions_for_updates:
       return "associate-regions-for-updates";
     case TransportServiceOperation::unassociate_regions_for_updates:
@@ -170,6 +189,8 @@ namespace {
       return "get-attribute-relevance-advisory-switch";
     case TransportServiceOperation::set_attribute_relevance_advisory_switch:
       return "set-attribute-relevance-advisory-switch";
+    case TransportServiceOperation::get_interaction_relevance_advisory_switch:
+      return "get-interaction-relevance-advisory-switch";
     case TransportServiceOperation::publish_object_class_directed_interactions:
       return "publish-object-class-directed-interactions";
     case TransportServiceOperation::unpublish_object_class_directed_interactions:
@@ -269,6 +290,28 @@ namespace {
       return "abort-federation-restore";
     case TransportServiceOperation::query_federation_restore_status:
       return "query-federation-restore-status";
+    case TransportServiceOperation::get_service_reporting_switch:
+      return "get-service-reporting-switch";
+    case TransportServiceOperation::set_service_reporting_switch:
+      return "set-service-reporting-switch";
+    case TransportServiceOperation::get_exception_reporting_switch:
+      return "get-exception-reporting-switch";
+    case TransportServiceOperation::set_exception_reporting_switch:
+      return "set-exception-reporting-switch";
+    case TransportServiceOperation::report_service_exception:
+      return "report-service-exception";
+    case TransportServiceOperation::report_failed_service_invocation:
+      return "report-failed-service-invocation";
+    case TransportServiceOperation::report_successful_service_invocation:
+      return "report-successful-service-invocation";
+    case TransportServiceOperation::report_successful_void_service_invocation:
+      return "report-successful-void-service-invocation";
+    case TransportServiceOperation::recheck_exception_report:
+      return "recheck-exception-report";
+    case TransportServiceOperation::get_send_service_reports_to_file_switch:
+      return "get-send-service-reports-to-file-switch";
+    case TransportServiceOperation::set_send_service_reports_to_file_switch:
+      return "set-send-service-reports-to-file-switch";
   }
   return "unknown";
 }
@@ -288,16 +331,28 @@ ProcessFederationClient::ProcessFederationClient(
     std::shared_ptr<RuntimeInstrumentation> instrumentation,
     FailureHandler failureHandler,
     ForcedResignationHandler forcedResignationHandler)
-    : connection_(ProcessTransportConnection::connectClient(
+    : failureHandler_(failureHandler ? std::move(failureHandler)
+                                    : FailureHandler{[](std::wstring) {}}),
+      connection_(ProcessTransportConnection::connectClient(
           this,
           std::move(address),
           std::move(localIdentity),
-          failureHandler ? std::move(failureHandler)
-                         : FailureHandler{[](std::wstring) {}},
+          [this](std::wstring description) {
+            bool dispatchNow = false;
+            {
+              std::scoped_lock lock(transactionMutex_);
+              pendingTransportFailures_.push_back(std::move(description));
+              dispatchNow = requestDepth_ == 0U;
+            }
+            if (dispatchNow) {
+              dispatchTransportFailures();
+            }
+          },
           forcedResignationHandler
               ? std::move(forcedResignationHandler)
               : ForcedResignationHandler{[](std::wstring) { return false; }},
           std::move(instrumentation))),
+      shutdownConnection_(connection_),
       session_(std::make_unique<ProcessTransportSession>(connection_)),
       attributeRelevanceAdvisorySwitchState_(
           std::make_shared<std::atomic_bool>(true)) {}
@@ -325,11 +380,39 @@ void ProcessFederationClient::createFederationExecution(
   }
 }
 
+ProcessFederationDestroyResult
+ProcessFederationClient::destroyFederationExecution(
+    std::wstring federationName) {
+  auto response = request(
+      TransportServiceOperation::destroy_federation_execution,
+      encodeProcessFederationDestroyRequest(
+          ProcessFederationDestroyRequest{std::move(federationName)}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationDestroyResult(response.payload);
+}
+
 ProcessFederationJoinResult ProcessFederationClient::joinFederationExecution(
     std::wstring federationName,
     std::wstring federateType,
     std::optional<std::wstring> requestedFederateName,
     std::vector<std::wstring> additionalFomModules) {
+  return joinFederationExecution(
+      std::move(federationName),
+      std::move(federateType),
+      std::move(requestedFederateName),
+      std::move(additionalFomModules),
+      ProcessFederationJoinConnectionSnapshot{});
+}
+
+ProcessFederationJoinResult ProcessFederationClient::joinFederationExecution(
+    std::wstring federationName,
+    std::wstring federateType,
+    std::optional<std::wstring> requestedFederateName,
+    std::vector<std::wstring> additionalFomModules,
+    ProcessFederationJoinConnectionSnapshot connection) {
   auto joinedFederationName = federationName;
   auto response = request(
       TransportServiceOperation::join_federation_execution,
@@ -338,12 +421,17 @@ ProcessFederationJoinResult ProcessFederationClient::joinFederationExecution(
               std::move(federationName),
               std::move(federateType),
               std::move(requestedFederateName),
-              std::move(additionalFomModules)}));
+              std::move(additionalFomModules),
+              std::move(connection)}));
   if (response.status != TransportServiceStatus::ok) {
     throw ProcessFederationClientError(
         requestFailure(response.operation, response.status));
   }
   auto result = decodeProcessFederationJoinResult(response.payload);
+  std::scoped_lock lock(transactionMutex_);
+  if (!session_) {
+    throw ProcessFederationClientError("A process federation join completed after close.");
+  }
   joinedFederationName_ = std::move(joinedFederationName);
   joinedFederateId_ = result.federateId;
   return result;
@@ -363,11 +451,19 @@ void ProcessFederationClient::resignFederationExecution(
     throw ProcessFederationClientError(
         requestFailure(response.operation, response.status));
   }
-  if (joinedFederationName_ &&
-      *joinedFederationName_ == resignedFederationName &&
-      joinedFederateId_ == federateId) {
-    joinedFederationName_.reset();
-    joinedFederateId_ = 0U;
+  std::shared_ptr<ProcessFederationCallbackBridge> bridge;
+  {
+    std::scoped_lock lock(transactionMutex_);
+    if (joinedFederationName_ &&
+        *joinedFederationName_ == resignedFederationName &&
+        joinedFederateId_ == federateId) {
+      joinedFederationName_.reset();
+      joinedFederateId_ = 0U;
+      bridge = callbackBridge_;
+    }
+  }
+  if (bridge) {
+    bridge->cancelExceptionReportProjections();
   }
 }
 
@@ -627,6 +723,213 @@ void ProcessFederationClient::setAutomaticResignDirective(
       encodeProcessFederationResignRequest(
           ProcessFederationResignRequest{
               std::move(federationName), federateId, resignAction}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  static_cast<void>(decodeProcessFederationBooleanResult(response.payload));
+}
+
+bool ProcessFederationClient::getServiceReportingSwitch(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::get_service_reporting_switch,
+      encodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          ProcessFederationAttributeScopeAdvisorySwitchRequest{
+              std::move(federationName), federateId, false}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationBooleanResult(response.payload).value;
+}
+
+void ProcessFederationClient::setServiceReportingSwitch(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    bool switchValue) {
+  auto response = request(
+      TransportServiceOperation::set_service_reporting_switch,
+      encodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          ProcessFederationAttributeScopeAdvisorySwitchRequest{
+              std::move(federationName), federateId, switchValue}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  static_cast<void>(decodeProcessFederationBooleanResult(response.payload));
+}
+
+ProcessFederationExceptionReportingSwitchResult
+ProcessFederationClient::getExceptionReportingSwitch(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::get_exception_reporting_switch,
+      encodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          ProcessFederationAttributeScopeAdvisorySwitchRequest{
+              std::move(federationName), federateId, false}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationExceptionReportingSwitchResult(response.payload);
+}
+
+void ProcessFederationClient::reportServiceException(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    std::wstring service,
+    std::wstring exception) {
+  auto const response = request(
+      TransportServiceOperation::report_service_exception,
+      encodeProcessFederationServiceExceptionRequest({
+          std::move(federationName), federateId,
+          std::move(service), std::move(exception)}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+}
+
+void ProcessFederationClient::reportFailedServiceInvocation(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    MomServiceType serviceType,
+    std::wstring service,
+    std::vector<MomServiceArgument> suppliedArguments,
+    std::wstring exception) {
+  auto const response = request(
+      TransportServiceOperation::report_failed_service_invocation,
+      encodeProcessFederationFailedServiceInvocationRequest({
+          std::move(federationName), federateId, serviceType,
+          std::move(service), std::move(suppliedArguments),
+          std::move(exception)}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+}
+
+void ProcessFederationClient::reportSuccessfulServiceInvocation(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    MomServiceType serviceType,
+    std::wstring service,
+    std::vector<MomServiceArgument> suppliedArguments,
+    MomServiceArgument returnedArgument) {
+  auto const response = request(
+      TransportServiceOperation::report_successful_service_invocation,
+      encodeProcessFederationSuccessfulServiceInvocationRequest({
+          std::move(federationName), federateId, serviceType,
+          std::move(service), std::move(suppliedArguments),
+          std::move(returnedArgument)}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+}
+
+void ProcessFederationClient::reportSuccessfulVoidServiceInvocation(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    MomServiceType serviceType,
+    std::wstring service,
+    std::vector<MomServiceArgument> suppliedArguments) {
+  auto const response = request(
+      TransportServiceOperation::report_successful_void_service_invocation,
+      encodeProcessFederationSuccessfulServiceInvocationRequest({
+          std::move(federationName), federateId, serviceType,
+          std::move(service), std::move(suppliedArguments),
+          {MomArgumentType::null_value, L"", formatMomNull()}}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+}
+
+std::optional<ProcessFederationInteractionEvent>
+ProcessFederationClient::recheckExceptionReport(
+    ProcessFederationInteractionEvent event) {
+  if (!event.exceptionReportFederateId) {
+    return event;
+  }
+  std::wstring federationName;
+  std::uint64_t federateId = 0U;
+  {
+    std::scoped_lock lock(transactionMutex_);
+    if (!session_ || !joinedFederationName_ ||
+        joinedFederateId_ != event.receivingFederateId) {
+      return std::nullopt;
+    }
+    federationName = *joinedFederationName_;
+    federateId = joinedFederateId_;
+  }
+  try {
+    auto const response = request(
+        TransportServiceOperation::recheck_exception_report,
+        encodeProcessFederationExceptionReportRecheckRequest({
+            std::move(federationName), federateId,
+            *event.exceptionReportFederateId}), false);
+    if (response.status != TransportServiceStatus::ok) {
+      return std::nullopt;
+    }
+    auto projection = decodeProcessFederationReceiveInteractionResult(response.payload);
+    if (!projection.event) {
+      return std::nullopt;
+    }
+    event.interactionClassHandle = projection.event->interactionClassHandle;
+    event.parameterHandles = std::move(projection.event->parameterHandles);
+    return event;
+  } catch (...) {
+    // A stale or unreachable advisory report cannot replace a service error
+    // or interrupt ordinary callback delivery.
+    return std::nullopt;
+  }
+}
+
+ProcessFederationExceptionReportingSwitchResult
+ProcessFederationClient::setExceptionReportingSwitch(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    bool switchValue) {
+  auto response = request(
+      TransportServiceOperation::set_exception_reporting_switch,
+      encodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          ProcessFederationAttributeScopeAdvisorySwitchRequest{
+              std::move(federationName), federateId, switchValue}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationExceptionReportingSwitchResult(response.payload);
+}
+
+bool ProcessFederationClient::getSendServiceReportsToFileSwitch(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::get_send_service_reports_to_file_switch,
+      encodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          ProcessFederationAttributeScopeAdvisorySwitchRequest{
+              std::move(federationName), federateId, false}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationBooleanResult(response.payload).value;
+}
+
+void ProcessFederationClient::setSendServiceReportsToFileSwitch(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    bool switchValue) {
+  auto response = request(
+      TransportServiceOperation::set_send_service_reports_to_file_switch,
+      encodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          ProcessFederationAttributeScopeAdvisorySwitchRequest{
+              std::move(federationName), federateId, switchValue}));
   if (response.status != TransportServiceStatus::ok) {
     throw ProcessFederationClientError(
         requestFailure(response.operation, response.status));
@@ -1115,6 +1418,46 @@ ProcessFederationClient::lookupKnownObjectClassHandle(
         requestFailure(response.operation, response.status));
   }
   return decodeProcessFederationHandleResult(response.payload).handle;
+}
+
+ProcessFederationUpdateRateValueResult
+ProcessFederationClient::getUpdateRateValue(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    std::string updateRateDesignator) {
+  auto response = request(
+      TransportServiceOperation::get_update_rate_value,
+      encodeProcessFederationGetUpdateRateValueRequest(
+          ProcessFederationGetUpdateRateValueRequest{
+              std::move(federationName),
+              federateId,
+              std::move(updateRateDesignator)}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationUpdateRateValueResult(response.payload);
+}
+
+ProcessFederationUpdateRateValueResult
+ProcessFederationClient::getUpdateRateValueForAttribute(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    std::uint64_t objectInstanceHandle,
+    std::uint64_t attributeHandle) {
+  auto response = request(
+      TransportServiceOperation::get_update_rate_value_for_attribute,
+      encodeProcessFederationGetUpdateRateValueForAttributeRequest(
+          ProcessFederationGetUpdateRateValueForAttributeRequest{
+              std::move(federationName),
+              federateId,
+              objectInstanceHandle,
+              attributeHandle}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationUpdateRateValueResult(response.payload);
 }
 
 ProcessFederationAttributeOwnershipCheckResult
@@ -1655,6 +1998,10 @@ void ProcessFederationClient::subscribeInteractionClass(
       encodeProcessFederationInteractionClassDeclarationRequest(
           ProcessFederationInteractionClassDeclarationRequest{
               std::move(federationName), federateId, interactionClassHandle, active}));
+  if (response.status == TransportServiceStatus::service_reporting_interlock) {
+    throw rti1516_2025::FederateServiceInvocationsAreBeingReportedViaMOM(
+        L"The report-service-invocation interaction cannot be subscribed while service reporting is enabled.");
+  }
   if (response.status != TransportServiceStatus::ok) {
     throw ProcessFederationClientError(
         requestFailure(response.operation, response.status));
@@ -1811,6 +2158,43 @@ void ProcessFederationClient::publishObjectClassAttributes(
               federateId,
               objectClassHandle,
               std::move(attributeHandles)}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+}
+
+void ProcessFederationClient::unpublishObjectClassAttributes(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    std::uint64_t objectClassHandle,
+    std::vector<std::uint64_t> attributeHandles) {
+  auto response = request(
+      TransportServiceOperation::unpublish_object_class_attributes,
+      encodeProcessFederationObjectClassAttributeDeclarationRequest(
+          ProcessFederationObjectClassAttributeDeclarationRequest{
+              std::move(federationName),
+              federateId,
+              objectClassHandle,
+              std::move(attributeHandles)}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+}
+
+void ProcessFederationClient::unpublishObjectClass(
+    std::wstring federationName,
+    std::uint64_t federateId,
+    std::uint64_t objectClassHandle) {
+  auto response = request(
+      TransportServiceOperation::unpublish_object_class,
+      encodeProcessFederationObjectClassAttributeDeclarationRequest(
+          ProcessFederationObjectClassAttributeDeclarationRequest{
+              std::move(federationName),
+              federateId,
+              objectClassHandle,
+              {}}));
   if (response.status != TransportServiceStatus::ok) {
     throw ProcessFederationClientError(
         requestFailure(response.operation, response.status));
@@ -2333,6 +2717,36 @@ bool ProcessFederationClient::getAttributeRelevanceAdvisorySwitch(
   return decodeProcessFederationBooleanResult(response.payload).value;
 }
 
+bool ProcessFederationClient::getObjectClassRelevanceAdvisorySwitch(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::get_object_class_relevance_advisory_switch,
+      encodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          ProcessFederationAttributeScopeAdvisorySwitchRequest{
+              std::move(federationName), federateId, false}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationBooleanResult(response.payload).value;
+}
+
+bool ProcessFederationClient::getInteractionRelevanceAdvisorySwitch(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::get_interaction_relevance_advisory_switch,
+      encodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          ProcessFederationAttributeScopeAdvisorySwitchRequest{
+              std::move(federationName), federateId, false}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationBooleanResult(response.payload).value;
+}
+
 void ProcessFederationClient::setAttributeRelevanceAdvisorySwitch(
     std::wstring federationName,
     std::uint64_t federateId,
@@ -2368,6 +2782,21 @@ bool ProcessFederationClient::getConveyRegionDesignatorSetsSwitch(
     std::uint64_t federateId) {
   auto response = request(
       TransportServiceOperation::get_convey_region_designator_sets_switch,
+      encodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          ProcessFederationAttributeScopeAdvisorySwitchRequest{
+              std::move(federationName), federateId, false}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationBooleanResult(response.payload).value;
+}
+
+bool ProcessFederationClient::getAllowRelaxedDDMSwitch(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::get_allow_relaxed_ddm_switch,
       encodeProcessFederationAttributeScopeAdvisorySwitchRequest(
           ProcessFederationAttributeScopeAdvisorySwitchRequest{
               std::move(federationName), federateId, false}));
@@ -2647,6 +3076,15 @@ ProcessFederationClient::requestAttributeValueUpdateClassWithRegions(
               std::move(requestRegionsByAttribute),
               std::move(userSuppliedTag)}));
   if (response.status != TransportServiceStatus::ok) {
+    // Semantic planner failures keep the transport rejection bit, but carry
+    // a typed result so the public ambassador can preserve the official HLA
+    // exception rather than collapsing every remote validation into
+    // RTIinternalError.  Empty rejection payloads remain transport failures.
+    if (response.status == TransportServiceStatus::rejected &&
+        !response.payload.empty()) {
+      return decodeProcessFederationRequestAttributeValueUpdateResult(
+          response.payload);
+    }
     throw ProcessFederationClientError(
         requestFailure(response.operation, response.status));
   }
@@ -2668,75 +3106,15 @@ ProcessFederationClient::receiveInteraction(
         requestFailure(response.operation, response.status));
   }
   auto result = decodeProcessFederationReceiveInteractionResult(response.payload);
-  if (result.attributeEvent) {
-    pendingAttributeUpdateEvents_.push_back(std::move(*result.attributeEvent));
+  auto event = std::move(result.event);
+  result.event.reset();
+  {
+    std::scoped_lock lock(transactionMutex_);
+    if (session_) {
+      bufferReceiveResult(std::move(result));
+    }
   }
-  if (result.discoveryEvent) {
-    pendingObjectInstanceDiscoveryEvents_.push_back(std::move(*result.discoveryEvent));
-  }
-  if (result.removalEvent) {
-    pendingObjectInstanceRemovalEvents_.push_back(
-        std::move(*result.removalEvent));
-  }
-  if (result.scopeChangeEvent) {
-    pendingObjectInstanceScopeChangeEvents_.push_back(
-        std::move(*result.scopeChangeEvent));
-  }
-  if (result.attributeRelevanceAdvisoryEvent) {
-    pendingAttributeRelevanceAdvisoryEvents_.push_back(
-        std::move(*result.attributeRelevanceAdvisoryEvent));
-  }
-  if (result.attributeValueUpdateRequestEvent) {
-    pendingAttributeValueUpdateRequestEvents_.push_back(
-        std::move(*result.attributeValueUpdateRequestEvent));
-  }
-  if (result.attributeOwnershipQueryEvent) {
-    pendingAttributeOwnershipQueryEvents_.push_back(
-        std::move(*result.attributeOwnershipQueryEvent));
-  }
-  if (result.attributeOwnershipAcquisitionIfAvailableEvent) {
-    pendingAttributeOwnershipAcquisitionIfAvailableEvents_.push_back(
-        std::move(*result.attributeOwnershipAcquisitionIfAvailableEvent));
-  }
-  if (result.attributeOwnershipAcquisitionEvent) {
-    pendingAttributeOwnershipAcquisitionEvents_.push_back(
-        std::move(*result.attributeOwnershipAcquisitionEvent));
-  }
-  if (result.attributeOwnershipUnavailableEvent) {
-    pendingAttributeOwnershipUnavailableEvents_.push_back(
-        std::move(*result.attributeOwnershipUnavailableEvent));
-  }
-  if (result.attributeTransportationTypeChangeEvent) {
-    pendingAttributeTransportationTypeChangeEvents_.push_back(
-        std::move(*result.attributeTransportationTypeChangeEvent));
-  }
-  if (result.attributeTransportationTypeQueryEvent) {
-    pendingAttributeTransportationTypeQueryEvents_.push_back(
-        std::move(*result.attributeTransportationTypeQueryEvent));
-  }
-  if (result.interactionTransportationTypeChangeEvent) {
-    pendingInteractionTransportationTypeChangeEvents_.push_back(
-        std::move(*result.interactionTransportationTypeChangeEvent));
-  }
-  if (result.interactionTransportationTypeQueryEvent) {
-    pendingInteractionTransportationTypeQueryEvents_.push_back(
-        std::move(*result.interactionTransportationTypeQueryEvent));
-  }
-  if (result.synchronizationPointAnnouncementEvent) {
-    pendingSynchronizationPointAnnouncementEvents_.push_back(
-        std::move(*result.synchronizationPointAnnouncementEvent));
-  }
-  if (result.federationSynchronizedEvent) {
-    pendingFederationSynchronizedEvents_.push_back(
-        std::move(*result.federationSynchronizedEvent));
-  }
-  if (result.saveEvent) {
-    pendingFederationSaveEvents_.push_back(std::move(*result.saveEvent));
-  }
-  if (result.restoreEvent) {
-    pendingFederationRestoreEvents_.push_back(std::move(*result.restoreEvent));
-  }
-  return std::move(result.event);
+  return event;
 }
 
 std::optional<ProcessFederationAttributeUpdateEvent>
@@ -2780,14 +3158,14 @@ void ProcessFederationClient::dispatchPushedReceiveOrder() {
 
 void ProcessFederationClient::dispatchReceiveOrder(
     ProcessFederationInteractionEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitReceiveOrder(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitReceiveOrder(std::move(event));
 }
 
 void ProcessFederationClient::dispatchAttributeUpdate(
     ProcessFederationAttributeUpdateEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitAttributeUpdate(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitAttributeUpdate(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedAttributeUpdate() {
@@ -2796,90 +3174,59 @@ void ProcessFederationClient::dispatchPushedAttributeUpdate() {
 
 void ProcessFederationClient::dispatchAttributeValueUpdateRequest(
     ProcessFederationAttributeValueUpdateRequestEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitAttributeValueUpdateRequest(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitAttributeValueUpdateRequest(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedAttributeValueUpdateRequest() {
-  if (pendingAttributeValueUpdateRequestEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued attribute-value-update request event.");
-  }
-  auto event = std::move(pendingAttributeValueUpdateRequestEvents_.front());
-  pendingAttributeValueUpdateRequestEvents_.pop_front();
-  dispatchAttributeValueUpdateRequest(std::move(event));
+  dispatchAttributeValueUpdateRequest(receivePendingEvent<ProcessFederationAttributeValueUpdateRequestEvent>());
 }
 
 void ProcessFederationClient::dispatchAttributeOwnershipQuery(
     ProcessFederationAttributeOwnershipQueryEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitAttributeOwnershipQuery(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitAttributeOwnershipQuery(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedAttributeOwnershipQuery() {
-  if (pendingAttributeOwnershipQueryEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued attribute-ownership query event.");
-  }
-  auto event = std::move(pendingAttributeOwnershipQueryEvents_.front());
-  pendingAttributeOwnershipQueryEvents_.pop_front();
-  dispatchAttributeOwnershipQuery(std::move(event));
+  dispatchAttributeOwnershipQuery(receivePendingEvent<ProcessFederationAttributeOwnershipQueryEvent>());
 }
 
 void ProcessFederationClient::dispatchAttributeOwnershipAcquisitionIfAvailable(
     ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitAttributeOwnershipAcquisitionIfAvailable(
+  auto bridge = requireCallbackBridge();
+  bridge->submitAttributeOwnershipAcquisitionIfAvailable(
       std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedAttributeOwnershipAcquisitionIfAvailable() {
-  if (pendingAttributeOwnershipAcquisitionIfAvailableEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued attribute-ownership acquisition-if-available event.");
-  }
-  auto event = std::move(
-      pendingAttributeOwnershipAcquisitionIfAvailableEvents_.front());
-  pendingAttributeOwnershipAcquisitionIfAvailableEvents_.pop_front();
-  dispatchAttributeOwnershipAcquisitionIfAvailable(std::move(event));
+  dispatchAttributeOwnershipAcquisitionIfAvailable(receivePendingEvent<ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent>());
 }
 
 void ProcessFederationClient::dispatchAttributeOwnershipAcquisition(
     ProcessFederationAttributeOwnershipAcquisitionEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitAttributeOwnershipAcquisition(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitAttributeOwnershipAcquisition(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedAttributeOwnershipAcquisition() {
-  if (pendingAttributeOwnershipAcquisitionEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued attribute-ownership acquisition event.");
-  }
-  auto event = std::move(pendingAttributeOwnershipAcquisitionEvents_.front());
-  pendingAttributeOwnershipAcquisitionEvents_.pop_front();
-  dispatchAttributeOwnershipAcquisition(std::move(event));
+  dispatchAttributeOwnershipAcquisition(receivePendingEvent<ProcessFederationAttributeOwnershipAcquisitionEvent>());
 }
 
 void ProcessFederationClient::dispatchAttributeOwnershipUnavailable(
     ProcessFederationAttributeOwnershipUnavailableEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitAttributeOwnershipUnavailable(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitAttributeOwnershipUnavailable(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedAttributeOwnershipUnavailable() {
-  if (pendingAttributeOwnershipUnavailableEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued attribute-ownership unavailable event.");
-  }
-  auto event = std::move(pendingAttributeOwnershipUnavailableEvents_.front());
-  pendingAttributeOwnershipUnavailableEvents_.pop_front();
-  dispatchAttributeOwnershipUnavailable(std::move(event));
+  dispatchAttributeOwnershipUnavailable(receivePendingEvent<ProcessFederationAttributeOwnershipUnavailableEvent>());
 }
 
 void ProcessFederationClient::dispatchObjectInstanceDiscovery(
     ProcessFederationObjectInstanceDiscoveryEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitObjectInstanceDiscovery(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitObjectInstanceDiscovery(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedObjectInstanceDiscovery() {
@@ -2888,8 +3235,8 @@ void ProcessFederationClient::dispatchPushedObjectInstanceDiscovery() {
 
 void ProcessFederationClient::dispatchObjectInstanceRemoval(
     ProcessFederationObjectInstanceRemovalEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitObjectInstanceRemoval(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitObjectInstanceRemoval(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedObjectInstanceRemoval() {
@@ -2898,8 +3245,8 @@ void ProcessFederationClient::dispatchPushedObjectInstanceRemoval() {
 
 void ProcessFederationClient::dispatchObjectInstanceScopeChange(
     ProcessFederationObjectInstanceScopeChangeEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitObjectInstanceScopeChange(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitObjectInstanceScopeChange(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedObjectInstanceScopeChange() {
@@ -2908,8 +3255,8 @@ void ProcessFederationClient::dispatchPushedObjectInstanceScopeChange() {
 
 void ProcessFederationClient::dispatchAttributeRelevanceAdvisory(
     ProcessFederationAttributeRelevanceAdvisoryEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitAttributeRelevanceAdvisory(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitAttributeRelevanceAdvisory(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedAttributeRelevanceAdvisory() {
@@ -2919,90 +3266,63 @@ void ProcessFederationClient::dispatchPushedAttributeRelevanceAdvisory() {
 
 void ProcessFederationClient::dispatchAttributeTransportationTypeChange(
     ProcessFederationAttributeTransportationTypeChangeEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitAttributeTransportationTypeChange(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitAttributeTransportationTypeChange(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedAttributeTransportationTypeChange() {
-  if (pendingAttributeTransportationTypeChangeEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued attribute transportation-type change event.");
-  }
-  auto event = std::move(
-      pendingAttributeTransportationTypeChangeEvents_.front());
-  pendingAttributeTransportationTypeChangeEvents_.pop_front();
-  dispatchAttributeTransportationTypeChange(std::move(event));
+  dispatchAttributeTransportationTypeChange(receivePushedAttributeTransportationTypeChange());
 }
 
 void ProcessFederationClient::dispatchAttributeTransportationTypeQuery(
     ProcessFederationAttributeTransportationTypeQueryEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitAttributeTransportationTypeQuery(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitAttributeTransportationTypeQuery(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedAttributeTransportationTypeQuery() {
-  if (pendingAttributeTransportationTypeQueryEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued attribute transportation-type query event.");
-  }
-  auto event = std::move(pendingAttributeTransportationTypeQueryEvents_.front());
-  pendingAttributeTransportationTypeQueryEvents_.pop_front();
-  dispatchAttributeTransportationTypeQuery(std::move(event));
+  dispatchAttributeTransportationTypeQuery(receivePushedAttributeTransportationTypeQuery());
 }
 
 void ProcessFederationClient::dispatchInteractionTransportationTypeChange(
     ProcessFederationInteractionTransportationTypeChangeEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitInteractionTransportationTypeChange(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitInteractionTransportationTypeChange(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedInteractionTransportationTypeChange() {
-  if (pendingInteractionTransportationTypeChangeEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued interaction transportation-type change event.");
-  }
-  auto event = std::move(
-      pendingInteractionTransportationTypeChangeEvents_.front());
-  pendingInteractionTransportationTypeChangeEvents_.pop_front();
-  dispatchInteractionTransportationTypeChange(std::move(event));
+  dispatchInteractionTransportationTypeChange(receivePushedInteractionTransportationTypeChange());
 }
 
 void ProcessFederationClient::dispatchInteractionTransportationTypeQuery(
     ProcessFederationInteractionTransportationTypeQueryEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitInteractionTransportationTypeQuery(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitInteractionTransportationTypeQuery(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedInteractionTransportationTypeQuery() {
-  if (pendingInteractionTransportationTypeQueryEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued interaction transportation-type query event.");
-  }
-  auto event = std::move(
-      pendingInteractionTransportationTypeQueryEvents_.front());
-  pendingInteractionTransportationTypeQueryEvents_.pop_front();
-  dispatchInteractionTransportationTypeQuery(std::move(event));
+  dispatchInteractionTransportationTypeQuery(receivePushedInteractionTransportationTypeQuery());
 }
 
 void ProcessFederationClient::dispatchSynchronizationPointRegistrationSucceeded(
     std::wstring label) {
-  requireCallbackBridge();
-  callbackBridge_->submitSynchronizationPointRegistrationSucceeded(
+  auto bridge = requireCallbackBridge();
+  bridge->submitSynchronizationPointRegistrationSucceeded(
       std::move(label));
 }
 
 void ProcessFederationClient::dispatchSynchronizationPointRegistrationFailed(
     std::wstring label,
     rti1516_2025::SynchronizationPointFailureReason failureReason) {
-  requireCallbackBridge();
-  callbackBridge_->submitSynchronizationPointRegistrationFailed(
+  auto bridge = requireCallbackBridge();
+  bridge->submitSynchronizationPointRegistrationFailed(
       std::move(label), failureReason);
 }
 
 void ProcessFederationClient::dispatchSynchronizationPointAnnouncement(
     ProcessFederationSynchronizationPointAnnouncementEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitSynchronizationPointAnnouncement(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitSynchronizationPointAnnouncement(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedSynchronizationPointAnnouncement() {
@@ -3012,8 +3332,8 @@ void ProcessFederationClient::dispatchPushedSynchronizationPointAnnouncement() {
 
 void ProcessFederationClient::dispatchFederationSynchronized(
     ProcessFederationFederationSynchronizedEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitFederationSynchronized(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitFederationSynchronized(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedFederationSynchronized() {
@@ -3022,8 +3342,8 @@ void ProcessFederationClient::dispatchPushedFederationSynchronized() {
 
 void ProcessFederationClient::dispatchFederationSave(
     ProcessFederationSaveEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitFederationSave(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitFederationSave(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedFederationSave() {
@@ -3032,8 +3352,8 @@ void ProcessFederationClient::dispatchPushedFederationSave() {
 
 void ProcessFederationClient::dispatchFederationRestore(
     ProcessFederationRestoreEvent event) {
-  requireCallbackBridge();
-  callbackBridge_->submitFederationRestore(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitFederationRestore(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedFederationRestore() {
@@ -3042,20 +3362,20 @@ void ProcessFederationClient::dispatchPushedFederationRestore() {
 
 void ProcessFederationClient::dispatchTimeRegulationEnabled(
     ProcessFederationLogicalTime event) {
-  requireCallbackBridge();
-  callbackBridge_->submitTimeRegulationEnabled(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitTimeRegulationEnabled(std::move(event));
 }
 
 void ProcessFederationClient::dispatchTimeConstrainedEnabled(
     ProcessFederationLogicalTime event) {
-  requireCallbackBridge();
-  callbackBridge_->submitTimeConstrainedEnabled(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitTimeConstrainedEnabled(std::move(event));
 }
 
 void ProcessFederationClient::dispatchTimeAdvanceGrant(
     ProcessFederationLogicalTime event) {
-  requireCallbackBridge();
-  callbackBridge_->submitTimeAdvanceGrant(std::move(event));
+  auto bridge = requireCallbackBridge();
+  bridge->submitTimeAdvanceGrant(std::move(event));
 }
 
 void ProcessFederationClient::dispatchPushedTimeAdvanceGrant() {
@@ -3065,8 +3385,8 @@ void ProcessFederationClient::dispatchPushedTimeAdvanceGrant() {
 void ProcessFederationClient::dispatchFlushQueueGrant(
     ProcessFederationLogicalTime grantedTime,
     ProcessFederationLogicalTime optimisticTime) {
-  requireCallbackBridge();
-  callbackBridge_->submitFlushQueueGrant(
+  auto bridge = requireCallbackBridge();
+  bridge->submitFlushQueueGrant(
       std::move(grantedTime), std::move(optimisticTime));
 }
 
@@ -3079,313 +3399,538 @@ void ProcessFederationClient::dispatchPushedFlushQueueGrant() {
 void ProcessFederationClient::setTimeRoleEnableCompletionHandlers(
     CallbackCompletionHandler regulation,
     CallbackCompletionHandler constrained) {
-  requireCallbackBridge();
-  callbackBridge_->setTimeRoleEnableCompletionHandlers(
+  auto bridge = requireCallbackBridge();
+  bridge->setTimeRoleEnableCompletionHandlers(
       std::move(regulation), std::move(constrained));
 }
 
 void ProcessFederationClient::dispatchPendingPushedEvents() {
-  if (!callbackBridge_) {
+  std::unique_lock lock(transactionMutex_);
+  if (!callbackBridge_ ||
+      (dispatchDepth_ != 0U && dispatchOwner_ != std::this_thread::get_id())) {
     return;
   }
-  while (!pendingEvents_.empty()) {
-    dispatchPushedReceiveOrder();
-  }
-  while (!pendingObjectInstanceDiscoveryEvents_.empty()) {
-    dispatchPushedObjectInstanceDiscovery();
-  }
-  while (!pendingObjectInstanceRemovalEvents_.empty()) {
-    dispatchPushedObjectInstanceRemoval();
-  }
-  while (!pendingObjectInstanceScopeChangeEvents_.empty()) {
-    dispatchPushedObjectInstanceScopeChange();
-  }
-  while (!pendingAttributeRelevanceAdvisoryEvents_.empty()) {
-    dispatchPushedAttributeRelevanceAdvisory();
-  }
-  while (!pendingAttributeTransportationTypeChangeEvents_.empty()) {
-    dispatchPushedAttributeTransportationTypeChange();
-  }
-  while (!pendingAttributeTransportationTypeQueryEvents_.empty()) {
-    dispatchPushedAttributeTransportationTypeQuery();
-  }
-  while (!pendingInteractionTransportationTypeChangeEvents_.empty()) {
-    dispatchPushedInteractionTransportationTypeChange();
-  }
-  while (!pendingInteractionTransportationTypeQueryEvents_.empty()) {
-    dispatchPushedInteractionTransportationTypeQuery();
-  }
-  while (!pendingAttributeUpdateEvents_.empty()) {
-    dispatchPushedAttributeUpdate();
-  }
-  while (!pendingAttributeValueUpdateRequestEvents_.empty()) {
-    dispatchPushedAttributeValueUpdateRequest();
-  }
-  while (!pendingAttributeOwnershipQueryEvents_.empty()) {
-    dispatchPushedAttributeOwnershipQuery();
-  }
-  while (!pendingAttributeOwnershipAcquisitionIfAvailableEvents_.empty()) {
-    dispatchPushedAttributeOwnershipAcquisitionIfAvailable();
-  }
-  while (!pendingAttributeOwnershipAcquisitionEvents_.empty()) {
-    dispatchPushedAttributeOwnershipAcquisition();
-  }
-  while (!pendingAttributeOwnershipUnavailableEvents_.empty()) {
-    dispatchPushedAttributeOwnershipUnavailable();
-  }
-  while (!pendingSynchronizationPointAnnouncementEvents_.empty()) {
-    dispatchPushedSynchronizationPointAnnouncement();
-  }
-  while (!pendingFederationSynchronizedEvents_.empty()) {
-    dispatchPushedFederationSynchronized();
-  }
-  while (!pendingFederationSaveEvents_.empty()) {
-    dispatchPushedFederationSave();
-  }
-  while (!pendingFederationRestoreEvents_.empty()) {
-    dispatchPushedFederationRestore();
-  }
-  while (!pendingTimeAdvanceGrantEvents_.empty()) {
-    dispatchPushedTimeAdvanceGrant();
-  }
-  while (!pendingFlushQueueGrantEvents_.empty()) {
-    dispatchPushedFlushQueueGrant();
+  dispatchOwner_ = std::this_thread::get_id();
+  ++dispatchDepth_;
+  auto finish = [this] {
+    if (--dispatchDepth_ == 0U) {
+      dispatchOwner_ = {};
+    }
+  };
+  try {
+    while (callbackBridge_ && !pendingEvents_.empty()) {
+      auto bridge = callbackBridge_;
+      auto event = std::move(pendingEvents_.front());
+      pendingEvents_.pop_front();
+      lock.unlock();
+      std::visit([&bridge](auto value) {
+        using Event = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<Event, ProcessFederationInteractionEvent>) {
+          bridge->submitReceiveOrder(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeUpdateEvent>) {
+          bridge->submitAttributeUpdate(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeValueUpdateRequestEvent>) {
+          bridge->submitAttributeValueUpdateRequest(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeOwnershipQueryEvent>) {
+          bridge->submitAttributeOwnershipQuery(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent>) {
+          bridge->submitAttributeOwnershipAcquisitionIfAvailable(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeOwnershipAcquisitionEvent>) {
+          bridge->submitAttributeOwnershipAcquisition(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeOwnershipUnavailableEvent>) {
+          bridge->submitAttributeOwnershipUnavailable(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationObjectInstanceDiscoveryEvent>) {
+          bridge->submitObjectInstanceDiscovery(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationObjectInstanceRemovalEvent>) {
+          bridge->submitObjectInstanceRemoval(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationObjectInstanceScopeChangeEvent>) {
+          bridge->submitObjectInstanceScopeChange(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeRelevanceAdvisoryEvent>) {
+          bridge->submitAttributeRelevanceAdvisory(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeTransportationTypeChangeEvent>) {
+          bridge->submitAttributeTransportationTypeChange(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationAttributeTransportationTypeQueryEvent>) {
+          bridge->submitAttributeTransportationTypeQuery(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationInteractionTransportationTypeChangeEvent>) {
+          bridge->submitInteractionTransportationTypeChange(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationInteractionTransportationTypeQueryEvent>) {
+          bridge->submitInteractionTransportationTypeQuery(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationSynchronizationPointAnnouncementEvent>) {
+          bridge->submitSynchronizationPointAnnouncement(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationFederationSynchronizedEvent>) {
+          bridge->submitFederationSynchronized(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationSaveEvent>) {
+          bridge->submitFederationSave(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationRestoreEvent>) {
+          bridge->submitFederationRestore(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, ProcessFederationLogicalTime>) {
+          bridge->submitTimeAdvanceGrant(std::move(value));
+        }
+        else if constexpr (std::is_same_v<Event, PendingFlushQueueGrant>) {
+          bridge->submitFlushQueueGrant(
+              std::move(value.grantedTime), std::move(value.optimisticTime));
+        }
+        else if constexpr (std::is_same_v<Event, PendingRequestRetraction>) {
+          bridge->submitRequestRetraction(value.messageId);
+        }
+      }, std::move(event));
+      lock.lock();
+    }
+    finish();
+  } catch (...) {
+    if (!lock.owns_lock()) {
+      lock.lock();
+    }
+    finish();
+    throw;
   }
 }
 
 std::size_t ProcessFederationClient::pendingPushedEventCount() const noexcept {
-  return pendingEvents_.size();
+  return pendingEventCount<ProcessFederationInteractionEvent>();
 }
 
 std::size_t ProcessFederationClient::pendingPushedAttributeUpdateCount() const noexcept {
-  return pendingAttributeUpdateEvents_.size();
+  return pendingEventCount<ProcessFederationAttributeUpdateEvent>();
 }
 
 std::size_t
 ProcessFederationClient::pendingPushedAttributeValueUpdateRequestCount()
     const noexcept {
-  return pendingAttributeValueUpdateRequestEvents_.size();
+  return pendingEventCount<ProcessFederationAttributeValueUpdateRequestEvent>();
 }
 
 std::size_t ProcessFederationClient::pendingPushedAttributeOwnershipQueryCount()
     const noexcept {
-  return pendingAttributeOwnershipQueryEvents_.size();
+  return pendingEventCount<ProcessFederationAttributeOwnershipQueryEvent>();
 }
 
 std::size_t
 ProcessFederationClient::pendingPushedAttributeOwnershipAcquisitionIfAvailableCount()
     const noexcept {
-  return pendingAttributeOwnershipAcquisitionIfAvailableEvents_.size();
+  return pendingEventCount<ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent>();
 }
 
 std::size_t ProcessFederationClient::pendingPushedAttributeOwnershipAcquisitionCount()
     const noexcept {
-  return pendingAttributeOwnershipAcquisitionEvents_.size();
+  return pendingEventCount<ProcessFederationAttributeOwnershipAcquisitionEvent>();
 }
 
 std::size_t
 ProcessFederationClient::pendingPushedAttributeOwnershipUnavailableCount()
     const noexcept {
-  return pendingAttributeOwnershipUnavailableEvents_.size();
+  return pendingEventCount<ProcessFederationAttributeOwnershipUnavailableEvent>();
 }
 
 std::size_t ProcessFederationClient::pendingPushedObjectInstanceDiscoveryCount()
     const noexcept {
-  return pendingObjectInstanceDiscoveryEvents_.size();
+  return pendingEventCount<ProcessFederationObjectInstanceDiscoveryEvent>();
 }
 
 std::size_t ProcessFederationClient::pendingPushedObjectInstanceRemovalCount()
     const noexcept {
-  return pendingObjectInstanceRemovalEvents_.size();
+  return pendingEventCount<ProcessFederationObjectInstanceRemovalEvent>();
 }
 
 std::size_t ProcessFederationClient::pendingPushedObjectInstanceScopeChangeCount()
     const noexcept {
-  return pendingObjectInstanceScopeChangeEvents_.size();
+  return pendingEventCount<ProcessFederationObjectInstanceScopeChangeEvent>();
 }
 
 std::size_t ProcessFederationClient::pendingPushedAttributeRelevanceAdvisoryCount()
     const noexcept {
-  return pendingAttributeRelevanceAdvisoryEvents_.size();
+  return pendingEventCount<ProcessFederationAttributeRelevanceAdvisoryEvent>();
 }
 
 std::size_t
 ProcessFederationClient::pendingPushedAttributeTransportationTypeChangeCount()
     const noexcept {
-  return pendingAttributeTransportationTypeChangeEvents_.size();
+  return pendingEventCount<ProcessFederationAttributeTransportationTypeChangeEvent>();
 }
 
 std::size_t
 ProcessFederationClient::pendingPushedAttributeTransportationTypeQueryCount()
     const noexcept {
-  return pendingAttributeTransportationTypeQueryEvents_.size();
+  return pendingEventCount<ProcessFederationAttributeTransportationTypeQueryEvent>();
 }
 
 std::size_t
 ProcessFederationClient::pendingPushedInteractionTransportationTypeChangeCount()
     const noexcept {
-  return pendingInteractionTransportationTypeChangeEvents_.size();
+  return pendingEventCount<ProcessFederationInteractionTransportationTypeChangeEvent>();
 }
 
 std::size_t
 ProcessFederationClient::pendingPushedInteractionTransportationTypeQueryCount()
     const noexcept {
-  return pendingInteractionTransportationTypeQueryEvents_.size();
+  return pendingEventCount<ProcessFederationInteractionTransportationTypeQueryEvent>();
 }
 
 std::size_t
 ProcessFederationClient::pendingPushedSynchronizationPointAnnouncementCount()
     const noexcept {
-  return pendingSynchronizationPointAnnouncementEvents_.size();
+  return pendingEventCount<ProcessFederationSynchronizationPointAnnouncementEvent>();
 }
 
 std::size_t ProcessFederationClient::pendingPushedFederationSynchronizedCount()
     const noexcept {
-  return pendingFederationSynchronizedEvents_.size();
+  return pendingEventCount<ProcessFederationFederationSynchronizedEvent>();
 }
 
 std::size_t ProcessFederationClient::pendingPushedFederationSaveCount()
     const noexcept {
-  return pendingFederationSaveEvents_.size();
+  return pendingEventCount<ProcessFederationSaveEvent>();
 }
 
 std::size_t ProcessFederationClient::pendingPushedFederationRestoreCount()
     const noexcept {
-  return pendingFederationRestoreEvents_.size();
+  return pendingEventCount<ProcessFederationRestoreEvent>();
 }
 
 std::size_t ProcessFederationClient::pendingPushedTimeAdvanceGrantCount()
     const noexcept {
-  return pendingTimeAdvanceGrantEvents_.size();
+  return pendingEventCount<ProcessFederationLogicalTime>();
 }
 
 std::size_t ProcessFederationClient::pendingPushedFlushQueueGrantCount()
     const noexcept {
-  return pendingFlushQueueGrantEvents_.size();
+  return pendingEventCount<PendingFlushQueueGrant>();
 }
 
 void ProcessFederationClient::attachCallbackBridge(
     rti1516_2025::FederateAmbassador& recipient,
     CallbackDispatchModel model) {
+  std::scoped_lock lock(transactionMutex_);
   if (callbackBridge_) {
     throw ProcessFederationClientError(
         "A process federation callback bridge is already attached.");
   }
-  callbackBridge_ = std::make_unique<ProcessFederationCallbackBridge>(
+  callbackBridge_ = std::make_shared<ProcessFederationCallbackBridge>(
       recipient, model);
   callbackBridge_->setAttributeRelevanceAdvisorySwitchState(
       attributeRelevanceAdvisorySwitchState_);
   callbackBridge_->setTsoDeliveryCompletionHandler(
       [this](std::uint64_t messageId) { acknowledgeTsoDelivery(messageId); });
+  callbackBridge_->setExceptionReportProjectionHandler(
+      [this](ProcessFederationInteractionEvent event) {
+        return recheckExceptionReport(std::move(event));
+      });
 }
 
 void ProcessFederationClient::attachCallbackBridge(
     std::shared_ptr<CallbackDispatcher> dispatcher,
     std::shared_ptr<rti1516_2025::umbra_binding_detail::CallbackSession>
         callbackSession) {
+  std::scoped_lock lock(transactionMutex_);
   if (callbackBridge_) {
     throw ProcessFederationClientError(
         "A process federation callback bridge is already attached.");
   }
-  callbackBridge_ = std::make_unique<ProcessFederationCallbackBridge>(
+  callbackBridge_ = std::make_shared<ProcessFederationCallbackBridge>(
       std::move(dispatcher), std::move(callbackSession));
   callbackBridge_->setAttributeRelevanceAdvisorySwitchState(
       attributeRelevanceAdvisorySwitchState_);
   callbackBridge_->setTsoDeliveryCompletionHandler(
       [this](std::uint64_t messageId) { acknowledgeTsoDelivery(messageId); });
+  callbackBridge_->setExceptionReportProjectionHandler(
+      [this](ProcessFederationInteractionEvent event) {
+        return recheckExceptionReport(std::move(event));
+      });
 }
 
 bool ProcessFederationClient::evokeOne(
     std::chrono::milliseconds minimumWait) {
-  requireCallbackBridge();
-  return callbackBridge_->evokeOne(minimumWait);
+  auto bridge = requireCallbackBridge();
+  dispatchPendingPushedEvents();
+  flushDeferredTsoDeliveryAcknowledgements();
+  return bridge->evokeOne(minimumWait);
 }
 
 bool ProcessFederationClient::evokeMultiple(
     std::chrono::milliseconds minimumWait,
     std::chrono::milliseconds maximumWait) {
-  requireCallbackBridge();
-  return callbackBridge_->evokeMultiple(minimumWait, maximumWait);
+  auto bridge = requireCallbackBridge();
+  dispatchPendingPushedEvents();
+  flushDeferredTsoDeliveryAcknowledgements();
+  return bridge->evokeMultiple(minimumWait, maximumWait);
 }
 
 std::size_t ProcessFederationClient::pendingCallbackCount() const {
-  return callbackBridge_ ? callbackBridge_->pendingCount() : 0U;
+  std::shared_ptr<ProcessFederationCallbackBridge> bridge;
+  {
+    std::scoped_lock lock(transactionMutex_);
+    bridge = callbackBridge_;
+  }
+  return bridge ? bridge->pendingCount() : 0U;
 }
 
 std::shared_ptr<ProcessTransportConnection>
 ProcessFederationClient::connection() const noexcept {
+  std::scoped_lock lock(transactionMutex_);
   return connection_;
 }
 
 void ProcessFederationClient::close() noexcept {
-  if (callbackBridge_) {
-    callbackBridge_->close();
-    callbackBridge_.reset();
+  closing_.store(true, std::memory_order_release);
+  // This immutable shared owner is intentionally closed before taking the
+  // transaction lock: a request may be holding that lock while blocked in a
+  // socket receive, and closing the socket is what releases that request.
+  auto const shutdownConnection = shutdownConnection_;
+  if (shutdownConnection) {
+    shutdownConnection->close();
   }
-  session_.reset();
-  if (connection_) {
-    connection_->close();
+
+  std::shared_ptr<ProcessFederationCallbackBridge> bridge;
+  std::unique_ptr<ProcessTransportSession> session;
+  {
+    std::scoped_lock lock(transactionMutex_);
+    bridge = std::move(callbackBridge_);
+    session = std::move(session_);
     connection_.reset();
+    pendingEvents_.clear();
+    pendingTransportFailures_.clear();
+    deferredTsoDeliveryAcknowledgements_.clear();
+    joinedFederationName_.reset();
+    joinedFederateId_ = 0U;
   }
-  pendingEvents_.clear();
-  pendingAttributeUpdateEvents_.clear();
-  pendingObjectInstanceDiscoveryEvents_.clear();
-  pendingObjectInstanceRemovalEvents_.clear();
-  pendingObjectInstanceScopeChangeEvents_.clear();
-  pendingAttributeRelevanceAdvisoryEvents_.clear();
-  pendingAttributeTransportationTypeChangeEvents_.clear();
-  pendingAttributeTransportationTypeQueryEvents_.clear();
-  pendingInteractionTransportationTypeChangeEvents_.clear();
-  pendingInteractionTransportationTypeQueryEvents_.clear();
-  pendingAttributeValueUpdateRequestEvents_.clear();
-  pendingAttributeOwnershipQueryEvents_.clear();
-  pendingAttributeOwnershipAcquisitionIfAvailableEvents_.clear();
-  pendingAttributeOwnershipAcquisitionEvents_.clear();
-  pendingAttributeOwnershipUnavailableEvents_.clear();
-  pendingSynchronizationPointAnnouncementEvents_.clear();
-  pendingFederationSynchronizedEvents_.clear();
-  pendingFederationSaveEvents_.clear();
-  pendingFederationRestoreEvents_.clear();
-  pendingTimeAdvanceGrantEvents_.clear();
-  pendingFlushQueueGrantEvents_.clear();
-  deferredTsoDeliveryAcknowledgements_.clear();
-  joinedFederationName_.reset();
-  joinedFederateId_ = 0U;
+  // Bridge close may wait for callback-time projection/user invocation. Keep
+  // that wait outside both the client exchange lock and the transport.
+  if (bridge) {
+    bridge->close();
+  }
+}
+
+
+void ProcessFederationClient::bufferReceiveResult(
+    ProcessFederationReceiveInteractionResult result) {
+  if (result.event) {
+    pendingEvents_.emplace_back(std::move(*result.event));
+  }
+  if (result.attributeEvent) {
+    pendingEvents_.emplace_back(std::move(*result.attributeEvent));
+  }
+  if (result.attributeValueUpdateRequestEvent) {
+    pendingEvents_.emplace_back(std::move(*result.attributeValueUpdateRequestEvent));
+  }
+  if (result.attributeOwnershipQueryEvent) {
+    pendingEvents_.emplace_back(std::move(*result.attributeOwnershipQueryEvent));
+  }
+  if (result.attributeOwnershipAcquisitionIfAvailableEvent) {
+    pendingEvents_.emplace_back(std::move(*result.attributeOwnershipAcquisitionIfAvailableEvent));
+  }
+  if (result.attributeOwnershipAcquisitionEvent) {
+    pendingEvents_.emplace_back(std::move(*result.attributeOwnershipAcquisitionEvent));
+  }
+  if (result.attributeOwnershipUnavailableEvent) {
+    pendingEvents_.emplace_back(std::move(*result.attributeOwnershipUnavailableEvent));
+  }
+  if (result.discoveryEvent) {
+    pendingEvents_.emplace_back(std::move(*result.discoveryEvent));
+  }
+  if (result.removalEvent) {
+    pendingEvents_.emplace_back(std::move(*result.removalEvent));
+  }
+  if (result.scopeChangeEvent) {
+    pendingEvents_.emplace_back(std::move(*result.scopeChangeEvent));
+  }
+  if (result.attributeRelevanceAdvisoryEvent) {
+    pendingEvents_.emplace_back(std::move(*result.attributeRelevanceAdvisoryEvent));
+  }
+  if (result.attributeTransportationTypeChangeEvent) {
+    pendingEvents_.emplace_back(std::move(*result.attributeTransportationTypeChangeEvent));
+  }
+  if (result.attributeTransportationTypeQueryEvent) {
+    pendingEvents_.emplace_back(std::move(*result.attributeTransportationTypeQueryEvent));
+  }
+  if (result.interactionTransportationTypeChangeEvent) {
+    pendingEvents_.emplace_back(std::move(*result.interactionTransportationTypeChangeEvent));
+  }
+  if (result.interactionTransportationTypeQueryEvent) {
+    pendingEvents_.emplace_back(std::move(*result.interactionTransportationTypeQueryEvent));
+  }
+  if (result.synchronizationPointAnnouncementEvent) {
+    pendingEvents_.emplace_back(std::move(*result.synchronizationPointAnnouncementEvent));
+  }
+  if (result.federationSynchronizedEvent) {
+    pendingEvents_.emplace_back(std::move(*result.federationSynchronizedEvent));
+  }
+  if (result.saveEvent) {
+    pendingEvents_.emplace_back(std::move(*result.saveEvent));
+  }
+  if (result.restoreEvent) {
+    pendingEvents_.emplace_back(std::move(*result.restoreEvent));
+  }
+}
+
+void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
+  if (message.kind != TransportServiceMessageKind::event ||
+      message.status != TransportServiceStatus::ok || message.requestId != 0U) {
+    throw ProcessFederationClientError(
+        "Process federation client received an invalid unsolicited event.");
+  }
+  switch (message.operation) {
+    case TransportServiceOperation::receive_interaction: {
+      auto result = decodeProcessFederationReceiveInteractionResult(message.payload);
+      auto const count = pendingEvents_.size();
+      bufferReceiveResult(std::move(result));
+      if (pendingEvents_.size() == count) {
+        throw ProcessFederationClientError(
+            "Process federation client received an empty unsolicited event.");
+      }
+      return;
+    }
+    case TransportServiceOperation::receive_attribute_update: {
+      auto result = decodeProcessFederationReceiveAttributeUpdateResult(message.payload);
+      if (!result.event) {
+        throw ProcessFederationClientError(
+            "Process federation client received an empty unsolicited attribute event.");
+      }
+      pendingEvents_.emplace_back(std::move(*result.event));
+      return;
+    }
+    case TransportServiceOperation::receive_object_instance_discovery: {
+      auto result = decodeProcessFederationReceiveObjectInstanceDiscoveryResult(message.payload);
+      if (!result.event) {
+        throw ProcessFederationClientError(
+            "Process federation client received an empty unsolicited discovery event.");
+      }
+      pendingEvents_.emplace_back(std::move(*result.event));
+      return;
+    }
+    case TransportServiceOperation::time_advance_grant: {
+      auto result = decodeProcessFederationTimeAdvanceResult(message.payload);
+      if (result.status != ProcessFederationTimeAdvanceStatus::applied ||
+          !result.grantedTime) {
+        throw ProcessFederationClientError(
+            "Process federation client received an invalid time-advance grant event.");
+      }
+      if (result.optimisticTime) {
+        pendingEvents_.emplace_back(PendingFlushQueueGrant{
+            std::move(*result.grantedTime), std::move(*result.optimisticTime)});
+      } else {
+        pendingEvents_.emplace_back(std::move(*result.grantedTime));
+      }
+      return;
+    }
+    case TransportServiceOperation::request_retraction: {
+      auto const retraction = decodeProcessFederationRequestRetractionEvent(message.payload);
+      auto const removed = std::erase_if(pendingEvents_, [&retraction](PendingEvent const& event) {
+        return std::visit([&retraction](auto const& value) {
+          using Event = std::decay_t<decltype(value)>;
+          if constexpr (std::is_same_v<Event, ProcessFederationInteractionEvent> ||
+                        std::is_same_v<Event, ProcessFederationObjectInstanceRemovalEvent>) {
+            return value.retractionMessageId == retraction.messageId;
+          }
+          return false;
+        }, event);
+      });
+      if (removed != 0U) {
+        deferTsoDeliveryAcknowledgement(retraction.messageId);
+      } else {
+        // Even Request Retraction can invoke user code. Admit it in stream
+        // order and dispatch only after the enclosing exchange releases.
+        pendingEvents_.emplace_back(PendingRequestRetraction{retraction.messageId});
+      }
+      return;
+    }
+    default:
+      throw ProcessFederationClientError(
+          "Process federation client received an unexpected pushed message.");
+  }
+}
+
+template <typename Event>
+Event ProcessFederationClient::receivePendingEvent(bool receiveFromStream) {
+  std::unique_lock lock(transactionMutex_);
+  while (true) {
+    auto found = std::find_if(pendingEvents_.begin(), pendingEvents_.end(),
+        [](PendingEvent const& event) { return std::holds_alternative<Event>(event); });
+    if (found != pendingEvents_.end()) {
+      auto event = std::move(std::get<Event>(*found));
+      pendingEvents_.erase(found);
+      return event;
+    }
+    if (!receiveFromStream) {
+      throw ProcessFederationClientError(
+          "Process federation client has no queued event of the requested type.");
+    }
+    if (!session_) {
+      throw ProcessFederationClientError(
+          "A process federation event was requested after client close.");
+    }
+    TransportServiceMessage message;
+    ++requestDepth_;
+    bool received = false;
+    try {
+      received = session_->receive(message);
+    } catch (...) {
+      --requestDepth_;
+      lock.unlock();
+      dispatchTransportFailures();
+      throw;
+    }
+    --requestDepth_;
+    if (!received) {
+      lock.unlock();
+      dispatchTransportFailures();
+      throw ProcessFederationClientError(
+          "Process federation client lost its pushed event.");
+    }
+    bufferEvent(std::move(message));
+  }
+}
+
+template <typename Event>
+std::size_t ProcessFederationClient::pendingEventCount() const noexcept {
+  std::scoped_lock lock(transactionMutex_);
+  return static_cast<std::size_t>(std::count_if(
+      pendingEvents_.begin(), pendingEvents_.end(),
+      [](PendingEvent const& event) { return std::holds_alternative<Event>(event); }));
 }
 
 TransportServiceMessage ProcessFederationClient::request(
     TransportServiceOperation operation,
-    std::vector<std::uint8_t> payload) {
-  if (!session_) {
+    std::vector<std::uint8_t> payload,
+    bool dispatchCallbacks) {
+  std::unique_lock lock(transactionMutex_);
+  if (closing_.load(std::memory_order_acquire) || !session_) {
     throw ProcessFederationClientError(
         "A process federation request was attempted after client close.");
   }
+  if (nextRequestId_ == std::numeric_limits<std::uint64_t>::max()) {
+    throw ProcessFederationClientError(
+        "The process federation request identity space is exhausted.");
+  }
+  auto const requestId = ++nextRequestId_;
   ++requestDepth_;
-  bool requestActive = true;
-  auto releaseRequest = [this, &requestActive]() noexcept {
-    if (requestActive) {
-      --requestDepth_;
-      requestActive = false;
-    }
-  };
   try {
-    if (nextRequestId_ == std::numeric_limits<std::uint64_t>::max()) {
-      throw ProcessFederationClientError(
-          "The process federation request identity space is exhausted.");
-    }
-    auto const requestId = ++nextRequestId_;
     TransportServiceMessage requestMessage{
-        TransportServiceMessageKind::request,
-        operation,
-        TransportServiceStatus::ok,
-        requestId,
-        std::move(payload)};
+        TransportServiceMessageKind::request, operation,
+        TransportServiceStatus::ok, requestId, std::move(payload)};
     if (!session_->send(requestMessage)) {
       throw ProcessFederationClientError(
           std::string("Process federation ") + operationName(operation) +
           " could not send its request.");
     }
-
     while (true) {
       TransportServiceMessage response;
       if (!session_->receive(response)) {
@@ -3394,218 +3939,65 @@ TransportServiceMessage ProcessFederationClient::request(
             " lost its response.");
       }
       if (response.kind == TransportServiceMessageKind::event) {
-        if (response.status != TransportServiceStatus::ok ||
-            response.requestId != 0U ||
-            (response.operation != TransportServiceOperation::receive_interaction &&
-             response.operation != TransportServiceOperation::receive_attribute_update &&
-             response.operation !=
-                 TransportServiceOperation::receive_object_instance_discovery &&
-             response.operation != TransportServiceOperation::request_retraction &&
-             response.operation != TransportServiceOperation::time_advance_grant)) {
-          throw ProcessFederationClientError(
-              "Process federation client received an invalid unsolicited event.");
-        }
-        if (response.operation == TransportServiceOperation::request_retraction) {
-          auto const retraction =
-              decodeProcessFederationRequestRetractionEvent(response.payload);
-          auto const pendingEventsBefore = pendingEvents_.size();
-          auto const pendingRemovalsBefore =
-              pendingObjectInstanceRemovalEvents_.size();
-          pendingEvents_.erase(
-              std::remove_if(
-                  pendingEvents_.begin(),
-                  pendingEvents_.end(),
-                  [&retraction](ProcessFederationInteractionEvent const& event) {
-                    return event.retractionMessageId == retraction.messageId;
-                  }),
-              pendingEvents_.end());
-          pendingObjectInstanceRemovalEvents_.erase(
-              std::remove_if(
-                  pendingObjectInstanceRemovalEvents_.begin(),
-                  pendingObjectInstanceRemovalEvents_.end(),
-                  [&retraction](
-                      ProcessFederationObjectInstanceRemovalEvent const& event) {
-                    return event.retractionMessageId == retraction.messageId;
-                  }),
-              pendingObjectInstanceRemovalEvents_.end());
-          auto const removedFromPending =
-              pendingEvents_.size() != pendingEventsBefore ||
-              pendingObjectInstanceRemovalEvents_.size() != pendingRemovalsBefore;
-          if (removedFromPending) {
-            deferTsoDeliveryAcknowledgement(retraction.messageId);
-          } else if (callbackBridge_) {
-            callbackBridge_->submitRequestRetraction(retraction.messageId);
-          }
-        } else if (response.operation == TransportServiceOperation::time_advance_grant) {
-          auto const result =
-              decodeProcessFederationTimeAdvanceResult(response.payload);
-          if (result.status != ProcessFederationTimeAdvanceStatus::applied ||
-              !result.grantedTime) {
-            throw ProcessFederationClientError(
-                "Process federation client received an invalid time-advance grant event.");
-          }
-          if (result.optimisticTime) {
-            pendingFlushQueueGrantEvents_.push_back(
-                PendingFlushQueueGrant{
-                    std::move(*result.grantedTime),
-                    std::move(*result.optimisticTime)});
-          } else {
-            pendingTimeAdvanceGrantEvents_.push_back(
-                std::move(*result.grantedTime));
-          }
-        } else if (response.operation == TransportServiceOperation::receive_interaction) {
-        auto event = decodeProcessFederationReceiveInteractionResult(response.payload);
-        if (!event.event && !event.removalEvent && !event.scopeChangeEvent &&
-            !event.attributeRelevanceAdvisoryEvent &&
-            !event.attributeValueUpdateRequestEvent &&
-            !event.attributeOwnershipQueryEvent &&
-            !event.attributeOwnershipAcquisitionIfAvailableEvent &&
-            !event.attributeOwnershipAcquisitionEvent &&
-            !event.attributeOwnershipUnavailableEvent &&
-            !event.attributeTransportationTypeChangeEvent &&
-            !event.attributeTransportationTypeQueryEvent &&
-            !event.interactionTransportationTypeChangeEvent &&
-            !event.interactionTransportationTypeQueryEvent &&
-            !event.synchronizationPointAnnouncementEvent &&
-            !event.federationSynchronizedEvent &&
-            !event.saveEvent &&
-            !event.restoreEvent) {
-          throw ProcessFederationClientError(
-              "Process federation client received an empty unsolicited event.");
-        }
-        if (event.event) {
-          pendingEvents_.push_back(std::move(*event.event));
-        }
-        if (event.removalEvent) {
-          pendingObjectInstanceRemovalEvents_.push_back(
-              std::move(*event.removalEvent));
-        }
-        if (event.scopeChangeEvent) {
-          pendingObjectInstanceScopeChangeEvents_.push_back(
-              std::move(*event.scopeChangeEvent));
-        }
-        if (event.attributeRelevanceAdvisoryEvent) {
-          pendingAttributeRelevanceAdvisoryEvents_.push_back(
-              std::move(*event.attributeRelevanceAdvisoryEvent));
-        }
-        if (event.attributeValueUpdateRequestEvent) {
-          pendingAttributeValueUpdateRequestEvents_.push_back(
-              std::move(*event.attributeValueUpdateRequestEvent));
-        }
-        if (event.attributeOwnershipQueryEvent) {
-          pendingAttributeOwnershipQueryEvents_.push_back(
-              std::move(*event.attributeOwnershipQueryEvent));
-        }
-        if (event.attributeOwnershipAcquisitionIfAvailableEvent) {
-          pendingAttributeOwnershipAcquisitionIfAvailableEvents_.push_back(
-              std::move(*event.attributeOwnershipAcquisitionIfAvailableEvent));
-        }
-        if (event.attributeOwnershipAcquisitionEvent) {
-          pendingAttributeOwnershipAcquisitionEvents_.push_back(
-              std::move(*event.attributeOwnershipAcquisitionEvent));
-        }
-        if (event.attributeOwnershipUnavailableEvent) {
-          pendingAttributeOwnershipUnavailableEvents_.push_back(
-              std::move(*event.attributeOwnershipUnavailableEvent));
-        }
-        if (event.attributeTransportationTypeChangeEvent) {
-          pendingAttributeTransportationTypeChangeEvents_.push_back(
-              std::move(*event.attributeTransportationTypeChangeEvent));
-        }
-        if (event.attributeTransportationTypeQueryEvent) {
-          pendingAttributeTransportationTypeQueryEvents_.push_back(
-              std::move(*event.attributeTransportationTypeQueryEvent));
-        }
-        if (event.interactionTransportationTypeChangeEvent) {
-          pendingInteractionTransportationTypeChangeEvents_.push_back(
-              std::move(*event.interactionTransportationTypeChangeEvent));
-        }
-        if (event.interactionTransportationTypeQueryEvent) {
-          pendingInteractionTransportationTypeQueryEvents_.push_back(
-              std::move(*event.interactionTransportationTypeQueryEvent));
-        }
-        if (event.synchronizationPointAnnouncementEvent) {
-          pendingSynchronizationPointAnnouncementEvents_.push_back(
-              std::move(*event.synchronizationPointAnnouncementEvent));
-        }
-        if (event.federationSynchronizedEvent) {
-          pendingFederationSynchronizedEvents_.push_back(
-              std::move(*event.federationSynchronizedEvent));
-        }
-        if (event.saveEvent) {
-          pendingFederationSaveEvents_.push_back(std::move(*event.saveEvent));
-        }
-        if (event.restoreEvent) {
-          pendingFederationRestoreEvents_.push_back(
-              std::move(*event.restoreEvent));
-        }
-        } else if (response.operation ==
-                   TransportServiceOperation::receive_attribute_update) {
-          auto event = decodeProcessFederationReceiveAttributeUpdateResult(
-              response.payload);
-          if (!event.event) {
-          throw ProcessFederationClientError(
-              "Process federation client received an empty unsolicited attribute event.");
-          }
-          pendingAttributeUpdateEvents_.push_back(std::move(*event.event));
-        } else {
-          auto event =
-              decodeProcessFederationReceiveObjectInstanceDiscoveryResult(
-                  response.payload);
-          if (!event.event) {
-            throw ProcessFederationClientError(
-                "Process federation client received an empty unsolicited discovery event.");
-          }
-          pendingObjectInstanceDiscoveryEvents_.push_back(
-              std::move(*event.event));
-        }
+        bufferEvent(std::move(response));
         continue;
-    }
-    if (response.kind != TransportServiceMessageKind::response ||
-        response.requestId != requestId || response.operation != operation) {
-      throw ProcessFederationClientError(
-          std::string("Process federation client received a response for another request (expected ") +
-          operationName(operation) + "#" + std::to_string(requestId) + ", got " +
-          operationName(response.operation) + "#" +
-          std::to_string(response.requestId) + ").");
-    }
-      // A service response can be preceded by unsolicited frames emitted for a
-      // different joined federate.  Do not leave those frames stranded in the
-      // private queues: HLA_IMMEDIATE must invoke them before this public RTI
-      // service returns, while HLA_EVOKED still merely queues them for Evoke.
-      dispatchPendingPushedEvents();
-      // Callback completion can request a TSO acknowledgement.  Release the
-      // outer request before flushing so the acknowledgement is a normal
-      // follow-up request rather than a nested request on the same stream.
-      releaseRequest();
-      flushDeferredTsoDeliveryAcknowledgements();
+      }
+      if (response.kind != TransportServiceMessageKind::response ||
+          response.requestId != requestId || response.operation != operation) {
+        throw ProcessFederationClientError(
+            std::string("Process federation client received a response for another request (expected ") +
+            operationName(operation) + "#" + std::to_string(requestId) + ", got " +
+            operationName(response.operation) + "#" +
+            std::to_string(response.requestId) + ").");
+      }
+      --requestDepth_;
+      lock.unlock();
+      // The complete response belongs to this caller now. In particular an
+      // evoker holding the dispatcher can acquire the stream while a service
+      // thread waits for that dispatcher: no exchange/dispatcher ABBA cycle.
+      if (dispatchCallbacks) {
+        dispatchPendingPushedEvents();
+        flushDeferredTsoDeliveryAcknowledgements();
+      }
       return response;
     }
   } catch (...) {
-    releaseRequest();
+    if (lock.owns_lock()) {
+      --requestDepth_;
+      lock.unlock();
+    }
+    // A projection hook must release its lifetime lease before any user
+    // callback can tear down the client. Its outer evoke/service boundary
+    // will report a queued transport failure after projection returns.
+    if (dispatchCallbacks) {
+      dispatchTransportFailures();
+    }
     throw;
   }
 }
 
-ProcessFederationLogicalTime ProcessFederationClient::receivePushedTimeAdvanceGrant() {
-  if (!pendingTimeAdvanceGrantEvents_.empty()) {
-    auto event = std::move(pendingTimeAdvanceGrantEvents_.front());
-    pendingTimeAdvanceGrantEvents_.pop_front();
-    return event;
+void ProcessFederationClient::dispatchTransportFailures() {
+  FailureHandler handler;
+  std::deque<std::wstring> failures;
+  {
+    std::scoped_lock lock(transactionMutex_);
+    handler = failureHandler_;
+    failures.swap(pendingTransportFailures_);
   }
-  throw ProcessFederationClientError(
-      "Process federation client has no queued time-advance grant event.");
+  if (handler) {
+    for (auto& description : failures) {
+      handler(std::move(description));
+    }
+  }
+}
+
+ProcessFederationLogicalTime ProcessFederationClient::receivePushedTimeAdvanceGrant() {
+  return receivePendingEvent<ProcessFederationLogicalTime>();
 }
 
 ProcessFederationClient::PendingFlushQueueGrant
 ProcessFederationClient::receivePushedFlushQueueGrant() {
-  if (pendingFlushQueueGrantEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued Flush Queue Grant event.");
-  }
-  auto event = std::move(pendingFlushQueueGrantEvents_.front());
-  pendingFlushQueueGrantEvents_.pop_front();
-  return event;
+  return receivePendingEvent<PendingFlushQueueGrant>();
 }
 
 void ProcessFederationClient::acknowledgeTsoDelivery(
@@ -3614,20 +4006,25 @@ void ProcessFederationClient::acknowledgeTsoDelivery(
     throw ProcessFederationClientError(
         "A process TSO delivery acknowledgement requires a message identity.");
   }
-  if (requestDepth_ != 0U) {
-    deferTsoDeliveryAcknowledgement(messageId);
-    return;
-  }
-  if (!joinedFederationName_ || joinedFederateId_ == 0U) {
-    // A queued callback can be discarded during close/resignation.  There is
-    // no live joined-federate identity left on which to send a private ACK.
-    return;
+  std::wstring federationName;
+  std::uint64_t federateId = 0U;
+  {
+    std::scoped_lock lock(transactionMutex_);
+    if (requestDepth_ != 0U) {
+      deferTsoDeliveryAcknowledgement(messageId);
+      return;
+    }
+    if (!session_ || !joinedFederationName_ || joinedFederateId_ == 0U) {
+      return;
+    }
+    federationName = *joinedFederationName_;
+    federateId = joinedFederateId_;
   }
   auto response = request(
       TransportServiceOperation::acknowledge_tso_delivery,
       encodeProcessFederationAcknowledgeTsoDeliveryRequest(
           ProcessFederationAcknowledgeTsoDeliveryRequest{
-              *joinedFederationName_, joinedFederateId_, messageId}));
+              std::move(federationName), federateId, messageId}));
   if (response.status != TransportServiceStatus::ok) {
     throw ProcessFederationClientError(
         requestFailure(response.operation, response.status));
@@ -3646,6 +4043,7 @@ void ProcessFederationClient::acknowledgeTsoDelivery(
 
 void ProcessFederationClient::deferTsoDeliveryAcknowledgement(
     std::uint64_t messageId) {
+  std::scoped_lock lock(transactionMutex_);
   if (messageId == 0U) {
     throw ProcessFederationClientError(
         "A process TSO delivery acknowledgement requires a message identity.");
@@ -3659,705 +4057,96 @@ void ProcessFederationClient::deferTsoDeliveryAcknowledgement(
 }
 
 void ProcessFederationClient::flushDeferredTsoDeliveryAcknowledgements() {
-  while (!deferredTsoDeliveryAcknowledgements_.empty()) {
-    auto const messageId = deferredTsoDeliveryAcknowledgements_.front();
-    deferredTsoDeliveryAcknowledgements_.pop_front();
+  while (true) {
+    std::uint64_t messageId = 0U;
+    {
+      std::scoped_lock lock(transactionMutex_);
+      if (requestDepth_ != 0U || deferredTsoDeliveryAcknowledgements_.empty()) {
+        return;
+      }
+      messageId = deferredTsoDeliveryAcknowledgements_.front();
+      deferredTsoDeliveryAcknowledgements_.pop_front();
+    }
     acknowledgeTsoDelivery(messageId);
   }
 }
 
 ProcessFederationInteractionEvent ProcessFederationClient::receivePushedEvent() {
-  if (!pendingEvents_.empty()) {
-    auto event = std::move(pendingEvents_.front());
-    pendingEvents_.pop_front();
-    return event;
-  }
-  if (!session_) {
-    throw ProcessFederationClientError(
-        "A process federation event was requested after client close.");
-  }
-  while (true) {
-    TransportServiceMessage message;
-    if (!session_->receive(message)) {
-      throw ProcessFederationClientError(
-          "Process federation client lost its pushed event.");
-    }
-    if (message.kind != TransportServiceMessageKind::event ||
-        message.status != TransportServiceStatus::ok ||
-        message.requestId != 0U ||
-        (message.operation != TransportServiceOperation::receive_interaction &&
-         message.operation != TransportServiceOperation::request_retraction &&
-         message.operation != TransportServiceOperation::time_advance_grant)) {
-      throw ProcessFederationClientError(
-          "Process federation client received an unexpected pushed message.");
-    }
-    if (message.operation == TransportServiceOperation::request_retraction) {
-      auto const retraction =
-          decodeProcessFederationRequestRetractionEvent(message.payload);
-      auto const pendingEventsBefore = pendingEvents_.size();
-      auto const pendingRemovalsBefore =
-          pendingObjectInstanceRemovalEvents_.size();
-      pendingEvents_.erase(
-          std::remove_if(
-              pendingEvents_.begin(),
-              pendingEvents_.end(),
-              [&retraction](ProcessFederationInteractionEvent const& event) {
-                return event.retractionMessageId == retraction.messageId;
-              }),
-          pendingEvents_.end());
-      pendingObjectInstanceRemovalEvents_.erase(
-          std::remove_if(
-              pendingObjectInstanceRemovalEvents_.begin(),
-              pendingObjectInstanceRemovalEvents_.end(),
-              [&retraction](
-                  ProcessFederationObjectInstanceRemovalEvent const& event) {
-                return event.retractionMessageId == retraction.messageId;
-              }),
-          pendingObjectInstanceRemovalEvents_.end());
-      auto const removedFromPending =
-          pendingEvents_.size() != pendingEventsBefore ||
-          pendingObjectInstanceRemovalEvents_.size() != pendingRemovalsBefore;
-      if (removedFromPending) {
-        acknowledgeTsoDelivery(retraction.messageId);
-      } else if (callbackBridge_) {
-        callbackBridge_->submitRequestRetraction(retraction.messageId);
-      }
-      continue;
-    }
-    if (message.operation == TransportServiceOperation::time_advance_grant) {
-      auto const result =
-          decodeProcessFederationTimeAdvanceResult(message.payload);
-      if (result.status != ProcessFederationTimeAdvanceStatus::applied ||
-          !result.grantedTime) {
-        throw ProcessFederationClientError(
-            "Process federation client received an invalid time-advance grant event.");
-      }
-      if (result.optimisticTime) {
-        pendingFlushQueueGrantEvents_.push_back(
-            PendingFlushQueueGrant{
-                std::move(*result.grantedTime),
-                std::move(*result.optimisticTime)});
-      } else {
-        pendingTimeAdvanceGrantEvents_.push_back(std::move(*result.grantedTime));
-      }
-      continue;
-    }
-    auto result = decodeProcessFederationReceiveInteractionResult(message.payload);
-    if (!result.event && !result.removalEvent && !result.scopeChangeEvent &&
-        !result.attributeRelevanceAdvisoryEvent && !result.attributeEvent &&
-        !result.discoveryEvent && !result.attributeValueUpdateRequestEvent &&
-        !result.attributeOwnershipQueryEvent &&
-        !result.attributeOwnershipAcquisitionIfAvailableEvent &&
-        !result.attributeOwnershipAcquisitionEvent &&
-        !result.attributeOwnershipUnavailableEvent &&
-        !result.attributeTransportationTypeChangeEvent &&
-        !result.attributeTransportationTypeQueryEvent &&
-        !result.interactionTransportationTypeChangeEvent &&
-        !result.interactionTransportationTypeQueryEvent) {
-      throw ProcessFederationClientError(
-          "Process federation client received an empty pushed event.");
-    }
-    if (result.removalEvent) {
-      pendingObjectInstanceRemovalEvents_.push_back(
-          std::move(*result.removalEvent));
-    }
-    if (result.scopeChangeEvent) {
-      pendingObjectInstanceScopeChangeEvents_.push_back(
-          std::move(*result.scopeChangeEvent));
-    }
-    if (result.attributeRelevanceAdvisoryEvent) {
-      pendingAttributeRelevanceAdvisoryEvents_.push_back(
-          std::move(*result.attributeRelevanceAdvisoryEvent));
-    }
-    if (result.attributeEvent) {
-      pendingAttributeUpdateEvents_.push_back(std::move(*result.attributeEvent));
-    }
-    if (result.discoveryEvent) {
-      pendingObjectInstanceDiscoveryEvents_.push_back(
-          std::move(*result.discoveryEvent));
-    }
-    if (result.attributeValueUpdateRequestEvent) {
-      pendingAttributeValueUpdateRequestEvents_.push_back(
-          std::move(*result.attributeValueUpdateRequestEvent));
-    }
-    if (result.attributeOwnershipQueryEvent) {
-      pendingAttributeOwnershipQueryEvents_.push_back(
-          std::move(*result.attributeOwnershipQueryEvent));
-    }
-    if (result.attributeOwnershipAcquisitionIfAvailableEvent) {
-      pendingAttributeOwnershipAcquisitionIfAvailableEvents_.push_back(
-          std::move(*result.attributeOwnershipAcquisitionIfAvailableEvent));
-    }
-    if (result.attributeOwnershipAcquisitionEvent) {
-      pendingAttributeOwnershipAcquisitionEvents_.push_back(
-          std::move(*result.attributeOwnershipAcquisitionEvent));
-    }
-    if (result.attributeOwnershipUnavailableEvent) {
-      pendingAttributeOwnershipUnavailableEvents_.push_back(
-          std::move(*result.attributeOwnershipUnavailableEvent));
-    }
-    if (result.attributeTransportationTypeChangeEvent) {
-      pendingAttributeTransportationTypeChangeEvents_.push_back(
-          std::move(*result.attributeTransportationTypeChangeEvent));
-    }
-    if (result.attributeTransportationTypeQueryEvent) {
-      pendingAttributeTransportationTypeQueryEvents_.push_back(
-          std::move(*result.attributeTransportationTypeQueryEvent));
-    }
-    if (result.interactionTransportationTypeChangeEvent) {
-      pendingInteractionTransportationTypeChangeEvents_.push_back(
-          std::move(*result.interactionTransportationTypeChangeEvent));
-    }
-    if (result.interactionTransportationTypeQueryEvent) {
-      pendingInteractionTransportationTypeQueryEvents_.push_back(
-          std::move(*result.interactionTransportationTypeQueryEvent));
-    }
-    if (result.event) {
-      return std::move(*result.event);
-    }
-  }
+  return receivePendingEvent<ProcessFederationInteractionEvent>(true);
 }
 
 ProcessFederationObjectInstanceRemovalEvent
 ProcessFederationClient::receivePushedObjectInstanceRemoval() {
-  if (!pendingObjectInstanceRemovalEvents_.empty()) {
-    auto event = std::move(pendingObjectInstanceRemovalEvents_.front());
-    pendingObjectInstanceRemovalEvents_.pop_front();
-    return event;
-  }
-  if (!session_) {
-    throw ProcessFederationClientError(
-        "A process federation removal event was requested after client close.");
-  }
-  while (true) {
-    TransportServiceMessage message;
-    if (!session_->receive(message)) {
-      throw ProcessFederationClientError(
-          "Process federation client lost its pushed removal event.");
-    }
-    if (message.kind != TransportServiceMessageKind::event ||
-        message.status != TransportServiceStatus::ok ||
-        message.requestId != 0U ||
-        (message.operation != TransportServiceOperation::receive_interaction &&
-         message.operation != TransportServiceOperation::request_retraction &&
-         message.operation != TransportServiceOperation::time_advance_grant)) {
-      throw ProcessFederationClientError(
-          "Process federation client received an unexpected pushed removal event.");
-    }
-    if (message.operation == TransportServiceOperation::time_advance_grant) {
-      auto const result =
-          decodeProcessFederationTimeAdvanceResult(message.payload);
-      if (result.status != ProcessFederationTimeAdvanceStatus::applied ||
-          !result.grantedTime) {
-        throw ProcessFederationClientError(
-            "Process federation client received an invalid time-advance grant event.");
-      }
-      if (result.optimisticTime) {
-        pendingFlushQueueGrantEvents_.push_back(
-            PendingFlushQueueGrant{
-                std::move(*result.grantedTime),
-                std::move(*result.optimisticTime)});
-      } else {
-        pendingTimeAdvanceGrantEvents_.push_back(std::move(*result.grantedTime));
-      }
-      continue;
-    }
-    if (message.operation == TransportServiceOperation::request_retraction) {
-      auto const retraction =
-          decodeProcessFederationRequestRetractionEvent(message.payload);
-      auto const pendingBefore = pendingObjectInstanceRemovalEvents_.size();
-      pendingObjectInstanceRemovalEvents_.erase(
-          std::remove_if(
-              pendingObjectInstanceRemovalEvents_.begin(),
-              pendingObjectInstanceRemovalEvents_.end(),
-              [&retraction](
-                  ProcessFederationObjectInstanceRemovalEvent const& event) {
-                return event.retractionMessageId == retraction.messageId;
-              }),
-          pendingObjectInstanceRemovalEvents_.end());
-      if (pendingObjectInstanceRemovalEvents_.size() != pendingBefore) {
-        acknowledgeTsoDelivery(retraction.messageId);
-      } else if (callbackBridge_) {
-        callbackBridge_->submitRequestRetraction(retraction.messageId);
-      }
-      continue;
-    }
-    auto result = decodeProcessFederationReceiveInteractionResult(message.payload);
-    if (result.removalEvent) {
-      if (result.event) {
-        pendingEvents_.push_back(std::move(*result.event));
-      }
-      if (result.scopeChangeEvent) {
-        pendingObjectInstanceScopeChangeEvents_.push_back(
-            std::move(*result.scopeChangeEvent));
-      }
-      if (result.attributeRelevanceAdvisoryEvent) {
-        pendingAttributeRelevanceAdvisoryEvents_.push_back(
-            std::move(*result.attributeRelevanceAdvisoryEvent));
-      }
-      if (result.attributeEvent) {
-        pendingAttributeUpdateEvents_.push_back(std::move(*result.attributeEvent));
-      }
-      if (result.discoveryEvent) {
-        pendingObjectInstanceDiscoveryEvents_.push_back(
-            std::move(*result.discoveryEvent));
-      }
-      if (result.attributeValueUpdateRequestEvent) {
-        pendingAttributeValueUpdateRequestEvents_.push_back(
-            std::move(*result.attributeValueUpdateRequestEvent));
-      }
-      if (result.attributeOwnershipQueryEvent) {
-        pendingAttributeOwnershipQueryEvents_.push_back(
-            std::move(*result.attributeOwnershipQueryEvent));
-      }
-      if (result.attributeOwnershipAcquisitionIfAvailableEvent) {
-        pendingAttributeOwnershipAcquisitionIfAvailableEvents_.push_back(
-            std::move(*result.attributeOwnershipAcquisitionIfAvailableEvent));
-      }
-      if (result.attributeOwnershipAcquisitionEvent) {
-        pendingAttributeOwnershipAcquisitionEvents_.push_back(
-            std::move(*result.attributeOwnershipAcquisitionEvent));
-      }
-      if (result.attributeOwnershipUnavailableEvent) {
-        pendingAttributeOwnershipUnavailableEvents_.push_back(
-            std::move(*result.attributeOwnershipUnavailableEvent));
-      }
-      return std::move(*result.removalEvent);
-    }
-    if (result.event) {
-      pendingEvents_.push_back(std::move(*result.event));
-    }
-    if (result.scopeChangeEvent) {
-      pendingObjectInstanceScopeChangeEvents_.push_back(
-          std::move(*result.scopeChangeEvent));
-    }
-    if (result.attributeRelevanceAdvisoryEvent) {
-      pendingAttributeRelevanceAdvisoryEvents_.push_back(
-          std::move(*result.attributeRelevanceAdvisoryEvent));
-    }
-    if (result.attributeEvent) {
-      pendingAttributeUpdateEvents_.push_back(std::move(*result.attributeEvent));
-    }
-    if (result.discoveryEvent) {
-      pendingObjectInstanceDiscoveryEvents_.push_back(
-          std::move(*result.discoveryEvent));
-    }
-    if (result.attributeValueUpdateRequestEvent) {
-      pendingAttributeValueUpdateRequestEvents_.push_back(
-          std::move(*result.attributeValueUpdateRequestEvent));
-    }
-    if (result.attributeOwnershipQueryEvent) {
-      pendingAttributeOwnershipQueryEvents_.push_back(
-          std::move(*result.attributeOwnershipQueryEvent));
-    }
-    if (result.attributeOwnershipAcquisitionIfAvailableEvent) {
-      pendingAttributeOwnershipAcquisitionIfAvailableEvents_.push_back(
-          std::move(*result.attributeOwnershipAcquisitionIfAvailableEvent));
-    }
-    if (result.attributeOwnershipAcquisitionEvent) {
-      pendingAttributeOwnershipAcquisitionEvents_.push_back(
-          std::move(*result.attributeOwnershipAcquisitionEvent));
-    }
-    if (result.attributeOwnershipUnavailableEvent) {
-      pendingAttributeOwnershipUnavailableEvents_.push_back(
-          std::move(*result.attributeOwnershipUnavailableEvent));
-    }
-    if (result.attributeTransportationTypeChangeEvent) {
-      pendingAttributeTransportationTypeChangeEvents_.push_back(
-          std::move(*result.attributeTransportationTypeChangeEvent));
-    }
-    if (result.attributeTransportationTypeQueryEvent) {
-      pendingAttributeTransportationTypeQueryEvents_.push_back(
-          std::move(*result.attributeTransportationTypeQueryEvent));
-    }
-    if (result.interactionTransportationTypeChangeEvent) {
-      pendingInteractionTransportationTypeChangeEvents_.push_back(
-          std::move(*result.interactionTransportationTypeChangeEvent));
-    }
-    if (result.interactionTransportationTypeQueryEvent) {
-      pendingInteractionTransportationTypeQueryEvents_.push_back(
-          std::move(*result.interactionTransportationTypeQueryEvent));
-    }
-  }
+  return receivePendingEvent<ProcessFederationObjectInstanceRemovalEvent>(true);
 }
 
 ProcessFederationAttributeUpdateEvent
 ProcessFederationClient::receivePushedAttributeUpdate() {
-  if (!pendingAttributeUpdateEvents_.empty()) {
-    auto event = std::move(pendingAttributeUpdateEvents_.front());
-    pendingAttributeUpdateEvents_.pop_front();
-    return event;
-  }
-  if (!session_) {
-    throw ProcessFederationClientError(
-        "A process federation attribute event was requested after client close.");
-  }
-  while (true) {
-    TransportServiceMessage message;
-    if (!session_->receive(message)) {
-      throw ProcessFederationClientError(
-          "Process federation client lost its pushed attribute event.");
-    }
-    if (message.kind != TransportServiceMessageKind::event ||
-        (message.operation !=
-             TransportServiceOperation::receive_attribute_update &&
-         message.operation != TransportServiceOperation::time_advance_grant) ||
-        message.status != TransportServiceStatus::ok ||
-        message.requestId != 0U) {
-      throw ProcessFederationClientError(
-          "Process federation client received an unexpected pushed attribute event.");
-    }
-    if (message.operation == TransportServiceOperation::time_advance_grant) {
-      auto const result =
-          decodeProcessFederationTimeAdvanceResult(message.payload);
-      if (result.status != ProcessFederationTimeAdvanceStatus::applied ||
-          !result.grantedTime) {
-        throw ProcessFederationClientError(
-            "Process federation client received an invalid time-advance grant event.");
-      }
-      if (result.optimisticTime) {
-        pendingFlushQueueGrantEvents_.push_back(
-            PendingFlushQueueGrant{
-                std::move(*result.grantedTime),
-                std::move(*result.optimisticTime)});
-      } else {
-        pendingTimeAdvanceGrantEvents_.push_back(std::move(*result.grantedTime));
-      }
-      continue;
-    }
-    auto result = decodeProcessFederationReceiveAttributeUpdateResult(message.payload);
-    if (!result.event) {
-      throw ProcessFederationClientError(
-          "Process federation client received an empty pushed attribute event.");
-    }
-    return std::move(*result.event);
-  }
+  return receivePendingEvent<ProcessFederationAttributeUpdateEvent>(true);
 }
 
 ProcessFederationObjectInstanceDiscoveryEvent
 ProcessFederationClient::receivePushedObjectInstanceDiscovery() {
-  if (!pendingObjectInstanceDiscoveryEvents_.empty()) {
-    auto event = std::move(pendingObjectInstanceDiscoveryEvents_.front());
-    pendingObjectInstanceDiscoveryEvents_.pop_front();
-    return event;
-  }
-  if (!session_) {
-    throw ProcessFederationClientError(
-        "A process federation discovery event was requested after client close.");
-  }
-  while (true) {
-    TransportServiceMessage message;
-    if (!session_->receive(message)) {
-      throw ProcessFederationClientError(
-          "Process federation client lost its pushed discovery event.");
-    }
-    if (message.kind != TransportServiceMessageKind::event ||
-        (message.operation !=
-             TransportServiceOperation::receive_object_instance_discovery &&
-         message.operation != TransportServiceOperation::time_advance_grant) ||
-        message.status != TransportServiceStatus::ok ||
-        message.requestId != 0U) {
-      throw ProcessFederationClientError(
-          "Process federation client received an unexpected pushed discovery event.");
-    }
-    if (message.operation == TransportServiceOperation::time_advance_grant) {
-      auto const result =
-          decodeProcessFederationTimeAdvanceResult(message.payload);
-      if (result.status != ProcessFederationTimeAdvanceStatus::applied ||
-          !result.grantedTime) {
-        throw ProcessFederationClientError(
-            "Process federation client received an invalid time-advance grant event.");
-      }
-      if (result.optimisticTime) {
-        pendingFlushQueueGrantEvents_.push_back(
-            PendingFlushQueueGrant{
-                std::move(*result.grantedTime),
-                std::move(*result.optimisticTime)});
-      } else {
-        pendingTimeAdvanceGrantEvents_.push_back(std::move(*result.grantedTime));
-      }
-      continue;
-    }
-    auto result = decodeProcessFederationReceiveObjectInstanceDiscoveryResult(
-        message.payload);
-    if (!result.event) {
-      throw ProcessFederationClientError(
-          "Process federation client received an empty pushed discovery event.");
-    }
-    return std::move(*result.event);
-  }
+  return receivePendingEvent<ProcessFederationObjectInstanceDiscoveryEvent>(true);
 }
 
 ProcessFederationObjectInstanceScopeChangeEvent
 ProcessFederationClient::receivePushedObjectInstanceScopeChange() {
-  if (!pendingObjectInstanceScopeChangeEvents_.empty()) {
-    auto event = std::move(pendingObjectInstanceScopeChangeEvents_.front());
-    pendingObjectInstanceScopeChangeEvents_.pop_front();
-    return event;
-  }
-  if (!session_) {
-    throw ProcessFederationClientError(
-        "A process federation scope event was requested after client close.");
-  }
-  while (true) {
-    TransportServiceMessage message;
-    if (!session_->receive(message)) {
-      throw ProcessFederationClientError(
-          "Process federation client lost its pushed scope event.");
-    }
-    if (message.kind != TransportServiceMessageKind::event ||
-        (message.operation != TransportServiceOperation::receive_interaction &&
-         message.operation != TransportServiceOperation::time_advance_grant) ||
-        message.status != TransportServiceStatus::ok ||
-        message.requestId != 0U) {
-      throw ProcessFederationClientError(
-          "Process federation client received an unexpected pushed scope event.");
-    }
-    if (message.operation == TransportServiceOperation::time_advance_grant) {
-      auto const result =
-          decodeProcessFederationTimeAdvanceResult(message.payload);
-      if (result.status != ProcessFederationTimeAdvanceStatus::applied ||
-          !result.grantedTime) {
-        throw ProcessFederationClientError(
-            "Process federation client received an invalid time-advance grant event.");
-      }
-      if (result.optimisticTime) {
-        pendingFlushQueueGrantEvents_.push_back(
-            PendingFlushQueueGrant{
-                std::move(*result.grantedTime),
-                std::move(*result.optimisticTime)});
-      } else {
-        pendingTimeAdvanceGrantEvents_.push_back(std::move(*result.grantedTime));
-      }
-      continue;
-    }
-    auto result = decodeProcessFederationReceiveInteractionResult(message.payload);
-    if (result.scopeChangeEvent) {
-      return std::move(*result.scopeChangeEvent);
-    }
-    if (result.event) {
-      pendingEvents_.push_back(std::move(*result.event));
-    }
-    if (result.removalEvent) {
-      pendingObjectInstanceRemovalEvents_.push_back(
-          std::move(*result.removalEvent));
-    }
-    if (result.attributeEvent) {
-      pendingAttributeUpdateEvents_.push_back(std::move(*result.attributeEvent));
-    }
-    if (result.discoveryEvent) {
-      pendingObjectInstanceDiscoveryEvents_.push_back(std::move(*result.discoveryEvent));
-    }
-    if (result.attributeRelevanceAdvisoryEvent) {
-      pendingAttributeRelevanceAdvisoryEvents_.push_back(
-          std::move(*result.attributeRelevanceAdvisoryEvent));
-    }
-    if (result.attributeValueUpdateRequestEvent) {
-      pendingAttributeValueUpdateRequestEvents_.push_back(
-          std::move(*result.attributeValueUpdateRequestEvent));
-    }
-    if (result.attributeOwnershipQueryEvent) {
-      pendingAttributeOwnershipQueryEvents_.push_back(
-          std::move(*result.attributeOwnershipQueryEvent));
-    }
-    if (result.attributeOwnershipAcquisitionIfAvailableEvent) {
-      pendingAttributeOwnershipAcquisitionIfAvailableEvents_.push_back(
-          std::move(*result.attributeOwnershipAcquisitionIfAvailableEvent));
-    }
-    if (result.attributeOwnershipAcquisitionEvent) {
-      pendingAttributeOwnershipAcquisitionEvents_.push_back(
-          std::move(*result.attributeOwnershipAcquisitionEvent));
-    }
-    if (result.attributeOwnershipUnavailableEvent) {
-      pendingAttributeOwnershipUnavailableEvents_.push_back(
-          std::move(*result.attributeOwnershipUnavailableEvent));
-    }
-  }
+  return receivePendingEvent<ProcessFederationObjectInstanceScopeChangeEvent>(true);
 }
 
 ProcessFederationAttributeRelevanceAdvisoryEvent
 ProcessFederationClient::receivePushedAttributeRelevanceAdvisory() {
-  if (!pendingAttributeRelevanceAdvisoryEvents_.empty()) {
-    auto event = std::move(pendingAttributeRelevanceAdvisoryEvents_.front());
-    pendingAttributeRelevanceAdvisoryEvents_.pop_front();
-    return event;
-  }
-  if (!session_) {
-    throw ProcessFederationClientError(
-        "A process federation advisory event was requested after client close.");
-  }
-  while (true) {
-    TransportServiceMessage message;
-    if (!session_->receive(message)) {
-      throw ProcessFederationClientError(
-          "Process federation client lost its pushed advisory event.");
-    }
-    if (message.kind != TransportServiceMessageKind::event ||
-        (message.operation != TransportServiceOperation::receive_interaction &&
-         message.operation != TransportServiceOperation::time_advance_grant) ||
-        message.status != TransportServiceStatus::ok ||
-        message.requestId != 0U) {
-      throw ProcessFederationClientError(
-          "Process federation client received an unexpected pushed advisory event.");
-    }
-    if (message.operation == TransportServiceOperation::time_advance_grant) {
-      auto const result =
-          decodeProcessFederationTimeAdvanceResult(message.payload);
-      if (result.status != ProcessFederationTimeAdvanceStatus::applied ||
-          !result.grantedTime) {
-        throw ProcessFederationClientError(
-            "Process federation client received an invalid time-advance grant event.");
-      }
-      if (result.optimisticTime) {
-        pendingFlushQueueGrantEvents_.push_back(
-            PendingFlushQueueGrant{
-                std::move(*result.grantedTime),
-                std::move(*result.optimisticTime)});
-      } else {
-        pendingTimeAdvanceGrantEvents_.push_back(std::move(*result.grantedTime));
-      }
-      continue;
-    }
-    auto result = decodeProcessFederationReceiveInteractionResult(message.payload);
-    if (result.attributeRelevanceAdvisoryEvent) {
-      return std::move(*result.attributeRelevanceAdvisoryEvent);
-    }
-    if (result.event) {
-      pendingEvents_.push_back(std::move(*result.event));
-    }
-    if (result.scopeChangeEvent) {
-      pendingObjectInstanceScopeChangeEvents_.push_back(
-          std::move(*result.scopeChangeEvent));
-    }
-    if (result.attributeEvent) {
-      pendingAttributeUpdateEvents_.push_back(std::move(*result.attributeEvent));
-    }
-    if (result.discoveryEvent) {
-      pendingObjectInstanceDiscoveryEvents_.push_back(
-          std::move(*result.discoveryEvent));
-    }
-    if (result.removalEvent) {
-      pendingObjectInstanceRemovalEvents_.push_back(
-          std::move(*result.removalEvent));
-    }
-    if (result.attributeValueUpdateRequestEvent) {
-      pendingAttributeValueUpdateRequestEvents_.push_back(
-          std::move(*result.attributeValueUpdateRequestEvent));
-    }
-    if (result.attributeOwnershipQueryEvent) {
-      pendingAttributeOwnershipQueryEvents_.push_back(
-          std::move(*result.attributeOwnershipQueryEvent));
-    }
-    if (result.attributeOwnershipAcquisitionIfAvailableEvent) {
-      pendingAttributeOwnershipAcquisitionIfAvailableEvents_.push_back(
-          std::move(*result.attributeOwnershipAcquisitionIfAvailableEvent));
-    }
-    if (result.attributeOwnershipAcquisitionEvent) {
-      pendingAttributeOwnershipAcquisitionEvents_.push_back(
-          std::move(*result.attributeOwnershipAcquisitionEvent));
-    }
-    if (result.attributeOwnershipUnavailableEvent) {
-      pendingAttributeOwnershipUnavailableEvents_.push_back(
-          std::move(*result.attributeOwnershipUnavailableEvent));
-    }
-  }
+  return receivePendingEvent<ProcessFederationAttributeRelevanceAdvisoryEvent>(true);
 }
 
 ProcessFederationAttributeTransportationTypeChangeEvent
 ProcessFederationClient::receivePushedAttributeTransportationTypeChange() {
-  if (pendingAttributeTransportationTypeChangeEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued attribute transportation-type change event.");
-  }
-  auto event = std::move(pendingAttributeTransportationTypeChangeEvents_.front());
-  pendingAttributeTransportationTypeChangeEvents_.pop_front();
-  return event;
+  return receivePendingEvent<ProcessFederationAttributeTransportationTypeChangeEvent>();
 }
 
 ProcessFederationAttributeTransportationTypeQueryEvent
 ProcessFederationClient::receivePushedAttributeTransportationTypeQuery() {
-  if (pendingAttributeTransportationTypeQueryEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued attribute transportation-type query event.");
-  }
-  auto event = std::move(pendingAttributeTransportationTypeQueryEvents_.front());
-  pendingAttributeTransportationTypeQueryEvents_.pop_front();
-  return event;
+  return receivePendingEvent<ProcessFederationAttributeTransportationTypeQueryEvent>();
 }
 
 ProcessFederationInteractionTransportationTypeChangeEvent
 ProcessFederationClient::receivePushedInteractionTransportationTypeChange() {
-  if (pendingInteractionTransportationTypeChangeEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued interaction transportation-type change event.");
-  }
-  auto event = std::move(
-      pendingInteractionTransportationTypeChangeEvents_.front());
-  pendingInteractionTransportationTypeChangeEvents_.pop_front();
-  return event;
+  return receivePendingEvent<ProcessFederationInteractionTransportationTypeChangeEvent>();
 }
 
 ProcessFederationInteractionTransportationTypeQueryEvent
 ProcessFederationClient::receivePushedInteractionTransportationTypeQuery() {
-  if (pendingInteractionTransportationTypeQueryEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued interaction transportation-type query event.");
-  }
-  auto event = std::move(
-      pendingInteractionTransportationTypeQueryEvents_.front());
-  pendingInteractionTransportationTypeQueryEvents_.pop_front();
-  return event;
+  return receivePendingEvent<ProcessFederationInteractionTransportationTypeQueryEvent>();
 }
 
 ProcessFederationSynchronizationPointAnnouncementEvent
 ProcessFederationClient::receivePushedSynchronizationPointAnnouncement() {
-  if (pendingSynchronizationPointAnnouncementEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued synchronization-point announcement event.");
-  }
-  auto event = std::move(
-      pendingSynchronizationPointAnnouncementEvents_.front());
-  pendingSynchronizationPointAnnouncementEvents_.pop_front();
-  return event;
+  return receivePendingEvent<ProcessFederationSynchronizationPointAnnouncementEvent>();
 }
 
 ProcessFederationFederationSynchronizedEvent
 ProcessFederationClient::receivePushedFederationSynchronized() {
-  if (pendingFederationSynchronizedEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued Federation Synchronized event.");
-  }
-  auto event = std::move(pendingFederationSynchronizedEvents_.front());
-  pendingFederationSynchronizedEvents_.pop_front();
-  return event;
+  return receivePendingEvent<ProcessFederationFederationSynchronizedEvent>();
 }
 
 ProcessFederationSaveEvent ProcessFederationClient::receivePushedFederationSave() {
-  if (pendingFederationSaveEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued federation-save event.");
-  }
-  auto event = std::move(pendingFederationSaveEvents_.front());
-  pendingFederationSaveEvents_.pop_front();
-  return event;
+  return receivePendingEvent<ProcessFederationSaveEvent>();
 }
 
 ProcessFederationRestoreEvent
 ProcessFederationClient::receivePushedFederationRestore() {
-  if (pendingFederationRestoreEvents_.empty()) {
-    throw ProcessFederationClientError(
-        "Process federation client has no queued federation-restore event.");
-  }
-  auto event = std::move(pendingFederationRestoreEvents_.front());
-  pendingFederationRestoreEvents_.pop_front();
-  return event;
+  return receivePendingEvent<ProcessFederationRestoreEvent>();
 }
 
-void ProcessFederationClient::requireCallbackBridge() const {
+std::shared_ptr<ProcessFederationCallbackBridge>
+ProcessFederationClient::requireCallbackBridge() const {
+  std::scoped_lock lock(transactionMutex_);
   if (!callbackBridge_) {
     throw ProcessFederationClientError(
         "A process federation callback bridge has not been attached.");
   }
+  return callbackBridge_;
 }
 
 }  // namespace umbra::detail

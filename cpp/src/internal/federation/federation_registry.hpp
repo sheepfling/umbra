@@ -1142,6 +1142,11 @@ struct KnownObjectInstanceSnapshot {
   std::set<std::uint64_t> initialAttributeHandles;
 };
 
+struct ObjectInstanceInitialAttributeReflection final {
+  std::string transportationName;
+  std::map<std::uint64_t, rti1516_2025::VariableLengthData> attributeValues;
+};
+
 // The receive-order Delete Object Instance path owns no timestamp/retraction
 // state. The registry accepts deletion only after it has verified that the
 // invoking federate is known to own HLAprivilegeToDeleteObject, then reserves
@@ -1903,10 +1908,10 @@ struct MomServiceReportRoutingPlan {
   // producer-designator rule for RTI-created MOM traffic is sourced.
   InteractionProducer producer = InteractionProducer::rti();
   std::uint64_t interactionClassHandle = 0;
-  // The seven parameter handles are resolved from the composed MIM once and
-  // carried with the private routing plan so the adapter can construct the
-  // standard HLAreportServiceInvocation payload without duplicating catalog
-  // lookups or inventing a Java-side MOM model.
+  // The seven leaf parameter handles followed by inherited HLAfederate are
+  // resolved from the composed MIM and carried with the private routing plan
+  // so the adapter can construct the complete HLAreportServiceInvocation
+  // payload without duplicating catalog lookups.
   std::vector<std::uint64_t> reportParameterHandles;
   std::uint64_t endpointRegionHandle = 0;
   RegionSpecificationSnapshot endpointRegion;
@@ -1972,6 +1977,7 @@ enum class ExceptionReportStatus {
 
 struct ExceptionReportRouting {
   std::uint64_t interactionClassHandle = 0;
+  std::uint64_t federateParameterHandle = 0;
   std::uint64_t serviceParameterHandle = 0;
   std::uint64_t exceptionParameterHandle = 0;
   std::uint64_t endpointRegionHandle = 0;
@@ -2000,6 +2006,7 @@ enum class MomExceptionReportStatus {
 
 struct MomExceptionReportRouting {
   std::uint64_t interactionClassHandle = 0;
+  std::uint64_t federateParameterHandle = 0;
   std::uint64_t serviceParameterHandle = 0;
   std::uint64_t exceptionParameterHandle = 0;
   std::uint64_t parameterErrorParameterHandle = 0;
@@ -3964,6 +3971,16 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t receivingFederateId);
 
+  // After an ordinary discovery establishes the receiving federate's known
+  // instance, return the current values for its subscribed attributes,
+  // grouped by the callback transportation type. The current declaration and
+  // DDM boundary are re-evaluated at callback time.
+  [[nodiscard]] std::vector<ObjectInstanceInitialAttributeReflection>
+  planInitialObjectInstanceAttributeReflectionsForDiscovery(
+      std::wstring const& federationName,
+      std::uint64_t receivingFederateId,
+      std::uint64_t objectInstanceHandle) const;
+
   // Once a discovery commits the receiver's known-instance state, plan the
   // initial owner-directed Attribute Relevance Advisory for attributes that
   // are already relevant through the receiver's active declaration. The
@@ -4562,8 +4579,8 @@ class EmbeddedFederationRegistry final {
       std::uint16_t serviceGroup) const;
 
   // Atomically obtains the routing decision and serial value for one report
-  // accepted for an interaction or report-file sink. Suppressed and invalid
-  // requests leave the joined federate's sequence untouched.
+  // accepted for an interaction or report-file sink. Suppressed, invalid, and
+  // recipientless-interaction requests leave the sequence untouched.
   [[nodiscard]] ReservedMomServiceReport reserveMomServiceReport(
       std::wstring const& federationName,
       std::uint64_t reportedFederateId,

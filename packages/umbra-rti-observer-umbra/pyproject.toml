@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "umbra-rti-observer-umbra"
+version = "0.1.0"
+description = "Umbra Python RTI adapter for the standalone runtime observer"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Umbra contributors" }]
+dependencies = [
+  "umbra-rti-observer==0.1.0",
+  "hla-rti-api==0.1.0",
+]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.optional-dependencies]
+native = ["umbra-rti-native==0.1.0"]
+test = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

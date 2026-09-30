@@ -394,6 +394,10 @@ constexpr char serviceReportQueryAttributeOwnershipScenario[] =
     "cpp-tck.service-report-query-attribute-ownership";
 constexpr char serviceReportQueryAttributeOwnershipContractScenario[] =
     "cpp-tck.service-report-query-attribute-ownership-contract";
+constexpr char serviceReportConfirmDivestitureScenario[] =
+    "cpp-tck.service-report-confirm-divestiture";
+constexpr char serviceReportConfirmDivestitureContractScenario[] =
+    "cpp-tck.service-report-confirm-divestiture-contract";
 constexpr char serviceReportCancelAttributeOwnershipAcquisitionScenario[] =
     "cpp-tck.service-report-cancel-attribute-ownership-acquisition";
 constexpr char serviceReportCancelAttributeOwnershipAcquisitionContractScenario[] =
@@ -494,6 +498,46 @@ constexpr char federateMomPublicationQueryScenario[] =
     "cpp-tck.federate-mom-publication-query";
 constexpr char federateMomPublicationQueryContractId[] =
     "cpp-tck.federate-mom-publication-query-contract";
+constexpr char federateMomCompleteObjectClassPublicationQueryScenario[] =
+    "cpp-tck.federate-mom-complete-object-class-publication-query";
+constexpr char federateMomCompleteObjectClassPublicationQueryContractId[] =
+    "cpp-tck.federate-mom-complete-object-class-publication-query-contract";
+constexpr char federateMomObjectClassAttributeUnpublicationQueryScenario[] =
+    "cpp-tck.federate-mom-object-class-attribute-unpublication-query";
+constexpr char federateMomObjectClassAttributeUnpublicationQueryContractId[] =
+    "cpp-tck.federate-mom-object-class-attribute-unpublication-query-contract";
+constexpr char federateMomObjectClassFullAttributeUnpublicationQueryScenario[] =
+    "cpp-tck.federate-mom-object-class-full-attribute-unpublication-query";
+constexpr char federateMomObjectClassFullAttributeUnpublicationQueryContractId[] =
+    "cpp-tck.federate-mom-object-class-full-attribute-unpublication-query-contract";
+constexpr char federateMomObjectClassWholeUnpublicationQueryScenario[] =
+    "cpp-tck.federate-mom-object-class-whole-unpublication-query";
+constexpr char federateMomObjectClassWholeUnpublicationQueryContractId[] =
+    "cpp-tck.federate-mom-object-class-whole-unpublication-query-contract";
+constexpr char federateMomInteractionClassWholeUnpublicationQueryScenario[] =
+    "cpp-tck.federate-mom-interaction-class-whole-unpublication-query";
+constexpr char federateMomInteractionClassWholeUnpublicationQueryContractId[] =
+    "cpp-tck.federate-mom-interaction-class-whole-unpublication-query-contract";
+constexpr char federateMomInteractionClassPartialUnpublicationQueryScenario[] =
+    "cpp-tck.federate-mom-interaction-class-partial-unpublication-query";
+constexpr char federateMomInteractionClassPartialUnpublicationQueryContractId[] =
+    "cpp-tck.federate-mom-interaction-class-partial-unpublication-query-contract";
+constexpr char federateMomMultipleInteractionClassFullUnpublicationQueryScenario[] =
+    "cpp-tck.federate-mom-multiple-interaction-class-full-unpublication-query";
+constexpr char federateMomMultipleInteractionClassFullUnpublicationQueryContractId[] =
+    "cpp-tck.federate-mom-multiple-interaction-class-full-unpublication-query-contract";
+constexpr char federateMomMultipleDirectedPublicationQueryScenario[] =
+    "cpp-tck.federate-mom-multiple-directed-publication-query";
+constexpr char federateMomMultipleDirectedPublicationQueryContractId[] =
+    "cpp-tck.federate-mom-multiple-directed-publication-query-contract";
+constexpr char federateMomMultipleDirectedPublicationPartialUnpublishQueryScenario[] =
+    "cpp-tck.federate-mom-multiple-directed-publication-partial-unpublish-query";
+constexpr char federateMomMultipleDirectedPublicationPartialUnpublishQueryContractId[] =
+    "cpp-tck.federate-mom-multiple-directed-publication-partial-unpublish-query-contract";
+constexpr char federateMomMultipleDirectedPublicationFullUnpublishQueryScenario[] =
+    "cpp-tck.federate-mom-multiple-directed-publication-full-unpublish-query";
+constexpr char federateMomMultipleDirectedPublicationFullUnpublishQueryContractId[] =
+    "cpp-tck.federate-mom-multiple-directed-publication-full-unpublish-query-contract";
 constexpr char federateMomSubscriptionQueryScenario[] =
     "cpp-tck.federate-mom-subscription-query";
 constexpr char federateMomSubscriptionQueryContractId[] =
@@ -506,6 +550,46 @@ constexpr char federateMomPassiveInteractionSubscriptionQueryScenario[] =
     "cpp-tck.federate-mom-passive-interaction-subscription-query";
 constexpr char federateMomPassiveInteractionSubscriptionQueryContractId[] =
     "cpp-tck.federate-mom-passive-interaction-subscription-query-contract";
+constexpr char federateMomPassiveInteractionSubscriptionActivationQueryScenario[] =
+    "cpp-tck.federate-mom-passive-interaction-subscription-activation-query";
+constexpr char federateMomPassiveInteractionSubscriptionActivationQueryContractId[] =
+    "cpp-tck.federate-mom-passive-interaction-subscription-activation-query-contract";
+constexpr char federateMomMultipleInteractionSubscriptionQueryScenario[] =
+    "cpp-tck.federate-mom-multiple-interaction-subscription-query";
+constexpr char federateMomMultipleInteractionSubscriptionQueryContractId[] =
+    "cpp-tck.federate-mom-multiple-interaction-subscription-query-contract";
+constexpr char federateMomMultipleInteractionSubscriptionUnsubscribeQueryScenario[] =
+    "cpp-tck.federate-mom-multiple-interaction-subscription-unsubscribe-query";
+constexpr char federateMomMultipleInteractionSubscriptionUnsubscribeQueryContractId[] =
+    "cpp-tck.federate-mom-multiple-interaction-subscription-unsubscribe-query-contract";
+constexpr char federateMomMultipleInteractionSubscriptionFullUnsubscribeQueryScenario[] =
+    "cpp-tck.federate-mom-multiple-interaction-subscription-full-unsubscribe-query";
+constexpr char federateMomMultipleInteractionSubscriptionFullUnsubscribeQueryContractId[] =
+    "cpp-tck.federate-mom-multiple-interaction-subscription-full-unsubscribe-query-contract";
+constexpr char federateMomObjectAttributePartialUnsubscribeQueryScenario[] =
+    "cpp-tck.federate-mom-object-attribute-partial-unsubscribe-query";
+constexpr char federateMomObjectAttributePartialUnsubscribeQueryContractId[] =
+    "cpp-tck.federate-mom-object-attribute-partial-unsubscribe-query-contract";
+constexpr char federateMomObjectAttributeFullUnsubscribeQueryScenario[] =
+    "cpp-tck.federate-mom-object-attribute-full-unsubscribe-query";
+constexpr char federateMomObjectAttributeFullUnsubscribeQueryContractId[] =
+    "cpp-tck.federate-mom-object-attribute-full-unsubscribe-query-contract";
+constexpr char federateMomObjectClassFullUnsubscribeQueryScenario[] =
+    "cpp-tck.federate-mom-object-class-full-unsubscribe-query";
+constexpr char federateMomObjectClassFullUnsubscribeQueryContractId[] =
+    "cpp-tck.federate-mom-object-class-full-unsubscribe-query-contract";
+constexpr char federateMomObjectClassCompleteAttributeSubscriptionQueryScenario[] =
+    "cpp-tck.federate-mom-object-class-complete-attribute-subscription-query";
+constexpr char federateMomObjectClassCompleteAttributeSubscriptionQueryContractId[] =
+    "cpp-tck.federate-mom-object-class-complete-attribute-subscription-query-contract";
+constexpr char federateMomObjectClassPassiveCompleteAttributeSubscriptionQueryScenario[] =
+    "cpp-tck.federate-mom-object-class-passive-complete-attribute-subscription-query";
+constexpr char federateMomObjectClassPassiveCompleteAttributeSubscriptionQueryContractId[] =
+    "cpp-tck.federate-mom-object-class-passive-complete-attribute-subscription-query-contract";
+constexpr char federateMomObjectClassCompleteAttributeSubscriptionActivationQueryScenario[] =
+    "cpp-tck.federate-mom-object-class-complete-attribute-subscription-activation-query";
+constexpr char federateMomObjectClassCompleteAttributeSubscriptionActivationQueryContractId[] =
+    "cpp-tck.federate-mom-object-class-complete-attribute-subscription-activation-query-contract";
 constexpr char federateMomEmptySubscriptionQueryScenario[] =
     "cpp-tck.federate-mom-empty-subscription-query";
 constexpr char federateMomEmptySubscriptionQueryContractId[] =
@@ -514,6 +598,14 @@ constexpr char federateMomDirectedSubscriptionQueryScenario[] =
     "cpp-tck.federate-mom-directed-subscription-query";
 constexpr char federateMomDirectedSubscriptionQueryContractId[] =
     "cpp-tck.federate-mom-directed-subscription-query-contract";
+constexpr char federateMomMultipleDirectedSubscriptionQueryScenario[] =
+    "cpp-tck.federate-mom-multiple-directed-subscription-query";
+constexpr char federateMomMultipleDirectedSubscriptionQueryContractId[] =
+    "cpp-tck.federate-mom-multiple-directed-subscription-query-contract";
+constexpr char federateMomMultipleDirectedSubscriptionFullUnsubscribeQueryScenario[] =
+    "cpp-tck.federate-mom-multiple-directed-subscription-full-unsubscribe-query";
+constexpr char federateMomMultipleDirectedSubscriptionFullUnsubscribeQueryContractId[] =
+    "cpp-tck.federate-mom-multiple-directed-subscription-full-unsubscribe-query-contract";
 constexpr char federateMomExceptionReportServicePreconditionScenario[] =
     "cpp-tck.federate-mom-exception-report-service-precondition";
 constexpr char federateMomExceptionReportServicePreconditionContractId[] =
@@ -759,14 +851,36 @@ constexpr char receiveOrderAttributeUpdateScenario[] =
     "cpp-tck.receive-order-attribute-update";
 constexpr char receiveOrderAttributeUpdateContractId[] =
     "cpp-tck.receive-order-attribute-update-contract";
+constexpr char attributeUpdateOrderClassificationScenario[] =
+    "cpp-tck.attribute-update-order-classification";
+constexpr char attributeUpdateOrderClassificationContractId[] =
+    "cpp-tck.attribute-update-order-classification-contract";
 constexpr char receiveOrderInteractionScenario[] =
     "cpp-tck.receive-order-interaction";
 constexpr char receiveOrderInteractionContractId[] =
     "cpp-tck.receive-order-interaction-contract";
+constexpr char interactionOrderClassificationScenario[] =
+    "cpp-tck.interaction-order-classification";
+constexpr char interactionOrderClassificationContractId[] =
+    "cpp-tck.interaction-order-classification-contract";
+constexpr char interactionPublicationSendTransitionScenario[] =
+    "cpp-tck.interaction-publication-send-transition";
+constexpr char interactionPublicationSendTransitionContractId[] =
+    "cpp-tck.interaction-publication-send-transition-contract";
+constexpr char interactionActiveAndPassiveSubscriptionModesScenario[] =
+    "cpp-tck.interaction-active-and-passive-subscription-modes";
+constexpr char interactionActiveAndPassiveSubscriptionModesContractId[] =
+    "cpp-tck.interaction-active-and-passive-subscription-modes-contract";
 constexpr char receiveOrderObjectRemovalScenario[] =
     "cpp-tck.receive-order-object-removal";
 constexpr char receiveOrderObjectRemovalContractId[] =
     "cpp-tck.receive-order-object-removal-contract";
+constexpr char objectRemovalOrderClassificationScenario[] =
+    "cpp-tck.object-removal-order-classification";
+constexpr char objectRemovalOrderClassificationContractId[] =
+    "cpp-tck.object-removal-order-classification-contract";
+constexpr char javaTimestampedObjectRemovalScenario[] =
+    "java-tck.timestamped-object-removal";
 constexpr char federationRestoreAbortScenario[] =
     "cpp-tck.federation-restore-abort";
 constexpr char federationRestoreAbortContractId[] =
@@ -861,6 +975,8 @@ constexpr char timestampedDirectedInteractionReenableContractId[] =
     "cpp-tck.timestamped-directed-interaction-reenable-contract";
 constexpr char timestampedAttributeUpdateScenario[] =
     "cpp-tck.timestamped-attribute-update";
+constexpr char javaTimestampedAttributeUpdateScenario[] =
+    "java-tck.timestamped-attribute-update";
 constexpr char timestampedAttributeUpdateContractId[] =
     "cpp-tck.timestamped-attribute-update-contract";
 constexpr char timestampedAttributeUpdateReenableScenario[] =
@@ -931,6 +1047,10 @@ constexpr char alternateTimeAdvancesScenario[] =
     "cpp-tck.alternate-time-advances";
 constexpr char alternateTimeAdvancesContractId[] =
     "cpp-tck.alternate-time-advances-contract";
+constexpr char pendingAlternateAdvanceStateScenario[] =
+    "cpp-tck.pending-alternate-time-advance-state";
+constexpr char pendingAlternateAdvanceStateContractId[] =
+    "cpp-tck.pending-alternate-time-advance-state-contract";
 constexpr char nextMessageRequestScenario[] =
     "cpp-tck.next-message-request";
 constexpr char nextMessageRequestContractId[] =
@@ -6360,7 +6480,7 @@ void scenarioServiceReportQueryAttributeOwnership(
       !options.logicalTimeImplementationName.empty(),
       "Query Attribute Ownership service-report testing requires an adapter-supplied logical-time implementation");
 
-  Session owner(options, model, "service-report-ownership-owner");
+  Session owner(options, model, "owner");
   Session requester(options, model, "service-report-ownership-requester");
   auto const federation =
       federationName(options, "service-report-query-attribute-ownership");
@@ -6603,6 +6723,302 @@ void scenarioServiceReportQueryAttributeOwnershipContractPortable(
   scenarioServiceReportQueryAttributeOwnership(options, model);
 }
 
+void scenarioServiceReportConfirmDivestiture(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.multiAttributeFom.empty(),
+      "Confirm Divestiture service-report testing requires an adapter-supplied multi-attribute FOM");
+  require(
+      !options.mimFom.empty(),
+      "Confirm Divestiture service-report testing requires an adapter-supplied standard MIM");
+  require(
+      !options.logicalTimeImplementationName.empty(),
+      "Confirm Divestiture service-report testing requires an adapter-supplied logical-time implementation");
+
+  Session owner(options, model, "owner");
+  Session acquirer(options, model, "service-report-confirm-divestiture-acquirer");
+  Session observer(options, model, "service-report-confirm-divestiture-observer");
+  auto const federation =
+      federationName(options, "service-report-confirm-divestiture");
+  owner.connect();
+  acquirer.connect();
+  observer.connect();
+  owner.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.multiAttributeFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(
+      options.ownerFederateName + L"-service-report-confirm-divestiture-owner",
+      options.federateType,
+      federation);
+  acquirer.join(
+      options.memberFederateName + L"-service-report-confirm-divestiture-acquirer",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-service-report-confirm-divestiture-observer",
+      options.federateType,
+      federation);
+
+  auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      reportClass.isValid(),
+      "Confirm Divestiture report lookup returned an invalid HLAreportServiceInvocation handle");
+  std::vector<rti::ParameterHandle> reportParameters;
+  for (auto const& name : {
+           L"HLAservice",
+           L"HLAserviceType",
+           L"HLAsuccessIndicator",
+           L"HLAsuppliedArguments",
+           L"HLAreturnedArgument",
+           L"HLAexception",
+           L"HLAserialNumber",
+           L"HLAfederate"}) {
+    auto const parameter = observer.rtiAmbassador().getParameterHandle(
+        reportClass,
+        name);
+    require(
+        parameter.isValid(),
+        "Confirm Divestiture report lookup returned an invalid MIM parameter handle");
+    reportParameters.push_back(parameter);
+  }
+
+  owner.rtiAmbassador().setServiceReportingSwitch(false);
+  owner.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  acquirer.rtiAmbassador().setServiceReportingSwitch(false);
+  acquirer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  observer.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().subscribeInteractionClass(reportClass);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const acquirerClass = acquirer.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeFirstName);
+  auto const acquirerAttribute = acquirer.rtiAmbassador().getAttributeHandle(
+      acquirerClass,
+      options.multiAttributeFirstName);
+  require(
+      ownerClass.isValid() && acquirerClass.isValid() &&
+          ownerAttribute.isValid() && acquirerAttribute.isValid(),
+      "Confirm Divestiture setup returned an invalid object-class or attribute handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const acquirerAttributes{acquirerAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  acquirer.rtiAmbassador().publishObjectClassAttributes(
+      acquirerClass,
+      acquirerAttributes);
+  acquirer.rtiAmbassador().subscribeObjectClassAttributes(
+      acquirerClass,
+      acquirerAttributes);
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "Confirm Divestiture setup returned an invalid object-instance handle");
+  waitFor(
+      acquirer,
+      [&] { return acquirer.recorder().hasDiscovery(object); },
+      options,
+      "the object discovery callback before negotiated divestiture");
+
+  std::vector<std::uint8_t> const divestitureTagBytes{0x01U, 0xD1U};
+  std::vector<std::uint8_t> const acquisitionTagBytes{0x02U, 0xA2U};
+  std::vector<std::uint8_t> const confirmationTagBytes{
+      0x00U,
+      0xFFU,
+      0x10U,
+      0xA5U};
+  rti::VariableLengthData const divestitureTag(
+      divestitureTagBytes.data(),
+      divestitureTagBytes.size());
+  rti::VariableLengthData const acquisitionTag(
+      acquisitionTagBytes.data(),
+      acquisitionTagBytes.size());
+  rti::VariableLengthData const confirmationTag(
+      confirmationTagBytes.data(),
+      confirmationTagBytes.size());
+  owner.rtiAmbassador().negotiatedAttributeOwnershipDivestiture(
+      object,
+      ownerAttributes,
+      divestitureTag);
+  acquirer.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      acquirerAttributes,
+      acquisitionTag);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().divestitureConfirmation().has_value(); },
+      options,
+      "the negotiated-divestiture confirmation request");
+  auto const confirmationRequest = owner.recorder().divestitureConfirmation();
+  require(
+      confirmationRequest->object == object &&
+          confirmationRequest->attributes == ownerAttributes &&
+          confirmationRequest->tag == acquisitionTagBytes,
+      "Negotiated divestiture requested confirmation with the wrong object, attributes, or acquisition tag");
+
+  owner.recorder().clearInteraction();
+  observer.recorder().clearInteraction();
+  owner.rtiAmbassador().setServiceReportingSwitch(true);
+  require(
+      owner.rtiAmbassador().getServiceReportingSwitch(),
+      "Confirm Divestiture setup did not enable service reporting");
+  owner.rtiAmbassador().confirmDivestiture(
+      object,
+      ownerAttributes,
+      confirmationTag);
+  waitFor(
+      observer,
+      [&] { return observer.recorder().interaction().present; },
+      options,
+      "the ConfirmDivestiture HLAreportServiceInvocation interaction");
+  waitFor(
+      acquirer,
+      [&] { return acquirer.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "the Confirm Divestiture ownership-acquisition notification");
+
+  require(
+      !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          acquirer.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              acquirerAttribute),
+      "Confirm Divestiture did not transfer the negotiated attribute to the acquirer");
+  auto const acquisition = acquirer.recorder().ownershipAcquisition();
+  require(
+      acquisition->object == object &&
+          acquisition->attributes == acquirerAttributes &&
+          acquisition->tag == confirmationTagBytes,
+      "Confirm Divestiture ownership notification returned the wrong object, attributes, or tag");
+
+  auto const report = observer.recorder().interaction();
+  require(
+      report.interaction == reportClass &&
+          report.parameters.size() == reportParameters.size(),
+      "Confirm Divestiture report returned the wrong interaction or parameter set");
+  require(
+      report.tag.empty() && !report.regions.has_value() &&
+          report.transportation == observer.rtiAmbassador().getTransportationTypeHandle(
+              L"HLAreliable"),
+      "Confirm Divestiture report did not preserve standard receive-order reliable MIM metadata");
+  require(
+      observer.recorder().timedInteractions().empty(),
+      "Receive-order Confirm Divestiture report used the timestamped callback overload");
+  for (auto const parameter : reportParameters) {
+    require(
+        report.parameters.count(parameter) == 1U,
+        "Confirm Divestiture report omitted a standard MIM parameter");
+  }
+
+  rti::HLAunicodeString service;
+  service.decode(report.parameters.at(reportParameters[0]));
+  rti::HLAinteger16BE serviceType;
+  serviceType.decode(report.parameters.at(reportParameters[1]));
+  rti::HLAboolean success;
+  success.decode(report.parameters.at(reportParameters[2]));
+  require(
+      service.get() == L"ConfirmDivestiture" && serviceType.get() == 3 &&
+          success.get(),
+      "Confirm Divestiture report returned the wrong service identity, type, or success status");
+
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype
+      .appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters[3]));
+  require(
+      suppliedArguments.size() == 3U,
+      "Confirm Divestiture report returned the wrong supplied-argument count");
+  auto const& objectArgument =
+      dynamic_cast<rti::HLAfixedRecord const&>(suppliedArguments.get(0U));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(objectArgument.get(0U)).get() ==
+              37 &&
+          dynamic_cast<rti::HLAunicodeString const&>(objectArgument.get(1U))
+                  .get() == L"Object instance designator" &&
+          dynamic_cast<rti::HLAunicodeString const&>(objectArgument.get(2U))
+                  .get() == L"\"" + object.toString() + L"\"",
+      "Confirm Divestiture report returned the wrong object-instance argument");
+  auto const& attributesArgument =
+      dynamic_cast<rti::HLAfixedRecord const&>(suppliedArguments.get(1U));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(attributesArgument.get(0U))
+                  .get() == 1 &&
+          dynamic_cast<rti::HLAunicodeString const&>(attributesArgument.get(1U))
+                  .get() == L"Set of attribute designators" &&
+          dynamic_cast<rti::HLAunicodeString const&>(attributesArgument.get(2U))
+                  .get() == L"[\"" + ownerAttribute.toString() + L"\"]",
+      "Confirm Divestiture report returned the wrong attribute-set argument");
+  auto const& tagArgument =
+      dynamic_cast<rti::HLAfixedRecord const&>(suppliedArguments.get(2U));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(tagArgument.get(0U)).get() ==
+              60 &&
+          dynamic_cast<rti::HLAunicodeString const&>(tagArgument.get(1U))
+                  .get() == L"User-supplied tag" &&
+          dynamic_cast<rti::HLAunicodeString const&>(tagArgument.get(2U))
+                  .get() == L"\"AP8QpQ==\"",
+      "Confirm Divestiture report returned the wrong user-supplied-tag argument");
+
+  rti::HLAfixedRecord returnedArgument;
+  returnedArgument
+      .appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  returnedArgument.decode(report.parameters.at(reportParameters[4]));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U))
+                  .get() == 34 &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U))
+                  .get().empty() &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(2U))
+                  .get() == L"null",
+      "Successful void Confirm Divestiture report returned the wrong null result argument");
+  rti::HLAunicodeString exception;
+  exception.decode(report.parameters.at(reportParameters[5]));
+  rti::HLAinteger32BE serial;
+  serial.decode(report.parameters.at(reportParameters[6]));
+  require(
+      exception.get().empty() && serial.get() == 0,
+      "First successful Confirm Divestiture report carried an exception or wrong serial number");
+
+  owner.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
+  acquirer.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+      object,
+      acquirerAttributes,
+      rti::VariableLengthData{});
+  acquirer.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  observer.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  acquirer.disconnect();
+  owner.disconnect();
+}
+
+void scenarioServiceReportConfirmDivestiturePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportConfirmDivestiture(options, model);
+}
+
+void scenarioServiceReportConfirmDivestitureContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportConfirmDivestiture(options, model);
+}
+
 void scenarioServiceReportCancelAttributeOwnershipAcquisition(
     Options const& options,
     rti::CallbackModel model) {
@@ -6616,7 +7032,7 @@ void scenarioServiceReportCancelAttributeOwnershipAcquisition(
       !options.logicalTimeImplementationName.empty(),
       "Cancel Attribute Ownership Acquisition service-report testing requires an adapter-supplied logical-time implementation");
 
-  Session owner(options, model, "service-report-cancel-ownership-owner");
+  Session owner(options, model, "owner");
   Session requester(options, model, "service-report-cancel-ownership-requester");
   Session observer(options, model, "service-report-cancel-ownership-observer");
   auto const federation =
@@ -7209,6 +7625,102 @@ void scenarioAlternateTimeAdvancesContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioAlternateTimeAdvancesContract(options, model);
+}
+
+void scenarioPendingAlternateAdvanceState(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session regulator(options, model, "pending-alternate-advance-regulator");
+  Session constrained(options, model, "pending-alternate-advance-constrained");
+  auto const federation = federationName(options, "pending-alternate-advance");
+  connectAndJoin(regulator, constrained, options, federation, options.fom);
+
+  auto regulatorTime = makeTimeContext(regulator);
+  auto constrainedTime = makeTimeContext(constrained);
+  require(
+      regulatorTime.factory->getName() == constrainedTime.factory->getName(),
+      "pending alternate advances selected different logical-time factories");
+
+  constrained.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      constrained,
+      [&] { return constrained.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "pending alternate advances time-constrained callback");
+  regulator.rtiAmbassador().enableTimeRegulation(*regulatorTime.epsilon);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "pending alternate advances time-regulation callback");
+
+  auto const regulatorTarget = timeAfter(
+      *regulatorTime.factory,
+      *regulatorTime.initial,
+      *regulatorTime.epsilon,
+      4U);
+  auto const constrainedTarget = timeAfter(
+      *constrainedTime.factory,
+      *constrainedTime.initial,
+      *constrainedTime.epsilon,
+      4U);
+  constrained.rtiAmbassador().timeAdvanceRequest(*constrainedTarget);
+  requireException(
+      [&] {
+        constrained.rtiAmbassador().timeAdvanceRequestAvailable(
+            *constrainedTarget);
+      },
+      L"InTimeAdvancingState",
+      "time advance request available while TAR is pending");
+  requireException(
+      [&] {
+        constrained.rtiAmbassador().nextMessageRequestAvailable(
+            *constrainedTarget);
+      },
+      L"InTimeAdvancingState",
+      "next message request available while TAR is pending");
+  requireException(
+      [&] { constrained.rtiAmbassador().flushQueueRequest(*constrainedTarget); },
+      L"InTimeAdvancingState",
+      "flush queue request while TAR is pending");
+  requireException(
+      [&] { constrained.rtiAmbassador().timeAdvanceRequest(*constrainedTarget); },
+      L"InTimeAdvancingState",
+      "second time advance request while TAR is pending");
+  require(
+      constrained.recorder().timeAdvanceGrants().empty(),
+      "rejected alternate requests completed the original pending TAR");
+
+  regulator.rtiAmbassador().timeAdvanceRequest(*regulatorTarget);
+  waitFor(
+      regulator,
+      constrained,
+      [&] {
+        return regulator.recorder().timeAdvanceGrants().size() == 1U &&
+            constrained.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "pending alternate advances released by regulator grant");
+  auto const regulatorGrants = regulator.recorder().timeAdvanceGrants();
+  auto const constrainedGrants = constrained.recorder().timeAdvanceGrants();
+  require(
+      regulatorGrants.front().encoded == encodeTime(*regulatorTarget) &&
+          constrainedGrants.front().encoded == encodeTime(*constrainedTarget),
+      "pending alternate advances returned the wrong grant times");
+
+  constrained.rtiAmbassador().disableTimeConstrained();
+  regulator.rtiAmbassador().disableTimeRegulation();
+  constrained.resign(rti::NO_ACTION);
+  regulator.resign(rti::NO_ACTION);
+  regulator.rtiAmbassador().destroyFederationExecution(federation);
+  constrained.disconnect();
+  regulator.disconnect();
+}
+
+void scenarioPendingAlternateAdvanceStateContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioPendingAlternateAdvanceState(options, model);
 }
 
 void scenarioNextMessageRequestPortable(
@@ -11450,20 +11962,146 @@ void scenarioFederateMomObjectInstanceInformationContract(
   scenarioFederateMomObjectInstanceInformation(options, model);
 }
 
-void scenarioFederateMomPublicationQuery(
+void scenarioFederateMomPublicationQueryState(
     Options const& options,
-    rti::CallbackModel model) {
+    rti::CallbackModel model,
+    bool hasMultipleDirectedPublications,
+    bool partiallyUnpublishDirectedPublicationAfterInitialQuery = false,
+    bool unpublishAllDirectedPublicationsAfterPartialQuery = false,
+    bool publishCompleteObjectClassAttributeSet = false,
+    bool unpublishOneObjectClassAttributeAfterInitialQuery = false,
+    bool unpublishAllObjectClassApplicationAttributesAfterInitialQuery = false,
+    bool unpublishWholeObjectClassAfterInitialQuery = false,
+    bool unpublishWholeInteractionClassAfterInitialQuery = false,
+    bool unpublishOneOrdinaryInteractionClassAfterInitialQuery = false,
+    bool unpublishAllOrdinaryInteractionClassesAfterInitialQuery = false) {
   require(
       !options.fom.empty() && !options.mimFom.empty() &&
           !options.logicalTimeImplementationName.empty() &&
           !options.objectClassName.empty() && !options.attributeName.empty() &&
-          !options.interactionClassName.empty(),
+          !options.interactionClassName.empty() &&
+          (!partiallyUnpublishDirectedPublicationAfterInitialQuery ||
+           hasMultipleDirectedPublications) &&
+          (!unpublishAllDirectedPublicationsAfterPartialQuery ||
+           partiallyUnpublishDirectedPublicationAfterInitialQuery) &&
+          (!unpublishOneObjectClassAttributeAfterInitialQuery ||
+           (publishCompleteObjectClassAttributeSet &&
+            !hasMultipleDirectedPublications &&
+            !partiallyUnpublishDirectedPublicationAfterInitialQuery &&
+            !unpublishAllDirectedPublicationsAfterPartialQuery)) &&
+          (!unpublishAllObjectClassApplicationAttributesAfterInitialQuery ||
+           (publishCompleteObjectClassAttributeSet &&
+            !unpublishOneObjectClassAttributeAfterInitialQuery &&
+            !hasMultipleDirectedPublications &&
+            !partiallyUnpublishDirectedPublicationAfterInitialQuery &&
+            !unpublishAllDirectedPublicationsAfterPartialQuery)) &&
+          (!unpublishWholeObjectClassAfterInitialQuery ||
+           (!unpublishOneObjectClassAttributeAfterInitialQuery &&
+            !unpublishAllObjectClassApplicationAttributesAfterInitialQuery &&
+            !hasMultipleDirectedPublications &&
+            !partiallyUnpublishDirectedPublicationAfterInitialQuery &&
+            !unpublishAllDirectedPublicationsAfterPartialQuery)) &&
+          (!unpublishWholeInteractionClassAfterInitialQuery ||
+           (!unpublishOneObjectClassAttributeAfterInitialQuery &&
+            !unpublishAllObjectClassApplicationAttributesAfterInitialQuery &&
+            !unpublishWholeObjectClassAfterInitialQuery &&
+            !hasMultipleDirectedPublications &&
+            !partiallyUnpublishDirectedPublicationAfterInitialQuery &&
+            !unpublishAllDirectedPublicationsAfterPartialQuery &&
+            !publishCompleteObjectClassAttributeSet)) &&
+          (!unpublishOneOrdinaryInteractionClassAfterInitialQuery ||
+           (!unpublishOneObjectClassAttributeAfterInitialQuery &&
+            !unpublishAllObjectClassApplicationAttributesAfterInitialQuery &&
+            !unpublishWholeObjectClassAfterInitialQuery &&
+            !unpublishWholeInteractionClassAfterInitialQuery &&
+            !hasMultipleDirectedPublications &&
+            !partiallyUnpublishDirectedPublicationAfterInitialQuery &&
+            !unpublishAllDirectedPublicationsAfterPartialQuery &&
+            !publishCompleteObjectClassAttributeSet &&
+            !options.secondaryDirectedInteractionClassName.empty() &&
+            options.secondaryDirectedInteractionClassName !=
+                options.interactionClassName)) &&
+           (!unpublishAllOrdinaryInteractionClassesAfterInitialQuery ||
+            (!unpublishOneOrdinaryInteractionClassAfterInitialQuery &&
+             !unpublishWholeInteractionClassAfterInitialQuery &&
+             !unpublishOneObjectClassAttributeAfterInitialQuery &&
+             !unpublishAllObjectClassApplicationAttributesAfterInitialQuery &&
+             !unpublishWholeObjectClassAfterInitialQuery &&
+             !hasMultipleDirectedPublications &&
+             !partiallyUnpublishDirectedPublicationAfterInitialQuery &&
+             !unpublishAllDirectedPublicationsAfterPartialQuery &&
+             !publishCompleteObjectClassAttributeSet &&
+             !options.secondaryDirectedInteractionClassName.empty() &&
+             options.secondaryDirectedInteractionClassName !=
+                 options.interactionClassName)) &&
+          (!publishCompleteObjectClassAttributeSet ||
+           (!hasMultipleDirectedPublications &&
+            !partiallyUnpublishDirectedPublicationAfterInitialQuery &&
+            !unpublishAllDirectedPublicationsAfterPartialQuery &&
+            options.attributeName != options.secondaryAttributeName &&
+            options.attributeName != options.objectClassThirdAttributeName &&
+            options.secondaryAttributeName !=
+                options.objectClassThirdAttributeName)) &&
+          (!hasMultipleDirectedPublications ||
+           (!options.secondaryDirectedObjectClassName.empty() &&
+            !options.secondaryDirectedInteractionClassName.empty())),
       "Federate MOM publication-query reporting requires adapter-supplied FOM, standard MIM, application object class, attribute, interaction class, and logical-time configuration");
 
   Session subject(options, model, "owner");
   Session requester(options, model, "member");
-  auto const federation =
-      federationName(options, "federate-mom-publication-query");
+  auto const scenarioSuffix =
+      unpublishAllOrdinaryInteractionClassesAfterInitialQuery
+      ? "federate-mom-multiple-interaction-class-full-unpublication-query"
+      : unpublishOneOrdinaryInteractionClassAfterInitialQuery
+      ? "federate-mom-interaction-class-partial-unpublication-query"
+      : unpublishWholeInteractionClassAfterInitialQuery
+      ? "federate-mom-interaction-class-whole-unpublication-query"
+      :
+      unpublishWholeObjectClassAfterInitialQuery
+      ? "federate-mom-object-class-whole-unpublication-query"
+      :
+      unpublishAllObjectClassApplicationAttributesAfterInitialQuery
+      ? "federate-mom-object-class-full-attribute-unpublication-query"
+      :
+      unpublishOneObjectClassAttributeAfterInitialQuery
+      ? "federate-mom-object-class-attribute-unpublication-query"
+      :
+      publishCompleteObjectClassAttributeSet
+      ? "federate-mom-complete-object-class-publication-query"
+      : unpublishAllDirectedPublicationsAfterPartialQuery
+      ? "federate-mom-multiple-directed-publication-full-unpublish-query"
+      : partiallyUnpublishDirectedPublicationAfterInitialQuery
+      ? "federate-mom-multiple-directed-publication-partial-unpublish-query"
+      : hasMultipleDirectedPublications
+          ? "federate-mom-multiple-directed-publication-query"
+          : "federate-mom-publication-query";
+  auto const federateNameSuffix =
+      unpublishAllOrdinaryInteractionClassesAfterInitialQuery
+      ? L"-mom-multiple-interaction-class-full-unpublication-query"
+      : unpublishOneOrdinaryInteractionClassAfterInitialQuery
+      ? L"-mom-interaction-class-partial-unpublication-query"
+      : unpublishWholeInteractionClassAfterInitialQuery
+      ? L"-mom-interaction-class-whole-unpublication-query"
+      :
+      unpublishWholeObjectClassAfterInitialQuery
+      ? L"-mom-object-class-whole-unpublication-query"
+      :
+      unpublishAllObjectClassApplicationAttributesAfterInitialQuery
+      ? L"-mom-object-class-full-attribute-unpublication-query"
+      :
+      unpublishOneObjectClassAttributeAfterInitialQuery
+      ? L"-mom-object-class-attribute-unpublication-query"
+      :
+      publishCompleteObjectClassAttributeSet
+      ? L"-mom-complete-object-class-publication-query"
+      : unpublishAllDirectedPublicationsAfterPartialQuery
+      ? L"-mom-multiple-directed-publication-full-unpublish-query"
+      : partiallyUnpublishDirectedPublicationAfterInitialQuery
+      ? L"-mom-multiple-directed-publication-partial-unpublish-query"
+      : hasMultipleDirectedPublications
+          ? L"-mom-multiple-directed-publication-query"
+          : L"-mom-publication-query";
+  auto const federation = federationName(options, scenarioSuffix);
   subject.connect();
   requester.connect();
   subject.rtiAmbassador().createFederationExecutionWithMIM(
@@ -11472,28 +12110,86 @@ void scenarioFederateMomPublicationQuery(
       options.mimFom.wstring(),
       options.logicalTimeImplementationName);
   auto const subjectName =
-      options.ownerFederateName + L"-mom-publication-query-subject";
+      options.ownerFederateName + federateNameSuffix + L"-subject";
   auto const requesterName =
-      options.memberFederateName + L"-mom-publication-query-requester";
+      options.memberFederateName + federateNameSuffix + L"-requester";
   subject.join(subjectName, options.federateType, federation);
   requester.join(requesterName, options.federateType, federation);
 
   auto& subjectAmbassador = subject.rtiAmbassador();
   auto& requesterAmbassador = requester.rtiAmbassador();
-  auto const subjectObjectClass =
-      subjectAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const subjectObjectClass = subjectAmbassador.getObjectClassHandle(
+      hasMultipleDirectedPublications
+          ? options.secondaryDirectedObjectClassName
+          : options.objectClassName);
   auto const subjectAttribute = subjectAmbassador.getAttributeHandle(
       subjectObjectClass,
       options.attributeName);
+  auto const subjectSecondaryAttribute =
+      publishCompleteObjectClassAttributeSet
+          ? subjectAmbassador.getAttributeHandle(
+                subjectObjectClass,
+                options.secondaryAttributeName)
+          : rti::AttributeHandle{};
+  auto const subjectThirdAttribute =
+      publishCompleteObjectClassAttributeSet
+          ? subjectAmbassador.getAttributeHandle(
+                subjectObjectClass,
+                options.objectClassThirdAttributeName)
+          : rti::AttributeHandle{};
   auto const subjectInteractionClass =
       subjectAmbassador.getInteractionClassHandle(options.interactionClassName);
-  auto const requesterObjectClass =
-      requesterAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const subjectSecondaryOrdinaryInteractionClass =
+      (unpublishOneOrdinaryInteractionClassAfterInitialQuery ||
+       unpublishAllOrdinaryInteractionClassesAfterInitialQuery)
+          ? subjectAmbassador.getInteractionClassHandle(
+                options.secondaryDirectedInteractionClassName)
+          : rti::InteractionClassHandle{};
+  auto const requesterObjectClass = requesterAmbassador.getObjectClassHandle(
+      hasMultipleDirectedPublications
+          ? options.secondaryDirectedObjectClassName
+          : options.objectClassName);
+  auto const subjectSecondaryDirectedObjectClass =
+      hasMultipleDirectedPublications
+          ? subjectAmbassador.getObjectClassHandle(options.objectClassName)
+          : rti::ObjectClassHandle{};
+  auto const requesterSecondaryDirectedObjectClass =
+      hasMultipleDirectedPublications
+          ? requesterAmbassador.getObjectClassHandle(options.objectClassName)
+          : rti::ObjectClassHandle{};
   auto const requesterAttribute = requesterAmbassador.getAttributeHandle(
       requesterObjectClass,
       options.attributeName);
+  auto const requesterSecondaryAttribute =
+      publishCompleteObjectClassAttributeSet
+          ? requesterAmbassador.getAttributeHandle(
+                requesterObjectClass,
+                options.secondaryAttributeName)
+          : rti::AttributeHandle{};
+  auto const requesterThirdAttribute =
+      publishCompleteObjectClassAttributeSet
+          ? requesterAmbassador.getAttributeHandle(
+                requesterObjectClass,
+                options.objectClassThirdAttributeName)
+          : rti::AttributeHandle{};
   auto const requesterInteractionClass =
       requesterAmbassador.getInteractionClassHandle(options.interactionClassName);
+  auto const requesterSecondaryOrdinaryInteractionClass =
+      (unpublishOneOrdinaryInteractionClassAfterInitialQuery ||
+       unpublishAllOrdinaryInteractionClassesAfterInitialQuery)
+          ? requesterAmbassador.getInteractionClassHandle(
+                options.secondaryDirectedInteractionClassName)
+          : rti::InteractionClassHandle{};
+  auto const subjectSecondaryDirectedInteractionClass =
+      hasMultipleDirectedPublications
+          ? subjectAmbassador.getInteractionClassHandle(
+                options.secondaryDirectedInteractionClassName)
+          : rti::InteractionClassHandle{};
+  auto const requesterSecondaryDirectedInteractionClass =
+      hasMultipleDirectedPublications
+          ? requesterAmbassador.getInteractionClassHandle(
+                options.secondaryDirectedInteractionClassName)
+          : rti::InteractionClassHandle{};
   auto const targetFederate = requesterAmbassador.getFederateHandle(subjectName);
   auto const reliable =
       requesterAmbassador.getTransportationTypeHandle(L"HLAreliable");
@@ -11504,11 +12200,69 @@ void scenarioFederateMomPublicationQuery(
           requesterInteractionClass.isValid() && targetFederate.isValid() &&
           reliable.isValid(),
       "Adapter-supplied publication handles or standard reliable transportation were invalid");
+  require(
+      !(unpublishOneOrdinaryInteractionClassAfterInitialQuery ||
+        unpublishAllOrdinaryInteractionClassesAfterInitialQuery) ||
+          (subjectSecondaryOrdinaryInteractionClass.isValid() &&
+           requesterSecondaryOrdinaryInteractionClass.isValid() &&
+           subjectSecondaryOrdinaryInteractionClass != subjectInteractionClass &&
+           requesterSecondaryOrdinaryInteractionClass !=
+               requesterInteractionClass),
+      "The adapter-supplied second ordinary interaction class was invalid or duplicated the primary class");
+  require(
+      !hasMultipleDirectedPublications ||
+          (subjectSecondaryDirectedObjectClass.isValid() &&
+           requesterSecondaryDirectedObjectClass.isValid() &&
+           subjectSecondaryDirectedObjectClass != subjectObjectClass &&
+           requesterSecondaryDirectedObjectClass != requesterObjectClass &&
+           subjectSecondaryDirectedInteractionClass.isValid() &&
+           requesterSecondaryDirectedInteractionClass.isValid() &&
+           subjectSecondaryDirectedInteractionClass != subjectInteractionClass &&
+           requesterSecondaryDirectedInteractionClass !=
+               requesterInteractionClass),
+      "The adapter-supplied second directed-publication object or interaction class was invalid or duplicated the first class");
+  require(
+      !publishCompleteObjectClassAttributeSet ||
+          (subjectSecondaryAttribute.isValid() &&
+           subjectThirdAttribute.isValid() &&
+           requesterSecondaryAttribute.isValid() &&
+           requesterThirdAttribute.isValid() &&
+           subjectSecondaryAttribute != subjectAttribute &&
+           subjectThirdAttribute != subjectAttribute &&
+           subjectThirdAttribute != subjectSecondaryAttribute &&
+           requesterSecondaryAttribute != requesterAttribute &&
+           requesterThirdAttribute != requesterAttribute &&
+           requesterThirdAttribute != requesterSecondaryAttribute &&
+           subjectAttribute == requesterAttribute &&
+           subjectSecondaryAttribute == requesterSecondaryAttribute &&
+           subjectThirdAttribute == requesterThirdAttribute),
+      "The adapter-configured complete object-class publication attributes were invalid, duplicated, or inconsistent across federates");
 
+  rti::AttributeHandleSet subjectPublishedAttributes{subjectAttribute};
+  if (publishCompleteObjectClassAttributeSet) {
+    subjectPublishedAttributes.insert(subjectSecondaryAttribute);
+    subjectPublishedAttributes.insert(subjectThirdAttribute);
+  }
   subjectAmbassador.publishObjectClassAttributes(
       subjectObjectClass,
-      rti::AttributeHandleSet{subjectAttribute});
+      subjectPublishedAttributes);
   subjectAmbassador.publishInteractionClass(subjectInteractionClass);
+  if (unpublishOneOrdinaryInteractionClassAfterInitialQuery ||
+      unpublishAllOrdinaryInteractionClassesAfterInitialQuery) {
+    subjectAmbassador.publishInteractionClass(
+        subjectSecondaryOrdinaryInteractionClass);
+  }
+  if (hasMultipleDirectedPublications) {
+    subjectAmbassador.publishObjectClassDirectedInteractions(
+        subjectObjectClass,
+        rti::InteractionClassHandleSet{
+            subjectInteractionClass,
+            subjectSecondaryDirectedInteractionClass});
+    subjectAmbassador.publishObjectClassDirectedInteractions(
+        subjectSecondaryDirectedObjectClass,
+        rti::InteractionClassHandleSet{
+            subjectInteractionClass});
+  }
 
   auto const requestClass = requesterAmbassador.getInteractionClassHandle(
       L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestPublications");
@@ -11591,17 +12345,20 @@ void scenarioFederateMomPublicationQuery(
       rti::VariableLengthData{});
   waitFor(
       requester,
-      [&] { return requester.recorder().interactions().size() >= 3U; },
+      [&] {
+        return requester.recorder().interactions().size() >=
+            (hasMultipleDirectedPublications ? 4U : 3U);
+      },
       options,
       "the populated federate MOM publication reports");
   auto const reports = requester.recorder().interactions();
   require(
-      reports.size() == 3U,
-      "A populated publication request did not deliver exactly the object, interaction, and required empty directed-interaction reports");
+      reports.size() == (hasMultipleDirectedPublications ? 4U : 3U),
+      "A publication request did not deliver exactly the standard MIM reports for its directed-publication object classes");
 
   InteractionRecord const* objectReport = nullptr;
   InteractionRecord const* interactionReport = nullptr;
-  InteractionRecord const* directedReport = nullptr;
+  std::vector<InteractionRecord const*> directedReports;
   for (auto const& report : reports) {
     require(
         report.present && report.transportation == reliable,
@@ -11613,18 +12370,16 @@ void scenarioFederateMomPublicationQuery(
       require(interactionReport == nullptr, "Duplicate interaction publication report");
       interactionReport = &report;
     } else if (report.interaction == directedReportClass) {
-      require(
-          directedReport == nullptr,
-          "Duplicate directed-interaction publication report");
-      directedReport = &report;
+      directedReports.push_back(&report);
     } else {
       require(false, "Publication query delivered an unrequested interaction class");
     }
   }
   require(
       objectReport != nullptr && interactionReport != nullptr &&
-          directedReport != nullptr,
-      "Publication query omitted one of the three standard MIM report classes");
+          directedReports.size() ==
+              (hasMultipleDirectedPublications ? 2U : 1U),
+      "Publication query omitted or duplicated a standard MIM report for the directed-publication object classes");
 
   require(
       objectReport->parameters.size() == 3U &&
@@ -11643,12 +12398,60 @@ void scenarioFederateMomPublicationQuery(
       "Object-class publication report identified a different publication set");
   auto const publishedAttributes = decodeAttributeHandleList(
       objectReport->parameters.at(objectReportAttributesParameter));
-  require(
-      std::find(
-          publishedAttributes.begin(),
-          publishedAttributes.end(),
-          requesterAttribute) != publishedAttributes.end(),
-      "Object-class publication report omitted the adapter-selected published attribute");
+  if (publishCompleteObjectClassAttributeSet) {
+    auto const requesterPrivilegeToDeleteAttribute =
+        requesterAmbassador.getAttributeHandle(
+            requesterObjectClass,
+            L"HLAprivilegeToDeleteObject");
+    require(
+        requesterPrivilegeToDeleteAttribute.isValid() &&
+            requesterPrivilegeToDeleteAttribute != requesterAttribute &&
+            requesterPrivilegeToDeleteAttribute !=
+                requesterSecondaryAttribute &&
+            requesterPrivilegeToDeleteAttribute != requesterThirdAttribute &&
+            publishedAttributes.size() == 4U &&
+            std::find(
+                publishedAttributes.begin(),
+                publishedAttributes.end(),
+                requesterPrivilegeToDeleteAttribute) !=
+                publishedAttributes.end() &&
+            std::find(
+                publishedAttributes.begin(),
+                publishedAttributes.end(),
+                requesterAttribute) != publishedAttributes.end() &&
+            std::find(
+                publishedAttributes.begin(),
+                publishedAttributes.end(),
+                requesterSecondaryAttribute) != publishedAttributes.end() &&
+            std::find(
+                publishedAttributes.begin(),
+                publishedAttributes.end(),
+                requesterThirdAttribute) != publishedAttributes.end(),
+        "Object-class publication report did not contain the exact adapter-configured application attributes and inherited HLAprivilegeToDeleteObject (reported=" +
+            std::to_string(publishedAttributes.size()) +
+            ", primary=" +
+            std::to_string(static_cast<unsigned>(std::find(
+                publishedAttributes.begin(),
+                publishedAttributes.end(),
+                requesterAttribute) != publishedAttributes.end())) +
+            ", secondary=" +
+            std::to_string(static_cast<unsigned>(std::find(
+                publishedAttributes.begin(),
+                publishedAttributes.end(),
+                requesterSecondaryAttribute) != publishedAttributes.end())) +
+            ", third=" +
+            std::to_string(static_cast<unsigned>(std::find(
+                publishedAttributes.begin(),
+                publishedAttributes.end(),
+                requesterThirdAttribute) != publishedAttributes.end())) + ")");
+  } else {
+    require(
+        std::find(
+            publishedAttributes.begin(),
+            publishedAttributes.end(),
+            requesterAttribute) != publishedAttributes.end(),
+        "Object-class publication report omitted the adapter-selected published attribute");
+  }
 
   require(
       interactionReport->parameters.size() == 1U &&
@@ -11656,33 +12459,902 @@ void scenarioFederateMomPublicationQuery(
       "Interaction publication report did not contain its MIM-defined class list");
   auto const publishedInteractions = decodeInteractionClassHandleList(
       interactionReport->parameters.at(interactionReportListParameter));
-  require(
-      publishedInteractions.size() == 1U &&
-          publishedInteractions.front() == requesterInteractionClass,
-      "Interaction publication report did not contain exactly the adapter-selected published interaction class");
+  if (unpublishOneOrdinaryInteractionClassAfterInitialQuery ||
+      unpublishAllOrdinaryInteractionClassesAfterInitialQuery) {
+    require(
+        publishedInteractions.size() == 2U &&
+            std::find(
+                publishedInteractions.begin(),
+                publishedInteractions.end(),
+                requesterInteractionClass) != publishedInteractions.end() &&
+            std::find(
+                publishedInteractions.begin(),
+                publishedInteractions.end(),
+                requesterSecondaryOrdinaryInteractionClass) !=
+                publishedInteractions.end(),
+        "Initial interaction publication report did not contain exactly the two adapter-selected ordinary interaction classes");
+  } else {
+    require(
+        publishedInteractions.size() == 1U &&
+            publishedInteractions.front() == requesterInteractionClass,
+        "Interaction publication report did not contain exactly the adapter-selected published interaction class");
+  }
 
-  require(
-      directedReport->parameters.size() == 2U &&
-          directedReport->parameters.count(directedReportCountParameter) == 1U &&
-          directedReport->parameters.count(directedReportObjectClassParameter) == 0U &&
-          directedReport->parameters.count(directedReportListParameter) == 1U,
-      "Empty directed-interaction publication report did not use the standard NULL response parameter shape");
-  rti::HLAinteger32BE directedClassCount;
-  directedClassCount.decode(
-      directedReport->parameters.at(directedReportCountParameter));
-  require(
-      directedClassCount.get() == 0 &&
+  if (hasMultipleDirectedPublications) {
+    bool reportedPrimaryObjectClass = false;
+    bool reportedSecondaryObjectClass = false;
+    for (auto const* directedReport : directedReports) {
+      rti::HLAinteger32BE directedClassCount;
+      require(
+          directedReport->parameters.size() == 3U &&
+              directedReport->parameters.count(
+                  directedReportCountParameter) == 1U &&
+              directedReport->parameters.count(
+                  directedReportObjectClassParameter) == 1U &&
+              directedReport->parameters.count(directedReportListParameter) ==
+                  1U,
+          "Populated directed-interaction publication report did not contain its three MIM-defined parameters");
+      directedClassCount.decode(
+          directedReport->parameters.at(directedReportCountParameter));
+      auto const reportObjectClass =
+          requesterAmbassador.decodeObjectClassHandle(
+              directedReport->parameters.at(
+                  directedReportObjectClassParameter));
+      auto const directedInteractions = decodeInteractionClassHandleList(
+          directedReport->parameters.at(directedReportListParameter));
+      require(
+          directedClassCount.get() == 2 &&
+              directedInteractions.size() ==
+                  (reportObjectClass == requesterObjectClass ? 2U : 1U),
+          "Multiple directed-publication report did not report both published object classes and each class's published interactions");
+      if (reportObjectClass == requesterObjectClass) {
+        require(
+            !reportedPrimaryObjectClass &&
+                std::find(
+                    directedInteractions.begin(),
+                    directedInteractions.end(),
+                    requesterInteractionClass) != directedInteractions.end() &&
+                std::find(
+                    directedInteractions.begin(),
+                    directedInteractions.end(),
+                    requesterSecondaryDirectedInteractionClass) !=
+                    directedInteractions.end(),
+            "Primary directed-publication report duplicated its object class or omitted one of its inherited and class-specific interactions");
+        reportedPrimaryObjectClass = true;
+      } else if (reportObjectClass == requesterSecondaryDirectedObjectClass) {
+        require(
+            !reportedSecondaryObjectClass &&
+                directedInteractions.size() == 1U &&
+                directedInteractions.front() == requesterInteractionClass,
+            "Secondary directed-publication report duplicated its object class or identified the wrong interaction");
+        reportedSecondaryObjectClass = true;
+      } else {
+        require(
+            false,
+            "Directed-publication report identified an unselected object class");
+      }
+    }
+    require(
+        reportedPrimaryObjectClass && reportedSecondaryObjectClass,
+        "Multiple directed-publication reports did not cover both adapter-selected object classes");
+  } else {
+    auto const* directedReport = directedReports.front();
+    require(
+        directedReport->parameters.size() == 2U &&
+            directedReport->parameters.count(directedReportCountParameter) == 1U &&
+            directedReport->parameters.count(directedReportObjectClassParameter) == 0U &&
+            directedReport->parameters.count(directedReportListParameter) == 1U,
+        "Empty directed-interaction publication report did not use the standard NULL response parameter shape");
+    rti::HLAinteger32BE directedClassCount;
+    directedClassCount.decode(
+        directedReport->parameters.at(directedReportCountParameter));
+    require(
+        directedClassCount.get() == 0 &&
+            decodeInteractionClassHandleList(
+                directedReport->parameters.at(directedReportListParameter)).empty(),
+        "Empty directed-interaction publication report did not report zero classes and an empty list");
+  }
+
+  if (partiallyUnpublishDirectedPublicationAfterInitialQuery) {
+    auto const reportOffset = requester.recorder().interactions().size();
+    subjectAmbassador.unpublishObjectClassDirectedInteractions(
+        subjectObjectClass,
+        rti::InteractionClassHandleSet{subjectInteractionClass});
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >= reportOffset + 4U;
+        },
+        options,
+        "the federate MOM publication reports after partial unpublication");
+    auto const reportsAfterUnpublication = requester.recorder().interactions();
+    require(
+        reportsAfterUnpublication.size() == reportOffset + 4U,
+        "A publication request after partial unpublication did not deliver exactly the ordinary object and interaction reports plus both remaining directed reports");
+
+    InteractionRecord const* remainingObjectReport = nullptr;
+    InteractionRecord const* remainingInteractionReport = nullptr;
+    std::vector<InteractionRecord const*> remainingDirectedReports;
+    for (std::size_t index = reportOffset;
+         index != reportsAfterUnpublication.size();
+         ++index) {
+      auto const& report = reportsAfterUnpublication[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A post-unpublication standard MIM publication report was absent or did not use reliable transportation");
+      if (report.interaction == objectReportClass) {
+        require(
+            remainingObjectReport == nullptr,
+            "Post-unpublication query delivered duplicate object-class publication reports");
+        remainingObjectReport = &report;
+      } else if (report.interaction == interactionReportClass) {
+        require(
+            remainingInteractionReport == nullptr,
+            "Post-unpublication query delivered duplicate interaction publication reports");
+        remainingInteractionReport = &report;
+      } else if (report.interaction == directedReportClass) {
+        remainingDirectedReports.push_back(&report);
+      } else {
+        require(
+            false,
+            "Post-unpublication query delivered an unrequested publication report");
+      }
+    }
+    require(
+        remainingObjectReport != nullptr &&
+            remainingInteractionReport != nullptr &&
+            remainingDirectedReports.size() == 2U,
+        "Post-unpublication query omitted the object, interaction, or one of the two remaining directed publication reports");
+
+    require(
+        remainingObjectReport->parameters.size() == 3U &&
+            remainingObjectReport->parameters.count(objectReportCountParameter) ==
+                1U &&
+            remainingObjectReport->parameters.count(objectReportClassParameter) ==
+                1U &&
+            remainingObjectReport->parameters.count(
+                objectReportAttributesParameter) == 1U,
+        "Post-unpublication object-class publication report did not contain its three MIM-defined parameters");
+    rti::HLAinteger32BE remainingObjectClassCount;
+    remainingObjectClassCount.decode(
+        remainingObjectReport->parameters.at(objectReportCountParameter));
+    auto const remainingPublishedAttributes = decodeAttributeHandleList(
+        remainingObjectReport->parameters.at(objectReportAttributesParameter));
+    require(
+        remainingObjectClassCount.get() == 1 &&
+            requesterAmbassador.decodeObjectClassHandle(
+                remainingObjectReport->parameters.at(objectReportClassParameter)) ==
+                requesterObjectClass &&
+            remainingPublishedAttributes.size() == publishedAttributes.size() &&
+            std::is_permutation(
+                publishedAttributes.begin(),
+                publishedAttributes.end(),
+                remainingPublishedAttributes.begin()),
+        "Post-unpublication object-class report changed the ordinary attribute publication");
+
+    require(
+        remainingInteractionReport->parameters.size() == 1U &&
+            remainingInteractionReport->parameters.count(
+                interactionReportListParameter) == 1U,
+        "Post-unpublication interaction publication report did not contain its MIM-defined class list");
+    auto const remainingPublishedInteractions = decodeInteractionClassHandleList(
+        remainingInteractionReport->parameters.at(interactionReportListParameter));
+    require(
+        remainingPublishedInteractions.size() == 1U &&
+            remainingPublishedInteractions.front() == requesterInteractionClass,
+        "Post-unpublication query changed the ordinary interaction publication");
+
+    bool remainingPrimaryObjectClass = false;
+    bool remainingSecondaryObjectClass = false;
+    for (auto const* directedReport : remainingDirectedReports) {
+      require(
+          directedReport->parameters.size() == 3U &&
+              directedReport->parameters.count(directedReportCountParameter) ==
+                  1U &&
+              directedReport->parameters.count(
+                  directedReportObjectClassParameter) == 1U &&
+              directedReport->parameters.count(directedReportListParameter) ==
+                  1U,
+          "Remaining directed-interaction publication report did not contain its three MIM-defined parameters");
+      rti::HLAinteger32BE remainingDirectedClassCount;
+      remainingDirectedClassCount.decode(
+          directedReport->parameters.at(directedReportCountParameter));
+      auto const reportObjectClass = requesterAmbassador.decodeObjectClassHandle(
+          directedReport->parameters.at(directedReportObjectClassParameter));
+      auto const remainingDirectedInteractions = decodeInteractionClassHandleList(
+          directedReport->parameters.at(directedReportListParameter));
+      require(
+          remainingDirectedClassCount.get() == 2 &&
+              remainingDirectedInteractions.size() == 1U,
+          "Post-unpublication directed report did not report both published object classes and one retained interaction");
+      if (reportObjectClass == requesterObjectClass) {
+        require(
+            !remainingPrimaryObjectClass &&
+                remainingDirectedInteractions.front() ==
+                    requesterSecondaryDirectedInteractionClass,
+            "Post-unpublication query did not retain exactly the primary class-specific directed interaction");
+        remainingPrimaryObjectClass = true;
+      } else if (reportObjectClass == requesterSecondaryDirectedObjectClass) {
+        require(
+            !remainingSecondaryObjectClass &&
+                remainingDirectedInteractions.front() == requesterInteractionClass,
+            "Post-unpublication query did not retain the secondary object's inherited directed interaction");
+        remainingSecondaryObjectClass = true;
+      } else {
+        require(
+            false,
+            "Post-unpublication directed report identified an unselected object class");
+      }
+    }
+    require(
+        remainingPrimaryObjectClass && remainingSecondaryObjectClass,
+        "Set-based unpublication removed the primary object class's remaining interaction or the independent secondary object-class publication");
+  }
+
+  if (unpublishAllDirectedPublicationsAfterPartialQuery) {
+    auto const reportOffset = requester.recorder().interactions().size();
+    subjectAmbassador.unpublishObjectClassDirectedInteractions(
+        subjectObjectClass);
+    subjectAmbassador.unpublishObjectClassDirectedInteractions(
+        subjectSecondaryDirectedObjectClass);
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >= reportOffset + 3U;
+        },
+        options,
+        "the standard directed-publication NULL response after complete unpublishing");
+    auto const reportsAfterCompleteUnpublication =
+        requester.recorder().interactions();
+    require(
+        reportsAfterCompleteUnpublication.size() == reportOffset + 3U,
+        "A publication request after complete directed unpublishing did not deliver exactly the ordinary reports and one directed-publication NULL response");
+
+    InteractionRecord const* remainingObjectReport = nullptr;
+    InteractionRecord const* remainingInteractionReport = nullptr;
+    InteractionRecord const* directedNullReport = nullptr;
+    for (std::size_t index = reportOffset;
+         index != reportsAfterCompleteUnpublication.size();
+         ++index) {
+      auto const& report = reportsAfterCompleteUnpublication[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A complete-unpublication MIM report was absent or did not use reliable transportation");
+      if (report.interaction == objectReportClass) {
+        require(
+            remainingObjectReport == nullptr,
+            "Complete-unpublication query delivered duplicate object-class reports");
+        remainingObjectReport = &report;
+      } else if (report.interaction == interactionReportClass) {
+        require(
+            remainingInteractionReport == nullptr,
+            "Complete-unpublication query delivered duplicate interaction reports");
+        remainingInteractionReport = &report;
+      } else if (report.interaction == directedReportClass) {
+        require(
+            directedNullReport == nullptr,
+            "Complete-unpublication query delivered more than one directed-publication NULL response");
+        directedNullReport = &report;
+      } else {
+        require(
+            false,
+            "Complete-unpublication query delivered an unrequested publication report");
+      }
+    }
+    require(
+        remainingObjectReport != nullptr &&
+            remainingInteractionReport != nullptr && directedNullReport != nullptr,
+        "Complete-unpublication query omitted an ordinary report or the directed-publication NULL response");
+
+    require(
+        remainingObjectReport->parameters.size() == 3U &&
+            remainingObjectReport->parameters.count(objectReportCountParameter) ==
+                1U &&
+            remainingObjectReport->parameters.count(objectReportClassParameter) ==
+                1U &&
+            remainingObjectReport->parameters.count(
+                objectReportAttributesParameter) == 1U,
+        "Complete-unpublication object-class report did not contain its three MIM-defined parameters");
+    rti::HLAinteger32BE remainingObjectClassCount;
+    remainingObjectClassCount.decode(
+        remainingObjectReport->parameters.at(objectReportCountParameter));
+    auto const remainingPublishedAttributes = decodeAttributeHandleList(
+        remainingObjectReport->parameters.at(objectReportAttributesParameter));
+    require(
+        remainingObjectClassCount.get() == 1 &&
+            requesterAmbassador.decodeObjectClassHandle(
+                remainingObjectReport->parameters.at(objectReportClassParameter)) ==
+                requesterObjectClass &&
+            remainingPublishedAttributes.size() == publishedAttributes.size() &&
+            std::is_permutation(
+                publishedAttributes.begin(),
+                publishedAttributes.end(),
+                remainingPublishedAttributes.begin()),
+        "Complete directed unpublishing changed the ordinary object-attribute publication");
+
+    require(
+        remainingInteractionReport->parameters.size() == 1U &&
+            remainingInteractionReport->parameters.count(
+                interactionReportListParameter) == 1U,
+        "Complete-unpublication interaction report did not contain its MIM-defined class list");
+    auto const remainingPublishedInteractions = decodeInteractionClassHandleList(
+        remainingInteractionReport->parameters.at(interactionReportListParameter));
+    require(
+        remainingPublishedInteractions.size() == 1U &&
+            remainingPublishedInteractions.front() == requesterInteractionClass,
+        "Complete directed unpublishing changed the ordinary interaction publication");
+
+    require(
+        directedNullReport->parameters.size() == 2U &&
+            directedNullReport->parameters.count(directedReportCountParameter) ==
+                1U &&
+            directedNullReport->parameters.count(
+                directedReportObjectClassParameter) == 0U &&
+            directedNullReport->parameters.count(directedReportListParameter) ==
+                1U,
+        "Complete-unpublication directed report did not use the exact IEEE 1516.2-2025 NULL response parameter shape");
+    rti::HLAinteger32BE directedClassCount;
+    directedClassCount.decode(
+        directedNullReport->parameters.at(directedReportCountParameter));
+    auto const remainingDirectedInteractions = decodeInteractionClassHandleList(
+        directedNullReport->parameters.at(directedReportListParameter));
+    require(
+        directedClassCount.get() == 0 && remainingDirectedInteractions.empty(),
+        "Complete-unpublication directed report did not encode zero classes and an empty interaction list");
+  }
+
+  if (unpublishOneObjectClassAttributeAfterInitialQuery) {
+    auto const reportOffset = requester.recorder().interactions().size();
+    subjectAmbassador.unpublishObjectClassAttributes(
+        subjectObjectClass,
+        rti::AttributeHandleSet{subjectSecondaryAttribute});
+    subjectPublishedAttributes.erase(subjectSecondaryAttribute);
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >=
+              reportOffset + 3U;
+        },
+        options,
+        "the federate MOM publication reports after ordinary attribute unpublication");
+
+    auto const reportsAfterAttributeUnpublication =
+        requester.recorder().interactions();
+    require(
+        reportsAfterAttributeUnpublication.size() == reportOffset + 3U,
+        "A publication request after ordinary attribute unpublication did not deliver exactly the standard object-class, interaction-class, and directed-interaction reports");
+    InteractionRecord const* objectReportAfterAttributeUnpublication = nullptr;
+    unsigned interactionReportCountAfterAttributeUnpublication = 0U;
+    unsigned directedReportCountAfterAttributeUnpublication = 0U;
+    for (std::size_t index = reportOffset;
+         index != reportsAfterAttributeUnpublication.size();
+         ++index) {
+      auto const& report = reportsAfterAttributeUnpublication[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A post-unpublication standard MIM publication report was absent or did not use reliable transportation");
+      if (report.interaction == objectReportClass) {
+        require(
+            objectReportAfterAttributeUnpublication == nullptr,
+            "Post-unpublication query delivered duplicate object-class publication reports");
+        objectReportAfterAttributeUnpublication = &report;
+      } else if (report.interaction == interactionReportClass) {
+        ++interactionReportCountAfterAttributeUnpublication;
+      } else if (report.interaction == directedReportClass) {
+        ++directedReportCountAfterAttributeUnpublication;
+      } else {
+        require(
+            false,
+            "Post-unpublication query delivered an unrequested publication report");
+      }
+    }
+    require(
+        objectReportAfterAttributeUnpublication != nullptr &&
+            interactionReportCountAfterAttributeUnpublication == 1U &&
+            directedReportCountAfterAttributeUnpublication == 1U,
+        "Post-unpublication query omitted or duplicated a standard publication report");
+    require(
+        objectReportAfterAttributeUnpublication->parameters.size() == 3U &&
+            objectReportAfterAttributeUnpublication->parameters.count(
+                objectReportCountParameter) == 1U &&
+            objectReportAfterAttributeUnpublication->parameters.count(
+                objectReportClassParameter) == 1U &&
+            objectReportAfterAttributeUnpublication->parameters.count(
+                objectReportAttributesParameter) == 1U,
+        "Post-unpublication object-class report did not contain exactly its three MIM-defined parameters");
+    rti::HLAinteger32BE objectClassCountAfterAttributeUnpublication;
+    objectClassCountAfterAttributeUnpublication.decode(
+        objectReportAfterAttributeUnpublication->parameters.at(
+            objectReportCountParameter));
+    auto const attributesAfterAttributeUnpublication =
+        decodeAttributeHandleList(
+            objectReportAfterAttributeUnpublication->parameters.at(
+                objectReportAttributesParameter));
+    auto const requesterPrivilegeToDeleteAttribute =
+        requesterAmbassador.getAttributeHandle(
+            requesterObjectClass,
+            L"HLAprivilegeToDeleteObject");
+    require(
+        objectClassCountAfterAttributeUnpublication.get() == 1 &&
+            requesterAmbassador.decodeObjectClassHandle(
+                objectReportAfterAttributeUnpublication->parameters.at(
+                    objectReportClassParameter)) == requesterObjectClass &&
+            requesterPrivilegeToDeleteAttribute.isValid() &&
+            attributesAfterAttributeUnpublication.size() == 3U &&
+            std::find(
+                attributesAfterAttributeUnpublication.begin(),
+                attributesAfterAttributeUnpublication.end(),
+                requesterAttribute) !=
+                attributesAfterAttributeUnpublication.end() &&
+            std::find(
+                attributesAfterAttributeUnpublication.begin(),
+                attributesAfterAttributeUnpublication.end(),
+                requesterThirdAttribute) !=
+                attributesAfterAttributeUnpublication.end() &&
+            std::find(
+                attributesAfterAttributeUnpublication.begin(),
+                attributesAfterAttributeUnpublication.end(),
+                requesterPrivilegeToDeleteAttribute) !=
+                attributesAfterAttributeUnpublication.end() &&
+            std::find(
+                attributesAfterAttributeUnpublication.begin(),
+                attributesAfterAttributeUnpublication.end(),
+                requesterSecondaryAttribute) ==
+                attributesAfterAttributeUnpublication.end(),
+        "Post-unpublication MIM report did not contain exactly the remaining adapter-selected attributes and inherited HLAprivilegeToDeleteObject");
+  }
+
+  if (unpublishAllObjectClassApplicationAttributesAfterInitialQuery) {
+    auto const reportOffset = requester.recorder().interactions().size();
+    subjectAmbassador.unpublishObjectClassAttributes(
+        subjectObjectClass,
+        subjectPublishedAttributes);
+    subjectPublishedAttributes.clear();
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >=
+              reportOffset + 3U;
+        },
+        options,
+        "the federate MOM publication reports after all application attributes are unpublished");
+
+    auto const reportsAfterFullAttributeUnpublication =
+        requester.recorder().interactions();
+    require(
+        reportsAfterFullAttributeUnpublication.size() == reportOffset + 3U,
+        "A publication request after full application-attribute unpublication did not deliver exactly the three standard publication report interactions");
+    InteractionRecord const* objectReportAfterFullAttributeUnpublication =
+        nullptr;
+    unsigned interactionReportCountAfterFullAttributeUnpublication = 0U;
+    unsigned directedReportCountAfterFullAttributeUnpublication = 0U;
+    for (std::size_t index = reportOffset;
+         index != reportsAfterFullAttributeUnpublication.size();
+         ++index) {
+      auto const& report = reportsAfterFullAttributeUnpublication[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A post-full-unpublication standard MIM report was absent or did not use reliable transportation");
+      if (report.interaction == objectReportClass) {
+        require(
+            objectReportAfterFullAttributeUnpublication == nullptr,
+            "Full-unpublication query delivered duplicate object-class publication reports");
+        objectReportAfterFullAttributeUnpublication = &report;
+      } else if (report.interaction == interactionReportClass) {
+        ++interactionReportCountAfterFullAttributeUnpublication;
+      } else if (report.interaction == directedReportClass) {
+        ++directedReportCountAfterFullAttributeUnpublication;
+      } else {
+        require(
+            false,
+            "Full-unpublication query delivered an unrequested publication report");
+      }
+    }
+    require(
+        objectReportAfterFullAttributeUnpublication != nullptr &&
+            interactionReportCountAfterFullAttributeUnpublication == 1U &&
+            directedReportCountAfterFullAttributeUnpublication == 1U,
+        "Full-unpublication query omitted or duplicated a standard publication report");
+    require(
+        objectReportAfterFullAttributeUnpublication->parameters.size() == 1U &&
+            objectReportAfterFullAttributeUnpublication->parameters.count(
+                objectReportCountParameter) == 1U &&
+            objectReportAfterFullAttributeUnpublication->parameters.count(
+                objectReportClassParameter) == 0U &&
+            objectReportAfterFullAttributeUnpublication->parameters.count(
+                objectReportAttributesParameter) == 0U,
+        "Full-unpublication object-class report did not use the exact 2025 MIM NULL response parameter shape");
+    rti::HLAinteger32BE objectClassCountAfterFullAttributeUnpublication;
+    objectClassCountAfterFullAttributeUnpublication.decode(
+        objectReportAfterFullAttributeUnpublication->parameters.at(
+            objectReportCountParameter));
+    require(
+        objectClassCountAfterFullAttributeUnpublication.get() == 0,
+        "Full-unpublication MIM NULL response did not report zero published object classes");
+  }
+
+  if (unpublishWholeObjectClassAfterInitialQuery) {
+    auto const reportOffset = requester.recorder().interactions().size();
+    subjectAmbassador.unpublishObjectClass(subjectObjectClass);
+    subjectPublishedAttributes.clear();
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >=
+              reportOffset + 3U;
+        },
+        options,
+        "the federate MOM publication reports after the object class is unpublished");
+
+    auto const reportsAfterWholeClassUnpublication =
+        requester.recorder().interactions();
+    require(
+        reportsAfterWholeClassUnpublication.size() == reportOffset + 3U,
+        "A publication request after whole-class unpublication did not deliver exactly the three standard publication report interactions");
+    InteractionRecord const* objectReportAfterWholeClassUnpublication =
+        nullptr;
+    unsigned interactionReportCountAfterWholeClassUnpublication = 0U;
+    unsigned directedReportCountAfterWholeClassUnpublication = 0U;
+    for (std::size_t index = reportOffset;
+         index != reportsAfterWholeClassUnpublication.size();
+         ++index) {
+      auto const& report = reportsAfterWholeClassUnpublication[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A post-whole-class-unpublication standard MIM report was absent or did not use reliable transportation");
+      if (report.interaction == objectReportClass) {
+        require(
+            objectReportAfterWholeClassUnpublication == nullptr,
+            "Whole-class-unpublication query delivered duplicate object-class publication reports");
+        objectReportAfterWholeClassUnpublication = &report;
+      } else if (report.interaction == interactionReportClass) {
+        ++interactionReportCountAfterWholeClassUnpublication;
+      } else if (report.interaction == directedReportClass) {
+        ++directedReportCountAfterWholeClassUnpublication;
+      } else {
+        require(
+            false,
+            "Whole-class-unpublication query delivered an unrequested publication report");
+      }
+    }
+    require(
+        objectReportAfterWholeClassUnpublication != nullptr &&
+            interactionReportCountAfterWholeClassUnpublication == 1U &&
+            directedReportCountAfterWholeClassUnpublication == 1U,
+        "Whole-class-unpublication query omitted or duplicated a standard publication report");
+    require(
+        objectReportAfterWholeClassUnpublication->parameters.size() == 1U &&
+            objectReportAfterWholeClassUnpublication->parameters.count(
+                objectReportCountParameter) == 1U &&
+            objectReportAfterWholeClassUnpublication->parameters.count(
+                objectReportClassParameter) == 0U &&
+            objectReportAfterWholeClassUnpublication->parameters.count(
+                objectReportAttributesParameter) == 0U,
+        "Whole-class-unpublication object report did not use the exact 2025 MIM NULL response parameter shape");
+    rti::HLAinteger32BE objectClassCountAfterWholeClassUnpublication;
+    objectClassCountAfterWholeClassUnpublication.decode(
+        objectReportAfterWholeClassUnpublication->parameters.at(
+            objectReportCountParameter));
+    require(
+        objectClassCountAfterWholeClassUnpublication.get() == 0,
+        "Whole-class-unpublication MIM NULL response did not report zero published object classes");
+  }
+
+  if (unpublishWholeInteractionClassAfterInitialQuery ||
+      unpublishAllOrdinaryInteractionClassesAfterInitialQuery) {
+    auto const reportOffset = requester.recorder().interactions().size();
+    if (unpublishAllOrdinaryInteractionClassesAfterInitialQuery) {
+      subjectAmbassador.unpublishInteractionClass(
+          subjectSecondaryOrdinaryInteractionClass);
+    }
+    subjectAmbassador.unpublishInteractionClass(subjectInteractionClass);
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >=
+              reportOffset + 3U;
+        },
+        options,
+        "the federate MOM publication reports after all selected ordinary interaction classes are unpublished");
+
+    auto const reportsAfterInteractionUnpublication =
+        requester.recorder().interactions();
+    require(
+        reportsAfterInteractionUnpublication.size() == reportOffset + 3U,
+        "A publication request after ordinary interaction-class unpublication did not deliver exactly the standard object, interaction, and directed publication reports");
+    InteractionRecord const* objectReportAfterInteractionUnpublication =
+        nullptr;
+    InteractionRecord const* interactionReportAfterInteractionUnpublication =
+        nullptr;
+    InteractionRecord const* directedReportAfterInteractionUnpublication =
+        nullptr;
+    for (std::size_t index = reportOffset;
+         index != reportsAfterInteractionUnpublication.size();
+         ++index) {
+      auto const& report = reportsAfterInteractionUnpublication[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A post-interaction-unpublication standard MIM publication report was absent or did not use reliable transportation");
+      if (report.interaction == objectReportClass) {
+        require(
+            objectReportAfterInteractionUnpublication == nullptr,
+            "Interaction-unpublication query delivered duplicate object-class publication reports");
+        objectReportAfterInteractionUnpublication = &report;
+      } else if (report.interaction == interactionReportClass) {
+        require(
+            interactionReportAfterInteractionUnpublication == nullptr,
+            "Interaction-unpublication query delivered duplicate interaction-class publication reports");
+        interactionReportAfterInteractionUnpublication = &report;
+      } else if (report.interaction == directedReportClass) {
+        require(
+            directedReportAfterInteractionUnpublication == nullptr,
+            "Interaction-unpublication query delivered duplicate directed-interaction publication reports");
+        directedReportAfterInteractionUnpublication = &report;
+      } else {
+        require(
+            false,
+            "Interaction-unpublication query delivered an unrequested publication report");
+      }
+    }
+    require(
+        objectReportAfterInteractionUnpublication != nullptr &&
+            interactionReportAfterInteractionUnpublication != nullptr &&
+            directedReportAfterInteractionUnpublication != nullptr,
+        "Interaction-unpublication query omitted a standard publication report");
+    require(
+        interactionReportAfterInteractionUnpublication->parameters.size() ==
+                1U &&
+            interactionReportAfterInteractionUnpublication->parameters.count(
+                interactionReportListParameter) == 1U &&
+            decodeInteractionClassHandleList(
+                interactionReportAfterInteractionUnpublication->parameters.at(
+                    interactionReportListParameter)).empty(),
+        "Unpublishing the ordinary interaction class did not produce the exact 2025 MIM NULL report with an empty interaction-class list");
+    require(
+        objectReportAfterInteractionUnpublication->parameters.size() == 3U &&
+            objectReportAfterInteractionUnpublication->parameters.count(
+                objectReportCountParameter) == 1U &&
+            objectReportAfterInteractionUnpublication->parameters.count(
+                objectReportClassParameter) == 1U &&
+            objectReportAfterInteractionUnpublication->parameters.count(
+                objectReportAttributesParameter) == 1U,
+        "Ordinary interaction unpublication changed the independent object-class publication report shape");
+    rti::HLAinteger32BE objectClassCountAfterInteractionUnpublication;
+    objectClassCountAfterInteractionUnpublication.decode(
+        objectReportAfterInteractionUnpublication->parameters.at(
+            objectReportCountParameter));
+    require(
+        objectClassCountAfterInteractionUnpublication.get() == 1 &&
+            requesterAmbassador.decodeObjectClassHandle(
+                objectReportAfterInteractionUnpublication->parameters.at(
+                    objectReportClassParameter)) == requesterObjectClass,
+        "Ordinary interaction unpublication changed the independent object-class publication");
+    auto const& directedReportParameters =
+        directedReportAfterInteractionUnpublication->parameters;
+    if (directedReportParameters.size() == 2U) {
+      require(
+          directedReportParameters.count(directedReportCountParameter) == 1U &&
+              directedReportParameters.count(
+                  directedReportObjectClassParameter) == 0U &&
+              directedReportParameters.count(directedReportListParameter) == 1U,
+          "The NULL directed-interaction publication report did not use the exact 2025 MIM parameter shape");
+      rti::HLAinteger32BE directedClassCountAfterInteractionUnpublication;
+      directedClassCountAfterInteractionUnpublication.decode(
+          directedReportParameters.at(directedReportCountParameter));
+      require(
+          directedClassCountAfterInteractionUnpublication.get() == 0 &&
+              decodeInteractionClassHandleList(
+                  directedReportParameters.at(directedReportListParameter))
+                  .empty(),
+          "The NULL directed-interaction publication report did not encode zero classes and an empty interaction list");
+    } else {
+      require(
+          directedReportParameters.size() == 3U &&
+              directedReportParameters.count(directedReportCountParameter) ==
+                  1U &&
+              directedReportParameters.count(
+                  directedReportObjectClassParameter) == 1U &&
+              directedReportParameters.count(directedReportListParameter) == 1U,
+          "The populated directed-interaction publication report did not use the exact 2025 MIM parameter shape");
+      rti::HLAinteger32BE directedClassCountAfterInteractionUnpublication;
+      directedClassCountAfterInteractionUnpublication.decode(
+          directedReportParameters.at(directedReportCountParameter));
+      auto const directedInteractionsAfterInteractionUnpublication =
           decodeInteractionClassHandleList(
-              directedReport->parameters.at(directedReportListParameter)).empty(),
-      "Empty directed-interaction publication report did not report zero classes and an empty list");
+              directedReportParameters.at(directedReportListParameter));
+      require(
+          directedClassCountAfterInteractionUnpublication.get() == 1 &&
+              requesterAmbassador.decodeObjectClassHandle(
+                  directedReportParameters.at(
+                      directedReportObjectClassParameter)) ==
+                  requesterObjectClass &&
+              directedInteractionsAfterInteractionUnpublication.size() == 1U &&
+              directedInteractionsAfterInteractionUnpublication.front() ==
+                  requesterInteractionClass,
+          "The populated directed-interaction publication report did not describe the adapter-selected 2025 declaration");
+    }
+  }
+
+  if (unpublishOneOrdinaryInteractionClassAfterInitialQuery) {
+    auto const reportOffset = requester.recorder().interactions().size();
+    subjectAmbassador.unpublishInteractionClass(
+        subjectSecondaryOrdinaryInteractionClass);
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >=
+              reportOffset + 3U;
+        },
+        options,
+        "the federate MOM publication reports after one ordinary interaction class is unpublished");
+
+    auto const reportsAfterPartialInteractionUnpublication =
+        requester.recorder().interactions();
+    require(
+        reportsAfterPartialInteractionUnpublication.size() == reportOffset + 3U,
+        "A publication request after partial ordinary interaction unpublication did not deliver exactly the standard object, interaction, and directed reports");
+    InteractionRecord const* objectReportAfterPartialInteractionUnpublication =
+        nullptr;
+    InteractionRecord const* interactionReportAfterPartialInteractionUnpublication =
+        nullptr;
+    InteractionRecord const* directedReportAfterPartialInteractionUnpublication =
+        nullptr;
+    for (std::size_t index = reportOffset;
+         index != reportsAfterPartialInteractionUnpublication.size();
+         ++index) {
+      auto const& report =
+          reportsAfterPartialInteractionUnpublication[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A post-partial-unpublication standard MIM report was absent or did not use reliable transportation");
+      if (report.interaction == objectReportClass) {
+        require(
+            objectReportAfterPartialInteractionUnpublication == nullptr,
+            "Partial interaction-unpublication query delivered duplicate object-class reports");
+        objectReportAfterPartialInteractionUnpublication = &report;
+      } else if (report.interaction == interactionReportClass) {
+        require(
+            interactionReportAfterPartialInteractionUnpublication == nullptr,
+            "Partial interaction-unpublication query delivered duplicate ordinary interaction reports");
+        interactionReportAfterPartialInteractionUnpublication = &report;
+      } else if (report.interaction == directedReportClass) {
+        require(
+            directedReportAfterPartialInteractionUnpublication == nullptr,
+            "Partial interaction-unpublication query delivered duplicate directed-interaction reports");
+        directedReportAfterPartialInteractionUnpublication = &report;
+      } else {
+        require(
+            false,
+            "Partial interaction-unpublication query delivered an unrequested report");
+      }
+    }
+    require(
+        objectReportAfterPartialInteractionUnpublication != nullptr &&
+            interactionReportAfterPartialInteractionUnpublication != nullptr &&
+            directedReportAfterPartialInteractionUnpublication != nullptr,
+        "Partial interaction-unpublication query omitted a standard MIM publication report");
+    require(
+        interactionReportAfterPartialInteractionUnpublication->parameters.size() ==
+                1U &&
+            interactionReportAfterPartialInteractionUnpublication->parameters.count(
+                interactionReportListParameter) == 1U,
+        "Post-partial-unpublication interaction report did not contain its MIM-defined class-list parameter");
+    auto const remainingOrdinaryInteractions =
+        decodeInteractionClassHandleList(
+            interactionReportAfterPartialInteractionUnpublication->parameters.at(
+                interactionReportListParameter));
+    require(
+        remainingOrdinaryInteractions.size() == 1U &&
+            remainingOrdinaryInteractions.front() == requesterInteractionClass,
+        "Post-unpublication MIM list did not contain exactly the remaining adapter-selected ordinary interaction class");
+
+    rti::HLAinteger32BE objectClassCountAfterPartialInteractionUnpublication;
+    require(
+        objectReportAfterPartialInteractionUnpublication->parameters.size() ==
+                3U &&
+            objectReportAfterPartialInteractionUnpublication->parameters.count(
+                objectReportCountParameter) == 1U &&
+            objectReportAfterPartialInteractionUnpublication->parameters.count(
+                objectReportClassParameter) == 1U &&
+            objectReportAfterPartialInteractionUnpublication->parameters.count(
+                objectReportAttributesParameter) == 1U,
+        "Post-partial-unpublication object report did not contain its three MIM-defined parameters");
+    objectClassCountAfterPartialInteractionUnpublication.decode(
+        objectReportAfterPartialInteractionUnpublication->parameters.at(
+            objectReportCountParameter));
+    require(
+        objectClassCountAfterPartialInteractionUnpublication.get() == 1 &&
+            requesterAmbassador.decodeObjectClassHandle(
+                objectReportAfterPartialInteractionUnpublication->parameters.at(
+                    objectReportClassParameter)) == requesterObjectClass,
+        "Partial ordinary interaction unpublication changed the independent object-class publication");
+
+    auto const& directedReportParameters =
+        directedReportAfterPartialInteractionUnpublication->parameters;
+    if (directedReportParameters.size() == 2U) {
+      require(
+          directedReportParameters.count(directedReportCountParameter) == 1U &&
+              directedReportParameters.count(
+                  directedReportObjectClassParameter) == 0U &&
+              directedReportParameters.count(directedReportListParameter) == 1U,
+          "The NULL directed-interaction report did not use the exact 2025 MIM parameter shape");
+      rti::HLAinteger32BE directedClassCount;
+      directedClassCount.decode(
+          directedReportParameters.at(directedReportCountParameter));
+      require(
+          directedClassCount.get() == 0 &&
+              decodeInteractionClassHandleList(
+                  directedReportParameters.at(directedReportListParameter))
+                  .empty(),
+          "The NULL directed-interaction report did not encode zero classes and an empty interaction list");
+    } else {
+      require(
+          directedReportParameters.size() == 3U &&
+              directedReportParameters.count(directedReportCountParameter) ==
+                  1U &&
+              directedReportParameters.count(
+                  directedReportObjectClassParameter) == 1U &&
+              directedReportParameters.count(directedReportListParameter) == 1U,
+          "The populated directed-interaction report did not use the exact 2025 MIM parameter shape");
+      rti::HLAinteger32BE directedClassCount;
+      directedClassCount.decode(
+          directedReportParameters.at(directedReportCountParameter));
+      auto const remainingDirectedInteractions =
+          decodeInteractionClassHandleList(
+              directedReportParameters.at(directedReportListParameter));
+      require(
+          directedClassCount.get() == 1 &&
+              requesterAmbassador.decodeObjectClassHandle(
+                  directedReportParameters.at(
+                      directedReportObjectClassParameter)) ==
+                  requesterObjectClass &&
+              remainingDirectedInteractions.size() == 1U &&
+              remainingDirectedInteractions.front() ==
+                  requesterInteractionClass,
+          "The populated directed-interaction report did not identify the adapter-selected declaration");
+    }
+  }
 
   requesterAmbassador.unsubscribeInteractionClass(objectReportClass);
   requesterAmbassador.unsubscribeInteractionClass(interactionReportClass);
   requesterAmbassador.unsubscribeInteractionClass(directedReportClass);
-  subjectAmbassador.unpublishObjectClassAttributes(
-      subjectObjectClass,
-      rti::AttributeHandleSet{subjectAttribute});
-  subjectAmbassador.unpublishInteractionClass(subjectInteractionClass);
+  if (!subjectPublishedAttributes.empty()) {
+    subjectAmbassador.unpublishObjectClassAttributes(
+        subjectObjectClass,
+        subjectPublishedAttributes);
+  }
+  if (!unpublishWholeInteractionClassAfterInitialQuery &&
+      !unpublishAllOrdinaryInteractionClassesAfterInitialQuery) {
+    subjectAmbassador.unpublishInteractionClass(subjectInteractionClass);
+  }
   requester.resign(rti::NO_ACTION);
   subject.resign(rti::NO_ACTION);
   subjectAmbassador.destroyFederationExecution(federation);
@@ -11690,10 +13362,199 @@ void scenarioFederateMomPublicationQuery(
   subject.disconnect();
 }
 
+void scenarioFederateMomPublicationQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPublicationQueryState(options, model, false);
+}
+
+void scenarioFederateMomCompleteObjectClassPublicationQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPublicationQueryState(options, model, false, false, false, true);
+}
+
+void scenarioFederateMomObjectClassAttributeUnpublicationQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPublicationQueryState(
+      options,
+      model,
+      false,
+      false,
+      false,
+      true,
+      true);
+}
+
+void scenarioFederateMomObjectClassFullAttributeUnpublicationQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPublicationQueryState(
+      options,
+      model,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true);
+}
+
+void scenarioFederateMomObjectClassWholeUnpublicationQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPublicationQueryState(
+      options,
+      model,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true);
+}
+
+void scenarioFederateMomInteractionClassWholeUnpublicationQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPublicationQueryState(
+      options,
+      model,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true);
+}
+
+void scenarioFederateMomInteractionClassPartialUnpublicationQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPublicationQueryState(
+      options,
+      model,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true);
+}
+
+void scenarioFederateMomMultipleInteractionClassFullUnpublicationQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPublicationQueryState(
+      options,
+      model,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true);
+}
+
+void scenarioFederateMomMultipleDirectedPublicationQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPublicationQueryState(options, model, true);
+}
+
+void scenarioFederateMomMultipleDirectedPublicationPartialUnpublishQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPublicationQueryState(options, model, true, true);
+}
+
+void scenarioFederateMomMultipleDirectedPublicationFullUnpublishQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPublicationQueryState(options, model, true, true, true);
+}
+
 void scenarioFederateMomPublicationQueryContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederateMomPublicationQuery(options, model);
+}
+
+void scenarioFederateMomCompleteObjectClassPublicationQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomCompleteObjectClassPublicationQuery(options, model);
+}
+
+void scenarioFederateMomObjectClassAttributeUnpublicationQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomObjectClassAttributeUnpublicationQuery(options, model);
+}
+
+void scenarioFederateMomObjectClassFullAttributeUnpublicationQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomObjectClassFullAttributeUnpublicationQuery(options, model);
+}
+
+void scenarioFederateMomObjectClassWholeUnpublicationQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomObjectClassWholeUnpublicationQuery(options, model);
+}
+
+void scenarioFederateMomInteractionClassWholeUnpublicationQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomInteractionClassWholeUnpublicationQuery(options, model);
+}
+
+void scenarioFederateMomInteractionClassPartialUnpublicationQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomInteractionClassPartialUnpublicationQuery(options, model);
+}
+
+void scenarioFederateMomMultipleInteractionClassFullUnpublicationQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomMultipleInteractionClassFullUnpublicationQuery(
+      options,
+      model);
+}
+
+void scenarioFederateMomMultipleDirectedPublicationQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomMultipleDirectedPublicationQuery(options, model);
+}
+
+void scenarioFederateMomMultipleDirectedPublicationPartialUnpublishQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomMultipleDirectedPublicationPartialUnpublishQuery(
+      options,
+      model);
+}
+
+void scenarioFederateMomMultipleDirectedPublicationFullUnpublishQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomMultipleDirectedPublicationFullUnpublishQuery(
+      options,
+      model);
 }
 
 void scenarioFederateMomSubscriptionQueryState(
@@ -11703,19 +13564,135 @@ void scenarioFederateMomSubscriptionQueryState(
     bool activeObjectSubscription,
     bool hasInteractionSubscription,
     bool activeInteractionSubscription,
-    bool hasDirectedSubscription) {
+    bool hasDirectedSubscription,
+    bool hasMultipleDirectedSubscriptions,
+    bool unsubscribeAllDirectedInteractionsAfterPartialQuery = false,
+    bool activatePassiveInteractionAfterInitialQuery = false,
+    bool hasSecondaryInteractionSubscription = false,
+    bool activeSecondaryInteractionSubscription = false,
+    bool unsubscribeSecondaryInteractionAfterInitialQuery = false,
+    bool unsubscribePrimaryInteractionAfterSecondaryUnsubscribe = false,
+    bool partiallyUnsubscribeObjectAttributeAfterInitialQuery = false,
+    bool fullyUnsubscribeObjectAttributesAfterInitialQuery = false,
+    bool unsubscribeWholeObjectClassAfterInitialQuery = false,
+    bool subscribeAllObjectClassAttributes = false,
+    bool activatePassiveCompleteObjectClassSubscriptionAfterInitialQuery = false) {
+  auto const usesTwoObjectAttributes =
+      partiallyUnsubscribeObjectAttributeAfterInitialQuery ||
+      fullyUnsubscribeObjectAttributesAfterInitialQuery ||
+      unsubscribeWholeObjectClassAfterInitialQuery;
+  auto const usesThreeObjectAttributes = subscribeAllObjectClassAttributes;
+  auto const usesMultipleObjectAttributes =
+      usesTwoObjectAttributes || usesThreeObjectAttributes;
+  auto const usesFullObjectUnsubscription =
+      fullyUnsubscribeObjectAttributesAfterInitialQuery ||
+      unsubscribeWholeObjectClassAfterInitialQuery;
   require(
       !options.fom.empty() && !options.mimFom.empty() &&
           !options.rateFom.empty() &&
           !options.logicalTimeImplementationName.empty() &&
           !options.objectClassName.empty() && !options.attributeName.empty() &&
+          (!usesMultipleObjectAttributes ||
+           !options.secondaryAttributeName.empty()) &&
+          (!usesThreeObjectAttributes ||
+           !options.objectClassThirdAttributeName.empty()) &&
           !options.interactionClassName.empty() &&
+          (!hasMultipleDirectedSubscriptions ||
+           (!options.secondaryDirectedObjectClassName.empty() &&
+            !options.secondaryDirectedInteractionClassName.empty())) &&
           !options.fomUpdateRateName.empty(),
       "Federate MOM subscription-query reporting requires adapter-supplied application FOM, rate FOM, standard MIM, object class, attribute, interaction class, update-rate name, and logical-time configuration");
+  require(
+      !unsubscribeAllDirectedInteractionsAfterPartialQuery ||
+          hasMultipleDirectedSubscriptions,
+      "The fully unsubscribed directed-interaction NULL-response scenario requires multiple directed subscriptions");
+  require(
+      !hasMultipleDirectedSubscriptions || hasDirectedSubscription,
+      "Multiple directed subscription reporting requires a populated directed subscription");
+  require(
+      !activatePassiveInteractionAfterInitialQuery ||
+          (hasInteractionSubscription && !activeInteractionSubscription),
+      "Passive-interaction activation reporting requires an initially passive interaction subscription");
+  require(
+      !hasSecondaryInteractionSubscription || hasInteractionSubscription,
+      "Multiple interaction-subscription reporting requires the primary subscription");
+  require(
+      !hasSecondaryInteractionSubscription ||
+          !activatePassiveInteractionAfterInitialQuery,
+      "The multiple interaction-subscription scenario does not combine with the separate activation lifecycle");
+  require(
+      !unsubscribeSecondaryInteractionAfterInitialQuery ||
+          hasSecondaryInteractionSubscription,
+      "Secondary interaction unsubscription reporting requires multiple interaction subscriptions");
+  require(
+      !unsubscribePrimaryInteractionAfterSecondaryUnsubscribe ||
+          unsubscribeSecondaryInteractionAfterInitialQuery,
+      "Full interaction unsubscription reporting requires the secondary interaction to be removed first");
+  require(
+      !partiallyUnsubscribeObjectAttributeAfterInitialQuery ||
+          options.attributeName != options.secondaryAttributeName,
+      "Partial object-attribute unsubscription requires two distinct adapter-selected attributes");
+  require(
+      !fullyUnsubscribeObjectAttributesAfterInitialQuery ||
+          options.attributeName != options.secondaryAttributeName,
+      "Full object-attribute unsubscription requires two distinct adapter-selected attributes");
+  require(
+      !unsubscribeWholeObjectClassAfterInitialQuery ||
+          options.attributeName != options.secondaryAttributeName,
+      "Whole-class unsubscription requires two distinct adapter-selected attributes");
+  require(
+      !subscribeAllObjectClassAttributes ||
+          hasObjectSubscription,
+      "Complete object-class attribute subscription requires an object-class subscription");
+  require(
+      !activatePassiveCompleteObjectClassSubscriptionAfterInitialQuery ||
+          (subscribeAllObjectClassAttributes && hasObjectSubscription &&
+           !activeObjectSubscription),
+      "Complete object-class subscription activation requires an initially passive full attribute-set subscription");
+  require(
+      !subscribeAllObjectClassAttributes ||
+          (options.attributeName != options.secondaryAttributeName &&
+           options.attributeName != options.objectClassThirdAttributeName &&
+           options.secondaryAttributeName != options.objectClassThirdAttributeName),
+      "Complete object-class attribute subscription requires three distinct adapter-selected attribute names");
+  require(
+      static_cast<unsigned>(partiallyUnsubscribeObjectAttributeAfterInitialQuery) +
+              static_cast<unsigned>(fullyUnsubscribeObjectAttributesAfterInitialQuery) +
+              static_cast<unsigned>(unsubscribeWholeObjectClassAfterInitialQuery) +
+              static_cast<unsigned>(subscribeAllObjectClassAttributes &&
+                                    !activatePassiveCompleteObjectClassSubscriptionAfterInitialQuery) +
+              static_cast<unsigned>(activatePassiveCompleteObjectClassSubscriptionAfterInitialQuery) <=
+          1U,
+      "Partial unsubscribe, full attribute-set unsubscribe, whole-class unsubscribe, and complete attribute-set subscription are separate lifecycle scenarios");
 
   Session subject(options, model, "owner");
   Session requester(options, model, "member");
-  auto const scenarioSuffix = !hasObjectSubscription &&
+  auto const scenarioSuffix =
+      activatePassiveCompleteObjectClassSubscriptionAfterInitialQuery
+      ? "federate-mom-object-class-complete-attribute-subscription-activation-query"
+      : subscribeAllObjectClassAttributes
+      ? (activeObjectSubscription
+             ? "federate-mom-object-class-complete-attribute-subscription-query"
+             : "federate-mom-object-class-passive-complete-attribute-subscription-query")
+      : unsubscribeWholeObjectClassAfterInitialQuery
+      ? "federate-mom-object-class-full-unsubscribe-query"
+      : fullyUnsubscribeObjectAttributesAfterInitialQuery
+      ? "federate-mom-object-attribute-full-unsubscribe-query"
+      : partiallyUnsubscribeObjectAttributeAfterInitialQuery
+      ? "federate-mom-object-attribute-partial-unsubscribe-query"
+      : unsubscribePrimaryInteractionAfterSecondaryUnsubscribe
+      ? "federate-mom-multiple-interaction-subscription-full-unsubscribe-query"
+      : unsubscribeSecondaryInteractionAfterInitialQuery
+      ? "federate-mom-multiple-interaction-subscription-unsubscribe-query"
+      : hasSecondaryInteractionSubscription
+      ? "federate-mom-multiple-interaction-subscription-query"
+      : activatePassiveInteractionAfterInitialQuery
+      ? "federate-mom-passive-interaction-subscription-activation-query"
+      : unsubscribeAllDirectedInteractionsAfterPartialQuery
+      ? "federate-mom-multiple-directed-subscription-full-unsubscribe-query"
+      : hasMultipleDirectedSubscriptions
+      ? "federate-mom-multiple-directed-subscription-query"
+      : !hasObjectSubscription &&
           !hasInteractionSubscription
       ? (hasDirectedSubscription
              ? "federate-mom-directed-subscription-query"
@@ -11727,7 +13704,32 @@ void scenarioFederateMomSubscriptionQueryState(
           : (activeInteractionSubscription
                  ? "federate-mom-passive-subscription-query"
                  : "federate-mom-passive-object-and-interaction-subscription-query");
-  auto const federateNameSuffix = !hasObjectSubscription &&
+  auto const federateNameSuffix =
+      activatePassiveCompleteObjectClassSubscriptionAfterInitialQuery
+      ? L"-mom-object-class-complete-attribute-subscription-activation-query"
+      : subscribeAllObjectClassAttributes
+      ? (activeObjectSubscription
+             ? L"-mom-object-class-complete-attribute-subscription-query"
+             : L"-mom-object-class-passive-complete-attribute-subscription-query")
+      : unsubscribeWholeObjectClassAfterInitialQuery
+      ? L"-mom-object-class-full-unsubscribe-query"
+      : fullyUnsubscribeObjectAttributesAfterInitialQuery
+      ? L"-mom-object-attribute-full-unsubscribe-query"
+      : partiallyUnsubscribeObjectAttributeAfterInitialQuery
+      ? L"-mom-object-attribute-partial-unsubscribe-query"
+      : unsubscribePrimaryInteractionAfterSecondaryUnsubscribe
+      ? L"-mom-multiple-interaction-subscription-full-unsubscribe-query"
+      : unsubscribeSecondaryInteractionAfterInitialQuery
+      ? L"-mom-multiple-interaction-subscription-unsubscribe-query"
+      : hasSecondaryInteractionSubscription
+      ? L"-mom-multiple-interaction-subscription-query"
+      : activatePassiveInteractionAfterInitialQuery
+      ? L"-mom-passive-interaction-subscription-activation-query"
+      : unsubscribeAllDirectedInteractionsAfterPartialQuery
+      ? L"-mom-multiple-directed-subscription-full-unsubscribe-query"
+      : hasMultipleDirectedSubscriptions
+      ? L"-mom-multiple-directed-subscription-query"
+      : !hasObjectSubscription &&
           !hasInteractionSubscription
       ? (hasDirectedSubscription
              ? L"-mom-directed-subscription-query"
@@ -11763,15 +13765,69 @@ void scenarioFederateMomSubscriptionQueryState(
   auto const subjectAttribute = subjectAmbassador.getAttributeHandle(
       subjectObjectClass,
       options.attributeName);
+  auto const subjectSecondaryAttribute =
+      usesMultipleObjectAttributes
+      ? subjectAmbassador.getAttributeHandle(
+            subjectObjectClass,
+            options.secondaryAttributeName)
+      : rti::AttributeHandle{};
+  auto const subjectThirdAttribute =
+      usesThreeObjectAttributes
+      ? subjectAmbassador.getAttributeHandle(
+            subjectObjectClass,
+            options.objectClassThirdAttributeName)
+      : rti::AttributeHandle{};
   auto const subjectInteractionClass =
       subjectAmbassador.getInteractionClassHandle(options.interactionClassName);
   auto const requesterObjectClass =
       requesterAmbassador.getObjectClassHandle(options.objectClassName);
+  auto const subjectSecondaryDirectedObjectClass =
+      hasMultipleDirectedSubscriptions
+          ? subjectAmbassador.getObjectClassHandle(
+                options.secondaryDirectedObjectClassName)
+          : rti::ObjectClassHandle{};
+  auto const requesterSecondaryDirectedObjectClass =
+      hasMultipleDirectedSubscriptions
+          ? requesterAmbassador.getObjectClassHandle(
+                options.secondaryDirectedObjectClassName)
+          : rti::ObjectClassHandle{};
+  auto const subjectSecondaryInteractionClass =
+      hasSecondaryInteractionSubscription
+          ? subjectAmbassador.getInteractionClassHandle(
+                L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation")
+          : rti::InteractionClassHandle{};
+  auto const requesterSecondaryInteractionClass =
+      hasSecondaryInteractionSubscription
+          ? requesterAmbassador.getInteractionClassHandle(
+                L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation")
+          : rti::InteractionClassHandle{};
   auto const requesterAttribute = requesterAmbassador.getAttributeHandle(
       requesterObjectClass,
       options.attributeName);
+  auto const requesterSecondaryAttribute =
+      usesMultipleObjectAttributes
+      ? requesterAmbassador.getAttributeHandle(
+            requesterObjectClass,
+            options.secondaryAttributeName)
+      : rti::AttributeHandle{};
+  auto const requesterThirdAttribute =
+      usesThreeObjectAttributes
+      ? requesterAmbassador.getAttributeHandle(
+            requesterObjectClass,
+            options.objectClassThirdAttributeName)
+      : rti::AttributeHandle{};
   auto const requesterInteractionClass =
       requesterAmbassador.getInteractionClassHandle(options.interactionClassName);
+  auto const subjectSecondaryDirectedInteractionClass =
+      hasMultipleDirectedSubscriptions
+          ? subjectAmbassador.getInteractionClassHandle(
+                options.secondaryDirectedInteractionClassName)
+          : rti::InteractionClassHandle{};
+  auto const requesterSecondaryDirectedInteractionClass =
+      hasMultipleDirectedSubscriptions
+          ? requesterAmbassador.getInteractionClassHandle(
+                options.secondaryDirectedInteractionClassName)
+          : rti::InteractionClassHandle{};
   auto const targetFederate = requesterAmbassador.getFederateHandle(subjectName);
   auto const reliable =
       requesterAmbassador.getTransportationTypeHandle(L"HLAreliable");
@@ -11824,6 +13880,41 @@ void scenarioFederateMomSubscriptionQueryState(
           directedReportObjectClassParameter.isValid() &&
           directedReportListParameter.isValid(),
       "Adapter-supplied application handles or standard MIM subscription request/report handles were invalid");
+  require(
+      !hasMultipleDirectedSubscriptions ||
+          (subjectSecondaryDirectedObjectClass.isValid() &&
+           requesterSecondaryDirectedObjectClass.isValid() &&
+           subjectSecondaryDirectedObjectClass != subjectObjectClass &&
+           requesterSecondaryDirectedObjectClass != requesterObjectClass &&
+           subjectSecondaryDirectedInteractionClass.isValid() &&
+           requesterSecondaryDirectedInteractionClass.isValid() &&
+           subjectSecondaryDirectedInteractionClass != subjectInteractionClass &&
+           requesterSecondaryDirectedInteractionClass != requesterInteractionClass),
+      "The adapter-supplied second directed-subscription object or interaction class was invalid or duplicated the first class");
+  require(
+      !hasSecondaryInteractionSubscription ||
+          (subjectSecondaryInteractionClass.isValid() &&
+           requesterSecondaryInteractionClass.isValid() &&
+           subjectSecondaryInteractionClass != subjectInteractionClass &&
+           requesterSecondaryInteractionClass != requesterInteractionClass),
+      "The standard MIM service-report interaction class was invalid or duplicated the adapter-selected interaction class");
+  require(
+      !usesMultipleObjectAttributes ||
+          (subjectSecondaryAttribute.isValid() &&
+           requesterSecondaryAttribute.isValid() &&
+           subjectSecondaryAttribute != subjectAttribute &&
+           requesterSecondaryAttribute != requesterAttribute &&
+           subjectSecondaryAttribute == requesterSecondaryAttribute),
+      "The adapter-selected second object attribute was invalid, duplicated, or inconsistent across federates");
+  require(
+      !usesThreeObjectAttributes ||
+          (subjectThirdAttribute.isValid() && requesterThirdAttribute.isValid() &&
+           subjectThirdAttribute != subjectAttribute &&
+           subjectThirdAttribute != subjectSecondaryAttribute &&
+           requesterThirdAttribute != requesterAttribute &&
+           requesterThirdAttribute != requesterSecondaryAttribute &&
+           subjectThirdAttribute == requesterThirdAttribute),
+      "The adapter-selected third object attribute was invalid, duplicated, or inconsistent across federates");
 
   requesterAmbassador.subscribeInteractionClass(objectReportClass);
   requesterAmbassador.subscribeInteractionClass(interactionReportClass);
@@ -11831,7 +13922,14 @@ void scenarioFederateMomSubscriptionQueryState(
   if (hasObjectSubscription) {
     subjectAmbassador.subscribeObjectClassAttributes(
         subjectObjectClass,
-        rti::AttributeHandleSet{subjectAttribute},
+        usesThreeObjectAttributes
+            ? rti::AttributeHandleSet{
+                  subjectAttribute,
+                  subjectSecondaryAttribute,
+                  subjectThirdAttribute}
+            : usesTwoObjectAttributes
+            ? rti::AttributeHandleSet{subjectAttribute, subjectSecondaryAttribute}
+            : rti::AttributeHandleSet{subjectAttribute},
         activeObjectSubscription,
         options.fomUpdateRateName);
   }
@@ -11840,11 +13938,23 @@ void scenarioFederateMomSubscriptionQueryState(
         subjectInteractionClass,
         activeInteractionSubscription);
   }
+  if (hasSecondaryInteractionSubscription) {
+    subjectAmbassador.subscribeInteractionClass(
+        subjectSecondaryInteractionClass,
+        activeSecondaryInteractionSubscription);
+  }
   if (hasDirectedSubscription) {
     subjectAmbassador.subscribeObjectClassDirectedInteractions(
         subjectObjectClass,
         rti::InteractionClassHandleSet{subjectInteractionClass},
         false);
+    if (hasMultipleDirectedSubscriptions) {
+      subjectAmbassador.subscribeObjectClassDirectedInteractions(
+          subjectSecondaryDirectedObjectClass,
+          rti::InteractionClassHandleSet{
+              subjectSecondaryDirectedInteractionClass},
+          false);
+    }
   }
 
   struct InteractionSubscription {
@@ -11918,17 +14028,20 @@ void scenarioFederateMomSubscriptionQueryState(
       rti::VariableLengthData{});
   waitFor(
       requester,
-      [&] { return requester.recorder().interactions().size() >= 3U; },
+      [&] {
+        return requester.recorder().interactions().size() >=
+            (hasMultipleDirectedSubscriptions ? 4U : 3U);
+      },
       options,
       "the standard federate MOM subscription reports");
   auto const reports = requester.recorder().interactions();
   require(
-      reports.size() == 3U,
-      "A populated subscription request did not deliver exactly the object, interaction, and required empty directed-interaction reports");
+      reports.size() == (hasMultipleDirectedSubscriptions ? 4U : 3U),
+      "A subscription request did not deliver exactly the standard MIM reports for its directed-subscription object classes");
 
   InteractionRecord const* objectReport = nullptr;
   InteractionRecord const* interactionReport = nullptr;
-  InteractionRecord const* directedReport = nullptr;
+  std::vector<InteractionRecord const*> directedReports;
   for (auto const& report : reports) {
     require(
         report.present && report.transportation == reliable,
@@ -11940,18 +14053,16 @@ void scenarioFederateMomSubscriptionQueryState(
       require(interactionReport == nullptr, "Duplicate interaction subscription report");
       interactionReport = &report;
     } else if (report.interaction == directedReportClass) {
-      require(
-          directedReport == nullptr,
-          "Duplicate directed-interaction subscription report");
-      directedReport = &report;
+      directedReports.push_back(&report);
     } else {
       require(false, "Subscription query delivered an unrequested interaction class");
     }
   }
   require(
       objectReport != nullptr && interactionReport != nullptr &&
-          directedReport != nullptr,
-      "Subscription query omitted one of the three standard MIM report classes");
+          directedReports.size() ==
+              (hasMultipleDirectedSubscriptions ? 2U : 1U),
+      "Subscription query omitted or duplicated a standard MIM report for the directed-subscription object classes");
 
   rti::HLAinteger32BE objectClassCount;
   require(
@@ -11984,10 +14095,40 @@ void scenarioFederateMomSubscriptionQueryState(
         "Object-class subscription report did not identify the adapter-selected subscription state and update-rate name");
     auto const subscribedAttributes = decodeAttributeHandleList(
         objectReport->parameters.at(objectReportAttributesParameter));
-    require(
-        subscribedAttributes.size() == 1U &&
-            subscribedAttributes.front() == requesterAttribute,
-        "Object-class subscription report did not contain exactly the adapter-selected attribute");
+    if (usesThreeObjectAttributes) {
+      require(
+          subscribedAttributes.size() == 3U &&
+              std::find(
+                  subscribedAttributes.begin(),
+                  subscribedAttributes.end(),
+                  requesterAttribute) != subscribedAttributes.end() &&
+              std::find(
+                  subscribedAttributes.begin(),
+                  subscribedAttributes.end(),
+                  requesterSecondaryAttribute) != subscribedAttributes.end() &&
+              std::find(
+                  subscribedAttributes.begin(),
+                  subscribedAttributes.end(),
+                  requesterThirdAttribute) != subscribedAttributes.end(),
+          "Whole-class-equivalent object subscription report did not contain all three adapter-selected attributes");
+    } else if (usesTwoObjectAttributes) {
+      require(
+          subscribedAttributes.size() == 2U &&
+              std::find(
+                  subscribedAttributes.begin(),
+                  subscribedAttributes.end(),
+                  requesterAttribute) != subscribedAttributes.end() &&
+              std::find(
+                  subscribedAttributes.begin(),
+                  subscribedAttributes.end(),
+                  requesterSecondaryAttribute) != subscribedAttributes.end(),
+          "Initial object-class subscription report did not contain both adapter-selected attributes");
+    } else {
+      require(
+          subscribedAttributes.size() == 1U &&
+              subscribedAttributes.front() == requesterAttribute,
+          "Object-class subscription report did not contain exactly the adapter-selected attribute");
+    }
   } else {
     require(
         objectReport->parameters.size() == 1U && objectClassCount.get() == 0 &&
@@ -12000,6 +14141,180 @@ void scenarioFederateMomSubscriptionQueryState(
         "Empty object-class subscription report did not use the standard zero-class NULL response shape");
   }
 
+  if (partiallyUnsubscribeObjectAttributeAfterInitialQuery) {
+    subjectAmbassador.unsubscribeObjectClassAttributes(
+        subjectObjectClass,
+        rti::AttributeHandleSet{subjectAttribute});
+    auto const priorInteractionCount = requester.recorder().interactions().size();
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >=
+              priorInteractionCount + 3U;
+        },
+        options,
+        "the standard MIM subscription reports after one object attribute is unsubscribed");
+    auto const partialReports = requester.recorder().interactions();
+    require(
+        partialReports.size() == priorInteractionCount + 3U,
+        "Partial object-attribute unsubscription did not produce exactly one fresh report of each standard subscription kind");
+    InteractionRecord const* remainingObjectReport = nullptr;
+    std::size_t remainingInteractionReportCount = 0U;
+    std::size_t remainingDirectedReportCount = 0U;
+    for (std::size_t index = priorInteractionCount;
+         index < partialReports.size();
+         ++index) {
+      auto const& report = partialReports[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A post-unsubscribe standard MIM subscription report was absent or not reliably transported");
+      if (report.interaction == objectReportClass) {
+        require(
+            remainingObjectReport == nullptr,
+            "Duplicate object-class subscription report after partial unsubscription");
+        remainingObjectReport = &report;
+      } else if (report.interaction == interactionReportClass) {
+        ++remainingInteractionReportCount;
+      } else if (report.interaction == directedReportClass) {
+        ++remainingDirectedReportCount;
+      }
+    }
+    require(
+        remainingObjectReport != nullptr &&
+            remainingInteractionReportCount == 1U &&
+            remainingDirectedReportCount == 1U,
+        "Partial object-attribute unsubscription omitted or duplicated a standard MIM subscription report");
+    rti::HLAinteger32BE remainingClassCount;
+    require(
+        remainingObjectReport->parameters.size() == 5U &&
+            remainingObjectReport->parameters.count(objectReportCountParameter) == 1U &&
+            remainingObjectReport->parameters.count(objectReportClassParameter) == 1U &&
+            remainingObjectReport->parameters.count(objectReportActiveParameter) == 1U &&
+            remainingObjectReport->parameters.count(objectReportUpdateRateParameter) == 1U &&
+            remainingObjectReport->parameters.count(objectReportAttributesParameter) == 1U,
+        "Post-unsubscribe object-class subscription report did not contain its five MIM-defined parameters");
+    remainingClassCount.decode(
+        remainingObjectReport->parameters.at(objectReportCountParameter));
+    rti::HLAboolean remainingActive;
+    remainingActive.decode(
+        remainingObjectReport->parameters.at(objectReportActiveParameter));
+    rti::HLAunicodeString remainingUpdateRate;
+    remainingUpdateRate.decode(
+        remainingObjectReport->parameters.at(objectReportUpdateRateParameter));
+    auto const remainingAttributes = decodeAttributeHandleList(
+        remainingObjectReport->parameters.at(objectReportAttributesParameter));
+    require(
+        remainingClassCount.get() == 1 &&
+            requesterAmbassador.decodeObjectClassHandle(
+                remainingObjectReport->parameters.at(objectReportClassParameter)) ==
+                requesterObjectClass &&
+            remainingActive.get() == activeObjectSubscription &&
+            remainingUpdateRate.get() == options.fomUpdateRateName &&
+            remainingAttributes.size() == 1U &&
+            remainingAttributes.front() == requesterSecondaryAttribute,
+        "Post-unsubscribe MIM report did not retain only the still-subscribed adapter-selected attribute and original subscription settings");
+  }
+
+  if (usesFullObjectUnsubscription) {
+    if (unsubscribeWholeObjectClassAfterInitialQuery) {
+      subjectAmbassador.unsubscribeObjectClass(subjectObjectClass);
+    } else {
+      subjectAmbassador.unsubscribeObjectClassAttributes(
+          subjectObjectClass,
+          rti::AttributeHandleSet{subjectAttribute, subjectSecondaryAttribute});
+    }
+    auto const priorInteractionCount = requester.recorder().interactions().size();
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >=
+              priorInteractionCount + 3U;
+        },
+        options,
+        "the standard MIM subscription reports after all object attributes are unsubscribed");
+    auto const emptyReports = requester.recorder().interactions();
+    require(
+        emptyReports.size() == priorInteractionCount + 3U,
+        "Full object-attribute unsubscription did not produce exactly one fresh report of each standard subscription kind");
+    InteractionRecord const* emptyObjectReport = nullptr;
+    InteractionRecord const* emptyInteractionReport = nullptr;
+    InteractionRecord const* emptyDirectedReport = nullptr;
+    for (std::size_t index = priorInteractionCount;
+         index < emptyReports.size();
+         ++index) {
+      auto const& report = emptyReports[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A post-unsubscribe standard MIM subscription report was absent or not reliably transported");
+      if (report.interaction == objectReportClass) {
+        require(
+            emptyObjectReport == nullptr,
+            "Duplicate object-class subscription NULL report after full unsubscription");
+        emptyObjectReport = &report;
+      } else if (report.interaction == interactionReportClass) {
+        require(
+            emptyInteractionReport == nullptr,
+            "Duplicate interaction-subscription report after full object unsubscription");
+        emptyInteractionReport = &report;
+      } else if (report.interaction == directedReportClass) {
+        require(
+            emptyDirectedReport == nullptr,
+            "Duplicate directed-subscription report after full object unsubscription");
+        emptyDirectedReport = &report;
+      }
+    }
+    require(
+        emptyObjectReport != nullptr && emptyInteractionReport != nullptr &&
+            emptyDirectedReport != nullptr,
+        "Full object-attribute unsubscription omitted a standard MIM subscription report");
+    rti::HLAinteger32BE emptyObjectClassCount;
+    require(
+        emptyObjectReport->parameters.size() == 1U &&
+            emptyObjectReport->parameters.count(objectReportCountParameter) == 1U &&
+            emptyObjectReport->parameters.count(objectReportClassParameter) == 0U &&
+            emptyObjectReport->parameters.count(objectReportActiveParameter) == 0U &&
+            emptyObjectReport->parameters.count(objectReportUpdateRateParameter) == 0U &&
+            emptyObjectReport->parameters.count(objectReportAttributesParameter) == 0U,
+        "Full object-attribute unsubscription did not use the exact MIM NULL response parameter shape");
+    emptyObjectClassCount.decode(
+        emptyObjectReport->parameters.at(objectReportCountParameter));
+    require(
+        emptyObjectClassCount.get() == 0,
+        "Full object-attribute unsubscription NULL response did not report zero classes");
+    require(
+        emptyInteractionReport->parameters.size() == 1U &&
+            emptyInteractionReport->parameters.count(
+                interactionReportListParameter) == 1U &&
+            decodeInteractionSubscriptions(
+                emptyInteractionReport->parameters.at(
+                    interactionReportListParameter)).empty(),
+        "Full object-attribute unsubscription changed the ordinary interaction-subscription NULL report");
+    rti::HLAinteger32BE emptyDirectedClassCount;
+    require(
+        emptyDirectedReport->parameters.size() == 2U &&
+            emptyDirectedReport->parameters.count(directedReportCountParameter) == 1U &&
+            emptyDirectedReport->parameters.count(
+                directedReportObjectClassParameter) == 0U &&
+            emptyDirectedReport->parameters.count(directedReportListParameter) == 1U,
+        "Full object-attribute unsubscription changed the directed-subscription NULL parameter shape");
+    emptyDirectedClassCount.decode(
+        emptyDirectedReport->parameters.at(directedReportCountParameter));
+    require(
+        emptyDirectedClassCount.get() == 0 &&
+            decodeInteractionClassHandleList(
+                emptyDirectedReport->parameters.at(
+                    directedReportListParameter)).empty(),
+        "Full object-attribute unsubscription changed the directed-subscription NULL response");
+  }
+
   require(
       interactionReport->parameters.size() == 1U &&
           interactionReport->parameters.count(interactionReportListParameter) ==
@@ -12008,43 +14323,128 @@ void scenarioFederateMomSubscriptionQueryState(
   auto const subscribedInteractions = decodeInteractionSubscriptions(
       interactionReport->parameters.at(interactionReportListParameter));
   if (hasInteractionSubscription) {
-    require(
-        subscribedInteractions.size() == 1U &&
-            subscribedInteractions.front().interactionClass ==
-                requesterInteractionClass &&
-            subscribedInteractions.front().active == activeInteractionSubscription,
-        "Interaction subscription report did not contain exactly the adapter-selected interaction subscription mode");
+    if (hasSecondaryInteractionSubscription) {
+      bool foundPrimary = false;
+      bool foundSecondary = false;
+      for (auto const& subscription : subscribedInteractions) {
+        if (subscription.interactionClass == requesterInteractionClass) {
+          require(!foundPrimary, "Duplicate primary interaction subscription report");
+          foundPrimary = true;
+          require(
+              subscription.active == activeInteractionSubscription,
+              "The MIM interaction list reported the primary interaction with the wrong active/passive state");
+        } else if (subscription.interactionClass ==
+                   requesterSecondaryInteractionClass) {
+          require(!foundSecondary, "Duplicate secondary interaction subscription report");
+          foundSecondary = true;
+          require(
+              subscription.active == activeSecondaryInteractionSubscription,
+              "The MIM interaction list reported the standard MIM interaction with the wrong active/passive state");
+        }
+      }
+      require(
+          subscribedInteractions.size() == 2U && foundPrimary && foundSecondary,
+          "Interaction subscription report did not contain exactly the two requested classes and their mixed active/passive states");
+    } else {
+      require(
+          subscribedInteractions.size() == 1U &&
+              subscribedInteractions.front().interactionClass ==
+                  requesterInteractionClass &&
+              subscribedInteractions.front().active == activeInteractionSubscription,
+          "Interaction subscription report did not contain exactly the adapter-selected interaction subscription mode");
+    }
   } else {
     require(
         subscribedInteractions.empty(),
         "Empty interaction subscription report did not use the standard empty class-list NULL response shape");
   }
 
-  rti::HLAinteger32BE directedClassCount;
-  require(
-      directedReport->parameters.count(directedReportCountParameter) == 1U,
-      "Directed-interaction subscription report omitted its MIM-defined class count");
-  directedClassCount.decode(
-      directedReport->parameters.at(directedReportCountParameter));
   if (hasDirectedSubscription) {
-    require(
-        directedReport->parameters.size() == 3U &&
-            directedReport->parameters.count(
-                directedReportObjectClassParameter) == 1U &&
-            directedReport->parameters.count(directedReportListParameter) == 1U,
-        "Populated directed-interaction subscription report did not contain its three MIM-defined parameters");
-    auto const directedInteractions = decodeInteractionClassHandleList(
-        directedReport->parameters.at(directedReportListParameter));
-    require(
-        directedClassCount.get() == 1 &&
+    if (hasMultipleDirectedSubscriptions) {
+      bool reportedPrimaryObjectClass = false;
+      bool reportedSecondaryObjectClass = false;
+      for (auto const* directedReport : directedReports) {
+        rti::HLAinteger32BE directedClassCount;
+        require(
+            directedReport->parameters.size() == 3U &&
+                directedReport->parameters.count(
+                    directedReportCountParameter) == 1U &&
+                directedReport->parameters.count(
+                    directedReportObjectClassParameter) == 1U &&
+                directedReport->parameters.count(
+                    directedReportListParameter) == 1U,
+            "Populated directed-interaction subscription report did not contain its three MIM-defined parameters");
+        directedClassCount.decode(
+            directedReport->parameters.at(directedReportCountParameter));
+        auto const reportObjectClass =
             requesterAmbassador.decodeObjectClassHandle(
-                    directedReport->parameters.at(
-                        directedReportObjectClassParameter)) ==
-                requesterObjectClass &&
-            directedInteractions.size() == 1U &&
-            directedInteractions.front() == requesterInteractionClass,
-        "Populated directed-interaction subscription report did not identify the adapter-selected object and interaction classes");
+                directedReport->parameters.at(
+                    directedReportObjectClassParameter));
+        auto const directedInteractions = decodeInteractionClassHandleList(
+            directedReport->parameters.at(directedReportListParameter));
+        require(
+            directedClassCount.get() == 2 &&
+                directedInteractions.size() == 1U,
+            "Multiple directed-subscription report did not report two subscribed object classes and one interaction for this object class");
+        if (reportObjectClass == requesterObjectClass) {
+          require(
+              !reportedPrimaryObjectClass &&
+                  directedInteractions.front() == requesterInteractionClass,
+              "Primary directed-subscription report duplicated its object class or identified the wrong interaction");
+          reportedPrimaryObjectClass = true;
+        } else if (reportObjectClass ==
+                   requesterSecondaryDirectedObjectClass) {
+          require(
+              !reportedSecondaryObjectClass &&
+                  directedInteractions.front() ==
+                      requesterSecondaryDirectedInteractionClass,
+              "Secondary directed-subscription report duplicated its object class or identified the wrong interaction");
+          reportedSecondaryObjectClass = true;
+        } else {
+          require(
+              false,
+              "Directed-subscription report identified an unselected object class");
+        }
+      }
+      require(
+          reportedPrimaryObjectClass && reportedSecondaryObjectClass,
+          "Multiple directed-subscription reports did not cover both adapter-selected object classes");
+    } else {
+      auto const* directedReport = directedReports.front();
+      rti::HLAinteger32BE directedClassCount;
+      require(
+          directedReport->parameters.count(directedReportCountParameter) ==
+              1U,
+          "Directed-interaction subscription report omitted its MIM-defined class count");
+      directedClassCount.decode(
+          directedReport->parameters.at(directedReportCountParameter));
+      require(
+          directedReport->parameters.size() == 3U &&
+              directedReport->parameters.count(
+                  directedReportObjectClassParameter) == 1U &&
+              directedReport->parameters.count(directedReportListParameter) ==
+                  1U,
+          "Populated directed-interaction subscription report did not contain its three MIM-defined parameters");
+      auto const directedInteractions = decodeInteractionClassHandleList(
+          directedReport->parameters.at(directedReportListParameter));
+      require(
+          directedClassCount.get() == 1 &&
+              requesterAmbassador.decodeObjectClassHandle(
+                      directedReport->parameters.at(
+                          directedReportObjectClassParameter)) ==
+                  requesterObjectClass &&
+              directedInteractions.size() == 1U &&
+              directedInteractions.front() == requesterInteractionClass,
+          "Populated directed-interaction subscription report did not identify the adapter-selected object and interaction classes");
+    }
   } else {
+    auto const* directedReport = directedReports.front();
+    rti::HLAinteger32BE directedClassCount;
+    require(
+        directedReport->parameters.count(directedReportCountParameter) == 1U,
+        "Empty directed-interaction subscription report omitted its MIM-defined class count");
+    directedClassCount.decode(
+        directedReport->parameters.at(directedReportCountParameter));
     require(
         directedReport->parameters.size() == 2U &&
             directedReport->parameters.count(
@@ -12058,15 +14458,504 @@ void scenarioFederateMomSubscriptionQueryState(
         "Empty directed-interaction subscription report did not report zero classes and an empty list");
   }
 
-  if (hasObjectSubscription) {
+  if (activatePassiveCompleteObjectClassSubscriptionAfterInitialQuery) {
+    subjectAmbassador.subscribeObjectClassAttributes(
+        subjectObjectClass,
+        rti::AttributeHandleSet{
+            subjectAttribute,
+            subjectSecondaryAttribute,
+            subjectThirdAttribute},
+        true,
+        options.fomUpdateRateName);
+    auto const priorInteractionCount =
+        requester.recorder().interactions().size();
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >=
+              priorInteractionCount + 3U;
+        },
+        options,
+        "the standard MIM subscription reports after activating the complete object-class attribute set");
+    auto const activatedReports = requester.recorder().interactions();
+    require(
+        activatedReports.size() == priorInteractionCount + 3U,
+        "Complete object-class subscription activation did not produce exactly one fresh report of each standard subscription kind");
+    InteractionRecord const* activatedObjectReport = nullptr;
+    std::size_t activatedInteractionReportCount = 0U;
+    std::size_t activatedDirectedReportCount = 0U;
+    for (std::size_t index = priorInteractionCount;
+         index < activatedReports.size();
+         ++index) {
+      auto const& report = activatedReports[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A post-activation standard MIM subscription report was absent or not reliably transported");
+      if (report.interaction == objectReportClass) {
+        require(
+            activatedObjectReport == nullptr,
+            "Duplicate object-class subscription report after complete-set activation");
+        activatedObjectReport = &report;
+      } else if (report.interaction == interactionReportClass) {
+        ++activatedInteractionReportCount;
+      } else if (report.interaction == directedReportClass) {
+        ++activatedDirectedReportCount;
+      }
+    }
+    require(
+        activatedObjectReport != nullptr &&
+            activatedInteractionReportCount == 1U &&
+            activatedDirectedReportCount == 1U,
+        "Complete object-class subscription activation omitted or duplicated a standard MIM subscription report");
+    require(
+        activatedObjectReport->parameters.size() == 5U &&
+            activatedObjectReport->parameters.count(objectReportCountParameter) ==
+                1U &&
+            activatedObjectReport->parameters.count(objectReportClassParameter) ==
+                1U &&
+            activatedObjectReport->parameters.count(objectReportActiveParameter) ==
+                1U &&
+            activatedObjectReport->parameters.count(
+                objectReportUpdateRateParameter) == 1U &&
+            activatedObjectReport->parameters.count(
+                objectReportAttributesParameter) == 1U,
+        "Activated object-class subscription report did not contain all five MIM-defined parameters");
+    rti::HLAinteger32BE activatedClassCount;
+    activatedClassCount.decode(
+        activatedObjectReport->parameters.at(objectReportCountParameter));
+    rti::HLAboolean activatedSubscriptionState;
+    activatedSubscriptionState.decode(
+        activatedObjectReport->parameters.at(objectReportActiveParameter));
+    rti::HLAunicodeString activatedUpdateRate;
+    activatedUpdateRate.decode(
+        activatedObjectReport->parameters.at(objectReportUpdateRateParameter));
+    auto const activatedAttributes = decodeAttributeHandleList(
+        activatedObjectReport->parameters.at(objectReportAttributesParameter));
+    require(
+        activatedClassCount.get() == 1 &&
+            requesterAmbassador.decodeObjectClassHandle(
+                activatedObjectReport->parameters.at(objectReportClassParameter)) ==
+                requesterObjectClass &&
+            activatedSubscriptionState.get() &&
+            activatedUpdateRate.get() == options.fomUpdateRateName &&
+            activatedAttributes.size() == 3U &&
+            std::find(
+                activatedAttributes.begin(),
+                activatedAttributes.end(),
+                requesterAttribute) != activatedAttributes.end() &&
+            std::find(
+                activatedAttributes.begin(),
+                activatedAttributes.end(),
+                requesterSecondaryAttribute) != activatedAttributes.end() &&
+            std::find(
+                activatedAttributes.begin(),
+                activatedAttributes.end(),
+                requesterThirdAttribute) != activatedAttributes.end(),
+        "The standard MIM did not report the complete attribute set as active after the repeated standard subscription service call");
+  }
+
+  if (activatePassiveInteractionAfterInitialQuery) {
+    subjectAmbassador.subscribeInteractionClass(
+        subjectInteractionClass,
+        true);
+    auto const priorInteractionCount =
+        requester.recorder().interactions().size();
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >=
+              priorInteractionCount + 3U;
+        },
+        options,
+        "the standard MIM subscription reports after passive interaction activation");
+    auto const activatedReports = requester.recorder().interactions();
+    require(
+        activatedReports.size() == priorInteractionCount + 3U,
+        "Passive interaction activation did not produce exactly one fresh report of each standard subscription kind");
+    InteractionRecord const* activatedInteractionReport = nullptr;
+    std::size_t activatedObjectReportCount = 0U;
+    std::size_t activatedDirectedReportCount = 0U;
+    for (std::size_t index = priorInteractionCount;
+         index < activatedReports.size();
+         ++index) {
+      auto const& report = activatedReports[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A post-activation standard MIM subscription report was absent or not reliably transported");
+      if (report.interaction == interactionReportClass) {
+        require(
+            activatedInteractionReport == nullptr,
+            "Duplicate interaction-subscription report after passive activation");
+        activatedInteractionReport = &report;
+      } else if (report.interaction == objectReportClass) {
+        ++activatedObjectReportCount;
+      } else if (report.interaction == directedReportClass) {
+        ++activatedDirectedReportCount;
+      }
+    }
+    require(
+        activatedInteractionReport != nullptr &&
+            activatedObjectReportCount == 1U &&
+            activatedDirectedReportCount == 1U,
+        "Passive interaction activation omitted or duplicated a standard MIM subscription report");
+    require(
+        activatedInteractionReport->parameters.size() == 1U &&
+            activatedInteractionReport->parameters.count(
+                interactionReportListParameter) == 1U,
+        "Post-activation interaction report did not contain its MIM-defined class list");
+    auto const activatedSubscriptions = decodeInteractionSubscriptions(
+        activatedInteractionReport->parameters.at(
+            interactionReportListParameter));
+    require(
+        activatedSubscriptions.size() == 1U &&
+            activatedSubscriptions.front().interactionClass ==
+                requesterInteractionClass &&
+            activatedSubscriptions.front().active,
+        "The standard MIM interaction-subscription list did not report the passive-to-active transition");
+  }
+
+  if (unsubscribeSecondaryInteractionAfterInitialQuery) {
+    subjectAmbassador.unsubscribeInteractionClass(
+        subjectSecondaryInteractionClass);
+    auto const priorInteractionCount =
+        requester.recorder().interactions().size();
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >=
+              priorInteractionCount + 3U;
+        },
+        options,
+        "the standard MIM subscription reports after one interaction class is unsubscribed");
+    auto const remainingReports = requester.recorder().interactions();
+    require(
+        remainingReports.size() == priorInteractionCount + 3U,
+        "Unsubscribing one interaction class did not produce exactly one fresh report of each standard subscription kind");
+    InteractionRecord const* remainingInteractionReport = nullptr;
+    std::size_t remainingObjectReportCount = 0U;
+    std::size_t remainingDirectedReportCount = 0U;
+    for (std::size_t index = priorInteractionCount;
+         index < remainingReports.size();
+         ++index) {
+      auto const& report = remainingReports[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A post-unsubscribe standard MIM subscription report was absent or not reliably transported");
+      if (report.interaction == interactionReportClass) {
+        require(
+            remainingInteractionReport == nullptr,
+            "Duplicate interaction-subscription report after unsubscription");
+        remainingInteractionReport = &report;
+      } else if (report.interaction == objectReportClass) {
+        ++remainingObjectReportCount;
+      } else if (report.interaction == directedReportClass) {
+        ++remainingDirectedReportCount;
+      }
+    }
+    require(
+        remainingInteractionReport != nullptr &&
+            remainingObjectReportCount == 1U &&
+            remainingDirectedReportCount == 1U,
+        "Unsubscription omitted or duplicated a standard MIM subscription report");
+    require(
+        remainingInteractionReport->parameters.size() == 1U &&
+            remainingInteractionReport->parameters.count(
+                interactionReportListParameter) == 1U,
+        "Post-unsubscribe interaction report did not contain its MIM-defined class list");
+    auto const remainingSubscriptions = decodeInteractionSubscriptions(
+        remainingInteractionReport->parameters.at(
+            interactionReportListParameter));
+    require(
+        remainingSubscriptions.size() == 1U &&
+            remainingSubscriptions.front().interactionClass ==
+                requesterInteractionClass &&
+            remainingSubscriptions.front().active,
+        "The post-unsubscribe MIM list did not remove only the passive secondary interaction and preserve the active primary interaction");
+  }
+
+  if (unsubscribePrimaryInteractionAfterSecondaryUnsubscribe) {
+    subjectAmbassador.unsubscribeInteractionClass(subjectInteractionClass);
+    auto const priorInteractionCount =
+        requester.recorder().interactions().size();
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >=
+              priorInteractionCount + 3U;
+        },
+        options,
+        "the standard MIM subscription reports after the last interaction class is unsubscribed");
+    auto const emptyReports = requester.recorder().interactions();
+    require(
+        emptyReports.size() == priorInteractionCount + 3U,
+        "Full interaction unsubscription did not produce exactly one fresh report of each standard subscription kind");
+    InteractionRecord const* emptyInteractionReport = nullptr;
+    std::size_t emptyObjectReportCount = 0U;
+    std::size_t emptyDirectedReportCount = 0U;
+    for (std::size_t index = priorInteractionCount;
+         index < emptyReports.size();
+         ++index) {
+      auto const& report = emptyReports[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A post-unsubscribe standard MIM subscription report was absent or not reliably transported");
+      if (report.interaction == interactionReportClass) {
+        require(
+            emptyInteractionReport == nullptr,
+            "Duplicate interaction-subscription NULL report after full unsubscription");
+        emptyInteractionReport = &report;
+      } else if (report.interaction == objectReportClass) {
+        ++emptyObjectReportCount;
+      } else if (report.interaction == directedReportClass) {
+        ++emptyDirectedReportCount;
+      }
+    }
+    require(
+        emptyInteractionReport != nullptr &&
+            emptyObjectReportCount == 1U &&
+            emptyDirectedReportCount == 1U,
+        "Full interaction unsubscription omitted or duplicated a standard MIM subscription report");
+    require(
+        emptyInteractionReport->parameters.size() == 1U &&
+            emptyInteractionReport->parameters.count(
+                interactionReportListParameter) == 1U &&
+            decodeInteractionSubscriptions(
+                emptyInteractionReport->parameters.at(
+                    interactionReportListParameter)).empty(),
+        "The final MIM interaction-subscription report did not use the standard empty-list NULL response");
+  }
+
+  if (hasMultipleDirectedSubscriptions) {
+    subjectAmbassador.unsubscribeObjectClassDirectedInteractions(
+        subjectObjectClass,
+        rti::InteractionClassHandleSet{subjectInteractionClass});
+
+    auto const interactionsBeforePartialUnsubscribeQuery =
+        requester.recorder().interactions().size();
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >=
+              interactionsBeforePartialUnsubscribeQuery + 3U;
+        },
+        options,
+        "the directed-subscription report after set-based partial unsubscribe");
+    auto const partialUnsubscribeReports =
+        requester.recorder().interactions();
+    require(
+        partialUnsubscribeReports.size() ==
+            interactionsBeforePartialUnsubscribeQuery + 3U,
+        "Partial directed unsubscription did not produce exactly three standard subscription reports");
+    InteractionRecord const* partialDirectedReport = nullptr;
+    std::size_t partialObjectReportCount = 0U;
+    std::size_t partialInteractionReportCount = 0U;
+    for (std::size_t index =
+             interactionsBeforePartialUnsubscribeQuery;
+         index != partialUnsubscribeReports.size();
+         ++index) {
+      auto const& report = partialUnsubscribeReports[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A partial-unsubscribe MIM report was absent or did not use reliable transportation");
+      if (report.interaction == objectReportClass) {
+        ++partialObjectReportCount;
+      } else if (report.interaction == interactionReportClass) {
+        ++partialInteractionReportCount;
+      } else if (report.interaction == directedReportClass) {
+        require(
+            partialDirectedReport == nullptr,
+            "Partial directed unsubscription produced duplicate directed-subscription reports");
+        partialDirectedReport = &report;
+      } else {
+        require(false, "Partial directed unsubscription produced an unexpected MIM report");
+      }
+    }
+    require(
+        partialObjectReportCount == 1U &&
+            partialInteractionReportCount == 1U &&
+            partialDirectedReport != nullptr,
+        "Partial directed unsubscription omitted a standard subscription report");
+    require(
+        partialDirectedReport->parameters.size() == 3U &&
+            partialDirectedReport->parameters.count(
+                directedReportCountParameter) == 1U &&
+            partialDirectedReport->parameters.count(
+                directedReportObjectClassParameter) == 1U &&
+            partialDirectedReport->parameters.count(
+                directedReportListParameter) == 1U,
+        "Partial directed-subscription report did not contain its three MIM-defined parameters");
+    rti::HLAinteger32BE partialDirectedClassCount;
+    partialDirectedClassCount.decode(
+        partialDirectedReport->parameters.at(directedReportCountParameter));
+    auto const remainingDirectedInteractions =
+        decodeInteractionClassHandleList(
+            partialDirectedReport->parameters.at(directedReportListParameter));
+    require(
+        partialDirectedClassCount.get() == 1 &&
+            requesterAmbassador.decodeObjectClassHandle(
+                    partialDirectedReport->parameters.at(
+                        directedReportObjectClassParameter)) ==
+                requesterSecondaryDirectedObjectClass &&
+            remainingDirectedInteractions.size() == 1U &&
+            remainingDirectedInteractions.front() ==
+                requesterSecondaryDirectedInteractionClass,
+        "Partial set unsubscribe did not leave exactly the second directed interaction in the MIM report");
+  }
+
+  if (unsubscribeAllDirectedInteractionsAfterPartialQuery) {
+    auto const interactionsBeforeFullUnsubscribeQuery =
+        requester.recorder().interactions().size();
+    subjectAmbassador.unsubscribeObjectClassDirectedInteractions(
+        subjectSecondaryDirectedObjectClass);
+    requesterAmbassador.sendInteraction(
+        requestClass,
+        requestParameters,
+        rti::VariableLengthData{});
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().interactions().size() >=
+              interactionsBeforeFullUnsubscribeQuery + 3U;
+        },
+        options,
+        "the standard directed-subscription NULL response after full unsubscribe");
+    auto const reportsAfterFullUnsubscribe = requester.recorder().interactions();
+    require(
+        reportsAfterFullUnsubscribe.size() ==
+            interactionsBeforeFullUnsubscribeQuery + 3U,
+        "A subscription request after full directed unsubscribe did not deliver exactly the ordinary NULL reports and one directed-subscription NULL response");
+
+    InteractionRecord const* emptyObjectReport = nullptr;
+    InteractionRecord const* emptyInteractionReport = nullptr;
+    InteractionRecord const* directedNullReport = nullptr;
+    for (std::size_t index = interactionsBeforeFullUnsubscribeQuery;
+         index != reportsAfterFullUnsubscribe.size();
+         ++index) {
+      auto const& report = reportsAfterFullUnsubscribe[index];
+      require(
+          report.present && report.transportation == reliable,
+          "A full-unsubscribe MIM report was absent or did not use reliable transportation");
+      if (report.interaction == objectReportClass) {
+        require(
+            emptyObjectReport == nullptr,
+            "Full-unsubscribe query delivered duplicate object-subscription reports");
+        emptyObjectReport = &report;
+      } else if (report.interaction == interactionReportClass) {
+        require(
+            emptyInteractionReport == nullptr,
+            "Full-unsubscribe query delivered duplicate interaction-subscription reports");
+        emptyInteractionReport = &report;
+      } else if (report.interaction == directedReportClass) {
+        require(
+            directedNullReport == nullptr,
+            "Full-unsubscribe query delivered more than one directed-subscription NULL response");
+        directedNullReport = &report;
+      } else {
+        require(
+            false,
+            "Full-unsubscribe query delivered an unrequested subscription report");
+      }
+    }
+    require(
+        emptyObjectReport != nullptr && emptyInteractionReport != nullptr &&
+            directedNullReport != nullptr,
+        "Full-unsubscribe query omitted an ordinary NULL report or the directed-subscription NULL response");
+
+    rti::HLAinteger32BE emptyObjectClassCount;
+    require(
+        emptyObjectReport->parameters.size() == 1U &&
+            emptyObjectReport->parameters.count(objectReportCountParameter) ==
+                1U &&
+            emptyObjectReport->parameters.count(objectReportClassParameter) ==
+                0U &&
+            emptyObjectReport->parameters.count(objectReportActiveParameter) ==
+                0U &&
+            emptyObjectReport->parameters.count(
+                objectReportUpdateRateParameter) == 0U &&
+            emptyObjectReport->parameters.count(
+                objectReportAttributesParameter) == 0U,
+        "Full-unsubscribe object-subscription report did not preserve the standard NULL response shape");
+    emptyObjectClassCount.decode(
+        emptyObjectReport->parameters.at(objectReportCountParameter));
+    require(
+        emptyObjectClassCount.get() == 0,
+        "Full-unsubscribe object-subscription NULL response did not report zero classes");
+
+    require(
+        emptyInteractionReport->parameters.size() == 1U &&
+            emptyInteractionReport->parameters.count(
+                interactionReportListParameter) == 1U &&
+            decodeInteractionSubscriptions(
+                emptyInteractionReport->parameters.at(
+                    interactionReportListParameter)).empty(),
+        "Full-unsubscribe query changed the ordinary interaction-subscription NULL response");
+
+    require(
+        directedNullReport->parameters.size() == 2U &&
+            directedNullReport->parameters.count(directedReportCountParameter) ==
+                1U &&
+            directedNullReport->parameters.count(
+                directedReportObjectClassParameter) == 0U &&
+            directedNullReport->parameters.count(directedReportListParameter) ==
+                1U,
+        "Full-unsubscribe directed report did not use the exact IEEE 1516.2-2025 NULL response parameter shape");
+    rti::HLAinteger32BE directedClassCount;
+    directedClassCount.decode(
+        directedNullReport->parameters.at(directedReportCountParameter));
+    require(
+        directedClassCount.get() == 0 &&
+            decodeInteractionClassHandleList(
+                directedNullReport->parameters.at(
+                    directedReportListParameter)).empty(),
+        "Full-unsubscribe directed report did not encode zero classes and an empty interaction list");
+  }
+
+  if (partiallyUnsubscribeObjectAttributeAfterInitialQuery) {
+    subjectAmbassador.unsubscribeObjectClassAttributes(
+        subjectObjectClass,
+        rti::AttributeHandleSet{subjectSecondaryAttribute});
+  } else if (hasObjectSubscription &&
+             !usesFullObjectUnsubscription) {
     subjectAmbassador.unsubscribeObjectClassAttributes(
         subjectObjectClass,
         rti::AttributeHandleSet{subjectAttribute});
   }
-  if (hasInteractionSubscription) {
+  if (hasInteractionSubscription &&
+      !unsubscribePrimaryInteractionAfterSecondaryUnsubscribe) {
     subjectAmbassador.unsubscribeInteractionClass(subjectInteractionClass);
   }
-  if (hasDirectedSubscription) {
+  if (hasSecondaryInteractionSubscription &&
+      !unsubscribeSecondaryInteractionAfterInitialQuery) {
+    subjectAmbassador.unsubscribeInteractionClass(
+        subjectSecondaryInteractionClass);
+  }
+  if (hasMultipleDirectedSubscriptions &&
+      !unsubscribeAllDirectedInteractionsAfterPartialQuery) {
+    subjectAmbassador.unsubscribeObjectClassDirectedInteractions(
+        subjectSecondaryDirectedObjectClass,
+        rti::InteractionClassHandleSet{
+            subjectSecondaryDirectedInteractionClass});
+  } else if (hasDirectedSubscription) {
     subjectAmbassador.unsubscribeObjectClassDirectedInteractions(
         subjectObjectClass,
         rti::InteractionClassHandleSet{subjectInteractionClass});
@@ -12085,35 +14974,250 @@ void scenarioFederateMomSubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederateMomSubscriptionQueryState(
-      options, model, true, true, true, true, false);
+      options, model, true, true, true, true, false, false);
 }
 
 void scenarioFederateMomPassiveSubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederateMomSubscriptionQueryState(
-      options, model, true, false, true, true, false);
+      options, model, true, false, true, true, false, false);
 }
 
 void scenarioFederateMomPassiveInteractionSubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederateMomSubscriptionQueryState(
-      options, model, true, true, true, false, false);
+      options, model, true, true, true, false, false, false);
+}
+
+void scenarioFederateMomPassiveInteractionSubscriptionActivationQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(
+      options, model, true, true, true, false, false, false, false, true);
+}
+
+void scenarioFederateMomMultipleInteractionSubscriptionQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(
+      options,
+      model,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false);
+}
+
+void scenarioFederateMomMultipleInteractionSubscriptionUnsubscribeQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(
+      options,
+      model,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true);
+}
+
+void scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(
+      options,
+      model,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true);
+}
+
+void scenarioFederateMomObjectAttributePartialUnsubscribeQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(
+      options,
+      model,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true);
+}
+
+void scenarioFederateMomObjectAttributeFullUnsubscribeQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(
+      options,
+      model,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true);
+}
+
+void scenarioFederateMomObjectClassFullUnsubscribeQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(
+      options,
+      model,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true);
+}
+
+void scenarioFederateMomObjectClassCompleteAttributeSubscriptionQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(
+      options,
+      model,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true);
+}
+
+void scenarioFederateMomObjectClassPassiveCompleteAttributeSubscriptionQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(
+      options,
+      model,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true);
+}
+
+void scenarioFederateMomObjectClassCompleteAttributeSubscriptionActivationQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(
+      options,
+      model,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true);
 }
 
 void scenarioFederateMomEmptySubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederateMomSubscriptionQueryState(
-      options, model, false, false, false, false, false);
+      options, model, false, false, false, false, false, false);
 }
 
 void scenarioFederateMomDirectedSubscriptionQuery(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederateMomSubscriptionQueryState(
-      options, model, false, false, false, false, true);
+      options, model, false, false, false, false, true, false);
+}
+
+void scenarioFederateMomMultipleDirectedSubscriptionQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(
+      options, model, false, false, false, false, true, true);
+}
+
+void scenarioFederateMomMultipleDirectedSubscriptionFullUnsubscribeQuery(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomSubscriptionQueryState(
+      options, model, false, false, false, false, true, true, true);
 }
 
 void scenarioFederateMomSubscriptionQueryContract(
@@ -12134,6 +15238,78 @@ void scenarioFederateMomPassiveInteractionSubscriptionQueryContract(
   scenarioFederateMomPassiveInteractionSubscriptionQuery(options, model);
 }
 
+void scenarioFederateMomPassiveInteractionSubscriptionActivationQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomPassiveInteractionSubscriptionActivationQuery(
+      options,
+      model);
+}
+
+void scenarioFederateMomMultipleInteractionSubscriptionQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomMultipleInteractionSubscriptionQuery(options, model);
+}
+
+void scenarioFederateMomMultipleInteractionSubscriptionUnsubscribeQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomMultipleInteractionSubscriptionUnsubscribeQuery(
+      options,
+      model);
+}
+
+void scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQuery(
+      options,
+      model);
+}
+
+void scenarioFederateMomObjectAttributePartialUnsubscribeQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomObjectAttributePartialUnsubscribeQuery(options, model);
+}
+
+void scenarioFederateMomObjectAttributeFullUnsubscribeQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomObjectAttributeFullUnsubscribeQuery(options, model);
+}
+
+void scenarioFederateMomObjectClassFullUnsubscribeQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomObjectClassFullUnsubscribeQuery(options, model);
+}
+
+void scenarioFederateMomObjectClassCompleteAttributeSubscriptionQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomObjectClassCompleteAttributeSubscriptionQuery(
+      options,
+      model);
+}
+
+void scenarioFederateMomObjectClassPassiveCompleteAttributeSubscriptionQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomObjectClassPassiveCompleteAttributeSubscriptionQuery(
+      options,
+      model);
+}
+
+void scenarioFederateMomObjectClassCompleteAttributeSubscriptionActivationQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomObjectClassCompleteAttributeSubscriptionActivationQuery(
+      options,
+      model);
+}
+
 void scenarioFederateMomEmptySubscriptionQueryContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -12144,6 +15320,20 @@ void scenarioFederateMomDirectedSubscriptionQueryContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederateMomDirectedSubscriptionQuery(options, model);
+}
+
+void scenarioFederateMomMultipleDirectedSubscriptionQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomMultipleDirectedSubscriptionQuery(options, model);
+}
+
+void scenarioFederateMomMultipleDirectedSubscriptionFullUnsubscribeQueryContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFederateMomMultipleDirectedSubscriptionFullUnsubscribeQuery(
+      options,
+      model);
 }
 
 void scenarioFederateMomExceptionReportServicePrecondition(
@@ -22607,6 +25797,214 @@ void scenarioReceiveOrderAttributeUpdateContract(
   scenarioReceiveOrderAttributeUpdate(options, model);
 }
 
+void scenarioAttributeUpdateOrderClassification(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Attribute-update order classification requires an adapter-supplied FOM");
+
+  Session publisher(options, model, "attribute-update-order-classification-publisher");
+  Session receiver(options, model, "attribute-update-order-classification-receiver");
+  auto const federation = federationName(options, "attribute-update-order-classification");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass, options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverClass, options.attributeName);
+  require(
+      publisherClass.isValid() && receiverClass.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid(),
+      "Attribute-update order classification lookup returned an invalid handle");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const receiverAttributes{receiverAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass, publisherAttributes);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverClass, receiverAttributes, true, L"");
+
+  auto const receiveOrderObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      receiveOrderObject.isValid(),
+      "Receive-order attribute-update registration returned an invalid object handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(receiveOrderObject); },
+      options,
+      "receive-order object discovery in attribute-update order classification");
+  receiver.recorder().clearReflection();
+  publisher.recorder().clearReflection();
+
+  std::vector<std::uint8_t> const receiveOrderValue{0x52U, 0x4FU};
+  std::vector<std::uint8_t> const receiveOrderTag{0x52U, 0x4FU};
+  rti::AttributeHandleValueMap receiveOrderValues;
+  receiveOrderValues.emplace(
+      publisherAttribute,
+      rti::VariableLengthData(
+          receiveOrderValue.data(), receiveOrderValue.size()));
+  rti::VariableLengthData receiveOrderUserTag(
+      receiveOrderTag.data(), receiveOrderTag.size());
+  publisher.rtiAmbassador().updateAttributeValues(
+      receiveOrderObject, receiveOrderValues, receiveOrderUserTag);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().reflections().size() >= 1U; },
+      options,
+      "receive-order reflection in attribute-update order classification");
+
+  auto const receiveOrderRecords = receiver.recorder().reflections();
+  require(
+      receiveOrderRecords.size() == 1U &&
+          receiver.recorder().timedReflections().empty(),
+      "ordinary Update Attribute Values did not use only the receive-order callback path");
+  auto const& receiveOrderRecord = receiveOrderRecords.front();
+  require(
+      receiveOrderRecord.present &&
+          receiveOrderRecord.object == receiveOrderObject &&
+          receiveOrderRecord.values.size() == 1U &&
+          receiveOrderRecord.values.count(receiverAttribute) == 1U &&
+          copyBytes(receiveOrderRecord.values.at(receiverAttribute)) ==
+              receiveOrderValue &&
+          receiveOrderRecord.tag == receiveOrderTag &&
+          receiveOrderRecord.producer == publisher.federateHandle(),
+      "ordinary reflection returned incorrect object, value, tag, or producer");
+  require(
+      receiveOrderRecord.transportation.isValid() &&
+          !receiver.rtiAmbassador().getTransportationTypeName(
+              receiveOrderRecord.transportation).empty() &&
+          !receiveOrderRecord.regions.has_value(),
+      "ordinary reflection returned invalid standard metadata");
+
+  publisher.rtiAmbassador().changeDefaultAttributeOrderType(
+      publisherClass, publisherAttributes, rti::TIMESTAMP);
+  auto const timestampedObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      timestampedObject.isValid(),
+      "Timestamped attribute-update registration returned an invalid object handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(timestampedObject); },
+      options,
+      "timestamped object discovery in attribute-update order classification");
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  enableTimestampedRoles(
+      publisher,
+      receiver,
+      publisherTime,
+      receiverTime,
+      options,
+      "Attribute-update order classification");
+  auto const timestamp = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      3U);
+  auto const receiverTarget = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      3U);
+  std::vector<std::uint8_t> const timestampedValue{0x54U, 0x53U, 0x4FU};
+  std::vector<std::uint8_t> const timestampedTag{0x54U, 0x53U};
+  rti::AttributeHandleValueMap timestampedValues;
+  timestampedValues.emplace(
+      publisherAttribute,
+      rti::VariableLengthData(
+          timestampedValue.data(), timestampedValue.size()));
+  rti::VariableLengthData timestampedUserTag(
+      timestampedTag.data(), timestampedTag.size());
+  auto const retraction = publisher.rtiAmbassador().updateAttributeValues(
+      timestampedObject,
+      timestampedValues,
+      timestampedUserTag,
+      *timestamp);
+  require(
+      retraction.isValid(),
+      "timestamped Update Attribute Values returned an invalid retraction handle");
+  require(
+      receiver.recorder().reflections().size() == 1U &&
+          receiver.recorder().timedReflections().empty(),
+      "timestamped Update Attribute Values was delivered before the receiver's advance request");
+
+  receiver.recorder().clearCallbackOrder();
+  publisher.rtiAmbassador().timeAdvanceRequest(*timestamp);
+  receiver.rtiAmbassador().timeAdvanceRequest(*receiverTarget);
+  waitFor(
+      publisher,
+      receiver,
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 1U &&
+            receiver.recorder().timeAdvanceGrants().size() >= 1U &&
+            receiver.recorder().timedReflections().size() >= 1U;
+      },
+      options,
+      "timestamped reflection and matching grants in attribute-update order classification");
+
+  auto const timedRecords = receiver.recorder().timedReflections();
+  require(
+      receiver.recorder().reflections().size() == 1U && timedRecords.size() == 1U,
+      "same receiver did not keep RO and TSO updates on their distinct callback paths");
+  auto const& timedRecord = timedRecords.front();
+  require(
+      timedRecord.object == timestampedObject &&
+          timedRecord.values.size() == 1U &&
+          timedRecord.values.count(receiverAttribute) == 1U &&
+          copyBytes(timedRecord.values.at(receiverAttribute)) == timestampedValue &&
+          timedRecord.tag == timestampedTag &&
+          timedRecord.producer == publisher.federateHandle(),
+      "timestamped reflection returned incorrect object, value, tag, or producer");
+  require(
+      timedRecord.time == encodeTime(*timestamp) &&
+          timedRecord.sentOrder == rti::TIMESTAMP &&
+          timedRecord.receivedOrder == rti::TIMESTAMP &&
+          timedRecord.retractionPresent &&
+          timedRecord.retraction == copyBytes(retraction.encode()),
+      "timestamped reflection returned incorrect time, order, or retraction metadata");
+  require(
+      timedRecord.transportation.isValid() &&
+          !receiver.rtiAmbassador().getTransportationTypeName(
+              timedRecord.transportation).empty() &&
+          !timedRecord.regions.has_value(),
+      "timestamped reflection returned invalid standard metadata");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"reflect", "grant"},
+      "timestamped reflection was not delivered before its matching grant");
+  auto const publisherGrants = publisher.recorder().timeAdvanceGrants();
+  auto const receiverGrants = receiver.recorder().timeAdvanceGrants();
+  require(
+      publisherGrants.size() == 1U && receiverGrants.size() == 1U &&
+          publisherGrants.front().encoded == encodeTime(*timestamp) &&
+          receiverGrants.front().encoded == encodeTime(*receiverTarget),
+      "time advance grants did not report their requested logical times");
+
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverClass, receiverAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass, publisherAttributes);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioAttributeUpdateOrderClassificationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioAttributeUpdateOrderClassification(options, model);
+}
+
 void scenarioReceiveOrderInteraction(
     Options const& options,
     rti::CallbackModel model) {
@@ -22739,6 +26137,421 @@ void scenarioReceiveOrderInteractionContract(
   scenarioReceiveOrderInteraction(options, model);
 }
 
+void scenarioInteractionOrderClassification(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Interaction-order classification requires an adapter-supplied FOM");
+
+  Session publisher(options, model, "interaction-order-classification-publisher");
+  Session receiver(options, model, "interaction-order-classification-receiver");
+  auto const federation = federationName(options, "interaction-order-classification");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const receiverInteraction = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction, options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction, options.parameterName);
+  require(
+      publisherInteraction.isValid() && receiverInteraction.isValid() &&
+          publisherParameter.isValid() && receiverParameter.isValid(),
+      "Interaction-order classification lookup returned an invalid handle");
+
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
+
+  std::vector<std::uint8_t> const receiveOrderValue{0x52U, 0x4FU};
+  std::vector<std::uint8_t> const receiveOrderTag{0x52U, 0x4FU};
+  rti::ParameterHandleValueMap receiveOrderParameters;
+  receiveOrderParameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(
+          receiveOrderValue.data(), receiveOrderValue.size()));
+  rti::VariableLengthData receiveOrderUserTag(
+      receiveOrderTag.data(), receiveOrderTag.size());
+  publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      receiveOrderParameters,
+      receiveOrderUserTag);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().interactions().size() >= 1U; },
+      options,
+      "receive-order callback in interaction-order classification");
+
+  auto const receiveOrderRecords = receiver.recorder().interactions();
+  require(
+      receiveOrderRecords.size() == 1U &&
+          receiver.recorder().timedInteractions().empty(),
+      "ordinary Send Interaction did not use only the receive-order callback path");
+  auto const& receiveOrderRecord = receiveOrderRecords.front();
+  require(
+      receiveOrderRecord.present &&
+          receiveOrderRecord.interaction == receiverInteraction &&
+          receiveOrderRecord.parameters.size() == 1U &&
+          receiveOrderRecord.parameters.count(receiverParameter) == 1U &&
+          copyBytes(receiveOrderRecord.parameters.at(receiverParameter)) ==
+              receiveOrderValue &&
+          receiveOrderRecord.tag == receiveOrderTag &&
+          receiveOrderRecord.producer == publisher.federateHandle(),
+      "ordinary Send Interaction callback returned incorrect class, value, tag, or producer");
+  require(
+      receiveOrderRecord.transportation.isValid() &&
+          !receiver.rtiAmbassador().getTransportationTypeName(
+              receiveOrderRecord.transportation).empty() &&
+          !receiveOrderRecord.regions.has_value(),
+      "ordinary Send Interaction callback returned invalid standard metadata");
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  enableTimestampedRoles(
+      publisher,
+      receiver,
+      publisherTime,
+      receiverTime,
+      options,
+      "Interaction-order classification");
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      publisherInteraction, rti::TIMESTAMP);
+  auto const timestamp = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      3U);
+  auto const receiverTarget = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      3U);
+  std::vector<std::uint8_t> const timestampedValue{0x54U, 0x53U, 0x4FU};
+  std::vector<std::uint8_t> const timestampedTag{0x54U, 0x53U};
+  rti::ParameterHandleValueMap timestampedParameters;
+  timestampedParameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(
+          timestampedValue.data(), timestampedValue.size()));
+  rti::VariableLengthData timestampedUserTag(
+      timestampedTag.data(), timestampedTag.size());
+  auto const retraction = publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      timestampedParameters,
+      timestampedUserTag,
+      *timestamp);
+  require(
+      retraction.isValid(),
+      "timestamped Send Interaction returned an invalid retraction handle");
+  require(
+      receiver.recorder().interactions().size() == 1U &&
+          receiver.recorder().timedInteractions().empty(),
+      "timestamped Send Interaction was delivered before the receiver's advance request");
+
+  receiver.recorder().clearCallbackOrder();
+  publisher.rtiAmbassador().timeAdvanceRequest(*timestamp);
+  receiver.rtiAmbassador().timeAdvanceRequest(*receiverTarget);
+  waitFor(
+      publisher,
+      receiver,
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 1U &&
+            receiver.recorder().timeAdvanceGrants().size() >= 1U &&
+            receiver.recorder().timedInteractions().size() >= 1U;
+      },
+      options,
+      "timestamp-order callback and matching grants");
+
+  auto const timedRecords = receiver.recorder().timedInteractions();
+  require(
+      receiver.recorder().interactions().size() == 1U && timedRecords.size() == 1U,
+      "same receiver did not keep RO and TSO messages on their distinct callback paths");
+  auto const& timedRecord = timedRecords.front();
+  require(
+      timedRecord.interaction == receiverInteraction &&
+          timedRecord.parameters.size() == 1U &&
+          timedRecord.parameters.count(receiverParameter) == 1U &&
+          copyBytes(timedRecord.parameters.at(receiverParameter)) == timestampedValue &&
+          timedRecord.tag == timestampedTag &&
+          timedRecord.producer == publisher.federateHandle(),
+      "timestamp-order callback returned incorrect class, value, tag, or producer");
+  require(
+      timedRecord.time == encodeTime(*timestamp) &&
+          timedRecord.sentOrder == rti::TIMESTAMP &&
+          timedRecord.receivedOrder == rti::TIMESTAMP &&
+          timedRecord.retractionPresent &&
+          timedRecord.retraction == copyBytes(retraction.encode()),
+      "timestamp-order callback returned incorrect time, order, or retraction metadata");
+  require(
+      timedRecord.transportation.isValid() &&
+          !receiver.rtiAmbassador().getTransportationTypeName(
+              timedRecord.transportation).empty() &&
+          !timedRecord.regions.has_value(),
+      "timestamp-order callback returned invalid standard metadata");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"interaction", "grant"},
+      "timestamped interaction was not delivered before its matching grant");
+  auto const publisherGrants = publisher.recorder().timeAdvanceGrants();
+  auto const receiverGrants = receiver.recorder().timeAdvanceGrants();
+  require(
+      publisherGrants.size() == 1U && receiverGrants.size() == 1U &&
+          publisherGrants.front().encoded == encodeTime(*timestamp) &&
+          receiverGrants.front().encoded == encodeTime(*receiverTarget),
+      "time advance grants did not report their requested logical times");
+
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioInteractionOrderClassificationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioInteractionOrderClassification(options, model);
+}
+
+void scenarioInteractionPublicationSendTransition(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Interaction publication/send transition testing requires an adapter-supplied FOM");
+
+  Session publisher(options, model, "interaction-publication-transition-publisher");
+  Session receiver(options, model, "interaction-publication-transition-receiver");
+  auto const federation = federationName(
+      options,
+      "interaction-publication-send-transition");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherInteraction =
+      publisher.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const receiverInteraction =
+      receiver.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const receiverParameter = receiver.rtiAmbassador().getParameterHandle(
+      receiverInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction.isValid() && receiverInteraction.isValid() &&
+          publisherParameter.isValid() && receiverParameter.isValid(),
+      "Interaction publication/send transition lookup returned an invalid standard handle");
+
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  receiver.rtiAmbassador().subscribeInteractionClass(receiverInteraction, true);
+
+  std::vector<std::uint8_t> const value{0x50U, 0x54U};
+  std::vector<std::uint8_t> const tagBytes{0x54U, 0x31U};
+  auto send = [&] {
+    rti::ParameterHandleValueMap parameters;
+    parameters.emplace(
+        publisherParameter,
+        rti::VariableLengthData(value.data(), value.size()));
+    rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+    publisher.rtiAmbassador().sendInteraction(
+        publisherInteraction,
+        parameters,
+        tag);
+  };
+
+  send();
+  if (model == rti::HLA_EVOKED) {
+    require(
+        receiver.recorder().interactions().empty(),
+        "Published interaction arrived before callback servicing in evoked mode");
+  }
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().interactions().size() >= 1U; },
+      options,
+      "published interaction delivery before unpublication");
+  auto const delivered = receiver.recorder().interactions();
+  require(
+      delivered.size() == 1U && delivered.front().present &&
+          delivered.front().interaction == receiverInteraction &&
+          delivered.front().parameters.size() == 1U &&
+          delivered.front().parameters.count(receiverParameter) == 1U &&
+          copyBytes(delivered.front().parameters.at(receiverParameter)) == value &&
+          delivered.front().tag == tagBytes &&
+          delivered.front().producer == publisher.federateHandle(),
+      "Published interaction was not delivered with the expected class, parameter, payload, tag, and producer");
+
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  requireException(
+      send,
+      L"InteractionClassNotPublished",
+      "sending an ordinary interaction after unpublishing its class");
+
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  send();
+  if (model == rti::HLA_EVOKED) {
+    require(
+        receiver.recorder().interactions().size() == 1U,
+        "Republished interaction arrived before callback servicing in evoked mode");
+  }
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().interactions().size() >= 2U; },
+      options,
+      "republished interaction delivery after publication recovery");
+  auto const recovered = receiver.recorder().interactions();
+  require(
+      recovered.size() == 2U && recovered.back().present &&
+          recovered.back().interaction == receiverInteraction &&
+          recovered.back().parameters.size() == 1U &&
+          recovered.back().parameters.count(receiverParameter) == 1U &&
+          copyBytes(recovered.back().parameters.at(receiverParameter)) == value &&
+          recovered.back().tag == tagBytes &&
+          recovered.back().producer == publisher.federateHandle(),
+      "Republishing did not restore ordinary interaction delivery with the expected payload metadata");
+  require(
+      publisher.recorder().interactions().empty(),
+      "Republished interaction looped a callback back to its publisher");
+
+  receiver.rtiAmbassador().unsubscribeInteractionClass(receiverInteraction);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioInteractionPublicationSendTransitionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioInteractionPublicationSendTransition(options, model);
+}
+
+void scenarioInteractionActiveAndPassiveSubscriptionModes(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Active/passive interaction-subscription testing requires an adapter-supplied FOM");
+
+  Session publisher(options, model, "interaction-subscription-modes-publisher");
+  Session activeSubscriber(options, model, "interaction-subscription-modes-active");
+  Session passiveSubscriber(options, model, "interaction-subscription-modes-passive");
+  auto const federation = federationName(
+      options,
+      "interaction-active-and-passive-subscription-modes");
+  connectAndJoin(
+      publisher,
+      activeSubscriber,
+      options,
+      federation,
+      options.fom);
+  passiveSubscriber.connect();
+  passiveSubscriber.join(
+      options.memberFederateName + L"-passive-interaction-subscription",
+      options.federateType,
+      federation);
+
+  auto const publisherInteraction =
+      publisher.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const activeInteraction =
+      activeSubscriber.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const passiveInteraction =
+      passiveSubscriber.rtiAmbassador().getInteractionClassHandle(
+          options.interactionClassName);
+  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
+      publisherInteraction,
+      options.parameterName);
+  auto const activeParameter = activeSubscriber.rtiAmbassador().getParameterHandle(
+      activeInteraction,
+      options.parameterName);
+  auto const passiveParameter = passiveSubscriber.rtiAmbassador().getParameterHandle(
+      passiveInteraction,
+      options.parameterName);
+  require(
+      publisherInteraction.isValid() && activeInteraction.isValid() &&
+          passiveInteraction.isValid() && publisherParameter.isValid() &&
+          activeParameter.isValid() && passiveParameter.isValid(),
+      "Active/passive interaction lookup returned an invalid standard handle");
+
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  activeSubscriber.rtiAmbassador().subscribeInteractionClass(
+      activeInteraction,
+      true);
+  passiveSubscriber.rtiAmbassador().subscribeInteractionClass(
+      passiveInteraction,
+      false);
+
+  std::vector<std::uint8_t> const value{0x41U, 0x50U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(value.data(), value.size()));
+  publisher.rtiAmbassador().sendInteraction(
+      publisherInteraction,
+      parameters,
+      rti::VariableLengthData{});
+
+  if (model == rti::HLA_EVOKED) {
+    require(
+        activeSubscriber.recorder().interactions().empty() &&
+            passiveSubscriber.recorder().interactions().empty(),
+        "Active/passive interaction callbacks arrived before evoked callback servicing");
+  }
+  waitFor(
+      activeSubscriber,
+      [&] { return activeSubscriber.recorder().interactions().size() >= 1U; },
+      options,
+      "active ordinary interaction delivery");
+  auto assertDelivery = [&](Session& receiver,
+                            rti::InteractionClassHandle const& expectedInteraction,
+                            rti::ParameterHandle const& expectedParameter,
+                            std::string const& description) {
+    auto const received = receiver.recorder().interactions();
+    require(
+        received.size() == 1U && received.front().present &&
+            received.front().interaction == expectedInteraction &&
+            received.front().parameters.size() == 1U &&
+            received.front().parameters.count(expectedParameter) == 1U &&
+            copyBytes(received.front().parameters.at(expectedParameter)) == value,
+        description + " received the wrong class, parameter, or parameter value");
+  };
+  assertDelivery(
+      activeSubscriber,
+      activeInteraction,
+      activeParameter,
+      "active interaction subscriber");
+  require(
+      publisher.recorder().interactions().empty(),
+      "Ordinary interaction callback looped back to its publisher");
+
+  passiveSubscriber.rtiAmbassador().unsubscribeInteractionClass(
+      passiveInteraction);
+  activeSubscriber.rtiAmbassador().unsubscribeInteractionClass(activeInteraction);
+  passiveSubscriber.resign(rti::NO_ACTION);
+  activeSubscriber.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  passiveSubscriber.disconnect();
+  activeSubscriber.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioInteractionActiveAndPassiveSubscriptionModesContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioInteractionActiveAndPassiveSubscriptionModes(options, model);
+}
+
 void scenarioReceiveOrderObjectRemoval(
     Options const& options,
     rti::CallbackModel model) {
@@ -22847,6 +26660,229 @@ void scenarioReceiveOrderObjectRemovalContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioReceiveOrderObjectRemoval(options, model);
+}
+
+void scenarioObjectRemovalOrderClassification(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.logicalTimeImplementationName.empty(),
+      "Object-removal order classification requires adapter-supplied FOM and logical-time implementation");
+
+  Session publisher(options, model, "object-removal-order-classification-publisher");
+  Session receiver(options, model, "object-removal-order-classification-receiver");
+  auto const federation =
+      federationName(options, "object-removal-order-classification");
+  connectAndJoin(publisher, receiver, options, federation, options.fom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const receiverClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const publisherAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass, options.attributeName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverClass, options.attributeName);
+  require(
+      publisherClass.isValid() && receiverClass.isValid() &&
+          publisherAttribute.isValid() && receiverAttribute.isValid(),
+      "Object-removal order classification lookup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
+  rti::AttributeHandleSet const receiverAttributes{receiverAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass, publisherAttributes);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverClass, receiverAttributes, true, L"");
+
+  auto const receiveOrderObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      receiveOrderObject.isValid(),
+      "Receive-order object-removal registration returned an invalid handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(receiveOrderObject); },
+      options,
+      "receive-order object discovery in object-removal classification");
+
+  auto const timestampedObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      timestampedObject.isValid(),
+      "Timestamped object-removal registration returned an invalid handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(timestampedObject); },
+      options,
+      "timestamped object discovery in object-removal classification");
+  auto const timeAdvanceReleasedObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(
+      timeAdvanceReleasedObject.isValid(),
+      "Time-advance-released object-removal registration returned an invalid handle");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(timeAdvanceReleasedObject); },
+      options,
+      "time-advance-released object discovery in object-removal classification");
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto receiverTime = makeTimeContext(receiver);
+  enableTimestampedRoles(
+      publisher,
+      receiver,
+      publisherTime,
+      receiverTime,
+      options,
+      "Object-removal order classification");
+
+  std::vector<std::uint8_t> const receiveOrderTag{0x52U, 0x4FU};
+  rti::VariableLengthData receiveOrderUserTag(
+      receiveOrderTag.data(), receiveOrderTag.size());
+  publisher.rtiAmbassador().deleteObjectInstance(
+      receiveOrderObject, receiveOrderUserTag);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        receiver.recorder().removals().empty(),
+        "receive-order removal callback arrived before callback servicing");
+  }
+  for (int pass = 0; pass != 8; ++pass) {
+    receiver.pump();
+  }
+  require(
+      receiver.recorder().removals().empty() &&
+          receiver.recorder().timedRemovals().empty(),
+      "time-constrained receive-order removal bypassed disabled asynchronous delivery");
+  receiver.rtiAmbassador().enableAsynchronousDelivery();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().removals().size() >= 1U; },
+      options,
+      "asynchronous release of receive-order object removal");
+  auto const receiveOrderRemovals = receiver.recorder().removals();
+  require(
+      receiveOrderRemovals.size() == 1U &&
+          receiver.recorder().timedRemovals().empty(),
+      "ordinary Delete Object Instance did not use only the receive-order callback path after asynchronous release");
+  require(
+      receiveOrderRemovals.front().object == receiveOrderObject &&
+          receiveOrderRemovals.front().tag == receiveOrderTag &&
+          receiveOrderRemovals.front().producer == publisher.federateHandle(),
+      "receive-order removal returned incorrect object, tag, or producer");
+
+  receiver.rtiAmbassador().disableAsynchronousDelivery();
+  std::vector<std::uint8_t> const timeAdvanceReleasedTag{0x54U, 0x41U};
+  rti::VariableLengthData timeAdvanceReleasedUserTag(
+      timeAdvanceReleasedTag.data(), timeAdvanceReleasedTag.size());
+  publisher.rtiAmbassador().deleteObjectInstance(
+      timeAdvanceReleasedObject, timeAdvanceReleasedUserTag);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        receiver.recorder().removals().size() == 1U,
+        "second receive-order removal arrived before callback servicing while asynchronous delivery was disabled");
+  }
+  for (int pass = 0; pass != 8; ++pass) {
+    receiver.pump();
+  }
+  require(
+      receiver.recorder().removals().size() == 1U &&
+          receiver.recorder().timedRemovals().empty(),
+      "disabling asynchronous delivery did not retain receive-order object removal");
+
+  auto const timestamp = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      3U);
+  auto const receiverTarget = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      3U);
+  std::vector<std::uint8_t> const timestampedTag{0x54U, 0x53U};
+  rti::VariableLengthData timestampedUserTag(
+      timestampedTag.data(), timestampedTag.size());
+  auto const retraction = publisher.rtiAmbassador().deleteObjectInstance(
+      timestampedObject,
+      timestampedUserTag,
+      *timestamp);
+  require(
+      retraction.isValid(),
+      "Timestamped Delete Object Instance returned an invalid retraction handle");
+  require(
+      receiver.recorder().removals().size() == 1U &&
+          receiver.recorder().timedRemovals().empty(),
+      "timestamped Delete Object Instance was delivered before the receiver advance");
+
+  receiver.recorder().clearCallbackOrder();
+  publisher.rtiAmbassador().timeAdvanceRequest(*timestamp);
+  receiver.rtiAmbassador().timeAdvanceRequest(*receiverTarget);
+  waitFor(
+      publisher,
+      receiver,
+      [&] {
+        return publisher.recorder().timeAdvanceGrants().size() >= 1U &&
+            receiver.recorder().timeAdvanceGrants().size() >= 1U &&
+            receiver.recorder().removals().size() >= 2U &&
+            receiver.recorder().timedRemovals().size() >= 1U;
+      },
+      options,
+      "timestamped removal and grants in object-removal classification");
+
+  auto const timedRemovals = receiver.recorder().timedRemovals();
+  require(
+      receiver.recorder().removals().size() == 2U &&
+          timedRemovals.size() == 1U,
+      "time advance did not release the held receive-order removal and timestamped removal");
+  auto const receiveOrderRemovalsAfterAdvance = receiver.recorder().removals();
+  require(
+      receiveOrderRemovalsAfterAdvance.back().object == timeAdvanceReleasedObject &&
+          receiveOrderRemovalsAfterAdvance.back().tag == timeAdvanceReleasedTag &&
+          receiveOrderRemovalsAfterAdvance.back().producer == publisher.federateHandle(),
+      "time-advance-released removal returned incorrect object, tag, or producer");
+  auto const& timedRemoval = timedRemovals.front();
+  require(
+      timedRemoval.object == timestampedObject &&
+          timedRemoval.tag == timestampedTag &&
+          timedRemoval.producer == publisher.federateHandle(),
+      "timestamped removal returned incorrect object, tag, or producer");
+  require(
+      timedRemoval.time == encodeTime(*timestamp) && !timedRemoval.timeText.empty() &&
+          timedRemoval.sentOrder == rti::TIMESTAMP &&
+          timedRemoval.receivedOrder == rti::TIMESTAMP &&
+          timedRemoval.retractionPresent &&
+          timedRemoval.retraction == copyBytes(retraction.encode()),
+      "timestamped removal returned incorrect time, order, or retraction metadata");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"remove", "grant"},
+      "timestamped removal was not delivered before its matching grant");
+  auto const publisherGrants = publisher.recorder().timeAdvanceGrants();
+  auto const receiverGrants = receiver.recorder().timeAdvanceGrants();
+  require(
+      publisherGrants.size() == 1U && receiverGrants.size() == 1U &&
+          publisherGrants.front().encoded == encodeTime(*timestamp) &&
+          receiverGrants.front().encoded == encodeTime(*receiverTarget),
+      "object-removal classification grants did not report their requested times");
+
+  receiver.rtiAmbassador().disableTimeConstrained();
+  publisher.rtiAmbassador().disableTimeRegulation();
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverClass, receiverAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass, publisherAttributes);
+  receiver.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioObjectRemovalOrderClassificationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioObjectRemovalOrderClassification(options, model);
 }
 
 void scenarioFederationRestoreAbort(
@@ -30065,6 +34101,16 @@ int runServiceReportQueryAttributeOwnershipScenarios(int argc, char** argv) {
       scenarioServiceReportQueryAttributeOwnershipContractPortable);
 }
 
+int runServiceReportConfirmDivestitureScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportConfirmDivestitureScenario,
+      serviceReportConfirmDivestitureContractScenario,
+      scenarioServiceReportConfirmDivestiturePortable,
+      scenarioServiceReportConfirmDivestitureContractPortable);
+}
+
 int runServiceReportCancelAttributeOwnershipAcquisitionScenarios(
     int argc,
     char** argv) {
@@ -30559,6 +34605,16 @@ int runReceiveOrderAttributeUpdateScenarios(int argc, char** argv) {
       scenarioReceiveOrderAttributeUpdateContract);
 }
 
+int runAttributeUpdateOrderClassificationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      attributeUpdateOrderClassificationScenario,
+      attributeUpdateOrderClassificationContractId,
+      scenarioAttributeUpdateOrderClassification,
+      scenarioAttributeUpdateOrderClassificationContract);
+}
+
 int runReceiveOrderInteractionScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -30569,6 +34625,38 @@ int runReceiveOrderInteractionScenarios(int argc, char** argv) {
       scenarioReceiveOrderInteractionContract);
 }
 
+int runInteractionOrderClassificationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      interactionOrderClassificationScenario,
+      interactionOrderClassificationContractId,
+      scenarioInteractionOrderClassification,
+      scenarioInteractionOrderClassificationContract);
+}
+
+int runInteractionPublicationSendTransitionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      interactionPublicationSendTransitionScenario,
+      interactionPublicationSendTransitionContractId,
+      scenarioInteractionPublicationSendTransition,
+      scenarioInteractionPublicationSendTransitionContract);
+}
+
+int runInteractionActiveAndPassiveSubscriptionModesScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      interactionActiveAndPassiveSubscriptionModesScenario,
+      interactionActiveAndPassiveSubscriptionModesContractId,
+      scenarioInteractionActiveAndPassiveSubscriptionModes,
+      scenarioInteractionActiveAndPassiveSubscriptionModesContract);
+}
+
 int runReceiveOrderObjectRemovalScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -30577,6 +34665,16 @@ int runReceiveOrderObjectRemovalScenarios(int argc, char** argv) {
       receiveOrderObjectRemovalContractId,
       scenarioReceiveOrderObjectRemoval,
       scenarioReceiveOrderObjectRemovalContract);
+}
+
+int runObjectRemovalOrderClassificationScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      objectRemovalOrderClassificationScenario,
+      objectRemovalOrderClassificationContractId,
+      scenarioObjectRemovalOrderClassification,
+      scenarioObjectRemovalOrderClassificationContract);
 }
 
 int runFederationRestoreAbortScenarios(int argc, char** argv) {
@@ -30725,6 +34823,26 @@ int runTimestampedAttributeUpdateScenarios(int argc, char** argv) {
       timestampedAttributeUpdateContractId,
       scenarioTimestampedAttributeUpdatePortable,
       scenarioTimestampedAttributeUpdateContractPortable);
+}
+
+int runJavaTimestampedObjectRemovalScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      javaTimestampedObjectRemovalScenario,
+      "",
+      scenarioObjectRemovalOrderClassification,
+      scenarioObjectRemovalOrderClassification);
+}
+
+int runJavaTimestampedAttributeUpdateScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      javaTimestampedAttributeUpdateScenario,
+      "",
+      scenarioTimestampedAttributeUpdatePortable,
+      scenarioTimestampedAttributeUpdatePortable);
 }
 
 int runTimestampedAttributeUpdateReenableScenarios(
@@ -30917,6 +35035,16 @@ int runAlternateTimeAdvancesScenarios(int argc, char** argv) {
       alternateTimeAdvancesContractId,
       scenarioAlternateTimeAdvancesPortable,
       scenarioAlternateTimeAdvancesContractPortable);
+}
+
+int runPendingAlternateAdvanceStateScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      pendingAlternateAdvanceStateScenario,
+      pendingAlternateAdvanceStateContractId,
+      scenarioPendingAlternateAdvanceState,
+      scenarioPendingAlternateAdvanceStateContract);
 }
 
 int runNextMessageRequestScenarios(int argc, char** argv) {
@@ -31419,6 +35547,126 @@ int runFederateMomPublicationQueryScenarios(int argc, char** argv) {
       scenarioFederateMomPublicationQueryContract);
 }
 
+int runFederateMomCompleteObjectClassPublicationQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomCompleteObjectClassPublicationQueryScenario,
+      federateMomCompleteObjectClassPublicationQueryContractId,
+      scenarioFederateMomCompleteObjectClassPublicationQuery,
+      scenarioFederateMomCompleteObjectClassPublicationQueryContract);
+}
+
+int runFederateMomObjectClassAttributeUnpublicationQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomObjectClassAttributeUnpublicationQueryScenario,
+      federateMomObjectClassAttributeUnpublicationQueryContractId,
+      scenarioFederateMomObjectClassAttributeUnpublicationQuery,
+      scenarioFederateMomObjectClassAttributeUnpublicationQueryContract);
+}
+
+int runFederateMomObjectClassFullAttributeUnpublicationQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomObjectClassFullAttributeUnpublicationQueryScenario,
+      federateMomObjectClassFullAttributeUnpublicationQueryContractId,
+      scenarioFederateMomObjectClassFullAttributeUnpublicationQuery,
+      scenarioFederateMomObjectClassFullAttributeUnpublicationQueryContract);
+}
+
+int runFederateMomObjectClassWholeUnpublicationQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomObjectClassWholeUnpublicationQueryScenario,
+      federateMomObjectClassWholeUnpublicationQueryContractId,
+      scenarioFederateMomObjectClassWholeUnpublicationQuery,
+      scenarioFederateMomObjectClassWholeUnpublicationQueryContract);
+}
+
+int runFederateMomInteractionClassWholeUnpublicationQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomInteractionClassWholeUnpublicationQueryScenario,
+      federateMomInteractionClassWholeUnpublicationQueryContractId,
+      scenarioFederateMomInteractionClassWholeUnpublicationQuery,
+      scenarioFederateMomInteractionClassWholeUnpublicationQueryContract);
+}
+
+int runFederateMomInteractionClassPartialUnpublicationQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomInteractionClassPartialUnpublicationQueryScenario,
+      federateMomInteractionClassPartialUnpublicationQueryContractId,
+      scenarioFederateMomInteractionClassPartialUnpublicationQuery,
+      scenarioFederateMomInteractionClassPartialUnpublicationQueryContract);
+}
+
+int runFederateMomMultipleInteractionClassFullUnpublicationQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomMultipleInteractionClassFullUnpublicationQueryScenario,
+      federateMomMultipleInteractionClassFullUnpublicationQueryContractId,
+      scenarioFederateMomMultipleInteractionClassFullUnpublicationQuery,
+      scenarioFederateMomMultipleInteractionClassFullUnpublicationQueryContract);
+}
+
+int runFederateMomMultipleDirectedPublicationQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomMultipleDirectedPublicationQueryScenario,
+      federateMomMultipleDirectedPublicationQueryContractId,
+      scenarioFederateMomMultipleDirectedPublicationQuery,
+      scenarioFederateMomMultipleDirectedPublicationQueryContract);
+}
+
+int runFederateMomMultipleDirectedPublicationPartialUnpublishQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomMultipleDirectedPublicationPartialUnpublishQueryScenario,
+      federateMomMultipleDirectedPublicationPartialUnpublishQueryContractId,
+      scenarioFederateMomMultipleDirectedPublicationPartialUnpublishQuery,
+      scenarioFederateMomMultipleDirectedPublicationPartialUnpublishQueryContract);
+}
+
+int runFederateMomMultipleDirectedPublicationFullUnpublishQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomMultipleDirectedPublicationFullUnpublishQueryScenario,
+      federateMomMultipleDirectedPublicationFullUnpublishQueryContractId,
+      scenarioFederateMomMultipleDirectedPublicationFullUnpublishQuery,
+      scenarioFederateMomMultipleDirectedPublicationFullUnpublishQueryContract);
+}
+
 int runFederateMomSubscriptionQueryScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -31451,6 +35699,124 @@ int runFederateMomPassiveInteractionSubscriptionQueryScenarios(
       scenarioFederateMomPassiveInteractionSubscriptionQueryContract);
 }
 
+int runFederateMomPassiveInteractionSubscriptionActivationQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomPassiveInteractionSubscriptionActivationQueryScenario,
+      federateMomPassiveInteractionSubscriptionActivationQueryContractId,
+      scenarioFederateMomPassiveInteractionSubscriptionActivationQuery,
+      scenarioFederateMomPassiveInteractionSubscriptionActivationQueryContract);
+}
+
+int runFederateMomMultipleInteractionSubscriptionScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomMultipleInteractionSubscriptionQueryScenario,
+      federateMomMultipleInteractionSubscriptionQueryContractId,
+      scenarioFederateMomMultipleInteractionSubscriptionQuery,
+      scenarioFederateMomMultipleInteractionSubscriptionQueryContract);
+}
+
+int runFederateMomMultipleInteractionSubscriptionUnsubscribeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomMultipleInteractionSubscriptionUnsubscribeQueryScenario,
+      federateMomMultipleInteractionSubscriptionUnsubscribeQueryContractId,
+      scenarioFederateMomMultipleInteractionSubscriptionUnsubscribeQuery,
+      scenarioFederateMomMultipleInteractionSubscriptionUnsubscribeQueryContract);
+}
+
+int runFederateMomMultipleInteractionSubscriptionFullUnsubscribeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomMultipleInteractionSubscriptionFullUnsubscribeQueryScenario,
+      federateMomMultipleInteractionSubscriptionFullUnsubscribeQueryContractId,
+      scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQuery,
+      scenarioFederateMomMultipleInteractionSubscriptionFullUnsubscribeQueryContract);
+}
+
+int runFederateMomObjectAttributePartialUnsubscribeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomObjectAttributePartialUnsubscribeQueryScenario,
+      federateMomObjectAttributePartialUnsubscribeQueryContractId,
+      scenarioFederateMomObjectAttributePartialUnsubscribeQuery,
+      scenarioFederateMomObjectAttributePartialUnsubscribeQueryContract);
+}
+
+int runFederateMomObjectAttributeFullUnsubscribeScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomObjectAttributeFullUnsubscribeQueryScenario,
+      federateMomObjectAttributeFullUnsubscribeQueryContractId,
+      scenarioFederateMomObjectAttributeFullUnsubscribeQuery,
+      scenarioFederateMomObjectAttributeFullUnsubscribeQueryContract);
+}
+
+int runFederateMomObjectClassFullUnsubscribeScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomObjectClassFullUnsubscribeQueryScenario,
+      federateMomObjectClassFullUnsubscribeQueryContractId,
+      scenarioFederateMomObjectClassFullUnsubscribeQuery,
+      scenarioFederateMomObjectClassFullUnsubscribeQueryContract);
+}
+
+int runFederateMomObjectClassCompleteAttributeSubscriptionScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomObjectClassCompleteAttributeSubscriptionQueryScenario,
+      federateMomObjectClassCompleteAttributeSubscriptionQueryContractId,
+      scenarioFederateMomObjectClassCompleteAttributeSubscriptionQuery,
+      scenarioFederateMomObjectClassCompleteAttributeSubscriptionQueryContract);
+}
+
+int runFederateMomObjectClassPassiveCompleteAttributeSubscriptionScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomObjectClassPassiveCompleteAttributeSubscriptionQueryScenario,
+      federateMomObjectClassPassiveCompleteAttributeSubscriptionQueryContractId,
+      scenarioFederateMomObjectClassPassiveCompleteAttributeSubscriptionQuery,
+      scenarioFederateMomObjectClassPassiveCompleteAttributeSubscriptionQueryContract);
+}
+
+int runFederateMomObjectClassCompleteAttributeSubscriptionActivationScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomObjectClassCompleteAttributeSubscriptionActivationQueryScenario,
+      federateMomObjectClassCompleteAttributeSubscriptionActivationQueryContractId,
+      scenarioFederateMomObjectClassCompleteAttributeSubscriptionActivationQuery,
+      scenarioFederateMomObjectClassCompleteAttributeSubscriptionActivationQueryContract);
+}
+
 int runFederateMomEmptySubscriptionQueryScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -31469,6 +35835,30 @@ int runFederateMomDirectedSubscriptionQueryScenarios(int argc, char** argv) {
       federateMomDirectedSubscriptionQueryContractId,
       scenarioFederateMomDirectedSubscriptionQuery,
       scenarioFederateMomDirectedSubscriptionQueryContract);
+}
+
+int runFederateMomMultipleDirectedSubscriptionQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomMultipleDirectedSubscriptionQueryScenario,
+      federateMomMultipleDirectedSubscriptionQueryContractId,
+      scenarioFederateMomMultipleDirectedSubscriptionQuery,
+      scenarioFederateMomMultipleDirectedSubscriptionQueryContract);
+}
+
+int runFederateMomMultipleDirectedSubscriptionFullUnsubscribeQueryScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federateMomMultipleDirectedSubscriptionFullUnsubscribeQueryScenario,
+      federateMomMultipleDirectedSubscriptionFullUnsubscribeQueryContractId,
+      scenarioFederateMomMultipleDirectedSubscriptionFullUnsubscribeQuery,
+      scenarioFederateMomMultipleDirectedSubscriptionFullUnsubscribeQueryContract);
 }
 
 int runFederateMomExceptionReportServicePreconditionScenarios(
@@ -32781,6 +37171,20 @@ bool hasReceiveOrderAttributeUpdateScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasAttributeUpdateOrderClassificationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == attributeUpdateOrderClassificationScenario ||
+        scenario == attributeUpdateOrderClassificationContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasReceiveOrderInteractionScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -32795,6 +37199,50 @@ bool hasReceiveOrderInteractionScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasInteractionOrderClassificationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == interactionOrderClassificationScenario ||
+        scenario == interactionOrderClassificationContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasInteractionPublicationSendTransitionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == interactionPublicationSendTransitionScenario ||
+        scenario == interactionPublicationSendTransitionContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasInteractionActiveAndPassiveSubscriptionModesScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == interactionActiveAndPassiveSubscriptionModesScenario ||
+        scenario == interactionActiveAndPassiveSubscriptionModesContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasReceiveOrderObjectRemovalScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -32803,6 +37251,20 @@ bool hasReceiveOrderObjectRemovalScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == receiveOrderObjectRemovalScenario ||
         scenario == receiveOrderObjectRemovalContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasObjectRemovalOrderClassificationScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == objectRemovalOrderClassificationScenario ||
+        scenario == objectRemovalOrderClassificationContractId) {
       return true;
     }
   }
@@ -33009,6 +37471,26 @@ bool hasTimestampedAttributeUpdateScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == timestampedAttributeUpdateScenario ||
         scenario == timestampedAttributeUpdateContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJavaTimestampedAttributeUpdateScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) == javaTimestampedAttributeUpdateScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJavaTimestampedObjectRemovalScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) == javaTimestampedObjectRemovalScenario) {
       return true;
     }
   }
@@ -33269,6 +37751,20 @@ bool hasAlternateTimeAdvancesScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == alternateTimeAdvancesScenario ||
         scenario == alternateTimeAdvancesContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasPendingAlternateAdvanceStateScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == pendingAlternateAdvanceStateScenario ||
+        scenario == pendingAlternateAdvanceStateContractId) {
       return true;
     }
   }
@@ -35089,6 +39585,20 @@ bool hasServiceReportQueryAttributeOwnershipScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasServiceReportConfirmDivestitureScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportConfirmDivestitureScenario ||
+        scenario == serviceReportConfirmDivestitureContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasServiceReportCancelAttributeOwnershipAcquisitionScenario(
     int argc,
     char** argv) {
@@ -35640,6 +40150,176 @@ bool hasFederateMomPublicationQueryScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasFederateMomCompleteObjectClassPublicationQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomCompleteObjectClassPublicationQueryScenario ||
+        scenario == federateMomCompleteObjectClassPublicationQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomObjectClassAttributeUnpublicationQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomObjectClassAttributeUnpublicationQueryScenario ||
+        scenario == federateMomObjectClassAttributeUnpublicationQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomObjectClassFullAttributeUnpublicationQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario ==
+            federateMomObjectClassFullAttributeUnpublicationQueryScenario ||
+        scenario ==
+            federateMomObjectClassFullAttributeUnpublicationQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomObjectClassWholeUnpublicationQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomObjectClassWholeUnpublicationQueryScenario ||
+        scenario == federateMomObjectClassWholeUnpublicationQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomInteractionClassWholeUnpublicationQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomInteractionClassWholeUnpublicationQueryScenario ||
+        scenario == federateMomInteractionClassWholeUnpublicationQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomInteractionClassPartialUnpublicationQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario ==
+            federateMomInteractionClassPartialUnpublicationQueryScenario ||
+        scenario ==
+            federateMomInteractionClassPartialUnpublicationQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomMultipleInteractionClassFullUnpublicationQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario ==
+            federateMomMultipleInteractionClassFullUnpublicationQueryScenario ||
+        scenario ==
+            federateMomMultipleInteractionClassFullUnpublicationQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomMultipleDirectedPublicationQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomMultipleDirectedPublicationQueryScenario ||
+        scenario == federateMomMultipleDirectedPublicationQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomMultipleDirectedPublicationPartialUnpublishQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario ==
+            federateMomMultipleDirectedPublicationPartialUnpublishQueryScenario ||
+        scenario ==
+            federateMomMultipleDirectedPublicationPartialUnpublishQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomMultipleDirectedPublicationFullUnpublishQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario ==
+            federateMomMultipleDirectedPublicationFullUnpublishQueryScenario ||
+        scenario ==
+            federateMomMultipleDirectedPublicationFullUnpublishQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasFederateMomSubscriptionQueryScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -35684,6 +40364,178 @@ bool hasFederateMomPassiveInteractionSubscriptionQueryScenario(
   return false;
 }
 
+bool hasFederateMomPassiveInteractionSubscriptionActivationQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario ==
+            federateMomPassiveInteractionSubscriptionActivationQueryScenario ||
+        scenario ==
+            federateMomPassiveInteractionSubscriptionActivationQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomMultipleInteractionSubscriptionQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomMultipleInteractionSubscriptionQueryScenario ||
+        scenario == federateMomMultipleInteractionSubscriptionQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomMultipleInteractionSubscriptionUnsubscribeQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario ==
+            federateMomMultipleInteractionSubscriptionUnsubscribeQueryScenario ||
+        scenario ==
+            federateMomMultipleInteractionSubscriptionUnsubscribeQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomMultipleInteractionSubscriptionFullUnsubscribeQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario ==
+            federateMomMultipleInteractionSubscriptionFullUnsubscribeQueryScenario ||
+        scenario ==
+            federateMomMultipleInteractionSubscriptionFullUnsubscribeQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomObjectAttributePartialUnsubscribeQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomObjectAttributePartialUnsubscribeQueryScenario ||
+        scenario == federateMomObjectAttributePartialUnsubscribeQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomObjectAttributeFullUnsubscribeQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomObjectAttributeFullUnsubscribeQueryScenario ||
+        scenario == federateMomObjectAttributeFullUnsubscribeQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomObjectClassFullUnsubscribeQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomObjectClassFullUnsubscribeQueryScenario ||
+        scenario == federateMomObjectClassFullUnsubscribeQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomObjectClassCompleteAttributeSubscriptionQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario ==
+            federateMomObjectClassCompleteAttributeSubscriptionQueryScenario ||
+        scenario ==
+            federateMomObjectClassCompleteAttributeSubscriptionQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomObjectClassPassiveCompleteAttributeSubscriptionQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario ==
+            federateMomObjectClassPassiveCompleteAttributeSubscriptionQueryScenario ||
+        scenario ==
+            federateMomObjectClassPassiveCompleteAttributeSubscriptionQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomObjectClassCompleteAttributeSubscriptionActivationQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario ==
+            federateMomObjectClassCompleteAttributeSubscriptionActivationQueryScenario ||
+        scenario ==
+            federateMomObjectClassCompleteAttributeSubscriptionActivationQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasFederateMomEmptySubscriptionQueryScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -35706,6 +40558,40 @@ bool hasFederateMomDirectedSubscriptionQueryScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == federateMomDirectedSubscriptionQueryScenario ||
         scenario == federateMomDirectedSubscriptionQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomMultipleDirectedSubscriptionQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateMomMultipleDirectedSubscriptionQueryScenario ||
+        scenario == federateMomMultipleDirectedSubscriptionQueryContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederateMomMultipleDirectedSubscriptionFullUnsubscribeQueryScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario ==
+            federateMomMultipleDirectedSubscriptionFullUnsubscribeQueryScenario ||
+        scenario ==
+            federateMomMultipleDirectedSubscriptionFullUnsubscribeQueryContractId) {
       return true;
     }
   }
@@ -36297,11 +41183,26 @@ int main(int argc, char** argv) {
     if (hasReceiveOrderAttributeUpdateScenario(argc, argv)) {
       return runReceiveOrderAttributeUpdateScenarios(argc, argv);
     }
+    if (hasAttributeUpdateOrderClassificationScenario(argc, argv)) {
+      return runAttributeUpdateOrderClassificationScenarios(argc, argv);
+    }
     if (hasReceiveOrderInteractionScenario(argc, argv)) {
       return runReceiveOrderInteractionScenarios(argc, argv);
     }
+    if (hasInteractionOrderClassificationScenario(argc, argv)) {
+      return runInteractionOrderClassificationScenarios(argc, argv);
+    }
+    if (hasInteractionPublicationSendTransitionScenario(argc, argv)) {
+      return runInteractionPublicationSendTransitionScenarios(argc, argv);
+    }
+    if (hasInteractionActiveAndPassiveSubscriptionModesScenario(argc, argv)) {
+      return runInteractionActiveAndPassiveSubscriptionModesScenarios(argc, argv);
+    }
     if (hasReceiveOrderObjectRemovalScenario(argc, argv)) {
       return runReceiveOrderObjectRemovalScenarios(argc, argv);
+    }
+    if (hasObjectRemovalOrderClassificationScenario(argc, argv)) {
+      return runObjectRemovalOrderClassificationScenarios(argc, argv);
     }
     if (hasFederationRestoreAbortScenario(argc, argv)) {
       return runFederationRestoreAbortScenarios(argc, argv);
@@ -36341,6 +41242,12 @@ int main(int argc, char** argv) {
     }
     if (hasTimestampedInteractionsScenario(argc, argv)) {
       return runTimestampedInteractionsScenarios(argc, argv);
+    }
+    if (hasJavaTimestampedAttributeUpdateScenario(argc, argv)) {
+      return runJavaTimestampedAttributeUpdateScenario(argc, argv);
+    }
+    if (hasJavaTimestampedObjectRemovalScenario(argc, argv)) {
+      return runJavaTimestampedObjectRemovalScenario(argc, argv);
     }
     if (hasTimestampedAttributeUpdateScenario(argc, argv)) {
       return runTimestampedAttributeUpdateScenarios(argc, argv);
@@ -36397,6 +41304,9 @@ int main(int argc, char** argv) {
     }
     if (hasAlternateTimeAdvancesScenario(argc, argv)) {
       return runAlternateTimeAdvancesScenarios(argc, argv);
+    }
+    if (hasPendingAlternateAdvanceStateScenario(argc, argv)) {
+      return runPendingAlternateAdvanceStateScenarios(argc, argv);
     }
     if (hasNextMessageRequestScenario(argc, argv)) {
       return runNextMessageRequestScenarios(argc, argv);
@@ -36777,6 +41687,9 @@ int main(int argc, char** argv) {
     if (hasServiceReportQueryAttributeOwnershipScenario(argc, argv)) {
       return runServiceReportQueryAttributeOwnershipScenarios(argc, argv);
     }
+    if (hasServiceReportConfirmDivestitureScenario(argc, argv)) {
+      return runServiceReportConfirmDivestitureScenarios(argc, argv);
+    }
     if (hasServiceReportCancelAttributeOwnershipAcquisitionScenario(argc, argv)) {
       return runServiceReportCancelAttributeOwnershipAcquisitionScenarios(argc, argv);
     }
@@ -36907,6 +41820,68 @@ int main(int argc, char** argv) {
     if (hasFederateMomPublicationQueryScenario(argc, argv)) {
       return runFederateMomPublicationQueryScenarios(argc, argv);
     }
+    if (hasFederateMomCompleteObjectClassPublicationQueryScenario(argc, argv)) {
+      return runFederateMomCompleteObjectClassPublicationQueryScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomObjectClassAttributeUnpublicationQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomObjectClassAttributeUnpublicationQueryScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomObjectClassFullAttributeUnpublicationQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomObjectClassFullAttributeUnpublicationQueryScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomObjectClassWholeUnpublicationQueryScenario(argc, argv)) {
+      return runFederateMomObjectClassWholeUnpublicationQueryScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomInteractionClassWholeUnpublicationQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomInteractionClassWholeUnpublicationQueryScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomInteractionClassPartialUnpublicationQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomInteractionClassPartialUnpublicationQueryScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomMultipleInteractionClassFullUnpublicationQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomMultipleInteractionClassFullUnpublicationQueryScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomMultipleDirectedPublicationQueryScenario(argc, argv)) {
+      return runFederateMomMultipleDirectedPublicationQueryScenarios(argc, argv);
+    }
+    if (hasFederateMomMultipleDirectedPublicationPartialUnpublishQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomMultipleDirectedPublicationPartialUnpublishQueryScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomMultipleDirectedPublicationFullUnpublishQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomMultipleDirectedPublicationFullUnpublishQueryScenarios(
+          argc,
+          argv);
+    }
     if (hasFederateMomSubscriptionQueryScenario(argc, argv)) {
       return runFederateMomSubscriptionQueryScenarios(argc, argv);
     }
@@ -36916,11 +41891,79 @@ int main(int argc, char** argv) {
     if (hasFederateMomPassiveInteractionSubscriptionQueryScenario(argc, argv)) {
       return runFederateMomPassiveInteractionSubscriptionQueryScenarios(argc, argv);
     }
+    if (hasFederateMomPassiveInteractionSubscriptionActivationQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomPassiveInteractionSubscriptionActivationQueryScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomMultipleInteractionSubscriptionQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomMultipleInteractionSubscriptionScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomMultipleInteractionSubscriptionUnsubscribeQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomMultipleInteractionSubscriptionUnsubscribeScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomMultipleInteractionSubscriptionFullUnsubscribeQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomMultipleInteractionSubscriptionFullUnsubscribeScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomObjectAttributePartialUnsubscribeQueryScenario(argc, argv)) {
+      return runFederateMomObjectAttributePartialUnsubscribeScenarios(argc, argv);
+    }
+    if (hasFederateMomObjectAttributeFullUnsubscribeQueryScenario(argc, argv)) {
+      return runFederateMomObjectAttributeFullUnsubscribeScenarios(argc, argv);
+    }
+    if (hasFederateMomObjectClassFullUnsubscribeQueryScenario(argc, argv)) {
+      return runFederateMomObjectClassFullUnsubscribeScenarios(argc, argv);
+    }
+    if (hasFederateMomObjectClassCompleteAttributeSubscriptionQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomObjectClassCompleteAttributeSubscriptionScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomObjectClassPassiveCompleteAttributeSubscriptionQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomObjectClassPassiveCompleteAttributeSubscriptionScenarios(
+          argc,
+          argv);
+    }
+    if (hasFederateMomObjectClassCompleteAttributeSubscriptionActivationQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomObjectClassCompleteAttributeSubscriptionActivationScenarios(
+          argc,
+          argv);
+    }
     if (hasFederateMomEmptySubscriptionQueryScenario(argc, argv)) {
       return runFederateMomEmptySubscriptionQueryScenarios(argc, argv);
     }
     if (hasFederateMomDirectedSubscriptionQueryScenario(argc, argv)) {
       return runFederateMomDirectedSubscriptionQueryScenarios(argc, argv);
+    }
+    if (hasFederateMomMultipleDirectedSubscriptionQueryScenario(argc, argv)) {
+      return runFederateMomMultipleDirectedSubscriptionQueryScenarios(argc, argv);
+    }
+    if (hasFederateMomMultipleDirectedSubscriptionFullUnsubscribeQueryScenario(
+            argc,
+            argv)) {
+      return runFederateMomMultipleDirectedSubscriptionFullUnsubscribeQueryScenarios(
+          argc,
+          argv);
     }
     if (hasFederateMomExceptionReportServicePreconditionScenario(argc, argv)) {
       return runFederateMomExceptionReportServicePreconditionScenarios(argc, argv);

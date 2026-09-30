@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The candidate covers two adapter-selected object-class groups, each with one FOM-defined directed interaction published through the standard set-based declaration service. A separate requester queries the subject through HLArequestPublications. The reports must identify both object-class/interaction pairs and the total directed-publication object-class count of two. No DDM region behavior is included.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-mom-multiple-directed-publication-query-declaration",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-094-l117-31",
+      "clause_id": "clause-5.6.3",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "publishObjectClassDirectedInteractions",
+      "statement": "The subject publishes one adapter-selected directed interaction for each of two distinct adapter-selected object classes through the standard set-based API.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedPublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedPublicationQueryContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-mom-multiple-directed-publication-query-reports",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "1063-1073, 1281-1313",
+      "source_symbol": "HLAreportDirectedInteractionPublication",
+      "statement": "The standard MIM emits one directed-publication report per published object class. Each report identifies the object class and its directed interaction class, while HLAnumberOfClasses equals the total of two object classes with directed publications.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedPublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedPublicationQueryContract"
+      ]
+    }
+  ]
+}

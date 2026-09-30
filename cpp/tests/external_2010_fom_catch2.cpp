@@ -132,7 +132,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The selected 2025 mode rejects an IEEE 1516-2010 module",
-    "[unit][external][fom][ieee1516-2010][edition-policy]") {
+    "[unit][external][fom][ieee1516-2010][edition-policy][fom-edition-policy]") {
   LibXml2FomValidator validator;
   auto const modernResource = [](std::filesystem::path const& relative) {
     return std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "third_party" /

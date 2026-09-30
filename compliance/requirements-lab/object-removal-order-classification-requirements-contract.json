@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-service-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice maps ordinary Delete Object Instance to the receive-order Remove Object Instance callback and timestamped deletion to the timestamped removal callback at the same receiver. It also checks that time-constrained receive-order removal remains held until Enable Asynchronous Delivery, directly mapped to clause 8.15.3. The order-classification mapping is IEEE 1516.1-2025 clause 8.1.4; this is adapter-backed test evidence, not a conformance claim.",
+  "requirements": [
+    {
+      "id": "standard-object-removal-message-order-classification",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
+      "clause_id": "clause-8.1.4",
+      "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
+      "source_symbol": "scenarioObjectRemovalOrderClassification",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectRemovalOrderClassification",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectRemovalOrderClassificationContract"
+      ]
+    },
+    {
+      "id": "standard-object-removal-asynchronous-delivery-gate",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-204-l113-31",
+      "clause_id": "clause-8.15.3",
+      "source": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
+      "source_symbol": "scenarioObjectRemovalOrderClassification",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectRemovalOrderClassification",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioObjectRemovalOrderClassificationContract"
+      ]
+    }
+  ]
+}

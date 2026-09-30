@@ -46,7 +46,7 @@ TEST_CASE(
 
 TEST_CASE(
     "The embedded RegionHandle encoding is an HLAvariableArray-wrapped identity",
-    "[unit][kernel][region-handle][foundation][ddm]") {
+    "[unit][kernel][region-handle][foundation][ddm][handle-encoding]") {
   auto const handle = makeRegionHandle(0x0102030405060708ULL);
   std::array<unsigned char, 12> const expected{
       0x00, 0x00, 0x00, 0x08, 0x01, 0x02,

@@ -678,7 +678,7 @@ TEST_CASE(
 
   auto const& report = observerReports.interactionReports.front();
   REQUIRE(report.interactionClass == reportClass);
-  REQUIRE(report.parameterValues.size() == 7U);
+  REQUIRE(report.parameterValues.size() == 8U);
   REQUIRE(report.userSuppliedTag.size() == 0U);
   REQUIRE(report.transportationType ==
           observer->getTransportationTypeHandle(standard_hla::mom::reliable));
@@ -785,4 +785,407 @@ TEST_CASE(
   REQUIRE_NOTHROW(observer->disconnect());
   REQUIRE_NOTHROW(requester->disconnect());
   REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Embedded service reporting delivers Negotiated Attribute Ownership Divestiture through MOM interaction",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[mom][service-reporting][service-report-interaction]"
+    "[negotiated-ownership-service-report-mim-interaction]"
+    "[rti.service.negotiated-attribute-ownership-divestiture]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador observerReports;
+  auto owner = makeRti();
+  auto observer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const ownershipFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+       "data" / "attribute-update-passel-fom.xml")
+          .wstring();
+  auto const switchFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+       "data" / "switch-support-enabled-fom.xml")
+          .wstring();
+  std::vector<std::wstring> const fomModules{ownershipFom, switchFom};
+  unsigned char const tagBytes[] = {0x52, 0xA7, 0x11};
+  VariableLengthData const divestitureTag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(observer->connect(observerReports, HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      fomModules,
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"negotiated-divestiture-report-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(observer->joinFederationExecution(
+      L"negotiated-divestiture-report-observer", L"observer", federationName));
+
+  auto const reportClass = observer->getInteractionClassHandle(
+      standard_hla::mom::report_service_invocation);
+  REQUIRE(reportClass.isValid());
+  std::vector<ParameterHandle> reportParameters;
+  for (auto const& name : {
+           standard_hla::mom::service,
+           standard_hla::mom::service_type,
+           standard_hla::mom::success_indicator,
+           standard_hla::mom::supplied_arguments,
+           standard_hla::mom::returned_argument,
+           standard_hla::mom::exception,
+           standard_hla::mom::serial_number}) {
+    auto const parameter = observer->getParameterHandle(reportClass, name);
+    REQUIRE(parameter.isValid());
+    reportParameters.push_back(parameter);
+  }
+  REQUIRE_NOTHROW(observer->setServiceReportingSwitch(false));
+  REQUIRE_NOTHROW(observer->subscribeInteractionClass(reportClass));
+  REQUIRE_NOTHROW(owner->setServiceReportingSwitch(false));
+  REQUIRE_NOTHROW(owner->setSendServiceReportsToFileSwitch(false));
+
+  auto const child = owner->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const ownedAttribute = owner->getAttributeHandle(
+      child,
+      fixture_hla::fixture::reliable_base_a);
+  REQUIRE(child.isValid());
+  REQUIRE(ownedAttribute.isValid());
+  AttributeHandleSet const attributes{ownedAttribute};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(child, attributes));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(child));
+
+  REQUIRE_NOTHROW(owner->setServiceReportingSwitch(true));
+  REQUIRE(owner->getServiceReportingSwitch());
+  REQUIRE_FALSE(owner->getSendServiceReportsToFileSwitch());
+  REQUIRE_NOTHROW(owner->negotiatedAttributeOwnershipDivestiture(
+      objectInstance,
+      attributes,
+      divestitureTag));
+  REQUIRE(owner->isAttributeOwnedByFederate(objectInstance, ownedAttribute));
+  REQUIRE(observerReports.interactionReports.size() == 1U);
+
+  auto const& report = observerReports.interactionReports.front();
+  REQUIRE(report.interactionClass == reportClass);
+  REQUIRE(report.parameterValues.size() == 8U);
+  REQUIRE(report.userSuppliedTag.size() == 0U);
+  REQUIRE(report.transportationType ==
+          observer->getTransportationTypeHandle(standard_hla::mom::reliable));
+  REQUIRE_FALSE(report.producingFederate.isValid());
+
+  rti1516_2025::HLAunicodeString service;
+  REQUIRE_NOTHROW(service.decode(report.parameterValues.at(reportParameters[0])));
+  REQUIRE(service.get() == L"NegotiatedAttributeOwnershipDivestiture");
+  rti1516_2025::HLAinteger16BE serviceType;
+  REQUIRE_NOTHROW(serviceType.decode(report.parameterValues.at(reportParameters[1])));
+  REQUIRE(serviceType.get() == 3);
+  rti1516_2025::HLAboolean success;
+  REQUIRE_NOTHROW(success.decode(report.parameterValues.at(reportParameters[2])));
+  REQUIRE(success.get());
+
+  rti1516_2025::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti1516_2025::HLAinteger32BE{})
+      .appendElement(rti1516_2025::HLAunicodeString{})
+      .appendElement(rti1516_2025::HLAunicodeString{});
+  rti1516_2025::HLAvariableArray suppliedArguments{argumentPrototype};
+  REQUIRE_NOTHROW(suppliedArguments.decode(
+      report.parameterValues.at(reportParameters[3])));
+  REQUIRE(suppliedArguments.size() == 3U);
+
+  auto const& objectArgument =
+      dynamic_cast<rti1516_2025::HLAfixedRecord const&>(
+          suppliedArguments.get(0U));
+  REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+              objectArgument.get(0U))
+              .get() == 37);
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              objectArgument.get(1U))
+              .get() == L"Object instance designator");
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              objectArgument.get(2U))
+              .get() == L"\"" + objectInstance.toString() + L"\"");
+
+  auto const& attributeArgument =
+      dynamic_cast<rti1516_2025::HLAfixedRecord const&>(
+          suppliedArguments.get(1U));
+  REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+              attributeArgument.get(0U))
+              .get() == 1);
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              attributeArgument.get(1U))
+              .get() == L"Set of attribute designators");
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              attributeArgument.get(2U))
+              .get() == L"[\"" + ownedAttribute.toString() + L"\"]");
+
+  auto const& tagArgument =
+      dynamic_cast<rti1516_2025::HLAfixedRecord const&>(
+          suppliedArguments.get(2U));
+  REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+              tagArgument.get(0U))
+              .get() == 60);
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              tagArgument.get(1U))
+              .get() == L"User-supplied tag");
+
+  rti1516_2025::HLAfixedRecord returnedArgument;
+  returnedArgument.appendElement(rti1516_2025::HLAinteger32BE{})
+      .appendElement(rti1516_2025::HLAunicodeString{})
+      .appendElement(rti1516_2025::HLAunicodeString{});
+  REQUIRE_NOTHROW(returnedArgument.decode(
+      report.parameterValues.at(reportParameters[4])));
+  REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+              returnedArgument.get(0U))
+              .get() == 34);
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              returnedArgument.get(1U))
+              .get()
+              .empty());
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              returnedArgument.get(2U))
+              .get() == L"null");
+
+  rti1516_2025::HLAunicodeString exception;
+  REQUIRE_NOTHROW(exception.decode(report.parameterValues.at(reportParameters[5])));
+  REQUIRE(exception.get().empty());
+  rti1516_2025::HLAinteger32BE serial;
+  REQUIRE_NOTHROW(serial.decode(report.parameterValues.at(reportParameters[6])));
+  REQUIRE(serial.get() == 0);
+
+  REQUIRE_NOTHROW(owner->setServiceReportingSwitch(false));
+  REQUIRE_NOTHROW(owner->unpublishObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(observer->unsubscribeInteractionClass(reportClass));
+  REQUIRE_NOTHROW(observer->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(observer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded service reporting delivers Confirm Divestiture through MOM interaction",
+    "[integration][development-profile][federation-management][ownership-management]"
+    "[mom][service-reporting][service-report-interaction]"
+    "[confirm-divestiture-service-report-mim-interaction]"
+    "[rti.service.confirm-divestiture]"
+    "[federate.callback.attribute-ownership-acquisition-notification]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador requesterReports;
+  ReportingFederateAmbassador observerReports;
+  auto owner = makeRti();
+  auto requester = makeRti();
+  auto observer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const ownershipFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+       "data" / "attribute-update-passel-fom.xml")
+          .wstring();
+  auto const switchFom =
+      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+       "data" / "switch-support-enabled-fom.xml")
+          .wstring();
+  std::vector<std::wstring> const fomModules{ownershipFom, switchFom};
+  unsigned char const acquisitionTagBytes[] = {0x21, 0x22, 0x23};
+  unsigned char const divestitureTagBytes[] = {0x31, 0x32, 0x33};
+  unsigned char const confirmationTagBytes[] = {0x00, 0xff, 0x10, 0xa5};
+  VariableLengthData const acquisitionTag(
+      acquisitionTagBytes,
+      sizeof(acquisitionTagBytes));
+  VariableLengthData const divestitureTag(
+      divestitureTagBytes,
+      sizeof(divestitureTagBytes));
+  VariableLengthData const confirmationTag(
+      confirmationTagBytes,
+      sizeof(confirmationTagBytes));
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(observer->connect(observerReports, HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      fomModules,
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"confirm-divestiture-report-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"confirm-divestiture-report-requester", L"publisher", federationName));
+  REQUIRE_NOTHROW(observer->joinFederationExecution(
+      L"confirm-divestiture-report-observer", L"observer", federationName));
+
+  auto const reportClass = observer->getInteractionClassHandle(
+      standard_hla::mom::report_service_invocation);
+  REQUIRE(reportClass.isValid());
+  std::vector<ParameterHandle> reportParameters;
+  for (auto const& name : {
+           standard_hla::mom::service,
+           standard_hla::mom::service_type,
+           standard_hla::mom::success_indicator,
+           standard_hla::mom::supplied_arguments,
+           standard_hla::mom::returned_argument,
+           standard_hla::mom::exception,
+           standard_hla::mom::serial_number}) {
+    auto const parameter = observer->getParameterHandle(reportClass, name);
+    REQUIRE(parameter.isValid());
+    reportParameters.push_back(parameter);
+  }
+  REQUIRE_NOTHROW(observer->setServiceReportingSwitch(false));
+  REQUIRE_NOTHROW(observer->subscribeInteractionClass(reportClass));
+  REQUIRE_NOTHROW(owner->setServiceReportingSwitch(false));
+  REQUIRE_NOTHROW(owner->setSendServiceReportsToFileSwitch(false));
+  REQUIRE_NOTHROW(requester->setServiceReportingSwitch(false));
+  REQUIRE_NOTHROW(requester->setSendServiceReportsToFileSwitch(false));
+
+  auto const child = owner->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const ownedAttribute = owner->getAttributeHandle(
+      child,
+      fixture_hla::fixture::reliable_base_a);
+  REQUIRE(child.isValid());
+  REQUIRE(ownedAttribute.isValid());
+  AttributeHandleSet const attributes{ownedAttribute};
+  REQUIRE_NOTHROW(requester->subscribeObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(child, attributes));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(child));
+  REQUIRE_FALSE(requester->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
+  REQUIRE_NOTHROW(requester->publishObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(requester->attributeOwnershipAcquisition(
+      objectInstance,
+      attributes,
+      acquisitionTag));
+  REQUIRE_NOTHROW(owner->negotiatedAttributeOwnershipDivestiture(
+      objectInstance,
+      attributes,
+      divestitureTag));
+  drainCallbacks(*owner);
+  REQUIRE(ownerReports.divestitureConfirmationReports.size() == 1U);
+
+  REQUIRE_NOTHROW(owner->setServiceReportingSwitch(true));
+  REQUIRE(owner->getServiceReportingSwitch());
+  REQUIRE_FALSE(owner->getSendServiceReportsToFileSwitch());
+  REQUIRE_NOTHROW(owner->confirmDivestiture(
+      objectInstance,
+      attributes,
+      confirmationTag));
+  REQUIRE_FALSE(owner->isAttributeOwnedByFederate(objectInstance, ownedAttribute));
+  REQUIRE(requester->isAttributeOwnedByFederate(objectInstance, ownedAttribute));
+  REQUIRE(observerReports.interactionReports.size() == 1U);
+  REQUIRE(requesterReports.attributeOwnershipAcquisitionReports.empty());
+
+  auto const& report = observerReports.interactionReports.front();
+  REQUIRE(report.interactionClass == reportClass);
+  REQUIRE(report.parameterValues.size() == 8U);
+  REQUIRE(report.userSuppliedTag.size() == 0U);
+  REQUIRE(report.transportationType ==
+          observer->getTransportationTypeHandle(standard_hla::mom::reliable));
+  REQUIRE_FALSE(report.producingFederate.isValid());
+
+  rti1516_2025::HLAunicodeString service;
+  REQUIRE_NOTHROW(service.decode(report.parameterValues.at(reportParameters[0])));
+  REQUIRE(service.get() == L"ConfirmDivestiture");
+  rti1516_2025::HLAinteger16BE serviceType;
+  REQUIRE_NOTHROW(serviceType.decode(report.parameterValues.at(reportParameters[1])));
+  REQUIRE(serviceType.get() == 3);
+  rti1516_2025::HLAboolean success;
+  REQUIRE_NOTHROW(success.decode(report.parameterValues.at(reportParameters[2])));
+  REQUIRE(success.get());
+
+  rti1516_2025::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti1516_2025::HLAinteger32BE{})
+      .appendElement(rti1516_2025::HLAunicodeString{})
+      .appendElement(rti1516_2025::HLAunicodeString{});
+  rti1516_2025::HLAvariableArray suppliedArguments{argumentPrototype};
+  REQUIRE_NOTHROW(suppliedArguments.decode(
+      report.parameterValues.at(reportParameters[3])));
+  REQUIRE(suppliedArguments.size() == 3U);
+
+  auto const& objectArgument =
+      dynamic_cast<rti1516_2025::HLAfixedRecord const&>(
+          suppliedArguments.get(0U));
+  REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+              objectArgument.get(0U))
+              .get() == 37);
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              objectArgument.get(1U))
+              .get() == L"Object instance designator");
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              objectArgument.get(2U))
+              .get() == L"\"" + objectInstance.toString() + L"\"");
+
+  auto const& attributeArgument =
+      dynamic_cast<rti1516_2025::HLAfixedRecord const&>(
+          suppliedArguments.get(1U));
+  REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+              attributeArgument.get(0U))
+              .get() == 1);
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              attributeArgument.get(1U))
+              .get() == L"Set of attribute designators");
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              attributeArgument.get(2U))
+              .get() == L"[\"" + ownedAttribute.toString() + L"\"]");
+
+  auto const& tagArgument =
+      dynamic_cast<rti1516_2025::HLAfixedRecord const&>(
+          suppliedArguments.get(2U));
+  REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+              tagArgument.get(0U))
+              .get() == 60);
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              tagArgument.get(1U))
+              .get() == L"User-supplied tag");
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              tagArgument.get(2U))
+              .get() == L"\"AP8QpQ==\"");
+
+  rti1516_2025::HLAfixedRecord returnedArgument;
+  returnedArgument.appendElement(rti1516_2025::HLAinteger32BE{})
+      .appendElement(rti1516_2025::HLAunicodeString{})
+      .appendElement(rti1516_2025::HLAunicodeString{});
+  REQUIRE_NOTHROW(returnedArgument.decode(
+      report.parameterValues.at(reportParameters[4])));
+  REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(
+              returnedArgument.get(0U))
+              .get() == 34);
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              returnedArgument.get(1U))
+              .get()
+              .empty());
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(
+              returnedArgument.get(2U))
+              .get() == L"null");
+  rti1516_2025::HLAunicodeString exception;
+  REQUIRE_NOTHROW(exception.decode(report.parameterValues.at(reportParameters[5])));
+  REQUIRE(exception.get().empty());
+  rti1516_2025::HLAinteger32BE serial;
+  REQUIRE_NOTHROW(serial.decode(report.parameterValues.at(reportParameters[6])));
+  REQUIRE(serial.get() == 0);
+
+  drainCallbacks(*requester);
+  REQUIRE(requesterReports.attributeOwnershipAcquisitionReports.size() == 1U);
+  auto const& notification =
+      requesterReports.attributeOwnershipAcquisitionReports.front();
+  REQUIRE(notification.kind ==
+          ReportingFederateAmbassador::AttributeOwnershipAcquisitionReport::Kind::
+              notification);
+  REQUIRE(notification.objectInstance == objectInstance);
+  REQUIRE(notification.attributes == attributes);
+  REQUIRE(variableLengthDataBytes(notification.userSuppliedTag) ==
+          std::vector<unsigned char>(
+              confirmationTagBytes,
+              confirmationTagBytes + sizeof(confirmationTagBytes)));
+
+  REQUIRE_NOTHROW(owner->setServiceReportingSwitch(false));
+  REQUIRE_NOTHROW(requester->unpublishObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(owner->unpublishObjectClassAttributes(child, attributes));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(requester->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(observer->unsubscribeInteractionClass(reportClass));
+  REQUIRE_NOTHROW(observer->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(observer->disconnect());
 }

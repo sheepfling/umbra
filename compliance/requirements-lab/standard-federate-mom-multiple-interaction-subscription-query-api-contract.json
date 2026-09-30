@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "A subject federate actively subscribes to one adapter-selected application interaction class and passively subscribes to the standard HLAreportServiceInvocation class from the adapter-supplied IEEE 1516.2-2025 MIM. A separate requester queries the subject using HLArequestSubscriptions. The test verifies that the standard HLAinteractionClassList contains exactly both classes with their distinct active/passive states, while the empty directed-interaction report remains a correctly shaped NULL response. The scenario uses only official IEEE 1516.1-2025 RTIambassador and FederateAmbassador APIs, standard MIM content, standard encoding DataElements, and the C++ standard library. Provider package, FOM, endpoint, callback configuration, application interaction name, and update-rate designator remain adapter supplied. No vendor API, private headers, or DDM regions are used.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-multiple-interaction-subscription-query",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void subscribeInteractionClass( InteractionClassHandle const & interactionClass, bool active = true) = 0",
+      "exception_types": [
+        "FederateServiceInvocationsAreBeingReportedViaMOM",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "subscribeInteractionClass",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionQueryContract"
+      ]
+    }
+  ]
+}

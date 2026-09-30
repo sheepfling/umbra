@@ -97,7 +97,8 @@ void setRegionBounds(
 TEST_CASE(
     "Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
     "[integration][development-profile][federation-management][object-management][ddm]"
-    "[callbacks][attribute-scope-advisory][callback-immediate][callback-suppression]"
+    "[callbacks][attribute-scope-advisory][implicit-self-unsubscribe-no-out-of-scope-advisory]"
+    "[callback-immediate][callback-suppression]"
     "[rti.service.get-attribute-scope-advisory-switch]"
     "[rti.service.set-attribute-scope-advisory-switch]"
     "[rti.service.commit-region-modifications]"
@@ -238,10 +239,14 @@ TEST_CASE(
     // declaration with ordinary scope.  An ordinary subscription uses the
     // implicit default source realization; it does not match an explicitly
     // associated source region.
+    // §10.1.3 treats a federate's own removal of its final subscription as
+    // implicit out-of-scope, so it must not receive an Out advisory for that
+    // transition even while its Attribute Scope Advisory Switch is enabled.
     REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributesWithRegions(
         objectClass,
         subscriberPair));
-    requireSingleScopeReport(subscriberReports.outOfScope);
+    drainSubscriber();
+    REQUIRE(subscriberReports.outOfScope.empty());
     REQUIRE_NOTHROW(owner->unassociateRegionsForUpdates(
         objectInstance,
         ownerOverlapPair));
@@ -254,7 +259,8 @@ TEST_CASE(
         true));
     requireSingleScopeReport(subscriberReports.inScope);
     REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(objectClass, attributes));
-    requireSingleScopeReport(subscriberReports.outOfScope);
+    drainSubscriber();
+    REQUIRE(subscriberReports.outOfScope.empty());
 
     // Restoring the regional declaration creates one grouped In callback.  A
     // later move to the disjoint source range is intentionally separated from

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice creates directed publications for an adapter-supplied 2025 FDD inheritance fixture, verifies the populated and partially unpublished MIM states, then calls the class-scoped unpublish overload for every object class and queries the resulting state through standard HLArequestPublications. It checks the 2025 MIM NULL response parameter shape while ordinary object-attribute and interaction publications remain. Provider package, FOM modules, endpoint, callback configuration, class names, and logical-time implementation are adapter inputs. Portable source uses only official IEEE 1516.1-2025 C++ APIs and the C++ standard library.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-full-directed-publication-unpublish",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unpublishobjectclassdirectedinteractions.b55471e6a1ae",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unpublishObjectClassDirectedInteractions( ObjectClassHandle const & objectClass) = 0",
+      "exception_types": [
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "unpublishObjectClassDirectedInteractions",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedPublicationFullUnpublishQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedPublicationFullUnpublishQueryContract"
+      ]
+    }
+  ]
+}

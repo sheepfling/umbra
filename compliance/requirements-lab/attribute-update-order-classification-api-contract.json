@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK scenario uses only IEEE 1516.1 RTIambassador and FederateAmbassador interfaces and the C++ standard library. The adapter supplies the provider package, FOM, endpoint, callback model, and logical-time implementation. It checks ordinary and timestamped Update Attribute Values at one receiver and distinguishes the corresponding reflection callback overloads without provider-specific names, headers, registries, or behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-attribute-update-message-order-classification",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador ordinary and timestamped Update Attribute Values, object publication, attribute order control, time-role, and time-advance services with FederateAmbassador ordinary and timestamped reflection callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador object-management and time-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeUpdateOrderClassification",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeUpdateOrderClassificationContract"
+      ]
+    }
+  ]
+}

@@ -613,8 +613,12 @@ instance designator` and type-0 `Attribute designator` as quoted
   Data when its §7.2 plan is accepted, before any separately queued §7.4
   `Request Attribute Ownership Assumption` callback. Table 5 depicts the tag
   as type 63, while the bundled standard MIM enumerates `UserSuppliedTag` as
-  type 60. Umbra follows the Table 5 literal only for the bounded file text and
-  does not reuse it in a future emitted MOM-interaction path (RL-077).
+  type 60. The file formatter retains Table 5's type 63, while the public MOM
+  interaction encoder maps this logical argument to the static MIM value 60.
+  Unconditional divestiture now emits its accepted service report after the
+  registry locks are released and before ownership callbacks are queued. The
+  focused C++ case verifies that split; RL-077 remains a Requirements-Lab
+  extraction limitation, not a runtime encoding blocker or conformance claim.
   `Attribute Ownership Acquisition` records its accepted §7.8 request with
   type-37 `Object instance designator`, type-1 `Set of attribute designators`,
   and the type-63 base-64 `User-supplied tag` form before any separately
@@ -878,6 +882,65 @@ conditional/non-initial values, or a complete standard producer mapping.
   receive-order / reliable delivery.
 - The official 2025 C++ headers remain the public ABI authority.  Umbra must
   not publish a parallel public MOM or encoding API.
+
+### Exception-report source and implementation audit (2026-09-22)
+
+`HLAreportException` reports an ordinary service-invocation exception only when
+the indicated joined federate's Exception Reporting switch is enabled. It is
+distinct from `HLAreportMOMexception`, which reports malformed or rejected MOM
+requests and has an additional `HLAparameterError` parameter.
+
+The official MIM contains an inconsistent description: the `HLAservice`
+semantics under `HLAreportException` describe **HLAreportMOMexception**, including
+its fully qualified MOM interaction name. See
+`third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml` at the
+`HLAreportException` declaration. This wording is present in the vendored
+official artifact; it is not a Requirements Lab extraction defect. Until that
+source ambiguity is resolved, ordinary API exception reports retain the
+embedded implementation's service-title spelling. The separate MOM-failure
+route retains its fully qualified interaction name. Neither behavior claims
+to resolve the inconsistent source wording.
+
+The audit also found an Umbra implementation defect: the embedded ordinary
+exception-report payload omitted the inherited `HLAfederate` parameter. The
+official hierarchy supplies that parameter at `HLAmanager.HLAfederate`; the
+leaf supplies `HLAservice` and `HLAexception`. A complete ordinary report has
+all three. `HLAfederateReference` uses `HLAfederateHandle`, an
+`HLAvariableArray` of `HLAbyte`. Umbra's official binding
+`FederateHandle::encode()` already supplies that complete encoding; adding
+another array wrapper would be incorrect. It is
+not the callback's producing-federate argument, which remains invalid for
+this RTI-originated traffic. The process delivery slice and embedded encoder
+correction are tracked by the `process-mom-service-exception-report` lane;
+its native test decodes all three parameters rather than accepting the
+previous two-field payload. This is an Umbra defect, not a new Lab issue.
+
+The `process-mom-exception-report-parameters` lane now covers the companion
+`HLAreportMOMexception` repair: four outgoing parameters, including the
+inherited federate reference, and parent-class projection of that reference.
+The C++ cases retain the separate malformed-parameter/precondition distinction;
+ordinary Exception Reporting need not be enabled for these MOM reports.
+This is payload evidence, not certification of the existing public exception
+policy for malformed MOM commands or concurrent callback behavior.
+
+Follow-up implementation/evidence debt: audit other RTI-originated MOM report
+encoders for every inherited parameter and the required reference encoding.
+The embedded `HLAreportServiceInvocation` encoder still constructs only its
+seven leaf parameters and needs the inherited parameter added and tested.
+`queueFederateLostReport` already
+uses `FederateHandle::encode()`, which includes the required array wrapper;
+that call is not an encoding defect. These are explicit follow-up candidates, not
+repairs or conformance claims included in the ordinary exception-report
+slice. Tighten each affected C++ case before counting its parameter
+completeness as evidence.
+
+The pinned corpus has outgoing-parameter, RTI metadata, and subscription
+requirements applicable to this slice, but no direct extracted requirement
+for the ordinary report's trigger/switch gating was found in the bounded
+audit. The official MIM supplies the behavior while this mapping gap remains
+explicit; the existing MOM exception-switch refinement describes changing
+the switch, not proof of report delivery. Do not silently reuse that
+refinement as complete delivery coverage or resync an unchanged Lab export.
 
 ## Non-negotiable runtime model
 
@@ -2238,3 +2301,41 @@ The first Umbra cases should establish the following independently reviewed
 5. Multi-federate/rejoin lifecycle pressure: independent serials and files,
    no self-report recursion, toggle stability, and a new file only for a new
    joined-federate lifetime.
+
+## Process exception-report transaction concurrency
+
+Implemented and verified on 2026-09-23 for one configured process connection.
+`ProcessFederationClient` now owns request identity, complete frame exchange,
+pending-event admission, and deferred acknowledgement state under one recursive
+transaction lock. It releases that lock before queuing or invoking callbacks.
+A single event drainer preserves the received event order, while same-thread
+callback reentry remains allowed. Exception-report rechecks suppress recursive
+callback dispatch. Client close shuts the socket to interrupt a blocked
+projection request, then drains the projection lease outside the transaction
+lock. Projection generations cancel queued work on resignation; a second
+admission check suppresses an event cancelled while it waits to enter the
+callback session.
+
+The public C++ regression `RTIambassador preserves process exception-report
+recheck response ownership during concurrent service requests` passes 104
+assertions across gated evoked pull/push overlap, immediate nested callbacks,
+and queued-report cancellation on resignation. It checks typed
+`NameNotFound`, unique ordered wire identities, one report per failing service,
+and the inherited `HLAfederate` value. The private bridge regression `Private
+process exception-report projections cancel queued work and drain client
+lifetime before close` passes 20 assertions for queued cancellation, in-flight
+close, callback admission, and callback-initiated close. The complete configured
+connection target passed 156 CTest cases; the private process target passed 24.
+
+## Remaining process ambassador lifetime debt
+
+This work does not establish general concurrent-call safety for
+`RTIambassador`. Service wrappers such as
+`UmbraRtiAmbassador::getObjectClassHandle` copy a raw
+`ProcessFederationClient*` under the ambassador mutex and use it after releasing
+that mutex, while `disconnect` moves and destroys the owning `unique_ptr`. The
+next bounded slice is to make an ordinary in-flight public process call retain
+stable client ownership while `Disconnect` races it, then verify a defined RTI
+result or exception and bounded completion. This is an Umbra implementation
+contract, not a newly inferred IEEE concurrency requirement. No conformance
+claim follows from these development-profile tests.

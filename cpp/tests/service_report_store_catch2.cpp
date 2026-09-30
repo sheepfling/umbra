@@ -1,9 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "internal/observability/mom_service_report_encoding.hpp"
 #include "internal/observability/service_report_store.hpp"
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
+#include <RTI/encoding/EncodingExceptions.h>
 #include <umbra/embedded_profile_configuration.hpp>
 
 #include <algorithm>
@@ -67,6 +69,7 @@ umbra::detail::JoinedFederateReportDescriptor descriptor() {
 
 }  // namespace
 
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "Embedded service-report files are allocated at join and remain stable across switch cycles and rejoin",
     "[integration][development-profile][federation-management][mom][service-reporting]"
@@ -148,6 +151,74 @@ TEST_CASE(
   std::error_code ignored;
   std::filesystem::remove_all(directory, ignored);
 }
+
+TEST_CASE(
+    "Embedded Join rolls back membership when the service-report directory becomes unavailable",
+    "[integration][development-profile][federation-management][service-reporting]"
+    "[service-report-file][service-report-store][filesystem][join-rollback][2025]") {
+  using rti1516_2025::HLA_EVOKED;
+  using rti1516_2025::NO_ACTION;
+
+  auto const directory = temporaryDirectory();
+  auto const federationName = nextLifecycleFederationName();
+  std::error_code cleanupError;
+  std::filesystem::remove_all(directory, cleanupError);
+  auto const fomModule =
+      std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+      "third_party" / "ieee1516.2-2025" / "resources" /
+      "examples" / "RestaurantFOMmodule-2025.xml";
+  auto configuration = umbra::embedded::makeEmbeddedRtiConfiguration(
+      umbra::embedded::ServiceReportConfiguration{directory});
+  configuration.withRtiAddress(L"in-process");
+
+  rti1516_2025::NullFederateAmbassador federate;
+  rti1516_2025::RTIambassadorFactory factory;
+  auto rti = factory.createRTIambassador();
+  REQUIRE_NOTHROW(rti->connect(federate, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(rti->createFederationExecution(
+      federationName,
+      fomModule.wstring(),
+      L"HLAinteger64Time"));
+
+  // Connect eagerly validates/creates the configured directory. Replace it
+  // after Connect so this exercises Join's writer-creation rollback boundary.
+  std::filesystem::remove_all(directory, cleanupError);
+  REQUIRE_FALSE(cleanupError);
+  {
+    std::ofstream blocker(directory, std::ios::binary);
+    REQUIRE(blocker.good());
+    blocker << "not a directory";
+    REQUIRE(blocker.good());
+  }
+
+  REQUIRE_THROWS_AS(
+      rti->joinFederationExecution(
+          L"service-report-storage-failure-federate",
+          L"storage-failure",
+          federationName),
+      rti1516_2025::RTIinternalError);
+  REQUIRE(std::filesystem::is_regular_file(directory));
+
+  // Retrying the same logical join after repairing the configured directory
+  // proves the failed attempt did not leave a member/name reservation behind.
+  REQUIRE(std::filesystem::remove(directory));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"service-report-storage-failure-federate",
+      L"storage-failure",
+      federationName));
+  auto const files = serviceReportFiles(directory);
+  REQUIRE(files.size() == 1U);
+  auto const initialText = readTextFile(files.front());
+  REQUIRE(initialText.find(
+              "\"HLAfederateName\":\"service-report-storage-failure-federate\"") !=
+          std::string::npos);
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+  std::filesystem::remove_all(directory, cleanupError);
+}
+#endif
 
 TEST_CASE(
     "Filesystem service-report stores allocate stable unique files and initial records",
@@ -372,4 +443,56 @@ TEST_CASE(
 
   std::error_code ignored;
   std::filesystem::remove_all(directory, ignored);
+}
+
+TEST_CASE(
+    "IEEE 1516.1-2025 Table 5 encodes ConfigurationResult",
+    "[mom][service-reporting][service-report-store][encoding][table-5][unit][2025]") {
+  using rti1516_2025::AdditionalSettingsResultCode;
+  using rti1516_2025::ConfigurationResult;
+  using rti1516_2025::EncoderException;
+  using umbra::detail::MomArgumentType;
+
+  REQUIRE(static_cast<std::int32_t>(MomArgumentType::configuration_result) == 8);
+
+  auto const applied = ConfigurationResult{
+      true, false, rti1516_2025::SETTINGS_APPLIED, L""};
+  auto const appliedValue =
+      umbra::detail::formatMomConfigurationResult(applied);
+  REQUIRE(appliedValue ==
+          L"{\"configurationUsed\":true,\"addressUsed\":false,"
+          L"\"additionalSettingsResultCode\":\"SETTINGS_APPLIED\","
+          L"\"message\":\"\"}");
+
+  auto const ignored = ConfigurationResult{
+      false, true, rti1516_2025::SETTINGS_IGNORED, L"ignored"};
+  REQUIRE(umbra::detail::formatMomConfigurationResult(ignored) ==
+          L"{\"configurationUsed\":false,\"addressUsed\":true,"
+          L"\"additionalSettingsResultCode\":\"SETTINGS_IGNORED\","
+          L"\"message\":\"ignored\"}");
+
+  auto const failedToParse = ConfigurationResult{
+      false, false, rti1516_2025::SETTINGS_FAILED_TO_PARSE, L"invalid"};
+  REQUIRE(umbra::detail::formatMomConfigurationResult(failedToParse) ==
+          L"{\"configurationUsed\":false,\"addressUsed\":false,"
+          L"\"additionalSettingsResultCode\":\"SETTINGS_FAILED_TO_PARSE\","
+          L"\"message\":\"invalid\"}");
+
+  auto const returnedArgument = umbra::detail::MomServiceArgument{
+      MomArgumentType::configuration_result, L"Connect result", appliedValue};
+  auto const record = umbra::detail::formatMomSuccessfulServiceReportRecord(
+      1U, L"Connect", {}, returnedArgument);
+  REQUIRE(record ==
+          L"{\"HLAserialNumber\":1,\"HLAreturnedArgument\":[{"
+          L"\"HLAargumentType\":8,\"HLAargumentName\":\"Connect result\","
+          L"\"HLAargumentValue\":{\"configurationUsed\":true,"
+          L"\"addressUsed\":false,\"additionalSettingsResultCode\":"
+          L"\"SETTINGS_APPLIED\",\"message\":\"\"}}],"
+          L"\"HLAservice\":\"Connect\",\"HLAsuppliedArguments\":[],"
+          L"\"HLAsuccessIndicator\":true,\"HLAexception\":null}");
+
+  auto const invalid = ConfigurationResult{
+      true, true, static_cast<AdditionalSettingsResultCode>(99), L"invalid"};
+  REQUIRE_THROWS_AS(
+      umbra::detail::formatMomConfigurationResult(invalid), EncoderException);
 }

@@ -86,8 +86,10 @@ TEST_CASE(
     "[integration][development-profile][federation-management][object-management]"
     "[auto-provide][callback-evoked]"
     "[rti.service.get-auto-provide-switch]"
+    "[rti.service.get-attribute-scope-advisory-switch]"
     "[rti.service.get-object-class-handle]"
     "[rti.service.get-attribute-handle]"
+    "[rti.service.set-attribute-scope-advisory-switch]"
     "[rti.service.publish-object-class-attributes]"
     "[rti.service.subscribe-object-class-attributes]"
     "[rti.service.register-object-instance]"
@@ -148,6 +150,32 @@ TEST_CASE(
   REQUIRE(provide.objectInstance == objectInstance);
   REQUIRE(provide.attributes == attributes);
   REQUIRE(provide.userSuppliedTag.size() == 0U);
+
+  // Auto Provide must be unchanged when the discovering federate requests
+  // Attribute Scope Advisory callbacks. Repeat the same operation after
+  // changing only that switch on the requester.
+  REQUIRE_FALSE(requester->getAttributeScopeAdvisorySwitch());
+  REQUIRE_NOTHROW(requester->setAttributeScopeAdvisorySwitch(true));
+  REQUIRE(requester->getAttributeScopeAdvisorySwitch());
+  requesterReports.discoveredObjects.clear();
+  requesterReports.callbackOrder.clear();
+  ownerReports.provideReports.clear();
+  ownerReports.callbackOrder.clear();
+
+  ObjectInstanceHandle secondObjectInstance;
+  REQUIRE_NOTHROW(secondObjectInstance = owner->registerObjectInstance(objectClass));
+  REQUIRE(secondObjectInstance.isValid());
+  drainCallbacks(*requester);
+  drainCallbacks(*owner);
+  REQUIRE(requesterReports.discoveredObjects.size() == 1U);
+  REQUIRE(requesterReports.discoveredObjects.front() == secondObjectInstance);
+  REQUIRE(ownerReports.provideReports.size() == 1U);
+  REQUIRE(ownerReports.callbackOrder == std::vector<std::string>{"provide"});
+  REQUIRE(requesterReports.callbackOrder == std::vector<std::string>{"discover"});
+  auto const& secondProvide = ownerReports.provideReports.front();
+  REQUIRE(secondProvide.objectInstance == secondObjectInstance);
+  REQUIRE(secondProvide.attributes == attributes);
+  REQUIRE(secondProvide.userSuppliedTag.size() == 0U);
 
   REQUIRE_NOTHROW(requester->unsubscribeObjectClassAttributes(objectClass, attributes));
   REQUIRE_NOTHROW(requester->resignFederationExecution(rti1516_2025::NO_ACTION));

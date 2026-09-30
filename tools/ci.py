@@ -51,28 +51,29 @@ class Profile:
 
 PROFILES: dict[str, Profile] = {
     "native": Profile(
-        "Core native build, smoke tests, contracts, and package smoke.",
-        "windows-default",
-        "windows-default-debug",
-        "windows-default-debug",
+        "Core native MinGW build, smoke tests, contracts, and package smoke.",
+        "mingw-default",
+        "mingw-default-debug",
+        "mingw-default-debug",
     ),
     "native-catch2": Profile(
-        "Focused native Catch2 behavior tests; may fetch Catch2.",
-        "windows-catch2",
-        "windows-catch2-debug",
-        "windows-catch2-debug",
+        "Focused native MinGW Catch2 behavior tests; may fetch Catch2.",
+        "mingw-catch2",
+        "mingw-catch2-debug",
+        "mingw-catch2-debug",
     ),
     "native-fom": Profile(
-        "FOM validation and XML/XSD tests; may fetch Catch2 and libxml2.",
-        "windows-fom",
-        "windows-fom-debug",
-        "windows-fom-debug",
+        "MinGW FOM validation and XML/XSD tests; may fetch Catch2 and libxml2.",
+        "mingw-fom",
+        "mingw-fom-debug",
+        "mingw-fom-debug",
     ),
     "native-fom-services": Profile(
-        "Installable embedded federation-management profile with process endpoint and package smoke.",
-        "windows-fom-services",
-        "windows-fom-services-debug",
-        "windows-fom-services-debug",
+        "Installable embedded MinGW federation-management profile with process "
+        "endpoint and package smoke.",
+        "mingw-fom-services",
+        "mingw-fom-services-debug",
+        "mingw-fom-services-debug",
     ),
 }
 
@@ -323,7 +324,7 @@ def selected_lanes(arguments: argparse.Namespace) -> list[tuple[str, str]]:
 
 def native_route(arguments: argparse.Namespace, standard: str) -> None:
     if os.name != "nt":
-        raise CiError("The current CMake presets target the Windows MSVC toolchain.")
+        raise CiError("The current native CMake presets target Windows MinGW builds.")
     if standard == "2025":
         run_command(
             [sys.executable, "tools/cpp_tck.py"],
@@ -352,13 +353,13 @@ def native_route(arguments: argparse.Namespace, standard: str) -> None:
         "2010": r"umbra\.ieee1516e_2010\.(headers|binding_shell|binding_shell_generation|provider_boundaries|encoding|composite_encoding|integer_time|float_time|time_marshal)$",
         "2025": r"umbra\.ieee1516_2025\.(headers|binding_shell|integrity|exception_binding|binding_inventory|binding_shell_generation)$|umbra\.kernel\.federate_lifecycle$",
     }[standard]
-    run_command([cmake, "--preset", "windows-default"], dry_run=arguments.dry_run)
+    run_command([cmake, "--preset", "mingw-default"], dry_run=arguments.dry_run)
     run_command(
         [
             cmake,
             "--build",
             "--preset",
-            "windows-default-debug",
+            "mingw-default-debug",
             "--target",
             *targets,
         ],
@@ -368,7 +369,7 @@ def native_route(arguments: argparse.Namespace, standard: str) -> None:
         [
             ctest,
             "--test-dir",
-            str(REPOSITORY_ROOT / "out" / "cmake" / "default"),
+            str(REPOSITORY_ROOT / "out" / "mgw" / "default"),
             "-C",
             arguments.configuration,
             "-R",
@@ -1185,6 +1186,7 @@ def run_python_integrity_checks(arguments: argparse.Namespace) -> None:
         [sys.executable, "tools/verify_ieee_headers.py"],
         [sys.executable, "tools/verify_ieee_exception_binding.py"],
         [sys.executable, "tools/verify_python_surface_report.py"],
+        [sys.executable, "tools/run_cpp_tck_regression.py"],
     ]
     for check in checks:
         run_command(
@@ -1292,11 +1294,15 @@ def fix_command(arguments: argparse.Namespace) -> int:
 
 SAFE_CLEAN_TARGETS = {
     "ci": (REPOSITORY_ROOT / "out" / "ci",),
-    "cmake": (REPOSITORY_ROOT / "out" / "cmake",),
+    "cmake": (
+        REPOSITORY_ROOT / "out" / "cmake",
+        REPOSITORY_ROOT / "out" / "mgw",
+    ),
     "java": (REPOSITORY_ROOT / "out" / "java-tck",),
     "all": (
         REPOSITORY_ROOT / "out" / "ci",
         REPOSITORY_ROOT / "out" / "cmake",
+        REPOSITORY_ROOT / "out" / "mgw",
         REPOSITORY_ROOT / "out" / "java-tck",
     ),
 }

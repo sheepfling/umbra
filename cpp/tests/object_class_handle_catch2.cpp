@@ -40,7 +40,7 @@ TEST_CASE("The official ObjectClassHandle has stable embedded value semantics", 
   REQUIRE(stream.str() == handle.toString());
 }
 
-TEST_CASE("The embedded ObjectClassHandle encoding is an HLAvariableArray-wrapped identity", "[unit][kernel][object-class-handle][foundation][object-management]") {
+TEST_CASE("The embedded ObjectClassHandle encoding is an HLAvariableArray-wrapped identity", "[unit][kernel][object-class-handle][foundation][object-management][handle-encoding]") {
   auto const handle = makeObjectClassHandle(0x0102030405060708ULL);
   std::array<unsigned char, 12> const expected{
       0x00, 0x00, 0x00, 0x08, 0x01, 0x02,

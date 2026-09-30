@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>UmbraDirectedFixtureInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>Receive</order>
+                <semantics>Two-parameter fixture for Send Directed Interaction parameter conformance tests.</semantics>
+                <parameter>
+                    <name>PrimaryPayload</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <semantics>First value supplied to the directed service.</semantics>
+                </parameter>
+                <parameter>
+                    <name>SecondaryPayload</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <semantics>Second value supplied to the directed service.</semantics>
+                </parameter>
+            </interactionClass>
+            <interactionClass>
+                <name>UmbraForeignParameterContractInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>Receive</order>
+                <semantics>Separate interaction class used to supply a valid but unavailable parameter handle.</semantics>
+                <parameter>
+                    <name>ForeignParameter</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <semantics>Parameter intentionally excluded from the directed interaction class.</semantics>
+                </parameter>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+</objectModel>

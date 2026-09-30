@@ -7,10 +7,11 @@
   "requirements": [
     {
       "id": "cpp-tck-federate-mom-publication-object-declaration",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-090-l79-22",
       "clause_id": "clause-5.2",
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
       "source_lines": "419-431",
-      "source_symbol": "RTIambassador::publishObjectClassAttributes",
+      "source_symbol": "publishObjectClassAttributes",
       "statement": "The subject declares the adapter-selected object-class attribute as published; the test then checks that the standard MIM report identifies that class and includes the declared attribute handle.",
       "tests": [
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPublicationQuery",
@@ -19,10 +20,11 @@
     },
     {
       "id": "cpp-tck-federate-mom-publication-interaction-declaration",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-093-l17-1",
       "clause_id": "clause-5.4",
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
       "source_lines": "461-471",
-      "source_symbol": "RTIambassador::publishInteractionClass",
+      "source_symbol": "publishInteractionClass",
       "statement": "The subject declares the adapter-selected interaction class as published; the test checks that the standard MIM interaction-class list reports that class.",
       "tests": [
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPublicationQuery",
@@ -31,10 +33,11 @@
     },
     {
       "id": "cpp-tck-federate-mom-publication-query-send",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-123-l145-40",
       "clause_id": "clause-6.12",
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
       "source_lines": "750-764",
-      "source_symbol": "RTIambassador::sendInteraction",
+      "source_symbol": "sendInteraction",
       "statement": "The requester uses the standard sendInteraction service and parameter map to identify the joined subject of the publication query.",
       "tests": [
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPublicationQuery",
@@ -43,10 +46,11 @@
     },
     {
       "id": "cpp-tck-federate-mom-publication-query-reports",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
       "clause_id": "clause-11.4.1",
       "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
       "source_lines": "1063-1073, 1225-1313",
-      "source_symbol": "HLArequestPublications; HLAreportObjectClassPublication; HLAreportInteractionPublication; HLAreportDirectedInteractionPublication; HLAattributeHandleList; HLAinteractionClassHandleList",
+      "source_symbol": "HLArequestPublications",
       "statement": "A request for the subject's publication state yields the object-class report for each published object class, the interaction publication report, and the directed-interaction report. With no directed interactions published, the latter uses the standard NULL shape: zero classes, omitted object-class parameter, and an empty interaction-class list. The test decodes reported attribute and interaction-class handles using the public RTIambassador decoding services.",
       "tests": [
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomPublicationQuery",

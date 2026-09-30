@@ -7,6 +7,9 @@ are provider adapters around that implementation.
 
 ## Start here
 
+- [Resume RTI work](docs/planning/ROADMAP-QUICKSTART.md) — the current task, or
+  a bounded family choice if no task is queued, with requirement mappings,
+  source location, and focused tests.
 - [Repository guide](docs/development/REPOSITORY-GUIDE.md) — where code,
   packages, compliance inputs, tools, and vendored material live.
 - [Architecture](docs/architecture/ARCHITECTURE.md) — public API boundary and

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK slice subscribes to directed interactions under two adapter-selected object classes, removes one class's subscription through the set overload, then removes the remaining class's directed subscription through the class-scoped overload. It queries the subject through standard HLArequestSubscriptions and checks the IEEE 1516.2-2025 MIM NULL response. Provider package, FOM modules, endpoint, callback configuration, class names, and logical-time implementation are adapter inputs. Portable source uses only official IEEE 1516.1-2025 C++ APIs and the C++ standard library.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-full-directed-subscription-unsubscribe",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unsubscribeobjectclassdirectedinteractions.d72034c56bf3",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeObjectClassDirectedInteractions( ObjectClassHandle const & objectClass) = 0",
+      "exception_types": [
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "unsubscribeObjectClassDirectedInteractions",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedSubscriptionFullUnsubscribeQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleDirectedSubscriptionFullUnsubscribeQueryContract"
+      ]
+    }
+  ]
+}

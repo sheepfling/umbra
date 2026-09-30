@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "The subject publishes two adapter-selected ordinary interaction classes. After it unpublishes the secondary class using IEEE 1516.1-2025, a fresh IEEE 1516.2-2025 HLArequestPublications query must report exactly the still-published primary class in HLAreportInteractionPublication.HLAinteractionClassList. The object-class publication is checked unchanged. The directed report is validated against its MIM-defined NULL or populated shape without asserting an extra cross-service side effect.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-mom-interaction-class-partial-unpublication",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-093-l140-35",
+      "clause_id": "clause-5.5",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_lines": "482-491",
+      "source_symbol": "unpublishInteractionClass",
+      "statement": "The federate withdraws publication of the selected secondary interaction class through the standard Unpublish Interaction Class service while retaining its publication of a distinct primary interaction class.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomInteractionClassPartialUnpublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomInteractionClassPartialUnpublicationQueryContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-mom-interaction-class-partial-unpublication-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+      "source_lines": "1063-1069, 1262-1278",
+      "source_symbol": "HLAreportInteractionPublication",
+      "statement": "The publication query reports the exact remaining ordinary interaction-class list: one HLAinteractionClassList parameter containing only the still-published primary interaction class. The object-class report remains present. The directed report is checked against the exact MIM-defined NULL or populated response shape without assuming an additional interaction between publication services.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomInteractionClassPartialUnpublicationQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomInteractionClassPartialUnpublicationQueryContract"
+      ]
+    }
+  ]
+}

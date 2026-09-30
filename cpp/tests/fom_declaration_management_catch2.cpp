@@ -17,6 +17,8 @@
 
 namespace {
 
+namespace fixture_hla = umbra::test::hla::wide;
+
 std::unique_ptr<rti1516_2025::RTIambassador> makeRti() {
   rti1516_2025::RTIambassadorFactory factory;
   return factory.createRTIambassador();
@@ -35,6 +37,44 @@ std::filesystem::path testDataPath(std::filesystem::path const& relativePath) {
 std::wstring nextFederationName() {
   static std::atomic_uint64_t counter{0};
   return L"umbra-catch2-empty-fom-" + std::to_wstring(++counter);
+}
+
+TEST_CASE(
+    "Embedded joined federates retain a validated 2025 HLA FOM",
+    "[integration][development-profile][federation-management][fom]"
+    "[fom-summary-rule-1][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-object-class-handle]"
+    "[rti.service.get-attribute-handle][rti.service.get-object-class-name]"
+    "[rti.service.get-attribute-name]") {
+  rti1516_2025::NullFederateAmbassador creatorFederate;
+  rti1516_2025::NullFederateAmbassador memberFederate;
+  auto creator = makeRti();
+  auto member = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(creator->connect(creatorFederate, rti1516_2025::HLA_EVOKED));
+  REQUIRE_NOTHROW(member->connect(memberFederate, rti1516_2025::HLA_EVOKED));
+  REQUIRE_NOTHROW(
+      creator->createFederationExecution(federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(member->joinFederationExecution(
+      L"fom-summary-member", L"member", federationName));
+
+  // Summary Rule 1 is intentionally evidenced through the official lookup
+  // surface: a joined member can resolve the validated OMT class and its
+  // declared attribute in the committed 2025 FOM, then round-trip both names.
+  auto const employee = member->getObjectClassHandle(fixture_hla::fom::employee);
+  auto const employeeName =
+      member->getAttributeHandle(employee, fixture_hla::fixture::name);
+  REQUIRE(employee.isValid());
+  REQUIRE(employeeName.isValid());
+  REQUIRE(member->getObjectClassName(employee) == fixture_hla::fom::employee);
+  REQUIRE(member->getAttributeName(employee, employeeName) == fixture_hla::fixture::name);
+
+  REQUIRE_NOTHROW(member->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(member->disconnect());
+  REQUIRE_NOTHROW(creator->disconnect());
 }
 
 TEST_CASE(

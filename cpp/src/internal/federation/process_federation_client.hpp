@@ -10,6 +10,9 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <mutex>
+#include <thread>
+#include <variant>
 #include <optional>
 #include <set>
 #include <stdexcept>
@@ -21,6 +24,8 @@ class FederateAmbassador;
 }
 
 namespace umbra::detail {
+
+struct ProcessFederationJoinConnectionSnapshot;
 
 // Private client-side seam for the first process-boundary federation slice.
 // It owns request identities, response validation, unsolicited event
@@ -59,11 +64,20 @@ class ProcessFederationClient final {
       std::optional<std::wstring> mimModule = std::nullopt,
       std::wstring logicalTimeImplementationName = {});
 
+  [[nodiscard]] ProcessFederationDestroyResult destroyFederationExecution(
+      std::wstring federationName);
+
   [[nodiscard]] ProcessFederationJoinResult joinFederationExecution(
       std::wstring federationName,
       std::wstring federateType,
       std::optional<std::wstring> requestedFederateName = std::nullopt,
       std::vector<std::wstring> additionalFomModules = {});
+  [[nodiscard]] ProcessFederationJoinResult joinFederationExecution(
+      std::wstring federationName,
+      std::wstring federateType,
+      std::optional<std::wstring> requestedFederateName,
+      std::vector<std::wstring> additionalFomModules,
+      ProcessFederationJoinConnectionSnapshot connection);
 
   void resignFederationExecution(
       std::wstring federationName,
@@ -136,6 +150,57 @@ class ProcessFederationClient final {
       std::wstring federationName,
       std::uint64_t federateId,
       rti1516_2025::ResignAction resignAction);
+
+  [[nodiscard]] bool getServiceReportingSwitch(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  void setServiceReportingSwitch(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      bool switchValue);
+  [[nodiscard]] ProcessFederationExceptionReportingSwitchResult
+  getExceptionReportingSwitch(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  void reportServiceException(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::wstring service,
+      std::wstring exception);
+  void reportFailedServiceInvocation(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      MomServiceType serviceType,
+      std::wstring service,
+      std::vector<MomServiceArgument> suppliedArguments,
+      std::wstring exception);
+  void reportSuccessfulServiceInvocation(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      MomServiceType serviceType,
+      std::wstring service,
+      std::vector<MomServiceArgument> suppliedArguments,
+      MomServiceArgument returnedArgument);
+  void reportSuccessfulVoidServiceInvocation(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      MomServiceType serviceType,
+      std::wstring service,
+      std::vector<MomServiceArgument> suppliedArguments);
+  [[nodiscard]] std::optional<ProcessFederationInteractionEvent>
+  recheckExceptionReport(ProcessFederationInteractionEvent event);
+  [[nodiscard]] ProcessFederationExceptionReportingSwitchResult
+  setExceptionReportingSwitch(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      bool switchValue);
+  [[nodiscard]] bool getSendServiceReportsToFileSwitch(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  void setSendServiceReportsToFileSwitch(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      bool switchValue);
 
   // Read-only temporal baseline for the process endpoint.  Grant and role
   // control are deliberately separate operations; this method only returns
@@ -276,6 +341,18 @@ class ProcessFederationClient final {
       std::wstring federationName,
       std::uint64_t federateId,
       std::uint64_t objectInstanceHandle);
+
+  [[nodiscard]] ProcessFederationUpdateRateValueResult getUpdateRateValue(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::string updateRateDesignator);
+
+  [[nodiscard]] ProcessFederationUpdateRateValueResult
+  getUpdateRateValueForAttribute(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t objectInstanceHandle,
+      std::uint64_t attributeHandle);
 
   [[nodiscard]] ProcessFederationAttributeOwnershipCheckResult
   attributeOwnershipCheck(
@@ -488,6 +565,15 @@ class ProcessFederationClient final {
       std::uint64_t federateId,
       std::uint64_t objectClassHandle,
       std::vector<std::uint64_t> attributeHandles);
+  void unpublishObjectClassAttributes(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t objectClassHandle,
+      std::vector<std::uint64_t> attributeHandles);
+  void unpublishObjectClass(
+      std::wstring federationName,
+      std::uint64_t federateId,
+      std::uint64_t objectClassHandle);
   void subscribeObjectClassAttributes(
       std::wstring federationName,
       std::uint64_t federateId,
@@ -625,7 +711,13 @@ class ProcessFederationClient final {
       std::wstring federationName,
       std::uint64_t federateId,
       bool switchValue);
+  [[nodiscard]] bool getObjectClassRelevanceAdvisorySwitch(
+      std::wstring federationName,
+      std::uint64_t federateId);
   [[nodiscard]] bool getAttributeRelevanceAdvisorySwitch(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  [[nodiscard]] bool getInteractionRelevanceAdvisorySwitch(
       std::wstring federationName,
       std::uint64_t federateId);
   void setAttributeRelevanceAdvisorySwitch(
@@ -633,6 +725,9 @@ class ProcessFederationClient final {
       std::uint64_t federateId,
       bool switchValue);
   [[nodiscard]] bool getConveyRegionDesignatorSetsSwitch(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  [[nodiscard]] bool getAllowRelaxedDDMSwitch(
       std::wstring federationName,
       std::uint64_t federateId);
   void setConveyRegionDesignatorSetsSwitch(
@@ -888,7 +983,8 @@ class ProcessFederationClient final {
  private:
   [[nodiscard]] TransportServiceMessage request(
       TransportServiceOperation operation,
-      std::vector<std::uint8_t> payload);
+      std::vector<std::uint8_t> payload,
+      bool dispatchCallbacks = true);
   [[nodiscard]] ProcessFederationInteractionEvent receivePushedEvent();
   [[nodiscard]] ProcessFederationAttributeUpdateEvent
   receivePushedAttributeUpdate();
@@ -923,51 +1019,58 @@ class ProcessFederationClient final {
   void acknowledgeTsoDelivery(std::uint64_t messageId);
   void deferTsoDeliveryAcknowledgement(std::uint64_t messageId);
   void flushDeferredTsoDeliveryAcknowledgements();
-  void requireCallbackBridge() const;
+  [[nodiscard]] std::shared_ptr<ProcessFederationCallbackBridge> requireCallbackBridge() const;
+  void bufferEvent(TransportServiceMessage message);
+  void bufferReceiveResult(ProcessFederationReceiveInteractionResult result);
+  void dispatchTransportFailures();
+  template <typename Event> [[nodiscard]] Event receivePendingEvent(bool receiveFromStream = false);
+  template <typename Event> [[nodiscard]] std::size_t pendingEventCount() const noexcept;
 
+  // This mutex owns each complete stream exchange, its request identity and
+  // buffered state. No bridge/user callback is invoked while it is held.
+  // Recursive acquisition is limited to internal queue/ACK helpers; callback
+  // reentry begins only after the outer exchange releases ownership.
+  mutable std::recursive_mutex transactionMutex_;
+  std::atomic_bool closing_{false};
+  FailureHandler failureHandler_;
+  std::deque<std::wstring> pendingTransportFailures_;
   std::shared_ptr<ProcessTransportConnection> connection_;
+  // Immutable after construction so close can interrupt a blocked stream
+  // exchange without first acquiring transactionMutex_.
+  std::shared_ptr<ProcessTransportConnection> const shutdownConnection_;
   std::unique_ptr<ProcessTransportSession> session_;
-  std::unique_ptr<ProcessFederationCallbackBridge> callbackBridge_;
-  // Shared with queued advisory callback tasks so switch changes are checked
-  // at callback entry, including the HLA_EVOKED case where a process frame
-  // was admitted before the setter request completed.
+  std::shared_ptr<ProcessFederationCallbackBridge> callbackBridge_;
   std::shared_ptr<std::atomic_bool> attributeRelevanceAdvisorySwitchState_;
-  std::deque<ProcessFederationInteractionEvent> pendingEvents_;
-  std::deque<ProcessFederationAttributeUpdateEvent> pendingAttributeUpdateEvents_;
-  std::deque<ProcessFederationAttributeValueUpdateRequestEvent>
-      pendingAttributeValueUpdateRequestEvents_;
-  std::deque<ProcessFederationAttributeOwnershipQueryEvent>
-      pendingAttributeOwnershipQueryEvents_;
-  std::deque<ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent>
-      pendingAttributeOwnershipAcquisitionIfAvailableEvents_;
-  std::deque<ProcessFederationAttributeOwnershipAcquisitionEvent>
-      pendingAttributeOwnershipAcquisitionEvents_;
-  std::deque<ProcessFederationAttributeOwnershipUnavailableEvent>
-      pendingAttributeOwnershipUnavailableEvents_;
-  std::deque<ProcessFederationObjectInstanceDiscoveryEvent>
-      pendingObjectInstanceDiscoveryEvents_;
-  std::deque<ProcessFederationObjectInstanceRemovalEvent>
-      pendingObjectInstanceRemovalEvents_;
-  std::deque<ProcessFederationObjectInstanceScopeChangeEvent>
-      pendingObjectInstanceScopeChangeEvents_;
-  std::deque<ProcessFederationAttributeRelevanceAdvisoryEvent>
-      pendingAttributeRelevanceAdvisoryEvents_;
-  std::deque<ProcessFederationAttributeTransportationTypeChangeEvent>
-      pendingAttributeTransportationTypeChangeEvents_;
-  std::deque<ProcessFederationAttributeTransportationTypeQueryEvent>
-      pendingAttributeTransportationTypeQueryEvents_;
-  std::deque<ProcessFederationInteractionTransportationTypeChangeEvent>
-      pendingInteractionTransportationTypeChangeEvents_;
-  std::deque<ProcessFederationInteractionTransportationTypeQueryEvent>
-      pendingInteractionTransportationTypeQueryEvents_;
-  std::deque<ProcessFederationSynchronizationPointAnnouncementEvent>
-      pendingSynchronizationPointAnnouncementEvents_;
-  std::deque<ProcessFederationFederationSynchronizedEvent>
-      pendingFederationSynchronizedEvents_;
-  std::deque<ProcessFederationSaveEvent> pendingFederationSaveEvents_;
-  std::deque<ProcessFederationRestoreEvent> pendingFederationRestoreEvents_;
-  std::deque<ProcessFederationLogicalTime> pendingTimeAdvanceGrantEvents_;
-  std::deque<PendingFlushQueueGrant> pendingFlushQueueGrantEvents_;
+  struct PendingRequestRetraction final { std::uint64_t messageId; };
+  using PendingEvent = std::variant<
+      ProcessFederationInteractionEvent,
+      ProcessFederationAttributeUpdateEvent,
+      ProcessFederationAttributeValueUpdateRequestEvent,
+      ProcessFederationAttributeOwnershipQueryEvent,
+      ProcessFederationAttributeOwnershipAcquisitionIfAvailableEvent,
+      ProcessFederationAttributeOwnershipAcquisitionEvent,
+      ProcessFederationAttributeOwnershipUnavailableEvent,
+      ProcessFederationObjectInstanceDiscoveryEvent,
+      ProcessFederationObjectInstanceRemovalEvent,
+      ProcessFederationObjectInstanceScopeChangeEvent,
+      ProcessFederationAttributeRelevanceAdvisoryEvent,
+      ProcessFederationAttributeTransportationTypeChangeEvent,
+      ProcessFederationAttributeTransportationTypeQueryEvent,
+      ProcessFederationInteractionTransportationTypeChangeEvent,
+      ProcessFederationInteractionTransportationTypeQueryEvent,
+      ProcessFederationSynchronizationPointAnnouncementEvent,
+      ProcessFederationFederationSynchronizedEvent,
+      ProcessFederationSaveEvent,
+      ProcessFederationRestoreEvent,
+      ProcessFederationLogicalTime,
+      PendingFlushQueueGrant,
+      PendingRequestRetraction>;
+  // One FIFO preserves the order of heterogeneous pushed frames. Keeping a
+  // single draining owner avoids taking a second lock across the dispatcher;
+  // an immediate callback may reenter on that same owner thread.
+  std::deque<PendingEvent> pendingEvents_;
+  std::thread::id dispatchOwner_;
+  std::size_t dispatchDepth_ = 0U;
   // An unsolicited Request Retraction can arrive while a receive poll is
   // still awaiting its response.  Queue its delivery acknowledgement until
   // that outer response has been consumed so the single process stream never

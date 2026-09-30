@@ -481,6 +481,8 @@ struct Options {
   std::wstring federateType = L"tck-type";
   std::wstring objectClassName = L"HLAobjectRoot.TckObject";
   std::wstring attributeName = L"Value";
+  std::wstring secondaryAttributeName = L"Name";
+  std::wstring objectClassThirdAttributeName = L"PayRate";
   std::wstring autoProvideObjectClassName = L"HLAobjectRoot.TckAutoProvideObject";
   std::wstring autoProvideFirstAttributeName = L"ProviderAValue";
   std::wstring autoProvideSecondAttributeName = L"ProviderBValue";
@@ -498,6 +500,10 @@ struct Options {
       L"HLAinteractionRoot.TckTransportRegionalInteraction";
   std::wstring customRegionalParameterName = L"RegionalPayload";
   std::wstring interactionClassName = L"HLAinteractionRoot.TckInteraction";
+  std::wstring secondaryDirectedObjectClassName =
+      L"HLAobjectRoot.TckObject.TckSecondaryObject";
+  std::wstring secondaryDirectedInteractionClassName =
+      L"HLAinteractionRoot.TckSecondaryDirectedInteraction";
   std::wstring parameterName = L"Payload";
   std::wstring typedObjectClassName = L"HLAobjectRoot.TckTypedObject";
   std::wstring typedDerivedObjectClassName =
@@ -24171,7 +24177,7 @@ void scenarioServiceReportReceiveOrderInteraction(
        {40,
         L"Constrained set of interaction parameter designator and value pairs",
         L"{\"" + parameter.toString() + L"\":\"AQI=\"}"},
-       {63, L"User-supplied tag", L"\"cm9p\""},
+       {60, L"User-supplied tag", L"\"cm9p\""},
        {34, L"Optional timestamp", L"null"}},
       {34, L"", L"null"},
       0,
@@ -24464,7 +24470,7 @@ void scenarioServiceReportTimestampedDirectedInteraction(
       40,
       L"Constrained set of interaction parameter designator and value pairs",
       L"{}");
-  verifyArgument(3U, 63, L"User-supplied tag", L"\"dHNv\"");
+  verifyArgument(3U, 60, L"User-supplied tag", L"\"dHNv\"");
   verifyArgument(
       4U,
       31,
@@ -24842,7 +24848,7 @@ void scenarioServiceReportTimestampedAttributeUpdate(
       2,
       L"Constrained set of attribute designator and value pairs",
       std::wstring{L"{"} + quoted(publisherAttribute.toString()) + L":\"AQI=\"}");
-  verifyArgument(2U, 63, L"User-supplied tag", L"\"dHNv\"");
+  verifyArgument(2U, 60, L"User-supplied tag", L"\"dHNv\"");
   verifyArgument(
       3U,
       31,
@@ -25190,7 +25196,7 @@ void scenarioServiceReportTimestampedDeleteObjectInstance(
       37,
       L"Object instance designator",
       quoted(object.toString()));
-  verifyArgument(1U, 63, L"User-supplied tag", L"\"dHNv\"");
+  verifyArgument(1U, 60, L"User-supplied tag", L"\"dHNv\"");
   verifyArgument(
       2U,
       31,
@@ -25599,7 +25605,7 @@ void scenarioServiceReportSynchronization(
   verifyReport(
       latestReport(L"RegisterFederationSynchronizationPoint"),
       L"RegisterFederationSynchronizationPoint",
-      {53, 63, 18},
+      {53, 60, 18},
       {L"Synchronization point label",
        L"User-supplied tag",
        L"Optional set of joined federate designators"},
@@ -25617,7 +25623,7 @@ void scenarioServiceReportSynchronization(
   verifyReport(
       latestReport(L"AnnounceSynchronizationPoint"),
       L"AnnounceSynchronizationPoint",
-      {53, 63},
+      {53, 60},
       {L"Synchronization point label", L"User-supplied tag"},
       2,
       std::nullopt);
@@ -25648,7 +25654,7 @@ void scenarioServiceReportSynchronization(
   verifyReport(
       latestReport(L"RegisterFederationSynchronizationPoint"),
       L"RegisterFederationSynchronizationPoint",
-      {53, 63, 18},
+      {53, 60, 18},
       {L"Synchronization point label",
        L"User-supplied tag",
        L"Optional set of joined federate designators"},
@@ -28517,7 +28523,7 @@ void scenarioServiceReportInteractionFailure(
         1U,
         40,
         L"Constrained set of interaction parameter designator and value pairs");
-    verifyArgument(2U, 63, L"User-supplied tag");
+    verifyArgument(2U, 60, L"User-supplied tag");
     verifyArgument(3U, 34, L"Optional timestamp");
 
     rti::HLAfixedRecord returnedArgument;
@@ -30577,7 +30583,7 @@ void scenarioServiceReportRegionalInteractionFailure(
         40,
         L"Constrained set of interaction parameter designator and value pairs");
     verifyArgument(2U, 43, L"Set of region designators");
-    verifyArgument(3U, 63, L"User-supplied tag");
+    verifyArgument(3U, 60, L"User-supplied tag");
     verifyArgument(4U, 34, L"Optional timestamp");
 
     rti::HLAfixedRecord returnedArgument;
@@ -30879,7 +30885,7 @@ void scenarioServiceReportAttributeUpdateFailure(
         2,
         L"Constrained set of attribute designator and value pairs",
         mapValue);
-    verifyArgument(2U, 63, L"User-supplied tag", L"\"cmVn\"");
+    verifyArgument(2U, 60, L"User-supplied tag", L"\"cmVn\"");
     verifyArgument(3U, 34, L"Optional timestamp", L"null");
 
     rti::HLAfixedRecord returnedArgument;
@@ -31196,7 +31202,7 @@ void scenarioServiceReportTimestampedAttributeUpdateFailure(
         2,
         L"Constrained set of attribute designator and value pairs",
         mapValue);
-    verifyArgument(2U, 63, L"User-supplied tag", L"\"dHNv\"");
+    verifyArgument(2U, 60, L"User-supplied tag", L"\"dHNv\"");
     verifyArgument(
         3U,
         31,
@@ -31515,7 +31521,7 @@ void scenarioServiceReportTimestampedInteractionFailure(
         40,
         L"Constrained set of interaction parameter designator and value pairs",
         mapValue);
-    verifyArgument(2U, 63, L"User-supplied tag", L"\"dHNv\"");
+    verifyArgument(2U, 60, L"User-supplied tag", L"\"dHNv\"");
     verifyArgument(
         3U,
         31,
@@ -31852,7 +31858,7 @@ void scenarioServiceReportTimestampedDeleteObjectInstanceFailure(
         37,
         L"Object instance designator",
         L"\"" + objectValue + L"\"");
-    verifyArgument(1U, 63, L"User-supplied tag", L"\"dHNv\"");
+    verifyArgument(1U, 60, L"User-supplied tag", L"\"dHNv\"");
     verifyArgument(
         2U,
         31,
@@ -78041,6 +78047,10 @@ void printHelp() {
       "  --custom-regional-parameter NAME\n"
       "                                Timestamped regional custom-transport parameter\n"
       "  --interaction-class NAME      Interaction class handle lookup name\n"
+      "  --secondary-directed-object-class NAME\n"
+      "                                Second adapter FOM object class for directed-subscription scenarios\n"
+      "  --secondary-directed-interaction-class NAME\n"
+      "                                Second adapter FOM class for directed-subscription scenarios\n"
       "  --parameter NAME              Parameter handle lookup name\n"
       "  --known-class-object-class NAME\n"
       "                                Known-class advisory base object class name\n"
@@ -78210,6 +78220,12 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--attribute") {
       requireValue(index, argc, argv, argument);
       options.attributeName = toWide(argv[++index]);
+    } else if (argument == "--secondary-attribute") {
+      requireValue(index, argc, argv, argument);
+      options.secondaryAttributeName = toWide(argv[++index]);
+    } else if (argument == "--object-class-third-attribute") {
+      requireValue(index, argc, argv, argument);
+      options.objectClassThirdAttributeName = toWide(argv[++index]);
     } else if (argument == "--auto-provide-object-class") {
       requireValue(index, argc, argv, argument);
       options.autoProvideObjectClassName = toWide(argv[++index]);
@@ -78267,6 +78283,12 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--interaction-class") {
       requireValue(index, argc, argv, argument);
       options.interactionClassName = toWide(argv[++index]);
+    } else if (argument == "--secondary-directed-object-class") {
+      requireValue(index, argc, argv, argument);
+      options.secondaryDirectedObjectClassName = toWide(argv[++index]);
+    } else if (argument == "--secondary-directed-interaction-class") {
+      requireValue(index, argc, argv, argument);
+      options.secondaryDirectedInteractionClassName = toWide(argv[++index]);
     } else if (argument == "--parameter") {
       requireValue(index, argc, argv, argument);
       options.parameterName = toWide(argv[++index]);

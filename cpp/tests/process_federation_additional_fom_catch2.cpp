@@ -219,7 +219,7 @@ TEST_CASE(
 TEST_CASE(
     "RTIambassador carries additional FOM modules through a configured process Join",
     "[integration][development-profile][federation-management][fom][fom-module-management]"
-    "[transport][process-boundary][public-endpoint]"
+    "[transport][process-boundary][public-endpoint][summary-rule-3]"
     "[rti.service.join-federation-execution][rti.service.get-object-class-handle]"
     "[rti.service.get-object-class-name][2025]") {
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});

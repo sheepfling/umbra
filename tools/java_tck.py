@@ -41,8 +41,15 @@ def load_catalog(path: Path = CATALOG) -> dict[str, Any]:
                 raise ValueError(f"{scenario.get('id', '<unknown>')} missing {field}")
         if not scenario.get("api_methods"):
             raise ValueError(f"{scenario['id']} must link standard Java API methods")
-        if not scenario.get("requirement_ids"):
-            raise ValueError(f"{scenario['id']} must have stable requirement IDs")
+        if (
+            not scenario.get("requirement_ids")
+            and scenario.get("mapping_classification")
+            != "api-contract-only-not-normative-conformance"
+        ):
+            raise ValueError(
+                f"{scenario['id']} must have stable requirement IDs or an explicit "
+                "API-contract-only classification"
+            )
         if not scenario.get("contract_refs"):
             raise ValueError(f"{scenario['id']} must reference compliance contracts")
         if scenario["default_status"] not in {"run", "unsupported", "not applicable"}:
@@ -258,13 +265,19 @@ def export(
             evidence.append(
                 {
                     "id": f"java-tck.{provider}.{scenario_id}",
-                    "kind": "integration-test",
+                    "kind": (
+                        "api-contract-test"
+                        if scenario.get("mapping_classification")
+                        == "api-contract-only-not-normative-conformance"
+                        else "integration-test"
+                    ),
                     "status": "passed" if status == "pass" else "failed" if status == "fail" else "blocked",
                     "execution_mode": "real" if status in {"pass", "fail"} else "unknown",
                     "provider": provider,
                     "artifact": result["path"],
                     "scenario_id": scenario_id,
                     "requirement_ids": scenario["requirement_ids"],
+                    "mapping_classification": scenario.get("mapping_classification"),
                     "api_methods": scenario["api_methods"],
                     "notes": item.get("message", "No provider result was supplied") if item else "No provider result was supplied",
                 }

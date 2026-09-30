@@ -330,7 +330,7 @@ TEST_CASE(
 
   auto const& report = observerCallbacks.serviceReports.front();
   REQUIRE(report.interactionClass == reportClass);
-  REQUIRE(report.parameterValues.size() == 7U);
+  REQUIRE(report.parameterValues.size() == 8U);
   REQUIRE(report.userSuppliedTag.size() == 0U);
   REQUIRE(report.transportationType ==
           observer->getTransportationTypeHandle(standard_hla::mom::reliable));
@@ -374,7 +374,7 @@ TEST_CASE(
                  L"{\"" + std::wstring{parameter.toString()} + L"\":\"AQI=\"}");
   verifyArgument(2U, 43, L"Set of region designators", L"[\"" +
       std::wstring{publisherRegion.toString()} + L"\"]");
-  verifyArgument(3U, 63, L"User-supplied tag", L"\"dHNv\"");
+  verifyArgument(3U, 60, L"User-supplied tag", L"\"dHNv\"");
   verifyArgument(4U, 31, L"Optional timestamp", L"\"" + timestamp.toString() + L"\"");
 
   rti1516_2025::HLAfixedRecord returnedArgument;

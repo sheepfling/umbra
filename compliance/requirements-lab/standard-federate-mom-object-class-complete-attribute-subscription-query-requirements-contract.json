@@ -1,0 +1,35 @@
+{
+    "schema_version": 1,
+    "kind": "requirements-reference",
+    "document_id": "hla-1516.1-2025",
+    "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+    "notes": "IEEE 1516.1-2025 does not define a separate whole-class subscribeObjectClass service. The portable equivalent subscribes to every ordinary attribute in the adapter-selected class using subscribeObjectClassAttributes and verifies that exact handle set in the standard MIM report. Completeness is a fixture property supplied by the adapter FOM, not a new normative API claim. No DDM region behavior is covered.",
+    "requirements": [
+        {
+            "id": "cpp-tck-federate-mom-complete-object-class-attribute-subscription",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4",
+            "clause_id": "clause-5.9.4",
+            "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+            "source_lines": "535-539",
+            "source_symbol": "subscribeObjectClassAttributes",
+            "statement": "The subject federate subscribes through the standard attribute-set service to the complete adapter-configured attribute handle set for the selected object class; the requester verifies that the standard MIM object-class subscription report contains exactly those handles and the configured active state and update-rate designator.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassCompleteAttributeSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassCompleteAttributeSubscriptionQueryContract"
+            ]
+        },
+        {
+            "id": "cpp-tck-federate-mom-complete-object-class-attribute-subscription-report",
+            "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+            "clause_id": "clause-11.4.1",
+            "source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+            "source_lines": "1077-1090, 1316-1367",
+            "source_symbol": "HLAreportObjectClassSubscription",
+            "statement": "The requester uses the standard MIM subscription request/report interactions to query the joined subject. The returned object-class subscription report identifies the selected class, active state, update-rate designator, and exact subscribed attribute-handle set, which is decoded through the public RTIambassador API.",
+            "tests": [
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassCompleteAttributeSubscriptionQuery",
+                "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomObjectClassCompleteAttributeSubscriptionQueryContract"
+            ]
+        }
+    ]
+}

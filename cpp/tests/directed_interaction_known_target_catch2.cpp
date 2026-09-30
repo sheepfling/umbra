@@ -314,3 +314,110 @@ TEST_CASE(
   REQUIRE_NOTHROW(immediate->disconnect());
   REQUIRE_NOTHROW(unsubscribed->disconnect());
 }
+
+TEST_CASE(
+    "Send Directed Interaction rejects unavailable parameters and forwards exactly the supplied values",
+    "[integration][development-profile][interaction-management][directed]"
+    "[directed-interaction-known-target][directed-interaction-parameter-contract][2025]"
+    "[rti.service.send-directed-interaction]"
+    "[federate.callback.receive-directed-interaction]") {
+  ReportingFederateAmbassador publisherReports;
+  ReportingFederateAmbassador subscriberReports;
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const objectConsumer = testDataPath(
+      "directed-interaction-object-consumer-fom.xml").wstring();
+  auto const parameterProvider = testDataPath(
+      "directed-interaction-parameter-contract-provider-fom.xml").wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{objectConsumer, parameterProvider},
+      standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"directed-parameter-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"directed-parameter-subscriber", L"subscriber", federationName));
+
+  auto const objectClass = publisher->getObjectClassHandle(
+      fixture_hla::fom::directed_fixture_object);
+  auto const marker = publisher->getAttributeHandle(
+      objectClass, fixture_hla::fixture::directed_target_marker);
+  auto const interactionClass = publisher->getInteractionClassHandle(
+      fixture_hla::fom::directed_fixture_interaction);
+  auto const primaryPayload = publisher->getParameterHandle(
+      interactionClass, L"PrimaryPayload");
+  auto const secondaryPayload = publisher->getParameterHandle(
+      interactionClass, L"SecondaryPayload");
+  auto const foreignInteraction = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.UmbraForeignParameterContractInteraction");
+  auto const foreignParameter = publisher->getParameterHandle(
+      foreignInteraction, L"ForeignParameter");
+  REQUIRE(objectClass.isValid());
+  REQUIRE(marker.isValid());
+  REQUIRE(interactionClass.isValid());
+  REQUIRE(primaryPayload.isValid());
+  REQUIRE(secondaryPayload.isValid());
+  REQUIRE(foreignInteraction.isValid());
+  REQUIRE(foreignParameter.isValid());
+  REQUIRE(foreignParameter != primaryPayload);
+
+  InteractionClassHandleSet const directedClasses{interactionClass};
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(objectClass, {marker}));
+  REQUIRE_NOTHROW(publisher->publishObjectClassDirectedInteractions(
+      objectClass, directedClasses));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassDirectedInteractions(
+      objectClass, directedClasses, true));
+
+  ObjectInstanceHandle target;
+  REQUIRE_NOTHROW(target = publisher->registerObjectInstance(objectClass));
+  REQUIRE(target.isValid());
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.objectDiscoveryReports.size() == 1U);
+
+  std::string const primaryBytes{"primary-value"};
+  std::string const secondaryBytes{"secondary-value"};
+  std::string const foreignBytes{"foreign-value"};
+  VariableLengthData const primaryValue{primaryBytes.data(), primaryBytes.size()};
+  VariableLengthData const secondaryValue{secondaryBytes.data(), secondaryBytes.size()};
+  VariableLengthData const foreignValue{foreignBytes.data(), foreignBytes.size()};
+  ParameterHandleValueMap sentValues;
+  sentValues.emplace(primaryPayload, primaryValue);
+  sentValues.emplace(secondaryPayload, secondaryValue);
+  ParameterHandleValueMap invalidValues{sentValues};
+  invalidValues.emplace(foreignParameter, foreignValue);
+
+  REQUIRE_THROWS_AS(
+      publisher->sendDirectedInteraction(
+          interactionClass, target, invalidValues, VariableLengthData{}),
+      rti1516_2025::InteractionParameterNotDefined);
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.directedInteractionReports.empty());
+
+  REQUIRE_NOTHROW(publisher->sendDirectedInteraction(
+      interactionClass, target, sentValues, VariableLengthData{}));
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberReports.directedInteractionReports.size() == 1U);
+  auto const& report = subscriberReports.directedInteractionReports.front();
+  REQUIRE(report.interactionClass == interactionClass);
+  REQUIRE(report.objectInstance == target);
+  REQUIRE(report.parameterValues.size() == sentValues.size());
+  REQUIRE(report.parameterValues.contains(primaryPayload));
+  REQUIRE(report.parameterValues.contains(secondaryPayload));
+  REQUIRE_FALSE(report.parameterValues.contains(foreignParameter));
+  REQUIRE(variableLengthDataBytes(report.parameterValues.at(primaryPayload)) ==
+          std::vector<unsigned char>(primaryBytes.begin(), primaryBytes.end()));
+  REQUIRE(variableLengthDataBytes(report.parameterValues.at(secondaryPayload)) ==
+          std::vector<unsigned char>(secondaryBytes.begin(), secondaryBytes.end()));
+
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(publisher->disconnect());
+  REQUIRE_NOTHROW(subscriber->disconnect());
+}

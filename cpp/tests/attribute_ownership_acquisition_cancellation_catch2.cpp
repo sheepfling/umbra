@@ -491,7 +491,7 @@ TEST_CASE(
 
   auto const& report = observerReports.interactionReports.front();
   REQUIRE(report.interactionClass == reportClass);
-  REQUIRE(report.parameterValues.size() == 7U);
+  REQUIRE(report.parameterValues.size() == 8U);
   REQUIRE(report.userSuppliedTag.size() == 0U);
   REQUIRE(report.transportationType ==
           observer->getTransportationTypeHandle(standard_hla::mom::reliable));

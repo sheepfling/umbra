@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "umbra-rti-observer"
+version = "0.1.0"
+description = "Standalone provider-neutral runtime event observer and dashboard"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Umbra contributors" }]
+dependencies = []
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.optional-dependencies]
+web = ["fastapi>=0.115", "uvicorn[standard]>=0.30"]
+test = ["pytest>=8"]
+
+[project.scripts]
+umbra-rti-observer = "umbra_rti_observer.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+umbra_rti_observer = ["static/*.html"]

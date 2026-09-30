@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "A subject first subscribes actively to one adapter-selected application interaction and passively to the standard HLAreportServiceInvocation interaction from the adapter-supplied IEEE 1516.2-2025 MIM. After a requester confirms both subscription states through HLArequestSubscriptions, the subject invokes the standard class-scoped unsubscribeInteractionClass service for only the passive MIM class. A fresh query must list only the active application interaction. The scenario uses only official IEEE 1516.1-2025 RTIambassador and FederateAmbassador APIs, standard MIM content, standard encoding DataElements, and the C++ standard library. Provider, application FOM, endpoint, callback configuration, application interaction name, and update-rate designator remain adapter supplied. No vendor API, private headers, or DDM regions are used.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-interaction-subscription-unsubscribe-query-subscribe",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void subscribeInteractionClass( InteractionClassHandle const & interactionClass, bool active = true) = 0",
+      "exception_types": [
+        "FederateServiceInvocationsAreBeingReportedViaMOM",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "subscribeInteractionClass",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionUnsubscribeQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionUnsubscribeQueryContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-interaction-subscription-unsubscribe-query-unsubscribe",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.unsubscribeinteractionclass.4d5941b5cddf",
+      "owner": "RTIambassador",
+      "language": "cpp",
+      "signature": "virtual void unsubscribeInteractionClass( InteractionClassHandle const & interactionClass) = 0",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "unsubscribeInteractionClass",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionUnsubscribeQuery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomMultipleInteractionSubscriptionUnsubscribeQueryContract"
+      ]
+    }
+  ]
+}

@@ -4,6 +4,9 @@
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
+#include <RTI/encoding/BasicDataElements.h>
+#include <RTI/encoding/HLAfixedRecord.h>
+#include <RTI/encoding/HLAvariableArray.h>
 
 #include <algorithm>
 #include <atomic>
@@ -23,6 +26,7 @@ using rti1516_2025::AttributeHandle;
 using rti1516_2025::AttributeHandleSet;
 using rti1516_2025::FederateHandle;
 using rti1516_2025::HLA_EVOKED;
+using rti1516_2025::InteractionClassHandle;
 using rti1516_2025::ObjectClassHandle;
 using rti1516_2025::ObjectInstanceHandle;
 using rti1516_2025::RTIambassador;
@@ -43,6 +47,11 @@ std::filesystem::path resourcePath(std::filesystem::path const& relativePath) {
 class ReportingFederateAmbassador final
     : public rti1516_2025::NullFederateAmbassador {
  public:
+  struct InteractionReport final {
+    InteractionClassHandle interactionClass;
+    rti1516_2025::ParameterHandleValueMap parameterValues;
+  };
+
   struct ObjectDiscoveryReport final {
     ObjectInstanceHandle objectInstance;
     ObjectClassHandle objectClass;
@@ -90,6 +99,17 @@ class ReportingFederateAmbassador final
     });
   }
 
+  void receiveInteraction(
+      InteractionClassHandle const& interactionClass,
+      rti1516_2025::ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const&,
+      rti1516_2025::TransportationTypeHandle const&,
+      FederateHandle const&,
+      rti1516_2025::RegionHandleSet const*) override {
+    interactionReports.push_back({interactionClass, parameterValues});
+  }
+
+  std::vector<InteractionReport> interactionReports;
   std::vector<ObjectDiscoveryReport> objectDiscoveryReports;
   std::vector<OwnershipAssumptionReport> ownershipAssumptionReports;
   std::vector<AcquisitionReport> acquisitionReports;
@@ -388,4 +408,95 @@ TEST_CASE(
   REQUIRE_NOTHROW(invitedCandidate->disconnect());
   REQUIRE_NOTHROW(staleCandidate->disconnect());
   REQUIRE_NOTHROW(unpublishedCandidate->disconnect());
+}
+
+TEST_CASE(
+    "Standalone Unconditional Attribute Ownership Divestiture reports UserSuppliedTag using the static 2025 MIM type",
+    "[integration][development-profile][ownership-management][mom]"
+    "[service-reporting][service-report-interaction]"
+    "[rti.service.unconditional-attribute-ownership-divestiture]"
+    "[ownership-service-report-mim-interaction]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador observerReports;
+  auto owner = makeRti();
+  auto observer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const ownershipFom = resourcePath("attribute-update-passel-fom.xml").wstring();
+  auto const switchFom = resourcePath("switch-support-enabled-fom.xml").wstring();
+  unsigned char const tagBytes[] = {0xA2, 0x07, 0x20};
+  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(observer->connect(observerReports, rti1516_2025::HLA_IMMEDIATE));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      std::vector<std::wstring>{ownershipFom, switchFom},
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"unconditional-divestiture-report-owner", L"publisher", federationName));
+  REQUIRE_NOTHROW(observer->joinFederationExecution(
+      L"unconditional-divestiture-report-observer", L"observer", federationName));
+
+  auto const reportClass = observer->getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  REQUIRE(reportClass.isValid());
+  auto const serviceParameter = observer->getParameterHandle(reportClass, L"HLAservice");
+  auto const suppliedArgumentsParameter =
+      observer->getParameterHandle(reportClass, L"HLAsuppliedArguments");
+  auto const successParameter =
+      observer->getParameterHandle(reportClass, L"HLAsuccessIndicator");
+  REQUIRE(serviceParameter.isValid());
+  REQUIRE(suppliedArgumentsParameter.isValid());
+  REQUIRE(successParameter.isValid());
+  REQUIRE_NOTHROW(observer->setServiceReportingSwitch(false));
+  REQUIRE_NOTHROW(observer->subscribeInteractionClass(reportClass));
+  REQUIRE_NOTHROW(owner->setServiceReportingSwitch(false));
+  REQUIRE_NOTHROW(owner->setSendServiceReportsToFileSwitch(false));
+
+  auto const child = owner->getObjectClassHandle(
+      fixture_hla::fom::attribute_fixture_child);
+  auto const attribute = owner->getAttributeHandle(
+      child, fixture_hla::fixture::reliable_base_a);
+  REQUIRE(child.isValid());
+  REQUIRE(attribute.isValid());
+  AttributeHandleSet const attributes{attribute};
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(child, attributes));
+  ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(child));
+
+  REQUIRE_NOTHROW(owner->setServiceReportingSwitch(true));
+  REQUIRE_NOTHROW(owner->setSendServiceReportsToFileSwitch(false));
+  REQUIRE_NOTHROW(owner->unconditionalAttributeOwnershipDivestiture(
+      objectInstance, attributes, tag));
+  REQUIRE(observerReports.interactionReports.size() == 1U);
+
+  auto const& report = observerReports.interactionReports.front();
+  REQUIRE(report.interactionClass == reportClass);
+  rti1516_2025::HLAunicodeString service;
+  REQUIRE_NOTHROW(service.decode(report.parameterValues.at(serviceParameter)));
+  REQUIRE(service.get() == L"UnconditionalAttributeOwnershipDivestiture");
+  rti1516_2025::HLAboolean success;
+  REQUIRE_NOTHROW(success.decode(report.parameterValues.at(successParameter)));
+  REQUIRE(success.get());
+
+  rti1516_2025::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti1516_2025::HLAinteger32BE{})
+      .appendElement(rti1516_2025::HLAunicodeString{})
+      .appendElement(rti1516_2025::HLAunicodeString{});
+  rti1516_2025::HLAvariableArray suppliedArguments{argumentPrototype};
+  REQUIRE_NOTHROW(suppliedArguments.decode(
+      report.parameterValues.at(suppliedArgumentsParameter)));
+  REQUIRE(suppliedArguments.size() == 3U);
+  auto const& tagArgument = dynamic_cast<rti1516_2025::HLAfixedRecord const&>(
+      suppliedArguments.get(2U));
+  REQUIRE(dynamic_cast<rti1516_2025::HLAinteger32BE const&>(tagArgument.get(0U)).get() == 60);
+  REQUIRE(dynamic_cast<rti1516_2025::HLAunicodeString const&>(tagArgument.get(1U)).get() ==
+      L"User-supplied tag");
+
+  REQUIRE_NOTHROW(owner->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(observer->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(owner->disconnect());
+  REQUIRE_NOTHROW(observer->disconnect());
 }

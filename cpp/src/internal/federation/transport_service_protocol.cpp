@@ -110,6 +110,8 @@ bool isTransportServiceOperation(TransportServiceOperation operation) noexcept {
     case TransportServiceOperation::unsubscribe_object_class_attributes_with_regions:
     case TransportServiceOperation::get_attribute_scope_advisory_switch:
     case TransportServiceOperation::set_attribute_scope_advisory_switch:
+    case TransportServiceOperation::get_object_class_relevance_advisory_switch:
+    case TransportServiceOperation::get_interaction_relevance_advisory_switch:
     case TransportServiceOperation::associate_regions_for_updates:
     case TransportServiceOperation::unassociate_regions_for_updates:
     case TransportServiceOperation::get_attribute_relevance_advisory_switch:
@@ -146,6 +148,7 @@ bool isTransportServiceOperation(TransportServiceOperation operation) noexcept {
     case TransportServiceOperation::get_available_dimensions_for_object_class:
     case TransportServiceOperation::get_available_dimensions_for_interaction_class:
     case TransportServiceOperation::get_convey_region_designator_sets_switch:
+    case TransportServiceOperation::get_allow_relaxed_ddm_switch:
     case TransportServiceOperation::set_convey_region_designator_sets_switch:
     case TransportServiceOperation::subscribe_interaction_class_with_regions:
     case TransportServiceOperation::unsubscribe_interaction_class_with_regions:
@@ -201,6 +204,23 @@ bool isTransportServiceOperation(TransportServiceOperation operation) noexcept {
     case TransportServiceOperation::federate_restore_not_complete:
     case TransportServiceOperation::abort_federation_restore:
     case TransportServiceOperation::query_federation_restore_status:
+    case TransportServiceOperation::get_service_reporting_switch:
+    case TransportServiceOperation::set_service_reporting_switch:
+    case TransportServiceOperation::get_send_service_reports_to_file_switch:
+    case TransportServiceOperation::set_send_service_reports_to_file_switch:
+    case TransportServiceOperation::report_failed_service_invocation:
+    case TransportServiceOperation::report_successful_service_invocation:
+    case TransportServiceOperation::report_successful_void_service_invocation:
+      return true;
+    case TransportServiceOperation::destroy_federation_execution:
+    case TransportServiceOperation::unpublish_object_class_attributes:
+    case TransportServiceOperation::unpublish_object_class:
+    case TransportServiceOperation::get_update_rate_value:
+    case TransportServiceOperation::get_update_rate_value_for_attribute:
+    case TransportServiceOperation::get_exception_reporting_switch:
+    case TransportServiceOperation::set_exception_reporting_switch:
+    case TransportServiceOperation::report_service_exception:
+    case TransportServiceOperation::recheck_exception_report:
       return true;
   }
   return false;
@@ -212,6 +232,7 @@ bool isTransportServiceStatus(TransportServiceStatus status) noexcept {
     case TransportServiceStatus::rejected:
     case TransportServiceStatus::invalid_request:
     case TransportServiceStatus::internal_error:
+    case TransportServiceStatus::service_reporting_interlock:
       return true;
   }
   return false;

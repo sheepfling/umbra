@@ -252,3 +252,42 @@ TEST_CASE(
   REQUIRE_NOTHROW(owner->disconnect());
   REQUIRE_NOTHROW(peer->disconnect());
 }
+
+TEST_CASE(
+    "Embedded Register Object Instance With Regions rejects an invalid region designator",
+    "[integration][development-profile][federation-management][object-management]"
+    "[data-distribution-management][object-instance-registration-invalid-region]"
+    "[requirements-lab-issue-248][rti.service.register-object-instance-with-regions][2025]") {
+  NullFederateAmbassador callbacks;
+  auto rti = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule =
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(rti->connect(callbacks, HLA_EVOKED));
+  REQUIRE_NOTHROW(rti->createFederationExecution(
+      federationName, fomModule, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"invalid-region-owner", L"owner", federationName));
+
+  auto const soda = rti->getObjectClassHandle(fixture_hla::fom::food_drink_soda);
+  auto const flavor = rti->getAttributeHandle(soda, fixture_hla::fixture::flavor);
+  REQUIRE(soda.isValid());
+  REQUIRE(flavor.isValid());
+
+  AttributeHandleSet const flavorOnly{flavor};
+  REQUIRE_NOTHROW(rti->publishObjectClassAttributes(soda, flavorOnly));
+  rti1516_2025::RegionHandle const invalidRegion;
+  AttributeHandleSetRegionHandleSetPairVector const invalidPair{{
+      flavorOnly,
+      RegionHandleSet{invalidRegion},
+  }};
+  REQUIRE_THROWS_AS(
+      rti->registerObjectInstanceWithRegions(soda, invalidPair),
+      rti1516_2025::InvalidRegion);
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
