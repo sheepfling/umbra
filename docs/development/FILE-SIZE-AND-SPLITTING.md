@@ -95,9 +95,24 @@ The first wave should be staged rather than attempted as one rewrite:
   advance case now lives in
   `ieee1516_2025_timestamped_regional_interaction_alternate_advances_catch2.cpp`
   (158 lines, one focused CTest); its 8 direct requirement-section pairs are
-  preserved. The original suite is now 62,957 lines, 7,330 fewer than its
-  70,287-line starting point. The next bounded handoff is the mapped regional
-  ordinary TAR/NMR TSO-delivery case.
+  preserved. The ordinary TAR/NMR regional TSO-delivery case now lives in
+  ieee1516_2025_timestamped_regional_interaction_tar_nmr_catch2.cpp (142
+  lines, one focused CTest); its 8 direct requirement-section pairs are
+  preserved. The mixed regional TSO case spanning FQR, TARA, and NMRA grants
+  now lives in ieee1516_2025_timestamped_regional_interaction_mixed_advances_catch2.cpp
+  (168 lines, one focused CTest); its 13 direct requirement-section pairs are
+  preserved. The timestamped default-region interaction delivered by Flush
+  Queue Request now lives in
+  ieee1516_2025_timestamped_default_region_interaction_flush_queue_catch2.cpp
+  (115 lines, one focused CTest); its 11 direct requirement-section pairs are
+  preserved. The pending regular ownership-acquisition restore case now lives
+  in ieee1516_2025_public_ownership_acquisition_restore_catch2.cpp (314 lines,
+  177 assertions, one focused CTest); its 13 direct requirement-section pairs
+  and both callback models remain intact. Its collision-resistant temporary
+  directories, registry scope, and report-file helpers are shared through a
+  focused 2025 test-support header. The original suite is now 62,125 lines,
+  8,162 fewer than its 70,287-line starting point. The next bounded
+  handoff is the mapped mixed negotiated ownership-confirmation restore case.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in

@@ -55,8 +55,8 @@
     },
     {
       "path": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-      "max_lines": 62957,
-      "reason": "Large mapped 2025 suite; restore TSO/retraction, time-window restore, pending time-role callback-rebinding, pending request-rescheduling, custom transportation-type control, directed-interaction Request Retraction, regional interaction subscription, evoked source-region snapshot, timestamped regional TSO/retraction, and alternate-advance slices are isolated, with the shared 570-line helper compiled once; continue by lane with exact source mappings."
+      "max_lines": 62125,
+      "reason": "Large mapped 2025 suite; restore TSO/retraction, time-window restore, pending time-role callback-rebinding, pending request-rescheduling, custom transportation-type control, directed-interaction Request Retraction, regional interaction subscription, evoked source-region snapshot, timestamped regional TSO/retraction, alternate-advance, ordinary TAR/NMR, mixed FQR/TARA/NMRA, default-region FQR, and pending regular ownership-acquisition restore slices are isolated; public restore temporary-directory, registry-scope, and report-file helpers are shared by focused 2025 tests; continue by lane with exact source mappings."
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_catch2.cpp",
