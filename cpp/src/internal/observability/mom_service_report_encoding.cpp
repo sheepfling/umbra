@@ -1,5 +1,6 @@
 #include "internal/observability/mom_service_report_encoding.hpp"
 
+#include "internal/encoding/variable_length_data_2025.hpp"
 #include "internal/fom/hla_names.hpp"
 
 #include <RTI/encoding/BasicDataElements.h>
@@ -471,11 +472,7 @@ std::wstring formatMomCredentials(rti1516_2025::Credentials const& value) {
   // Table 5's Credentials row preserves the credential type and encodes its
   // opaque payload using the section 11.5.1 Binary Data text form.
   auto const data = value.getData();
-  auto const* first = static_cast<std::uint8_t const*>(data.data());
-  std::vector<std::uint8_t> bytes;
-  if (data.size() != 0U) {
-    bytes.assign(first, first + data.size());
-  }
+  auto bytes = umbra::detail::variable_length_data_2025::copyBytes(data);
   return formatMomCredentials(
       MomServiceReportCredentials{value.getType(), std::move(bytes)});
 }
@@ -762,9 +759,9 @@ VariableLengthData encodeMomServiceArgumentList(std::vector<MomServiceArgument> 
   appendDataElement(bytes, count);
   for (auto const& argument : arguments) {
     auto const encoded = encodeMomServiceArgument(argument);
-    auto const* data = static_cast<Octet const*>(encoded.data());
     appendPadding(bytes, 4U);
-    bytes.insert(bytes.end(), data, data + encoded.size());
+    variable_length_data_2025::appendEncodedBytes(
+        bytes, encoded, L"The MOM service argument encoding is invalid.");
   }
   return toVariableLengthData(bytes);
 }

@@ -2,6 +2,9 @@
 #include <RTI/encoding/EncodingExceptions.h>
 #include <RTI/encoding/HLAfixedRecord.h>
 
+#include "internal/encoding/composite_2025.hpp"
+#include "internal/encoding/variable_length_data_2025.hpp"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -18,48 +21,40 @@ namespace {
 
 [[nodiscard]] std::vector<rti1516_2025::Octet> toOctets(
     rti1516_2025::VariableLengthData const& input) {
-  auto const* bytes = static_cast<rti1516_2025::Octet const*>(input.data());
-  if (input.size() != 0U && bytes == nullptr) {
-    invalidEncoding(L"The encoded HLAfixedRecord buffer is invalid.");
-  }
-  return bytes == nullptr ? std::vector<rti1516_2025::Octet>{}
-                          : std::vector<rti1516_2025::Octet>(bytes, bytes + input.size());
+  return umbra::detail::variable_length_data_2025::copyEncodedBytes(
+      input, L"The encoded HLAfixedRecord buffer is invalid.");
 }
 
 [[nodiscard]] std::size_t checkedAdd(std::size_t left, std::size_t right) {
-  if (right > std::numeric_limits<std::size_t>::max() - left) {
+  std::size_t result = 0U;
+  if (!umbra::detail::composite2025::tryCheckedAdd(left, right, result)) {
     invalidEncoding(L"The HLAfixedRecord encoded length overflows size_t.");
   }
-  return left + right;
+  return result;
 }
 
 [[nodiscard]] std::size_t paddingAfter(
     std::size_t componentOffset,
     std::size_t componentLength,
     unsigned int nextBoundary) {
-  if (nextBoundary == 0U) {
+  auto const nextOffset = checkedAdd(componentOffset, componentLength);
+  std::size_t padding = 0U;
+  if (!umbra::detail::composite2025::tryPaddingToBoundary(
+          nextOffset, nextBoundary, padding)) {
     invalidEncoding(L"An HLAfixedRecord component has an invalid octet boundary.");
   }
-  auto const nextOffset = checkedAdd(componentOffset, componentLength);
-  auto const remainder = nextOffset % static_cast<std::size_t>(nextBoundary);
-  return remainder == 0U ? 0U : static_cast<std::size_t>(nextBoundary) - remainder;
-}
-
-void appendZeroPadding(std::vector<rti1516_2025::Octet>& bytes, std::size_t count) {
-  bytes.insert(bytes.end(), count, static_cast<rti1516_2025::Octet>(0));
+  return padding;
 }
 
 void requireZeroPadding(
     std::vector<rti1516_2025::Octet> const& bytes,
     std::size_t index,
     std::size_t count) {
-  if (index > bytes.size() || bytes.size() - index < count) {
+  if (!umbra::detail::composite2025::hasRange(bytes, index, count)) {
     invalidEncoding(L"The HLAfixedRecord encoding is truncated in its padding.");
   }
-  for (std::size_t offset = 0U; offset < count; ++offset) {
-    if (static_cast<std::uint8_t>(bytes[index + offset]) != 0U) {
-      invalidEncoding(L"The HLAfixedRecord encoding contains nonzero padding.");
-    }
+  if (!umbra::detail::composite2025::isZeroPadding(bytes, index, count)) {
+    invalidEncoding(L"The HLAfixedRecord encoding contains nonzero padding.");
   }
 }
 
@@ -153,7 +148,7 @@ void HLAfixedRecord::encodeInto(std::vector<Octet>& bytes) const {
         recordOffset,
         componentLength,
         elementAt(*_impl, index + 1U).getOctetBoundary());
-    appendZeroPadding(bytes, padding);
+    umbra::detail::composite2025::appendZeroPadding(bytes, padding);
     recordOffset = checkedAdd(recordOffset, checkedAdd(componentLength, padding));
   }
 }

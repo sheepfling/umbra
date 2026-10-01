@@ -23,8 +23,12 @@ Do not mix a behavioral change with an unrelated whole-file reformat.
 - Use full internal include paths so ownership is visible at the call site.
 - Keep standard-binding entry points in cpp/src/ thin; move detailed state
   machines to their owning internal domain.
+- Put pointer and reference qualifiers with the declarator (`T *value` and
+  `T &value`), because they bind to the variable rather than to the type.
 - Add a focused test in cpp/tests/ and a fixture in cpp/tests/data/ only when
   the behavior needs a distinct model input.
+- Follow [FILE-SIZE-AND-SPLITTING.md](FILE-SIZE-AND-SPLITTING.md) for file-size
+  targets, semantic split boundaries, and the legacy-growth guard.
 
 ## Python and Java rules
 
@@ -49,4 +53,6 @@ Do not mix a behavioral change with an unrelated whole-file reformat.
 The Windows CI workflow runs the same default preset described in
 [CONTRIBUTING.md](../../CONTRIBUTING.md). Local contributors should run that
 baseline before review. Additional format or lint automation should be added
-only after its configuration matches the established source style.
+only after its configuration matches the established source style. The default
+lint route also checks the source-size ratchet: new files must remain below
+their category hard limit, and recorded legacy icebergs may only shrink.

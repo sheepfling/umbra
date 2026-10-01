@@ -7,6 +7,8 @@
 #include <RTI/time/LogicalTimeFactory.h>
 #include <RTI/time/LogicalTimeInterval.h>
 
+#include "internal/encoding/variable_length_data_2025.hpp"
+
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -20,20 +22,15 @@ namespace {
 }
 
 void requireValidEncodedData(rti1516_2025::VariableLengthData const& encoded) {
-  if (encoded.size() != 0U && encoded.data() == nullptr) {
-    invalidEncoding(L"The encoded logical-time value is invalid.");
-  }
+  umbra::detail::variable_length_data_2025::validateEncodedBytes(
+      encoded, L"The encoded logical-time value is invalid.");
 }
 
 void appendEncodedData(
     std::vector<rti1516_2025::Octet>& buffer,
     rti1516_2025::VariableLengthData const& encoded) {
-  requireValidEncodedData(encoded);
-  if (encoded.size() == 0U) {
-    return;
-  }
-  auto const* octets = static_cast<rti1516_2025::Octet const*>(encoded.data());
-  buffer.insert(buffer.end(), octets, octets + encoded.size());
+  umbra::detail::variable_length_data_2025::appendEncodedBytes(
+      buffer, encoded, L"The encoded logical-time value is invalid.");
 }
 
 [[nodiscard]] rti1516_2025::VariableLengthData subrange(

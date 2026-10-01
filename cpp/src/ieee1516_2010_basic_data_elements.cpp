@@ -3,6 +3,10 @@
 #include <RTI/encoding/EncodingExceptions.h>
 #include <RTI/encoding/HLAopaqueData.h>
 
+#include "internal/encoding/byte_order.hpp"
+#include "internal/encoding/fnv1a.hpp"
+#include "internal/encoding/variable_length_data_2010.hpp"
+
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
@@ -53,13 +57,9 @@ class ReferencedValue {
   throw EncoderException(message);
 }
 
-std::vector<Octet> toOctets(VariableLengthData const& input) {
-  auto const* bytes = static_cast<Octet const*>(input.data());
-  if (input.size() != 0U && bytes == nullptr) {
-    invalidEncoding(L"The encoded data buffer is invalid.");
-  }
-  return bytes == nullptr ? std::vector<Octet>{}
-                          : std::vector<Octet>(bytes, bytes + input.size());
+std::vector<Octet> toOctets(VariableLengthData const &input) {
+  return umbra::detail::variable_length_data_2010::copyEncodedBytes(
+      input, L"The encoded data buffer is invalid.");
 }
 
 template <typename To, typename From>
@@ -70,104 +70,68 @@ To bitPreservingCast(From value) {
   return result;
 }
 
+template <typename Unsigned>
+Unsigned readUnsigned(
+    std::vector<Octet> const& input,
+    std::size_t index,
+    umbra::detail::ByteOrder order) {
+  Unsigned value = 0U;
+  if (!umbra::detail::readUnsigned(input, index, order, value)) {
+    invalidEncoding(sizeof(Unsigned) == 2U
+        ? L"The two-octet encoding is truncated."
+        : sizeof(Unsigned) == 4U
+            ? L"The four-octet encoding is truncated."
+            : L"The eight-octet encoding is truncated.");
+  }
+  return value;
+}
+
 void appendUint16BE(std::vector<Octet>& output, std::uint16_t value) {
-  output.push_back(static_cast<Octet>((value >> 8U) & 0xffU));
-  output.push_back(static_cast<Octet>(value & 0xffU));
+  umbra::detail::appendUnsigned(output, value, umbra::detail::ByteOrder::big);
 }
 
 void appendUint16LE(std::vector<Octet>& output, std::uint16_t value) {
-  output.push_back(static_cast<Octet>(value & 0xffU));
-  output.push_back(static_cast<Octet>((value >> 8U) & 0xffU));
+  umbra::detail::appendUnsigned(output, value, umbra::detail::ByteOrder::little);
 }
 
 std::uint16_t readUint16BE(std::vector<Octet> const& input, std::size_t index) {
-  if (index > input.size() || input.size() - index < 2U) {
-    invalidEncoding(L"The two-octet encoding is truncated.");
-  }
-  return static_cast<std::uint16_t>(
-      (static_cast<std::uint16_t>(static_cast<std::uint8_t>(input[index])) << 8U) |
-      static_cast<std::uint8_t>(input[index + 1U]));
+  return readUnsigned<std::uint16_t>(input, index, umbra::detail::ByteOrder::big);
 }
 
 std::uint16_t readUint16LE(std::vector<Octet> const& input, std::size_t index) {
-  if (index > input.size() || input.size() - index < 2U) {
-    invalidEncoding(L"The two-octet encoding is truncated.");
-  }
-  return static_cast<std::uint16_t>(
-      static_cast<std::uint8_t>(input[index]) |
-      (static_cast<std::uint16_t>(static_cast<std::uint8_t>(input[index + 1U])) << 8U));
+  return readUnsigned<std::uint16_t>(input, index, umbra::detail::ByteOrder::little);
 }
 
 void appendUint32BE(std::vector<Octet>& output, std::uint32_t value) {
-  output.push_back(static_cast<Octet>((value >> 24U) & 0xffU));
-  output.push_back(static_cast<Octet>((value >> 16U) & 0xffU));
-  output.push_back(static_cast<Octet>((value >> 8U) & 0xffU));
-  output.push_back(static_cast<Octet>(value & 0xffU));
+  umbra::detail::appendUnsigned(output, value, umbra::detail::ByteOrder::big);
 }
 
 void appendUint32LE(std::vector<Octet>& output, std::uint32_t value) {
-  output.push_back(static_cast<Octet>(value & 0xffU));
-  output.push_back(static_cast<Octet>((value >> 8U) & 0xffU));
-  output.push_back(static_cast<Octet>((value >> 16U) & 0xffU));
-  output.push_back(static_cast<Octet>((value >> 24U) & 0xffU));
+  umbra::detail::appendUnsigned(output, value, umbra::detail::ByteOrder::little);
 }
 
 std::uint32_t readUint32BE(std::vector<Octet> const& input, std::size_t index) {
-  if (index > input.size() || input.size() - index < 4U) {
-    invalidEncoding(L"The four-octet encoding is truncated.");
-  }
-  return (static_cast<std::uint32_t>(static_cast<std::uint8_t>(input[index])) << 24U) |
-      (static_cast<std::uint32_t>(static_cast<std::uint8_t>(input[index + 1U])) << 16U) |
-      (static_cast<std::uint32_t>(static_cast<std::uint8_t>(input[index + 2U])) << 8U) |
-      static_cast<std::uint32_t>(static_cast<std::uint8_t>(input[index + 3U]));
+  return readUnsigned<std::uint32_t>(input, index, umbra::detail::ByteOrder::big);
 }
 
 std::uint32_t readUint32LE(std::vector<Octet> const& input, std::size_t index) {
-  if (index > input.size() || input.size() - index < 4U) {
-    invalidEncoding(L"The four-octet encoding is truncated.");
-  }
-  return static_cast<std::uint32_t>(static_cast<std::uint8_t>(input[index])) |
-      (static_cast<std::uint32_t>(static_cast<std::uint8_t>(input[index + 1U])) << 8U) |
-      (static_cast<std::uint32_t>(static_cast<std::uint8_t>(input[index + 2U])) << 16U) |
-      (static_cast<std::uint32_t>(static_cast<std::uint8_t>(input[index + 3U])) << 24U);
+  return readUnsigned<std::uint32_t>(input, index, umbra::detail::ByteOrder::little);
 }
 
 void appendUint64BE(std::vector<Octet>& output, std::uint64_t value) {
-  for (std::uint32_t shift = 56U;; shift -= 8U) {
-    output.push_back(static_cast<Octet>((value >> shift) & 0xffU));
-    if (shift == 0U) {
-      break;
-    }
-  }
+  umbra::detail::appendUnsigned(output, value, umbra::detail::ByteOrder::big);
 }
 
 void appendUint64LE(std::vector<Octet>& output, std::uint64_t value) {
-  for (std::uint32_t shift = 0U; shift < 64U; shift += 8U) {
-    output.push_back(static_cast<Octet>((value >> shift) & 0xffU));
-  }
+  umbra::detail::appendUnsigned(output, value, umbra::detail::ByteOrder::little);
 }
 
 std::uint64_t readUint64BE(std::vector<Octet> const& input, std::size_t index) {
-  if (index > input.size() || input.size() - index < 8U) {
-    invalidEncoding(L"The eight-octet encoding is truncated.");
-  }
-  std::uint64_t value = 0U;
-  for (std::size_t offset = 0U; offset < 8U; ++offset) {
-    value = (value << 8U) | static_cast<std::uint8_t>(input[index + offset]);
-  }
-  return value;
+  return readUnsigned<std::uint64_t>(input, index, umbra::detail::ByteOrder::big);
 }
 
 std::uint64_t readUint64LE(std::vector<Octet> const& input, std::size_t index) {
-  if (index > input.size() || input.size() - index < 8U) {
-    invalidEncoding(L"The eight-octet encoding is truncated.");
-  }
-  std::uint64_t value = 0U;
-  for (std::size_t offset = 0U; offset < 8U; ++offset) {
-    value |= static_cast<std::uint64_t>(static_cast<std::uint8_t>(input[index + offset])) <<
-        (offset * 8U);
-  }
-  return value;
+  return readUnsigned<std::uint64_t>(input, index, umbra::detail::ByteOrder::little);
 }
 
 template <typename T>
@@ -330,13 +294,8 @@ bool DataElement::isSameTypeAs(DataElement const& other) const {
 
 Integer64 DataElement::hash() const {
   auto const encoded = encode();
-  auto const* bytes = static_cast<Octet const*>(encoded.data());
-  std::uint64_t hash = 14695981039346656037ULL;
-  for (std::size_t index = 0U; index < encoded.size(); ++index) {
-    hash ^= static_cast<std::uint64_t>(static_cast<std::uint8_t>(bytes[index]));
-    hash *= 1099511628211ULL;
-  }
-  return static_cast<Integer64>(hash);
+  return static_cast<Integer64>(umbra::detail::fnv1aHash(
+      encoded.data(), encoded.size()));
 }
 
 EncoderException::EncoderException(std::wstring const& message) throw() : _msg(message) {}

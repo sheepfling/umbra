@@ -1,5 +1,7 @@
 #include "internal/federation/process_federation_service.hpp"
 
+#include "internal/encoding/byte_order.hpp"
+#include "internal/encoding/variable_length_data_2025.hpp"
 #include "internal/fom/hla_names.hpp"
 #include "internal/handles/dimension_handle.hpp"
 #include "internal/handles/federate_handle.hpp"
@@ -45,13 +47,11 @@ std::atomic_uint64_t nextProcessServiceReportJoinIdentifier{1U};
 
 std::optional<std::uint32_t> decodeProcessHlaInteger32BE(
     std::vector<std::uint8_t> const& bytes) {
-  if (bytes.size() != 4U) {
+  std::uint32_t encoded = 0U;
+  if (!readUnsigned(bytes, 0U, ByteOrder::big, encoded)) {
     return std::nullopt;
   }
-  return (static_cast<std::uint32_t>(bytes[0]) << 24U) |
-      (static_cast<std::uint32_t>(bytes[1]) << 16U) |
-      (static_cast<std::uint32_t>(bytes[2]) << 8U) |
-      static_cast<std::uint32_t>(bytes[3]);
+  return encoded;
 }
 
 std::optional<bool> decodeProcessHlaSwitch(
@@ -169,17 +169,11 @@ class PayloadWriter final {
   }
 
   void unsigned32(std::uint32_t value) {
-    bytes_.push_back(static_cast<std::uint8_t>((value >> 24U) & 0xffU));
-    bytes_.push_back(static_cast<std::uint8_t>((value >> 16U) & 0xffU));
-    bytes_.push_back(static_cast<std::uint8_t>((value >> 8U) & 0xffU));
-    bytes_.push_back(static_cast<std::uint8_t>(value & 0xffU));
+    appendUnsigned(bytes_, value, ByteOrder::big);
   }
 
   void unsigned64(std::uint64_t value) {
-    for (std::size_t shift = 56U; shift != 0U; shift -= 8U) {
-      bytes_.push_back(static_cast<std::uint8_t>((value >> shift) & 0xffU));
-    }
-    bytes_.push_back(static_cast<std::uint8_t>(value & 0xffU));
+    appendUnsigned(bytes_, value, ByteOrder::big);
   }
 
   void real64(double value) {
@@ -266,10 +260,12 @@ class PayloadReader final {
 
   [[nodiscard]] std::uint32_t unsigned32() {
     require(sizeof(std::uint32_t));
-    auto const value = (static_cast<std::uint32_t>(bytes_[offset_]) << 24U) |
-        (static_cast<std::uint32_t>(bytes_[offset_ + 1U]) << 16U) |
-        (static_cast<std::uint32_t>(bytes_[offset_ + 2U]) << 8U) |
-        static_cast<std::uint32_t>(bytes_[offset_ + 3U]);
+    std::uint32_t value = 0U;
+    static_cast<void>(readUnsigned(
+        static_cast<void const *>(bytes_.data() + offset_),
+        sizeof(value),
+        ByteOrder::big,
+        value));
     offset_ += sizeof(std::uint32_t);
     return value;
   }
@@ -277,9 +273,11 @@ class PayloadReader final {
   [[nodiscard]] std::uint64_t unsigned64() {
     require(sizeof(std::uint64_t));
     std::uint64_t value = 0U;
-    for (std::size_t index = 0U; index < sizeof(std::uint64_t); ++index) {
-      value = (value << 8U) | static_cast<std::uint64_t>(bytes_[offset_ + index]);
-    }
+    static_cast<void>(readUnsigned(
+        static_cast<void const *>(bytes_.data() + offset_),
+        sizeof(value),
+        ByteOrder::big,
+        value));
     offset_ += sizeof(std::uint64_t);
     return value;
   }
@@ -9456,25 +9454,22 @@ bool ProcessFederationService::dispatchConnectionLossResult(
       federateLostReport->routing.timestampParameterHandle != 0U &&
       federateLostReport->routing.faultDescriptionParameterHandle != 0U &&
       !federateLostReport->recipients.empty()) {
-    auto copyEncoded = [](rti1516_2025::VariableLengthData const& value) {
-      auto const* bytes = static_cast<std::uint8_t const*>(value.data());
-      return value.size() == 0U
-          ? std::vector<std::uint8_t>{}
-          : std::vector<std::uint8_t>{bytes, bytes + value.size()};
-    };
     auto const payload = encodeProcessFederationInteractionEnvelope({
         {{federateLostReport->routing.federateParameterHandle,
-          copyEncoded(rti1516_2025::umbra_binding_detail::makeFederateHandle(
+          variable_length_data_2025::copyBytes(
+              rti1516_2025::umbra_binding_detail::makeFederateHandle(
                           federateLostReport->reportedFederateId)
                           .encode())},
          {federateLostReport->routing.federateNameParameterHandle,
-          copyEncoded(rti1516_2025::HLAunicodeString{
+          variable_length_data_2025::copyBytes(rti1516_2025::HLAunicodeString{
                           federateLostReport->reportedFederateName}
                           .encode())},
          {federateLostReport->routing.timestampParameterHandle,
-          copyEncoded(federateLostReport->lastKnownTime->encode())},
+          variable_length_data_2025::copyBytes(
+              federateLostReport->lastKnownTime->encode())},
          {federateLostReport->routing.faultDescriptionParameterHandle,
-          copyEncoded(rti1516_2025::HLAunicodeString{faultDescription}.encode())}},
+          variable_length_data_2025::copyBytes(
+              rti1516_2025::HLAunicodeString{faultDescription}.encode())}},
         {}});
     std::vector<std::pair<ProcessTransportSession*,
                           ProcessFederationInteractionEvent>> pushedEvents;
@@ -14594,19 +14589,17 @@ ProcessFederationService::handleReportServiceException(
   if (report.status != ExceptionReportStatus::applied) {
     return responseFor(request, TransportServiceStatus::ok, {});
   }
-  auto copyEncoded = [](rti1516_2025::VariableLengthData const& value) {
-    auto const* bytes = static_cast<std::uint8_t const*>(value.data());
-    return value.size() == 0U ? std::vector<std::uint8_t>{}
-                             : std::vector<std::uint8_t>{bytes, bytes + value.size()};
-  };
   auto const payload = encodeProcessFederationInteractionEnvelope({
       {{report.routing.federateParameterHandle,
-        copyEncoded(rti1516_2025::umbra_binding_detail::makeFederateHandle(
+        variable_length_data_2025::copyBytes(
+            rti1516_2025::umbra_binding_detail::makeFederateHandle(
                         reportRequest.federateId).encode())},
        {report.routing.serviceParameterHandle,
-        copyEncoded(rti1516_2025::HLAunicodeString{reportRequest.service}.encode())},
+        variable_length_data_2025::copyBytes(
+            rti1516_2025::HLAunicodeString{reportRequest.service}.encode())},
        {report.routing.exceptionParameterHandle,
-        copyEncoded(rti1516_2025::HLAunicodeString{reportRequest.exception}.encode())}},
+        variable_length_data_2025::copyBytes(
+            rti1516_2025::HLAunicodeString{reportRequest.exception}.encode())}},
       {}});
   std::vector<std::pair<ProcessTransportSession*, ProcessFederationInteractionEvent>>
       pushedEvents;
@@ -14824,22 +14817,16 @@ ProcessFederationService::handleServiceInvocationReport(
       returnedArgument,
       reportRequest.exception,
       static_cast<std::int32_t>(reservation.serialNumber));
-  auto copyEncoded = [](rti1516_2025::VariableLengthData const& value) {
-    auto const* bytes = static_cast<std::uint8_t const*>(value.data());
-    return value.size() == 0U
-        ? std::vector<std::uint8_t>{}
-        : std::vector<std::uint8_t>{bytes, bytes + value.size()};
-  };
   auto const& parameterHandles = reservation.routing.reportParameterHandles;
   auto const interactionPayload = encodeProcessFederationInteractionEnvelope({
-      {{parameterHandles[0], copyEncoded(encoded.service)},
-       {parameterHandles[1], copyEncoded(encoded.serviceType)},
-       {parameterHandles[2], copyEncoded(encoded.successIndicator)},
-       {parameterHandles[3], copyEncoded(encoded.suppliedArguments)},
-       {parameterHandles[4], copyEncoded(encoded.returnedArgument)},
-       {parameterHandles[5], copyEncoded(encoded.exception)},
-       {parameterHandles[6], copyEncoded(encoded.serialNumber)},
-       {parameterHandles[7], copyEncoded(
+      {{parameterHandles[0], variable_length_data_2025::copyBytes(encoded.service)},
+       {parameterHandles[1], variable_length_data_2025::copyBytes(encoded.serviceType)},
+       {parameterHandles[2], variable_length_data_2025::copyBytes(encoded.successIndicator)},
+       {parameterHandles[3], variable_length_data_2025::copyBytes(encoded.suppliedArguments)},
+       {parameterHandles[4], variable_length_data_2025::copyBytes(encoded.returnedArgument)},
+       {parameterHandles[5], variable_length_data_2025::copyBytes(encoded.exception)},
+       {parameterHandles[6], variable_length_data_2025::copyBytes(encoded.serialNumber)},
+       {parameterHandles[7], variable_length_data_2025::copyBytes(
             rti1516_2025::umbra_binding_detail::makeFederateHandle(
                 reportRequest.federateId).encode())}},
       {}});
@@ -18801,28 +18788,23 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
         return true;
       }
 
-      auto copyEncoded = [](rti1516_2025::VariableLengthData const& value) {
-        std::vector<std::uint8_t> bytes;
-        if (value.size() != 0U) {
-          auto const* data = static_cast<std::uint8_t const*>(value.data());
-          bytes.assign(data, data + value.size());
-        }
-        return bytes;
-      };
       auto const reportPayload = encodeProcessFederationInteractionEnvelope(
           ProcessFederationInteractionEnvelope{
               {{report.routing.federateParameterHandle,
-                copyEncoded(rti1516_2025::umbra_binding_detail::makeFederateHandle(
+                variable_length_data_2025::copyBytes(
+                    rti1516_2025::umbra_binding_detail::makeFederateHandle(
                                 report.reportedFederateId).encode())},
                {report.routing.serviceParameterHandle,
-                copyEncoded(rti1516_2025::HLAunicodeString{
+                variable_length_data_2025::copyBytes(rti1516_2025::HLAunicodeString{
                     hla::wide::mom::set_switches_federate}
                                 .encode())},
                {report.routing.exceptionParameterHandle,
-                copyEncoded(rti1516_2025::HLAunicodeString{exceptionText}
+                variable_length_data_2025::copyBytes(
+                    rti1516_2025::HLAunicodeString{exceptionText}
                                 .encode())},
                {report.routing.parameterErrorParameterHandle,
-                copyEncoded(rti1516_2025::HLAboolean{parameterError}.encode())}},
+                variable_length_data_2025::copyBytes(
+                    rti1516_2025::HLAboolean{parameterError}.encode())}},
               {}});
       std::vector<std::pair<ProcessTransportSession*,
                             ProcessFederationInteractionEvent>>

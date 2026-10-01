@@ -1,6 +1,6 @@
 #pragma once
 
-#include <RTI/VariableLengthData.h>
+#include "internal/encoding/handle_variable_array.hpp"
 
 #include <array>
 #include <cstddef>
@@ -17,41 +17,20 @@ namespace rti1516_2025::umbra_binding_detail {
 inline constexpr std::size_t kUmbraHandleIdentityOctetCount = 8U;
 inline constexpr std::size_t kHlaVariableArrayCountOctetCount = 4U;
 inline constexpr std::size_t kUmbraHandleVariableArrayEncodedLength =
-    kHlaVariableArrayCountOctetCount + kUmbraHandleIdentityOctetCount;
+    umbra::detail::kHandleVariableArrayEncodedLength;
 
 [[nodiscard]] inline std::array<unsigned char, kUmbraHandleVariableArrayEncodedLength>
 encodeUmbraHandleVariableArray(std::uint64_t value) noexcept {
-  std::array<unsigned char, kUmbraHandleVariableArrayEncodedLength> encoded{};
-  // HLAvariableArray begins with a signed HLAinteger32BE element count.  The
-  // eight octets of the implementation-owned identity are HLAbyte elements.
-  encoded[3] = static_cast<unsigned char>(kUmbraHandleIdentityOctetCount);
-  for (std::size_t index = 0; index < kUmbraHandleIdentityOctetCount; ++index) {
-    std::size_t const shift = (kUmbraHandleIdentityOctetCount - index - 1U) * 8U;
-    encoded[kHlaVariableArrayCountOctetCount + index] =
-        static_cast<unsigned char>(value >> shift);
-  }
-  return encoded;
+  return umbra::detail::encodeHandleVariableArray(value);
 }
 
 [[nodiscard]] inline std::optional<std::uint64_t> decodeUmbraHandleVariableArray(
     VariableLengthData const& encodedValue) noexcept {
-  if (encodedValue.size() != kUmbraHandleVariableArrayEncodedLength ||
-      encodedValue.data() == nullptr) {
+  auto const result = umbra::detail::decodeHandleVariableArray(encodedValue);
+  if (!result.valid) {
     return std::nullopt;
   }
-
-  auto const* bytes = static_cast<unsigned char const*>(encodedValue.data());
-  if (bytes[0] != 0U || bytes[1] != 0U || bytes[2] != 0U ||
-      bytes[3] != kUmbraHandleIdentityOctetCount) {
-    return std::nullopt;
-  }
-
-  std::uint64_t value = 0;
-  for (std::size_t index = 0; index < kUmbraHandleIdentityOctetCount; ++index) {
-    value = (value << 8U) |
-        bytes[kHlaVariableArrayCountOctetCount + index];
-  }
-  return value;
+  return result.value;
 }
 
 }  // namespace rti1516_2025::umbra_binding_detail

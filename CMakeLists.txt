@@ -460,6 +460,9 @@ if(BUILD_TESTING)
     cpp/tests/ieee1516_2010_composite_encoding_smoke.cpp
   )
   target_compile_features(umbra_ieee1516_2010_composite_encoding_smoke PRIVATE cxx_std_14)
+  target_include_directories(umbra_ieee1516_2010_composite_encoding_smoke PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+  )
   target_link_libraries(umbra_ieee1516_2010_composite_encoding_smoke PRIVATE umbra::rti_2010)
   add_test(
     NAME umbra.ieee1516e_2010.composite_encoding
@@ -3323,6 +3326,102 @@ if(BUILD_TESTING)
       cpp/tests/utf8_string_catch2.cpp
       cpp/tests/variable_length_data_catch2.cpp
       cpp/tests/ieee1516_2025_connection_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_time_management_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_object_registration_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_update_rate_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_address_validation_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_local_delete_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_named_object_registration_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_send_interaction_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_handle_lookup_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_directed_interaction_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_directed_interaction_multi_recipient_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_interaction_declaration_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_timestamped_receive_evoke_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_update_attribute_values_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_region_lifecycle_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_regional_subscription_update_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_timestamped_regional_update_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_disjoint_regional_update_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_directed_interaction_callback_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_tso_attribute_before_grant_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_subscription_transition_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_initial_discovery_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_attribute_relevance_rate_reissue_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_object_discovery_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_time_advance_rejection_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_time_regulation_pending_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_time_constrained_pending_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_time_advance_malformed_encoding_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_time_advance_federation_scheduler_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_time_advance_available_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_time_advance_next_message_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_time_advance_next_message_queued_tso_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_object_instance_lookup_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_reverse_fom_lookup_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_attribute_parameter_lookup_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_dimension_transportation_lookup_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_reverse_fom_error_matrix_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_available_dimensions_hierarchy_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_multi_recipient_regional_interaction_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_request_attribute_value_update_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_invalid_region_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_default_region_registration_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_get_time_factory_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_handle_normalization_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_flush_queue_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_federate_identity_lookup_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_restore_request_failure_immediate_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_restore_failure_lifecycle_immediate_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_restore_success_lifecycle_immediate_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_restore_abort_immediate_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_configuration_fallback_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_configuration_additional_settings_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_order_type_lookup_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_flush_queue_galt_frontier_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_flush_queue_multiple_records_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_query_time_bounds_immediate_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_query_time_bounds_multi_federate_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_query_time_bounds_queued_tso_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_query_time_bounds_zero_lookahead_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_before_callback_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_fanout_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_regional_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_reenable_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_tso_attribute_update_regulation_reenable_changed_lookahead_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_tso_interaction_regulation_reenable_changed_lookahead_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_tso_interaction_multiple_message_ordering_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_tso_interaction_fanout_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_callback_gating_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_transportation_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_directed_interaction_transportation_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_federation_save_timed_replacement_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_multi_federate_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_multi_federate_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_owner_reporter_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_receiver_reporter_catch2.cpp cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_immediate_catch2.cpp cpp/tests/ieee1516_2025_connection_process_federation_restore_status_immediate_catch2.cpp cpp/tests/ieee1516_2025_connection_process_federation_restore_status_idle_terminal_immediate_catch2.cpp cpp/tests/ieee1516_2025_connection_process_federation_restore_status_multi_federate_immediate_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_malformed_resign_action_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_malformed_exception_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_malformed_parameter_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_malformed_value_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_exception_reporting_switch_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_service_exception_report_catch2.cpp cpp/tests/ieee1516_2025_connection_process_exception_report_concurrency_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_exception_report_parameters_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_upper_bound_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_handle_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_failure_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_unknown_failure_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_unknown_handle_interaction_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_binding_handle_interaction_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_handle_name_unknown_interaction_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_handle_name_unknown_file_destination_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_tso_regional_interaction_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_tso_directed_interaction_callback_gating_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_query_lookahead_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_modify_lookahead_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_modify_lookahead_grant_catch2.cpp
+      cpp/tests/ieee1516_2025_connection_tso_interaction_before_grant_catch2.cpp
       cpp/tests/ieee1516_2025_time_catch2.cpp
     )
     if(UMBRA_ENABLE_LIBXML2_FOM_VALIDATOR)
@@ -3443,6 +3542,7 @@ if(BUILD_TESTING)
       if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
         target_sources(umbra_ieee1516_2025_catch2 PRIVATE
           cpp/tests/ieee1516_2025_federation_management_catch2.cpp
+          cpp/tests/ieee1516_2025_service_report_catch2.cpp
           cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp
           cpp/tests/attribute_relevance_advisory_catch2.cpp
           cpp/tests/attribute_scope_advisory_catch2.cpp
@@ -3529,6 +3629,102 @@ if(BUILD_TESTING)
       if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
         add_executable(umbra_ieee1516_2025_connection_catch2
           cpp/tests/ieee1516_2025_connection_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_service_report_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_synchronization_failure_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_synchronization_restore_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_time_management_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_object_registration_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_update_rate_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_address_validation_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_local_delete_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_named_object_registration_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_send_interaction_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_handle_lookup_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_directed_interaction_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_directed_interaction_multi_recipient_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_interaction_declaration_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_timestamped_receive_evoke_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_update_attribute_values_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_region_lifecycle_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_regional_subscription_update_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_timestamped_regional_update_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_regional_unsubscribe_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_disjoint_regional_update_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_directed_interaction_callback_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_tso_attribute_before_grant_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_subscription_transition_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_initial_discovery_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_attribute_relevance_rate_reissue_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_object_discovery_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_time_advance_rejection_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_time_regulation_pending_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_time_constrained_pending_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_time_advance_malformed_encoding_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_time_advance_federation_scheduler_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_time_advance_available_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_time_advance_next_message_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_time_advance_next_message_queued_tso_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_object_instance_lookup_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_reverse_fom_lookup_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_attribute_parameter_lookup_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_dimension_transportation_lookup_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_reverse_fom_error_matrix_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_available_dimensions_hierarchy_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_multi_recipient_regional_interaction_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_request_attribute_value_update_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_invalid_region_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_default_region_registration_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_get_time_factory_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_handle_normalization_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_flush_queue_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_federate_identity_lookup_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_restore_request_failure_immediate_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_restore_failure_lifecycle_immediate_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_restore_success_lifecycle_immediate_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_restore_abort_immediate_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_configuration_fallback_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_configuration_additional_settings_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_order_type_lookup_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_flush_queue_galt_frontier_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_flush_queue_multiple_records_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_query_time_bounds_immediate_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_query_time_bounds_multi_federate_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_query_time_bounds_queued_tso_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_query_time_bounds_zero_lookahead_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_before_callback_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_fanout_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_regional_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_reenable_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_tso_attribute_update_regulation_reenable_changed_lookahead_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_tso_interaction_regulation_reenable_changed_lookahead_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_tso_interaction_multiple_message_ordering_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_tso_interaction_fanout_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_callback_gating_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_transportation_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_directed_interaction_transportation_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_federation_save_timed_replacement_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_multi_federate_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_multi_federate_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_owner_reporter_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_receiver_reporter_catch2.cpp cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_immediate_catch2.cpp cpp/tests/ieee1516_2025_connection_process_federation_restore_status_immediate_catch2.cpp cpp/tests/ieee1516_2025_connection_process_federation_restore_status_idle_terminal_immediate_catch2.cpp cpp/tests/ieee1516_2025_connection_process_federation_restore_status_multi_federate_immediate_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_malformed_resign_action_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_malformed_exception_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_malformed_parameter_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_malformed_value_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_exception_reporting_switch_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_service_exception_report_catch2.cpp cpp/tests/ieee1516_2025_connection_process_exception_report_concurrency_catch2.cpp cpp/tests/ieee1516_2025_connection_process_mom_exception_report_parameters_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_upper_bound_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_handle_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_failure_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_unknown_failure_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_unknown_handle_interaction_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_binding_handle_interaction_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_handle_name_unknown_interaction_catch2.cpp cpp/tests/ieee1516_2025_connection_process_service_report_dimension_handle_name_unknown_file_destination_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_tso_regional_interaction_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_tso_directed_interaction_callback_gating_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_query_lookahead_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_modify_lookahead_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_modify_lookahead_grant_catch2.cpp
+          cpp/tests/ieee1516_2025_connection_tso_interaction_before_grant_catch2.cpp
         )
         target_compile_features(umbra_ieee1516_2025_connection_catch2 PRIVATE cxx_std_20)
         if(MSVC)
@@ -9092,9 +9288,9 @@ if(BUILD_TESTING)
       UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
     )
     if(MSVC)
-      # The focused federation-management Catch2 translation unit intentionally
-      # keeps the C++ service matrix in one source file.  MSVC's default object
-      # section limit is too small for that standards-traceability lane.
+      # The focused federation-management Catch2 translation units cover the
+      # C++ service matrix.  MSVC's default object section limit is too small
+      # for that standards-traceability lane.
       target_compile_options(umbra_ieee1516_2025_catch2 PRIVATE /bigobj)
     endif()
     target_include_directories(umbra_ieee1516_2025_catch2 PRIVATE

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "internal/encoding/byte_order.hpp"
+#include "internal/encoding/composite_primitives.hpp"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -83,10 +86,11 @@ namespace fom_wire_codec_detail {
     std::size_t left,
     std::size_t right,
     std::string_view message) {
-  if (right > std::numeric_limits<std::size_t>::max() - left) {
+  std::size_t result = 0U;
+  if (!composite_primitives::tryCheckedAdd(left, right, result)) {
     fail(message);
   }
-  return left + right;
+  return result;
 }
 
 inline void requireRange(
@@ -94,7 +98,7 @@ inline void requireRange(
     std::size_t offset,
     std::size_t length,
     std::string_view message) {
-  if (offset > bytes.size() || length > bytes.size() - offset) {
+  if (!composite_primitives::hasRange(bytes, offset, length)) {
     fail(message);
   }
 }
@@ -102,12 +106,14 @@ inline void requireRange(
 [[nodiscard]] inline std::size_t paddingToBoundary(
     std::size_t offset,
     std::uint32_t alignmentOctets) {
-  if (alignmentOctets == 0U) {
+  std::size_t result = 0U;
+  if (!composite_primitives::tryPaddingToBoundary(
+          offset,
+          static_cast<unsigned int>(alignmentOctets),
+          result)) {
     fail("The RPR alignment boundary must be nonzero.");
   }
-  auto const alignment = static_cast<std::size_t>(alignmentOctets);
-  auto const remainder = offset % alignment;
-  return remainder == 0U ? 0U : alignment - remainder;
+  return result;
 }
 
 inline void requireZeroPadding(
@@ -115,23 +121,18 @@ inline void requireZeroPadding(
     std::size_t offset,
     std::size_t length,
     std::string_view message) {
-  requireRange(bytes, offset, length, message);
-  for (std::size_t index = 0U; index < length; ++index) {
-    if (bytes[offset + index] != 0U) {
-      fail(message);
-    }
+  if (!composite_primitives::isZeroPadding(bytes, offset, length)) {
+    fail(message);
   }
 }
 
-inline void appendZeroPadding(FomWireBytes& bytes, std::size_t length) {
-  bytes.insert(bytes.end(), length, static_cast<FomWireOctet>(0U));
+inline void appendZeroPadding(FomWireBytes &bytes, std::size_t length) {
+  composite_primitives::appendZeroPadding(bytes, length);
 }
 
 inline void appendUnsigned32BigEndian(FomWireBytes& bytes, std::uint32_t value) {
-  bytes.push_back(static_cast<FomWireOctet>((value >> 24U) & 0xffU));
-  bytes.push_back(static_cast<FomWireOctet>((value >> 16U) & 0xffU));
-  bytes.push_back(static_cast<FomWireOctet>((value >> 8U) & 0xffU));
-  bytes.push_back(static_cast<FomWireOctet>(value & 0xffU));
+  auto const encoded = encodeUnsigned(value, ByteOrder::big);
+  bytes.insert(bytes.end(), encoded.begin(), encoded.end());
 }
 
 [[nodiscard]] inline std::size_t rprUnsignedIntegerOctetCount(
@@ -169,10 +170,13 @@ inline void appendUnsigned32BigEndian(FomWireBytes& bytes, std::uint32_t value) 
 [[nodiscard]] inline std::uint32_t readUnsigned32BigEndian(
     std::span<const FomWireOctet> bytes,
     std::size_t offset) {
-  return (static_cast<std::uint32_t>(bytes[offset]) << 24U) |
-      (static_cast<std::uint32_t>(bytes[offset + 1U]) << 16U) |
-      (static_cast<std::uint32_t>(bytes[offset + 2U]) << 8U) |
-      static_cast<std::uint32_t>(bytes[offset + 3U]);
+  std::uint32_t value = 0U;
+  static_cast<void>(readUnsigned(
+      static_cast<void const *>(bytes.data() + offset),
+      sizeof(value),
+      ByteOrder::big,
+      value));
+  return value;
 }
 
 [[nodiscard]] inline FomWireBytes copyRange(

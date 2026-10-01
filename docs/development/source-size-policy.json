@@ -1,0 +1,546 @@
+{
+  "schema_version": 1,
+  "policies": {
+    "production_cpp": { "soft": 2000, "hard": 4000 },
+    "header_cpp": { "soft": 1200, "hard": 3000 },
+    "test_cpp": { "soft": 2500, "hard": 5000 },
+    "documentation": { "soft": 3000, "hard": 6000 },
+    "cmake": { "soft": 3000, "hard": 8000 }
+  },
+  "legacy_exemptions": [
+    {
+      "path": "CMakeLists.txt",
+      "max_lines": 12398,
+      "reason": "The current build graph is a legacy monolith; split by target family in a separate build-system change."
+    },
+    {
+      "path": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "max_lines": 35765,
+      "reason": "Public ambassador surface is generated/ABI-shaped; extract internal method-family implementations without changing the public boundary."
+    },
+    {
+      "path": "cpp/src/internal/federation/federation_registry.cpp",
+      "max_lines": 32542,
+      "reason": "Federation state, membership, declaration, and restore behavior must be split by ownership seam with state-transition tests."
+    },
+    {
+      "path": "cpp/src/internal/federation/process_federation_service.cpp",
+      "max_lines": 20308,
+      "reason": "Process service dispatch and wire-boundary behavior require a dedicated protocol split with process regression coverage."
+    },
+    {
+      "path": "cpp/src/internal/federation/federation_state_image.cpp",
+      "max_lines": 5847,
+      "reason": "State-image serialization is a versioned persistence boundary; split codecs from state projection only with round-trip tests."
+    },
+    {
+      "path": "cpp/src/internal/federation/process_federation_service.hpp",
+      "max_lines": 3333,
+      "reason": "Process service declarations are coupled to the wire/service boundary; split declarations with the implementation seam."
+    },
+    {
+      "path": "cpp/src/internal/federation/federation_registry.hpp",
+      "max_lines": 6101,
+      "reason": "Registry declarations expose one internal state owner today; split only after state ownership is made explicit."
+    },
+    {
+      "path": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "max_lines": 4524,
+      "reason": "XML composition is a parser/normalization boundary; split parser stages while preserving the 2010 RPR compatibility gate."
+    },
+    {
+      "path": "cpp/src/internal/federation/process_federation_client.cpp",
+      "max_lines": 4152,
+      "reason": "Process client lifecycle and request routing should split together with the service protocol, not by line count alone."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+      "max_lines": 70287,
+      "reason": "Large mapped 2025 suite; split by focused lane and update every source_location/CTest mapping atomically."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_catch2.cpp",
+      "max_lines": 6784,
+      "reason": "Large mapped 2025 connection suite; split by lifecycle/process/service lane with exact mapping updates."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_tso_attribute_before_grant_catch2.cpp",
+      "max_lines": 828,
+      "reason": "Complete 2025 timestamped process-attribute-before-grant lane extracted from the mapped connection suite; keep its process/time boundary intact."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_attribute_relevance_advisory_catch2.cpp",
+      "max_lines": 916,
+      "reason": "Complete 2025 configured-endpoint Attribute Relevance Advisory lane extracted from the mapped connection suite; keep callback-model and process-boundary semantics together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp",
+      "max_lines": 844,
+      "reason": "Complete 2025 receive-order Delete Object Instance lane extracted from the mapped connection suite; keep object-removal callback delivery and process transport together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_timestamped_delete_object_instance_catch2.cpp",
+      "max_lines": 1043,
+      "reason": "Complete 2025 timestamped Delete Object Instance lane extracted from the mapped connection suite; keep time roles, preferred receive order, and removal callbacks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_subscription_transition_catch2.cpp",
+      "max_lines": 864,
+      "reason": "Complete 2025 regional Attribute Relevance Advisory subscription-transition lane extracted from the mapped connection suite; keep regional lifecycle and callback transitions together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_regional_attribute_relevance_initial_discovery_catch2.cpp",
+      "max_lines": 799,
+      "reason": "Complete 2025 initial regional Attribute Relevance Advisory-after-discovery lane extracted from the mapped connection suite; keep discovery and owner-directed callback behavior together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_attribute_relevance_rate_reissue_catch2.cpp",
+      "max_lines": 1039,
+      "reason": "Complete 2025 Attribute Relevance Advisory rate-reissue lane extracted from the mapped connection suite; keep update-rate ordering and callback designators together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_object_discovery_catch2.cpp",
+      "max_lines": 842,
+      "reason": "Complete 2025 process-boundary object-discovery lane extracted from the mapped connection suite; keep publication, subscription, registration, and callback delivery together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_time_advance_rejection_catch2.cpp",
+      "max_lines": 550,
+      "reason": "Complete 2025 process-time-advance rejection lane extracted from the mapped connection suite; keep the accepted grant baseline and backward-request exception together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_time_regulation_pending_catch2.cpp",
+      "max_lines": 552,
+      "reason": "Complete 2025 time-regulation-pending process lane extracted from the mapped connection suite; keep the callback-gated role transition and rejected time advance together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_time_constrained_pending_catch2.cpp",
+      "max_lines": 551,
+      "reason": "Complete 2025 time-constrained-pending process lane extracted from the mapped connection suite; keep the callback-gated role transition and rejected time advance together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_time_advance_malformed_encoding_catch2.cpp",
+      "max_lines": 557,
+      "reason": "Complete 2025 malformed logical-time process lane extracted from the mapped connection suite; keep the malformed time fixture and public rejection test together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_time_advance_federation_scheduler_catch2.cpp",
+      "max_lines": 675,
+      "reason": "Complete 2025 deferred federation-scheduler lane extracted from the mapped connection suite; keep unsolicited grants, time-role callbacks, and deferred release ordering together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_tso_interaction_before_grant_catch2.cpp",
+      "max_lines": 911,
+      "reason": "Complete 2025 deferred timestamped process-interaction lane extracted from the mapped connection suite; keep TSO delivery, GALT/LITS readback, and grant ordering together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_query_lookahead_catch2.cpp",
+      "max_lines": 555,
+      "reason": "Complete 2025 Query Lookahead process-boundary lane extracted from the mapped connection suite; keep status mapping, callback gating, and interval readback together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_modify_lookahead_catch2.cpp",
+      "max_lines": 565,
+      "reason": "Complete 2025 Modify Lookahead process-boundary lane extracted from the mapped connection suite; keep public status mapping, immediate increase, and deferred decrease retention together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_modify_lookahead_grant_catch2.cpp",
+      "max_lines": 691,
+      "reason": "Complete 2025 two-federate deferred lower-lookahead grant lane extracted from the mapped connection suite; keep callback gating, scheduler grants, and grant-boundary lookahead application together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_time_advance_available_catch2.cpp",
+      "max_lines": 555,
+      "reason": "Complete 2025 Time Advance Request Available process-boundary lane extracted from the mapped connection suite; keep available-form transport, callback-gated grant, and logical-time readback together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_time_advance_next_message_catch2.cpp",
+      "max_lines": 567,
+      "reason": "Complete 2025 no-queued-message Next Message Request/Available process-boundary lane extracted from the mapped connection suite; keep both request forms and logical-time readback together, separate from queued timestamped-message behavior."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_time_advance_next_message_queued_tso_catch2.cpp",
+      "max_lines": 900,
+      "reason": "Complete 2025 queued timestamped-message Next Message process-boundary lane extracted from the mapped connection suite; keep HLA_IMMEDIATE delivery, callback-before-grant ordering, and both callback-model sections together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_object_instance_lookup_catch2.cpp",
+      "max_lines": 643,
+      "reason": "Complete 2025 object-instance name/handle lookup process-boundary lane extracted from the mapped connection suite; keep known-instance ledger resolution, unknown-object errors, and both callback-model sections together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_reverse_fom_lookup_catch2.cpp",
+      "max_lines": 646,
+      "reason": "Complete 2025 reverse-FOM object/interaction class name lookup process-boundary lane extracted from the mapped connection suite; keep the federation-owned FOM catalog, invalid-handle checks, and both callback-model sections together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_attribute_parameter_lookup_catch2.cpp",
+      "max_lines": 677,
+      "reason": "Complete 2025 attribute/parameter reverse-lookup process-boundary lane extracted from the mapped connection suite; keep the federation-owned FOM catalog, invalid-handle checks, and both callback-model sections together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_dimension_transportation_lookup_catch2.cpp",
+      "max_lines": 617,
+      "reason": "Complete 2025 dimension/transportation reverse-lookup process-boundary lane extracted from the mapped connection suite; keep the federation-owned FOM catalog and both callback-model sections together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_reverse_fom_error_matrix_catch2.cpp",
+      "max_lines": 624,
+      "reason": "Complete 2025 reverse-FOM dimension/transportation error-matrix process-boundary lane extracted from the mapped connection suite; keep its invalid-lookup matrix and both callback-model sections separate from successful lookup baselines."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_available_dimensions_hierarchy_catch2.cpp",
+      "max_lines": 633,
+      "reason": "Complete 2025 available-FOM-dimensions hierarchy process-boundary lane extracted from the mapped connection suite; keep inherited dimensions, empty dimension sets, invalid class handles, and both callback-model sections together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_multi_recipient_interaction_ordering_catch2.cpp",
+      "max_lines": 906,
+      "reason": "Complete 2025 multi-recipient interaction FIFO process-boundary lane extracted from the mapped connection suite; keep the sender/two-receiver process fixture, per-recipient ordering assertions, and both callback-model sections together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_multi_recipient_regional_interaction_catch2.cpp",
+      "max_lines": 1185,
+      "reason": "Complete 2025 multi-recipient regional interaction/Relaxed-DDM process-boundary lane extracted from the mapped connection suite; keep regional scope, touching-range filtering, metadata, and both callback-model sections together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_tso_regional_interaction_catch2.cpp",
+      "max_lines": 1019,
+      "reason": "Complete 2025 timestamped regional interaction process-boundary lane extracted from the mapped connection suite; keep timestamp/retraction reconstruction, time-advance gating, source-region metadata, and its HLA_EVOKED section together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_tso_directed_interaction_callback_gating_catch2.cpp",
+      "max_lines": 1007,
+      "reason": "Complete 2025 timestamped directed-interaction callback-gating process-boundary lane extracted from the mapped connection suite; keep callback-disabled delivery, directed routing, time-advance gating, and its HLA_EVOKED section together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_request_attribute_value_update_catch2.cpp",
+      "max_lines": 983,
+      "reason": "Complete 2025 object-instance Request Attribute Value Update process-boundary lane extracted from the mapped connection suite; keep Provide callback, discovery/reflection, request tag, and both callback-model sections together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_catch2.cpp",
+      "max_lines": 1011,
+      "reason": "Complete 2025 regional class Request Attribute Value Update process-boundary lane extracted from the mapped connection suite; keep region selection, discovery/reflection, sent-region metadata, and both callback-model sections together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_regional_class_request_attribute_value_update_invalid_region_catch2.cpp",
+      "max_lines": 765,
+      "reason": "Complete 2025 public invalid-regional-selector Request Attribute Value Update exception matrix extracted from the mapped connection suite; keep typed exception translation, invalid-region scenarios, and their process-boundary fixture together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_default_region_registration_catch2.cpp",
+      "max_lines": 715,
+      "reason": "Complete 2025 configured process-endpoint default-region registration/generated-name process-boundary lane extracted from the mapped connection suite; keep empty-region registration, generated-name uniqueness, and both callback-model sections together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_get_time_factory_catch2.cpp",
+      "max_lines": 565,
+      "reason": "Complete 2025 remote getTimeFactory process-boundary lane extracted from the mapped connection suite; keep selected logical-time factory reconstruction, remote join setup, and its HLA_EVOKED section together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_handle_normalization_catch2.cpp",
+      "max_lines": 663,
+      "reason": "Complete 2025 process-owned handle-normalization process-boundary lane extracted from the mapped connection suite; keep execution-scoped normalization, typed invalid-handle gates, and its HLA_EVOKED section together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_flush_queue_catch2.cpp",
+      "max_lines": 557,
+      "reason": "Complete 2025 single-endpoint Flush Queue Request/grant process-boundary lane extracted from the mapped connection suite; keep actual/optimistic grant values, Query Logical Time, and its HLA_EVOKED callback path together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_federate_identity_lookup_catch2.cpp",
+      "max_lines": 655,
+      "reason": "Complete 2025 federate identity lookup process-boundary lane extracted from the mapped connection suite; keep active-name resolution, retained federate-name lookup after resignation, and the inactive-name exception gate together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_restore_request_failure_immediate_catch2.cpp",
+      "max_lines": 566,
+      "reason": "Complete 2025 HLA_IMMEDIATE missing-save Federation Restore request-failure lane extracted from the mapped connection suite; keep the request/result path, callback count, no-success assertion, and label/order checks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_restore_failure_lifecycle_immediate_catch2.cpp",
+      "max_lines": 606,
+      "reason": "Complete 2025 HLA_IMMEDIATE Federation Restore failure lifecycle lane extracted from the mapped connection suite; keep save/restore callbacks, ordered failure delivery, failure reason, and callback-order checks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_restore_success_lifecycle_immediate_catch2.cpp",
+      "max_lines": 604,
+      "reason": "Complete 2025 HLA_IMMEDIATE Federation Restore success lifecycle lane extracted from the mapped connection suite; keep save/restore callbacks, ordered success delivery, and callback-order checks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_restore_abort_immediate_catch2.cpp",
+      "max_lines": 604,
+      "reason": "Complete 2025 HLA_IMMEDIATE Federation Restore abort lane extracted from the mapped connection suite; keep save/restore callbacks, ordered abort delivery, RESTORE_ABORTED reason, and callback-order checks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_configuration_fallback_catch2.cpp",
+      "max_lines": 484,
+      "reason": "Complete 2025 embedded configuration-fallback lane extracted from the mapped connection suite; keep absent/unknown configuration fallback, SETTINGS_IGNORED results, and no-RtiAddress coverage together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_configuration_additional_settings_catch2.cpp",
+      "max_lines": 481,
+      "reason": "Complete 2025 embedded additional-settings parse-failure lane extracted from the mapped connection suite; keep SETTINGS_FAILED_TO_PARSE, result-message, and no-RtiAddress/configuration coverage together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_order_type_lookup_catch2.cpp",
+      "max_lines": 580,
+      "reason": "Complete 2025 process-boundary order-type lookup lane extracted from the mapped connection suite; keep fixed Receive/TimeStamp support, invalid-name/type guards, and process lifecycle together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_flush_queue_galt_frontier_catch2.cpp",
+      "max_lines": 895,
+      "reason": "Complete 2025 process Flush Queue/GALT frontier lane extracted from the mapped connection suite; keep queued timestamp-7 delivery, actual/optimistic frontier reporting, and two-federate lifecycle together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_flush_queue_multiple_records_catch2.cpp",
+      "max_lines": 971,
+      "reason": "Complete 2025 process multiple-record Flush Queue lane extracted from the mapped connection suite; keep FIFO timestamps, future-frontier suppression, retraction, and both callback models together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_query_time_bounds_immediate_catch2.cpp",
+      "max_lines": 569,
+      "reason": "Complete 2025 immediate-callback process Query GALT/LITS undefined-bound lane extracted from the mapped connection suite; keep time-regulation callback and unchanged initial-time values together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_query_time_bounds_multi_federate_catch2.cpp",
+      "max_lines": 666,
+      "reason": "Complete 2025 two-federate immediate-callback process Query GALT/LITS available-bound lane extracted from the mapped connection suite; keep self-exclusion, observer lookahead bounds, and available-result encoding together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_query_time_bounds_queued_tso_catch2.cpp",
+      "max_lines": 752,
+      "reason": "Complete 2025 queued-TSO process Query GALT/LITS lane extracted from the mapped connection suite; keep queued timestamp LITS, undefined GALT after regulator disable, and role callbacks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_query_time_bounds_zero_lookahead_catch2.cpp",
+      "max_lines": 665,
+      "reason": "Complete 2025 zero-lookahead process Query GALT/LITS lane extracted from the mapped connection suite; keep exclusive lower-bound observations and time-advance grant callbacks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_before_callback_catch2.cpp",
+      "max_lines": 896,
+      "reason": "Complete 2025 timestamped process attribute retraction-before-callback lane extracted from the mapped connection suite; keep queued timestamp suppression and HLA_EVOKED callback behavior together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_fanout_catch2.cpp",
+      "max_lines": 1113,
+      "reason": "Complete 2025 two-recipient fanout process TSO retraction lane extracted from the mapped connection suite; keep FIFO timestamps 5 and 7, suppression of the retracted middle timestamp 6, and HLA_EVOKED callbacks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_regional_catch2.cpp",
+      "max_lines": 1276,
+      "reason": "Complete 2025 regional two-recipient process TSO retraction lane extracted from the mapped connection suite; keep committed region scope, FIFO timestamps 5 and 7, suppression of the retracted middle timestamp 6, and HLA_EVOKED callbacks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_tso_attribute_retraction_reenable_catch2.cpp",
+      "max_lines": 847,
+      "reason": "Complete 2025 time-regulation re-enable process TSO retraction lane extracted from the mapped connection suite; keep the producer-owned retraction designator across disable/re-enable and HLA_EVOKED callbacks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_tso_attribute_update_regulation_reenable_changed_lookahead_catch2.cpp",
+      "max_lines": 968,
+      "reason": "Complete 2025 changed-lookahead process timestamped attribute update lane extracted from the mapped connection suite; keep the update across time-regulation disable/re-enable, lookahead-three bounds, and HLA_EVOKED callbacks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_tso_interaction_regulation_reenable_changed_lookahead_catch2.cpp",
+      "max_lines": 940,
+      "reason": "Complete 2025 changed-lookahead process timestamped interaction lane extracted from the mapped connection suite; keep interaction delivery across time-regulation disable/re-enable, lookahead bounds, and HLA_EVOKED callbacks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_tso_interaction_multiple_message_ordering_catch2.cpp",
+      "max_lines": 907,
+      "reason": "Complete 2025 multiple-message process interaction ordering lane extracted from the mapped connection suite; keep same-timestamp FIFO delivery before one grant and HLA_EVOKED callbacks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_tso_interaction_fanout_catch2.cpp",
+      "max_lines": 1151,
+      "reason": "Complete 2025 public multi-recipient process interaction fanout lane extracted from the mapped connection suite; keep FIFO delivery before one grant, the disabled-queued-reenabled recipient gate, and HLA_EVOKED callbacks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_callback_gating_catch2.cpp",
+      "max_lines": 1036,
+      "reason": "Complete 2025 timestamped regional interaction callback-gating lane extracted from the mapped connection suite; keep regional routing, disabled-queued-reenabled delivery, timestamp/retraction preservation, and HLA_EVOKED callbacks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_transportation_catch2.cpp",
+      "max_lines": 1075,
+      "reason": "Complete 2025 timestamped regional interaction transportation lane extracted from the mapped connection suite; keep the private callback fixture, transportation override confirmation, regional delivery, timestamp/order metadata, and HLA_EVOKED/HLA_IMMEDIATE coverage together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_directed_interaction_transportation_catch2.cpp",
+      "max_lines": 864,
+      "reason": "Complete 2025 directed interaction transportation lane extracted from the mapped connection suite; keep the private callback fixture, configured process endpoint, callback-immediate behavior, and transportation override confirmation together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_federation_save_timed_replacement_catch2.cpp",
+      "max_lines": 757,
+      "reason": "Complete 2025 timestamped federation-save replacement lane extracted from the mapped connection suite; keep replacement timing, multi-federate callback ordering, and completion callbacks together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_catch2.cpp",
+      "max_lines": 591,
+      "reason": "Complete 2025 single-federate federation-save not-complete lane extracted from the mapped connection suite; keep HLA_EVOKED failure-reason delivery and no-early-not-saved behavior together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_multi_federate_catch2.cpp",
+      "max_lines": 692,
+      "reason": "Complete 2025 multi-federate federation-save not-complete lane extracted from the mapped connection suite; keep per-recipient HLA_EVOKED failure delivery and configured process-endpoint choreography together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_catch2.cpp",
+      "max_lines": 606,
+      "reason": "Complete 2025 terminal federation-save status lane extracted from the mapped connection suite; keep HLA_EVOKED callback gating, failure delivery, and terminal NO_SAVE_IN_PROGRESS reporting together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_multi_federate_catch2.cpp",
+      "max_lines": 738,
+      "reason": "Complete 2025 two-federate terminal federation-save status lane extracted from the mapped connection suite; keep per-participant HLA_EVOKED callback gating and terminal status reporting together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_owner_reporter_catch2.cpp",
+      "max_lines": 738,
+      "reason": "Complete 2025 owner-reported terminal federation-save status lane extracted from the mapped connection suite; keep owner-reported failure semantics and terminal status reporting together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_receiver_reporter_catch2.cpp",
+      "max_lines": 692,
+      "reason": "Complete 2025 receiver-reported federation-save not-complete lane extracted from the mapped connection suite; keep receiver-reported failure semantics and per-recipient HLA_EVOKED delivery together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_federation_save_not_complete_status_terminal_immediate_catch2.cpp",
+      "max_lines": 598,
+      "reason": "Complete 2025 HLA_IMMEDIATE terminal federation-save status lane extracted from the mapped connection suite; keep push-mode callback delivery and terminal NO_SAVE_IN_PROGRESS reporting together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_federation_restore_status_immediate_catch2.cpp",
+      "max_lines": 618,
+      "reason": "Complete 2025 HLA_IMMEDIATE federation-restore status lane extracted from the mapped connection suite; keep push-mode restore callbacks, valid handle transitions, and restored status reporting together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_federation_restore_status_idle_terminal_immediate_catch2.cpp",
+      "max_lines": 643,
+      "reason": "Complete 2025 HLA_IMMEDIATE idle, in-progress, and terminal federation-restore status lane extracted from the mapped connection suite; keep status transitions, valid handle projections, and callback delivery together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_federation_restore_status_multi_federate_immediate_catch2.cpp",
+      "max_lines": 878,
+      "reason": "Complete 2025 two-federate HLA_IMMEDIATE federation-restore status projection lane extracted from the mapped connection suite; keep requester-only and per-recipient callbacks, dual-client status queries, and terminal projections together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_mom_malformed_resign_action_catch2.cpp",
+      "max_lines": 685,
+      "reason": "Complete 2025 process HLAsetSwitches malformed-resign-action lane extracted from the mapped connection suite; keep malformed parameter reporting, public callback delivery, and MOM exception projection together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_mom_malformed_exception_catch2.cpp",
+      "max_lines": 670,
+      "reason": "Complete 2025 process HLAsetSwitches empty-map malformed-interaction lane extracted from the mapped connection suite; keep RTI-owned MOM exception reporting, parameter-error projection, and switch-state preservation together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_mom_malformed_parameter_catch2.cpp",
+      "max_lines": 675,
+      "reason": "Complete 2025 process HLAsetSwitches unknown-parameter lane extracted from the mapped connection suite; keep RTI-owned MOM exception reporting, parameter-error projection, and unchanged switch state together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_mom_malformed_value_catch2.cpp",
+      "max_lines": 680,
+      "reason": "Complete 2025 process HLAsetSwitches malformed-value lane extracted from the mapped connection suite; keep RTI-owned MOM exception reporting, parameter-error projection, and unchanged switch state together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_mom_exception_reporting_switch_catch2.cpp",
+      "max_lines": 581,
+      "reason": "Complete 2025 process HLAexceptionReporting HLAsetSwitches lane extracted from the mapped connection suite; keep getter/setter state and unchanged companion switches together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_mom_service_exception_report_catch2.cpp",
+      "max_lines": 675,
+      "reason": "Complete 2025 process HLAreportException service-invocation lane extracted from the mapped connection suite; keep HLA_EVOKED/HLA_IMMEDIATE push-pull reporting behavior together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_exception_report_concurrency_catch2.cpp",
+      "max_lines": 744,
+      "reason": "Complete 2025 process exception-report concurrency lane extracted from the mapped connection suite; keep pull/push delivery, immediate reentrancy, typed failure ownership, and resignation cancellation together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_mom_exception_report_parameters_catch2.cpp",
+      "max_lines": 618,
+      "reason": "Complete 2025 process MOM exception-report parameter-payload lane extracted from the mapped connection suite; keep inherited HLAfederate projection and HLA_EVOKED/HLA_IMMEDIATE delivery together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_upper_bound_catch2.cpp",
+      "max_lines": 658,
+      "reason": "Complete 2025 process service-report dimension-upper-bound lane extracted from the mapped connection suite; keep switch gating, exact serial-zero reporting, and report-file cleanup together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_handle_catch2.cpp",
+      "max_lines": 655,
+      "reason": "Complete 2025 process service-report dimension-handle lane extracted from the mapped connection suite; keep switch gating, exact serial-zero reporting, and report-file cleanup together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_catch2.cpp",
+      "max_lines": 658,
+      "reason": "Complete 2025 process service-report dimension-name lane extracted from the mapped connection suite; keep switch gating, exact serial-zero reporting, and report-file cleanup together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_failure_catch2.cpp",
+      "max_lines": 658,
+      "reason": "Complete 2025 process service-report invalid dimension-name failure lane extracted from the mapped connection suite; keep switch gating, exact serial-zero reporting, and report-file cleanup together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_unknown_failure_catch2.cpp",
+      "max_lines": 666,
+      "reason": "Complete 2025 process service-report federation-unknown dimension-name failure lane extracted from the mapped connection suite; keep switch gating, exact serial-zero reporting, and report-file cleanup together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_service_report_interaction_helpers.hpp",
+      "max_lines": 1474,
+      "reason": "Private 2025 process service-report interaction runner shared by the focused MOM interaction cases; keep the exact reporting matrix and handle-state setup together."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_unknown_handle_interaction_catch2.cpp",
+      "max_lines": 483,
+      "reason": "Complete 2025 process service-report unknown-handle MOM interaction case extracted from the mapped connection suite; reuse the shared private interaction runner."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_binding_handle_interaction_catch2.cpp",
+      "max_lines": 483,
+      "reason": "Complete 2025 process service-report binding-handle MOM interaction case extracted from the mapped connection suite; reuse the shared private interaction runner."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_handle_name_unknown_interaction_catch2.cpp",
+      "max_lines": 483,
+      "reason": "Complete 2025 process service-report dimension-handle name-unknown MOM interaction case extracted from the mapped connection suite; reuse the shared private interaction runner."
+    },
+    {
+      "path": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_handle_name_unknown_file_destination_catch2.cpp",
+      "max_lines": 486,
+      "reason": "Complete 2025 process service-report dimension-handle name-unknown file-destination case extracted from the mapped connection suite; reuse the shared private interaction runner."
+    },
+
+
+
+
+    {
+      "path": "cpp/tests/federation_registry_catch2.cpp",
+      "max_lines": 12656,
+      "reason": "Registry unit and integration cases share fixtures; split by state, restore, and membership seams while preserving tags."
+    },
+    {
+      "path": "cpp/tests/attribute_ownership_acquisition_catch2.cpp",
+      "max_lines": 5481,
+      "reason": "Ownership cases are mapped and boundary-sensitive; split only along existing focused lane tags."
+    },
+    {
+      "path": "docs/planning/ROADMAP.md",
+      "max_lines": 6221,
+      "reason": "Human roadmap snapshot; use bounded query cards rather than splitting historical prose during implementation work."
+    },
+    {
+      "path": "docs/testing/REQUIREMENTS-LAB-OBSERVATIONS.md",
+      "max_lines": 17779,
+      "reason": "Historical Requirements Lab ledger; preserve append-only evidence and use the query tool for bounded access."
+    }
+  ]
+}

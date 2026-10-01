@@ -1,5 +1,7 @@
 #include "internal/runtime/umbra_rti_ambassador.hpp"
 
+#include "internal/encoding/byte_order.hpp"
+#include "internal/encoding/variable_length_data_2025.hpp"
 #include "internal/observability/service_report_store.hpp"
 #include "internal/runtime/rti_initialization_data.hpp"
 
@@ -537,11 +539,7 @@ std::wstring formatJoinedFederateServiceReportInitialRecord(
   record.additionalSettings = connection.additionalSettings;
   if (connection.credentials) {
     auto const data = connection.credentials->getData();
-    auto const* first = static_cast<std::uint8_t const*>(data.data());
-    std::vector<std::uint8_t> bytes;
-    if (data.size() != 0U) {
-      bytes.assign(first, first + data.size());
-    }
+    auto bytes = umbra::detail::variable_length_data_2025::copyBytes(data);
     record.credentials = umbra::detail::MomServiceReportCredentials{
         connection.credentials->getType(), std::move(bytes)};
   }
@@ -2396,14 +2394,6 @@ DimensionHandleSet makeDimensionHandleSet(std::set<std::uint64_t> const& handles
   return result;
 }
 
-std::vector<unsigned char> copyVariableLengthDataBytes(VariableLengthData const& value) {
-  auto const* bytes = static_cast<unsigned char const*>(value.data());
-  if (bytes == nullptr || value.size() == 0) {
-    return {};
-  }
-  return {bytes, bytes + value.size()};
-}
-
 VariableLengthData makeVariableLengthData(std::vector<unsigned char> const& bytes) {
   if (bytes.empty()) {
     return VariableLengthData();
@@ -2415,20 +2405,30 @@ VariableLengthData makeVariableLengthData(std::vector<unsigned char> const& byte
 // Disabled is zero and Enabled is one.  Keep this decoder deliberately narrow
 // so a malformed or unknown enumerator cannot silently change federation-wide
 // state through the MOM adjustment interaction.
-std::optional<bool> decodeHlaSwitch(VariableLengthData const& value) {
+std::optional<std::uint32_t> decodeHlaInteger32BE(
+    VariableLengthData const& value) {
   auto const* bytes = static_cast<unsigned char const*>(value.data());
-  if (bytes == nullptr || value.size() != 4) {
+  std::uint32_t encoded = 0U;
+  if (bytes == nullptr ||
+      !umbra::detail::readUnsigned(
+          static_cast<void const *>(bytes),
+          value.size(),
+          umbra::detail::ByteOrder::big,
+          encoded)) {
     return std::nullopt;
   }
-  std::uint32_t const encoded =
-      (static_cast<std::uint32_t>(bytes[0]) << 24U) |
-      (static_cast<std::uint32_t>(bytes[1]) << 16U) |
-      (static_cast<std::uint32_t>(bytes[2]) << 8U) |
-      static_cast<std::uint32_t>(bytes[3]);
-  if (encoded > 1U) {
+  return encoded;
+}
+
+std::optional<bool> decodeHlaSwitch(VariableLengthData const& value) {
+  auto const encoded = decodeHlaInteger32BE(value);
+  if (!encoded) {
     return std::nullopt;
   }
-  return encoded == 1U;
+  if (*encoded > 1U) {
+    return std::nullopt;
+  }
+  return *encoded == 1U;
 }
 
 // HLAownership uses the same HLAinteger32BE representation as HLAswitch, but
@@ -2436,19 +2436,11 @@ std::optional<bool> decodeHlaSwitch(VariableLengthData const& value) {
 // separate decoder so a future MIM extension cannot accidentally reuse a
 // switch-specific diagnostic or accept an unknown ownership enumerator.
 std::optional<bool> decodeHlaOwnership(VariableLengthData const& value) {
-  auto const* bytes = static_cast<unsigned char const*>(value.data());
-  if (bytes == nullptr || value.size() != 4) {
+  auto const encoded = decodeHlaInteger32BE(value);
+  if (!encoded || *encoded > 1U) {
     return std::nullopt;
   }
-  std::uint32_t const encoded =
-      (static_cast<std::uint32_t>(bytes[0]) << 24U) |
-      (static_cast<std::uint32_t>(bytes[1]) << 16U) |
-      (static_cast<std::uint32_t>(bytes[2]) << 8U) |
-      static_cast<std::uint32_t>(bytes[3]);
-  if (encoded > 1U) {
-    return std::nullopt;
-  }
-  return encoded == 1U;
+  return *encoded == 1U;
 }
 
 // HLAstandardMIM represents HLAresignAction with HLAinteger32BE values zero
@@ -2456,16 +2448,11 @@ std::optional<bool> decodeHlaOwnership(VariableLengthData const& value) {
 // cast so malformed incoming MOM payloads cannot silently alter a federate's
 // automatic-resign policy.
 std::optional<ResignAction> decodeHlaResignAction(VariableLengthData const& value) {
-  auto const* bytes = static_cast<unsigned char const*>(value.data());
-  if (bytes == nullptr || value.size() != 4) {
+  auto const encoded = decodeHlaInteger32BE(value);
+  if (!encoded) {
     return std::nullopt;
   }
-  std::uint32_t const encoded =
-      (static_cast<std::uint32_t>(bytes[0]) << 24U) |
-      (static_cast<std::uint32_t>(bytes[1]) << 16U) |
-      (static_cast<std::uint32_t>(bytes[2]) << 8U) |
-      static_cast<std::uint32_t>(bytes[3]);
-  switch (encoded) {
+  switch (*encoded) {
     case 0U:
       return UNCONDITIONALLY_DIVEST_ATTRIBUTES;
     case 1U:
@@ -7438,7 +7425,7 @@ void queueAttributeOwnershipAssumptionRecipients(
     // leave this field empty and use the call-site tag (which may itself be
     // empty), preserving one queueing helper for all ownership paths.
     auto callbackTagBytes = recipient.userSuppliedTag.empty()
-                                ? copyVariableLengthDataBytes(userSuppliedTag)
+                                ? umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag)
                                 : std::move(recipient.userSuppliedTag);
 
     recipient.callbackRoute([
@@ -11650,11 +11637,7 @@ FederateHandle UmbraRtiAmbassador::joinFederationExecutionImpl(
       connection.additionalSettings = serviceReportConnection_.additionalSettings;
       if (serviceReportConnection_.credentials) {
         auto const data = serviceReportConnection_.credentials->getData();
-        auto const* first = static_cast<std::uint8_t const*>(data.data());
-        std::vector<std::uint8_t> bytes;
-        if (data.size() != 0U) {
-          bytes.assign(first, first + data.size());
-        }
+        auto bytes = umbra::detail::variable_length_data_2025::copyBytes(data);
         connection.credentials = std::make_pair(
             serviceReportConnection_.credentials->getType(), std::move(bytes));
       }
@@ -12825,7 +12808,7 @@ void UmbraRtiAmbassador::requestFederationSave(
           label,
           umbra::detail::ProcessFederationLogicalTime{
               timestamp->implementationName(),
-              copyVariableLengthDataBytes(timestamp->encode())});
+              umbra::detail::variable_length_data_2025::copyBytes(timestamp->encode())});
       if (result.status !=
           umbra::detail::FederationSaveControlStatus::applied) {
         throwFederationSaveServiceFailure(
@@ -17565,7 +17548,7 @@ void UmbraRtiAmbassador::deleteObjectInstance(
           std::move(federationName),
           deletingFederateId,
           *objectInstanceValue,
-          copyVariableLengthDataBytes(userSuppliedTag));
+          umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag));
       if (result.status != umbra::detail::ObjectInstanceDeletionStatus::applied) {
         throwObjectInstanceDeletionFailure(result.status);
       }
@@ -17694,11 +17677,8 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
           L"A timestamped service requires a finite logical timestamp.");
     }
     auto const encodedTimestamp = timestamp->encode();
-    std::vector<std::uint8_t> processTimestampBytes;
-    if (encodedTimestamp.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(encodedTimestamp.data());
-      processTimestampBytes.assign(data, data + encodedTimestamp.size());
-    }
+    auto processTimestampBytes =
+        umbra::detail::variable_length_data_2025::copyBytes(encodedTimestamp);
 
     umbra::detail::ProcessFederationDeleteObjectInstanceResult result;
     try {
@@ -17706,7 +17686,7 @@ MessageRetractionHandle UmbraRtiAmbassador::deleteObjectInstance(
           std::move(federationName),
           deletingFederateId,
           *objectInstanceValue,
-          copyVariableLengthDataBytes(userSuppliedTag),
+          umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag),
           umbra::detail::ProcessFederationLogicalTime{
               timestamp->implementationName(),
               std::move(processTimestampBytes)});
@@ -18088,18 +18068,11 @@ void UmbraRtiAmbassador::updateAttributeValues(
         processAttributeValues;
     processAttributeValues.reserve(sentAttributes.size());
     for (auto const& [attributeHandle, attributeValue] : sentAttributes) {
-      std::vector<std::uint8_t> bytes;
-      if (attributeValue.size() != 0U) {
-        auto const* data = static_cast<std::uint8_t const*>(attributeValue.data());
-        bytes.assign(data, data + attributeValue.size());
-      }
+      auto bytes = umbra::detail::variable_length_data_2025::copyBytes(attributeValue);
       processAttributeValues.emplace_back(attributeHandle, std::move(bytes));
     }
-    std::vector<std::uint8_t> processTag;
-    if (userSuppliedTag.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(userSuppliedTag.data());
-      processTag.assign(data, data + userSuppliedTag.size());
-    }
+    auto processTag =
+        umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
 
     try {
       static_cast<void>(processClient->updateAttributeValues(
@@ -18407,29 +18380,19 @@ MessageRetractionHandle UmbraRtiAmbassador::updateAttributeValues(
           L"A timestamped service requires a finite logical timestamp.");
     }
     auto const encodedTimestamp = timestamp->encode();
-    std::vector<std::uint8_t> processTimestampBytes;
-    if (encodedTimestamp.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(encodedTimestamp.data());
-      processTimestampBytes.assign(data, data + encodedTimestamp.size());
-    }
+    auto processTimestampBytes =
+        umbra::detail::variable_length_data_2025::copyBytes(encodedTimestamp);
 
     auto const sentAttributes = copyAttributeValues(attributeValues);
     std::vector<umbra::detail::ProcessFederationAttributeValue>
         processAttributeValues;
     processAttributeValues.reserve(sentAttributes.size());
     for (auto const& [attributeHandle, attributeValue] : sentAttributes) {
-      std::vector<std::uint8_t> bytes;
-      if (attributeValue.size() != 0U) {
-        auto const* data = static_cast<std::uint8_t const*>(attributeValue.data());
-        bytes.assign(data, data + attributeValue.size());
-      }
+      auto bytes = umbra::detail::variable_length_data_2025::copyBytes(attributeValue);
       processAttributeValues.emplace_back(attributeHandle, std::move(bytes));
     }
-    std::vector<std::uint8_t> processTag;
-    if (userSuppliedTag.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(userSuppliedTag.data());
-      processTag.assign(data, data + userSuppliedTag.size());
-    }
+    auto processTag =
+        umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
 
     umbra::detail::ProcessFederationUpdateAttributeValuesResult result;
     try {
@@ -18852,11 +18815,8 @@ void UmbraRtiAmbassador::requestAttributeValueUpdate(
       federationName = *joinedFederationName_;
       requestingFederateId = *joinedFederateId_;
     }
-    std::vector<std::uint8_t> processTag;
-    if (userSuppliedTag.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(userSuppliedTag.data());
-      processTag.assign(data, data + userSuppliedTag.size());
-    }
+    auto processTag =
+        umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
     try {
       static_cast<void>(processClient->requestAttributeValueUpdate(
           std::move(federationName),
@@ -19086,7 +19046,7 @@ void UmbraRtiAmbassador::requestAttributeValueUpdate(
             delivery.providingFederateId,
             *objectInstanceHandle,
             delivery.requestedAttributeHandles,
-            copyVariableLengthDataBytes(copiedTag));
+            umbra::detail::variable_length_data_2025::copyBytes(copiedTag));
     if (!requestId) {
       throw RTIinternalError(
           L"The embedded federation could not persist the Request Attribute Value Update request.");
@@ -19163,11 +19123,8 @@ void UmbraRtiAmbassador::requestAttributeValueUpdate(
       federationName = *joinedFederationName_;
       requestingFederateId = *joinedFederateId_;
     }
-    std::vector<std::uint8_t> processTag;
-    if (userSuppliedTag.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(userSuppliedTag.data());
-      processTag.assign(data, data + userSuppliedTag.size());
-    }
+    auto processTag =
+        umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
     try {
       static_cast<void>(processClient->requestAttributeValueUpdateClass(
           std::move(federationName),
@@ -19389,7 +19346,7 @@ void UmbraRtiAmbassador::requestAttributeValueUpdate(
             delivery.objectInstanceHandle,
             *requestedObjectClassHandle,
             delivery.requestedAttributeHandles,
-            copyVariableLengthDataBytes(copiedTag));
+            umbra::detail::variable_length_data_2025::copyBytes(copiedTag));
     if (!requestId) {
       throw RTIinternalError(
           L"The embedded federation could not persist the object-class Request Attribute Value Update request.");
@@ -19480,11 +19437,8 @@ void UmbraRtiAmbassador::requestAttributeValueUpdateWithRegions(
       federationName = *joinedFederationName_;
       requestingFederateId = *joinedFederateId_;
     }
-    std::vector<std::uint8_t> processTag;
-    if (userSuppliedTag.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(userSuppliedTag.data());
-      processTag.assign(data, data + userSuppliedTag.size());
-    }
+    auto processTag =
+        umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
     try {
       auto const result = processClient->requestAttributeValueUpdateClassWithRegions(
           std::move(federationName),
@@ -19732,7 +19686,7 @@ void UmbraRtiAmbassador::requestAttributeValueUpdateWithRegions(
             *requestedObjectClassHandle,
             delivery.requestedAttributeHandles,
             delivery.requestRegionsByAttribute,
-            copyVariableLengthDataBytes(copiedTag));
+            umbra::detail::variable_length_data_2025::copyBytes(copiedTag));
     if (!requestId) {
       throw RTIinternalError(
           L"The embedded federation could not persist the regional Request Attribute Value Update request.");
@@ -20129,7 +20083,7 @@ void UmbraRtiAmbassador::negotiatedAttributeOwnershipDivestiture(
           *objectInstanceHandleValueResult,
           std::vector<std::uint64_t>(
               attributeHandles->begin(), attributeHandles->end()),
-          copyVariableLengthDataBytes(userSuppliedTag));
+          umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag));
       if (result.status !=
           umbra::detail::NegotiatedAttributeOwnershipDivestitureStatus::
               applied) {
@@ -20178,7 +20132,7 @@ void UmbraRtiAmbassador::negotiatedAttributeOwnershipDivestiture(
   // negotiated planner may carry it to Request Divestiture Confirmation for
   // either a regular or an If Available candidate; a later owner-search
   // extension must retain this exact 2025 tag for its own callback paths.
-  auto copiedTag = copyVariableLengthDataBytes(userSuppliedTag);
+  auto copiedTag = umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
   // Section 7.3.1 supplies the object instance designator, set of attribute
   // designators, and user-supplied tag. Build the file-text forms before the
   // registry commits the private Waiting state, so formatting cannot leave an
@@ -20318,7 +20272,7 @@ void UmbraRtiAmbassador::confirmDivestiture(
           *objectInstanceHandleValueResult,
           std::vector<std::uint64_t>(
               attributeHandles->begin(), attributeHandles->end()),
-          copyVariableLengthDataBytes(userSuppliedTag));
+          umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag));
       if (result.status != umbra::detail::ConfirmDivestitureStatus::applied) {
         throwConfirmDivestitureFailure(result.status);
       }
@@ -20359,7 +20313,7 @@ void UmbraRtiAmbassador::confirmDivestiture(
   if (!attributeHandles) {
     throw AttributeNotDefined(L"Confirm Divestiture requires defined AttributeHandle values.");
   }
-  auto copiedTag = copyVariableLengthDataBytes(userSuppliedTag);
+  auto copiedTag = umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
   // Section 7.6.1 supplies the object instance designator, set of attribute
   // designators, and user-supplied tag. Keep Table 5's type-63 form in the
   // report arguments; the public MOM encoder maps it to static MIM type 60.
@@ -20616,7 +20570,7 @@ void UmbraRtiAmbassador::unconditionalAttributeOwnershipDivestiture(
           std::vector<std::uint64_t>(
               attributeHandlesResult->begin(),
               attributeHandlesResult->end()),
-          copyVariableLengthDataBytes(userSuppliedTag),
+          umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag),
           callbacks_->isEnabled());
       if (!result.value) {
         throw RTIinternalError(
@@ -20706,7 +20660,7 @@ void UmbraRtiAmbassador::unconditionalAttributeOwnershipDivestiture(
         divestingFederateId,
         *objectInstanceHandle,
         *attributeHandles,
-        copyVariableLengthDataBytes(copiedTag));
+        umbra::detail::variable_length_data_2025::copyBytes(copiedTag));
     if (plan.status !=
         umbra::detail::UnconditionalAttributeOwnershipDivestitureStatus::applied) {
       throwUnconditionalAttributeOwnershipDivestitureFailure(plan.status);
@@ -20787,7 +20741,7 @@ void UmbraRtiAmbassador::attributeOwnershipAcquisition(
           std::vector<std::uint64_t>(
               desiredAttributeHandles->begin(),
               desiredAttributeHandles->end()),
-          copyVariableLengthDataBytes(userSuppliedTag));
+          umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag));
       if (result.status !=
           umbra::detail::AttributeOwnershipAcquisitionStatus::applied) {
         throwAttributeOwnershipAcquisitionFailure(result.status);
@@ -20832,7 +20786,7 @@ void UmbraRtiAmbassador::attributeOwnershipAcquisition(
   }
   // Copy before the registry accepts the request so a failed allocation never
   // leaves a private acquisition reservation without its callback tag.
-  auto copiedTag = copyVariableLengthDataBytes(userSuppliedTag);
+  auto copiedTag = umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
   VariableLengthData const reportTag(userSuppliedTag);
   // Section 7.8.1 supplies the object instance designator, set of attribute
   // designators, and user-supplied tag.  Table 5 makes the first two type-37
@@ -20943,7 +20897,7 @@ void UmbraRtiAmbassador::attributeOwnershipAcquisitionIfAvailable(
           std::vector<std::uint64_t>(
               desiredAttributeHandles->begin(),
               desiredAttributeHandles->end()),
-          copyVariableLengthDataBytes(userSuppliedTag));
+          umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag));
       if (result.status !=
           umbra::detail::AttributeOwnershipAcquisitionIfAvailableStatus::applied) {
         throwAttributeOwnershipAcquisitionIfAvailableFailure(result.status);
@@ -21032,7 +20986,7 @@ void UmbraRtiAmbassador::attributeOwnershipAcquisitionIfAvailable(
         requestingFederateId,
         *objectInstanceHandle,
         *desiredAttributeHandles,
-        copyVariableLengthDataBytes(copiedTag));
+        umbra::detail::variable_length_data_2025::copyBytes(copiedTag));
     if (plan.status !=
         umbra::detail::AttributeOwnershipAcquisitionIfAvailableStatus::applied) {
       throwAttributeOwnershipAcquisitionIfAvailableFailure(plan.status);
@@ -21137,7 +21091,7 @@ void UmbraRtiAmbassador::attributeOwnershipReleaseDenied(
           *objectInstanceHandleValueResult,
           std::vector<std::uint64_t>(
               attributeHandles->begin(), attributeHandles->end()),
-          copyVariableLengthDataBytes(userSuppliedTag));
+          umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag));
       if (result.status !=
           umbra::detail::AttributeOwnershipReleaseDeniedStatus::applied) {
         throwAttributeOwnershipReleaseDeniedFailure(result.status);
@@ -21293,7 +21247,7 @@ void UmbraRtiAmbassador::attributeOwnershipDivestitureIfWanted(
   // Copy before the registry commits the synchronous transfer, so an
   // allocation failure cannot leave a notification without its required
   // divestiture tag.
-  auto copiedTag = copyVariableLengthDataBytes(userSuppliedTag);
+  auto copiedTag = umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
 
   std::wstring federationName;
   umbra::detail::AttributeOwnershipDivestitureIfWantedPlan plan;
@@ -23663,18 +23617,11 @@ void UmbraRtiAmbassador::sendInteraction(
     for (auto const& [parameterHandle, parameterValue] : sentParameters) {
       reportParameterValues.emplace(
           makeParameterHandle(parameterHandle), parameterValue);
-      std::vector<std::uint8_t> bytes;
-      if (parameterValue.size() != 0U) {
-        auto const* data = static_cast<std::uint8_t const*>(parameterValue.data());
-        bytes.assign(data, data + parameterValue.size());
-      }
+      auto bytes = umbra::detail::variable_length_data_2025::copyBytes(parameterValue);
       processParameterValues.emplace_back(parameterHandle, std::move(bytes));
     }
-    std::vector<std::uint8_t> processTag;
-    if (userSuppliedTag.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(userSuppliedTag.data());
-      processTag.assign(data, data + userSuppliedTag.size());
-    }
+    auto processTag =
+        umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
     auto const reportArguments =
         std::vector<umbra::detail::MomServiceArgument>{
             {umbra::detail::MomArgumentType::interaction_class_handle,
@@ -26890,11 +26837,8 @@ MessageRetractionHandle UmbraRtiAmbassador::sendInteraction(
           L"A timestamped service requires a finite logical timestamp.");
     }
     auto const encodedTimestamp = timestamp->encode();
-    std::vector<std::uint8_t> processTimestampBytes;
-    if (encodedTimestamp.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(encodedTimestamp.data());
-      processTimestampBytes.assign(data, data + encodedTimestamp.size());
-    }
+    auto processTimestampBytes =
+        umbra::detail::variable_length_data_2025::copyBytes(encodedTimestamp);
 
     std::vector<umbra::detail::ProcessFederationInteractionParameterValue>
         processParameterValues;
@@ -26905,18 +26849,11 @@ MessageRetractionHandle UmbraRtiAmbassador::sendInteraction(
     for (auto const& [parameterHandle, parameterValue] : sentParameters) {
       reportParameterValues.emplace(
           makeParameterHandle(parameterHandle), parameterValue);
-      std::vector<std::uint8_t> bytes;
-      if (parameterValue.size() != 0U) {
-        auto const* data = static_cast<std::uint8_t const*>(parameterValue.data());
-        bytes.assign(data, data + parameterValue.size());
-      }
+      auto bytes = umbra::detail::variable_length_data_2025::copyBytes(parameterValue);
       processParameterValues.emplace_back(parameterHandle, std::move(bytes));
     }
-    std::vector<std::uint8_t> processTag;
-    if (userSuppliedTag.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(userSuppliedTag.data());
-      processTag.assign(data, data + userSuppliedTag.size());
-    }
+    auto processTag =
+        umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
 
     std::uint64_t processMessageId = 0U;
     try {
@@ -27317,18 +27254,11 @@ void UmbraRtiAmbassador::sendDirectedInteraction(
     for (auto const& [parameterHandle, parameterValue] : sentParameters) {
       reportParameterValues.emplace(
           makeParameterHandle(parameterHandle), parameterValue);
-      std::vector<std::uint8_t> bytes;
-      if (parameterValue.size() != 0U) {
-        auto const* data = static_cast<std::uint8_t const*>(parameterValue.data());
-        bytes.assign(data, data + parameterValue.size());
-      }
+      auto bytes = umbra::detail::variable_length_data_2025::copyBytes(parameterValue);
       processParameterValues.emplace_back(parameterHandle, std::move(bytes));
     }
-    std::vector<std::uint8_t> processTag;
-    if (userSuppliedTag.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(userSuppliedTag.data());
-      processTag.assign(data, data + userSuppliedTag.size());
-    }
+    auto processTag =
+        umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
     try {
       auto const processPayload = umbra::detail::encodeProcessFederationInteractionEnvelope(
           umbra::detail::ProcessFederationInteractionEnvelope{
@@ -27648,11 +27578,8 @@ MessageRetractionHandle UmbraRtiAmbassador::sendDirectedInteraction(
           L"A timestamped service requires a finite logical timestamp.");
     }
     auto const encodedTimestamp = timestamp->encode();
-    std::vector<std::uint8_t> processTimestampBytes;
-    if (encodedTimestamp.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(encodedTimestamp.data());
-      processTimestampBytes.assign(data, data + encodedTimestamp.size());
-    }
+    auto processTimestampBytes =
+        umbra::detail::variable_length_data_2025::copyBytes(encodedTimestamp);
 
     std::vector<umbra::detail::ProcessFederationInteractionParameterValue>
         processParameterValues;
@@ -27663,18 +27590,11 @@ MessageRetractionHandle UmbraRtiAmbassador::sendDirectedInteraction(
     for (auto const& [parameterHandle, parameterValue] : sentParameters) {
       reportParameterValues.emplace(
           makeParameterHandle(parameterHandle), parameterValue);
-      std::vector<std::uint8_t> bytes;
-      if (parameterValue.size() != 0U) {
-        auto const* data = static_cast<std::uint8_t const*>(parameterValue.data());
-        bytes.assign(data, data + parameterValue.size());
-      }
+      auto bytes = umbra::detail::variable_length_data_2025::copyBytes(parameterValue);
       processParameterValues.emplace_back(parameterHandle, std::move(bytes));
     }
-    std::vector<std::uint8_t> processTag;
-    if (userSuppliedTag.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(userSuppliedTag.data());
-      processTag.assign(data, data + userSuppliedTag.size());
-    }
+    auto processTag =
+        umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
 
     try {
       auto const processPayload = umbra::detail::encodeProcessFederationInteractionEnvelope(
@@ -28092,29 +28012,19 @@ MessageRetractionHandle UmbraRtiAmbassador::sendInteractionWithRegions(
           L"A timestamped service requires a finite logical timestamp.");
     }
     auto const encodedTimestamp = timestamp->encode();
-    std::vector<std::uint8_t> processTimestampBytes;
-    if (encodedTimestamp.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(encodedTimestamp.data());
-      processTimestampBytes.assign(data, data + encodedTimestamp.size());
-    }
+    auto processTimestampBytes =
+        umbra::detail::variable_length_data_2025::copyBytes(encodedTimestamp);
 
     std::vector<umbra::detail::ProcessFederationInteractionParameterValue>
         processParameterValues;
     auto const sentParameters = copyInteractionParameterValues(parameterValues);
     processParameterValues.reserve(sentParameters.size());
     for (auto const& [parameterHandle, parameterValue] : sentParameters) {
-      std::vector<std::uint8_t> bytes;
-      if (parameterValue.size() != 0U) {
-        auto const* data = static_cast<std::uint8_t const*>(parameterValue.data());
-        bytes.assign(data, data + parameterValue.size());
-      }
+      auto bytes = umbra::detail::variable_length_data_2025::copyBytes(parameterValue);
       processParameterValues.emplace_back(parameterHandle, std::move(bytes));
     }
-    std::vector<std::uint8_t> processTag;
-    if (userSuppliedTag.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(userSuppliedTag.data());
-      processTag.assign(data, data + userSuppliedTag.size());
-    }
+    auto processTag =
+        umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
 
     std::uint64_t processMessageId = 0U;
     try {
@@ -28567,18 +28477,11 @@ void UmbraRtiAmbassador::sendInteractionWithRegions(
     for (auto const& [parameterHandle, parameterValue] : sentParameters) {
       reportParameterValues.emplace(
           makeParameterHandle(parameterHandle), parameterValue);
-      std::vector<std::uint8_t> bytes;
-      if (parameterValue.size() != 0U) {
-        auto const* data = static_cast<std::uint8_t const*>(parameterValue.data());
-        bytes.assign(data, data + parameterValue.size());
-      }
+      auto bytes = umbra::detail::variable_length_data_2025::copyBytes(parameterValue);
       processParameterValues.emplace_back(parameterHandle, std::move(bytes));
     }
-    std::vector<std::uint8_t> processTag;
-    if (userSuppliedTag.size() != 0U) {
-      auto const* data = static_cast<std::uint8_t const*>(userSuppliedTag.data());
-      processTag.assign(data, data + userSuppliedTag.size());
-    }
+    auto processTag =
+        umbra::detail::variable_length_data_2025::copyBytes(userSuppliedTag);
 
     try {
       auto const processPayload = umbra::detail::encodeProcessFederationInteractionEnvelope(

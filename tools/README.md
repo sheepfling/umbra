@@ -95,6 +95,12 @@ Run the repository hygiene commands from the same entry point:
     python -m tools.ci fix --scope changed
     python -m tools.ci clean --dry-run
 
+Inspect and enforce the source-size ratchet independently when planning a
+split:
+
+    python tools/check_source_file_sizes.py --report
+    python tools/check_source_file_sizes.py
+
 The 2010 C++ lane includes the exact integer/float logical-time marshal gate.
 The 2010 JNI lane runs the Java carrier matrix; after staging the optional
 native Python extension, the Python-side boundary evidence is:

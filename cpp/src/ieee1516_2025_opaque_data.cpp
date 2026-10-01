@@ -2,6 +2,9 @@
 #include <RTI/encoding/EncodingExceptions.h>
 #include <RTI/encoding/HLAopaqueData.h>
 
+#include "internal/encoding/byte_order.hpp"
+#include "internal/encoding/variable_length_data_2025.hpp"
+
 #include <cstdint>
 #include <cstring>
 #include <limits>
@@ -15,32 +18,23 @@ namespace {
 }
 
 void appendUint32BE(std::vector<rti1516_2025::Octet>& output, std::uint32_t value) {
-  output.push_back(static_cast<rti1516_2025::Octet>((value >> 24U) & 0xffU));
-  output.push_back(static_cast<rti1516_2025::Octet>((value >> 16U) & 0xffU));
-  output.push_back(static_cast<rti1516_2025::Octet>((value >> 8U) & 0xffU));
-  output.push_back(static_cast<rti1516_2025::Octet>(value & 0xffU));
+  umbra::detail::appendUnsigned(output, value, umbra::detail::ByteOrder::big);
 }
 
 [[nodiscard]] std::uint32_t readUint32BE(
     std::vector<rti1516_2025::Octet> const& input,
     std::size_t index) {
-  if (index > input.size() || input.size() - index < 4U) {
+  std::uint32_t value = 0U;
+  if (!umbra::detail::readUnsigned(input, index, umbra::detail::ByteOrder::big, value)) {
     invalidEncoding(L"The HLAopaqueData encoding is truncated before its element count.");
   }
-  return (static_cast<std::uint32_t>(static_cast<std::uint8_t>(input[index])) << 24U) |
-      (static_cast<std::uint32_t>(static_cast<std::uint8_t>(input[index + 1U])) << 16U) |
-      (static_cast<std::uint32_t>(static_cast<std::uint8_t>(input[index + 2U])) << 8U) |
-      static_cast<std::uint32_t>(static_cast<std::uint8_t>(input[index + 3U]));
+  return value;
 }
 
 [[nodiscard]] std::vector<rti1516_2025::Octet> toOctets(
     rti1516_2025::VariableLengthData const& input) {
-  auto const* bytes = static_cast<rti1516_2025::Octet const*>(input.data());
-  if (input.size() != 0U && bytes == nullptr) {
-    invalidEncoding(L"The encoded HLAopaqueData buffer is invalid.");
-  }
-  return bytes == nullptr ? std::vector<rti1516_2025::Octet>{}
-                          : std::vector<rti1516_2025::Octet>(bytes, bytes + input.size());
+  return umbra::detail::variable_length_data_2025::copyEncodedBytes(
+      input, L"The encoded HLAopaqueData buffer is invalid.");
 }
 
 void validateElementCount(std::size_t dataLength) {

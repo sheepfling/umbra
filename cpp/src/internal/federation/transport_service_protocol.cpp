@@ -1,5 +1,7 @@
 #include "internal/federation/transport_service_protocol.hpp"
 
+#include "internal/encoding/transport_wire.hpp"
+
 #include "internal/federation/transport_protocol.hpp"
 
 #include <algorithm>
@@ -14,52 +16,6 @@ constexpr std::uint16_t kTransportServiceProtocolVersion = 1U;
 
 [[noreturn]] void fail(char const* message) {
   throw TransportServiceProtocolError(message);
-}
-
-void appendUnsigned16(std::vector<std::uint8_t>& bytes, std::uint16_t value) {
-  bytes.push_back(static_cast<std::uint8_t>((value >> 8U) & 0xffU));
-  bytes.push_back(static_cast<std::uint8_t>(value & 0xffU));
-}
-
-void appendUnsigned64(std::vector<std::uint8_t>& bytes, std::uint64_t value) {
-  for (std::size_t shift = 56U; shift != 0U; shift -= 8U) {
-    bytes.push_back(static_cast<std::uint8_t>((value >> shift) & 0xffU));
-  }
-  bytes.push_back(static_cast<std::uint8_t>(value & 0xffU));
-}
-
-void appendUnsigned32(std::vector<std::uint8_t>& bytes, std::uint32_t value) {
-  bytes.push_back(static_cast<std::uint8_t>((value >> 24U) & 0xffU));
-  bytes.push_back(static_cast<std::uint8_t>((value >> 16U) & 0xffU));
-  bytes.push_back(static_cast<std::uint8_t>((value >> 8U) & 0xffU));
-  bytes.push_back(static_cast<std::uint8_t>(value & 0xffU));
-}
-
-[[nodiscard]] std::uint16_t readUnsigned16(
-    std::span<std::uint8_t const> bytes,
-    std::size_t offset) {
-  return static_cast<std::uint16_t>(
-      (static_cast<std::uint16_t>(bytes[offset]) << 8U) |
-      static_cast<std::uint16_t>(bytes[offset + 1U]));
-}
-
-[[nodiscard]] std::uint32_t readUnsigned32(
-    std::span<std::uint8_t const> bytes,
-    std::size_t offset) {
-  return (static_cast<std::uint32_t>(bytes[offset]) << 24U) |
-      (static_cast<std::uint32_t>(bytes[offset + 1U]) << 16U) |
-      (static_cast<std::uint32_t>(bytes[offset + 2U]) << 8U) |
-      static_cast<std::uint32_t>(bytes[offset + 3U]);
-}
-
-[[nodiscard]] std::uint64_t readUnsigned64(
-    std::span<std::uint8_t const> bytes,
-    std::size_t offset) {
-  std::uint64_t value = 0U;
-  for (std::size_t index = 0U; index < sizeof(std::uint64_t); ++index) {
-    value = (value << 8U) | static_cast<std::uint64_t>(bytes[offset + index]);
-  }
-  return value;
 }
 
 }  // namespace
@@ -270,13 +226,16 @@ std::vector<std::uint8_t> encodeTransportServiceMessage(
   std::vector<std::uint8_t> encoded;
   encoded.reserve(kTransportServiceHeaderSize + message.payload.size());
   encoded.insert(encoded.end(), kTransportServiceMagic.begin(), kTransportServiceMagic.end());
-  appendUnsigned16(encoded, kTransportServiceProtocolVersion);
+  transport_wire::appendBigEndian16(encoded, kTransportServiceProtocolVersion);
   encoded.push_back(static_cast<std::uint8_t>(message.kind));
   encoded.push_back(0U);
-  appendUnsigned16(encoded, static_cast<std::uint16_t>(message.operation));
-  appendUnsigned16(encoded, static_cast<std::uint16_t>(message.status));
-  appendUnsigned64(encoded, message.requestId);
-  appendUnsigned32(encoded, static_cast<std::uint32_t>(message.payload.size()));
+  transport_wire::appendBigEndian16(
+      encoded, static_cast<std::uint16_t>(message.operation));
+  transport_wire::appendBigEndian16(
+      encoded, static_cast<std::uint16_t>(message.status));
+  transport_wire::appendBigEndian64(encoded, message.requestId);
+  transport_wire::appendBigEndian32(
+      encoded, static_cast<std::uint32_t>(message.payload.size()));
   encoded.insert(encoded.end(), message.payload.begin(), message.payload.end());
   return encoded;
 }
@@ -289,7 +248,8 @@ TransportServiceMessage decodeTransportServiceMessage(
   if (!std::equal(kTransportServiceMagic.begin(), kTransportServiceMagic.end(), encoded.begin())) {
     fail("The transport service message magic is invalid.");
   }
-  if (readUnsigned16(encoded, 4U) != kTransportServiceProtocolVersion) {
+  if (transport_wire::readBigEndian16(
+          encoded, 4U) != kTransportServiceProtocolVersion) {
     fail("The transport service protocol version is unsupported.");
   }
   if (encoded[7U] != 0U) {
@@ -297,10 +257,12 @@ TransportServiceMessage decodeTransportServiceMessage(
   }
 
   auto const kind = static_cast<TransportServiceMessageKind>(encoded[6U]);
-  auto const operation = static_cast<TransportServiceOperation>(readUnsigned16(encoded, 8U));
-  auto const status = static_cast<TransportServiceStatus>(readUnsigned16(encoded, 10U));
-  auto const requestId = readUnsigned64(encoded, 12U);
-  auto const payloadSize = readUnsigned32(encoded, 20U);
+  auto const operation = static_cast<TransportServiceOperation>(
+      transport_wire::readBigEndian16(encoded, 8U));
+  auto const status = static_cast<TransportServiceStatus>(
+      transport_wire::readBigEndian16(encoded, 10U));
+  auto const requestId = transport_wire::readBigEndian64(encoded, 12U);
+  auto const payloadSize = transport_wire::readBigEndian32(encoded, 20U);
   if (!isTransportServiceMessageKind(kind)) {
     fail("The transport service message kind is not recognized.");
   }

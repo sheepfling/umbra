@@ -7,6 +7,8 @@
 #include <RTI/time/HLAinteger64TimeFactory.h>
 #include <RTI/time/HLAfloat64TimeFactory.h>
 
+#include "internal/encoding/byte_order.hpp"
+
 #include <cstdint>
 #include <cstring>
 #include <limits>
@@ -44,21 +46,10 @@ bool valid(Integer64 value) {
   return value >= 0;
 }
 
-void appendBigEndian(std::uint64_t value, unsigned char* output) {
-  for (std::size_t index = kEncodedLength; index > 0U; --index) {
-    output[index - 1U] = static_cast<unsigned char>(value & 0xffU);
-    value >>= 8U;
-  }
-}
-
 std::uint64_t readBigEndian(void const* buffer, std::size_t size) {
-  if (buffer == nullptr || size != kEncodedLength) {
-    couldNotDecode(L"An HLAinteger64Time encoding must contain exactly eight octets.");
-  }
-  auto const* bytes = static_cast<unsigned char const*>(buffer);
   std::uint64_t value = 0U;
-  for (std::size_t index = 0U; index < kEncodedLength; ++index) {
-    value = (value << 8U) | bytes[index];
+  if (!umbra::detail::readUnsigned(buffer, size, umbra::detail::ByteOrder::big, value)) {
+    couldNotDecode(L"An HLAinteger64Time encoding must contain exactly eight octets.");
   }
   if ((value & (std::uint64_t{1} << 63U)) != 0U) {
     couldNotDecode(L"An HLAinteger64Time encoding contains a negative value.");
@@ -68,7 +59,8 @@ std::uint64_t readBigEndian(void const* buffer, std::size_t size) {
 
 VariableLengthData encoded(Integer64 value) {
   unsigned char bytes[kEncodedLength] = {};
-  appendBigEndian(static_cast<std::uint64_t>(value), bytes);
+  umbra::detail::writeUnsigned(
+      static_cast<std::uint64_t>(value), bytes, umbra::detail::ByteOrder::big);
   return VariableLengthData(bytes, kEncodedLength);
 }
 
@@ -77,7 +69,8 @@ std::size_t writeEncoded(Integer64 value, void* buffer, std::size_t size) {
     couldNotEncode(L"The output buffer is too small for an HLAinteger64Time encoding.");
   }
   unsigned char bytes[kEncodedLength] = {};
-  appendBigEndian(static_cast<std::uint64_t>(value), bytes);
+  umbra::detail::writeUnsigned(
+      static_cast<std::uint64_t>(value), bytes, umbra::detail::ByteOrder::big);
   std::memcpy(buffer, bytes, kEncodedLength);
   return kEncodedLength;
 }

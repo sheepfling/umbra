@@ -72,8 +72,34 @@
       "Owner-reported failure is distinct from receiver-reported failure; the callback-label candidate remains unmapped under RL-267 and no total order is claimed."
     ]
   },
-  "active_handoff_note": "IEEE 1516.1-2025 is primary; no 1516e, Visual Studio, or Requirements Lab resync. MinGW/Ninja is now the native Catch2 path: fixed the unconditional UMBRA_SOURCE_DIRECTORY definition and built the embedded Catch2 target using the project-pinned libxml2 2.15.3 source. Scoop's main libxml2 manifest is 2.9.3, so that installed package is not used by the project. The timestamped-interaction-request-retraction-fanout lane now includes generic and directed mixed-fanout cases (118 assertions total); exact MinGW CTest passed 2/2 and the lane check passed with 2 mapped tests and 6 direct pairs. The new directed case contributes 68 assertions, three direct §8.23.3 pairs, and 27 official C++ API surfaces; it remains embedded development evidence, not conformance. Earlier focused restore cases remain green; the portable C++ TCK uses UserSuppliedTag=60 and passed 44/44 affected callback-model scenarios; directed-declaration TCK pair passed 4/4. Next exact handoff: map and run `Embedded service reporting records failed regional object-attribute association invocations` at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48879` using its existing service-report requirements, then fix runtime only if the focused MinGW test exposes a defect.",
-  "active_handoff": null,
+  "active_handoff_note": "IEEE 1516.1-2025 remains primary; the 2010 stream remains separate, with no 1516e or Requirements Lab resync. The service-report, process-boundary, synchronization/restore, federation-save, time-management, object-management, regional-DDM, directed-interaction, query-time, retraction, changed-lookahead, multiple-message ordering, public fanout, regional callback-gating, and timestamped regional transportation lanes have been split into focused 2025 files and verified with exact mapping checks. The single-federate, two-federate, owner-reported, receiver-reported, and HLA_IMMEDIATE terminal federation-save lanes are isolated in focused files, and the single-federate, idle/terminal, two-federate, malformed-resign-action, empty-map malformed, unknown-parameter malformed, malformed-value, HLAexceptionReporting, and HLAreportException process MOM lanes are isolated as well. The connection-suite title audit resolves all 217 mapped cases to their unique current TEST_CASE markers. The well-formed HLAsetSwitches sendInteraction cases still fail with an Unknown exception in the current worktree; malformed-report lanes remain independently green and are kept separate from that runtime issue. Next exact handoff: split the process service-report dimension-upper-bound MOM interaction case now at cpp/tests/ieee1516_2025_connection_catch2.cpp:5546, preserving its direct requirement-to-section mappings, 2025-only fixture boundaries, source mapping, and target ownership.",
+  "active_handoff": {
+    "id": "split-2025-connection-process-service-report-dimension-upper-bound-interaction-lane",
+    "state": "planned-maintenance-no-behavior-change",
+    "family": "transport-and-conformance",
+    "lane": "process-service-report-dimension-upper-bound-failure-interaction",
+    "objective": "Split the next complete 2025 process service-report dimension-upper-bound MOM interaction case out of the connection suite without changing behavior, while preserving its exact source location, CTest discovery, and direct requirement-to-section mappings.",
+    "test_case": "RTIambassador delivers failed process dimension-upper-bound reports through the MOM interaction",
+    "source_target": "cpp/tests/ieee1516_2025_connection_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:5546",
+    "mapping_seed_plan_id": "umbra-cpp-process-service-report-dimension-upper-bound-invalid-handle-interaction",
+    "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador delivers failed process dimension-upper-bound reports through the MOM interaction$",
+    "commands": {
+      "case": "python tools/query_rti_work.py test \"RTIambassador delivers failed process dimension-upper-bound reports through the MOM interaction\" --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_connection_catch2 -j 2",
+      "ctest": "ctest --test-dir <build-dir> -C Debug -R \"^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador delivers failed process dimension-upper-bound reports through the MOM interaction$\" --output-on-failure",
+      "lane_check": "python tools/query_rti_work.py check --lane process-service-report-dimension-upper-bound-failure-interaction --summary --compact"
+    },
+    "acceptance": [
+      "Move complete test cases and only their owning private fixtures; do not split at an arbitrary line or mix behavior changes into the file move.",
+      "Keep every moved case under the IEEE 1516.1-2025 source and test target; do not import 2010 helpers or alter the 2010 stream.",
+      "Update source_location values, CTest discovery, lane tags, and direct requirement-to-2025-section mappings atomically.",
+      "The focused target, exact CTest selector, and lane mapping check pass with unchanged assertion behavior.",
+      "Reduce the original file and lower its recorded size baseline; the size guard must prevent later growth."
+    ]
+  },
   "documents": [
     {
       "id": "roadmap-quickstart",
@@ -249,7 +275,7 @@
       "owner": "time-save-restore",
       "plan_id": "umbra-cpp-service-report-time-constrained-no-argument-services",
       "test_case": "Embedded service reporting records callback-gated no-argument time-constrained services",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34319",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:371",
       "primary_lane": "service-report-time-constrained-no-argument-services",
       "focus_lane": "service-report-time-constrained-no-argument-services",
       "assertions": 17,
@@ -257,7 +283,7 @@
       "standard_sections": 1,
       "api_surfaces": 4,
       "callback_models": ["HLA_EVOKED"],
-      "next_action": "The focused MinGW case verifies file records for successful no-argument Enable Time Constrained and Disable Time Constrained services, mapped to IEEE 1516.1-2025 §11.5.1. Callback gating is an observed HLA_EVOKED behavior, not an additional normative claim. Next exact source-only handoff: Embedded service reporting records callback-gated time-regulation services at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34653."
+      "next_action": "The focused MinGW case verifies file records for successful no-argument Enable Time Constrained and Disable Time Constrained services, mapped to IEEE 1516.1-2025 §11.5.1. Callback gating is an observed HLA_EVOKED behavior, not an additional normative claim. Next exact source-only handoff: Embedded service reporting records callback-gated time-regulation services at cpp/tests/ieee1516_2025_service_report_catch2.cpp:704."
     },
     "previous_completed_slice": {
       "lane": "directed-send-interaction-service-report-interaction",
@@ -895,7 +921,7 @@
         "catch2_target": "umbra_ieee1516_2025_connection_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador preserves process exception-report recheck response ownership during concurrent service requests$",
         "ctest_label": "process-exception-report-concurrency",
-        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+        "source": "cpp/tests/ieee1516_2025_connection_available_dimensions_hierarchy_catch2.cpp"
       },
       "process-client-close-exception-recheck": {
         "catch2_target": "umbra_process_boundary_private_catch2",
@@ -4870,7 +4896,7 @@
         "time-management",
         "time-role"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34319",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:371",
       "primary_lane": "service-report-time-constrained-no-argument-services",
       "focus_lane": "service-report-time-constrained-no-argument-services",
       "assertions": 17,
@@ -5819,7 +5845,7 @@
         "public-endpoint",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:42986",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_unknown_failure_catch2.cpp:460",
       "primary_lane": "process-service-report-dimension-name-failure",
       "focus_lane": "process-service-report-dimension-name-failure",
       "assertions": 95,
@@ -5850,7 +5876,7 @@
         "public-endpoint",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:42787",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_failure_catch2.cpp:460",
       "primary_lane": "process-service-report-dimension-name-failure",
       "focus_lane": "process-service-report-dimension-name-failure",
       "assertions": 68,
@@ -5942,7 +5968,7 @@
         "rti.service.disconnect",
         "federate.callback.receive-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:40222",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_exception_report_concurrency_catch2.cpp:460",
       "primary_lane": "process-exception-report-concurrency",
       "focus_lane": "process-exception-report-concurrency",
       "assertions": 104,
@@ -26199,7 +26225,7 @@
         "rti.service.disconnect",
         "federate.callback.receive-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:40217",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_mom_exception_report_parameters_catch2.cpp:460",
       "primary_lane": "process-mom-exception-report-parameters",
       "focus_lane": "process-mom-exception-report-parameters",
       "assertions": 148,
@@ -26540,7 +26566,7 @@
         "rti.service.resign-federation-execution",
         "rti.service.disconnect"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:42199",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_upper_bound_catch2.cpp:460",
       "primary_lane": "process-service-report-dimension-upper-bound",
       "focus_lane": "process-service-report-dimension-upper-bound",
       "assertions": 57,
@@ -26584,7 +26610,7 @@
         "rti.service.resign-federation-execution",
         "rti.service.disconnect"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:42396",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_handle_catch2.cpp:460",
       "primary_lane": "process-service-report-dimension-handle",
       "focus_lane": "process-service-report-dimension-handle",
       "assertions": 56,
@@ -26629,7 +26655,7 @@
         "rti.service.resign-federation-execution",
         "rti.service.disconnect"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:42590",
+      "source_location": "cpp/tests/ieee1516_2025_connection_process_service_report_dimension_name_catch2.cpp:460",
       "primary_lane": "process-service-report-dimension-name",
       "focus_lane": "process-service-report-dimension-name",
       "assertions": 57,

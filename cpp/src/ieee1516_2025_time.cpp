@@ -6,6 +6,8 @@
 #include <RTI/time/HLAinteger64Time.h>
 #include <RTI/time/HLAinteger64TimeFactory.h>
 
+#include "internal/encoding/byte_order.hpp"
+
 #include <array>
 #include <bit>
 #include <cmath>
@@ -104,33 +106,20 @@ bool isValidFloatValue(double value) noexcept {
 }
 
 std::array<unsigned char, kEncodedLength> integer64BigEndian(Integer64 value) noexcept {
-  std::array<unsigned char, kEncodedLength> encoded{};
-  auto remaining = static_cast<std::uint64_t>(value);
-  for (std::size_t index = kEncodedLength; index > 0; --index) {
-    encoded[index - 1] = static_cast<unsigned char>(remaining & 0xFFU);
-    remaining >>= 8U;
-  }
-  return encoded;
+  return umbra::detail::encodeUnsigned(
+      static_cast<std::uint64_t>(value), umbra::detail::ByteOrder::big);
 }
 
 std::array<unsigned char, kEncodedLength> float64BigEndian(double value) noexcept {
-  std::array<unsigned char, kEncodedLength> encoded{};
-  auto remaining = std::bit_cast<std::uint64_t>(value);
-  for (std::size_t index = kEncodedLength; index > 0; --index) {
-    encoded[index - 1] = static_cast<unsigned char>(remaining & 0xFFU);
-    remaining >>= 8U;
-  }
-  return encoded;
+  return umbra::detail::encodeUnsigned(
+      std::bit_cast<std::uint64_t>(value), umbra::detail::ByteOrder::big);
 }
 
 std::uint64_t readBigEndian(void const* buffer, std::size_t bufferSize) {
-  if (buffer == nullptr || bufferSize != kEncodedLength) {
+  std::uint64_t value = 0U;
+  if (!umbra::detail::readUnsigned(
+          buffer, bufferSize, umbra::detail::ByteOrder::big, value)) {
     couldNotDecode(L"A reference logical-time encoding must contain exactly eight bytes");
-  }
-  auto const* encoded = static_cast<unsigned char const*>(buffer);
-  std::uint64_t value = 0;
-  for (std::size_t index = 0; index < kEncodedLength; ++index) {
-    value = (value << 8U) | encoded[index];
   }
   return value;
 }

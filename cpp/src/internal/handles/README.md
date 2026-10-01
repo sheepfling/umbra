@@ -11,8 +11,12 @@ federation membership, delivery, ownership, or time behavior.
   validation helpers.
 - The <kind>_handle_directory files keep FOM-derived name and handle mappings
   stable for an active federation.
-- handle_variable_array_encoding.hpp contains the shared private encoding
-  helper used by handle values.
+- handle_variable_array_encoding.hpp and
+  handle_variable_array_encoding_2010.hpp are version-specific adapters over
+  the same private wire primitive; keep their public namespaces and error
+  behavior separate.
+- 2025_handle_definition.hpp contains the 2025-only common class definition
+  macro. It must not be used by the 2010 implementation.
 
 The directory implementations consume the [FOM catalog](../fom/README.md).
 Federation-owned code uses them through narrow lookup operations rather than

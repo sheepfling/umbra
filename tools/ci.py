@@ -1270,6 +1270,11 @@ def run_whitespace_check() -> None:
 def lint_command(arguments: argparse.Namespace) -> int:
     require_python_version()
     run_python_integrity_checks(arguments)
+    run_command(
+        [sys.executable, "tools/check_source_file_sizes.py"],
+        dry_run=arguments.dry_run,
+        env=python_environment(),
+    )
     run_ruff(arguments, fix=False)
     run_clang_format(arguments, fix=False)
     if not arguments.dry_run:

@@ -1,5 +1,7 @@
 #include "internal/federation/process_transport.hpp"
 
+#include "internal/encoding/transport_wire.hpp"
+
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -190,11 +192,7 @@ void sendFrameOnSocket(std::uintptr_t socket, TransportFrame const& frame) {
   if (receiveExact(socket, header) == ReceiveResult::end_of_stream) {
     return ReceiveResult::end_of_stream;
   }
-  auto const payloadSize =
-      (static_cast<std::uint32_t>(header[8U]) << 24U) |
-      (static_cast<std::uint32_t>(header[9U]) << 16U) |
-      (static_cast<std::uint32_t>(header[10U]) << 8U) |
-      static_cast<std::uint32_t>(header[11U]);
+  auto const payloadSize = transport_wire::readBigEndian32(header, 8U);
   if (payloadSize > kTransportMaximumPayloadBytes) {
     throwTransportError("The process transport peer announced an oversized frame.");
   }
