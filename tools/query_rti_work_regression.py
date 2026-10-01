@@ -766,7 +766,7 @@ RECOVERED_TRACE_CASES = {
         "lane": "process-restart-pending-attribute-value-update",
     },
     "Embedded public fresh-registry restore rebinds pending object-instance Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:58310",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:57895",
         "assertions": 61,
         "requirements": 17,
         "sections": 8,
@@ -780,7 +780,7 @@ RECOVERED_TRACE_CASES = {
         "lane": "process-restart-class-pending-attribute-value-update",
     },
     "Embedded public fresh-registry restore rebinds pending object-class Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:58567",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:58152",
         "assertions": 61,
         "requirements": 12,
         "sections": 6,

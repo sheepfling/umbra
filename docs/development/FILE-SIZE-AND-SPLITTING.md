@@ -110,9 +110,13 @@ The first wave should be staged rather than attempted as one rewrite:
   177 assertions, one focused CTest); its 13 direct requirement-section pairs
   and both callback models remain intact. Its collision-resistant temporary
   directories, registry scope, and report-file helpers are shared through a
-  focused 2025 test-support header. The original suite is now 62,125 lines,
-  8,162 fewer than its 70,287-line starting point. The next bounded
-  handoff is the mapped mixed negotiated ownership-confirmation restore case.
+  focused 2025 test-support header. The mixed negotiated-ownership restore
+  companion is now isolated in
+  ieee1516_2025_public_mixed_negotiated_ownership_restore_catch2.cpp (428 lines,
+  273 assertions, one focused CTest); its 19 direct requirement-section pairs
+  and both callback models remain intact. The original suite is now 61,710
+  lines, 8,577 fewer than its 70,287-line starting point. The next bounded
+  handoff is the mapped mixed delivered negotiated-confirmation restore case.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in

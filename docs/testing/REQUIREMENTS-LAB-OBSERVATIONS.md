@@ -11647,7 +11647,7 @@ python tools/query_rti_work.py unplanned --path cpp/tests/mom_service_report_enc
 The exact source declaration, `Embedded public time management preserves the
 official HLAfloat64Time representation`, is now mapped as
 `umbra-cpp-public-float64-time-representation-integration` at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:68622`. Its focused
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:68207`. Its focused
 HLA_EVOKED run is green with 31 assertions. The row carries 15
 Requirements-Lab anchors and 12 canonical IEEE 1516.1-2025 sections, plus the
 official time-factory, Query Logical Time, Query Lookahead, Enable Time
@@ -11667,22 +11667,22 @@ The following four exact source declarations are now mapped and green in the
 embedded HLA_EVOKED development profile:
 
 * `Embedded NRG-disabled constrained TAR waits until a regulator becomes active`
-  at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:69145` — 21
+  at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:68730` — 21
   assertions, mapping `m66.embedded-nrg-disabled-constrained-tar-regulator-activation`.
   With NRG disabled, an undefined-GALT constrained TAR waits; a regulator at
   time zero/lookahead two makes TAR(1) eligible.
 * `Embedded constrained TAR is released when time-constrained mode is disabled`
-  at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:69187` — 15
+  at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:68772` — 15
   assertions, mapping `m67.embedded-constrained-tar-time-constrained-disable-release`.
   Disabling the constrained role removes the GALT restriction and releases the
   queued TAR(1).
 * `Embedded NRG-enabled constrained TAR is released when its only regulator disables`
-  at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:69220` — 27
+  at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:68805` — 27
   assertions, mapping `m68.embedded-nrg-enabled-constrained-tar-regulator-disable-release`.
   The enabled NRG switch releases TAR(2) when the sole regulator disables and
   GALT becomes undefined.
 * `Embedded NRG-enabled constrained TAR is released when its only regulator resigns`
-  at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:69266` — 24
+  at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:68851` — 24
   assertions, mapping `m69.embedded-nrg-enabled-constrained-tar-regulator-resignation-release`.
   The same enabled-NRG release occurs when the sole regulator resigns.
 
@@ -11713,7 +11713,7 @@ python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federati
 The exact source declaration, `Embedded timestamped regional interaction queues
 TSO before the grant and supports retraction`, is now mapped as
 `umbra-cpp-timestamped-regional-interaction-tso-retraction-integration` at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:67266`. Its focused
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:66851`. Its focused
 HLA_EVOKED run is green with 68 assertions. The row carries 14
 Requirements-Lab anchors, 14 canonical IEEE 1516.1-2025 sections, and the
 official Connect/Create/Join, interaction/parameter/dimension lookup, region
@@ -11750,7 +11750,7 @@ python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federati
 The source-only queue exposed a declaration named `DISABLED malformed: Embedded
 transport loss releases automatic cleanup after a cutoff attribute update is
 suppressed` at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:55392`. It is inside
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54977`. It is inside
 `#if 0`, does not appear in the Catch2 executable, and its body references
 undeclared `first`/`second`/`attribute` state. It is therefore indexed as
 `umbra-cpp-disabled-malformed-transport-loss-cutoff-attribute-update-source-artifact`
@@ -11760,14 +11760,14 @@ issue or conformance evidence. If the scenario is revived, repair it in a
 separate change and create a new mapped selector; do not re-enable this body as
 part of the normal queue. The next runnable source head is the regional
 interaction source-region snapshot case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61614`.
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61199`.
 
 ### 2026-09-02 queryability maintenance — Regional interaction source-region snapshot
 
 The exact next runnable declaration, `Embedded evoked regional interaction
 retains its send-time source region`, is now indexed as
 `umbra-cpp-evoked-regional-interaction-source-region-snapshot-integration` at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61614`. Its focused
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61199`. Its focused
 HLA_EVOKED selector is green with 42 assertions. The case sends while source
 region `[0,10)` overlaps subscriber region `[5,15)`, mutates the source to a
 disjoint range before callback eviction, and verifies the admitted callback
@@ -11781,7 +11781,7 @@ transport, package/JUnit/protected-review, interoperability, or conformance.
 No Requirements Lab resynchronization or new numbered requirement was
 performed. The next exact source head is the unplanned timestamped regional
 interaction TSO/retraction declaration at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:67266`.
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:66851`.
 
 Bounded queries:
 
@@ -11797,7 +11797,7 @@ python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federati
 The exact next source declaration, `Embedded immediate timestamped directed
 interaction survives source resignation`, is now indexed as
 `umbra-cpp-timestamped-directed-interaction-immediate-source-resignation-integration`
-at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54354`. Its
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53939`. Its
 focused HLA_EVOKED selector is green with 45 assertions. The case keeps the
 receiver non-time-constrained, queues one timestamped directed interaction,
 resigns the sender before the receiver callback boundary, and verifies the
@@ -11811,7 +11811,7 @@ transport, package/JUnit/protected-review, interoperability, or conformance.
 No Requirements Lab resynchronization or new numbered requirement was
 performed. The next exact source head is the disabled malformed transport-loss
 declaration at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:55392`.
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54977`.
 
 Bounded queries:
 
@@ -11838,7 +11838,7 @@ the HLA_EVOKED publisher path asserts
 `Enable Time Regulation`. The official `timeRegulationEnabled` callback is
 queued at that service boundary, so the single Evoke call legitimately returns
 `true`. The historical aggregate selector was red at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54286` with 21
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53871` with 21
 observed assertions (20 passed, 1 failed). The focused replacement now passes
 with 56 assertions at
 `cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp:150`; its
@@ -11869,7 +11869,7 @@ python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federati
 The exact source declaration, `Embedded Delay Subscription Evaluation defers
 directed interaction eligibility`, is now mapped as
 `umbra-cpp-delay-subscription-evaluation-directed-interaction-integration` at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52843`. Its focused
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52428`. Its focused
 HLA_EVOKED/HLA_IMMEDIATE run is green with 120 assertions. The row carries
 three Requirements-Lab anchors, one canonical IEEE 1516.1-2025 section
 (`8.1.10`), and 22 official C++ API surfaces, including the vector-FOM Create
@@ -11884,7 +11884,7 @@ transport, package/JUnit/protected-review, interoperability, or conformance
 evidence. No Requirements Lab resynchronization or new numbered requirement
 was performed. The next exact source head is the unplanned timestamped
 directed-interaction Delay Subscription Evaluation case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52996`.
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52581`.
 
 Bounded queries:
 
@@ -12098,7 +12098,7 @@ remote/package/JUnit/protected review, interoperability, or conformance. No
 Requirements Lab resynchronization or new numbered requirement was performed.
 The next exact source head is the unplanned Federation Synchronized
 service-report case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49504`.
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49089`.
 
 Bounded queries:
 
@@ -12114,7 +12114,7 @@ python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federati
 The exact source declaration, `Embedded service reporting records Federation
 Synchronized after a synchronization-set resignation`, is now mapped as
 `umbra-cpp-service-report-file-federation-synchronized-resignation-integration`
-at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49504`. Its
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49089`. Its
 focused HLA_EVOKED run is green with 23 assertions. The row carries three
 Requirements-Lab anchors, three canonical IEEE 1516.1-2025 sections, and four
 official C++ API surfaces. It registers a synchronization point for two joined
@@ -12127,7 +12127,7 @@ transport, public MOM interaction delivery, broader save/restore,
 remote/package/JUnit/protected review, interoperability, or conformance. No
 Requirements Lab resynchronization or new numbered requirement was performed.
 The next exact source head is the unplanned terminal TSO expiration case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50168`.
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49753`.
 
 Bounded queries:
 
@@ -12143,7 +12143,7 @@ python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federati
 The exact source declaration, "Embedded regional best-effort timestamped
 attribute updates honor the subscribed rate", is now mapped as
 umbra-cpp-regional-best-effort-timestamped-attribute-updates-subscribed-rate-integration
-at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51548. Its focused
+at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51133. Its focused
 HLA_EVOKED run is green with 57 assertions. The row carries 30
 Requirements-Lab anchors, 19 canonical IEEE 1516.1-2025 sections, and 28
 official C++ API surfaces. A two-dimensional source and subscription region
@@ -12166,12 +12166,12 @@ Bounded queries:
     python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --limit 1
 
 The m58 directed-interaction Delay Subscription Evaluation case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52843` is now green
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52428` is now green
 with 120 assertions, three Requirements-Lab anchors, one canonical Section
 8.1.10 mapping, and 22 official C++ API surfaces. The next exact source head
 is the unplanned timestamped directed-interaction Delay Subscription Evaluation
 case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52996`.
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52581`.
 
 ### 2026-09-02 queryability maintenance — Timestamped-lane check drift
 
@@ -12200,7 +12200,7 @@ pointer continues at m59.
 The exact source declaration, "Embedded regional best-effort attribute updates
 honor the subscribed rate", is now mapped as
 umbra-cpp-regional-best-effort-attribute-updates-subscribed-rate-integration at
-cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51404. Its focused
+cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50989. Its focused
 HLA_EVOKED run is green with 47 assertions. The row carries 19 Requirements-Lab
 anchors, 11 canonical IEEE 1516.1-2025 sections, and 22 official C++ API
 surfaces. A two-dimensional source and subscription region overlap exactly; an
@@ -12224,7 +12224,7 @@ Bounded queries:
 
 The next exact source head is "Embedded regional best-effort timestamped
 attribute updates honor the subscribed rate" at
-cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51548.
+cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51133.
 
 ### 2026-09-02 queryability maintenance — Federation teardown preserves update-rate history
 
@@ -12256,7 +12256,7 @@ Bounded queries:
 
 The next exact source head is "Embedded regional best-effort attribute updates
 honor the subscribed rate" at
-cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51404.
+cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50989.
 
 ### 2026-09-02 queryability maintenance — Mixed update-rate subscriptions
 
@@ -12294,7 +12294,7 @@ cpp/tests/federation_teardown_update_rate_history_catch2.cpp:158.
 The exact source declaration, `Embedded timestamped Update Attribute Values
 queues passels before the grant and supports retraction`, is now mapped as
 `umbra-cpp-timestamped-update-attribute-values-queued-passel-retraction-integration`
-at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50870`. Its
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50455`. Its
 focused HLA_EVOKED run is green with 68 assertions. The row carries twelve
 Requirements-Lab anchors, six canonical IEEE 1516.1-2025 sections, and 24
 official C++ API surfaces. It verifies the timestamp-6 pre-grant retract,
@@ -12321,7 +12321,7 @@ python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federati
 
 The next exact source head is `Embedded regional best-effort attribute updates
 honor the subscribed rate` at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51404`. No
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50989`. No
 Requirements Lab resynchronization or new numbered requirement was performed.
 
 ### 2026-09-02 queryability maintenance — Terminal TSO designators across producer advances
@@ -12329,7 +12329,7 @@ Requirements Lab resynchronization or new numbered requirement was performed.
 The exact source declaration, `Embedded producer advance requests terminalize
 expired TSO designators`, is now mapped as
 `umbra-cpp-terminalize-expired-tso-designators-across-advance-forms-integration`
-at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50168`. Its
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49753`. Its
 focused HLA_EVOKED run is green with 40 assertions. The row carries nine
 Requirements-Lab anchors, eight canonical IEEE 1516.1-2025 sections, and 21
 official C++ API surfaces. It sends five timestamped interactions exactly at
@@ -12343,7 +12343,7 @@ save/restore, distributed transport, package/JUnit/protected review,
 interoperability, or conformance. No Requirements Lab resynchronization or new
 numbered requirement was performed. The next exact source head is the
 unplanned timestamped Update Attribute Values queue/retraction case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50870`.
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50455`.
 
 Bounded queries:
 
@@ -12622,9 +12622,9 @@ python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federati
 The historical aggregate declaration, `Embedded Delay Subscription Evaluation
 defers timestamped directed interaction eligibility`, was indexed as
 `umbra-cpp-delay-subscription-evaluation-timestamped-directed-interaction-integration`
-at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52996`. Its
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52581`. Its
 aggregate run was reproducibly red with 123 observed assertions (121 passed, 2
-failed) at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53085`.
+failed) at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52670`.
 Both failures are the HLA_EVOKED owner time-regulation callback-count
 expectation after a single `EvokeCallback`; the callback queue is not empty
 after that one call, so the test must drain `owner->evokeCallback(0.0)` before

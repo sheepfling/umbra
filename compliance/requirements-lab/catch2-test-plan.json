@@ -4288,7 +4288,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore rebinds pending negotiated If Available owner confirmation and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47952",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47537",
       "assertions": 207,
       "callback_models": [
         "HLA_EVOKED",
@@ -4464,7 +4464,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion now runs under both HLA_EVOKED and HLA_IMMEDIATE (228 assertions), delivers the owner-side Request Divestiture Confirmation before a durable save, verifies confirmationDelivered in the filesystem image, restores into a fresh registry without replaying the callback, and completes the retained negotiated transfer through Confirm Divestiture with one acquisition notification while preserving distinct immutable report-file lifetimes. It does not claim If Available or mixed continuation, cancellation races, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48612"
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48197"
     },
     {
       "id": "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-asymmetric-mixed-negotiated-confirmation-integration",
@@ -4566,7 +4566,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion runs 274 assertions under HLA_EVOKED and HLA_IMMEDIATE, delivers the regular owner-side Request Divestiture Confirmation before a durable save while retaining the If Available confirmation route, verifies the asymmetric confirmationDelivered flags in the filesystem image, restores into a fresh registry without replaying the delivered regular callback, reconstructs the pending If Available confirmation exactly once, and completes one grouped Confirm Divestiture transfer with a mixed acquisition notification while preserving distinct immutable report-file lifetimes. It does not claim the reverse asymmetric direction, cancellation races, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49292"
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48877"
     },
     {
       "id": "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-ownership-handoff-integration",
@@ -4681,7 +4681,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion is green for both HLA_EVOKED and HLA_IMMEDIATE (264 assertions). It saves one target object with the application marker plus implicit HLAprivilegeToDeleteObject owned by the initial by-ownership subscriber, restores one directed publisher and two by-ownership subscribers into a fresh registry, verifies the initial owner is selected, transfers the complete registered ownership set through regular acquisition and Divestiture If Wanted, then verifies the directed route follows the new owner and preserves distinct immutable filesystem report-file identities. It does not claim target departure, multiple directed classes, directed DDM, timestamped/retraction behavior, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51935",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51520",
       "assertions": 264,
       "callback_models": [
         "HLA_EVOKED",
@@ -4824,7 +4824,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ regression is green for both HLA_EVOKED and HLA_IMMEDIATE (282 assertions). It saves one queued timestamped directed interaction whose public by-ownership ledger retains both candidate routes under the switch-support FOM, restores the declarations, object ownership, payload, retraction ledger, and queue into a fresh registry, transfers the marker plus implicit HLAprivilegeToDeleteObject before the old owner's callback boundary, and proves the stale callback is suppressed. The producer reaches the strict timestamped Retract boundary, so Retract is correctly reported as MessageCanNoLongerBeRetracted and no Request Retraction callback is emitted. It does not claim post-handoff TSO delivery, multiple directed classes, directed DDM, alternate advances, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52326",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51911",
       "assertions": 282,
       "callback_models": [
         "HLA_EVOKED",
@@ -4901,7 +4901,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion is green for both HLA_EVOKED and HLA_IMMEDIATE (146 assertions). It saves a two-member interaction publication/subscription declaration image, restores it into a fresh registry, proves the declaration ledgers by post-restore interaction delivery, and preserves distinct immutable filesystem report-file identities. It does not claim pending or committed transportation overrides, regional/directed declarations, multiple publication matrices, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53512",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53097",
       "assertions": 146,
       "callback_models": [
         "HLA_EVOKED",
@@ -4994,7 +4994,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion saves one regular Attribute Ownership Acquisition, completes the owner's Request Divestiture Confirmation, and leaves the resulting Confirm Divestiture Acquisition Notification outside user code. It tears down the source registry, restores the filesystem image into a fresh registry, and proves the requester receives exactly one Attribute Ownership Acquisition Notification after Federation Restored under both HLA_EVOKED and HLA_IMMEDIATE. The callback preserves the original object, attribute set, and confirming tag and is consumed exactly once. It does not claim grouped multi-recipient confirmation, mixed or If Available arbitration, cancellation races, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54352",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53937",
       "assertions": 191,
       "callback_models": [
         "HLA_EVOKED",
@@ -5086,7 +5086,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This public C++ regression runs the filesystem-backed regional class-designator save/restore path under both HLA_EVOKED and HLA_IMMEDIATE. It saves one overlap-qualified regional request before the provider callback, recreates the federation through a fresh registry and fresh public ambassadors, and proves Federation Restored precedes exactly one rebound Provide Attribute Value Update with the original object, flavor attribute, per-attribute request region, and request tag. It also queues accepted requests whose region becomes disjoint, whose requester resigns, or whose provider resigns before callback entry and proves each is suppressed without a duplicate callback under either callback model. It does not claim automatic provision, timestamped/retraction response behavior, remote transport, package/JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:58086",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:57671",
       "assertions": 392,
       "callback_models": [
         "HLA_EVOKED",
@@ -7673,7 +7673,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion is green for both HLA_EVOKED and HLA_IMMEDIATE (172 assertions). It saves a directed publication and universal directed subscription for the same object-class/interaction-class pair on separate joined federates, restores both directed ledgers into a fresh registry, proves the declarations survive a second public durable round trip, and preserves distinct immutable filesystem report-file identities. It does not claim directed send/target routing, by-ownership selectors, multiple directed classes, directed DDM, ordering, timestamped/retraction behavior, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51344",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50929",
       "assertions": 172,
       "callback_models": [
         "HLA_EVOKED",
@@ -9306,7 +9306,7 @@
         "federate.callback.federation-restored"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59601",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59186",
       "assertions": 99,
       "callback_models": [
         "HLA_EVOKED"
@@ -39671,7 +39671,7 @@
         "federate.callback.flush-queue-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:62088",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61673",
       "assertions": 17,
       "callback_models": [
         "HLA_IMMEDIATE"
@@ -41522,7 +41522,7 @@
         "federate.callback.receive-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61949",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61534",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded MOM service invocation reports include inherited HLAfederate$",
       "requirements_lab_api_surface_status": "This native C++ case verifies inherited HLAfederate context in HLAreportServiceInvocation under HLA_EVOKED and HLA_IMMEDIATE. Its pinned candidate mappings point to the 2025 HLAfederate MOM subsection; evidence remains limited to the non-installable development profile, not validation or conformance.",
       "next_action": "Keep this parameter-specific invocation report case as an exact C++ lane. Add other report-parameter combinations only as separately mapped cases; do not treat embedded-profile evidence as validation or conformance."
@@ -46411,7 +46411,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This public C++ regression runs the filesystem-backed class-designator save/restore path under both HLA_EVOKED and HLA_IMMEDIATE. It saves a pending base-class Request Attribute Value Update expanded over a child object before the provider callback, recreates the federation through a fresh registry and fresh public ambassadors, and proves Federation Restored precedes exactly one rebound Provide Attribute Value Update with the original object, attribute set, and request tag. It does not claim regional class request ledgers, automatic provision, timestamped/retraction response behavior, remote transport, package/JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:57834",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:57419",
       "primary_lane": "public-process-restart-class-pending-attribute-value-update"
     },
     {
@@ -48201,7 +48201,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore rebinds pending object-instance Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:57577",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:57162",
       "assertions": 61,
       "tags": [
         "integration",
@@ -53315,7 +53315,7 @@
         "api.2025.cpp.rtiambassador.attributeownershipacquisitionifavailable.8b37c270d6b9"
       ],
       "test_case": "Embedded public fresh-registry restore rebinds mixed negotiated ownership confirmations and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47100",
+      "source_location": "cpp/tests/ieee1516_2025_public_mixed_negotiated_ownership_restore_catch2.cpp:6",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore rebinds mixed negotiated ownership confirmations and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE$",
       "callback_models": [
         "HLA_EVOKED",
@@ -58831,7 +58831,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion runs 273 assertions under HLA_EVOKED and HLA_IMMEDIATE, delivers both owner-side Request Divestiture Confirmation callbacks before a durable save while preserving the requester If Available route, verifies both confirmationDelivered markers in the filesystem image, restores into a fresh registry without replaying either callback or manufacturing duplicate WTA work, and completes one grouped Confirm Divestiture transfer with a mixed acquisition notification while preserving distinct immutable report-file lifetimes. It does not claim asymmetric delivered/pending variants, cancellation races, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47515",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47100",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ preserves\\ mixed\\ delivered\\ negotiated\\ confirmations\\ and\\ report\\-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$",
       "primary_lane": "attribute-ownership-acquisition-if-available"
@@ -58936,7 +58936,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion runs 274 assertions under HLA_EVOKED and HLA_IMMEDIATE, delivers the If Available owner-side Request Divestiture Confirmation before a durable save while retaining the regular confirmation route, verifies the reverse asymmetric confirmationDelivered flags in the filesystem image, restores into a fresh registry without replaying the delivered If Available callback, reconstructs the pending regular confirmation exactly once, and completes one grouped Confirm Divestiture transfer with a mixed acquisition notification while preserving distinct immutable report-file lifetimes. It does not claim cancellation races, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49730",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49315",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ preserves\\ reverse\\ asymmetric\\ mixed\\ negotiated\\ confirmation\\ and\\ report\\-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$",
       "primary_lane": "attribute-ownership-acquisition-if-available"
@@ -59032,7 +59032,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion runs 220 assertions under HLA_EVOKED and HLA_IMMEDIATE, leaves one accepted attribute transportation-type change pending, saves the durable object value and pending operation, restores the image into a fresh registry, rebinds exactly one confirmation callback, proves the HLAbestEffort query and post-restore reflection behavior, and preserves distinct immutable filesystem report-file identities. It does not claim default-type declaration matrices, multiple simultaneous changes, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50170",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49755",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ rebinds\\ pending\\ attribute\\ transportation\\-type\\ change\\ and\\ preserves\\ report\\-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
@@ -59122,7 +59122,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion runs 196 assertions under HLA_EVOKED and HLA_IMMEDIATE. It saves one pending publisher interaction transportation-type change alongside a two-member publication/subscription declaration image, restores it into a fresh registry, rebinds exactly one owner confirmation callback, proves the HLAbestEffort query and post-restore interaction delivery, and preserves distinct immutable filesystem report-file identities. It does not claim multiple pending changes, committed-override plus pending combinations, regional/directed interaction state, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50504",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50089",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ rebinds\\ pending\\ interaction\\ transportation\\-type\\ change\\ and\\ preserves\\ report\\-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
@@ -59211,7 +59211,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion is green for both HLA_EVOKED and HLA_IMMEDIATE (186 assertions). It commits one publisher interaction transportation-type override before saving, restores the two-member publication/subscription image into a fresh registry, proves the override through query and post-restore delivery without replaying a confirmation callback, and preserves distinct immutable filesystem report-file identities. It does not claim multiple overrides, pending-plus-committed combinations, regional/directed interaction state, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50803",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50388",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ preserves\\ committed\\ interaction\\ transportation\\-type\\ override\\ and\\ report\\-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
@@ -59300,7 +59300,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion is green for both HLA_EVOKED and HLA_IMMEDIATE (176 assertions). It saves a publisher-scoped committed HLAbestEffort override alongside an independent subscriber declaration, restores both ledgers into a fresh registry, proves the override through public query while proving the subscriber through a new post-restore publication and delivery, and preserves distinct immutable filesystem report-file identities. It does not claim multiple overrides, pending-plus-committed combinations, regional/directed interaction state, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51076",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50661",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ preserves\\ mixed\\ interaction\\ override\\ and\\ report\\-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
@@ -59429,7 +59429,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion saves one queued timestamped directed interaction for an eligible by-ownership recipient, restores the declaration/object/payload/retraction ledgers into a fresh registry, delivers the restored callback at Flush Queue with timestamp/order/retraction metadata intact, and proves a legal producer Retract emits exactly one Request Retraction for that recipient while preserving immutable filesystem report-file identities. It does not claim ownership transfer, stale callback suppression, multiple directed classes, directed DDM, alternate advances, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53193",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52778",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ delivers\\ eligible\\ directed\\ TSO\\ and\\ issues\\ Request\\ Retraction\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
@@ -59562,7 +59562,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ regression is green under both HLA_EVOKED and HLA_IMMEDIATE (300 assertions). It stages timed-save admission before the callback boundary, restores the directed payload and retraction tombstone into a fresh registry, suppresses the resigned peer, rebinds the surviving ownership-qualified route, delivers only to the survivor, and emits exactly one survivor-only Request Retraction while preserving immutable filesystem report-file identity. It does not claim ownership transfer, multiple directed classes, directed DDM, alternate advances, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52743",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52328",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ keeps\\ an\\ ownership\\-qualified\\ directed\\ TSO\\ route\\ after\\ a\\ peer's\\ post\\-delivery\\ resignation\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
@@ -59800,7 +59800,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ fanout companion assigns three distinct attributes to three regular acquisition requests, completes one grouped Confirm Divestiture, retains three recipient-specific notification reservations and the shared confirming tag in the filesystem image, restores into a fresh registry, and proves one exact notification per requester after Federation Restored under both HLA_EVOKED and HLA_IMMEDIATE. It does not claim mixed or If Available arbitration, cancellation races, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54679",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54264",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ fans\\ out\\ pending\\ Confirm\\ Divestiture\\ notifications\\ to\\ three\\ recipients\\ through\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$",
       "primary_lane": "attribute-ownership-acquisition"
@@ -64019,7 +64019,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore suppresses a resigned Confirm Divestiture candidate and preserves the surviving recipient",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:56151",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:55736",
       "primary_lane": "public-process-restart-confirm-divestiture-resignation",
       "focus_lane": "public-process-restart-confirm-divestiture-resignation",
       "assertions": 222,
@@ -64166,7 +64166,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore suppresses a post-confirmation resigned Confirm Divestiture recipient while preserving the surviving recipient",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:56570",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:56155",
       "assertions": 235,
       "callback_models": [
         "HLA_EVOKED",
@@ -66434,7 +66434,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore rebinds pending negotiated owner confirmation and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48278",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47863",
       "assertions": 223,
       "callback_models": [
         "HLA_EVOKED",
@@ -67416,7 +67416,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion is green for both HLA_EVOKED and HLA_IMMEDIATE (216 assertions). It saves a target object with a published marker and a directed publication/universal subscription pair, restores the object and declaration ledgers into a fresh registry, then sends a receive-order directed interaction to the restored target and proves only the subscribed recipient receives it. It preserves distinct immutable filesystem report-file identities. It does not claim by-ownership selectors, target departure, multiple directed classes, directed DDM, timestamped/retraction behavior, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51627",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51212",
       "assertions": 216,
       "callback_models": [
         "HLA_EVOKED",
@@ -67512,7 +67512,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion saves one regular Attribute Ownership Acquisition plus its accepted cancellation reservation, tears down the source registry, restores the filesystem image into a fresh registry, and proves the requester receives one Confirm Attribute Ownership Acquisition Cancellation callback after Federation Restored under both HLA_EVOKED and HLA_IMMEDIATE. The callback preserves the original object and attribute set and is consumed exactly once. It does not claim cancellation races, If Available or negotiated arbitration, timestamped/retraction behavior, DDM, distributed transport, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54047",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53632",
       "assertions": 171,
       "callback_models": [
         "HLA_EVOKED",
@@ -67596,7 +67596,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore rebinds pending If Available ownership callback and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53738",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53323",
       "assertions": 193,
       "callback_models": [
         "HLA_EVOKED",
