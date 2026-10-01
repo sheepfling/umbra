@@ -59126,7 +59126,7 @@
       "primary_lane": "public-process-restart-interaction-transportation-type-change",
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion runs 196 assertions under HLA_EVOKED and HLA_IMMEDIATE. It saves one pending publisher interaction transportation-type change alongside a two-member publication/subscription declaration image, restores it into a fresh registry, rebinds exactly one owner confirmation callback, proves the HLAbestEffort query and post-restore interaction delivery, and preserves distinct immutable filesystem report-file identities. It does not claim multiple pending changes, committed-override plus pending combinations, regional/directed interaction state, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47100",
+      "source_location": "cpp/tests/ieee1516_2025_public_pending_interaction_transportation_type_change_restore_catch2.cpp:6",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ rebinds\\ pending\\ interaction\\ transportation\\-type\\ change\\ and\\ preserves\\ report\\-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
@@ -59215,7 +59215,8 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion is green for both HLA_EVOKED and HLA_IMMEDIATE (186 assertions). It commits one publisher interaction transportation-type override before saving, restores the two-member publication/subscription image into a fresh registry, proves the override through query and post-restore delivery without replaying a confirmation callback, and preserves distinct immutable filesystem report-file identities. It does not claim multiple overrides, pending-plus-committed combinations, regional/directed interaction state, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49291",
+      "primary_lane": "public-process-restart-interaction-transportation-type-override",
+      "source_location": "cpp/tests/ieee1516_2025_public_committed_interaction_transportation_type_override_restore_catch2.cpp:6",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ preserves\\ committed\\ interaction\\ transportation\\-type\\ override\\ and\\ report\\-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
@@ -59304,7 +59305,8 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion is green for both HLA_EVOKED and HLA_IMMEDIATE (176 assertions). It saves a publisher-scoped committed HLAbestEffort override alongside an independent subscriber declaration, restores both ledgers into a fresh registry, proves the override through public query while proving the subscriber through a new post-restore publication and delivery, and preserves distinct immutable filesystem report-file identities. It does not claim multiple overrides, pending-plus-committed combinations, regional/directed interaction state, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49564",
+      "primary_lane": "public-process-restart-interaction-mixed-override",
+      "source_location": "cpp/tests/ieee1516_2025_public_mixed_interaction_transportation_type_override_restore_catch2.cpp:6",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ preserves\\ mixed\\ interaction\\ override\\ and\\ report\\-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },

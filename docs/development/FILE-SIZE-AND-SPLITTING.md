@@ -146,9 +146,21 @@ The first wave should be staged rather than attempted as one rewrite:
   restore case is now isolated in
   ieee1516_2025_public_pending_attribute_transportation_type_change_restore_catch2.cpp
   (346 lines, 220 assertions, one focused CTest); its 16 direct pairs and both
-  callback models remain intact. The original suite is now 58,721 lines,
-  11,566 fewer than its 70,287-line starting point. The next bounded handoff is
-  the mapped pending interaction transportation-type restore case.
+  callback models remain intact. The pending interaction transportation-type
+  restore case is now isolated in
+  ieee1516_2025_public_pending_interaction_transportation_type_change_restore_catch2.cpp
+  (311 lines, 196 assertions, one focused CTest); its 16 direct pairs and both
+  callback models remain intact. The committed interaction transportation-type
+  override restore case is now isolated in
+  ieee1516_2025_public_committed_interaction_transportation_type_override_restore_catch2.cpp
+  (285 lines, 186 assertions, one focused CTest); its 16 direct pairs and both
+  callback models remain intact. The mixed interaction override restore case is
+  isolated in ieee1516_2025_public_mixed_interaction_transportation_type_override_restore_catch2.cpp
+  (280 lines, 176 assertions, one focused CTest); its 16 direct pairs and both
+  callback models remain intact. The original suite is now 57,881 lines,
+  12,406 fewer than its 70,287-line starting point. The next bounded handoff is
+  to establish the exact Catch2 plan disposition for the adjacent directed
+  ownership-handoff restore case before considering any extraction.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
