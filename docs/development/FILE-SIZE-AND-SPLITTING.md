@@ -67,9 +67,25 @@ The first wave should be staged rather than attempted as one rewrite:
   compiled once in `ieee1516_2025_federation_management_restore_tso_support.cpp`.
   The suite then yielded four adjacent logical-time/lookahead/pending-advance
   restore cases into `ieee1516_2025_restore_time_window_state_catch2.cpp`
-  (356 lines, four focused CTests). The original suite is now 65,023 lines,
-  5,264 fewer than its 70,287-line starting point; the next bounded handoff is
-  the adjacent public callback-rebinding restore group.
+  (356 lines, four focused CTests). Four adjacent public callback-rebinding
+  cases now live in `ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp`
+  (477 lines, four focused CTests). Four pending time-advance and Flush Queue
+  restore cases now live in `ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp`
+  (592 lines, four focused CTests); their direct mappings and prior lane
+  ownership are preserved. The custom transportation-type control case now
+  lives in `ieee1516_2025_custom_transportation_type_controls_catch2.cpp`
+  (165 lines, one focused CTest); its exact source pointer is now explicit and
+  its eight direct requirement-section pairs are preserved. The original suite
+  is now 63,800 lines, 6,487 fewer than its 70,287-line starting point. The
+  adjacent directed-interaction Request Retraction mixed-fanout case now lives
+  in `ieee1516_2025_request_retraction_directed_interaction_mixed_fanout_catch2.cpp`
+  (156 lines, one focused CTest), preserving its 3 direct Section 8.23.3 pairs.
+  The regional interaction subscription receive-order case now lives in
+  `ieee1516_2025_regional_interaction_subscription_receive_order_catch2.cpp`
+  (268 lines, one focused CTest), with both mapped plan rows kept separate.
+  The original suite is now 63,378 lines, 6,909 fewer than its 70,287-line
+  starting point. The next bounded handoff is the adjacent regional source-
+  region snapshot case.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
