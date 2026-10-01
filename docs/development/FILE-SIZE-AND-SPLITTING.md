@@ -157,10 +157,14 @@ The first wave should be staged rather than attempted as one rewrite:
   callback models remain intact. The mixed interaction override restore case is
   isolated in ieee1516_2025_public_mixed_interaction_transportation_type_override_restore_catch2.cpp
   (280 lines, 176 assertions, one focused CTest); its 16 direct pairs and both
-  callback models remain intact. The original suite is now 57,881 lines,
-  12,406 fewer than its 70,287-line starting point. The next bounded handoff is
-  to establish the exact Catch2 plan disposition for the adjacent directed
-  ownership-handoff restore case before considering any extraction.
+  callback models remain intact. The public directed by-ownership handoff
+  restore case is now isolated in
+  ieee1516_2025_public_directed_interaction_ownership_handoff_restore_catch2.cpp
+  (403 lines, 264 assertions, one focused CTest); all 21 direct pairs across
+  14 clauses, 30 API surfaces, and both callback models remain intact. The
+  original suite is now 57,491 lines, 12,796 fewer than its 70,287-line
+  starting point. The next bounded handoff is the mapped directed TSO ownership
+  callback restore case; verify its exact requirement mapping before extracting.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
