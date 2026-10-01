@@ -83,9 +83,21 @@ The first wave should be staged rather than attempted as one rewrite:
   The regional interaction subscription receive-order case now lives in
   `ieee1516_2025_regional_interaction_subscription_receive_order_catch2.cpp`
   (268 lines, one focused CTest), with both mapped plan rows kept separate.
-  The original suite is now 63,378 lines, 6,909 fewer than its 70,287-line
-  starting point. The next bounded handoff is the adjacent regional source-
-  region snapshot case.
+  The evoked regional interaction send-time source-region snapshot case now
+  lives in
+  `ieee1516_2025_evoked_regional_interaction_source_region_snapshot_catch2.cpp`
+  (119 lines, one focused CTest); its 42 assertions and 9 direct
+  requirement-section pairs remain intact. The timestamped regional
+  interaction TSO/retraction case now lives in
+  `ieee1516_2025_timestamped_regional_interaction_tso_retraction_catch2.cpp`
+  (147 lines, one focused CTest); its 68 assertions and 14 direct
+  requirement-section pairs remain intact. The regional available/next-message
+  advance case now lives in
+  `ieee1516_2025_timestamped_regional_interaction_alternate_advances_catch2.cpp`
+  (158 lines, one focused CTest); its 8 direct requirement-section pairs are
+  preserved. The original suite is now 62,957 lines, 7,330 fewer than its
+  70,287-line starting point. The next bounded handoff is the mapped regional
+  ordinary TAR/NMR TSO-delivery case.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
