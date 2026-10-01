@@ -227,7 +227,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-4.11.4",
             "hla-1516.1-2025:clause-10.3.3",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:23973",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22322",
         "assertions": 33,
     },
     "Embedded asynchronous delivery gates receive-order callbacks by temporal state": {
@@ -237,7 +237,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8.15.3",
             "hla-1516.1-2025:clause-8.16.5",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3160",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_fixture_support.hpp:487",
         "assertions": 35,
     },
     "Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch": {
@@ -249,7 +249,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8.14.3",
             "hla-1516.1-2025:clause-8.18.1",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51270",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46006",
         "assertions": 40,
     },
     "Embedded time-role services keep enable requests callback-gated before TSO support": {
@@ -264,7 +264,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8.7.5",
             "hla-1516.1-2025:clause-8.21.5",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51422",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46158",
         "assertions": 51,
     },
     "Embedded Modify Lookahead applies increases immediately and decreases gradually": {
@@ -273,7 +273,7 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-8.20.4",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51539",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46275",
         "assertions": 28,
     },
     "RTIambassador requests Flush Queue through a configured process endpoint": {
@@ -344,7 +344,7 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-8",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51829",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46565",
         "assertions": 30,
     },
     "Embedded Query GALT and Query LITS observe other regulator time and pending advances": {
@@ -356,7 +356,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8.18.1",
             "hla-1516.1-2025:clause-8.19.3",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51597",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46333",
         "assertions": 35,
     },
     "RTIambassador queries GALT and LITS through a configured process endpoint": {
@@ -548,7 +548,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-10.50.6",
             "hla-1516.1-2025:clause-10.55.1",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:28513",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26862",
         "assertions": 40,
     },
     "Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries": {
@@ -568,7 +568,7 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-4.5.5",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:19879",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:18228",
         "assertions": 6,
     },
     "Embedded federation shares the static Advisories Use Known Class switch": {
@@ -577,7 +577,7 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-10.55.1",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:28471",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26820",
         "assertions": 15,
     },
     "Embedded Next Message Request grants at the next queued TSO timestamp": {
@@ -766,7 +766,7 @@ RECOVERED_TRACE_CASES = {
         "lane": "process-restart-pending-attribute-value-update",
     },
     "Embedded public fresh-registry restore rebinds pending object-instance Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:66472",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61208",
         "assertions": 61,
         "requirements": 17,
         "sections": 8,
@@ -780,7 +780,7 @@ RECOVERED_TRACE_CASES = {
         "lane": "process-restart-class-pending-attribute-value-update",
     },
     "Embedded public fresh-registry restore rebinds pending object-class Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:66729",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61465",
         "assertions": 61,
         "requirements": 12,
         "sections": 6,
@@ -815,35 +815,35 @@ RECOVERED_TRACE_CASES = {
         "lane": "process-restart-ownership-assumption-search",
     },
     "Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5672",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4021",
         "assertions": 138,
         "requirements": 5,
         "sections": 3,
         "lane": "timestamped-regional-attribute-update-failure",
     },
     "Embedded service reporting delivers failed ordinary regional Update Attribute Values invocations through MOM interaction": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:7448",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5797",
         "assertions": 119,
         "requirements": 4,
         "sections": 2,
         "lane": "ordinary-regional-attribute-update-failure",
     },
     "Embedded service reporting records regional Update Attribute Values before reflection callback": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:7936",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:6285",
         "assertions": 139,
         "requirements": 1,
         "sections": 1,
         "lane": "ordinary-regional-attribute-update-service-report",
     },
     "Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10483",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:8832",
         "assertions": 52,
         "requirements": 15,
         "sections": 10,
         "lane": "timestamped-object-deletion-regulation-reenable-changed-lookahead",
     },
     "Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:14675",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:13024",
         "assertions": 63,
         "requirements": 12,
         "sections": 9,
@@ -3978,7 +3978,7 @@ def main() -> int:
         raise AssertionError("evoked synchronization save/restore plan row is absent")
     if (
         query_rti_work.source_location_text(evoked_sync_restore)
-        != "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:23944"
+        != "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22293"
         or evoked_sync_restore.get("assertions") != 39
         or evoked_sync_restore.get("primary_lane")
         != "evoked-synchronization-save-restore"
@@ -6153,7 +6153,7 @@ def main() -> int:
     if not isinstance(interaction_mode_case, dict):
         raise AssertionError("active/passive interaction mode test plan row is absent")
     if query_rti_work.source_location_text(interaction_mode_case) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38053"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35832"
     ) or interaction_mode_case.get("assertions") != 129:
         raise AssertionError("active/passive interaction mode source/evidence drifted")
     interaction_mode_focus = query_rti_work.focused_lane_result(
@@ -6400,7 +6400,7 @@ def main() -> int:
     if not isinstance(acquisition_release, dict):
         raise AssertionError("attribute-ownership acquisition release plan row is absent")
     if query_rti_work.source_location_text(acquisition_release) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54194"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48930"
     ) or acquisition_release.get("assertions") != 73:
         raise AssertionError("attribute-ownership acquisition release source/evidence drifted")
     if acquisition_release.get("traceability_state") != "requirements-mapped":
@@ -6446,7 +6446,7 @@ def main() -> int:
     if not isinstance(release_denied_multi, dict):
         raise AssertionError("multi-acquirer Release Denied plan row is absent")
     if query_rti_work.source_location_text(release_denied_multi) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:54692"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49428"
     ) or release_denied_multi.get("assertions") != 53:
         raise AssertionError("multi-acquirer Release Denied source/evidence drifted")
     if release_denied_multi.get("traceability_state") != "requirements-mapped":
@@ -6536,7 +6536,7 @@ def main() -> int:
     if not isinstance(ownership_query, dict):
         raise AssertionError("attribute-ownership query plan row is absent")
     if query_rti_work.source_location_text(ownership_query) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52526"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47262"
     ) or ownership_query.get("assertions") != 49:
         raise AssertionError("attribute-ownership query source/evidence drifted")
     if ownership_query.get("traceability_state") != "requirements-mapped":
@@ -6582,7 +6582,7 @@ def main() -> int:
     if not isinstance(evoked_regional_snapshot, dict):
         raise AssertionError("evoked regional source-region snapshot plan row is absent")
     if query_rti_work.source_location_text(evoked_regional_snapshot) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44352"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39088"
     ) or evoked_regional_snapshot.get("assertions") != 42:
         raise AssertionError("evoked regional source-region snapshot source/evidence drifted")
     if evoked_regional_snapshot.get("traceability_state") != "requirements-mapped":

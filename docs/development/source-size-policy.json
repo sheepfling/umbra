@@ -55,8 +55,8 @@
     },
     {
       "path": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-      "max_lines": 70287,
-      "reason": "Large mapped 2025 suite; split by focused lane and update every source_location/CTest mapping atomically."
+      "max_lines": 65023,
+      "reason": "Large mapped 2025 suite; restore TSO/retraction and time-window restore slices are isolated, with the shared 570-line helper compiled once; continue by lane with exact source mappings."
     },
     {
       "path": "cpp/tests/ieee1516_2025_connection_catch2.cpp",

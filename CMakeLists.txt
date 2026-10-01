@@ -3541,7 +3541,7 @@ if(BUILD_TESTING)
       endif()
       if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
         target_sources(umbra_ieee1516_2025_catch2 PRIVATE
-          cpp/tests/ieee1516_2025_federation_management_catch2.cpp
+          cpp/tests/ieee1516_2025_federation_management_catch2.cpp cpp/tests/ieee1516_2025_restore_tso_catch2.cpp cpp/tests/ieee1516_2025_federation_management_restore_tso_support.cpp cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp
           cpp/tests/ieee1516_2025_service_report_catch2.cpp
           cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp
           cpp/tests/attribute_relevance_advisory_catch2.cpp

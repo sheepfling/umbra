@@ -60,6 +60,16 @@ Split by ownership and behavior, never at an arbitrary line number.
 
 The first wave should be staged rather than attempted as one rewrite:
 
+- The 2025 federation-management restore TSO/retraction cases are now isolated
+  in `ieee1516_2025_restore_tso_catch2.cpp` (2,694 lines; 17 active tests).
+  Their common prelude and federation-management fixtures live in focused
+  2025 support headers (1,184 and 489 lines); the 570-line restore helper is
+  compiled once in `ieee1516_2025_federation_management_restore_tso_support.cpp`.
+  The suite then yielded four adjacent logical-time/lookahead/pending-advance
+  restore cases into `ieee1516_2025_restore_time_window_state_catch2.cpp`
+  (356 lines, four focused CTests). The original suite is now 65,023 lines,
+  5,264 fewer than its 70,287-line starting point; the next bounded handoff is
+  the adjacent public callback-rebinding restore group.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
