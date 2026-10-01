@@ -4464,7 +4464,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion now runs under both HLA_EVOKED and HLA_IMMEDIATE (228 assertions), delivers the owner-side Request Divestiture Confirmation before a durable save, verifies confirmationDelivered in the filesystem image, restores into a fresh registry without replaying the callback, and completes the retained negotiated transfer through Confirm Divestiture with one acquisition notification while preserving distinct immutable report-file lifetimes. It does not claim If Available or mixed continuation, cancellation races, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47100"
+      "source_location": "cpp/tests/ieee1516_2025_public_delivered_negotiated_owner_confirmation_restore_catch2.cpp:6"
     },
     {
       "id": "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-asymmetric-mixed-negotiated-confirmation-integration",
@@ -4518,6 +4518,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore preserves asymmetric mixed negotiated confirmation and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
+      "source_location": "cpp/tests/ieee1516_2025_public_asymmetric_mixed_negotiated_confirmation_restore_catch2.cpp:6",
       "tags": [
         "integration",
         "development-profile",
@@ -58888,6 +58889,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore preserves reverse asymmetric mixed negotiated confirmation and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
+      "source_location": "cpp/tests/ieee1516_2025_public_reverse_asymmetric_mixed_negotiated_confirmation_restore_catch2.cpp:6",
       "tags": [
         "integration",
         "development-profile",
@@ -58988,6 +58990,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore rebinds pending attribute transportation-type change and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
+      "source_location": "cpp/tests/ieee1516_2025_public_pending_attribute_transportation_type_change_restore_catch2.cpp:6",
       "tags": [
         "integration",
         "development-profile",
@@ -59030,9 +59033,9 @@
         "federate.callback.federation-restored",
         "callback-immediate"
       ],
+      "primary_lane": "public-process-restart-attribute-transportation-type-change",
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion runs 220 assertions under HLA_EVOKED and HLA_IMMEDIATE, leaves one accepted attribute transportation-type change pending, saves the durable object value and pending operation, restores the image into a fresh registry, rebinds exactly one confirmation callback, proves the HLAbestEffort query and post-restore reflection behavior, and preserves distinct immutable filesystem report-file identities. It does not claim default-type declaration matrices, multiple simultaneous changes, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48658",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ rebinds\\ pending\\ attribute\\ transportation\\-type\\ change\\ and\\ preserves\\ report\\-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
@@ -59120,9 +59123,10 @@
         "federate.callback.federation-restored",
         "callback-immediate"
       ],
+      "primary_lane": "public-process-restart-interaction-transportation-type-change",
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion runs 196 assertions under HLA_EVOKED and HLA_IMMEDIATE. It saves one pending publisher interaction transportation-type change alongside a two-member publication/subscription declaration image, restores it into a fresh registry, rebinds exactly one owner confirmation callback, proves the HLAbestEffort query and post-restore interaction delivery, and preserves distinct immutable filesystem report-file identities. It does not claim multiple pending changes, committed-override plus pending combinations, regional/directed interaction state, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48992",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47100",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ rebinds\\ pending\\ interaction\\ transportation\\-type\\ change\\ and\\ preserves\\ report\\-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
@@ -66241,6 +66245,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore preserves delivered negotiated If Available confirmation and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
+      "source_location": "cpp/tests/ieee1516_2025_public_delivered_negotiated_if_available_owner_confirmation_restore_catch2.cpp:6",
       "tags": [
         "integration",
         "development-profile",

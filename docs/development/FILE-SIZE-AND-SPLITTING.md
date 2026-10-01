@@ -126,9 +126,29 @@ The first wave should be staged rather than attempted as one rewrite:
   confirmation restore case is now isolated in
   ieee1516_2025_public_pending_negotiated_owner_confirmation_restore_catch2.cpp
   (346 lines, 223 assertions, one focused CTest); its 18 direct pairs and both
-  callback models remain intact. The original suite is now 60,613 lines, 9,674
-  fewer than its 70,287-line starting point. The next bounded handoff is the
-  mapped delivered negotiated owner-confirmation restore case.
+  callback models remain intact. The delivered negotiated owner-confirmation
+  restore case is now isolated in
+  ieee1516_2025_public_delivered_negotiated_owner_confirmation_restore_catch2.cpp
+  (352 lines, 228 assertions, one focused CTest); its 19 direct pairs and both
+  callback models remain intact. The delivered negotiated If Available
+  confirmation restore case is now isolated in
+  ieee1516_2025_public_delivered_negotiated_if_available_owner_confirmation_restore_catch2.cpp
+  (350 lines, 223 assertions, one focused CTest); its 19 direct pairs and both
+  callback models remain intact. The asymmetric mixed negotiated confirmation
+  restore case is now isolated in
+  ieee1516_2025_public_asymmetric_mixed_negotiated_confirmation_restore_catch2.cpp
+  (449 lines, 274 assertions, one focused CTest); its 19 direct pairs and both
+  callback models remain intact. The reverse asymmetric mixed negotiated
+  confirmation restore case is now isolated in
+  ieee1516_2025_public_reverse_asymmetric_mixed_negotiated_confirmation_restore_catch2.cpp
+  (451 lines, 274 assertions, one focused CTest); its 19 direct pairs and both
+  callback models remain intact. The pending attribute transportation-type
+  restore case is now isolated in
+  ieee1516_2025_public_pending_attribute_transportation_type_change_restore_catch2.cpp
+  (346 lines, 220 assertions, one focused CTest); its 16 direct pairs and both
+  callback models remain intact. The original suite is now 58,721 lines,
+  11,566 fewer than its 70,287-line starting point. The next bounded handoff is
+  the mapped pending interaction transportation-type restore case.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
