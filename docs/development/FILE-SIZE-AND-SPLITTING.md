@@ -248,13 +248,19 @@ The first wave should be staged rather than attempted as one rewrite:
   (420 lines, one focused CTest); its 11 direct pairs across 6 clauses, 21 API
   surfaces, 392 assertions, and both HLA_EVOKED and HLA_IMMEDIATE callback
   models remain intact. The 2025 target build, exact CTest, and regional lane
-  mapping check pass. The original suite is now 51,329 lines, 18,958 fewer
-  than its 70,287-line starting point. The next bounded handoff is the
-  delivered receive-order regional provider-response no-replay case at
-  ieee1516_2025_federation_management_catch2.cpp:47703; its roadmap record has
-  187 assertions, 10 standard sections, and both callback models. Reconcile its
-  missing Catch2 test-plan mapping/classification before splitting; do not
-  invent requirement pairs or API-surface counts.
+  mapping check pass. The delivered receive-order regional provider-response
+  no-replay case is now isolated in
+  ieee1516_2025_public_regional_provider_response_no_replay_restore_catch2.cpp
+  (381 lines, one focused CTest); its 13 direct pairs across 7 clauses and 24
+  API surfaces, 187 assertions, and both callback models are recorded. The
+  no-replay-after-delivery invariant is explicitly internal development
+  evidence. The 2025 target build, exact CTest, and lane mapping check pass.
+  The original suite is now 50,954 lines, 19,333 fewer than its 70,287-line
+  starting point. Next handoff: split the mapped public fresh-registry restore
+  application-value/report-file-lifetime case at
+  ieee1516_2025_federation_management_catch2.cpp:47704; preserve its 9 direct
+  pairs across 5 clauses and 18 API surfaces. Its plan leaves assertion and
+  callback-model metadata unspecified; do not infer them.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
