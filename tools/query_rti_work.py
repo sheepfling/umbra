@@ -7157,7 +7157,7 @@ def indexed_active_handoff_record(
         "plan_id": card.get("plan_id"),
         "plan_id_status": "proposed" if card.get("plan_id") else None,
         "test_case": test_case,
-        "source_location": None,
+        "source_location": card.get("source_location"),
         "source_target": card.get("source_target"),
         "source_lane": card.get("lane"),
         "lane_pending": True,
@@ -9985,6 +9985,11 @@ def main() -> int:
                 "matrix_requirement_command",
                 "matrix_section_command",
             ):
+                if next_card.get("mapping_seed_plan_id"):
+                    # A proposed case is not in the plan yet, so these exact
+                    # case/matrix queries would be premature.  Show them from
+                    # the scoped ready view after the proposed row is recorded.
+                    continue
                 handle = next_card.get(handle_name)
                 if isinstance(handle, str) and handle:
                     print(f"  {handle_name.removesuffix('_command')}={handle}")
@@ -11839,7 +11844,7 @@ def main() -> int:
                 f"handoff_kind: {result['handoff_kind']} "
                 f"runnable={result.get('runnable', True)}"
             )
-        if result.get("family_id"):
+        if result.get("family_id") and not result.get("requested_family"):
             print(f"family: {result['family_id']}")
         if result.get("plan_id"):
             plan_label = (
@@ -11865,8 +11870,11 @@ def main() -> int:
             print(f"assertions: {result['assertions']}")
         if result.get("status"):
             print(f"status: {result['status']}")
+        mapping_label = (
+            "mapping_seed_only" if result.get("mapping_seed_plan_id") else "mapping"
+        )
         print(
-            "mapping: "
+            f"{mapping_label}: "
             f"requirements={len(strings(result.get('requirement_ids')))} "
             f"standard_sections={len(strings(result.get('standard_sections')))} "
             f"api_surfaces={len(strings(result.get('api_surfaces')))}"
@@ -11890,7 +11898,9 @@ def main() -> int:
                 "standard_sections: "
                 f"{ready_preview(strings(result['standard_sections']))}"
             )
-        if has_ready_pairs:
+        if has_ready_pairs and not (
+            arguments.compact and result.get("mapping_seed_plan_id")
+        ):
             pair_text = [
                 f"{pair.get('lab_requirement_id')} -> {pair.get('standard_section')}"
                 for pair in ready_pairs[:4]
@@ -11943,11 +11953,19 @@ def main() -> int:
             ("post_mapping_check_command", "post_mapping_check_command"),
         ):
             if result.get(field_name):
+                if arguments.compact and result.get("mapping_seed_plan_id") and field_name in {
+                    "seed_matrix_requirement_command",
+                    "seed_matrix_section_command",
+                    "implementation_command",
+                }:
+                    continue
                 separator = "=" if display_name in {
                     "case",
                     "matrix_requirements",
                     "matrix_sections",
                 } else ": "
+                if result.get("mapping_seed_plan_id") and field_name == "implementation_command":
+                    display_name = "seed_implementation_command"
                 print(f"{display_name}{separator}{result[field_name]}")
         return 0
 

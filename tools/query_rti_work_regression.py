@@ -249,7 +249,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8.14.3",
             "hla-1516.1-2025:clause-8.18.1",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39437",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39185",
         "assertions": 40,
     },
     "Embedded time-role services keep enable requests callback-gated before TSO support": {
@@ -264,7 +264,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8.7.5",
             "hla-1516.1-2025:clause-8.21.5",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39589",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39337",
         "assertions": 51,
     },
     "Embedded Modify Lookahead applies increases immediately and decreases gradually": {
@@ -273,7 +273,7 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-8.20.4",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39706",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39454",
         "assertions": 28,
     },
     "RTIambassador requests Flush Queue through a configured process endpoint": {
@@ -344,7 +344,7 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-8",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39996",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39744",
         "assertions": 30,
     },
     "Embedded Query GALT and Query LITS observe other regulator time and pending advances": {
@@ -356,7 +356,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8.18.1",
             "hla-1516.1-2025:clause-8.19.3",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39764",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39512",
         "assertions": 35,
     },
     "RTIambassador queries GALT and LITS through a configured process endpoint": {
@@ -548,7 +548,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-10.50.6",
             "hla-1516.1-2025:clause-10.55.1",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22781",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22753",
         "assertions": 40,
     },
     "Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries": {
@@ -577,7 +577,7 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-10.55.1",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22739",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22711",
         "assertions": 15,
     },
     "Embedded Next Message Request grants at the next queued TSO timestamp": {
@@ -766,7 +766,7 @@ RECOVERED_TRACE_CASES = {
         "lane": "process-restart-pending-attribute-value-update",
     },
     "Embedded public fresh-registry restore rebinds pending object-instance Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52826",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52574",
         "assertions": 61,
         "requirements": 17,
         "sections": 8,
@@ -780,7 +780,7 @@ RECOVERED_TRACE_CASES = {
         "lane": "process-restart-class-pending-attribute-value-update",
     },
     "Embedded public fresh-registry restore rebinds pending object-class Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53083",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52831",
         "assertions": 61,
         "requirements": 12,
         "sections": 6,
@@ -969,7 +969,7 @@ def assert_bounded_discovery_output() -> None:
         raise AssertionError("compact roadmap summary leaked family/test inventories")
 
     resume_summary = run("resume", "--summary", "--compact")
-    if len(resume_summary.splitlines()) > 18 or len(resume_summary) > 4000:
+    if len(resume_summary.splitlines()) > 20 or len(resume_summary) > 4000:
         raise AssertionError("compact resume exceeded its first-read discovery budget")
     if "Next slice:" in resume_summary:
         if not all(
@@ -1156,17 +1156,25 @@ def assert_bounded_discovery_output() -> None:
     )
     scoped_ready = scoped_ready_result.stdout
     if (
-        scoped_ready_result.returncode == 0
-        or "no executable indexed C++ case is ready" not in scoped_ready
+        scoped_ready_result.returncode != 0
+        or "state: source-reconciliation" not in scoped_ready
+        or "proposed_plan_id: umbra-cpp-ddm-regional-asynchronous-receive-order-delivery-integration"
+        not in scoped_ready
     ):
         raise AssertionError(
-            "scoped ready query should report that this completed family has no runnable task"
+            "scoped ready query lost the active source-reconciliation handoff"
         )
     if (
-        "state=complete-pointer action=evidence-complete" not in scoped_ready
+        "mapping_seed: umbra-cpp-interaction-region-integration status=seed-from-existing-case"
+        not in scoped_ready
+        or "mapping_seed_only: requirements=12 standard_sections=7 api_surfaces=3"
+        not in scoped_ready
+        or "direct_pairs:" in scoped_ready
+        or "seed_trace_command:" not in scoped_ready
+        or "implementation_command:" in scoped_ready
     ):
         raise AssertionError(
-            "scoped ready query lost the family's current completed-pointer state"
+            "compact source-reconciliation handoff lost or conflated its mapping seed"
         )
     if len(scoped_ready.splitlines()) > 20 or len(scoped_ready) > 5000:
         raise AssertionError("compact ready family output exceeded its discovery budget")
@@ -1178,13 +1186,13 @@ def assert_bounded_discovery_output() -> None:
             "compact ready family output leaked mapping previews; use matrix queries"
         )
     if (
-        "matrix_requirements=python tools/query_rti_work.py matrix object-ddm-ownership --group-by requirement"
+        'matrix_requirements=python tools/query_rti_work.py matrix "umbra-cpp-ddm-regional-asynchronous-receive-order-delivery-integration" --group-by requirement --summary --compact'
         not in scoped_ready
-        or "matrix_sections=python tools/query_rti_work.py matrix object-ddm-ownership --group-by section"
+        or 'matrix_sections=python tools/query_rti_work.py matrix "umbra-cpp-ddm-regional-asynchronous-receive-order-delivery-integration" --group-by section --summary --compact'
         not in scoped_ready
     ):
         raise AssertionError(
-            "compact ready mapping card lost its family matrix handles"
+            "compact ready mapping card lost its proposed-case matrix handles"
         )
     scoped_work = run("work", "object-ddm-ownership", "--summary", "--compact")
     if len(scoped_work.splitlines()) > 24 or len(scoped_work) > 4000:
@@ -1263,6 +1271,16 @@ def main() -> int:
     )
     active_handoff = query_rti_work.indexed_active_handoff_record(index, tests)
     declared_handoff = index.get("active_handoff")
+    mapping_seed_plan = next(
+        (
+            test
+            for test in tests
+            if isinstance(test, dict)
+            and isinstance(declared_handoff, dict)
+            and test.get("id") == declared_handoff.get("mapping_seed_plan_id")
+        ),
+        None,
+    )
     handoff_plan_id = (
         declared_handoff.get("plan_id")
         if isinstance(declared_handoff, dict)
@@ -1412,11 +1430,21 @@ def main() -> int:
         or active_handoff.get("plan_id") != declared_handoff.get("plan_id")
         or active_handoff.get("plan_id_status") != "proposed"
         or active_handoff.get("source_target") != declared_handoff.get("source_target")
-        or active_handoff.get("api_surfaces") != declared_handoff.get("api_surfaces")
+        or active_handoff.get("source_location") != declared_handoff.get("source_location")
+        or not isinstance(mapping_seed_plan, dict)
+        or active_handoff.get("mapping_seed_test_case") != mapping_seed_plan.get("test_case")
+        or active_handoff.get("api_surfaces")
+        != query_rti_work.strings(
+            mapping_seed_plan.get("selected_cpp_api_surface_ids")
+            if isinstance(mapping_seed_plan, dict)
+            else None
+        )
+        or bool(declared_handoff.get("api_surfaces"))
         or active_handoff.get("requirement_section_pair_count", 0) == 0
         or not active_handoff.get("ctest_filter")
         or active_handoff.get("test_case") not in resume_handoff
         or f"proposed_plan_id={declared_handoff.get('plan_id')}" not in resume_handoff
+        or str(declared_handoff.get("source_location")) not in resume_handoff
         or f'case=python tools/query_rti_work.py case "{declared_handoff.get("plan_id")}"' in resume_handoff
         or f'matrix_requirements=python tools/query_rti_work.py matrix "{declared_handoff.get("plan_id")}"' in resume_handoff
         or str(active_handoff.get("source_lane")) not in resume_handoff
@@ -1474,6 +1502,8 @@ def main() -> int:
             "8.1.8",
             "--summary",
             "--compact",
+            "--limit",
+            "0",
         ],
         check=True,
         capture_output=True,
@@ -6153,7 +6183,7 @@ def main() -> int:
     if not isinstance(interaction_mode_case, dict):
         raise AssertionError("active/passive interaction mode test plan row is absent")
     if query_rti_work.source_location_text(interaction_mode_case) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:31751"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:31499"
     ) or interaction_mode_case.get("assertions") != 129:
         raise AssertionError("active/passive interaction mode source/evidence drifted")
     interaction_mode_focus = query_rti_work.focused_lane_result(
@@ -6400,7 +6430,7 @@ def main() -> int:
     if not isinstance(acquisition_release, dict):
         raise AssertionError("attribute-ownership acquisition release plan row is absent")
     if query_rti_work.source_location_text(acquisition_release) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:42361"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:42109"
     ) or acquisition_release.get("assertions") != 73:
         raise AssertionError("attribute-ownership acquisition release source/evidence drifted")
     if acquisition_release.get("traceability_state") != "requirements-mapped":
@@ -6446,7 +6476,7 @@ def main() -> int:
     if not isinstance(release_denied_multi, dict):
         raise AssertionError("multi-acquirer Release Denied plan row is absent")
     if query_rti_work.source_location_text(release_denied_multi) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:42859"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:42607"
     ) or release_denied_multi.get("assertions") != 53:
         raise AssertionError("multi-acquirer Release Denied source/evidence drifted")
     if release_denied_multi.get("traceability_state") != "requirements-mapped":
@@ -6536,7 +6566,7 @@ def main() -> int:
     if not isinstance(ownership_query, dict):
         raise AssertionError("attribute-ownership query plan row is absent")
     if query_rti_work.source_location_text(ownership_query) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:40693"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:40441"
     ) or ownership_query.get("assertions") != 49:
         raise AssertionError("attribute-ownership query source/evidence drifted")
     if ownership_query.get("traceability_state") != "requirements-mapped":
@@ -6582,7 +6612,7 @@ def main() -> int:
     if not isinstance(evoked_regional_snapshot, dict):
         raise AssertionError("evoked regional source-region snapshot plan row is absent")
     if query_rti_work.source_location_text(evoked_regional_snapshot) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33244"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32992"
     ) or evoked_regional_snapshot.get("assertions") != 42:
         raise AssertionError("evoked regional source-region snapshot source/evidence drifted")
     if evoked_regional_snapshot.get("traceability_state") != "requirements-mapped":

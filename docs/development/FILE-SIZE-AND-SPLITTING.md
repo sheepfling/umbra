@@ -499,20 +499,30 @@ The first wave should be staged rather than attempted as one rewrite:
     distinguishes mapped public switch behavior from fixture setup and removes
     stale HLAreportServiceFile catalog-only claims. The focused CTest passes
     exactly once, the lane check resolves the focused source, both focused and
-    aggregate targets build, and the adjacent mixed-standard NoAction
-    automatic-resign test passes in the aggregate. The shared 2025
-    federation-management CMake helper serves seven focused targets (four
-    service-report lanes plus three advisory/support-switch cases), leaving
-    `CMakeLists.txt` at 12,393 lines with its ceiling ratcheted to 12,393. The
-    federation-management monolith is now 41,827 lines, 28,460 below its
-    70,287-line start, with its ceiling ratcheted to 41,827. No IEEE
-    1516.1-2010 path changed.
-    Next handoff: isolate `Embedded joins preserve an explicit FOM NoAction
-    automatic-resign directive` from
-    `ieee1516_2025_federation_management_catch2.cpp:19291`. Preserve 9 direct
-    pairs across IEEE 1516.1-2025 clauses 4, 4.1.1, 4.2, and 10.44, and
-    IEEE 1516.2-2025 clauses 4.13.3 and 6.2.13, plus 7 API surfaces and 7
-    HLA_EVOKED assertions. Keep the two standards' mappings distinct.
+    aggregate targets build, and the adjacent HLAreportServiceInvocation
+    observer regression passes in the aggregate. The Join-time explicit FOM
+    NoAction automatic-resign case is isolated in
+    `join_automatic_resign_directive_catch2.cpp` (27 lines, 7 HLA_EVOKED
+    assertions, 9 direct pairs across four IEEE 1516.1-2025 and two
+    IEEE 1516.2-2025 clauses, and 7 API surfaces). Its focused target builds,
+    its CTest passes exactly once, and the lane check resolves one roadmap item
+    and one mapped case. The nine direct pairs remain separated by standard.
+    The failed regional object-attribute association file-report case is now
+    isolated in `ieee1516_2025_ddm_regional_association_failure_file_catch2.cpp`
+    (230 lines, 302 assertions, 8 direct IEEE 1516.1-2025 pairs across clauses
+    9.6, 9.7.5, 11.5, and 11.5.2, and 7 API surfaces). Its file-destination
+    behavior remains distinct from the mapped MOM-interaction sibling. The
+    focused and aggregate 2025 targets build, the focused CTest passes once,
+    the lane check resolves one roadmap item and two mapped cases, and all
+    post-extraction source pointers are adjusted. The shared CMake helper
+    serves nine focused targets; `CMakeLists.txt` is 12,391 lines (ceiling
+    12,392). The federation-management monolith is 41,575 lines, 28,712 below
+    its 70,287-line start, with its ceiling ratcheted down to 41,575. No IEEE
+    1516.1-2010 path or mapping changed.
+    Next handoff: inspect and independently map `Embedded asynchronous delivery
+    gates regional receive-order interactions` at
+    `ieee1516_2025_federation_management_catch2.cpp:32155`; isolate only if its
+    focused behavior and direct 2025 requirements support it.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in

@@ -3610,6 +3610,7 @@ if(BUILD_TESTING)
           cpp/tests/timestamped_regional_interaction_failure_service_report_file_catch2.cpp
           cpp/tests/timestamped_regional_interaction_failure_service_report_interaction_catch2.cpp
           cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp cpp/tests/ieee1516_2025_timed_restore_live_tso_regional_interaction_catch2.cpp cpp/tests/ieee1516_2025_timestamped_update_attribute_values_failure_mom_interaction_catch2.cpp cpp/tests/ieee1516_2025_regional_provide_attribute_value_update_service_report_catch2.cpp cpp/tests/ieee1516_2025_regional_request_attribute_value_update_filtering_catch2.cpp cpp/tests/ieee1516_2025_regional_request_attribute_value_update_provider_response_catch2.cpp cpp/tests/ieee1516_2025_timestamped_regional_update_failure_mom_interaction_catch2.cpp cpp/tests/ieee1516_2025_timestamped_update_attribute_values_failure_file_catch2.cpp cpp/tests/ieee1516_2025_timestamped_regional_update_file_report_catch2.cpp cpp/tests/ieee1516_2025_timestamped_regional_update_mom_interaction_catch2.cpp cpp/tests/ieee1516_2025_ordinary_regional_update_mom_interaction_catch2.cpp cpp/tests/ieee1516_2025_ordinary_regional_update_failure_file_catch2.cpp cpp/tests/ieee1516_2025_ordinary_regional_update_failure_mom_catch2.cpp cpp/tests/ieee1516_2025_timestamped_send_interaction_failure_mom_catch2.cpp cpp/tests/ieee1516_2025_timestamped_update_attribute_values_service_report_catch2.cpp cpp/tests/ieee1516_2025_ordinary_regional_update_service_report_file_catch2.cpp
+          cpp/tests/ieee1516_2025_ddm_regional_association_failure_file_catch2.cpp
         )
       endif()
       target_link_libraries(umbra_ieee1516_2025_catch2 PRIVATE umbra_fom_validation_backend)
@@ -11046,13 +11047,10 @@ if(BUILD_TESTING)
     endfunction()
 
     if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-      umbra_add_focused_2025_federation_management_catch2(declaration_relevance_service_report)
-      umbra_add_focused_2025_federation_management_catch2(discover_object_instance_service_report)
-      umbra_add_focused_2025_federation_management_catch2(remove_object_instance_service_report)
-      umbra_add_focused_2025_federation_management_catch2(timestamped_remove_object_instance_service_report)
-      umbra_add_focused_2025_federation_management_catch2(join_advisory_switch_seed)
-      umbra_add_focused_2025_federation_management_catch2(advisories_use_known_class_switch)
-      umbra_add_focused_2025_federation_management_catch2(support_switch_state)
+      foreach(name IN ITEMS declaration_relevance_service_report discover_object_instance_service_report
+          remove_object_instance_service_report timestamped_remove_object_instance_service_report join_advisory_switch_seed advisories_use_known_class_switch support_switch_state join_automatic_resign_directive ieee1516_2025_ddm_regional_association_failure_file)
+        umbra_add_focused_2025_federation_management_catch2(${name})
+      endforeach()
     endif()
 
     # Keep the embedded regional Attribute Relevance Advisory regression
