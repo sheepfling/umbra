@@ -24,7 +24,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional Update Attribute Values before reflection callback",
+        "cpp/tests/ieee1516_2025_ordinary_regional_update_service_report_file_catch2.cpp::Embedded service reporting records regional Update Attribute Values before reflection callback",
         "cpp/tests/ieee1516_2025_ordinary_regional_update_mom_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Update Attribute Values through MOM interaction",
         "cpp/tests/ieee1516_2025_ordinary_regional_update_failure_file_catch2.cpp::Embedded service reporting records failed regional Update Attribute Values invocations",
         "cpp/tests/ieee1516_2025_ordinary_regional_update_failure_mom_catch2.cpp::Embedded service reporting delivers failed ordinary regional Update Attribute Values invocations through MOM interaction"
@@ -42,7 +42,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueReceiveOrderAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional Update Attribute Values before reflection callback",
+        "cpp/tests/ieee1516_2025_ordinary_regional_update_service_report_file_catch2.cpp::Embedded service reporting records regional Update Attribute Values before reflection callback",
         "cpp/tests/ieee1516_2025_ordinary_regional_update_mom_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Update Attribute Values through MOM interaction",
         "cpp/tests/ieee1516_2025_ordinary_regional_update_failure_file_catch2.cpp::Embedded service reporting records failed regional Update Attribute Values invocations"
       ]

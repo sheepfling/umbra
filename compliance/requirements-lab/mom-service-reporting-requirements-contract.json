@@ -2287,7 +2287,7 @@
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
       "notes": "The accepted timestamped §6.10 Update Attribute Values path now uses the shared file-or-interaction selector after validation and any TSO queue admission. The focused production-filesystem matrix proves the type-37 ObjectInstanceHandle, type-2 AttributeHandleValueMap, type-63 User-supplied tag, and type-31 LogicalTime supplied forms, the type-34 Null returned argument for a non-time-regulating sender, serial zero, and durable sender-report-before-Reflect Attribute Values ordering. A paired native HLA_IMMEDIATE matrix proves the time-regulated type-33 MessageRetractionHandle return before the constrained reflection callback with the same supplied forms and callback metadata. Regional/default-region update matrices, recipient-local callback records, remote transport, and conformance remain separate; the Requirements Lab has no row-level report-backend relation (RL-105/RL-152), so this is development-profile evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Update Attribute Values before reflection callback",
+        "cpp/tests/ieee1516_2025_timestamped_update_attribute_values_service_report_catch2.cpp::Embedded service reporting records timestamped Update Attribute Values before reflection callback",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Update Attribute Values through MOM interaction"
       ]
     },
@@ -2931,7 +2931,7 @@
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulVoidServiceReportToFileIfSelected",
       "notes": "The accepted ordinary Update Attribute Values service is recorded through the configured joined-federate filesystem even when explicit committed regional object/attribute association drives recipient eligibility. The focused C++ case verifies serial zero, type-37 object, type-2 attribute/value map, type-63 tag, type-34 Null optional timestamp, and durable sender-report-before-constrained-regional-Reflect Attribute Values ordering, while the callback separately conveys the source RegionHandleSet. Its paired HLA_IMMEDIATE case now exercises the public MOM route with the same four supplied forms, type-34 Null return, success, empty exception, and serial zero before the constrained callback. This remains development-profile evidence; regional-update failure matrices, re-enable/save/restore, regional deletion, remote transport, JUnit/protected review, Lab validation, and conformance remain open.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional Update Attribute Values before reflection callback",
+        "cpp/tests/ieee1516_2025_ordinary_regional_update_service_report_file_catch2.cpp::Embedded service reporting records regional Update Attribute Values before reflection callback",
         "cpp/tests/ieee1516_2025_ordinary_regional_update_mom_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Update Attribute Values through MOM interaction"
       ]
     },

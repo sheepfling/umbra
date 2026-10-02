@@ -353,8 +353,8 @@ The first wave should be staged rather than attempted as one rewrite:
    lines), preserving 96 assertions and 12 direct pairs across 10 sections/31
    APIs. Its HLA_IMMEDIATE observer and HLA_EVOKED receiver retain the
     report-before-callback ordering. The federation-management monolith is now
-    44,888 lines, 25,399 below its 70,287-line start, with its ceiling
-    ratcheted to 44,888. The failed ordinary regional Update Attribute Values
+    44,617 lines, 25,670 below its 70,287-line start, with its ceiling
+    ratcheted to 44,617. The failed ordinary regional Update Attribute Values
     file-report case is isolated in
     `ieee1516_2025_ordinary_regional_update_failure_file_catch2.cpp` (149
     lines), preserving its one direct requirement pair in clause 11.5 and 7 API
@@ -366,11 +366,20 @@ The first wave should be staged rather than attempted as one rewrite:
     case is isolated in
     `ieee1516_2025_timestamped_send_interaction_failure_mom_catch2.cpp` (166
     lines), preserving 5 direct pairs across 4 clauses and 3 API surfaces; its
-    focused 2025 build, exact CTest, and mapping check pass. Next handoff:
-    isolate `Embedded service reporting records timestamped Update Attribute
-    Values before reflection callback` at
-    `ieee1516_2025_federation_management_catch2.cpp:1320`, preserving 4 direct
-    pairs across 4 clauses and 4 API surfaces. Keep the IEEE 1516.1-2025 and
+    focused 2025 build, exact CTest, and mapping check pass. The accepted
+    timestamped Update Attribute Values file-report case is now isolated in
+    `ieee1516_2025_timestamped_update_attribute_values_service_report_catch2.cpp`
+    (132 lines), preserving its 4 direct pairs across 4 clauses and 4 API
+    surfaces and report-before-reflection callback ordering. Next handoff:
+    isolate `Embedded service reporting records regional Update Attribute
+    Values before reflection callback` is isolated in
+    `ieee1516_2025_ordinary_regional_update_service_report_file_catch2.cpp`
+    (145 lines), preserving 139 assertions, its direct clause 11.5 mapping,
+    and 8 API surfaces. Next handoff: isolate `Embedded service reporting
+    records failed timestamped Send Directed Interaction invocations` at
+    `ieee1516_2025_federation_management_catch2.cpp:1320`, preserving 313
+    assertions, 5 direct pairs across 4 clauses, and 3 API surfaces. Keep the
+    IEEE 1516.1-2025 and
     2010 streams separate.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
