@@ -180,19 +180,19 @@ The first wave should be staged rather than attempted as one rewrite:
   clauses, 17 API surfaces, and both callback models remain intact. The
   pending If Available ownership-callback restore case is now isolated in
   ieee1516_2025_public_pending_ownership_if_available_restore_catch2.cpp
-  (322 lines, 193 assertions, one focused CTest); its 11 direct pairs across 7
+  (320 lines, 193 assertions, one focused CTest); its 11 direct pairs across 7
   clauses, 21 API surfaces, and both callback models remain intact. The
   ownership-acquisition cancellation restore case is now isolated in
   ieee1516_2025_public_ownership_acquisition_cancellation_restore_catch2.cpp
-  (318 lines, 171 assertions, one focused CTest); its 17 direct pairs across
+  (316 lines, 171 assertions, one focused CTest); its 17 direct pairs across
   10 clauses, 23 API surfaces, and both callback models remain intact. The
   Confirm Divestiture notification restore case is now isolated in
   ieee1516_2025_public_confirm_divestiture_notification_restore_catch2.cpp
-  (338 lines, 191 assertions, one focused CTest); its 18 direct pairs across
+  (336 lines, 191 assertions, one focused CTest); its 18 direct pairs across
   11 clauses, 17 API surfaces, and both callback models remain intact. The
   three-recipient Confirm Divestiture fan-out restore case is now isolated in
   ieee1516_2025_public_confirm_divestiture_fanout_restore_catch2.cpp
-  (508 lines, one focused CTest); its 18 direct pairs across 11 clauses and 17
+  (506 lines, one focused CTest); its 18 direct pairs across 11 clauses and 17
   API surfaces remain intact. The 2025 target build, exact CTest, and ownership
   lane mapping check pass. The public post-confirmation resignation
   multi-survivor fan-out case is now isolated in
