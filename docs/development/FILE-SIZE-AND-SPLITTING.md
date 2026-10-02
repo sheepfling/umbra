@@ -342,11 +342,36 @@ The first wave should be staged rather than attempted as one rewrite:
    lines). Both exact CTests pass; the baseline retains 206 assertions, and
    the original-only receiver-disconnect difference remains explicit. Their
    independent mappings (1 pair/1 clause/9 APIs and 11 pairs/9 clauses/30
-   APIs) and Catch2 identities are preserved. Next handoff: isolate the
-   accepted timestamped regional Update Attribute Values MOM-interaction case
-   at `ieee1516_2025_federation_management_catch2.cpp:1138`, retaining its 5
-   direct pairs across 3 clauses/10 APIs and native HLA_IMMEDIATE behavior.
-   Keep the IEEE 1516.1-2025 and 2010 streams separate.
+   APIs) and Catch2 identities are preserved. The accepted timestamped
+   regional Update Attribute Values MOM-interaction case is now isolated in
+   `ieee1516_2025_timestamped_regional_update_mom_interaction_catch2.cpp`
+   (247 lines), preserving its 5 direct pairs across 3 clauses/10 APIs, exact
+   Catch2 identity, and native HLA_IMMEDIATE observer/callback ordering. The
+   accepted ordinary regional Update Attribute Values MOM-interaction case
+   is now isolated in
+   `ieee1516_2025_ordinary_regional_update_mom_interaction_catch2.cpp` (205
+   lines), preserving 96 assertions and 12 direct pairs across 10 sections/31
+   APIs. Its HLA_IMMEDIATE observer and HLA_EVOKED receiver retain the
+    report-before-callback ordering. The federation-management monolith is now
+    44,888 lines, 25,399 below its 70,287-line start, with its ceiling
+    ratcheted to 44,888. The failed ordinary regional Update Attribute Values
+    file-report case is isolated in
+    `ieee1516_2025_ordinary_regional_update_failure_file_catch2.cpp` (149
+    lines), preserving its one direct requirement pair in clause 11.5 and 7 API
+    surfaces. Its paired failed ordinary regional Update Attribute Values
+    MOM-interaction case is isolated in
+    `ieee1516_2025_ordinary_regional_update_failure_mom_catch2.cpp` (199 lines),
+    preserving 119 assertions and 4 direct pairs across clauses 6.10/11.5 with
+    6 API surfaces. The timestamped Send Interaction failure MOM-interaction
+    case is isolated in
+    `ieee1516_2025_timestamped_send_interaction_failure_mom_catch2.cpp` (166
+    lines), preserving 5 direct pairs across 4 clauses and 3 API surfaces; its
+    focused 2025 build, exact CTest, and mapping check pass. Next handoff:
+    isolate `Embedded service reporting records timestamped Update Attribute
+    Values before reflection callback` at
+    `ieee1516_2025_federation_management_catch2.cpp:1320`, preserving 4 direct
+    pairs across 4 clauses and 4 API surfaces. Keep the IEEE 1516.1-2025 and
+    2010 streams separate.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in

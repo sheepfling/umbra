@@ -32,7 +32,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped default-region interaction survives source resignation for each recipient",
         "cpp/tests/timestamped_send_interaction_no_fanout_catch2.cpp::Embedded timestamped Send Interaction returns a retraction designator without recipient fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed timestamped Send Interaction invocations",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed timestamped Send Interaction invocations through MOM interaction",
+        "cpp/tests/ieee1516_2025_timestamped_send_interaction_failure_mom_catch2.cpp::Embedded service reporting delivers failed timestamped Send Interaction invocations through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records timestamped Send Interaction before interaction callback",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers timestamped Send Interaction through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Interaction through MOM interaction",

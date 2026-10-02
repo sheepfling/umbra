@@ -2243,7 +2243,7 @@
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers timestamped §6.12 Send Interaction failures through HLAreportServiceInvocation with object-management service type 2, type-27/type-40/type-63/type-31 supplied forms, Null returned arguments, false indicators, exact InteractionClassNotDefined/InteractionParameterNotDefined/InvalidLogicalTime descriptions, and serials zero through two. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this remains bounded development-profile interaction evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed timestamped Send Interaction invocations through MOM interaction"
+        "cpp/tests/ieee1516_2025_timestamped_send_interaction_failure_mom_catch2.cpp::Embedded service reporting delivers failed timestamped Send Interaction invocations through MOM interaction"
       ]
     },
     {
@@ -2276,7 +2276,7 @@
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers an accepted timestamped §6.10 Update Attribute Values invocation through HLAreportServiceInvocation after an explicit committed regional object/attribute association is established. It decodes object-management service type 2, type-37/type-2/type-63/type-31 supplied forms, the quoted type-33 MessageRetractionHandle return with the admitted message identity, success true, empty exception, and serial zero before the constrained regional Reflect Attribute Values callback; the callback separately verifies the source RegionHandleSet and timestamped order metadata. This is bounded C++ development-profile interaction evidence; broader regional forms, lifecycle, transport, Lab validation, and conformance remain open.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted timestamped regional Update Attribute Values through MOM interaction"
+        "cpp/tests/ieee1516_2025_timestamped_regional_update_mom_interaction_catch2.cpp::Embedded service reporting delivers accepted timestamped regional Update Attribute Values through MOM interaction"
       ]
     },
     {
@@ -2932,7 +2932,7 @@
       "notes": "The accepted ordinary Update Attribute Values service is recorded through the configured joined-federate filesystem even when explicit committed regional object/attribute association drives recipient eligibility. The focused C++ case verifies serial zero, type-37 object, type-2 attribute/value map, type-63 tag, type-34 Null optional timestamp, and durable sender-report-before-constrained-regional-Reflect Attribute Values ordering, while the callback separately conveys the source RegionHandleSet. Its paired HLA_IMMEDIATE case now exercises the public MOM route with the same four supplied forms, type-34 Null return, success, empty exception, and serial zero before the constrained callback. This remains development-profile evidence; regional-update failure matrices, re-enable/save/restore, regional deletion, remote transport, JUnit/protected review, Lab validation, and conformance remain open.",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records regional Update Attribute Values before reflection callback",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted regional Update Attribute Values through MOM interaction"
+        "cpp/tests/ieee1516_2025_ordinary_regional_update_mom_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Update Attribute Values through MOM interaction"
       ]
     },
     {
@@ -2943,7 +2943,7 @@
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The accepted ordinary Update Attribute Values service now projects through HLAreportServiceInvocation to an HLA_IMMEDIATE observer when an explicit committed regional object/attribute association drives recipient eligibility. The focused C++ case decodes object-management service type 2, type-37/type-2/type-63/type-34 supplied forms, the Table 5 type-34 Null return, success true, empty exception, and serial zero, then verifies source RegionHandleSet and receive-order reflection metadata at the callback. The Lab has no row-level backend/lifecycle relation for this cross-cutting §11.5.1 behavior, so this remains development-profile interaction evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted regional Update Attribute Values through MOM interaction"
+        "cpp/tests/ieee1516_2025_ordinary_regional_update_mom_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Update Attribute Values through MOM interaction"
       ]
     },
     {
@@ -2954,8 +2954,8 @@
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The ordinary regional Update Attribute Values failure matrix records invalid-object and invalid-attribute exceptions through the configured joined-federate filesystem and its paired HLA_IMMEDIATE public MOM route. Both cases preserve serials zero and one, type-37/type-2/type-63/type-34 supplied forms, Null returned arguments, false success indicators, and exact exception text while the known object remains explicitly region-associated; the interaction case proves no reflection callback is synthesized. Broader failure families, re-enable/save/restore, transport, JUnit/protected review, Lab validation, and conformance remain open.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed regional Update Attribute Values invocations",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed ordinary regional Update Attribute Values invocations through MOM interaction"
+        "cpp/tests/ieee1516_2025_ordinary_regional_update_failure_file_catch2.cpp::Embedded service reporting records failed regional Update Attribute Values invocations",
+        "cpp/tests/ieee1516_2025_ordinary_regional_update_failure_mom_catch2.cpp::Embedded service reporting delivers failed ordinary regional Update Attribute Values invocations through MOM interaction"
       ]
     },
     {
