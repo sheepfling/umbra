@@ -328,14 +328,19 @@ The first wave should be staged rather than attempted as one rewrite:
    and 7 APIs, while the restored-baseline mapping retains 11 pairs across 9
    clauses and 30 APIs. The 2025 target build, both exact CTests, and the lane
    check pass (3 mapped cases, none unmapped). The federation-management
-   monolith is now 46,676 lines, 23,611 fewer than its 70,287-line starting
-   point, with its ceiling ratcheted to 46,676. Next handoff: compare the
-   original and restored-baseline timestamped Update Attribute Values
-   file-report failure cases at
-   `ieee1516_2025_federation_management_catch2.cpp:1275` and `:1138`; each row
-   retains 11 direct pairs across 9 clauses and 15 APIs. Keep their exact
-   identities and the service-report-file lane distinct from MOM interaction;
-   do not cross into the IEEE 1516.1-2010 stream.
+   monolith is now 46,367 lines, 23,920 fewer than its 70,287-line starting
+   point, with its ceiling ratcheted to 46,367. The original and
+   restored-baseline timestamped Update Attribute Values file-report failure
+   cases now share a private runner in
+   `ieee1516_2025_timestamped_update_attribute_values_failure_file_catch2.cpp`
+   (190 lines), while retaining separate test identities, 218/236 assertions,
+   and independent 11-pair/9-clause/15-API mappings. The original case alone
+   checks that disabled file output does not append and re-enabling preserves
+   the same file. Next handoff: isolate the original MOM-interaction failure
+   case at `ieee1516_2025_federation_management_catch2.cpp:1138`, preserving
+   its 5 direct pairs across 3 clauses and 3 APIs while keeping the
+   restored-baseline copy separate. Do not cross into the IEEE 1516.1-2010
+   stream.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
