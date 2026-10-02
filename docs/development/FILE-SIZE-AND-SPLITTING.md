@@ -178,12 +178,46 @@ The first wave should be staged rather than attempted as one rewrite:
   ieee1516_2025_public_mixed_interaction_declaration_restore_catch2.cpp
   (237 lines, 146 assertions, one focused CTest); its 8 direct pairs across 7
   clauses, 17 API surfaces, and both callback models remain intact. The
-  original suite is now 56,079 lines, 14,208 fewer than its 70,287-line
-  starting point. The next bounded handoff is the adjacent pending If Available
-  ownership-callback restore case at
-  ieee1516_2025_federation_management_catch2.cpp:47692; preserve its 193
-  assertions, 11 direct pairs across 7 clauses, 21 API surfaces, and both
-  callback models.
+  pending If Available ownership-callback restore case is now isolated in
+  ieee1516_2025_public_pending_ownership_if_available_restore_catch2.cpp
+  (322 lines, 193 assertions, one focused CTest); its 11 direct pairs across 7
+  clauses, 21 API surfaces, and both callback models remain intact. The
+  ownership-acquisition cancellation restore case is now isolated in
+  ieee1516_2025_public_ownership_acquisition_cancellation_restore_catch2.cpp
+  (318 lines, 171 assertions, one focused CTest); its 17 direct pairs across
+  10 clauses, 23 API surfaces, and both callback models remain intact. The
+  Confirm Divestiture notification restore case is now isolated in
+  ieee1516_2025_public_confirm_divestiture_notification_restore_catch2.cpp
+  (338 lines, 191 assertions, one focused CTest); its 18 direct pairs across
+  11 clauses, 17 API surfaces, and both callback models remain intact. The
+  three-recipient Confirm Divestiture fan-out restore case is now isolated in
+  ieee1516_2025_public_confirm_divestiture_fanout_restore_catch2.cpp
+  (508 lines, one focused CTest); its 18 direct pairs across 11 clauses and 17
+  API surfaces remain intact. The 2025 target build, exact CTest, and ownership
+  lane mapping check pass. The public post-confirmation resignation
+  multi-survivor fan-out case is now isolated in
+  ieee1516_2025_public_confirm_divestiture_post_resignation_fanout_restore_catch2.cpp
+  (524 lines, one focused CTest); its 23 direct pairs across 14 clauses and 27
+  API surfaces remain intact. The plan does not specify its assertion count or
+  callback models. The 2025 target build, exact CTest, and ownership lane
+  mapping check pass. The public mixed regular and If Available Confirm
+  Divestiture fan-out case is now isolated in
+  ieee1516_2025_public_confirm_divestiture_mixed_fanout_restore_catch2.cpp
+  (460 lines, one focused CTest); its 19 direct pairs across 12 clauses and 18
+  API surfaces remain intact. The plan does not specify its assertion count or
+  callback models. The 2025 target build, exact CTest, and ownership lane
+  mapping check pass. The public resigned-candidate Confirm Divestiture restore
+  case is now isolated in
+  ieee1516_2025_public_confirm_divestiture_resignation_restore_catch2.cpp
+  (425 lines, one focused CTest); its 20 direct pairs across 13 clauses, 26 API
+  surfaces, 222 assertions, and both HLA_EVOKED and HLA_IMMEDIATE callback
+  models remain intact. The 2025 target build, exact CTest, and resignation
+  lane mapping check pass. The original suite is now 53,253 lines, 17,034 fewer
+  than its 70,287-line starting point. The next bounded handoff is the adjacent
+  post-confirmation resignation Confirm Divestiture restore case at
+  ieee1516_2025_federation_management_catch2.cpp:47698; preserve its 23 direct
+  pairs across 14 clauses, 27 API surfaces, 235 assertions, and both HLA_EVOKED
+  and HLA_IMMEDIATE callback models.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in

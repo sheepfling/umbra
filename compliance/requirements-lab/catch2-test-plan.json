@@ -5036,7 +5036,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion saves one regular Attribute Ownership Acquisition, completes the owner's Request Divestiture Confirmation, and leaves the resulting Confirm Divestiture Acquisition Notification outside user code. It tears down the source registry, restores the filesystem image into a fresh registry, and proves the requester receives exactly one Attribute Ownership Acquisition Notification after Federation Restored under both HLA_EVOKED and HLA_IMMEDIATE. The callback preserves the original object, attribute set, and confirming tag and is consumed exactly once. It does not claim grouped multi-recipient confirmation, mixed or If Available arbitration, cancellation races, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52840",
+      "source_location": "cpp/tests/ieee1516_2025_public_confirm_divestiture_notification_restore_catch2.cpp:6",
       "assertions": 191,
       "callback_models": [
         "HLA_EVOKED",
@@ -59847,7 +59847,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ fanout companion assigns three distinct attributes to three regular acquisition requests, completes one grouped Confirm Divestiture, retains three recipient-specific notification reservations and the shared confirming tag in the filesystem image, restores into a fresh registry, and proves one exact notification per requester after Federation Restored under both HLA_EVOKED and HLA_IMMEDIATE. It does not claim mixed or If Available arbitration, cancellation races, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53167",
+      "source_location": "cpp/tests/ieee1516_2025_public_confirm_divestiture_fanout_restore_catch2.cpp:6",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ fans\\ out\\ pending\\ Confirm\\ Divestiture\\ notifications\\ to\\ three\\ recipients\\ through\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$",
       "primary_lane": "attribute-ownership-acquisition"
@@ -67560,7 +67560,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion saves one regular Attribute Ownership Acquisition plus its accepted cancellation reservation, tears down the source registry, restores the filesystem image into a fresh registry, and proves the requester receives one Confirm Attribute Ownership Acquisition Cancellation callback after Federation Restored under both HLA_EVOKED and HLA_IMMEDIATE. The callback preserves the original object and attribute set and is consumed exactly once. It does not claim cancellation races, If Available or negotiated arbitration, timestamped/retraction behavior, DDM, distributed transport, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52535",
+      "source_location": "cpp/tests/ieee1516_2025_public_ownership_acquisition_cancellation_restore_catch2.cpp:6",
       "assertions": 171,
       "callback_models": [
         "HLA_EVOKED",
@@ -67644,7 +67644,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore rebinds pending If Available ownership callback and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47692",
+      "source_location": "cpp/tests/ieee1516_2025_public_pending_ownership_if_available_restore_catch2.cpp:6",
       "assertions": 193,
       "callback_models": [
         "HLA_EVOKED",
