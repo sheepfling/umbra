@@ -328,20 +328,25 @@ The first wave should be staged rather than attempted as one rewrite:
    and 7 APIs, while the restored-baseline mapping retains 11 pairs across 9
    clauses and 30 APIs. The 2025 target build, both exact CTests, and the lane
    check pass (3 mapped cases, none unmapped). The federation-management
-   monolith is now 46,207 lines, 24,080 fewer than its 70,287-line starting
-   point, with its ceiling ratcheted to 46,207. The original and
+   monolith is now 45,843 lines, 24,444 fewer than its 70,287-line starting
+   point, with its ceiling ratcheted to 45,843. The original and
    restored-baseline timestamped Update Attribute Values file-report failure
    cases now share a private runner in
    `ieee1516_2025_timestamped_update_attribute_values_failure_file_catch2.cpp`
    (190 lines), while retaining separate test identities, 218/236 assertions,
    and independent 11-pair/9-clause/15-API mappings. The original case alone
    checks that disabled file output does not append and re-enabling preserves
-   the same file. Next handoff: compare the original and restored-baseline
-   timestamped regional Update Attribute Values file-report cases at
-   `ieee1516_2025_federation_management_catch2.cpp:1138` and `:1319` for
-   behaviorally shared setup/assertions; preserve their distinct 206-assertion
-   baseline, original behavior, mappings, and Catch2 identities. Keep the
-   IEEE 1516.1-2025 and 2010 streams separate.
+   the same file. The original and restored-baseline timestamped regional
+   Update Attribute Values file-report cases now share a private runner in
+   `ieee1516_2025_timestamped_regional_update_file_report_catch2.cpp` (203
+   lines). Both exact CTests pass; the baseline retains 206 assertions, and
+   the original-only receiver-disconnect difference remains explicit. Their
+   independent mappings (1 pair/1 clause/9 APIs and 11 pairs/9 clauses/30
+   APIs) and Catch2 identities are preserved. Next handoff: isolate the
+   accepted timestamped regional Update Attribute Values MOM-interaction case
+   at `ieee1516_2025_federation_management_catch2.cpp:1138`, retaining its 5
+   direct pairs across 3 clauses/10 APIs and native HLA_IMMEDIATE behavior.
+   Keep the IEEE 1516.1-2025 and 2010 streams separate.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
