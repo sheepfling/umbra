@@ -294,14 +294,30 @@ The first wave should be staged rather than attempted as one rewrite:
    and HLA_EVOKED. Its focused CTest fails at `report.sentRegionsSupplied`;
    the same 39/40 result was reproduced with the unchanged test in its original
    monolith location, so this is a pre-existing behavior failure, not a split
-   regression. No runtime behavior was changed. The monolith is now 48,152
-   lines, 22,135 fewer than its 70,287-line starting point. Next handoff: split
-   the timestamped Update Attribute Values failure/MOM interaction restored-
-   baseline case (`umbra-cpp-timestamped-update-attribute-values-failure-mom-
-   interaction-restored-baseline`) at
-   ieee1516_2025_federation_management_catch2.cpp:1288; preserve its 11 direct
-   pairs across 9 clauses, 13 API surfaces, 125 assertions, and both callback
-   models, and add a focused lane tag without changing behavior.
+   regression. No runtime behavior was changed. The timestamped Update
+   Attribute Values failure/MOM interaction restored-baseline case is now
+   isolated in
+   `ieee1516_2025_timestamped_update_attribute_values_failure_mom_restored_baseline_catch2.cpp`
+   (165 lines), preserving 11 direct pairs across 9 clauses, 13 API surfaces,
+   125 assertions, and HLA_EVOKED/HLA_IMMEDIATE. Its exact CTest and focused
+   lane mapping check pass. After that split the monolith stood at 47,994
+   lines, 22,293 fewer than
+   its 70,287-line starting point. The regional Provide Attribute Value Update
+   restored-baseline and non-restored cases now share
+   `ieee1516_2025_regional_provide_attribute_value_update_service_report_catch2.cpp`
+   (174 lines) through one 141-line private scenario runner. The duplicated
+   scenario body was identical; the two Catch2 test identities, lanes, and
+   Requirements-Lab plan rows remain separate. The restored-baseline case
+   retains 11 direct pairs across 9 clauses, 21 API surfaces, 251 assertions,
+   and HLA_EVOKED. The non-restored mapping rows retain 5 pairs across 3
+   clauses and 2 pairs across 2 clauses. Both exact CTests and both lane
+   mapping checks pass. The monolith is now 47,694 lines, 22,593 fewer than
+   its 70,287-line starting point; the size ceiling is ratcheted to 47,694.
+   Next handoff: extract the distinct restored-baseline regional Request
+   Attribute Value Update filtering case at
+   `ieee1516_2025_federation_management_catch2.cpp:1291` (10 direct pairs
+   across 7 clauses, 20 API surfaces, 58 assertions), preserving its separate
+   mapping/lane and the boundary from the 2010 stream.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
