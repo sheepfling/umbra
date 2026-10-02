@@ -74,34 +74,35 @@
       "Owner-reported failure is distinct from receiver-reported failure; the callback-label candidate remains unmapped under RL-267 and no total order is claimed."
     ]
   },
-  "active_handoff_note": "The IEEE 1516.1-2025 and 2010 streams remain separate; no Requirements Lab resync was performed. The timed regional-interaction restore lane still fails at report.sentRegionsSupplied with the same 39/40 result in both the original monolith and extracted form; no runtime behavior was changed. The timestamped Update Attribute Values failure/MOM restored-baseline case remains isolated in its 165-line 2025 unit with 11 direct pairs across 9 clauses, 13 API surfaces, 125 assertions, and both callback models. The regional Provide Attribute Value Update restored-baseline and non-restored cases now share one 174-line focused 2025 translation unit through a single 141-line private scenario runner; their separate Catch2 identities, lanes, and mapped plan rows remain distinct. Both exact CTests and both lane checks pass. The non-restored plan rows retain 5 direct pairs across 3 clauses and 2 pairs across 2 clauses; the restored-baseline row retains 11 pairs across 9 clauses, 21 API surfaces, and 251 assertions. The federation-management monolith is 47,694 lines, 22,593 below its 70,287-line starting point, and its size ceiling is ratcheted to 47,694. Next handoff: extract the separate restored-baseline regional Request Attribute Value Update filtering case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1291 (plan umbra-cpp-regional-attribute-value-update-request-restored-baseline-integration; 10 direct pairs across 7 clauses, 20 API surfaces, 58 assertions). Keep its mapping and regional-request-filtering lane distinct from other cases and from the 2010 stream.",
+  "active_handoff_note": "The IEEE 1516.1-2025 and 2010 streams remain separate; no Requirements Lab resync was performed. The timed regional-interaction restore lane still fails at report.sentRegionsSupplied with the same 39/40 result in both the original monolith and extracted form; no runtime behavior was changed. The timestamped Update Attribute Values failure/MOM restored-baseline case remains isolated in its 165-line 2025 unit with 11 direct pairs across 9 clauses, 13 API surfaces, 125 assertions, and both callback models. The regional Provide Attribute Value Update pair shares a private runner in one 174-line focused 2025 unit while preserving separate Catch2 identities, lane tags, and mapped rows. The original and restored-baseline regional Request Attribute Value Update filtering cases share one 197-line focused 2025 unit with distinct requester-publication and callback-absence checks, separate identities, and mappings of 10 direct pairs across 6 clauses/2 APIs and 10 pairs across 7 clauses/20 APIs; both exact CTests and their lane check pass. The original and restored-baseline regional provider-response tests share one 172-line focused 2025 unit and private runner while preserving separate test identities and mappings (6 direct pairs across 3 clauses and 9 API surfaces per row); the 2025 target build, both exact CTests, and lane check pass. The federation-management monolith is now 47,078 lines, 23,209 below its 70,287-line starting point, and its ceiling is ratcheted to 47,078. Next handoff: compare the original and restored-baseline timestamped regional Update Attribute Values failure/MOM interaction cases, beginning at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1339; preserve their distinct mappings and the RL-152 conditional-failure boundary. Do not cross into the 2010 stream.",
   "active_handoff": {
-    "id": "split-2025-regional-request-attribute-value-update-restored-baseline",
+    "id": "split-2025-timestamped-regional-update-failure-mom-interaction-pair",
     "state": "planned-maintenance-no-behavior-change",
     "family": "object-ddm-ownership",
-    "lane": "regional-request-filtering",
-    "objective": "Extract the restored-baseline regional Request Attribute Value Update filtering test from the 2025 federation-management suite into a focused translation unit while preserving its exact mapping, behavior, and separate 2025 lane.",
-    "test_case": "Embedded regional Request Attribute Value Update filters 2025 owner solicitations (restored baseline copy)",
+    "lane": "timestamped-regional-attribute-update-failure",
+    "objective": "Compare the original and restored-baseline timestamped regional Update Attribute Values failure/MOM interaction cases; extract them into a focused 2025 translation unit and share a scenario runner only if source comparison confirms equivalence, preserving distinct mappings and the RL-152 conditional-failure boundary.",
+    "test_case": "Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction",
     "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1291",
-    "mapping_seed_plan_id": "umbra-cpp-regional-attribute-value-update-request-restored-baseline-integration",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1339",
+    "mapping_seed_plan_id": "umbra-cpp-timestamped-regional-update-failure-service-report-mom-interaction-integration",
     "related_plan_ids": [
-      "umbra-cpp-regional-attribute-value-update-request-restored-baseline-integration"
+      "umbra-cpp-timestamped-regional-update-failure-service-report-mom-interaction-integration",
+      "umbra-cpp-timestamped-regional-update-failure-mom-interaction-restored-baseline-integration"
     ],
     "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded regional Request Attribute Value Update filters 2025 owner solicitations \\(restored baseline copy\\)$",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction$",
     "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-regional-attribute-value-update-request-restored-baseline-integration --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-regional-attribute-value-update-request-restored-baseline-integration --summary --compact",
+      "case": "python tools/query_rti_work.py case umbra-cpp-timestamped-regional-update-failure-service-report-mom-interaction-integration --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-timestamped-regional-update-failure-service-report-mom-interaction-integration --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded regional Request Attribute Value Update filters 2025 owner solicitations \\(restored baseline copy\\)$\" --output-on-failure",
-      "lane_check": "python tools/query_rti_work.py check --lane regional-request-filtering --summary --compact",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction$\" --output-on-failure",
+      "lane_check": "python tools/query_rti_work.py check --lane timestamped-regional-attribute-update-failure --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Preserve this plan row's 10 direct requirement-to-canonical-2025-subsection pairs across 7 clauses and 20 official C++ API surfaces; do not merge its restored-baseline identity into another mapping.",
-      "Move only this restored-baseline regional-request-filtering case into a focused translation unit registered in the 2025 Catch2 target; retain its exact test title, assertions, callback model, and lane.",
-      "Build the 2025 Catch2 target, run the exact CTest selector and regional-request-filtering mapping check, then lower the source-size baseline only after verification.",
+      "Preserve the original row's 5 direct requirement-to-canonical-2025-subsection pairs across 3 clauses and 7 API surfaces, and retain the restored-baseline row's 11 pairs across 9 clauses and 30 API surfaces independently.",
+      "Compare source behavior before extracting the pair; retain both exact test titles and plan identities, and preserve the RL-152 conditional-failure boundary without promoting source-derived evidence into normative claims.",
+      "Build the 2025 Catch2 target, run both exact CTests and the timestamped-regional-attribute-update-failure lane check, then lower the source-size baseline only after verification.",
       "Keep IEEE 1516.1-2010 source, test target, and plan rows separate from the 2025 stream."
     ]
   },
@@ -17808,7 +17809,7 @@
         "federate.callback.reflect-attribute-values",
         "federate.callback.discover-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1012",
+      "source_location": "cpp/tests/ieee1516_2025_regional_request_attribute_value_update_provider_response_catch2.cpp:163",
       "assertions": 44,
       "callback_models": [
         "HLA_EVOKED"
@@ -18007,7 +18008,7 @@
         "rti.service.request-attribute-value-update-with-regions",
         "federate.callback.provide-attribute-value-update"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1291",
+      "source_location": "cpp/tests/ieee1516_2025_regional_request_attribute_value_update_filtering_catch2.cpp:189",
       "assertions": 58,
       "callback_models": [
         "HLA_EVOKED"

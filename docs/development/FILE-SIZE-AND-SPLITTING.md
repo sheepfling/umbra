@@ -305,19 +305,29 @@ The first wave should be staged rather than attempted as one rewrite:
    its 70,287-line starting point. The regional Provide Attribute Value Update
    restored-baseline and non-restored cases now share
    `ieee1516_2025_regional_provide_attribute_value_update_service_report_catch2.cpp`
-   (174 lines) through one 141-line private scenario runner. The duplicated
-   scenario body was identical; the two Catch2 test identities, lanes, and
-   Requirements-Lab plan rows remain separate. The restored-baseline case
-   retains 11 direct pairs across 9 clauses, 21 API surfaces, 251 assertions,
-   and HLA_EVOKED. The non-restored mapping rows retain 5 pairs across 3
-   clauses and 2 pairs across 2 clauses. Both exact CTests and both lane
-   mapping checks pass. The monolith is now 47,694 lines, 22,593 fewer than
-   its 70,287-line starting point; the size ceiling is ratcheted to 47,694.
-   Next handoff: extract the distinct restored-baseline regional Request
-   Attribute Value Update filtering case at
-   `ieee1516_2025_federation_management_catch2.cpp:1291` (10 direct pairs
-   across 7 clauses, 20 API surfaces, 58 assertions), preserving its separate
-   mapping/lane and the boundary from the 2010 stream.
+   (174 lines) through one 141-line private scenario runner. Their Catch2 test
+   identities, lanes, and mapped plan rows remain separate. Both exact CTests
+   and both lane checks pass; the monolith stood at 47,694 lines.
+   The original and restored-baseline regional Request Attribute Value Update
+   filtering tests now share
+   `ieee1516_2025_regional_request_attribute_value_update_filtering_catch2.cpp`
+   (197 lines) through one private scenario runner. The runner retains their
+   distinct requester-publication and callback-absence checks while both test
+   names and mapping rows remain separate. Their mappings preserve 10 direct
+   pairs across 6 clauses/2 APIs and 10 pairs across 7 clauses/20 APIs,
+   respectively; both exact CTests and the shared lane check pass. The
+   original and restored-baseline regional provider-response cases now share
+   one 172-line focused 2025 unit and private runner while preserving their
+   separate test identities and mappings (6 direct pairs across 3 clauses and
+   9 APIs per row); the 2025 target build, both exact CTests, and lane check
+   pass. The
+   federation-management monolith is now 47,078 lines, 23,209 fewer than its
+   70,287-line starting point, with its size ceiling ratcheted to 47,078.
+   Next handoff: inspect the restored-baseline timestamped regional
+   Update Attribute Values/MOM interaction case at
+   `ieee1516_2025_federation_management_catch2.cpp:1138` (11 direct pairs,
+   9 clauses, 30 API surfaces) and retain the RL-152 boundary; do not cross
+   into the IEEE 1516.1-2010 stream.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
