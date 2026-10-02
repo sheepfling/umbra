@@ -255,12 +255,22 @@ The first wave should be staged rather than attempted as one rewrite:
   API surfaces, 187 assertions, and both callback models are recorded. The
   no-replay-after-delivery invariant is explicitly internal development
   evidence. The 2025 target build, exact CTest, and lane mapping check pass.
-  The original suite is now 50,954 lines, 19,333 fewer than its 70,287-line
-  starting point. Next handoff: split the mapped public fresh-registry restore
-  application-value/report-file-lifetime case at
-  ieee1516_2025_federation_management_catch2.cpp:47704; preserve its 9 direct
-  pairs across 5 clauses and 18 API surfaces. Its plan leaves assertion and
-  callback-model metadata unspecified; do not infer them.
+  The public fresh-registry application-value/report-file-lifetime restore
+  case is isolated in ieee1516_2025_public_application_value_restore_catch2.cpp
+  (287 lines, one focused CTest); its 9 direct pairs across 5 clauses and 18
+  API surfaces remain intact. Assertion-count and callback-model metadata stay
+  unspecified. The public fresh-registry timestamped regional attribute-update
+  restore case is now isolated in
+  ieee1516_2025_public_regional_attribute_update_tso_restore_catch2.cpp (517
+  lines, one focused CTest); its 20 direct pairs across 16 clauses and 33 API
+  surfaces remain intact, with assertion-count and callback-model metadata
+  unspecified. Both focused cases pass the 2025 target build, exact CTest, and
+  lane checks. The monolith is now 50,162 lines, 20,125 fewer than its
+  70,287-line starting point. Next handoff: split the 511-line joined-federate
+  MOM conditional-reflections case at
+  ieee1516_2025_federation_management_catch2.cpp:32903; preserve its one direct
+  pair to clause 11.4.1 and 23 API surfaces without broadening its normative
+  mapping. The plan records 622 assertions and both callback models.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in

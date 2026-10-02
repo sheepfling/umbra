@@ -72,32 +72,32 @@
       "Owner-reported failure is distinct from receiver-reported failure; the callback-label candidate remains unmapped under RL-267 and no total order is claimed."
     ]
   },
-  "active_handoff_note": "The IEEE 1516.1-2025 and 2010 streams remain separate; no Requirements Lab resync was performed. The public restore split series now isolates pending object-instance, object-class, regional object-class Request Attribute Value Update, and regional provider-response no-replay cases. The new no-replay case preserves 13 direct pairs across 7 clauses and 24 mapped API surfaces; the no-replay-after-delivery invariant is explicitly internal, not a separate normative claim. The 2025 target build, exact CTest, and lane mapping check pass. No 2010 source changed. The federation-management monolith is 50,954 lines, 19,333 below its 70,287-line starting point. Next handoff: split the mapped public fresh-registry application-value/report-file-lifetime restore case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47704; preserve its 9 direct pairs across 5 clauses and 18 API surfaces, and keep assertion/callback metadata unspecified.",
+  "active_handoff_note": "The IEEE 1516.1-2025 and 2010 streams remain separate; no Requirements Lab resync was performed. The public restore split series now isolates pending object-instance, object-class, regional object-class Request Attribute Value Update, regional provider-response no-replay, application-value/report-file-lifetime, and timestamped regional attribute-update cases. The no-replay invariant remains explicitly internal. The application-value case retains 9 direct pairs across 5 clauses and 18 API surfaces; the regional attribute-update case retains 20 direct pairs across 16 clauses and 33 API surfaces. Assertion/callback metadata is unspecified for both. The 2025 target build, exact CTests, lane checks, and source-size guard pass. No 2010 source changed. The federation-management monolith is 50,162 lines, 20,125 below its 70,287-line starting point. Next handoff: split the 511-line joined-federate MOM conditional-reflections case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32903; preserve its one direct pair to clause 11.4.1 and 23 API surfaces without broadening the normative mapping. The plan records 622 assertions and both callback models. Its test is already mapped, so resume may not surface this structural task; use this exact handoff and its case handle.",
   "active_handoff": {
-    "id": "split-2025-public-application-value-restore",
+    "id": "split-2025-joined-federate-mom-conditional-reflections",
     "state": "planned-maintenance-no-behavior-change",
-    "family": "time-save-restore",
-    "lane": "public-process-restart-application-value",
-    "objective": "Extract the mapped 2025 public fresh-registry restore application-value and report-file-lifetime test into a focused translation unit, preserving its exact direct mappings and unchanged behavior.",
-    "test_case": "Embedded public fresh-registry restore rehydrates latest object application value and report-file lifetime through HLA_EVOKED and HLA_IMMEDIATE",
+    "family": "mom-after-base-services",
+    "lane": "joined-federate-mom-conditional-reflections",
+    "objective": "Extract the mapped 2025 joined-federate MOM conditional-reflections case into a focused translation unit, preserving its exact direct mapping and unchanged behavior.",
+    "test_case": "Embedded joined-federate MOM conditional reflections track current state",
     "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47704",
-    "mapping_seed_plan_id": "umbra-cpp-public-federation-save-commit-filesystem-process-restart-application-value-integration",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32903",
+    "mapping_seed_plan_id": "umbra-cpp-joined-federate-mom-conditional-reflections",
     "related_plan_ids": [
-      "umbra-cpp-public-federation-save-commit-filesystem-process-restart-application-value-integration"
+      "umbra-cpp-joined-federate-mom-conditional-reflections"
     ],
     "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore rehydrates latest object application value and report-file lifetime through HLA_EVOKED and HLA_IMMEDIATE$",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded joined-federate MOM conditional reflections track current state$",
     "commands": {
-      "test": "python tools/query_rti_work.py case umbra-cpp-public-federation-save-commit-filesystem-process-restart-application-value-integration --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-public-federation-save-commit-filesystem-process-restart-application-value-integration --summary --compact",
+      "test": "python tools/query_rti_work.py case umbra-cpp-joined-federate-mom-conditional-reflections --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-joined-federate-mom-conditional-reflections --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore rehydrates latest object application value and report-file lifetime through HLA_EVOKED and HLA_IMMEDIATE$\" --output-on-failure",
-      "lane_check": "python tools/query_rti_work.py check --lane public-process-restart-application-value --summary --compact"
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded joined-federate MOM conditional reflections track current state$\" --output-on-failure",
+      "lane_check": "python tools/query_rti_work.py check --lane joined-federate-mom-conditional-reflections --summary --compact"
     },
     "acceptance": [
-      "Preserve the 9 direct requirement-to-2025-subsection pairs across 5 clauses and 18 API surfaces; keep assertion-count and callback-model metadata unspecified unless the plan evidence is deliberately reconciled.",
+      "Preserve the one direct requirement-to-2025-subsection pair on clause 11.4.1 and 23 API surfaces; keep the direct periodic-value mapping separate from the wider embedded switch/time-state matrix. The case records 622 assertions and HLA_EVOKED/HLA_IMMEDIATE callback models.",
       "Move the complete case into a focused 2025 translation unit, register it only in the 2025 Catch2 target, and update its exact source location without changing behavior.",
       "Build the 2025 Catch2 target, run the exact CTest selector and applicable mapping gate, and lower the size baseline only after verification.",
       "Do not alter or mix the IEEE 1516.1-2010 stream."
