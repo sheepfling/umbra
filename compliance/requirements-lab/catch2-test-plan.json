@@ -64213,7 +64213,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore suppresses a post-confirmation resigned Confirm Divestiture recipient while preserving the surviving recipient",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:55058",
+      "source_location": "cpp/tests/ieee1516_2025_public_confirm_divestiture_post_confirmation_resignation_restore_catch2.cpp:6",
       "assertions": 235,
       "callback_models": [
         "HLA_EVOKED",

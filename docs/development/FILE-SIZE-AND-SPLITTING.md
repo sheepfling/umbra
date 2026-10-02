@@ -211,13 +211,30 @@ The first wave should be staged rather than attempted as one rewrite:
   ieee1516_2025_public_confirm_divestiture_resignation_restore_catch2.cpp
   (425 lines, one focused CTest); its 20 direct pairs across 13 clauses, 26 API
   surfaces, 222 assertions, and both HLA_EVOKED and HLA_IMMEDIATE callback
-  models remain intact. The 2025 target build, exact CTest, and resignation
-  lane mapping check pass. The original suite is now 53,253 lines, 17,034 fewer
-  than its 70,287-line starting point. The next bounded handoff is the adjacent
-  post-confirmation resignation Confirm Divestiture restore case at
-  ieee1516_2025_federation_management_catch2.cpp:47698; preserve its 23 direct
-  pairs across 14 clauses, 27 API surfaces, 235 assertions, and both HLA_EVOKED
-  and HLA_IMMEDIATE callback models.
+  models remain intact. The public post-confirmation resignation Confirm
+  Divestiture restore case is now isolated in
+  ieee1516_2025_public_confirm_divestiture_post_confirmation_resignation_restore_catch2.cpp
+  (433 lines, one focused CTest); its 23 direct pairs across 14 clauses, 27 API
+  surfaces, 235 assertions, and both HLA_EVOKED and HLA_IMMEDIATE callback
+  models remain intact. The 2025 target build, exact CTest, and ownership lane
+  mapping check pass. The Divestiture If Wanted notification restore case is
+  now isolated in
+  ieee1516_2025_public_divestiture_if_wanted_notification_restore_catch2.cpp
+  (301 lines, one focused CTest); its 15 direct pairs across 10 clauses and 15
+  API surfaces remain intact. The plan does not specify its assertion count or
+  callback-model metadata. The 2025 target build, exact CTest, and ownership
+  lane mapping check pass. The Request Attribute Ownership Assumption restore
+  case is now isolated in
+  ieee1516_2025_public_ownership_assumption_search_restore_catch2.cpp (291
+  lines, one focused CTest); its 13 direct pairs across 8 clauses and 22 API
+  surfaces remain intact. The plan does not specify its assertion count or
+  callback-model metadata. The 2025 target build, exact CTest, and ownership
+  lane mapping check pass. The original suite is now 52,249 lines, 18,038 fewer
+  than its 70,287-line starting point. The next bounded handoff is the pending
+  object-instance Request Attribute Value Update restore case at
+  ieee1516_2025_federation_management_catch2.cpp:47701; preserve its 17 direct
+  pairs across 8 clauses, 18 API surfaces, and 61 assertions. The plan does not
+  specify callback-model metadata.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
