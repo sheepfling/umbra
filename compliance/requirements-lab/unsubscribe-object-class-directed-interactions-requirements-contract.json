@@ -13,7 +13,7 @@
       "source_symbol": "EmbeddedFederationRegistry::unsubscribeObjectClassDirectedInteractions",
       "tests": [
         "cpp/tests/directed_interaction_known_target_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments"
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments"
       ]
     },
     {
@@ -23,7 +23,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::unsubscribeObjectClassDirectedInteractions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments"
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments"
       ]
     },
     {
@@ -33,7 +33,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassDirectedInteractions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments"
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments"
       ]
     },
     {
@@ -44,7 +44,7 @@
       "source_symbol": "formatMomInteractionClassHandleSet",
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 InteractionClassHandleSet argument form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments"
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments"
       ]
     }
   ]

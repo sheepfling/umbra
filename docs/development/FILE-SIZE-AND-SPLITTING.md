@@ -370,17 +370,92 @@ The first wave should be staged rather than attempted as one rewrite:
     timestamped Update Attribute Values file-report case is now isolated in
     `ieee1516_2025_timestamped_update_attribute_values_service_report_catch2.cpp`
     (132 lines), preserving its 4 direct pairs across 4 clauses and 4 API
-    surfaces and report-before-reflection callback ordering. Next handoff:
-    isolate `Embedded service reporting records regional Update Attribute
-    Values before reflection callback` is isolated in
+    surfaces and report-before-reflection callback ordering. The accepted
+    ordinary regional Update Attribute Values file-report case is isolated in
     `ieee1516_2025_ordinary_regional_update_service_report_file_catch2.cpp`
     (145 lines), preserving 139 assertions, its direct clause 11.5 mapping,
-    and 8 API surfaces. Next handoff: isolate `Embedded service reporting
-    records failed timestamped Send Directed Interaction invocations` at
-    `ieee1516_2025_federation_management_catch2.cpp:1320`, preserving 313
-    assertions, 5 direct pairs across 4 clauses, and 3 API surfaces. Keep the
-    IEEE 1516.1-2025 and
-    2010 streams separate.
+    and 8 API surfaces. The failed timestamped Send Directed Interaction
+    file-report case is isolated in
+    `ieee1516_2025_timestamped_directed_interaction_failure_file_catch2.cpp`
+    (179 lines), preserving 313 assertions, 5 direct pairs across clauses
+    6.13/8.22.3/11.5/11.5.2, and 3 API surfaces, including the file-switch
+    append gate and serial continuity. The failed timestamped Send Directed
+    Interaction MOM-interaction case is now isolated in
+    `ieee1516_2025_timestamped_directed_interaction_failure_mom_route_catch2.cpp`
+    (217 lines), preserving 215 assertions, 6 direct pairs across clauses
+    6.13/8.22.3/11.5/11.5.1, and 8 API surfaces. Its observer-subscription
+    and no-recipient behavior remains distinct from the file-switch-cycle
+    case. The timestamped Send Interaction failure/file-switch case is now
+    isolated in
+    `ieee1516_2025_timestamped_send_interaction_failure_file_catch2.cpp`
+    (147 lines), preserving 242 assertions, 5 direct pairs across clauses
+    6.13/8.22.3/11.5/11.5.2, and 3 API surfaces. The accepted Publish Object
+    Class Attributes argument case is now isolated in
+    `ieee1516_2025_publish_object_class_attributes_service_report_file_catch2.cpp`
+    (130 lines), preserving 149 assertions, 2 direct pairs in clause 11.5.1,
+    and 1 API surface. The restored-baseline Unpublish Object Class Attributes
+    case is now isolated in
+    `ieee1516_2025_unpublish_object_class_attributes_restored_baseline_catch2.cpp`
+    (94 lines), preserving 102 assertions, 7 direct pairs across clauses 5.3,
+    11.5, 11.5.1, 11.5.2, and 11.5.2.1, and 1 API surface. The 2025 target
+    rebuilt; its exact CTest and the distinct whole-class Unpublish CTest
+    passed, and both plan traces resolve to their intended tests. The
+    distinct whole-class Unpublish case is now isolated in
+    `ieee1516_2025_unpublish_object_class_attributes_whole_class_catch2.cpp`
+    (121 lines), preserving 7 direct pairs across clauses 5.3, 11.5, 11.5.1,
+    11.5.2, and 11.5.2.1 with both API surfaces. Its exact CTest and the
+    restored-baseline Unpublish CTest pass; both plan traces point to their
+    separate focused tests. The stale regional-subscription source pointer was
+    corrected to its actual test declaration. The source-size policy, JSON
+    parsing, and diff checks pass. The Subscribe Object Class Attributes
+    argument case is now isolated in
+    `ieee1516_2025_subscribe_object_class_attributes_service_report_file_catch2.cpp`
+    (100 lines), preserving 9 direct pairs across clauses 5.8, 11.5, 11.5.1,
+    11.5.2, and 11.5.2.1, and 1 API surface. The 2025 target rebuilt; exact
+    CTests passed for Subscribe, adjacent Unsubscribe, and whole-class
+    Unpublish; the Subscribe trace resolves to its focused plan row. The
+    source-size policy, JSON parsing, and diff checks pass. The Unsubscribe
+    Object Class Attributes argument case is now isolated in
+    `ieee1516_2025_unsubscribe_object_class_attributes_service_report_file_catch2.cpp`
+    (100 lines), preserving 7 direct pairs across clauses 5.9.4, 11.5,
+    11.5.1, 11.5.2, and 11.5.2.1 with both API surfaces. Its exact CTest,
+    adjacent Publish Directed Interactions CTest, and mapped trace pass.
+    The Publish Object Class Directed Interactions argument case is now
+    isolated in
+    `ieee1516_2025_publish_object_class_directed_interactions_service_report_file_catch2.cpp`
+    (118 lines), preserving 8 direct pairs across clauses 5.6.3, 11.5,
+    11.5.1, 11.5.2, and 11.5.2.1 with 1 API surface. Its exact CTest,
+    adjacent Unpublish Directed Interactions CTest, and mapped trace pass.
+    The Unpublish Object Class Directed Interactions argument case is now
+    isolated in
+    `ieee1516_2025_unpublish_object_class_directed_interactions_service_report_file_catch2.cpp`
+    (131 lines), preserving 10 direct pairs across clauses 5.7.4, 11.5,
+    11.5.1, 11.5.2, and 11.5.2.1 with both API surfaces. Its exact CTest,
+    adjacent Subscribe Directed Interactions CTest, and mapped trace pass.
+    The Subscribe Object Class Directed Interactions argument case is now
+    isolated in
+    `ieee1516_2025_subscribe_object_class_directed_interactions_service_report_file_catch2.cpp`
+    (123 lines), preserving 10 direct pairs across clauses 5.12, 11.5,
+    11.5.1, 11.5.2, and 11.5.2.1 with 1 API surface. Its exact CTest,
+    adjacent Unsubscribe Directed Interactions CTest, and mapped trace pass.
+    The Unsubscribe Object Class Directed Interactions argument case is now
+    isolated in
+    `ieee1516_2025_unsubscribe_object_class_directed_interactions_service_report_file_catch2.cpp`
+    (131 lines), preserving 11 direct pairs across clauses 5.13, 11.5,
+    11.5.1, 11.5.2, and 11.5.2.1 with both API surfaces. Its exact CTest,
+    adjacent Unpublish Interaction Class CTest, and mapped trace pass. The
+    The Unpublish Interaction Class service-report case is now isolated in
+    `ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp`
+    (80 lines), preserving its 6 direct pairs across clauses 5.5, 11.5,
+    11.5.1, 11.5.2, and 11.5.2.1 with 1 API surface. The 2025 target built;
+    exact CTests for Unpublish and adjacent Unsubscribe passed, and the
+    requirement trace resolves to the focused test. The federation-management
+    monolith is now 43,006 lines, 27,281 below its 70,287-line start, with its
+    ceiling ratcheted to 43,006. Next handoff: isolate `Embedded service
+    reporting preserves Unsubscribe Interaction Class arguments` at
+    `ieee1516_2025_federation_management_catch2.cpp:19288`, preserving 6
+    direct pairs across clauses 5.11, 11.5, 11.5.1, 11.5.2, and 11.5.2.1
+    with 1 API surface. Keep the 2025 cases separate from IEEE 1516.1-2010.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in

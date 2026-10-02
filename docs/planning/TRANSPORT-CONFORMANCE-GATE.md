@@ -438,12 +438,12 @@ indexed with 16 assertions and 13 requirement anchors. The Join-time explicit
 NoAction automatic-resign slice is indexed with 7 assertions and 9 requirement
 anchors. The completed federation-management
 order and transportation MOM service-classification case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32211`; that slice is
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:30475`; that slice is
 indexed with 66 assertions and 19 requirement anchors. The joined-federate MOM
 regional discovery slice is indexed with 124 assertions and 17 requirement
 anchors. The next bounded source action is the unplanned federation-management
 regional Request Attribute Value Update provider-response case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1755`; the
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1366`; the
 joined-federate MOM/FOM-module snapshot slice is indexed with 12 assertions and
 6 requirement anchors, and the report-file identity save/restore slice is
 indexed with 46 assertions and 18 requirement anchors;
@@ -453,7 +453,7 @@ as provider-response and regional-overlap evidence before it is treated as
 evidence.
 The restored-baseline provider-response slice is indexed with 44 assertions
 and 20 requirement anchors. The timestamped Delete Object Instance retraction
-slice at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2274` is
+slice at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1402` is
 mapped but marked `failing-test-harness`: the HLA_EVOKED run stops at line 4354
 after 14/15 assertions on a stale `EvokeCallback` expectation. Repair that
 harness before promoting deletion/retraction/removal evidence. The known-class-
@@ -470,30 +470,30 @@ subscription case at
 with 43 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 12 canonical 2025
 sections, and 21 official C++ API surfaces. The custom-transportation
 handle-stability case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36996` and the
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35260` and the
 restored-baseline timestamped MOM interaction case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2507` are mapped and
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1635` are mapped and
 green. The restored-baseline regional Provide Attribute Value Update case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2666` is green with
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1794` is green with
 251 assertions and 11 Requirements-Lab anchors. The three-dimensional
 regional object-attribute overlap case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:40253` is green with
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38517` is green with
 57 assertions and 10 Requirements-Lab anchors. The restored-baseline regional
 Request Attribute Value Update solicitation case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2968` is green with
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2096` is green with
 58 assertions, 9 Requirements-Lab anchors, 7 canonical 2025 sections, and 20
 official C++ API surfaces. The restored-baseline timestamped regional Update
 Attribute Values MOM failure case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3430` is green with
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2558` is green with
 138 assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 30
 official C++ API surfaces. The restored-baseline timestamped Update Attribute
 Values file-failure case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3832` is now green
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2960` is now green
 with 218 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025
 sections, and 15 official C++ API surfaces. The next source action is the
 unplanned restored-baseline timestamped regional Update Attribute Values
 reflection-order case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4266`.
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3394`.
 The 40-case query count is the unique mapped plan/test-declaration count; when
 both the aggregate and dedicated connection executables are configured, the
 `process-boundary` CTest label intentionally runs both registrations. The m24

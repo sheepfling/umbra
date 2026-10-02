@@ -36,14 +36,14 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
         "cpp/tests/local_delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_publish_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
+        "cpp/tests/ieee1516_2025_unpublish_object_class_attributes_whole_class_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
+        "cpp/tests/ieee1516_2025_publish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_unpublish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Interaction Class arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments",
+        "cpp/tests/ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Interaction Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments",
@@ -85,14 +85,14 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
         "cpp/tests/local_delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_publish_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
+        "cpp/tests/ieee1516_2025_unpublish_object_class_attributes_whole_class_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
+        "cpp/tests/ieee1516_2025_publish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_unpublish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Interaction Class arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments",
+        "cpp/tests/ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Interaction Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments",
@@ -160,14 +160,14 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
         "cpp/tests/local_delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_publish_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
+        "cpp/tests/ieee1516_2025_unpublish_object_class_attributes_whole_class_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
+        "cpp/tests/ieee1516_2025_publish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_unpublish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Interaction Class arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments",
+        "cpp/tests/ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Interaction Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments",
@@ -1024,7 +1024,7 @@
       "source_symbol": "UmbraRtiAmbassador::publishObjectClassAttributes",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_publish_unpublish_service_report_arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments"
+        "cpp/tests/ieee1516_2025_publish_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments"
       ]
     },
     {
@@ -1035,8 +1035,8 @@
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassAttributes",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_publish_unpublish_service_report_arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments"
+        "cpp/tests/ieee1516_2025_unpublish_object_class_attributes_whole_class_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
+        "cpp/tests/ieee1516_2025_unpublish_object_class_attributes_restored_baseline_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments"
       ]
     },
     {
@@ -1047,7 +1047,7 @@
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributes",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_attribute_subscription_service_reports",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments"
+        "cpp/tests/ieee1516_2025_subscribe_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments"
       ]
     },
     {
@@ -1058,7 +1058,7 @@
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributes",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_attribute_subscription_service_reports",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments"
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments"
       ]
     },
     {
@@ -1069,7 +1069,7 @@
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClass",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_object_attribute_subscription_service_reports",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments"
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments"
       ]
     },
     {
@@ -1080,7 +1080,7 @@
       "source_symbol": "UmbraRtiAmbassador::publishObjectClassDirectedInteractions",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_directed_declaration_service_reports",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments"
+        "cpp/tests/ieee1516_2025_publish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments"
       ]
     },
     {
@@ -1091,7 +1091,7 @@
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassDirectedInteractions",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_directed_declaration_service_reports",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments"
+        "cpp/tests/ieee1516_2025_unpublish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments"
       ]
     },
     {
@@ -1124,7 +1124,7 @@
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassDirectedInteractions",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_directed_subscription_service_reports",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments"
+        "cpp/tests/ieee1516_2025_subscribe_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments"
       ]
     },
     {
@@ -1135,7 +1135,7 @@
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassDirectedInteractions",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_directed_subscription_service_reports",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments"
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments"
       ]
     },
     {
@@ -1157,7 +1157,7 @@
       "source_symbol": "UmbraRtiAmbassador::unpublishInteractionClass",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_interaction_declaration_service_reports",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments"
+        "cpp/tests/ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments"
       ]
     },
     {
@@ -1297,7 +1297,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Interaction Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Interaction Class arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments",
+        "cpp/tests/ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Send Interaction argument forms",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments",
@@ -1358,10 +1358,10 @@
       "notes": "The external Java/JPype directed-declaration and directed-subscription vectors decode type-28 InteractionClassHandleSet values, including empty and optional-set forms, from the private service-report file.",
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 InteractionClassHandleSet argument form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_publish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_unpublish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_subscribe_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_directed_declaration_service_reports",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_directed_subscription_service_reports"
       ]
@@ -1379,14 +1379,14 @@
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Change Default Attribute Transportation Type argument forms",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Change Default Attribute Order Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Change Default Attribute Transportation Type arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_publish_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
+        "cpp/tests/ieee1516_2025_unpublish_object_class_attributes_whole_class_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
+        "cpp/tests/ieee1516_2025_subscribe_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments",
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
+        "cpp/tests/ieee1516_2025_publish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_unpublish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_subscribe_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Directed Interactions arguments",
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Directed Interactions arguments",
         "cpp/tests/request_attribute_value_update_service_report_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
         "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
@@ -1509,10 +1509,10 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Change Default Attribute Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
+        "cpp/tests/ieee1516_2025_publish_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Attributes arguments",
+        "cpp/tests/ieee1516_2025_unpublish_object_class_attributes_whole_class_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form",
+        "cpp/tests/ieee1516_2025_subscribe_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments",
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Object Class Attributes arguments",
         "cpp/tests/request_attribute_value_update_service_report_catch2.cpp::Embedded service reporting preserves Request Attribute Value Update arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use Provide Attribute Value Update descriptor form",
         "cpp/tests/provide_attribute_value_update_service_report_catch2.cpp::Embedded service reporting records Provide Attribute Value Update before its callback",
@@ -2210,7 +2210,7 @@
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The timestamped §6.12 Send Interaction failure matrix reports invalid interaction-class and parameter designators plus a lower-than-lookahead timestamp through the configured filesystem. It preserves type-27 InteractionClassHandle, type-40 ParameterHandleValueMap, type-63 User-supplied tag, type-31 LogicalTime supplied forms, Null returned arguments, false indicators, exact InteractionClassNotDefined/InteractionParameterNotDefined/InvalidLogicalTime descriptions, and serials zero through two. Accepted timestamped sender output, retraction, and recipient delivery remain separate. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is development-profile evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed timestamped Send Interaction invocations"
+        "cpp/tests/ieee1516_2025_timestamped_send_interaction_failure_file_catch2.cpp::Embedded service reporting records failed timestamped Send Interaction invocations"
       ]
     },
     {
@@ -2221,7 +2221,7 @@
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "notes": "The timestamped §6.14 Send Directed Interaction failure matrix reports invalid interaction-class, target-object, parameter, and lower-than-lookahead timestamp designators through the configured filesystem. It preserves type-27 InteractionClassHandle, type-37 ObjectInstanceHandle, type-40 ParameterHandleValueMap, type-63 User-supplied tag, and type-31 LogicalTime supplied forms, Null returned arguments, false indicators, exact InteractionClassNotDefined/ObjectInstanceNotKnown/InteractionParameterNotDefined/InvalidLogicalTime descriptions, and serials zero through three. Accepted timestamped sender output, retraction, and directed recipient delivery remain separate. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this is development-profile evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed timestamped Send Directed Interaction invocations"
+        "cpp/tests/ieee1516_2025_timestamped_directed_interaction_failure_file_catch2.cpp::Embedded service reporting records failed timestamped Send Directed Interaction invocations"
       ]
     },
     {
@@ -2232,7 +2232,7 @@
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The HLA_IMMEDIATE matrix delivers timestamped §6.14 Send Directed Interaction failures through HLAreportServiceInvocation with object-management service type 2, type-27/type-37/type-40/type-63/type-31 supplied forms, Null returned arguments, false indicators, exact InteractionClassNotDefined/ObjectInstanceNotKnown/InteractionParameterNotDefined/InvalidLogicalTime descriptions, and serials zero through three. The Requirements Lab has no row-level conditional failure mapping (RL-152), so this remains bounded development-profile interaction evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed timestamped Send Directed Interaction invocations through MOM interaction"
+        "cpp/tests/ieee1516_2025_timestamped_directed_interaction_failure_mom_route_catch2.cpp::Embedded service reporting delivers failed timestamped Send Directed Interaction invocations through MOM interaction"
       ]
     },
     {
