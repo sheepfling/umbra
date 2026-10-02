@@ -74,35 +74,35 @@
       "Owner-reported failure is distinct from receiver-reported failure; the callback-label candidate remains unmapped under RL-267 and no total order is claimed."
     ]
   },
-  "active_handoff_note": "The IEEE 1516.1-2025 and 2010 streams remain separate; no Requirements Lab resync was performed. The timed regional-interaction restore lane still fails at report.sentRegionsSupplied with the same 39/40 result in both the original monolith and extracted form; no runtime behavior was changed. The timestamped Update Attribute Values failure/MOM restored-baseline case remains isolated in its 165-line 2025 unit with 11 direct pairs across 9 clauses, 13 API surfaces, 125 assertions, and both callback models. The regional Provide Attribute Value Update pair shares a private runner in one 174-line focused 2025 unit while preserving separate Catch2 identities, lane tags, and mapped rows. The original and restored-baseline regional Request Attribute Value Update filtering cases share one 197-line focused 2025 unit with distinct requester-publication and callback-absence checks, separate identities, and mappings of 10 direct pairs across 6 clauses/2 APIs and 10 pairs across 7 clauses/20 APIs; both exact CTests and their lane check pass. The original and restored-baseline regional provider-response tests share one 172-line focused 2025 unit and private runner while preserving separate test identities and mappings (6 direct pairs across 3 clauses and 9 API surfaces per row); the 2025 target build, both exact CTests, and lane check pass. The federation-management monolith is now 47,078 lines, 23,209 below its 70,287-line starting point, and its ceiling is ratcheted to 47,078. Next handoff: compare the original and restored-baseline timestamped regional Update Attribute Values failure/MOM interaction cases, beginning at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1339; preserve their distinct mappings and the RL-152 conditional-failure boundary. Do not cross into the 2010 stream.",
+  "active_handoff_note": "The IEEE 1516.1-2025 and 2010 streams remain separate; no Requirements Lab resync was performed. The timed regional-interaction restore lane still fails at report.sentRegionsSupplied with the same 39/40 result in both the original monolith and extracted form; no runtime behavior was changed. The timestamped Update Attribute Values failure/MOM restored-baseline case remains isolated in its 165-line 2025 unit with 11 direct pairs across 9 clauses, 13 API surfaces, 125 assertions, and both callback models. The regional Provide Attribute Value Update pair shares a private runner in one 174-line focused 2025 unit while preserving separate Catch2 identities, lane tags, and mapped rows. The original and restored-baseline regional Request Attribute Value Update filtering cases share one 197-line focused 2025 unit with distinct requester-publication and callback-absence checks, separate identities, and mappings of 10 direct pairs across 6 clauses/2 APIs and 10 pairs across 7 clauses/20 APIs; both exact CTests and their lane check pass. The original and restored-baseline regional provider-response tests share one 172-line focused 2025 unit and private runner while preserving separate test identities and mappings (6 direct pairs across 3 clauses and 9 API surfaces per row); the 2025 target build, both exact CTests, and lane check pass. The original and restored-baseline timestamped regional Update Attribute Values failure/MOM cases share one 221-line focused 2025 unit and private runner while retaining separate 138-assertion identities and mappings (5 direct pairs across 3 clauses/7 APIs; 11 pairs across 9 clauses/30 APIs); both callback models, both exact CTests, and the lane check pass. The federation-management monolith is now 46,676 lines, 23,611 below its 70,287-line starting point, and its ceiling is ratcheted to 46,676. Next handoff: compare the original and restored-baseline timestamped Update Attribute Values file-report failure cases at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1275 and :1138; preserve their separate 11-pair/9-clause/15-API mapping rows and the timestamped-update-failure-service-report-file lane. Do not cross into the 2010 stream.",
   "active_handoff": {
-    "id": "split-2025-timestamped-regional-update-failure-mom-interaction-pair",
+    "id": "split-2025-timestamped-update-attribute-values-file-failure-pair",
     "state": "planned-maintenance-no-behavior-change",
-    "family": "object-ddm-ownership",
-    "lane": "timestamped-regional-attribute-update-failure",
-    "objective": "Compare the original and restored-baseline timestamped regional Update Attribute Values failure/MOM interaction cases; extract them into a focused 2025 translation unit and share a scenario runner only if source comparison confirms equivalence, preserving distinct mappings and the RL-152 conditional-failure boundary.",
-    "test_case": "Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction",
+    "family": "mom-after-base-services",
+    "lane": "timestamped-update-failure-service-report-file",
+    "objective": "Compare the original and restored-baseline timestamped Update Attribute Values file-report failure cases; extract them into a focused 2025 translation unit and share a scenario runner only where source confirms equivalent behavior, preserving their exact test identities, file-output distinctions, and separate mapping rows.",
+    "test_case": "Embedded service reporting records failed timestamped Update Attribute Values invocations",
     "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1339",
-    "mapping_seed_plan_id": "umbra-cpp-timestamped-regional-update-failure-service-report-mom-interaction-integration",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1275",
+    "mapping_seed_plan_id": "umbra-cpp-timestamped-update-attribute-values-failure-file-integration",
     "related_plan_ids": [
-      "umbra-cpp-timestamped-regional-update-failure-service-report-mom-interaction-integration",
-      "umbra-cpp-timestamped-regional-update-failure-mom-interaction-restored-baseline-integration"
+      "umbra-cpp-timestamped-update-attribute-values-failure-file-integration",
+      "umbra-cpp-timestamped-update-attribute-values-failure-file-restored-baseline-integration"
     ],
     "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction$",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed timestamped Update Attribute Values invocations$",
     "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-timestamped-regional-update-failure-service-report-mom-interaction-integration --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-timestamped-regional-update-failure-service-report-mom-interaction-integration --summary --compact",
+      "case": "python tools/query_rti_work.py case umbra-cpp-timestamped-update-attribute-values-failure-file-integration --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-timestamped-update-attribute-values-failure-file-integration --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction$\" --output-on-failure",
-      "lane_check": "python tools/query_rti_work.py check --lane timestamped-regional-attribute-update-failure --summary --compact",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records failed timestamped Update Attribute Values invocations$\" --output-on-failure",
+      "lane_check": "python tools/query_rti_work.py check --lane timestamped-update-failure-service-report-file --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Preserve the original row's 5 direct requirement-to-canonical-2025-subsection pairs across 3 clauses and 7 API surfaces, and retain the restored-baseline row's 11 pairs across 9 clauses and 30 API surfaces independently.",
-      "Compare source behavior before extracting the pair; retain both exact test titles and plan identities, and preserve the RL-152 conditional-failure boundary without promoting source-derived evidence into normative claims.",
-      "Build the 2025 Catch2 target, run both exact CTests and the timestamped-regional-attribute-update-failure lane check, then lower the source-size baseline only after verification.",
+      "Preserve each row's 11 direct requirement-to-canonical-2025-subsection pairs across 9 clauses and 15 API surfaces independently.",
+      "Compare full test behavior, including file switch and report-file lifetime differences; retain both exact test titles and plan identities, and consolidate only equivalent scenario code.",
+      "Build the 2025 Catch2 target, run both exact CTests and the timestamped-update-failure-service-report-file lane check, then lower the source-size baseline only after verification.",
       "Keep IEEE 1516.1-2010 source, test target, and plan rows separate from the 2025 stream."
     ]
   },
@@ -18046,7 +18046,7 @@
         "rti.service.associate-regions-for-updates",
         "rti.service.subscribe-object-class-attributes-with-regions"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2577",
+      "source_location": "cpp/tests/ieee1516_2025_timestamped_regional_update_failure_mom_interaction_catch2.cpp:210",
       "assertions": 138,
       "callback_models": [
         "HLA_EVOKED",

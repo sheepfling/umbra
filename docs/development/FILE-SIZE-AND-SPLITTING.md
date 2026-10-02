@@ -320,14 +320,22 @@ The first wave should be staged rather than attempted as one rewrite:
    one 172-line focused 2025 unit and private runner while preserving their
    separate test identities and mappings (6 direct pairs across 3 clauses and
    9 APIs per row); the 2025 target build, both exact CTests, and lane check
-   pass. The
-   federation-management monolith is now 47,078 lines, 23,209 fewer than its
-   70,287-line starting point, with its size ceiling ratcheted to 47,078.
-   Next handoff: inspect the restored-baseline timestamped regional
-   Update Attribute Values/MOM interaction case at
-   `ieee1516_2025_federation_management_catch2.cpp:1138` (11 direct pairs,
-   9 clauses, 30 API surfaces) and retain the RL-152 boundary; do not cross
-   into the IEEE 1516.1-2010 stream.
+   pass. The original and restored-baseline timestamped regional
+   Update Attribute Values failure/MOM cases now share one 221-line focused
+   2025 unit and private scenario runner, preserving both 138-assertion test
+   identities and plan rows. Their callback models are HLA_EVOKED and
+   HLA_IMMEDIATE; the original mapping retains 5 direct pairs across 3 clauses
+   and 7 APIs, while the restored-baseline mapping retains 11 pairs across 9
+   clauses and 30 APIs. The 2025 target build, both exact CTests, and the lane
+   check pass (3 mapped cases, none unmapped). The federation-management
+   monolith is now 46,676 lines, 23,611 fewer than its 70,287-line starting
+   point, with its ceiling ratcheted to 46,676. Next handoff: compare the
+   original and restored-baseline timestamped Update Attribute Values
+   file-report failure cases at
+   `ieee1516_2025_federation_management_catch2.cpp:1275` and `:1138`; each row
+   retains 11 direct pairs across 9 clauses and 15 APIs. Keep their exact
+   identities and the service-report-file lane distinct from MOM interaction;
+   do not cross into the IEEE 1516.1-2010 stream.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
