@@ -2,12 +2,7 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
 namespace {
-TEST_CASE(
-    "Embedded service reporting delivers failed timestamped Update Attribute Values invocations through MOM interaction (restored baseline copy)",
-    "[integration][development-profile][federation-management][object-management][time-management]"
-    "[mom][service-reporting][service-report-interaction][service-failure][tso]"
-    "[timestamped-attribute-update-failure][rti.service.timestamped-attribute-update-failure-matrix-interaction]"
-    "[timestamped-update-failure-mom-restored-baseline]") {
+void runTimestampedUpdateAttributeValuesFailureMomInteractionScenario() {
   ReportingFederateAmbassador publisherReports;
   ReportingFederateAmbassador observerReports;
   auto publisher = makeRti();
@@ -160,6 +155,23 @@ TEST_CASE(
   REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(observer->disconnect());
   REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded service reporting delivers failed timestamped Update Attribute Values invocations through MOM interaction (restored baseline copy)",
+    "[integration][development-profile][federation-management][object-management][time-management]"
+    "[mom][service-reporting][service-report-interaction][service-failure][tso]"
+    "[timestamped-attribute-update-failure][rti.service.timestamped-attribute-update-failure-matrix-interaction]"
+    "[timestamped-update-failure-mom-restored-baseline]") {
+  runTimestampedUpdateAttributeValuesFailureMomInteractionScenario();
+}
+
+TEST_CASE(
+    "Embedded service reporting delivers failed timestamped Update Attribute Values invocations through MOM interaction",
+    "[integration][development-profile][federation-management][object-management][time-management]"
+    "[mom][service-reporting][service-report-interaction][service-failure][tso]"
+    "[timestamped-attribute-update-failure][rti.service.timestamped-attribute-update-failure-matrix-interaction]") {
+  runTimestampedUpdateAttributeValuesFailureMomInteractionScenario();
 }
 
 }

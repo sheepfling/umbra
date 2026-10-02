@@ -295,11 +295,11 @@ The first wave should be staged rather than attempted as one rewrite:
    the same 39/40 result was reproduced with the unchanged test in its original
    monolith location, so this is a pre-existing behavior failure, not a split
    regression. No runtime behavior was changed. The timestamped Update
-   Attribute Values failure/MOM interaction restored-baseline case is now
-   isolated in
-   `ieee1516_2025_timestamped_update_attribute_values_failure_mom_restored_baseline_catch2.cpp`
-   (165 lines), preserving 11 direct pairs across 9 clauses, 13 API surfaces,
-   125 assertions, and HLA_EVOKED/HLA_IMMEDIATE. Its exact CTest and focused
+  Attribute Values failure/MOM interaction restored-baseline case was first
+  isolated in its own 165-line unit, preserving 11 direct pairs across 9
+  clauses, 13 API surfaces, 125 assertions, and HLA_EVOKED/HLA_IMMEDIATE. It
+  now shares a 177-line unit and private runner with the original case, while
+  retaining separate identities, callback behavior, and mappings. Its exact CTest and focused
    lane mapping check pass. After that split the monolith stood at 47,994
    lines, 22,293 fewer than
    its 70,287-line starting point. The regional Provide Attribute Value Update
@@ -328,19 +328,20 @@ The first wave should be staged rather than attempted as one rewrite:
    and 7 APIs, while the restored-baseline mapping retains 11 pairs across 9
    clauses and 30 APIs. The 2025 target build, both exact CTests, and the lane
    check pass (3 mapped cases, none unmapped). The federation-management
-   monolith is now 46,367 lines, 23,920 fewer than its 70,287-line starting
-   point, with its ceiling ratcheted to 46,367. The original and
+   monolith is now 46,207 lines, 24,080 fewer than its 70,287-line starting
+   point, with its ceiling ratcheted to 46,207. The original and
    restored-baseline timestamped Update Attribute Values file-report failure
    cases now share a private runner in
    `ieee1516_2025_timestamped_update_attribute_values_failure_file_catch2.cpp`
    (190 lines), while retaining separate test identities, 218/236 assertions,
    and independent 11-pair/9-clause/15-API mappings. The original case alone
    checks that disabled file output does not append and re-enabling preserves
-   the same file. Next handoff: isolate the original MOM-interaction failure
-   case at `ieee1516_2025_federation_management_catch2.cpp:1138`, preserving
-   its 5 direct pairs across 3 clauses and 3 APIs while keeping the
-   restored-baseline copy separate. Do not cross into the IEEE 1516.1-2010
-   stream.
+   the same file. Next handoff: compare the original and restored-baseline
+   timestamped regional Update Attribute Values file-report cases at
+   `ieee1516_2025_federation_management_catch2.cpp:1138` and `:1319` for
+   behaviorally shared setup/assertions; preserve their distinct 206-assertion
+   baseline, original behavior, mappings, and Catch2 identities. Keep the
+   IEEE 1516.1-2025 and 2010 streams separate.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
