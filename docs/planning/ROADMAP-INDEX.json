@@ -45,7 +45,9 @@
     "source_target": "cpp/tests/ieee1516_2025_connection_catch2.cpp",
     "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:39061",
     "assertions": 46,
-    "callback_models": ["HLA_EVOKED"],
+    "callback_models": [
+      "HLA_EVOKED"
+    ],
     "mapping_seed_policy": "This two-federate HLA_EVOKED case uses the same seven direct requirement-to-subsection pairs as the terminal-status cases for save request, save-begun, failure, and status reporting. The owner—not the receiver—reports Federate Save Not Complete; both participants receive failure callbacks and terminal NO_SAVE_IN_PROGRESS status. No total callback order is asserted despite the broad source taxonomy tag. The Initiate Federate Save label candidate remains unmapped under RL-267; private process-protocol behavior is not claimed as normative. Private development evidence only; no validation, interoperability, or conformance claim.",
     "api_surfaces": [
       "api.2025.cpp.rtiambassador.requestfederationsave.32986a607094",
@@ -72,35 +74,35 @@
       "Owner-reported failure is distinct from receiver-reported failure; the callback-label candidate remains unmapped under RL-267 and no total order is claimed."
     ]
   },
-  "active_handoff_note": "The IEEE 1516.1-2025 and 2010 streams remain separate; no Requirements Lab resync was performed. The public restore split series now isolates pending object-instance, object-class, regional object-class Request Attribute Value Update, regional provider-response no-replay, application-value/report-file-lifetime, and timestamped regional attribute-update cases. The no-replay invariant remains explicitly internal. The application-value case retains 9 direct pairs across 5 clauses and 18 API surfaces; the regional attribute-update case retains 20 direct pairs across 16 clauses and 33 API surfaces. Assertion/callback metadata is unspecified for both. The 2025 target build, exact CTests, lane checks, and source-size guard pass. No 2010 source changed. The federation-management monolith is 50,162 lines, 20,125 below its 70,287-line starting point. Next handoff: split the 511-line joined-federate MOM conditional-reflections case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32903; preserve its one direct pair to clause 11.4.1 and 23 API surfaces without broadening the normative mapping. The plan records 622 assertions and both callback models. Its test is already mapped, so resume may not surface this structural task; use this exact handoff and its case handle.",
+  "active_handoff_note": "The IEEE 1516.1-2025 and 2010 streams remain separate; no Requirements Lab resync was performed. The timestamped regional provider-response, timestamped object-class provider-response, and timed regional-interaction restore cases now live in focused 2025 translation units with their exact mappings preserved. The 2025 target builds and the timed-restore lane check passes (18 direct pairs, 24 API surfaces, 55 assertions, HLA_EVOKED). Its exact CTest fails at report.sentRegionsSupplied; the same 39/40 result was reproduced with the unchanged test in its original monolith location, confirming this is a pre-existing behavior failure and not a split regression. No runtime change was made. The federation-management monolith is 48,152 lines, 22,135 below its 70,287-line starting point, and the recorded ceiling is ratcheted to 48,152. Next handoff: extract the mapped timestamped Update Attribute Values failure/MOM interaction restored-baseline case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1287; retain its 11 direct pairs across 9 clauses, 13 API surfaces, 125 assertions, and both callback models, and add a focused lane tag.",
   "active_handoff": {
-    "id": "split-2025-joined-federate-mom-conditional-reflections",
+    "id": "split-2025-timestamped-update-failure-mom-restored-baseline",
     "state": "planned-maintenance-no-behavior-change",
     "family": "mom-after-base-services",
-    "lane": "joined-federate-mom-conditional-reflections",
-    "objective": "Extract the mapped 2025 joined-federate MOM conditional-reflections case into a focused translation unit, preserving its exact direct mapping and unchanged behavior.",
-    "test_case": "Embedded joined-federate MOM conditional reflections track current state",
+    "lane": "timestamped-update-failure-mom-restored-baseline",
+    "objective": "Extract the mapped 2025 timestamped Update Attribute Values failure/MOM restored-baseline case into a focused translation unit, add a dedicated lane tag, and preserve its existing behavior and exact mappings.",
+    "test_case": "Embedded service reporting delivers failed timestamped Update Attribute Values invocations through MOM interaction (restored baseline copy)",
     "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32903",
-    "mapping_seed_plan_id": "umbra-cpp-joined-federate-mom-conditional-reflections",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1287",
+    "mapping_seed_plan_id": "umbra-cpp-timestamped-update-attribute-values-failure-mom-interaction-restored-baseline",
     "related_plan_ids": [
-      "umbra-cpp-joined-federate-mom-conditional-reflections"
+      "umbra-cpp-timestamped-update-attribute-values-failure-mom-interaction-restored-baseline"
     ],
     "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded joined-federate MOM conditional reflections track current state$",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed timestamped Update Attribute Values invocations through MOM interaction \\(restored baseline copy\\)$",
     "commands": {
-      "test": "python tools/query_rti_work.py case umbra-cpp-joined-federate-mom-conditional-reflections --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-joined-federate-mom-conditional-reflections --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report",
+      "case": "python tools/query_rti_work.py case umbra-cpp-timestamped-update-attribute-values-failure-mom-interaction-restored-baseline --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-timestamped-update-attribute-values-failure-mom-interaction-restored-baseline --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded joined-federate MOM conditional reflections track current state$\" --output-on-failure",
-      "lane_check": "python tools/query_rti_work.py check --lane joined-federate-mom-conditional-reflections --summary --compact"
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting delivers failed timestamped Update Attribute Values invocations through MOM interaction \\(restored baseline copy\\)$\" --output-on-failure",
+      "lane_check": "python tools/query_rti_work.py check --lane timestamped-update-failure-mom-restored-baseline --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Preserve the one direct requirement-to-2025-subsection pair on clause 11.4.1 and 23 API surfaces; keep the direct periodic-value mapping separate from the wider embedded switch/time-state matrix. The case records 622 assertions and HLA_EVOKED/HLA_IMMEDIATE callback models.",
-      "Move the complete case into a focused 2025 translation unit, register it only in the 2025 Catch2 target, and update its exact source location without changing behavior.",
-      "Build the 2025 Catch2 target, run the exact CTest selector and applicable mapping gate, and lower the size baseline only after verification.",
-      "Do not alter or mix the IEEE 1516.1-2010 stream."
+      "Preserve 11 direct requirement-to-canonical-2025-subsection pairs across 9 sections, 13 API surfaces, 125 assertions, and both HLA_EVOKED and HLA_IMMEDIATE callback models.",
+      "Move the complete existing case to a focused translation unit, register it only in the 2025 Catch2 target, add its focused lane tag, and update exact source locations without changing behavior.",
+      "Build the 2025 Catch2 target, run the exact CTest selector and new lane mapping check, then lower the source-size baseline only after verification.",
+      "Keep IEEE 1516.1-2010 source, test target, and plan rows separate from the 2025 stream."
     ]
   },
   "documents": [
@@ -269,7 +271,7 @@
       "source_only_cases": 59,
       "direct_requirement_section_pairs": 903,
       "standard_requirement_total": 2220,
-      "standard_requirement_coverage_percent": 40.50,
+      "standard_requirement_coverage_percent": 40.5,
       "service_report_store_cases": 17,
       "service_report_store_mapped_cases": 13
     },
@@ -285,7 +287,9 @@
       "requirements": 1,
       "standard_sections": 1,
       "api_surfaces": 4,
-      "callback_models": ["HLA_EVOKED"],
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
       "next_action": "The focused MinGW case verifies file records for successful no-argument Enable Time Constrained and Disable Time Constrained services, mapped to IEEE 1516.1-2025 §11.5.1. Callback gating is an observed HLA_EVOKED behavior, not an additional normative claim. Next exact source-only handoff: Embedded service reporting records callback-gated time-regulation services at cpp/tests/ieee1516_2025_service_report_catch2.cpp:704."
     },
     "previous_completed_slice": {
@@ -293,14 +297,16 @@
       "owner": "object-ddm-ownership",
       "plan_id": "umbra-cpp-service-report-directed-invocation-ordering-interaction",
       "test_case": "Embedded service reporting delivers directed invocation reports before directed callbacks",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:30785",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:29140",
       "primary_lane": "directed-send-interaction-service-report-interaction",
       "focus_lane": "directed-send-interaction-service-report-interaction",
       "assertions": 140,
       "requirements": 2,
       "standard_sections": 2,
       "api_surfaces": 12,
-      "callback_models": ["HLA_EVOKED"],
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
       "next_action": "This MinGW-green case maps successful service-report content to IEEE 1516.1-2025 §§11.5 and 11.5.1. Its report-before-directed-callback ordering remains Umbra development-profile behavior, not a normative ordering claim."
     },
     "prior_completed_slice": {
@@ -315,7 +321,9 @@
       "requirements": 2,
       "standard_sections": 2,
       "api_surfaces": 18,
-      "callback_models": ["HLA_EVOKED"],
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
       "next_action": "The prior nonregional process SendInteraction file lane verifies the exact Table 5 record, stable file append, type-63 UserSuppliedTag, null successful-void return, and no MOM delivery."
     },
     "earlier_completed_slice": {
@@ -330,7 +338,10 @@
       "requirements": 2,
       "standard_sections": 2,
       "api_surfaces": 13,
-      "callback_models": ["HLA_EVOKED", "HLA_IMMEDIATE"],
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
       "next_action": "Successful unconditional divestiture emits HLAreportServiceInvocation after the registry transaction, with the public static MIM tag type 60 and separate Table 5 file type 63."
     },
     "latest_verified_restore_slice": {
@@ -4879,7 +4890,7 @@
         "timestamped-directed-interaction",
         "directed"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38741",
+      "source_location": "cpp/tests/ieee1516_2025_request_retraction_directed_interaction_mixed_fanout_catch2.cpp:3",
       "primary_lane": "timestamped-interaction-request-retraction-fanout",
       "focus_lane": "timestamped-interaction-request-retraction-fanout",
       "assertions": 68,
@@ -5014,7 +5025,7 @@
         "federate.callback.flush-queue-grant",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:8387",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:7344",
       "primary_lane": "timestamped-delete-fqr-tara-nmra",
       "focus_lane": "timestamped-delete-fqr-tara-nmra",
       "assertions": 84,
@@ -5319,7 +5330,7 @@
         "federate.callback.receive-interaction",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:29166",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27521",
       "primary_lane": "service-report-failed-support-lookup-interaction",
       "focus_lane": "service-report-failed-support-lookup-interaction",
       "assertions": 55,
@@ -5352,7 +5363,7 @@
         "federate.callback.receive-interaction",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:30615",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:28970",
       "primary_lane": "service-report-order-transportation-lookup-failure-matrix-interaction",
       "focus_lane": "service-report-order-transportation-lookup-failure-matrix-interaction",
       "assertions": 119,
@@ -6828,7 +6839,7 @@
         "federate.callback.connection-lost",
         "federate.callback.remove-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:12509",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11525",
       "primary_lane": "connection-lost-automatic-delete-objects-immediate",
       "focus_lane": "connection-lost-automatic-delete-objects-immediate",
       "assertions": 25,
@@ -6871,7 +6882,7 @@
         "federate.callback.remove-object-instance",
         "federate.callback.request-attribute-ownership-assumption"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:18255",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16836",
       "primary_lane": "connection-lost-automatic-cancel-delete-divest-immediate",
       "focus_lane": "connection-lost-automatic-cancel-delete-divest-immediate",
       "assertions": 45,
@@ -6916,7 +6927,7 @@
         "federate.callback.remove-object-instance",
         "federate.callback.request-attribute-ownership-assumption"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:12376",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11392",
       "primary_lane": "connection-lost-automatic-delete-then-divest-immediate",
       "focus_lane": "connection-lost-automatic-delete-then-divest-immediate",
       "assertions": 39,
@@ -6956,7 +6967,7 @@
         "federate.callback.connection-lost",
         "federate.callback.object-instance-name-reservation-succeeded"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:12075",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11090",
       "primary_lane": "connection-lost-final-federate-immediate",
       "focus_lane": "connection-lost-final-federate-immediate",
       "assertions": 23,
@@ -6996,7 +7007,7 @@
         "federate.callback.connection-lost",
         "federate.callback.request-attribute-ownership-assumption"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:12075",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11090",
       "primary_lane": "connection-lost-automatic-no-action-immediate",
       "focus_lane": "connection-lost-automatic-no-action-immediate",
       "assertions": 31,
@@ -7734,7 +7745,7 @@
         "federate.callback.federation-restored",
         "federate.callback.federation-synchronized"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22750",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21207",
       "primary_lane": "evoked-synchronization-save-restore",
       "focus_lane": "evoked-synchronization-save-restore",
       "assertions": 39,
@@ -10198,7 +10209,7 @@
         "development-profile",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:42975",
+      "source_location": "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tso_retraction_catch2.cpp:3",
       "assertions": 68,
       "requirements": 14,
       "standard_sections": [
@@ -10238,7 +10249,7 @@
         "development-profile",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:37216",
+      "source_location": "cpp/tests/ieee1516_2025_evoked_regional_interaction_source_region_snapshot_catch2.cpp:3",
       "assertions": 42,
       "requirements": 9,
       "standard_sections": [
@@ -11118,7 +11129,7 @@
         "fom",
         "fom-module-management"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34705",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:31201",
       "assertions": 164,
       "callback_models": [
         "HLA_EVOKED",
@@ -11150,7 +11161,7 @@
         "rti.service.set-service-reporting-switch",
         "rti.service.set-send-service-reports-to-file-switch"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33706",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:2388",
       "assertions": 34,
       "callback_models": [
         "HLA_EVOKED"
@@ -11335,7 +11346,7 @@
         "rti.service.update-attribute-values",
         "rti.service.retract"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:84791",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:84164",
       "assertions": 69,
       "callback_models": [
         "HLA_EVOKED"
@@ -11397,7 +11408,7 @@
         "rti.service.retract",
         "rti.service.time-advance-request"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:84940",
+      "source_location": "",
       "assertions": 75,
       "callback_models": [
         "HLA_EVOKED"
@@ -11428,7 +11439,7 @@
         "federate.callback.receive-interaction",
         "federate.callback.request-retraction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:85094",
+      "source_location": "",
       "assertions": 31,
       "callback_models": [
         "HLA_EVOKED"
@@ -11458,7 +11469,7 @@
         "federate.callback.reflect-attribute-values",
         "federate.callback.request-retraction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:85174",
+      "source_location": "",
       "assertions": 33,
       "callback_models": [
         "HLA_EVOKED"
@@ -11657,7 +11668,7 @@
         "service-reporting",
         "service-report-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59780",
+      "source_location": "",
       "assertions": 125,
       "callback_models": [
         "HLA_EVOKED",
@@ -11685,7 +11696,7 @@
         "service-reporting",
         "service-report-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:84306",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:83679",
       "assertions": 115,
       "callback_models": [
         "HLA_EVOKED",
@@ -11711,7 +11722,7 @@
         "service-reporting",
         "service-report-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:84110",
+      "source_location": "",
       "assertions": 91,
       "callback_models": [
         "HLA_EVOKED",
@@ -11737,7 +11748,7 @@
         "service-report-file",
         "service-reporting"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:83959",
+      "source_location": "",
       "assertions": 153,
       "callback_models": [
         "HLA_EVOKED"
@@ -11760,7 +11771,7 @@
         "service-reporting",
         "service-report-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:83754",
+      "source_location": "",
       "assertions": 85,
       "callback_models": [
         "HLA_EVOKED",
@@ -11784,7 +11795,7 @@
         "service-report-file",
         "service-reporting"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:85418",
+      "source_location": "",
       "assertions": 145,
       "callback_models": [
         "HLA_EVOKED"
@@ -11809,7 +11820,7 @@
         "mom",
         "service-report-file"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:85266",
+      "source_location": "",
       "assertions": 163,
       "callback_models": [
         "HLA_EVOKED"
@@ -11832,7 +11843,7 @@
         "service-reporting",
         "interaction-management"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:85549",
+      "source_location": "",
       "assertions": 158,
       "callback_models": [
         "HLA_EVOKED"
@@ -11858,7 +11869,7 @@
         "mom",
         "service-report-file"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:83565",
+      "source_location": "",
       "assertions": 236,
       "callback_models": [
         "HLA_EVOKED"
@@ -11905,7 +11916,7 @@
         "tso",
         "callback-immediate"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2367",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1353",
       "assertions": 97,
       "callback_models": [
         "HLA_EVOKED",
@@ -12351,7 +12362,7 @@
         "save-restore",
         "directed"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:56490",
+      "source_location": "",
       "assertions": 71,
       "callback_models": [
         "HLA_EVOKED"
@@ -12373,7 +12384,7 @@
         "save-restore",
         "directed"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:56704",
+      "source_location": "",
       "assertions": 116,
       "callback_models": [
         "HLA_EVOKED"
@@ -12404,7 +12415,7 @@
         "save-restore",
         "directed"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:56283",
+      "source_location": "",
       "assertions": 74,
       "callback_models": [
         "HLA_EVOKED"
@@ -12531,7 +12542,7 @@
         "time-management",
         "tso"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:971",
+      "source_location": "",
       "assertions": 117,
       "callback_models": [
         "HLA_EVOKED"
@@ -12555,7 +12566,7 @@
         "tso",
         "object-management"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:82958",
+      "source_location": "",
       "assertions": 121,
       "callback_models": [
         "HLA_EVOKED"
@@ -12580,7 +12591,7 @@
         "mom",
         "service-reporting"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:83116",
+      "source_location": "",
       "assertions": 124,
       "callback_models": [
         "HLA_EVOKED",
@@ -12695,7 +12706,7 @@
         "federate.callback.remove-object-instance",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:8081",
+      "source_location": "",
       "assertions": 75,
       "callback_models": [
         "HLA_EVOKED"
@@ -12727,7 +12738,7 @@
         "tso-attribute-update-state",
         "tso-regional-attribute-update-state"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:13753",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:12641",
       "assertions": 100,
       "callback_models": [
         "HLA_EVOKED",
@@ -17077,7 +17088,7 @@
         "federation-management",
         "connection"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10675",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:9688",
       "assertions": 4,
       "standard_sections": [
         "hla-1516.1-2025:clause-4",
@@ -17155,7 +17166,7 @@
         "rti.service.join-federation-execution",
         "rti.service.destroy-federation-execution"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:19732",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:18189",
       "assertions": 11,
       "standard_sections": [
         "hla-1516.1-2025:clause-4",
@@ -17188,7 +17199,7 @@
         "federate.callback.time-advance-grant",
         "federate.callback.federation-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:19988",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:18445",
       "assertions": 38,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
@@ -17224,7 +17235,7 @@
         "federate.callback.federation-not-saved",
         "federate.callback.federation-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22410",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:20867",
       "assertions": 18,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
@@ -17259,7 +17270,7 @@
         "federate.callback.request-federation-restore-failed",
         "federate.callback.federation-not-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22546",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21003",
       "assertions": 29,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
@@ -17306,7 +17317,7 @@
         "federate.callback.federation-restored",
         "federate.callback.federation-restore-status-response"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1186",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:680",
       "assertions": 51,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
@@ -17344,7 +17355,7 @@
         "rti.service.register-object-instance-with-regions",
         "rti.service.delete-region"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:23037",
+      "source_location": "",
       "assertions": 17,
       "standard_sections": [
         "hla-1516.1-2025:clause-4",
@@ -17378,7 +17389,7 @@
         "rti.service.delete-object-instance",
         "rti.service.delete-region"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:23779",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22236",
       "assertions": 17,
       "standard_sections": [
         "hla-1516.1-2025:clause-4",
@@ -17414,7 +17425,7 @@
         "rti.service.delete-region",
         "federate.callback.remove-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:23845",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22302",
       "assertions": 27,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.1.1",
@@ -17454,7 +17465,7 @@
         "rti.service.register-object-instance-with-regions",
         "federate.callback.discover-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:24477",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22936",
       "assertions": 33,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.1.1",
@@ -17498,7 +17509,7 @@
         "rti.service.unassociate-regions-for-updates",
         "federate.callback.discover-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:24585",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:23044",
       "assertions": 42,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.1.1",
@@ -17536,7 +17547,7 @@
         "rti.service.get-object-class-relevance-advisory-switch",
         "rti.service.get-interaction-relevance-advisory-switch"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27349",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25808",
       "assertions": 16,
       "callback_models": [
         "HLA_EVOKED"
@@ -17566,7 +17577,7 @@
         "rti.service.join-federation-execution",
         "rti.service.get-automatic-resign-directive"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27522",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25981",
       "assertions": 7,
       "callback_models": [
         "HLA_EVOKED"
@@ -17604,7 +17615,7 @@
         "rti.service.change-interaction-order-type",
         "rti.service.change-default-attribute-transportation-type"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33177",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1170",
       "assertions": 66,
       "callback_models": [
         "HLA_EVOKED",
@@ -17645,7 +17656,7 @@
         "service-report-file",
         "fom-module-management"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34523",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:31019",
       "assertions": 12,
       "callback_models": [
         "HLA_EVOKED"
@@ -17682,7 +17693,7 @@
         "rti.service.request-attribute-value-update",
         "federate.callback.reflect-attribute-values"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34582",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:31078",
       "assertions": 46,
       "callback_models": [
         "HLA_IMMEDIATE"
@@ -17739,7 +17750,7 @@
         "federate.callback.reflect-attribute-values",
         "federate.callback.remove-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34500",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:31530",
       "assertions": 124,
       "callback_models": [
         "HLA_EVOKED",
@@ -17797,7 +17808,7 @@
         "federate.callback.reflect-attribute-values",
         "federate.callback.discover-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2030",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1012",
       "assertions": 44,
       "callback_models": [
         "HLA_EVOKED"
@@ -17878,7 +17889,7 @@
         "restored-baseline-copy",
         "rti.service.timestamped-attribute-update-failure-matrix-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2787",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1653",
       "assertions": 125,
       "callback_models": [
         "HLA_EVOKED",
@@ -17919,7 +17930,7 @@
         "rti.service.request-attribute-value-update-with-regions",
         "federate.callback.provide-attribute-value-update"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2937",
+      "source_location": "",
       "assertions": 251,
       "callback_models": [
         "HLA_EVOKED"
@@ -17992,7 +18003,7 @@
         "rti.service.request-attribute-value-update-with-regions",
         "federate.callback.provide-attribute-value-update"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3248",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2114",
       "assertions": 58,
       "callback_models": [
         "HLA_EVOKED"
@@ -18030,7 +18041,7 @@
         "rti.service.associate-regions-for-updates",
         "rti.service.subscribe-object-class-attributes-with-regions"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3711",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2577",
       "assertions": 138,
       "callback_models": [
         "HLA_EVOKED",
@@ -18068,7 +18079,7 @@
         "restored-baseline-copy",
         "rti.service.timestamped-attribute-update-failure-matrix"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4113",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2979",
       "assertions": 218,
       "callback_models": [
         "HLA_EVOKED"
@@ -18109,7 +18120,7 @@
         "rti.service.subscribe-object-class-attributes-with-regions",
         "federate.callback.reflect-attribute-values"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4547",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3448",
       "assertions": 206,
       "callback_models": [
         "HLA_EVOKED"
@@ -18144,7 +18155,7 @@
         "rti.service.publish-object-class-attributes",
         "rti.service.unpublish-object-class-attributes"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:6920",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5876",
       "assertions": 102,
       "callback_models": [
         "HLA_EVOKED"
@@ -18708,7 +18719,7 @@
         "rti.service.delete-region",
         "federate.callback.receive-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:37216",
+      "source_location": "cpp/tests/ieee1516_2025_evoked_regional_interaction_source_region_snapshot_catch2.cpp:3",
       "superseded_by": "umbra-cpp-evoked-regional-interaction-source-region-snapshot-integration#earlier-ledger-entry",
       "assertions": 42,
       "callback_models": [
@@ -18762,7 +18773,7 @@
         "federate.callback.receive-interaction",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:42975",
+      "source_location": "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tso_retraction_catch2.cpp:3",
       "superseded_by": "umbra-cpp-timestamped-regional-interaction-tso-retraction-integration#earlier-ledger-entry",
       "assertions": 68,
       "callback_models": [
@@ -18809,7 +18820,7 @@
         "federate.callback.time-regulation-enabled",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44331",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:41347",
       "assertions": 31,
       "callback_models": [
         "HLA_EVOKED"
@@ -18849,7 +18860,7 @@
         "federate.callback.time-regulation-enabled",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44854",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:41870",
       "assertions": 21,
       "callback_models": [
         "HLA_EVOKED"
@@ -18889,7 +18900,7 @@
         "rti.service.evoke-callback",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:67677",
+      "source_location": "",
       "assertions": 15,
       "callback_models": [
         "HLA_EVOKED"
@@ -18930,7 +18941,7 @@
         "rti.service.evoke-callback",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44929",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:41945",
       "assertions": 27,
       "callback_models": [
         "HLA_EVOKED"
@@ -18972,7 +18983,7 @@
         "rti.service.evoke-callback",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44975",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:41991",
       "assertions": 24,
       "callback_models": [
         "HLA_EVOKED"
@@ -19008,7 +19019,7 @@
         "timestamped-object-deletion",
         "retract"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2549",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1415",
       "assertions": 49,
       "callback_models": [
         "HLA_EVOKED"
@@ -24082,7 +24093,7 @@
         "federate.callback.request-retraction",
         "federate.callback.flush-queue-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2670",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1536",
       "assertions": 55,
       "callback_models": [
         "HLA_EVOKED"
@@ -24647,7 +24658,7 @@
         "callback-immediate",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1522",
+      "source_location": "cpp/tests/ieee1516_2025_public_confirm_divestiture_assumption_fanout_restore_catch2.cpp:6",
       "assertions": 319,
       "callback_models": [
         "HLA_EVOKED",
@@ -24699,7 +24710,7 @@
         "callback-immediate",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15277",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:14158",
       "assertions": 202,
       "callback_models": [
         "HLA_EVOKED",
@@ -24796,7 +24807,7 @@
         "service-reporting",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47173",
+      "source_location": "cpp/tests/ieee1516_2025_public_pending_negotiated_if_available_owner_confirmation_restore_catch2.cpp:6",
       "assertions": 207,
       "callback_models": [
         "HLA_EVOKED",
@@ -24889,7 +24900,7 @@
         "service-reporting",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52117",
+      "source_location": "cpp/tests/ieee1516_2025_public_pending_ownership_if_available_restore_catch2.cpp:6",
       "assertions": 193,
       "callback_models": [
         "HLA_EVOKED",
@@ -24939,7 +24950,7 @@
         "multi-survivor-post-confirmation-fanout",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:53557",
+      "source_location": "",
       "assertions": 315,
       "callback_models": [
         "HLA_EVOKED",
@@ -24992,7 +25003,7 @@
         "callback-immediate",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:55372",
+      "source_location": "cpp/tests/ieee1516_2025_public_confirm_divestiture_resignation_restore_catch2.cpp:6",
       "assertions": 222,
       "callback_models": [
         "HLA_EVOKED",
@@ -25047,7 +25058,7 @@
         "callback-immediate",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:55791",
+      "source_location": "cpp/tests/ieee1516_2025_public_confirm_divestiture_post_confirmation_resignation_restore_catch2.cpp:6",
       "assertions": 235,
       "callback_models": [
         "HLA_EVOKED",
@@ -25519,7 +25530,7 @@
         "rti.service.destroy-federation-execution",
         "rti.service.disconnect"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:30844",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:29446",
       "primary_lane": "service-report-file-multifederate",
       "focus_lane": "service-report-file-multifederate",
       "assertions": 18,
@@ -26264,7 +26275,7 @@
         "federate.callback.announce-synchronization-point",
         "federate.callback.receive-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:60979",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48341",
       "primary_lane": "mom-service-invocation-parameters",
       "focus_lane": "mom-service-invocation-parameters",
       "assertions": 210,
@@ -27930,7 +27941,7 @@
         "1516.2-2025",
         "interaction-management"
       ],
-    "next_action": "Corrected all 13 portable C++ service-report UserSuppliedTag argument-type expectations from 63 to 60 per the pinned IEEE 1516.2-2025 HLAstandardMIM (10 named assertions plus three synchronization-point argument lists). A fresh GNU 15.2/Ninja installed-package build against the configured MinGW package passed 44/44 focused CTest cases for 22 affected base/contract scenarios in both callback models; direct execution validated all 22 IDs. This is current-provider evidence, not independent multi-vendor conformance. Next: audit and run cpp-tck.directed-interaction-declarations-valid-inputs-after-resignation plus its contract against exact IEEE 1516.1-2025 requirements, then implement only if the RTI fails. No Requirements Lab resync, 1516e, Visual Studio, or full-suite discovery."
+      "next_action": "Corrected all 13 portable C++ service-report UserSuppliedTag argument-type expectations from 63 to 60 per the pinned IEEE 1516.2-2025 HLAstandardMIM (10 named assertions plus three synchronization-point argument lists). A fresh GNU 15.2/Ninja installed-package build against the configured MinGW package passed 44/44 focused CTest cases for 22 affected base/contract scenarios in both callback models; direct execution validated all 22 IDs. This is current-provider evidence, not independent multi-vendor conformance. Next: audit and run cpp-tck.directed-interaction-declarations-valid-inputs-after-resignation plus its contract against exact IEEE 1516.1-2025 requirements, then implement only if the RTI fails. No Requirements Lab resync, 1516e, Visual Studio, or full-suite discovery."
     },
     {
       "id": "portable-java-tck-2025",
@@ -27945,7 +27956,7 @@
         "1516.1-2025",
         "cross-language-parity"
       ],
-    "next_action": "Java catalog validation is clean at 77 scenarios/268 API references, and the parity audit resolves all 77 IDs. The new object-registration/discovery lifecycle test is standard-only, compiles against the pinned IEEE 1516.1-2025 API, and matches a C++ pair independently verified in two fresh MinGW installed-package builds under both callback models with clean promotion audits. It checks typed hierarchy/inherited attributes, pre-publication registration rejection, exact and promoted base discovery, evoked/immediate timing, callback-queue cancellation, late subscription, and identity lookups. It remains unsupported by default until Java provider runtime execution. Existing provider/FOM/endpoint/callback settings and typed names are adapter inputs; no provider-specific API is used. Next: survey cpp-tck.service-report-receive-order-interaction and its contract for the next verified standard-only parity slice."
+      "next_action": "Java catalog validation is clean at 77 scenarios/268 API references, and the parity audit resolves all 77 IDs. The new object-registration/discovery lifecycle test is standard-only, compiles against the pinned IEEE 1516.1-2025 API, and matches a C++ pair independently verified in two fresh MinGW installed-package builds under both callback models with clean promotion audits. It checks typed hierarchy/inherited attributes, pre-publication registration rejection, exact and promoted base discovery, evoked/immediate timing, callback-queue cancellation, late subscription, and identity lookups. It remains unsupported by default until Java provider runtime execution. Existing provider/FOM/endpoint/callback settings and typed names are adapter inputs; no provider-specific API is used. Next: survey cpp-tck.service-report-receive-order-interaction and its contract for the next verified standard-only parity slice."
     }
   ]
 }

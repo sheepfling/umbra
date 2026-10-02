@@ -265,12 +265,43 @@ The first wave should be staged rather than attempted as one rewrite:
   lines, one focused CTest); its 20 direct pairs across 16 clauses and 33 API
   surfaces remain intact, with assertion-count and callback-model metadata
   unspecified. Both focused cases pass the 2025 target build, exact CTest, and
-  lane checks. The monolith is now 50,162 lines, 20,125 fewer than its
-  70,287-line starting point. Next handoff: split the 511-line joined-federate
-  MOM conditional-reflections case at
-  ieee1516_2025_federation_management_catch2.cpp:32903; preserve its one direct
-  pair to clause 11.4.1 and 23 API surfaces without broadening its normative
-  mapping. The plan records 622 assertions and both callback models.
+  lane checks. The joined-federate MOM conditional-reflections case is now
+  isolated in
+  ieee1516_2025_joined_federate_mom_conditional_reflections_catch2.cpp (518
+  lines, one focused CTest); its one direct pair to clause 11.4.1 and 23 API
+  surfaces remain intact. The plan records 622 assertions and both callback
+   models. The public fresh-registry directed TSO restore case is now isolated
+   in ieee1516_2025_public_directed_tso_alternate_advances_restore_catch2.cpp
+   (517 lines, one focused CTest); its 33 direct pairs across 19 clauses and
+   37 API surfaces remain intact, while assertion-count and callback-model
+   metadata remain unspecified. The public fresh-registry ownership-assumption
+   restore case beside two Confirm Divestiture notifications is now isolated in
+   ieee1516_2025_public_confirm_divestiture_assumption_fanout_restore_catch2.cpp
+   (514 lines, one focused CTest); its 26 direct pairs across 16 clauses and 27
+   API surfaces, 319 assertions, and both callback models remain intact. The
+   2025 target build, exact CTest, and ownership-acquisition lane check pass.
+   The timestamped regional provider-response case is isolated in
+   ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp
+   (194 lines); its 9 direct pairs across 6 clauses and 17 API surfaces,
+   60 assertions, and HLA_EVOKED callback model remain intact. The timestamped
+   object-class provider-response case is isolated in
+   ieee1516_2025_timestamped_object_class_request_provider_response_catch2.cpp
+   (183 lines); its 10 direct pairs across 6 clauses and 27 API surfaces,
+   97 assertions, and both callback models remain intact. The timed regional
+   interaction save/restore case is isolated in
+   ieee1516_2025_timed_restore_live_tso_regional_interaction_catch2.cpp
+   (123 lines), preserving 18 direct pairs, 24 API surfaces, 55 assertions,
+   and HLA_EVOKED. Its focused CTest fails at `report.sentRegionsSupplied`;
+   the same 39/40 result was reproduced with the unchanged test in its original
+   monolith location, so this is a pre-existing behavior failure, not a split
+   regression. No runtime behavior was changed. The monolith is now 48,152
+   lines, 22,135 fewer than its 70,287-line starting point. Next handoff: split
+   the timestamped Update Attribute Values failure/MOM interaction restored-
+   baseline case (`umbra-cpp-timestamped-update-attribute-values-failure-mom-
+   interaction-restored-baseline`) at
+   ieee1516_2025_federation_management_catch2.cpp:1288; preserve its 11 direct
+   pairs across 9 clauses, 13 API surfaces, 125 assertions, and both callback
+   models, and add a focused lane tag without changing behavior.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
