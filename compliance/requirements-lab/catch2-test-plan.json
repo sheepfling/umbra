@@ -4844,7 +4844,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ regression is green for both HLA_EVOKED and HLA_IMMEDIATE (282 assertions). It saves one queued timestamped directed interaction whose public by-ownership ledger retains both candidate routes under the switch-support FOM, restores the declarations, object ownership, payload, retraction ledger, and queue into a fresh registry, transfers the marker plus implicit HLAprivilegeToDeleteObject before the old owner's callback boundary, and proves the stale callback is suppressed. The producer reaches the strict timestamped Retract boundary, so Retract is correctly reported as MessageCanNoLongerBeRetracted and no Request Retraction callback is emitted. It does not claim post-handoff TSO delivery, multiple directed classes, directed DDM, alternate advances, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47692",
+      "source_location": "cpp/tests/ieee1516_2025_public_directed_tso_ownership_callback_restore_catch2.cpp:6",
       "assertions": 282,
       "callback_models": [
         "HLA_EVOKED",
@@ -4943,7 +4943,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion is green for both HLA_EVOKED and HLA_IMMEDIATE (146 assertions). It saves a two-member interaction publication/subscription declaration image, restores it into a fresh registry, proves the declaration ledgers by post-restore interaction delivery, and preserves distinct immutable filesystem report-file identities. It does not claim pending or committed transportation overrides, regional/directed declarations, multiple publication matrices, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52000",
+      "source_location": "cpp/tests/ieee1516_2025_public_mixed_interaction_declaration_restore_catch2.cpp:6",
       "assertions": 146,
       "callback_models": [
         "HLA_EVOKED",
@@ -59476,7 +59476,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion saves one queued timestamped directed interaction for an eligible by-ownership recipient, restores the declaration/object/payload/retraction ledgers into a fresh registry, delivers the restored callback at Flush Queue with timestamp/order/retraction metadata intact, and proves a legal producer Retract emits exactly one Request Retraction for that recipient while preserving immutable filesystem report-file identities. It does not claim ownership transfer, stale callback suppression, multiple directed classes, directed DDM, alternate advances, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51681",
+      "source_location": "cpp/tests/ieee1516_2025_public_directed_tso_delivery_retraction_restore_catch2.cpp:6",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ delivers\\ eligible\\ directed\\ TSO\\ and\\ issues\\ Request\\ Retraction\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
@@ -59609,7 +59609,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ regression is green under both HLA_EVOKED and HLA_IMMEDIATE (300 assertions). It stages timed-save admission before the callback boundary, restores the directed payload and retraction tombstone into a fresh registry, suppresses the resigned peer, rebinds the surviving ownership-qualified route, delivers only to the survivor, and emits exactly one survivor-only Request Retraction while preserving immutable filesystem report-file identity. It does not claim ownership transfer, multiple directed classes, directed DDM, alternate advances, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51231",
+      "source_location": "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp:6",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ keeps\\ an\\ ownership\\-qualified\\ directed\\ TSO\\ route\\ after\\ a\\ peer's\\ post\\-delivery\\ resignation\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
@@ -67644,7 +67644,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore rebinds pending If Available ownership callback and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52226",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47692",
       "assertions": 193,
       "callback_models": [
         "HLA_EVOKED",

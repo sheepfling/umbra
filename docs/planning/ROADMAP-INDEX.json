@@ -72,35 +72,35 @@
       "Owner-reported failure is distinct from receiver-reported failure; the callback-label candidate remains unmapped under RL-267 and no total order is claimed."
     ]
   },
-  "active_handoff_note": "The IEEE 1516.1-2025 and 2010 streams remain separate; no Requirements Lab resync was performed. The public directed by-ownership handoff restore case is isolated in cpp/tests/ieee1516_2025_public_directed_interaction_ownership_handoff_restore_catch2.cpp (403 lines, 264 assertions), retaining all 21 direct requirement-to-2025-subsection pairs, 14 clauses, 30 API surfaces, and both callback models. Its exact CTest and lane check pass. The original monolith is now 57,491 lines, 12,796 below its 70,287-line starting point. Next handoff: repair and verify the existing Catch2 row for the adjacent directed TSO ownership callback restore case (umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-tso-ownership-callback-integration): its current source marker is cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47692, while the plan pointer is stale at :50814; its row already selects 25 requirements and 39 API surfaces, and traceability reports 17 clauses. Establish exact direct pairs before any extraction; do not invent mappings.",
+  "active_handoff_note": "The IEEE 1516.1-2025 and 2010 streams remain separate; no Requirements Lab resync was performed. The public directed by-ownership handoff, directed TSO ownership-callback, directed TSO post-delivery-resignation, directed TSO delivery/Request Retraction, and mixed interaction-declaration restore cases are isolated in focused 2025 translation units. Their direct mappings and callback models remain intact; the exact focused CTests, 2025 target build, and lane gates pass. The federation-management monolith is now 56,079 lines, 14,208 below its 70,287-line starting point. Next handoff: extract the adjacent pending If Available ownership-callback restore case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47692; preserve its 193 assertions, 11 direct pairs across 7 IEEE 1516.1-2025 clauses, 21 API surfaces, and both callback models. Its mapping is current; keep the 2010 stream separate.",
   "active_handoff": {
-    "id": "map-2025-public-directed-tso-ownership-callback-restore",
+    "id": "split-2025-public-pending-ownership-if-available-restore",
     "state": "planned-maintenance-no-behavior-change",
     "family": "time-save-restore",
-    "lane": "public-process-restart-directed-interaction-tso-ownership-callback",
-    "objective": "Repair and verify the existing 2025 Catch2 plan row for the public directed TSO ownership-callback restore case: correct its stale source pointer, record its exact requirement-to-2025-subsection mappings, primary lane, and focused CTest before considering a no-behavior-change extraction.",
-    "test_case": "Embedded public fresh-registry restore suppresses stale directed TSO callback after by-ownership handoff under HLA_EVOKED and HLA_IMMEDIATE",
+    "lane": "attribute-ownership-acquisition",
+    "objective": "Extract the mapped 2025 public pending If Available ownership-callback restore case into a focused thematic translation unit, preserving both callback models, exact requirement mappings, and unchanged behavior.",
+    "test_case": "Embedded public fresh-registry restore rebinds pending If Available ownership callback and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
     "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
     "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47692",
-    "mapping_seed_plan_id": "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-tso-ownership-callback-integration",
+    "mapping_seed_plan_id": "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-pending-ownership-if-available-integration",
     "related_plan_ids": [
-      "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-tso-ownership-callback-integration"
+      "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-pending-ownership-if-available-integration"
     ],
     "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore suppresses stale directed TSO callback after by-ownership handoff under HLA_EVOKED and HLA_IMMEDIATE$",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore rebinds pending If Available ownership callback and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE$",
     "commands": {
-      "test": "python tools/query_rti_work.py test \"Embedded public fresh-registry restore suppresses stale directed TSO callback after by-ownership handoff under HLA_EVOKED and HLA_IMMEDIATE\" --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-tso-ownership-callback-integration --summary --compact",
+      "test": "python tools/query_rti_work.py test \"umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-pending-ownership-if-available-integration\" --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-pending-ownership-if-available-integration --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore suppresses stale directed TSO callback after by-ownership handoff under HLA_EVOKED and HLA_IMMEDIATE$\" --output-on-failure",
-      "lane_check": "python tools/query_rti_work.py check --lane public-process-restart-directed-interaction-tso-ownership-callback --summary --compact"
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore rebinds pending If Available ownership callback and preserves report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE$\" --output-on-failure",
+      "lane_check": "python tools/query_rti_work.py check --lane attribute-ownership-acquisition --summary --compact"
     },
     "acceptance": [
-      "Confirm the exact current source marker and resolve all 25 selected requirements to canonical IEEE 1516.1-2025 subsections from the existing traceability data; do not resync the Requirements Lab.",
-      "Correct the Catch2 row source pointer, add the verified standard sections and exact focused lane/CTest metadata, and keep its existing 39 API surfaces.",
-      "Keep this case within the 2025 target and helpers; do not alter or mix the 2010 stream.",
-      "Only after its mapping is exact, consider a no-behavior-change extraction preserving 282 assertions and both callback models."
+      "Preserve the existing exact 11 requirement-to-2025-subsection pairs, 7 standard clauses, 21 API surfaces, 193 assertions, and both callback models; do not resync the Requirements Lab.",
+      "Move the complete case into a focused 2025 translation unit, register it only in the 2025 Catch2 target, and update the exact source location without changing assertions or behavior.",
+      "Build the 2025 Catch2 target, run this exact CTest selector and lane mapping check, and lower the legacy file-size baseline only after verification.",
+      "Do not alter or mix the IEEE 1516.1-2010 stream."
     ]
   },
   "documents": [

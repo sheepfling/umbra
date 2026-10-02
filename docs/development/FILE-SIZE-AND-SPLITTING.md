@@ -162,9 +162,28 @@ The first wave should be staged rather than attempted as one rewrite:
   ieee1516_2025_public_directed_interaction_ownership_handoff_restore_catch2.cpp
   (403 lines, 264 assertions, one focused CTest); all 21 direct pairs across
   14 clauses, 30 API surfaces, and both callback models remain intact. The
-  original suite is now 57,491 lines, 12,796 fewer than its 70,287-line
-  starting point. The next bounded handoff is the mapped directed TSO ownership
-  callback restore case; verify its exact requirement mapping before extracting.
+  directed TSO ownership-callback restore case is now isolated in
+  ieee1516_2025_public_directed_tso_ownership_callback_restore_catch2.cpp
+  (428 lines, 282 assertions, one focused CTest); its 25 direct pairs across
+  17 clauses, 39 API surfaces, and both callback models remain intact. The
+  public directed TSO post-delivery-resignation case is now isolated in
+  ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp
+  (461 lines, 300 assertions, one focused CTest); its 21 direct pairs across
+  14 clauses, 36 API surfaces, and both callback models remain intact. The
+  directed TSO delivery and Request Retraction case is now isolated in
+  ieee1516_2025_public_directed_tso_delivery_retraction_restore_catch2.cpp
+  (330 lines, one focused CTest); its 20 direct pairs across 13 clauses and
+  36 API surfaces remain intact. The mixed interaction-declaration restore
+  case is now isolated in
+  ieee1516_2025_public_mixed_interaction_declaration_restore_catch2.cpp
+  (237 lines, 146 assertions, one focused CTest); its 8 direct pairs across 7
+  clauses, 17 API surfaces, and both callback models remain intact. The
+  original suite is now 56,079 lines, 14,208 fewer than its 70,287-line
+  starting point. The next bounded handoff is the adjacent pending If Available
+  ownership-callback restore case at
+  ieee1516_2025_federation_management_catch2.cpp:47692; preserve its 193
+  assertions, 11 direct pairs across 7 clauses, 21 API surfaces, and both
+  callback models.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
