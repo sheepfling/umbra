@@ -72,34 +72,34 @@
       "Owner-reported failure is distinct from receiver-reported failure; the callback-label candidate remains unmapped under RL-267 and no total order is claimed."
     ]
   },
-  "active_handoff_note": "The IEEE 1516.1-2025 and 2010 streams remain separate; no Requirements Lab resync was performed. The public directed by-ownership handoff, directed TSO ownership-callback, directed TSO post-delivery-resignation, directed TSO delivery/Request Retraction, mixed interaction-declaration, pending If Available ownership-callback, ownership-acquisition cancellation, Confirm Divestiture notification, three-recipient Confirm Divestiture fan-out, post-confirmation resignation multi-survivor fan-out, mixed regular/If Available Confirm Divestiture fan-out, resigned-candidate Confirm Divestiture, post-confirmation resignation Confirm Divestiture, Divestiture If Wanted notification, and Request Attribute Ownership Assumption restore cases are isolated in focused 2025 translation units. Their direct mappings and available callback-model evidence remain intact; the exact focused CTest, 2025 target build, and ownership lane gate pass. The federation-management monolith is now 52,249 lines, 18,038 below its 70,287-line starting point. Next handoff: extract the pending object-instance Request Attribute Value Update restore case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47701; preserve its 17 direct pairs across 8 IEEE 1516.1-2025 clauses, 18 API surfaces, and 61 assertions. The plan does not specify callback-model metadata. Its mapping is current; keep the 2010 stream separate.",
+  "active_handoff_note": "The IEEE 1516.1-2025 and 2010 streams remain separate; no Requirements Lab resync was performed. The public directed by-ownership handoff, directed TSO ownership-callback, directed TSO post-delivery-resignation, directed TSO delivery/Request Retraction, mixed interaction-declaration, pending If Available ownership-callback, ownership-acquisition cancellation, Confirm Divestiture notification, three-recipient Confirm Divestiture fan-out, post-confirmation resignation multi-survivor fan-out, mixed regular/If Available Confirm Divestiture fan-out, resigned-candidate Confirm Divestiture, post-confirmation resignation Confirm Divestiture, Divestiture If Wanted notification, Request Attribute Ownership Assumption, pending object-instance, object-class, and regional object-class Request Attribute Value Update restore cases are isolated in focused 2025 translation units. Their direct mappings and available callback-model evidence remain intact; the exact focused CTest, 2025 target build, and lane mapping gates pass. The federation-management monolith is now 51,329 lines, 18,958 below its 70,287-line starting point. Next handoff: reconcile the delivered receive-order regional provider-response no-replay test at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47703 with its Catch2 test-plan mapping or explicit internal classification before splitting. Its roadmap record lists 187 assertions, 10 standard sections, and both HLA_EVOKED and HLA_IMMEDIATE callback models; direct requirement-pair and API-surface counts are not established. Keep the 2010 stream separate. Its mapping is current; keep the 2010 stream separate.",
   "active_handoff": {
-    "id": "split-2025-public-pending-attribute-value-update-restore",
+    "id": "split-2025-public-regional-provider-response-no-replay",
     "state": "planned-maintenance-no-behavior-change",
     "family": "time-save-restore",
-    "lane": "public-process-restart-pending-attribute-value-update",
-    "objective": "Extract the mapped 2025 public pending object-instance Request Attribute Value Update restore case into a focused thematic translation unit, preserving exact requirement mappings and unchanged behavior.",
-    "test_case": "Embedded public fresh-registry restore rebinds pending object-instance Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE",
+    "lane": "public-durable-save-regional-pending-attribute-value-update-regular-response-no-replay",
+    "objective": "Reconcile the 2025 delivered receive-order regional provider-response no-replay test with its exact Catch2 test-plan mapping or explicit internal classification, then isolate it if that evidence is complete, preserving unchanged behavior.",
+    "test_case": "Embedded public fresh-registry restore does not replay a delivered receive-order regional provider response under HLA_EVOKED and HLA_IMMEDIATE",
     "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47701",
-    "mapping_seed_plan_id": "umbra-cpp-public-federation-save-commit-filesystem-process-restart-pending-attribute-value-update",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47703",
+    "mapping_seed_plan_id": "umbra-cpp-regional-attribute-value-update-provider-response-integration",
     "related_plan_ids": [
-      "umbra-cpp-public-federation-save-commit-filesystem-process-restart-pending-attribute-value-update"
+      "umbra-cpp-public-durable-save-regional-pending-attribute-value-update-regular-response-no-replay-integration"
     ],
     "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore rebinds pending object-instance Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE$",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore does not replay a delivered receive-order regional provider response under HLA_EVOKED and HLA_IMMEDIATE$",
     "commands": {
-      "test": "python tools/query_rti_work.py test \"umbra-cpp-public-federation-save-commit-filesystem-process-restart-pending-attribute-value-update\" --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-public-federation-save-commit-filesystem-process-restart-pending-attribute-value-update --summary --compact",
+      "test": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore does not replay a delivered receive-order regional provider response under HLA_EVOKED and HLA_IMMEDIATE$\" --output-on-failure",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-regional-attribute-value-update-provider-response-integration --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore rebinds pending object-instance Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE$\" --output-on-failure",
-      "lane_check": "python tools/query_rti_work.py check --lane public-process-restart-pending-attribute-value-update --summary --compact"
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore does not replay a delivered receive-order regional provider response under HLA_EVOKED and HLA_IMMEDIATE$\" --output-on-failure",
+      "lane_check": "python tools/query_rti_work.py check --lane public-durable-save-regional-pending-attribute-value-update-regular-response-no-replay --summary --compact"
     },
     "acceptance": [
-      "Preserve the existing exact 17 requirement-to-2025-subsection pairs, 8 standard clauses, 18 API surfaces, and 61 assertions; leave callback-model metadata unspecified, and do not resync the Requirements Lab.",
-      "Move the complete case into a focused 2025 translation unit, register it only in the 2025 Catch2 target, and update the exact source location without changing assertions or behavior.",
-      "Build the 2025 Catch2 target, run this exact CTest selector and lane mapping check, and lower the legacy file-size baseline only after verification.",
+      "The current roadmap record lists 187 assertions, 10 standard sections, and both callback models but has no matching Catch2 plan case; reconcile exact mapped requirements or explicitly classify the internal test without inventing requirement pairs or API surfaces.",
+      "After classification, isolate the unchanged complete case in a focused 2025 translation unit, register it only in the 2025 Catch2 target, and update its exact source location.",
+      "Build the 2025 Catch2 target, run the exact CTest selector and applicable mapping gate, and lower the size baseline only after verification.",
       "Do not alter or mix the IEEE 1516.1-2010 stream."
     ]
   },
@@ -11880,7 +11880,7 @@
         "public-durable-save-regional-pending-attribute-value-update-regular-response-no-replay",
         "durable-save-regional-pending-attribute-value-update-regular-response-no-replay"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:82286",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47703",
       "assertions": 187,
       "callback_models": [
         "HLA_EVOKED",

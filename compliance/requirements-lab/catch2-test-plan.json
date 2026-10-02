@@ -5128,7 +5128,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This public C++ regression runs the filesystem-backed regional class-designator save/restore path under both HLA_EVOKED and HLA_IMMEDIATE. It saves one overlap-qualified regional request before the provider callback, recreates the federation through a fresh registry and fresh public ambassadors, and proves Federation Restored precedes exactly one rebound Provide Attribute Value Update with the original object, flavor attribute, per-attribute request region, and request tag. It also queues accepted requests whose region becomes disjoint, whose requester resigns, or whose provider resigns before callback entry and proves each is suppressed without a duplicate callback under either callback model. It does not claim automatic provision, timestamped/retraction response behavior, remote transport, package/JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:56574",
+      "source_location": "cpp/tests/ieee1516_2025_public_regional_class_pending_attribute_value_update_restore_catch2.cpp:6",
       "assertions": 392,
       "callback_models": [
         "HLA_EVOKED",
@@ -46453,7 +46453,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This public C++ regression runs the filesystem-backed class-designator save/restore path under both HLA_EVOKED and HLA_IMMEDIATE. It saves a pending base-class Request Attribute Value Update expanded over a child object before the provider callback, recreates the federation through a fresh registry and fresh public ambassadors, and proves Federation Restored precedes exactly one rebound Provide Attribute Value Update with the original object, attribute set, and request tag. It does not claim regional class request ledgers, automatic provision, timestamped/retraction response behavior, remote transport, package/JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:56322",
+      "source_location": "cpp/tests/ieee1516_2025_public_class_pending_attribute_value_update_restore_catch2.cpp:6",
       "primary_lane": "public-process-restart-class-pending-attribute-value-update"
     },
     {
@@ -48243,7 +48243,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Embedded public fresh-registry restore rebinds pending object-instance Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:56065",
+      "source_location": "cpp/tests/ieee1516_2025_public_pending_attribute_value_update_restore_catch2.cpp:6",
       "assertions": 61,
       "tags": [
         "integration",

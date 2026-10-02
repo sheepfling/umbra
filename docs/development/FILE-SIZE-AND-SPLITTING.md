@@ -229,12 +229,32 @@ The first wave should be staged rather than attempted as one rewrite:
   lines, one focused CTest); its 13 direct pairs across 8 clauses and 22 API
   surfaces remain intact. The plan does not specify its assertion count or
   callback-model metadata. The 2025 target build, exact CTest, and ownership
-  lane mapping check pass. The original suite is now 52,249 lines, 18,038 fewer
-  than its 70,287-line starting point. The next bounded handoff is the pending
-  object-instance Request Attribute Value Update restore case at
-  ieee1516_2025_federation_management_catch2.cpp:47701; preserve its 17 direct
-  pairs across 8 clauses, 18 API surfaces, and 61 assertions. The plan does not
-  specify callback-model metadata.
+  lane mapping check pass. The public pending object-instance Request
+  Attribute Value Update restore case is now isolated in
+  ieee1516_2025_public_pending_attribute_value_update_restore_catch2.cpp (263
+  lines, one focused CTest); its 17 direct pairs across 8 clauses, 18 API
+  surfaces, and 61 assertions remain intact. Callback-model metadata remains
+  unspecified. The 2025 target build, exact CTest, and lane mapping check pass.
+  The original suite is now 51,993 lines, 18,294 fewer than its 70,287-line
+  starting point. The public pending object-class Request Attribute Value
+  Update restore case is now isolated in
+  ieee1516_2025_public_class_pending_attribute_value_update_restore_catch2.cpp
+  (258 lines, one focused CTest); its 12 direct pairs across 6 clauses, 8 API
+  surfaces, and 61 assertions remain intact. Callback-model metadata remains
+  unspecified. The 2025 target build, exact CTest, and lane mapping check pass.
+  The public regional object-class Request Attribute Value Update restore case
+  is now isolated in
+  ieee1516_2025_public_regional_class_pending_attribute_value_update_restore_catch2.cpp
+  (420 lines, one focused CTest); its 11 direct pairs across 6 clauses, 21 API
+  surfaces, 392 assertions, and both HLA_EVOKED and HLA_IMMEDIATE callback
+  models remain intact. The 2025 target build, exact CTest, and regional lane
+  mapping check pass. The original suite is now 51,329 lines, 18,958 fewer
+  than its 70,287-line starting point. The next bounded handoff is the
+  delivered receive-order regional provider-response no-replay case at
+  ieee1516_2025_federation_management_catch2.cpp:47703; its roadmap record has
+  187 assertions, 10 standard sections, and both callback models. Reconcile its
+  missing Catch2 test-plan mapping/classification before splitting; do not
+  invent requirement pairs or API-surface counts.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
