@@ -443,19 +443,76 @@ The first wave should be staged rather than attempted as one rewrite:
     `ieee1516_2025_unsubscribe_object_class_directed_interactions_service_report_file_catch2.cpp`
     (131 lines), preserving 11 direct pairs across clauses 5.13, 11.5,
     11.5.1, 11.5.2, and 11.5.2.1 with both API surfaces. Its exact CTest,
-    adjacent Unpublish Interaction Class CTest, and mapped trace pass. The
+    adjacent Unpublish Interaction Class CTest, and mapped trace pass.
     The Unpublish Interaction Class service-report case is now isolated in
     `ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp`
     (80 lines), preserving its 6 direct pairs across clauses 5.5, 11.5,
-    11.5.1, 11.5.2, and 11.5.2.1 with 1 API surface. The 2025 target built;
-    exact CTests for Unpublish and adjacent Unsubscribe passed, and the
+    11.5.1, 11.5.2, and 11.5.2.1 with 1 API surface. The Unsubscribe
+    Interaction Class service-report case is now isolated in
+    `ieee1516_2025_unsubscribe_interaction_class_service_report_file_catch2.cpp`
+    (73 lines), preserving 6 direct pairs across clauses 5.11, 11.5, 11.5.1,
+    11.5.2, and 11.5.2.1 with 1 API surface. The 2025 target built; the exact
+    Unsubscribe CTest and adjacent regional-advisory CTest passed, and its
     requirement trace resolves to the focused test. The federation-management
-    monolith is now 43,006 lines, 27,281 below its 70,287-line start, with its
-    ceiling ratcheted to 43,006. Next handoff: isolate `Embedded service
-    reporting preserves Unsubscribe Interaction Class arguments` at
-    `ieee1516_2025_federation_management_catch2.cpp:19288`, preserving 6
-    direct pairs across clauses 5.11, 11.5, 11.5.1, 11.5.2, and 11.5.2.1
-    with 1 API surface. Keep the 2025 cases separate from IEEE 1516.1-2010.
+    monolith was then 42,000 lines, 28,287 below its 70,287-line start, with its
+    ceiling ratcheted to 42,000. Three duplicate declaration-advisory 2025
+    definitions were removed in separate, test-mapped lanes. The regional
+    focused case retains 61
+    assertions, 13 direct pairs across 7 sections, and 9 API surfaces. The
+    ordinary focused case retains 91 assertions, 15 direct pairs across 7
+    sections, and 8 API surfaces, including explicit suppression while the
+    advisory switch is disabled. Both 2025 test targets built; the retained
+    CTests passed and each now has one registration. Their traces resolve to
+    the focused source files, the ordinary lane gate passes, and the two plan
+    source pointers now name those focused files. The declaration-advisory
+    service-report case retains its 143 assertions, 6 direct pairs across 6
+    sections, and 4 API surfaces in the focused unit; its retained CTest passes
+    and the trace points only to that source. The mapped Discover Object
+    Instance service-report case is now isolated in
+    `discover_object_instance_service_report_catch2.cpp` (139 lines, 33
+    assertions, 3 direct pairs across clauses 6.9.3, 11.5, and 11.5.2, and 4
+    API surfaces). The receive-order Remove Object Instance case is isolated
+    in `remove_object_instance_service_report_catch2.cpp` (126 lines, 29
+    assertions, 9 direct pairs across clauses 6.17.1, 11.5, and 11.5.2, and 5
+    API surfaces). The timestamped Remove Object Instance case is now isolated
+    in `timestamped_remove_object_instance_service_report_catch2.cpp` (234
+    lines, 73 assertions, 10 direct pairs across clauses 6.17.1, 11.5, and
+    11.5.2, and 8 API surfaces). The three focused removal/discovery CTests
+    passed, as did the adjacent static Advisories Use Known Class regression;
+    both focused and aggregate 2025 targets built. The timestamped service-
+    report case has one CTest registration and its lane trace/check resolve to
+    the focused source. The composed-FDD advisory seed case is now isolated in
+    `join_advisory_switch_seed_catch2.cpp` (45 lines, 16 assertions, 13 direct
+    pairs across 8 standard sections, and 8 API surfaces); its focused CTest
+    passes with exactly one registration, and its source trace and lane check
+    resolve. The static Advisories Use Known Class test is now isolated in
+    `advisories_use_known_class_switch_catch2.cpp` (45 lines, 15 assertions,
+    2 direct pairs in IEEE 1516.1-2025 clause 10.55.1, and 1 API surface).
+    Its focused CTest passes exactly once; the focused and aggregate targets
+    build, and the adjacent support-switch regression passes in the aggregate.
+    Its lane trace resolves to the focused source. The stale monolith source
+    pointer was corrected, and the previous advisory-seed row's duplicate
+    source pointer was removed. The support-switch regression is now isolated
+    in `support_switch_state_catch2.cpp` (86 lines, 40 assertions, 8 direct
+    pairs across 8 IEEE 1516.1-2025 sections, and 12 API surfaces); its
+    callback-model classification remains unspecified. The plan narrative now
+    distinguishes mapped public switch behavior from fixture setup and removes
+    stale HLAreportServiceFile catalog-only claims. The focused CTest passes
+    exactly once, the lane check resolves the focused source, both focused and
+    aggregate targets build, and the adjacent mixed-standard NoAction
+    automatic-resign test passes in the aggregate. The shared 2025
+    federation-management CMake helper serves seven focused targets (four
+    service-report lanes plus three advisory/support-switch cases), leaving
+    `CMakeLists.txt` at 12,393 lines with its ceiling ratcheted to 12,393. The
+    federation-management monolith is now 41,827 lines, 28,460 below its
+    70,287-line start, with its ceiling ratcheted to 41,827. No IEEE
+    1516.1-2010 path changed.
+    Next handoff: isolate `Embedded joins preserve an explicit FOM NoAction
+    automatic-resign directive` from
+    `ieee1516_2025_federation_management_catch2.cpp:19291`. Preserve 9 direct
+    pairs across IEEE 1516.1-2025 clauses 4, 4.1.1, 4.2, and 10.44, and
+    IEEE 1516.2-2025 clauses 4.13.3 and 6.2.13, plus 7 API surfaces and 7
+    HLA_EVOKED assertions. Keep the two standards' mappings distinct.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in

@@ -275,7 +275,7 @@ keeps callback-model coverage separate from the process lanes:
     python tools/query_rti_work.py check --lane evoked-synchronization-save-restore --summary --compact
     ctest --test-dir <build-dir> -C Debug -R "^umbra\.ieee1516_2025\.catch2\.Embedded evoked federation restore reconstitutes a saved synchronization point$" --output-on-failure
 
-The focused case at `ieee1516_2025_federation_management_catch2.cpp:23944`
+The focused case at `ieee1516_2025_federation_management_catch2.cpp:23497`
 records 39 assertions under `HLA_EVOKED`, maps eight Requirements-Lab anchors
 to eight canonical IEEE 1516.1-2025 subsections, and exercises 17 official C++
 API surfaces. It saves an announced-but-unachieved point, completes the live
@@ -2207,7 +2207,7 @@ large federation-management executable. It contains three source-located C++
 cases, all mapped, with 232 assertions across 25 Requirements-Lab references
 and 19 canonical 2025 sections. The public discovery/reflection/removal case
 is at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32699` (152
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32049` (152
 assertions across HLA_EVOKED and HLA_IMMEDIATE); the switch-cycle case is at
 line 35458 (34 assertions), and the save/restore companion at line 35683 (46
 assertions). Use the exact handles below rather than scanning the full plan:
@@ -2292,7 +2292,7 @@ regional Provide Attribute Value Update case at
 `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2454` is green with
 251 assertions and 11 Requirements-Lab anchors. The three-dimensional regional
 object-attribute overlap case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39177` is green with
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38527` is green with
 57 assertions and 10 Requirements-Lab anchors. The restored-baseline regional
 Request Attribute Value Update solicitation case at
 `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2756` is green with
@@ -2326,7 +2326,7 @@ source pointer is the federation-teardown update-rate-history case at
 assertions, nine Requirements-Lab anchors, five canonical 2025 sections, and
 15 official C++ API surfaces. The next source pointer is the unplanned
 regional best-effort attribute-rate case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48846`. The m56
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48196`. The m56
 slice is green with 47 HLA_EVOKED assertions, 19 Requirements-Lab anchors, 11
 canonical 2025 sections, and 22 official C++ API surfaces. The m57 slice is
 green with 57 HLA_EVOKED assertions, 30 Requirements-Lab anchors, 19 canonical
@@ -2348,17 +2348,17 @@ delivery. Query it with
 The next
 source pointer is the unplanned immediate timestamped directed-interaction
  source-resignation case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51796`; m61 is green
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51146`; m61 is green
  with 45 HLA_EVOKED assertions. The m62 declaration at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52834` is a disabled
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52184` is a disabled
  `#if 0` malformed source artifact with no executable evidence. The m63
  regional source-region snapshot case is green with 42 HLA_EVOKED assertions
- at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:59056`. The m64
+ at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:58406`. The m64
  timestamped regional interaction TSO/retraction case is green with 68
  HLA_EVOKED assertions at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:64708`. The m65
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:64058`. The m65
  public HLAfloat64Time representation case is green with 31 assertions at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:66064`. The m66,
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:65414`. The m66,
  m67, m68, and m69 no-TSO GALT/NRG cases are green with 21, 15, 27, and 24
  assertions at lines 77307, 77349, 77382, and 77428 respectively. The source
  queue for this translation unit is now exhausted; choose the next bounded

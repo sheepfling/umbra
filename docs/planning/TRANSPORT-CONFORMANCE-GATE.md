@@ -438,7 +438,7 @@ indexed with 16 assertions and 13 requirement anchors. The Join-time explicit
 NoAction automatic-resign slice is indexed with 7 assertions and 9 requirement
 anchors. The completed federation-management
 order and transportation MOM service-classification case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:30475`; that slice is
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:29825`; that slice is
 indexed with 66 assertions and 19 requirement anchors. The joined-federate MOM
 regional discovery slice is indexed with 124 assertions and 17 requirement
 anchors. The next bounded source action is the unplanned federation-management
@@ -470,14 +470,14 @@ subscription case at
 with 43 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 12 canonical 2025
 sections, and 21 official C++ API surfaces. The custom-transportation
 handle-stability case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35260` and the
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34610` and the
 restored-baseline timestamped MOM interaction case at
 `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1635` are mapped and
 green. The restored-baseline regional Provide Attribute Value Update case at
 `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1794` is green with
 251 assertions and 11 Requirements-Lab anchors. The three-dimensional
 regional object-attribute overlap case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38517` is green with
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:37867` is green with
 57 assertions and 10 Requirements-Lab anchors. The restored-baseline regional
 Request Attribute Value Update solicitation case at
 `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2096` is green with

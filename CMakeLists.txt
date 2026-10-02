@@ -3542,7 +3542,7 @@ if(BUILD_TESTING)
       if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
         target_sources(umbra_ieee1516_2025_catch2 PRIVATE
           cpp/tests/ieee1516_2025_federation_management_catch2.cpp cpp/tests/ieee1516_2025_public_ownership_acquisition_restore_catch2.cpp cpp/tests/ieee1516_2025_public_mixed_negotiated_ownership_restore_catch2.cpp cpp/tests/ieee1516_2025_public_mixed_delivered_negotiated_ownership_restore_catch2.cpp cpp/tests/ieee1516_2025_public_delivered_negotiated_owner_confirmation_restore_catch2.cpp cpp/tests/ieee1516_2025_public_delivered_negotiated_if_available_owner_confirmation_restore_catch2.cpp cpp/tests/ieee1516_2025_public_asymmetric_mixed_negotiated_confirmation_restore_catch2.cpp cpp/tests/ieee1516_2025_public_reverse_asymmetric_mixed_negotiated_confirmation_restore_catch2.cpp cpp/tests/ieee1516_2025_public_pending_attribute_transportation_type_change_restore_catch2.cpp cpp/tests/ieee1516_2025_public_pending_interaction_transportation_type_change_restore_catch2.cpp cpp/tests/ieee1516_2025_public_committed_interaction_transportation_type_override_restore_catch2.cpp cpp/tests/ieee1516_2025_public_mixed_interaction_transportation_type_override_restore_catch2.cpp cpp/tests/ieee1516_2025_public_directed_interaction_ownership_handoff_restore_catch2.cpp cpp/tests/ieee1516_2025_public_directed_tso_ownership_callback_restore_catch2.cpp cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp cpp/tests/ieee1516_2025_public_directed_tso_delivery_retraction_restore_catch2.cpp cpp/tests/ieee1516_2025_public_mixed_interaction_declaration_restore_catch2.cpp cpp/tests/ieee1516_2025_public_pending_ownership_if_available_restore_catch2.cpp cpp/tests/ieee1516_2025_public_ownership_acquisition_cancellation_restore_catch2.cpp cpp/tests/ieee1516_2025_public_confirm_divestiture_notification_restore_catch2.cpp cpp/tests/ieee1516_2025_public_confirm_divestiture_fanout_restore_catch2.cpp cpp/tests/ieee1516_2025_public_confirm_divestiture_post_resignation_fanout_restore_catch2.cpp cpp/tests/ieee1516_2025_public_confirm_divestiture_mixed_fanout_restore_catch2.cpp cpp/tests/ieee1516_2025_public_confirm_divestiture_resignation_restore_catch2.cpp cpp/tests/ieee1516_2025_public_confirm_divestiture_post_confirmation_resignation_restore_catch2.cpp cpp/tests/ieee1516_2025_public_divestiture_if_wanted_notification_restore_catch2.cpp cpp/tests/ieee1516_2025_public_ownership_assumption_search_restore_catch2.cpp cpp/tests/ieee1516_2025_public_confirm_divestiture_assumption_fanout_restore_catch2.cpp cpp/tests/ieee1516_2025_public_pending_attribute_value_update_restore_catch2.cpp cpp/tests/ieee1516_2025_public_class_pending_attribute_value_update_restore_catch2.cpp cpp/tests/ieee1516_2025_public_regional_class_pending_attribute_value_update_restore_catch2.cpp cpp/tests/ieee1516_2025_public_regional_provider_response_no_replay_restore_catch2.cpp cpp/tests/ieee1516_2025_public_application_value_restore_catch2.cpp cpp/tests/ieee1516_2025_public_regional_attribute_update_tso_restore_catch2.cpp cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp cpp/tests/ieee1516_2025_timestamped_object_class_request_provider_response_catch2.cpp cpp/tests/ieee1516_2025_joined_federate_mom_conditional_reflections_catch2.cpp cpp/tests/ieee1516_2025_public_directed_tso_alternate_advances_restore_catch2.cpp cpp/tests/ieee1516_2025_public_pending_negotiated_if_available_owner_confirmation_restore_catch2.cpp cpp/tests/ieee1516_2025_public_pending_negotiated_owner_confirmation_restore_catch2.cpp cpp/tests/ieee1516_2025_custom_transportation_type_controls_catch2.cpp cpp/tests/ieee1516_2025_request_retraction_directed_interaction_mixed_fanout_catch2.cpp cpp/tests/ieee1516_2025_regional_interaction_subscription_receive_order_catch2.cpp cpp/tests/ieee1516_2025_evoked_regional_interaction_source_region_snapshot_catch2.cpp cpp/tests/ieee1516_2025_timestamped_regional_interaction_tso_retraction_catch2.cpp cpp/tests/ieee1516_2025_timestamped_regional_interaction_alternate_advances_catch2.cpp cpp/tests/ieee1516_2025_timestamped_regional_interaction_tar_nmr_catch2.cpp cpp/tests/ieee1516_2025_timestamped_regional_interaction_mixed_advances_catch2.cpp cpp/tests/ieee1516_2025_timestamped_default_region_interaction_flush_queue_catch2.cpp cpp/tests/ieee1516_2025_restore_tso_catch2.cpp cpp/tests/ieee1516_2025_federation_management_restore_tso_support.cpp cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp
-          cpp/tests/ieee1516_2025_service_report_catch2.cpp cpp/tests/ieee1516_2025_timestamped_directed_interaction_failure_file_catch2.cpp cpp/tests/ieee1516_2025_timestamped_directed_interaction_failure_mom_route_catch2.cpp cpp/tests/ieee1516_2025_timestamped_send_interaction_failure_file_catch2.cpp cpp/tests/ieee1516_2025_publish_object_class_attributes_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_unpublish_object_class_attributes_restored_baseline_catch2.cpp cpp/tests/ieee1516_2025_unpublish_object_class_attributes_whole_class_catch2.cpp cpp/tests/ieee1516_2025_subscribe_object_class_attributes_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_unsubscribe_object_class_attributes_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_publish_object_class_directed_interactions_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_unpublish_object_class_directed_interactions_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_subscribe_object_class_directed_interactions_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_unsubscribe_object_class_directed_interactions_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp
+          cpp/tests/ieee1516_2025_service_report_catch2.cpp cpp/tests/ieee1516_2025_timestamped_directed_interaction_failure_file_catch2.cpp cpp/tests/ieee1516_2025_timestamped_directed_interaction_failure_mom_route_catch2.cpp cpp/tests/ieee1516_2025_timestamped_send_interaction_failure_file_catch2.cpp cpp/tests/ieee1516_2025_publish_object_class_attributes_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_unpublish_object_class_attributes_restored_baseline_catch2.cpp cpp/tests/ieee1516_2025_unpublish_object_class_attributes_whole_class_catch2.cpp cpp/tests/ieee1516_2025_subscribe_object_class_attributes_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_unsubscribe_object_class_attributes_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_publish_object_class_directed_interactions_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_unpublish_object_class_directed_interactions_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_subscribe_object_class_directed_interactions_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_unsubscribe_object_class_directed_interactions_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp cpp/tests/ieee1516_2025_unsubscribe_interaction_class_service_report_file_catch2.cpp
           cpp/tests/subscribe_object_class_attributes_discovery_catch2.cpp
           cpp/tests/attribute_relevance_advisory_catch2.cpp
           cpp/tests/attribute_scope_advisory_catch2.cpp
@@ -11032,32 +11032,27 @@ if(BUILD_TESTING)
       )
     endif()
 
-    # Keep declaration-relevance service-report ordering independently
-    # buildable. This preserves the filesystem-backed report seam while
-    # separating durability-before-callback assertions from advisory routing.
+    # Focused IEEE 1516.1-2025 embedded federation-management tests share one build recipe.
+    function(umbra_add_focused_2025_federation_management_catch2 name)
+      set(target "umbra_${name}_catch2")
+      add_executable(${target} "cpp/tests/${name}_catch2.cpp")
+      target_compile_features(${target} PRIVATE cxx_std_20)
+      target_include_directories(${target} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/cpp" "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src")
+      target_compile_definitions(${target} PRIVATE
+        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}" UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1)
+      target_link_libraries(${target} PRIVATE umbra_fom_validation_backend umbra::rti Catch2::Catch2WithMain)
+      catch_discover_tests(${target} TEST_PREFIX "umbra.${name}.catch2." ADD_TAGS_AS_LABELS
+        DISCOVERY_MODE POST_BUILD)
+    endfunction()
+
     if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-      add_executable(umbra_declaration_relevance_service_report_catch2
-        cpp/tests/declaration_relevance_service_report_catch2.cpp
-      )
-      target_compile_features(umbra_declaration_relevance_service_report_catch2 PRIVATE cxx_std_20)
-      target_include_directories(umbra_declaration_relevance_service_report_catch2 PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
-      )
-      target_compile_definitions(umbra_declaration_relevance_service_report_catch2 PRIVATE
-        UMBRA_SOURCE_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}"
-        UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
-      )
-      target_link_libraries(umbra_declaration_relevance_service_report_catch2 PRIVATE
-        umbra_fom_validation_backend
-        umbra::rti
-        Catch2::Catch2WithMain
-      )
-      catch_discover_tests(umbra_declaration_relevance_service_report_catch2
-        TEST_PREFIX "umbra.declaration_relevance_service_report.catch2."
-        ADD_TAGS_AS_LABELS
-        DISCOVERY_MODE POST_BUILD
-      )
+      umbra_add_focused_2025_federation_management_catch2(declaration_relevance_service_report)
+      umbra_add_focused_2025_federation_management_catch2(discover_object_instance_service_report)
+      umbra_add_focused_2025_federation_management_catch2(remove_object_instance_service_report)
+      umbra_add_focused_2025_federation_management_catch2(timestamped_remove_object_instance_service_report)
+      umbra_add_focused_2025_federation_management_catch2(join_advisory_switch_seed)
+      umbra_add_focused_2025_federation_management_catch2(advisories_use_known_class_switch)
+      umbra_add_focused_2025_federation_management_catch2(support_switch_state)
     endif()
 
     # Keep the embedded regional Attribute Relevance Advisory regression

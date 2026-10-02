@@ -44,7 +44,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Interaction Class arguments",
         "cpp/tests/ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments",
+        "cpp/tests/ieee1516_2025_unsubscribe_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Interaction Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Interaction Transportation Type Change arguments",
@@ -93,7 +93,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Interaction Class arguments",
         "cpp/tests/ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments",
+        "cpp/tests/ieee1516_2025_unsubscribe_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Interaction Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Interaction Transportation Type Change arguments",
@@ -168,7 +168,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Interaction Class arguments",
         "cpp/tests/ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments",
+        "cpp/tests/ieee1516_2025_unsubscribe_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Interaction Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Request Interaction Transportation Type Change arguments",
@@ -1146,7 +1146,7 @@
       "source_symbol": "UmbraRtiAmbassador::unsubscribeInteractionClass",
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_interaction_declaration_service_reports",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments"
+        "cpp/tests/ieee1516_2025_unsubscribe_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments"
       ]
     },
     {
@@ -1298,7 +1298,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Interaction Class arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Subscribe Interaction Class arguments",
         "cpp/tests/ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unpublish Interaction Class arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments",
+        "cpp/tests/ieee1516_2025_unsubscribe_interaction_class_service_report_file_catch2.cpp::Embedded service reporting preserves Unsubscribe Interaction Class arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Send Interaction argument forms",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves receive-order Send Interaction arguments",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Send Directed Interaction argument forms",
