@@ -38773,6 +38773,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-211-l101-27"
       ],
       "test_case": "Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction",
+      "source_location": "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp:5",
       "tags": [
         "integration",
         "development-profile",
@@ -38860,7 +38861,7 @@
         "federate.callback.request-retraction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "Implemented and green (33 Catch2 assertions) under HLA_EVOKED. This immediate-recipient regression queues a qualifying timestamped attribute passel, removes the declaration before callback dispatch, then applies a still-legal Retract. The recipient receives neither the reflection nor Request Retraction because callback-boundary suppression is terminal but not delivered. It does not cover constrained, regional, directed, save/restore, transport, package/JUnit/protected-review evidence, or conformance. RL-019 and RL-070 record the Lab source/lifecycle extraction gaps."
+      "next_action": "Current focused CTest is red during setup: after object discovery, publisher->evokeCallback(0.0) consumes a provider-side Auto Provide callback where the test expects an empty queue (14/15 assertions pass before failure); three consecutive focused runs reproduce it. Diagnose and drain or otherwise isolate setup-generated publisher callbacks before the time-regulation assertion, then rerun the complete suppression case. Preserve this immediate-recipient lane separately from mixed-fanout; no constrained, regional, directed, save/restore, transport, package/JUnit/protected-review, or conformance claim. RL-019 and RL-070 record the Lab source/lifecycle extraction gaps."
     },
     {
       "id": "umbra-cpp-request-retraction-suppressed-regional-attribute-update-integration",
