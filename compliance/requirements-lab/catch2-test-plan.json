@@ -12176,7 +12176,7 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-157-l103-29"
       ],
       "test_case": "Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+      "source_location": "cpp/tests/ieee1516_2025_connection_lost_cancel_delete_divest_catch2.cpp:15",
       "tags": [
         "development-profile",
         "federation-management",
@@ -12223,7 +12223,7 @@
         "hla-1516.1-2025:clause-7.4"
       ],
       "test_case": "Immediate callbacks apply the configured automatic cancel-then-delete-then-divest directive synchronously",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:12569",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
       "primary_lane": "connection-lost-automatic-cancel-delete-divest-immediate",
       "focus_lane": "connection-lost-automatic-cancel-delete-divest-immediate",
       "assertions": 45,
