@@ -35,65 +35,69 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-receive-order-send-interaction-service-report-file",
+    "id": "extract-2025-receive-order-send-directed-interaction-service-report-file",
     "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-send-interaction-service-report-file-integration",
+    "plan_id": "umbra-cpp-send-directed-interaction-service-report-file-integration",
     "family": "mom-after-base-services",
-    "lane": "send-interaction-service-report",
-    "objective": "Extract the mapped receive-order Send Interaction service-report arguments case into a focused 2025-only unit while preserving its behavior and evidence.",
-    "test_case": "Embedded service reporting preserves receive-order Send Interaction arguments",
-    "source_target": "cpp/tests/ieee1516_2025_send_interaction_service_report_file_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_send_interaction_service_report_file_catch2.cpp:5",
+    "lane": "directed",
+    "objective": "Extract the mapped receive-order Send Directed Interaction service-report arguments case into a focused 2025-only unit while preserving its behavior and evidence.",
+    "test_case": "Embedded service reporting preserves receive-order Send Directed Interaction arguments",
+    "source_target": "cpp/tests/ieee1516_2025_receive_order_send_directed_interaction_service_report_file_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_receive_order_send_directed_interaction_service_report_file_catch2.cpp:5",
     "callback_models": [
       "HLA_EVOKED"
     ],
-    "mapping_seed_policy": "This focused source preserves the exact five direct IEEE 1516.1-2025 requirement-to-subsection pairs across clauses 6.12, 6.12.4, 11.5, and 11.5.2.1 plus its two official C++ API surfaces. Development-profile evidence only; no 2010 mapping or conformance claim.",
+    "mapping_seed_policy": "This focused source preserves the exact seven direct IEEE 1516.1-2025 requirement-to-subsection pairs across clauses 6.14, 6.14.3, 6.15.1, 11.5, and 11.5.2.1 plus its two official C++ API surfaces. Development-profile evidence only; no 2010 mapping or conformance claim.",
     "api_surfaces": [
-      "api.2025.cpp.rtiambassador.sendinteraction.18921ac41e4f",
-      "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1"
+      "api.2025.cpp.rtiambassador.senddirectedinteraction.87506244c238",
+      "api.2025.cpp.federateambassador.receivedirectedinteraction.4ad3f71941e8"
     ],
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves receive-order Send Directed Interaction arguments$",
     "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-send-interaction-service-report-file-integration --summary --compact",
-      "lane_check": "python tools/query_rti_work.py check --lane send-interaction-service-report --summary --compact",
+      "case": "python tools/query_rti_work.py case umbra-cpp-send-directed-interaction-service-report-file-integration --summary --compact",
+      "lane_check": "python tools/query_rti_work.py check --lane directed --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
       "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves receive-order Send Directed Interaction arguments$\" --output-on-failure",
-      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback|Embedded service reporting preserves receive-order Send Directed Interaction arguments\" --output-on-failure"
+      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting preserves receive-order Send Interaction arguments|Embedded service reporting records timestamped Send Directed Interaction before directed callback\" --output-on-failure"
     },
     "acceptance": [
-      "The exact 131-line test body is preserved in the focused source, and the plan row points to it while retaining all five direct pairs and two API surfaces.",
-      "The aggregate 2025 target built; the exact CTest plus receive-order directed and timestamped directed neighboring CTests passed.",
-      "The lane mapping and source-size checks pass; the monolith and legacy ceiling are both reduced from 39,706 to 39,575 lines.",
+      "The exact 164-line test body is preserved in the focused source, and the plan row points to it while retaining all seven direct pairs and two API surfaces.",
+      "The aggregate 2025 target built; the exact CTest plus receive-order Send Interaction and timestamped directed neighboring CTests passed.",
+      "The directed mapping and source-size checks pass; the monolith and legacy ceiling are both reduced from 39,575 to 39,411 lines.",
       "No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
     ]
   },
-  "active_handoff_note": "Verified progress: The mapped receive-order Send Interaction service-report arguments case now lives in a focused 2025 unit; its exact 131-line body was preserved. The federation-management monolith and size ceiling fell from 39,706 to 39,575 lines. The 2025 aggregate target built; the exact case, receive-order directed neighbor, and timestamped directed neighbor all passed. Lane mapping and source-size checks pass. No 2010 source, target, fixture, or mapping changed. Next handoff: extract the mapped receive-order Send Directed Interaction service-report arguments case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39234, preserving its seven direct mappings and two API surfaces.",
+  "active_handoff_note": "Verified progress: The mapped receive-order Send Directed Interaction service-report arguments case now lives in a focused 2025 unit; its exact 164-line body was preserved. The federation-management monolith and size ceiling fell from 39,575 to 39,411 lines. The 2025 aggregate target built; the exact case, receive-order Send Interaction neighbor, and timestamped directed neighbor all passed. Directed mapping and source-size checks pass. No 2010 source, target, fixture, or mapping changed. Next handoff: extract the mapped MOM service-invocation HLAfederate context case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39235, preserving its two direct mappings and 19 API surfaces.",
   "active_handoff": {
-    "id": "extract-2025-receive-order-send-directed-interaction-service-report-file",
+    "id": "extract-2025-mom-service-invocation-inherited-hlafederate-file",
     "state": "implementation",
     "family": "mom-after-base-services",
-    "lane": "directed",
-    "objective": "Extract the mapped receive-order Send Directed Interaction service-report arguments case from the 2025 federation-management source into a focused 2025-only translation unit. Preserve its exact mapped assertions and evidence; keep it separate from all IEEE 1516.1-2010 evidence.",
-    "plan_id": "umbra-cpp-send-directed-interaction-service-report-file-integration",
-    "mapping_seed_plan_id": "umbra-cpp-send-directed-interaction-service-report-file-integration",
-    "mapping_seed_policy": "This is a source-only extraction: preserve this exact case's seven direct requirement-to-2025-subsection pairs across clauses 6.14, 6.14.3, 6.15.1, 11.5, and 11.5.2.1 plus its two API surfaces. Do not transfer claims from other directed-interaction or service-report cases.",
+    "lane": "mom-service-invocation-parameters",
+    "objective": "Extract the mapped inherited-HLAfederate MOM service-invocation report case into a focused 2025-only translation unit. Preserve both callback-model paths, its exact requirement mappings, and API surfaces; keep it separate from all IEEE 1516.1-2010 evidence.",
+    "plan_id": "umbra-cpp-mom-service-invocation-parameters-integration",
+    "mapping_seed_plan_id": "umbra-cpp-mom-service-invocation-parameters-integration",
+    "mapping_seed_policy": "This is a source-only extraction: preserve this exact case's two direct requirement-to-2025-subsection pairs, both mapped to clause 11.4.1, and all 19 API surfaces. Keep the evidence limited to the non-installable development profile; do not claim validation or conformance.",
     "related_plan_ids": [],
-    "test_case": "Embedded service reporting preserves receive-order Send Directed Interaction arguments",
+    "test_case": "Embedded MOM service invocation reports include inherited HLAfederate",
     "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39234",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39235",
+    "callback_models": [
+      "HLA_EVOKED",
+      "HLA_IMMEDIATE"
+    ],
     "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves receive-order Send Directed Interaction arguments$",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded MOM service invocation reports include inherited HLAfederate$",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-send-directed-interaction-service-report-file-integration --summary --compact",
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-mom-service-invocation-parameters-integration --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves receive-order Send Directed Interaction arguments$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane directed --summary --compact",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded MOM service invocation reports include inherited HLAfederate$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane mom-service-invocation-parameters --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Extract the exact mapped case into a focused 2025 translation unit while preserving its seven direct mappings and two API surfaces.",
-      "Retain development-profile-only status and do not broaden the case beyond its receive-order directed-interaction argument behavior.",
+      "Extract the exact mapped case into a focused 2025 translation unit while preserving its two direct mappings, 19 API surfaces, and HLA_EVOKED/HLA_IMMEDIATE paths.",
+      "Retain development-profile-only status; do not claim validation or conformance.",
       "Build the 2025 aggregate target, pass its exact CTest and focused neighbors, validate the lane, and lower the source-size ceiling.",
       "Do not include or alter IEEE 1516.1-2010 sources, targets, fixtures, or mappings."
     ]

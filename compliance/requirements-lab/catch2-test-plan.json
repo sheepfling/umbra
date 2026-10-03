@@ -27683,6 +27683,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting preserves receive-order Send Directed Interaction arguments",
+      "source_location": "cpp/tests/ieee1516_2025_receive_order_send_directed_interaction_service_report_file_catch2.cpp:5",
       "tags": [
         "integration",
         "development-profile",
