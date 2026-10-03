@@ -8574,7 +8574,7 @@
         "rti.service.ddm-nonvoid-failure-matrix-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22561",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21088",
       "assertions": 100,
       "callback_models": [
         "HLA_IMMEDIATE"
@@ -42251,6 +42251,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5"
       ],
       "test_case": "Embedded service reporting delivers failed dimension and region lookups through MOM interaction",
+      "primary_lane": "mom-service-report-failed-dimension-region-lookup-matrix",
       "tags": [
         "integration",
         "development-profile",
@@ -42260,9 +42261,11 @@
         "service-report-interaction",
         "service-failure",
         "ddm",
+        "mom-service-report-failed-dimension-region-lookup-matrix",
         "rti.service.dimension-lookup-failure-matrix-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_mom_service_report_failed_dimension_region_lookup_matrix_catch2.cpp:5",
       "next_action": "This HLA_IMMEDIATE native matrix decodes all six \u00a710.21\u2013\u00a710.26 failed dimension and region lookups through the public HLAreportServiceInvocation sink. Each report preserves service type 6, its official type-36/type-27/type-53/type-10/type-42 supplied arguments, Null returned argument, false success indicator, public exception text, and contiguous serials zero through five; a successful GetDimensionHandle follows at serial six. The Lab has no row-level conditional failure relation (RL-152), so other failure families, JUnit/protected review, and conformance remain open."
     },
     {
