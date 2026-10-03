@@ -60844,7 +60844,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This C++ filesystem matrix proves failed GetKnownObjectClassHandle, GetObjectInstanceHandle, GetObjectInstanceName, GetAttributeHandle, GetAttributeName, GetUpdateRateValue, and GetUpdateRateValueForAttribute invocations each retain their supplied arguments, Null returned argument, false success indicator, exception text, and contiguous per-federate serials. It remains source-backed development-profile evidence: the Lab has only the generic \u00a711.5.1 candidate and no row-level conditional failure relation (RL-152); the seven-case interaction matrix, other service families, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11972",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
       "assertions": 42,
       "callback_models": [
         "HLA_EVOKED"
@@ -67290,7 +67290,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This bounded C++ filesystem matrix proves failed GetFederateHandle and GetFederateName invocations preserve the official type-53/type-15 supplied forms, Null returned arguments, false success indicators, exact exception text, and serials zero and one before successful serial-two/three lookups. The Lab has no row-level conditional failure mapping (RL-152); this is development-profile traceability only, not validation, protected review, JUnit, or conformance evidence.",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+    "source_location": "cpp/tests/ieee1516_2025_support_federate_lookup_failure_service_report_catch2.cpp:5",
       "assertions": 24,
       "callback_models": [
         "HLA_EVOKED"

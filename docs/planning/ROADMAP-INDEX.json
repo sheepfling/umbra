@@ -35,17 +35,50 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-support-known-object-attribute-update-rate-lookup-service-report-file",
+    "id": "extract-2025-support-federate-lookup-failed-service-report-file",
     "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-support-known-object-attribute-update-rate-lookup-nonvoid-service-report-integration",
+    "plan_id": "umbra-cpp-support-federate-lookup-failed-service-report-integration",
     "family": "mom-after-base-services",
-    "lane": "federate-object-attribute-update-rate-lookup-service-reports",
-    "objective": "Extract the mapped object, attribute, and update-rate lookup return-argument service-report case into a focused 2025-only unit while preserving its two direct clause mappings, nine selected C++ API surfaces, current tags, development-profile classification, and 2010/2025 boundary.",
-    "test_case": "Embedded service reporting records object, attribute, and update-rate lookup return arguments",
-    "source_target": "cpp/tests/ieee1516_2025_support_known_object_attribute_update_rate_lookup_service_report_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_support_known_object_attribute_update_rate_lookup_service_report_catch2.cpp:5",
-    "mapping_seed_policy": "The existing plan maps two candidate requirements directly to clauses 11.5 and 11.5.1 and selects seven lookup APIs plus two reporting-switch APIs. Preserve both direct pairs and all nine API surfaces without adding normative claims; keep this as development-profile traceability only.",
+    "lane": "service-failure",
+    "objective": "Extract the existing failed federate lookup service-report case into a focused 2025-only unit while preserving its two direct requirement mappings to clause 11.5, four selected C++ API surfaces, current tags, development-profile classification, and 2010/2025 boundary. Do not imply a row-level conditional-failure mapping absent from the Lab source.",
+    "test_case": "Embedded service reporting records failed federate lookup invocations",
+    "source_target": "cpp/tests/ieee1516_2025_support_federate_lookup_failure_service_report_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_support_federate_lookup_failure_service_report_catch2.cpp:5",
+    "mapping_seed_policy": "The existing plan maps two candidate requirements directly to clause 11.5 and selects GetFederateHandle, GetFederateName, and two reporting-switch API surfaces. The Lab source has no row-level conditional failure mapping (RL-152); preserve existing mappings without overclaiming and keep this as development-profile traceability only.",
     "api_surfaces": [
+      "api.2025.cpp.rtiambassador.getfederatehandle.cdf7c160e31e",
+      "api.2025.cpp.rtiambassador.getfederatename.7140b86ff2ad",
+      "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
+      "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c"
+    ],
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed federate lookup invocations$",
+    "commands": {
+      "case": "python tools/query_rti_work.py case umbra-cpp-support-federate-lookup-failed-service-report-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed federate lookup invocations$\" --output-on-failure",
+    "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records (failed federate lookup invocations|the seven object and update-rate lookup failures|failed non-void lookup invocations|failed order and transportation lookups)\" --output-on-failure",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "The exact existing 85-line test body is preserved byte-for-byte. Its plan row retains its two direct requirement mappings to clause 11.5, four selected API-surface IDs, original Catch2 tags, and development-profile classification. No row-level conditional-failure mapping is claimed.",
+      "The aggregate 2025 target builds; this test and three neighboring lookup regressions pass focused CTest.",
+      "The source-size check passes; the monolith and ceiling fall from 37,542 to 37,456 lines while CMake remains at its 12,392-line baseline.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
+    ]
+  },
+  "active_handoff_note": "Verified progress: The failed federate lookup service-report case now lives in a focused 2025 unit. Its exact 85-line body and original tags are preserved; its two direct mappings to clause 11.5 and four selected C++ API surfaces remain unchanged. The aggregate 2025 target built, and this test plus three neighboring lookup regressions passed (4 focused CTests). The service-failure lane check, plan trace, and source-size check pass. The largest test file is 37,456 lines, down 1,816 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: isolate the seven object and update-rate lookup failure matrix at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764, preserving its two direct clause mappings, ten selected C++ API surfaces, and development-profile classification without claiming a row-level conditional-failure mapping.",
+  "active_handoff": {
+    "id": "extract-2025-support-object-attribute-update-rate-lookup-failure-matrix-file",
+    "state": "implementation",
+    "family": "mom-after-base-services",
+    "lane": "service-failure",
+    "objective": "Extract the existing seven object and update-rate lookup failure matrix into a focused 2025-only unit. Preserve its two direct requirement mappings to clauses 11.5 and 11.5.1, ten selected C++ API surfaces, current Catch2 tags, and development-profile classification; do not cross the 2010/2025 boundary or imply a row-level conditional-failure mapping absent from the Lab source.",
+    "plan_id": "umbra-cpp-support-object-attribute-update-rate-lookup-failure-matrix",
+    "mapping_seed_plan_id": "umbra-cpp-support-object-attribute-update-rate-lookup-failure-matrix",
+    "mapping_seed_policy": "The existing plan maps two candidate requirements directly to clauses 11.5 and 11.5.1 and selects seven lookup APIs plus GetObjectClassHandle and two reporting-switch APIs. Preserve the current direct pairs and all ten API surfaces without overclaiming conditional failure evidence; keep this as development-profile traceability only.",
+    "api_surfaces": [
+      "api.2025.cpp.rtiambassador.getobjectclasshandle.36d1b269a059",
       "api.2025.cpp.rtiambassador.getknownobjectclasshandle.34448f8372d0",
       "api.2025.cpp.rtiambassador.getobjectinstancehandle.4dfe8e4f66fe",
       "api.2025.cpp.rtiambassador.getobjectinstancename.8445cd076ee4",
@@ -56,55 +89,23 @@
       "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
       "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c"
     ],
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records object, attribute, and update-rate lookup return arguments$",
-    "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-support-known-object-attribute-update-rate-lookup-nonvoid-service-report-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records object, attribute, and update-rate lookup return arguments$\" --output-on-failure",
-      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records (object, attribute, and update-rate lookup return arguments|failed federate lookup invocations|failed non-void lookup invocations|failed order and transportation lookups)\" --output-on-failure",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The exact existing 127-line test body is preserved byte-for-byte. Its plan row retains its two direct clause mappings, nine selected API-surface IDs, original Catch2 tags, and development-profile classification.",
-      "The aggregate 2025 target builds; this test and three neighboring lookup regressions pass focused CTest.",
-      "The source-size check passes; the monolith and ceiling fall from 37,670 to 37,542 lines while CMake remains at its 12,392-line baseline.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
-    ]
-  },
-  "active_handoff_note": "Verified progress: The mapped object, attribute, and update-rate lookup return-argument case now lives in a focused 2025 unit. Its exact 127-line body and original tags are preserved; its two direct mappings to clauses 11.5 and 11.5.1 and nine selected C++ API surfaces remain unchanged. The aggregate 2025 target built, and this test plus three neighboring lookup regressions passed (4 focused CTests). The federate-object-attribute-update-rate lane check, plan trace, and source-size check pass. The largest test file is 37,542 lines, down 1,730 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: isolate the failed federate lookup service-report case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764, preserving its two direct requirement mappings, four selected C++ API surfaces, and development-profile classification without claiming a row-level conditional-failure mapping.",
-  "active_handoff": {
-    "id": "extract-2025-support-federate-lookup-failed-service-report-file",
-    "state": "implementation",
-    "family": "mom-after-base-services",
-    "lane": "service-failure",
-    "objective": "Extract the existing failed federate lookup service-report case into a focused 2025-only unit. Preserve its two direct requirement mappings to clause 11.5, four selected C++ API surfaces, current Catch2 tags, and development-profile classification; do not cross the 2010/2025 boundary or imply a row-level conditional-failure mapping absent from the Lab source.",
-    "plan_id": "umbra-cpp-support-federate-lookup-failed-service-report-integration",
-    "mapping_seed_plan_id": "umbra-cpp-support-federate-lookup-failed-service-report-integration",
-    "mapping_seed_policy": "The existing plan maps two candidate requirements directly to clause 11.5 and selects GetFederateHandle, GetFederateName, and two reporting-switch API surfaces. The Lab source has no row-level conditional failure mapping (RL-152); preserve existing mappings without overclaiming and keep this as development-profile traceability only.",
-    "api_surfaces": [
-      "api.2025.cpp.rtiambassador.getfederatehandle.cdf7c160e31e",
-      "api.2025.cpp.rtiambassador.getfederatename.7140b86ff2ad",
-      "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
-      "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c"
-    ],
     "related_plan_ids": [],
-    "test_case": "Embedded service reporting records failed federate lookup invocations",
+    "test_case": "Embedded service reporting records the seven object and update-rate lookup failures",
     "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
     "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
     "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed federate lookup invocations$",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ service\\ reporting\\ records\\ the\\ seven\\ object\\ and\\ update\\-rate\\ lookup\\ failures$",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-support-federate-lookup-failed-service-report-integration --summary --compact",
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-support-object-attribute-update-rate-lookup-failure-matrix --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed federate lookup invocations$\" --output-on-failure",
-      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records (failed federate lookup invocations|object, attribute, and update-rate lookup return arguments|failed non-void lookup invocations|failed order and transportation lookups)\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py case umbra-cpp-support-federate-lookup-failed-service-report-integration --summary --compact",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ service\\ reporting\\ records\\ the\\ seven\\ object\\ and\\ update\\-rate\\ lookup\\ failures$\" --output-on-failure",
+      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records (the seven object and update-rate lookup failures|failed federate lookup invocations|failed non-void lookup invocations|failed order and transportation lookups)\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py case umbra-cpp-support-object-attribute-update-rate-lookup-failure-matrix --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Move the exact existing test body without behavioral edits; retain the two direct requirement mappings to clause 11.5, all four selected C++ API surfaces, current Catch2 tags, and development-profile classification. Do not imply a row-level conditional-failure mapping absent from the Lab source.",
-      "Build the aggregate 2025 target, pass the exact CTest and adjacent lookup regressions, confirm its direct mappings and four API surfaces, and lower the monolith ceiling.",
+      "Move the exact existing 85-line test body without behavioral edits; retain its two direct clause mappings, all ten selected C++ API surfaces, current Catch2 tags, and development-profile classification. Do not imply a row-level conditional-failure mapping absent from the Lab source.",
+      "Build the aggregate 2025 target, pass the exact CTest and adjacent lookup regressions, confirm its direct mappings and ten API surfaces, and lower the monolith ceiling.",
       "Do not include or alter IEEE 1516.1-2010 sources, targets, fixtures, or mappings."
     ]
   },
