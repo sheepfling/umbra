@@ -47973,7 +47973,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting records federate and object-class lookup return arguments",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+      "source_location": "cpp/tests/ieee1516_2025_support_federate_object_class_lookup_service_report_catch2.cpp:5",
       "tags": [
         "integration",
         "development-profile",
@@ -57706,7 +57706,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This bounded C++ filesystem lane proves the four accepted \u00c2\u00a710.13\u00e2\u20ac\u201c\u00c2\u00a710.16 support lookups append source-backed non-void records with type-53/type-27 interaction-class name/handle and type-27/type-53 or type-39 parameter forms. Records retain one immutable joined-federate file and serial sequence. The lane remains development-profile traceability only because the Lab has no positive Table 5 row-level ReturnArgument mapping (RL-042/RL-067/RL-076/RL-150); public MOM interaction delivery, failures, broader non-void forms, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11421",
+      "source_location": "cpp/tests/ieee1516_2025_support_interaction_parameter_lookup_service_report_catch2.cpp:5",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ service\\ reporting\\ records\\ interaction\\-class\\ and\\ parameter\\ lookup\\ return\\ arguments$"
     },
