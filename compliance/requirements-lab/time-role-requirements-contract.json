@@ -12,7 +12,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeRegulation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
@@ -36,7 +36,7 @@
       "source_symbol": "FederateTimeState::grantTimeRegulation",
       "tests": [
        "cpp/tests/federate_time_state_catch2.cpp::Federate time state keeps time-role enables callback-gated and blocks advances",
-       "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+       "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
        "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
@@ -60,7 +60,7 @@
       "source_symbol": "FederateTimeState::grantTimeRegulation",
       "tests": [
         "cpp/tests/federate_time_state_catch2.cpp::Federate time state keeps time-role enables callback-gated and blocks advances",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
@@ -73,7 +73,7 @@
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::disableTimeRegulation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
@@ -87,7 +87,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeConstrained",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
@@ -110,7 +110,7 @@
       "source_symbol": "FederateTimeState::grantTimeConstrained",
       "tests": [
         "cpp/tests/federate_time_state_catch2.cpp::Federate time state keeps time-role enables callback-gated and blocks advances",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
@@ -131,7 +131,7 @@
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::disableTimeConstrained",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
@@ -149,7 +149,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLookahead",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
       ]

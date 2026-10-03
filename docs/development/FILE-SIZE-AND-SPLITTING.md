@@ -548,16 +548,33 @@ The first wave should be staged rather than attempted as one rewrite:
     and 9.12.5, and 24 official API surfaces). Its focused and aggregate
     targets build; its focused and aggregate CTests plus the TSO seed, callback
     suppression, and delivered-retraction neighbors pass (5 exact CTests), and
-    its mapping lane passes. The federation-management monolith is 41,000
-    lines, 29,287 below its 70,287-line start, with its ceiling ratcheted down
-    to 41,000. No runtime
-    behavior changed, no Requirements Lab resync occurred, and no IEEE
-    1516.1-2010 path or mapping changed.
-    Next handoff: independently map `Embedded Request Retraction notifies
-    delivered regional-interaction recipients and suppresses queued fanout` at
-    `ieee1516_2025_federation_management_catch2.cpp:33468`; keep delivered-
-    recipient callbacks distinct from callback-time regional suppression and
-    no-overlap-at-send designator behavior.
+    its mapping lane passes. The delivered-recipient regional Request Retraction
+    case is now isolated in
+    `ieee1516_2025_request_retraction_delivered_regional_interaction_fanout_catch2.cpp`
+    (149 lines, 70 assertions, 4 direct requirement-section pairs across
+    clauses 8.22.3, 8.23.3, and 9.12.5, and 26 official API surfaces). Its
+    focused and aggregate targets, five exact focused/aggregate and neighboring
+    CTests, and mapping lane pass. The time-role enable callback-gating case is
+    now isolated in `ieee1516_2025_time_role_enable_callback_gating_catch2.cpp`
+    (120 lines, 51 assertions, 8 direct requirement-section pairs across
+    clauses 8.2, 8.3.1, 8.4.3, 8.5.5, 8.7.5, and 8.8.3, and 15 official API
+    surfaces). Its focused and aggregate targets, four exact focused/aggregate
+    and neighboring CTests, and mapping lane pass. The Modify Lookahead
+    increase/decrease case is now isolated in
+    `ieee1516_2025_modify_lookahead_increase_and_gradual_decrease_catch2.cpp`
+    (61 lines, 28 assertions, 5 direct IEEE 1516.1-2025 requirement-section
+    pairs in clause 8.20.4, and 11 official API surfaces). Its focused and
+    aggregate targets build; five exact focused/aggregate and neighboring
+    CTests pass. Negative-interval validation and MOM reporting remain
+    separately scoped. The federation-
+    management monolith is 40,679 lines, 29,608 below its 70,287-line start,
+    with its ceiling ratcheted down to 40,679. Neither extraction changes
+    runtime behavior or crosses into IEEE 1516.1-2010. No Requirements Lab
+    resync occurred. Next handoff: inspect `Embedded Query GALT and Query LITS
+    observe other regulator time and pending advances` at
+    `ieee1516_2025_federation_management_catch2.cpp:33746`; keep this two-
+    federate no-TSO case separate from the three-federate minimum-regulator,
+    resignation, and configured-process lanes.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in
