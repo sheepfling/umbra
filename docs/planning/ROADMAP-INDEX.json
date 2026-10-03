@@ -35,68 +35,70 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-explicit-mim-create-case",
-    "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-explicit-mim-create-integration",
-    "family": "fom-module-declaration-management",
-    "lane": "explicit-mim",
-    "objective": "Move the existing explicit local-MIM success path into a focused 2025-only unit. Preserve its exact 28-line body, direct clause 4.5.5 mapping, Create Federation Execution With MIM API surface, explicit-mim lane, and development-profile classification. Do not claim custom-MIM interoperability, remote transport, packaging, validation, or conformance.",
-    "test_case": "Embedded Create Federation Execution accepts a validated explicit MIM path",
-    "source_target": "cpp/tests/ieee1516_2025_explicit_mim_create_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_explicit_mim_create_catch2.cpp:4",
-    "mapping_seed_policy": "Preserve requirement-candidate-content-clauses-04-federation-management-page-053-l43-7 to hla-1516.1-2025:clause-4.5.5 and API surface api.2025.cpp.rtiambassador.createfederationexecutionwithmim.1de0ecdf0f4b. Keep the existing explicit-mim tags and development-profile status; do not broaden the claim to custom-MIM interoperability or conformance.",
-    "api_surfaces": [
-      "api.2025.cpp.rtiambassador.createfederationexecutionwithmim.1de0ecdf0f4b"
-    ],
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Create Federation Execution accepts a validated explicit MIM path$",
-    "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-explicit-mim-create-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded Create Federation Execution accepts a validated explicit MIM path$\" --output-on-failure",
-      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^explicit-mim$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane explicit-mim --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-explicit-mim-create-integration --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The exact existing 28-line test body is preserved byte-for-byte. Its direct clause 4.5.5 mapping, Create Federation Execution With MIM API surface, explicit-mim lane, and development-profile classification remain intact.",
-      "The aggregate 2025 target builds; the exact test and explicit-mim lane pass focused CTest; the exact plan trace and lane mapping check pass.",
-      "The source-size check passes; the monolith and ceiling fall from 36,554 to 36,525 lines, while CMake remains at 12,392. All 103 later monolith source locations are rebased, and all four Requirements-Lab/API contract test references now point to the focused unit.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
-    ]
-  },
-  "active_handoff_note": "Verified progress: The 76-line membership-only resign lifecycle case, 28-line public FOM-source diagnostic, and 28-line explicit local-MIM success case now live in focused 2025 units. Their direct requirement mappings, API classification, tags, and development-profile boundaries remain intact; the separate resign API-only companion remains non-conformance evidence. The aggregate 2025 build and the exact tests, FOM-diagnostic and explicit-MIM lane CTests, traces, mapping checks, and source-size check pass. The FOM and MIM contract references now point to the extracted files, and 103 later monolith source pointers were rebased. The largest test file is 36,525 lines, down 2,747 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: extract the 2025 embedded unconditional-divestiture resign-action case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10765 into a focused unit, retaining its three direct clause 4.12 mappings and resign API surface, and keep it distinct from standalone RTI resign-action tests.",
-  "active_handoff": {
     "id": "extract-2025-embedded-resign-action-unconditional-divestiture-case",
-    "state": "implementation",
+    "state": "implemented-in-noninstallable-development-profile",
+    "plan_id": "umbra-cpp-resign-action-divestiture-integration",
     "family": "object-ddm-ownership",
     "lane": "embedded-resign-action-unconditional-divestiture",
     "objective": "Move the existing 2025 embedded RTIambassador regression for unconditional resign-action divestiture into a focused unit. Preserve its three direct clause 4.12 mappings, RTIambassador.resignFederationExecution surface, and development-profile classification. Add an explicit lane tag for this embedded public-boundary case, and keep it distinct from the standalone resign-action suite and from other resign directives.",
-    "plan_id": "umbra-cpp-resign-action-divestiture-integration",
-    "mapping_seed_plan_id": "umbra-cpp-resign-action-divestiture-integration",
+    "test_case": "Embedded resign action unconditionally divests attributes for the 2025 ownership model",
+    "source_target": "cpp/tests/ieee1516_2025_embedded_resign_action_divestiture_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_embedded_resign_action_divestiture_catch2.cpp:4",
     "mapping_seed_policy": "Preserve direct mappings requirement-candidate-content-clauses-04-federation-management-page-058-l112-33, -l125-35, and -l147-40 to hla-1516.1-2025:clause-4.12, plus API surface api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e. Keep the evidence bounded to this embedded 2025 public case and do not upgrade it to conformance.",
     "api_surfaces": [
       "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e"
     ],
-    "test_case": "Embedded resign action unconditionally divests attributes for the 2025 ownership model",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10765",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded resign action unconditionally divests attributes for the 2025 ownership model$",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-resign-action-divestiture-integration --summary --compact",
+      "case": "python tools/query_rti_work.py case umbra-cpp-resign-action-divestiture-integration --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
       "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded resign action unconditionally divests attributes for the 2025 ownership model$\" --output-on-failure",
       "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^embedded-resign-action-unconditional-divestiture$\" --output-on-failure",
       "mapping_check": "python tools/query_rti_work.py check --lane embedded-resign-action-unconditional-divestiture --summary --compact",
       "trace": "python tools/query_rti_work.py trace umbra-cpp-resign-action-divestiture-integration --summary --compact",
+      "contract_traceability_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.resign_action_(requirements|api)_traceability$\" --output-on-failure",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
       "Move the existing 2025 embedded unconditional-divestiture case without behavioral edits; preserve all three direct clause 4.12 mappings, the selected resign API surface, and development-profile classification, and keep the focused lane distinct from the standalone suite.",
-      "Build the aggregate 2025 target, pass the exact CTest and embedded-resign-action lane CTest, confirm the source location and trace, and lower the monolith ceiling.",
-      "Do not include or alter IEEE 1516.1-2010 sources, targets, fixtures, or mappings."
+      "The original test body is unchanged apart from the added focused lane tag; the aggregate 2025 target and exact/lane CTests pass, and the case trace plus lane check retain all three direct mappings and the resign API surface.",
+      "Both resign requirements/API traceability CTests pass after updating four references to the extracted case and correcting five stale selectors for other moved resign cases.",
+      "The monolith and its size ceiling both fell by 73 lines to 36,452; all 103 later plan source pointers are rebased. CMake remains at 12,392 lines.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
+    ]
+  },
+  "active_handoff_note": "Verified progress: The 76-line membership-only resign lifecycle case, 28-line public FOM-source diagnostic, 28-line explicit local-MIM success case, and 72-line embedded 2025 unconditional-divestiture case now live in focused units. Their direct requirement mappings, API classification, tags, and development-profile boundaries remain intact; the separate resign API-only companion remains non-conformance evidence. The aggregate 2025 build, exact and lane CTests, traces, mapping checks, resign contract traceability CTests, and source-size check pass. All 103 later Catch2 source pointers were rebased; four references for the extracted case and five stale selectors for other moved resign cases now point to their current files. The largest test file is 36,452 lines, down 2,820 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: extract the 2025 embedded multi-survivor assumption-queue case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10765 into the same thematic 2025 resign-action unit and lane.",
+  "active_handoff": {
+    "id": "extract-2025-embedded-resign-action-multi-survivor-assumption-case",
+    "state": "implementation",
+    "family": "object-ddm-ownership",
+    "lane": "embedded-resign-action-unconditional-divestiture",
+    "objective": "Move the existing three-member 2025 embedded resign-action case, which independently queues ownership-assumption callbacks for each surviving federate, into the focused 2025 resign-action unit. Preserve its two direct clause 4.12 mappings, RTIambassador.resignFederationExecution surface, and development-profile classification; keep it separate from standalone resign-action tests and avoid conformance claims.",
+    "plan_id": "umbra-cpp-resign-action-multi-survivor-assumption-queue-integration",
+    "mapping_seed_plan_id": "umbra-cpp-resign-action-multi-survivor-assumption-queue-integration",
+    "mapping_seed_policy": "Preserve direct mappings requirement-candidate-content-clauses-04-federation-management-page-058-l125-35 and -l147-40 to hla-1516.1-2025:clause-4.12, plus API surface api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e. Keep the evidence bounded to this embedded 2025 public case and do not upgrade it to conformance.",
+    "api_surfaces": [
+      "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e"
+    ],
+    "test_case": "Embedded resign action independently queues assumptions for each surviving federate",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10765",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded resign action independently queues assumptions for each surviving federate$",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-resign-action-multi-survivor-assumption-queue-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded resign action independently queues assumptions for each surviving federate$\" --output-on-failure",
+      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^embedded-resign-action-unconditional-divestiture$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane embedded-resign-action-unconditional-divestiture --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-resign-action-multi-survivor-assumption-queue-integration --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Move the existing multi-survivor embedded resign-action test without behavioral edits; preserve its two direct clause 4.12 mappings, the selected resign API surface, and development-profile status; apply only the focused embedded 2025 lane tag.",
+      "Build the aggregate 2025 target, pass the exact test and focused lane CTests, verify the exact plan trace and lane mapping, and lower the monolith size ceiling.",
+      "Do not include or alter IEEE 1516.1-2010 sources, targets, fixtures, or mappings; do not claim full ownership arbitration or conformance."
     ]
   },
   "documents": [
@@ -505,6 +507,7 @@
       "fom-module-management": "fom-module-declaration-management",
       "fom-source-diagnostics": "fom-module-declaration-management",
       "explicit-mim": "fom-module-declaration-management",
+      "embedded-resign-action-unconditional-divestiture": "object-ddm-ownership",
       "fom-summary-rule-1": "fom-module-declaration-management",
       "summary-rule-2": "object-ddm-ownership",
       "summary-rule-3": "transport-and-conformance",
@@ -3886,6 +3889,11 @@
         "catch2_target": "umbra_ieee1516_2025_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Create Federation Execution accepts a validated explicit MIM path$",
       "source": "cpp/tests/ieee1516_2025_explicit_mim_create_catch2.cpp"
+      },
+      "embedded-resign-action-unconditional-divestiture": {
+        "catch2_target": "umbra_ieee1516_2025_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded resign action unconditionally divests attributes for the 2025 ownership model$",
+        "source": "cpp/tests/ieee1516_2025_embedded_resign_action_divestiture_catch2.cpp"
       },
       "schema-conflict": {
         "catch2_target": "umbra_fom_composer_catch2",
@@ -27061,6 +27069,7 @@
         "rti-owned-mom-ownership-query",
         "rti-owned-mom-confirm-divestiture",
         "confirm-divestiture-mixed-set-atomicity",
+        "embedded-resign-action-unconditional-divestiture",
         "negotiated-assumption",
         "regional-object-attribute-region-context",
         "regional-object-attribute-subscription-isolation",
