@@ -35,72 +35,59 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-ddm-mutation-failure-matrix-service-report-file",
-    "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-ddm-mutation-failure-matrix-service-report-integration",
-    "family": "mom-after-base-services",
-    "lane": "ddm-mutation-failure",
-    "objective": "Extract the mapped DDM region-mutation service-report file case into a focused 2025-only unit while preserving its direct clause 11.5 mapping, seven API surfaces, HLA_EVOKED callback, and 2010/2025 boundary.",
-    "test_case": "Embedded service reporting records failed DDM region mutation invocations",
-    "source_target": "cpp/tests/ieee1516_2025_ddm_mutation_failure_matrix_service_report_file_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_ddm_mutation_failure_matrix_service_report_file_catch2.cpp:5",
-    "callback_models": [
-      "HLA_EVOKED"
-    ],
-    "assertions": 30,
-    "mapping_seed_policy": "This extraction preserves the exact direct IEEE 1516.1-2025 requirement-to-subsection pair mapped to clause 11.5 and all seven official C++ API surfaces. It remains non-installable development-profile evidence; no validation or conformance claim.",
-    "api_surfaces": [
-      "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d",
-      "api.2025.cpp.rtiambassador.deleteregion.6470d9fe34cf",
-      "api.2025.cpp.rtiambassador.setrangebounds.7bcbe0e55f0b",
-      "api.2025.cpp.rtiambassador.createregion.db9bf691b557",
-      "api.2025.cpp.rtiambassador.getdimensionhandle.7a343b0ace0a",
-      "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
-      "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c"
-    ],
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed DDM region mutation invocations$",
-    "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-ddm-mutation-failure-matrix-service-report-integration --summary --compact",
-      "lane_check": "python tools/query_rti_work.py check --lane ddm-mutation-failure --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed DDM region mutation invocations$\" --output-on-failure",
-      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records failed DDM region mutation invocations|Embedded service reporting delivers failed DDM region mutation invocations through MOM interaction|Embedded service reporting delivers failed Create Region and Get Range Bounds invocations through MOM interaction\" --output-on-failure",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The exact 123-line test body is preserved byte-for-byte. Its plan row retains the existing ddm-mutation-failure lane, one direct clause 11.5 mapping, all seven API surfaces, and HLA_EVOKED.",
-      "The aggregate 2025 target builds; the DDM file-report and MOM-interaction cases and the adjacent DDM non-void case pass focused CTest.",
-      "The ddm-mutation-failure mapping and source-size checks pass; the monolith and ceiling fall from 38,284 to 38,160 lines while CMake remains at its 12,392-line baseline.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
-    ]
-  },
-  "active_handoff_note": "Verified progress: The 30-assertion DDM region-mutation file-report case is isolated in a focused 2025 unit. Its exact 123-line body, one direct clause 11.5 mapping, seven API surfaces, existing ddm-mutation-failure lane, and HLA_EVOKED callback are preserved. The aggregate 2025 target built; both DDM mutation-failure CTests and the adjacent DDM non-void case passed (3 focused CTests). The lane mapping and source-size checks pass. The largest test file is now 38,160 lines, down 1,112 from the 39,272-line split-series baseline; CMake remains at 12,392 lines. No 2010 source, target, fixture, or mapping was changed. Next: isolate the mapped support order/transportation lookup service-report case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764, retaining its two direct clause mappings (11.5 and 11.5.1), current tags, development-profile status, and no invented API-surface mappings.",
-  "active_handoff": {
     "id": "extract-2025-support-order-transportation-lookup-service-report-file",
-    "state": "implementation",
+    "state": "implemented-in-noninstallable-development-profile",
+    "plan_id": "umbra-cpp-support-order-transportation-lookup-nonvoid-service-report-integration",
     "family": "time-save-restore",
     "lane": "order-transportation-lookup-service-reports",
-    "objective": "Extract the existing service-report file case for order and transportation lookup return arguments into a focused 2025-only unit. Preserve its two direct requirement mappings to clauses 11.5 and 11.5.1, current Catch2 tags, and development-profile classification; do not add C++ API surfaces absent from the pinned plan or cross the 2010/2025 boundary.",
-    "plan_id": "umbra-cpp-support-order-transportation-lookup-nonvoid-service-report-integration",
-    "mapping_seed_plan_id": "umbra-cpp-support-order-transportation-lookup-nonvoid-service-report-integration",
-    "mapping_seed_policy": "The existing plan maps one requirement directly to IEEE 1516.1-2025 clause 11.5 and one to clause 11.5.1. It has no selected C++ API-surface IDs; preserve that state without inventing mappings. Keep this as development-profile traceability only because the Lab has no positive row-level ReturnArgument mapping.",
-    "related_plan_ids": [],
+    "objective": "Extract the existing service-report file case for order and transportation lookup return arguments into a focused 2025-only unit while preserving its two direct clause mappings, current tags, and 2010/2025 boundary.",
     "test_case": "Embedded service reporting records order and transportation lookup return arguments",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+    "source_target": "cpp/tests/ieee1516_2025_support_order_transportation_lookup_service_report_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_support_order_transportation_lookup_service_report_catch2.cpp:5",
+    "mapping_seed_policy": "The existing plan maps one requirement directly to IEEE 1516.1-2025 clause 11.5 and one to clause 11.5.1. It has no selected C++ API-surface IDs; none were added. Keep this as development-profile traceability only because the Lab has no positive row-level ReturnArgument mapping.",
+    "api_surfaces": [],
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records order and transportation lookup return arguments$",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-support-order-transportation-lookup-nonvoid-service-report-integration --summary --compact",
+      "case": "python tools/query_rti_work.py case umbra-cpp-support-order-transportation-lookup-nonvoid-service-report-integration --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
       "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records order and transportation lookup return arguments$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py case umbra-cpp-support-order-transportation-lookup-nonvoid-service-report-integration --summary --compact",
+      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records order and transportation lookup return arguments|Embedded service reporting records federate and object-class lookup return arguments\" --output-on-failure",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "The exact 75-line test body is preserved byte-for-byte. Its plan row retains its two direct clause mappings, original Catch2 tags, and no selected API-surface IDs.",
+      "The aggregate 2025 target builds; this test and the adjacent federate/object-class lookup report case pass focused CTest.",
+      "The source-size check passes; the monolith and ceiling fall from 38,160 to 38,084 lines while CMake remains at its 12,392-line baseline.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
+    ]
+  },
+  "active_handoff_note": "Verified progress: The order/transportation lookup service-report case now lives in a focused 2025 unit. Its exact 75-line body and existing test tags are preserved; its two direct mappings to clauses 11.5 and 11.5.1 remain unchanged, with no API surfaces invented. The aggregate 2025 target built, and this case plus its adjacent federate/object-class lookup report case passed (2 focused CTests). The plan query and source-size checks pass. The largest test file is 38,084 lines, down 1,188 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: isolate the federate/object-class lookup service-report case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764, retaining its two direct mappings to clauses 11.5 and 11.5.1, current tags, and no selected C++ API-surface IDs.",
+  "active_handoff": {
+    "id": "extract-2025-support-federate-object-class-lookup-service-report-file",
+    "state": "implementation",
+    "family": "mom-after-base-services",
+    "lane": "federation-object-lookup-service-reports",
+    "objective": "Extract the existing service-report file case for federate and object-class lookup return arguments into a focused 2025-only unit. Preserve its two direct requirement mappings to clauses 11.5 and 11.5.1, current Catch2 tags, and development-profile classification; do not add C++ API surfaces absent from the pinned plan or cross the 2010/2025 boundary.",
+    "plan_id": "umbra-cpp-support-federate-object-class-lookup-nonvoid-service-report-integration",
+    "mapping_seed_plan_id": "umbra-cpp-support-federate-object-class-lookup-nonvoid-service-report-integration",
+    "mapping_seed_policy": "The existing plan maps one requirement directly to IEEE 1516.1-2025 clause 11.5 and one to clause 11.5.1. It has no selected C++ API-surface IDs; preserve that state without inventing mappings. Keep this as development-profile traceability only.",
+    "related_plan_ids": [],
+    "test_case": "Embedded service reporting records federate and object-class lookup return arguments",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records federate and object-class lookup return arguments$",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-support-federate-object-class-lookup-nonvoid-service-report-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records federate and object-class lookup return arguments$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py case umbra-cpp-support-federate-object-class-lookup-nonvoid-service-report-integration --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
       "Move the exact existing test body without behavioral edits; retain its two direct clause mappings, current Catch2 tags, and development-profile classification, with no C++ API-surface IDs added.",
-      "Build the aggregate 2025 target, pass the exact CTest, confirm the plan's two direct mappings, and lower the monolith ceiling.",
+      "Build the aggregate 2025 target, pass the exact CTest and adjacent lookup regression, confirm both direct mappings, and lower the monolith ceiling.",
       "Do not include or alter IEEE 1516.1-2010 sources, targets, fixtures, or mappings."
     ]
   },
