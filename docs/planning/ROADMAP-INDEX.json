@@ -35,63 +35,26 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-connection-lost-cancel-delete-divest-case-file",
+    "id": "extract-2025-connection-lost-cancel-delete-divest-immediate-case-file",
     "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-connection-lost-automatic-cancel-delete-divest-integration",
-    "family": "object-ddm-ownership",
-    "lane": "rti.service.connection-lost",
-    "objective": "Extract the existing configured CANCEL_THEN_DELETE_THEN_DIVEST transport-loss integration case into a focused 2025-only unit. Preserve its seven direct requirement mappings, four selected C++ API surfaces, current Catch2 tags, and development-profile classification. Keep the callback-order observation bounded to implementation evidence; do not expand it into a 2010 or conformance claim.",
-    "test_case": "Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
-    "source_target": "cpp/tests/ieee1516_2025_connection_lost_cancel_delete_divest_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_connection_lost_cancel_delete_divest_catch2.cpp:15",
-    "mapping_seed_policy": "Preserve the seven direct requirement-to-section pairs already recorded: clauses 4, 4.1.1, 4.4, 7.2, 7.4, 10.44, and 10.45.3. Keep the callback-order assertion as implementation behavior and retain development-profile classification.",
-    "api_surfaces": [
-      "api.2025.cpp.federateambassador.connectionlost.e952ebb6c2e6",
-      "api.2025.cpp.rtiambassador.getautomaticresigndirective.0d958079c7f9",
-      "api.2025.cpp.rtiambassador.setautomaticresigndirective.4a48b2996c54",
-      "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b"
-    ],
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive$",
-    "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-connection-lost-automatic-cancel-delete-divest-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive$\" --output-on-failure",
-      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive|Immediate callbacks apply the configured automatic cancel-then-delete-then-divest directive synchronously\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane rti.service.connection-lost --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-connection-lost-automatic-cancel-delete-divest-integration --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The exact existing 146-line test body is preserved byte-for-byte. Its seven direct mappings to clauses 4, 4.1.1, 4.4, 7.2, 7.4, 10.44, and 10.45.3; four selected API surfaces; original tags; and development-profile classification remain intact.",
-      "The aggregate 2025 target builds; the exact test and adjacent immediate-callback connection-loss case pass focused CTest; the trace and connection-loss lane mapping check pass.",
-      "The source-size check passes; the monolith and ceiling fall from 37,006 to 36,859 lines, while CMake stays at its 12,392-line baseline.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
-    ]
-  },
-  "active_handoff_note": "Verified progress: The configured CANCEL_THEN_DELETE_THEN_DIVEST transport-loss case now lives in a focused 2025 unit. Its exact 146-line body, seven direct mappings to clauses 4, 4.1.1, 4.4, 7.2, 7.4, 10.44, and 10.45.3, four API surfaces, original tags, and development-profile classification are preserved; callback order remains implementation evidence only. The aggregate 2025 target, exact CTest, adjacent immediate-callback case, trace, connection-loss lane mapping, and source-size check pass. The largest test file is 36,859 lines, down 2,413 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: split the immediate-callback companion at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764, preserving its seven direct mappings and four API surfaces while keeping its callback-model classification distinct.",
-  "active_handoff": {
-    "id": "extract-2025-connection-lost-cancel-delete-divest-immediate-case",
-    "state": "implementation",
+    "plan_id": "umbra-cpp-connection-lost-automatic-cancel-delete-divest-immediate",
     "family": "transport-and-conformance",
     "lane": "connection-lost-automatic-cancel-delete-divest-immediate",
-    "objective": "Extract the existing immediate-callback companion for the configured CANCEL_THEN_DELETE_THEN_DIVEST transport-loss integration into a focused 2025-only unit. Preserve its seven direct requirement mappings, four selected C++ API surfaces, current Catch2 tags, and development-profile classification. Keep callback-model and callback-order observations bounded to implementation evidence; do not expand them into a 2010 or conformance claim.",
-    "plan_id": "umbra-cpp-connection-lost-automatic-cancel-delete-divest-immediate",
-    "mapping_seed_plan_id": "umbra-cpp-connection-lost-automatic-cancel-delete-divest-immediate",
-    "mapping_seed_policy": "Preserve the seven direct requirement-to-clause pairs already recorded: clauses 4, 4.1.1, 4.4, 7.2, 7.4, 10.44, and 10.45.3; retain all four API surfaces, both HLA_EVOKED and HLA_IMMEDIATE callback models, existing tags, and development-profile classification.",
+    "objective": "Extract the existing immediate-callback companion for the configured CANCEL_THEN_DELETE_THEN_DIVEST transport-loss integration into a focused 2025-only unit. Preserve its seven direct requirement mappings, four selected C++ API surfaces, current Catch2 tags, both callback models, and development-profile classification. Keep callback-model and callback-order observations bounded to implementation evidence; do not expand them into a 2010 or conformance claim. Factor only the test support shared by the evoked and immediate siblings.",
+    "test_case": "Immediate callbacks apply the configured automatic cancel-then-delete-then-divest directive synchronously",
+    "source_target": "cpp/tests/ieee1516_2025_connection_lost_cancel_delete_divest_immediate_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_connection_lost_cancel_delete_divest_immediate_catch2.cpp:4",
+    "mapping_seed_policy": "Preserve the seven direct requirement-to-section pairs already recorded: clauses 4, 4.1.1, 4.4, 7.2, 7.4, 10.44, and 10.45.3; retain all four API surfaces, both HLA_EVOKED and HLA_IMMEDIATE callback models, existing tags, and development-profile classification.",
     "api_surfaces": [
       "api.2025.cpp.federateambassador.connectionlost.e952ebb6c2e6",
       "api.2025.cpp.rtiambassador.getautomaticresigndirective.0d958079c7f9",
       "api.2025.cpp.rtiambassador.setautomaticresigndirective.4a48b2996c54",
       "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b"
     ],
-    "test_case": "Immediate callbacks apply the configured automatic cancel-then-delete-then-divest directive synchronously",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Immediate callbacks apply the configured automatic cancel-then-delete-then-divest directive synchronously$",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-connection-lost-automatic-cancel-delete-divest-immediate --summary --compact",
+      "case": "python tools/query_rti_work.py case umbra-cpp-connection-lost-automatic-cancel-delete-divest-immediate --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
       "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Immediate callbacks apply the configured automatic cancel-then-delete-then-divest directive synchronously$\" --output-on-failure",
       "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive|Immediate callbacks apply the configured automatic cancel-then-delete-then-divest directive synchronously\" --output-on-failure",
@@ -100,8 +63,41 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Move the existing immediate-callback test body without behavioral edits; retain its seven direct requirement mappings, four selected API surfaces, existing Catch2 tags, both callback models, and development-profile classification.",
-      "Build the aggregate 2025 target, pass the exact CTest and focused connection-loss regressions, confirm the plan trace and lane mapping, and lower the monolith ceiling.",
+      "The exact existing 141-line test body is preserved byte-for-byte in the focused unit. Its seven direct mappings to clauses 4, 4.1.1, 4.4, 7.2, 7.4, 10.44, and 10.45.3; four selected API surfaces; original tags; both callback models; and development-profile classification remain intact. The evoked and immediate siblings reuse their connection-loss-only test support.",
+      "The aggregate 2025 target builds; the exact test and adjacent evoked connection-loss case pass focused CTest; the trace and immediate-case lane mapping check pass.",
+      "The source-size check passes; the monolith and ceiling fall from 36,859 to 36,718 lines, while CMake stays at its 12,392-line baseline.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
+    ]
+  },
+  "active_handoff_note": "Verified progress: The immediate-callback CANCEL_THEN_DELETE_THEN_DIVEST transport-loss case now lives in a focused 2025 unit. Its exact 141-line body, seven direct mappings to clauses 4, 4.1.1, 4.4, 7.2, 7.4, 10.44, and 10.45.3, four API surfaces, original tags, both HLA_EVOKED and HLA_IMMEDIATE callback models, and development-profile classification are preserved; callback-model/order observations remain implementation evidence only. The evoked and immediate siblings share their test-only connection-loss support. The aggregate 2025 target, exact CTest, adjacent evoked case, trace, lane mapping, and source-size check pass. The largest test file is 36,718 lines, down 2,554 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: split the existing Federate Resigned control test at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10765 into a focused 2025 unit, preserving its existing direct clause 4.13 mapping, FederateAmbassador.federateresigned API surface, development-profile classification, and existing focused callback tag without inventing any further requirement.",
+  "active_handoff": {
+    "id": "extract-2025-federate-resigned-control-test",
+    "state": "implementation",
+    "family": "transport-and-conformance",
+    "lane": "federate.callback.federate-resigned",
+    "objective": "Move the existing embedded-control Federate Resigned callback test into a focused 2025-only unit. Preserve its existing direct clause 4.13 mapping, FederateAmbassador.federateresigned API surface, focused callback tag, and development-profile classification. Keep the internal trigger and assertions classified according to their existing evidence; do not invent normative requirements or conformance claims.",
+    "plan_id": "umbra-cpp-federate-resigned-integration",
+    "mapping_seed_plan_id": "umbra-cpp-federate-resigned-integration",
+    "mapping_seed_policy": "Preserve the existing direct req-federate-resigned-callback-behavior to hla-1516.1-2025:clause-4.13 mapping and the existing FederateAmbassador.federateresigned API surface. Reuse the existing federate.callback.federate-resigned callback tag as the focused roadmap lane; do not infer additional normative coverage.",
+    "api_surfaces": [
+      "api.2025.cpp.federateambassador.federateresigned.0f7e5f7b1858"
+    ],
+    "test_case": "Embedded RTI control forces the official federate-resigned transition",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10765",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded RTI control forces the official federate-resigned transition$",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-federate-resigned-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded RTI control forces the official federate-resigned transition$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane federate.callback.federate-resigned --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-federate-resigned-integration --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Move the existing Federate Resigned test without behavioral edits; preserve its direct clause 4.13 mapping, API surface, existing tags, and development-profile classification, and do not invent normative coverage.",
+      "Build the aggregate 2025 target, pass the exact CTest, confirm the source location, trace, and existing callback lane mapping, and lower the monolith ceiling.",
       "Do not include or alter IEEE 1516.1-2010 sources, targets, fixtures, or mappings."
     ]
   },

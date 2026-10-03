@@ -12223,7 +12223,7 @@
         "hla-1516.1-2025:clause-7.4"
       ],
       "test_case": "Immediate callbacks apply the configured automatic cancel-then-delete-then-divest directive synchronously",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+      "source_location": "cpp/tests/ieee1516_2025_connection_lost_cancel_delete_divest_immediate_catch2.cpp:4",
       "primary_lane": "connection-lost-automatic-cancel-delete-divest-immediate",
       "focus_lane": "connection-lost-automatic-cancel-delete-divest-immediate",
       "assertions": 45,
@@ -12266,6 +12266,7 @@
         "req-federate-resigned-callback-behavior"
       ],
       "test_case": "Embedded RTI control forces the official federate-resigned transition",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10765",
       "tags": [
         "development-profile",
         "federation-management",

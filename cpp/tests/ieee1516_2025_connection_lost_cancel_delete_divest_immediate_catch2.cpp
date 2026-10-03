@@ -2,9 +2,13 @@
 
 namespace {
 TEST_CASE(
-    "Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
+    "Immediate callbacks apply the configured automatic cancel-then-delete-then-divest directive synchronously",
     "[integration][development-profile][federation-management][transport]"
-    "[ownership-management][object-management][rti.service.connection-lost]"
+    "[ownership-management][object-management]"
+    "[connection-lost-automatic-cancel-delete-divest]"
+    "[connection-lost-automatic-cancel-delete-divest-immediate]"
+    "[standalone][2025][callback-model][immediate]"
+    "[rti.service.connection-lost]"
     "[rti.service.get-automatic-resign-directive]"
     "[rti.service.set-automatic-resign-directive]"
     "[rti.service.attribute-ownership-acquisition]"
@@ -19,23 +23,26 @@ TEST_CASE(
   auto const federationName = nextFederationName();
   auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
 
-  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  // Keep the current owner evoked so the pending acquisition release remains
+  // queued when the HLA_IMMEDIATE lost member fails.
+  REQUIRE_NOTHROW(lost->connect(lostReports, rti1516_2025::HLA_IMMEDIATE));
   REQUIRE_NOTHROW(surviving->connect(survivingReports, HLA_EVOKED));
   REQUIRE_NOTHROW(lost->createFederationExecution(
       federationName,
       fomModule,
       standard_hla::mom::integer64_time));
   REQUIRE_NOTHROW(lost->joinFederationExecution(
-      L"automatic-combined-lost",
+      L"automatic-combined-immediate-lost",
       L"publisher",
       federationName));
   REQUIRE_NOTHROW(surviving->joinFederationExecution(
-      L"automatic-combined-survivor",
+      L"automatic-combined-immediate-survivor",
       L"subscriber",
       federationName));
 
   auto const server = lost->getObjectClassHandle(fixture_hla::fom::employee_server);
-  auto const efficiency = lost->getAttributeHandle(server, fixture_hla::fixture::efficiency);
+  auto const efficiency =
+      lost->getAttributeHandle(server, fixture_hla::fixture::efficiency);
   AttributeHandleSet const efficiencyOnly{efficiency};
   REQUIRE_NOTHROW(lost->publishObjectClassAttributes(server, efficiencyOnly));
   REQUIRE_NOTHROW(lost->subscribeObjectClassAttributes(server, efficiencyOnly));
@@ -46,14 +53,9 @@ TEST_CASE(
     survivingReports.callbackOrder.push_back("assumption");
   };
 
-  // The survivor transfers one non-delete attribute to the federate that will
-  // be lost. Directive 5 must later offer it back only after cancellation and
-  // deletion have been handled.
   ObjectInstanceHandle retainedObject;
   REQUIRE_NOTHROW(retainedObject = surviving->registerObjectInstance(server));
   auto const retainedObjectName = surviving->getObjectInstanceName(retainedObject);
-  while (lost->evokeCallback(0.0)) {
-  }
   REQUIRE(lostReports.objectDiscoveryReports.size() == 1);
   unsigned char const divestitureTagBytes[] = {0xD8, 0x25};
   VariableLengthData const divestitureTag(divestitureTagBytes, sizeof(divestitureTagBytes));
@@ -61,8 +63,6 @@ TEST_CASE(
       retainedObject,
       efficiencyOnly,
       divestitureTag));
-  while (lost->evokeCallback(0.0)) {
-  }
   REQUIRE(lostReports.attributeOwnershipAssumptionReports.size() == 1);
   unsigned char const retainedAcquisitionTagBytes[] = {0xD9, 0x25};
   VariableLengthData const retainedAcquisitionTag(
@@ -72,28 +72,22 @@ TEST_CASE(
       retainedObject,
       efficiencyOnly,
       retainedAcquisitionTag));
-  while (lost->evokeCallback(0.0)) {
-  }
   REQUIRE(lostReports.attributeOwnershipAcquisitionReports.size() == 1);
   REQUIRE(lost->isAttributeOwnedByFederate(retainedObject, efficiency));
 
-  // The lost federate owns delete privilege for this final object, so the
-  // deletion phase has an observable Remove Object Instance callback.
   ObjectInstanceHandle deletedObject;
   REQUIRE_NOTHROW(deletedObject = lost->registerObjectInstance(server));
   auto const deletedObjectName = lost->getObjectInstanceName(deletedObject);
   while (surviving->evokeCallback(0.0)) {
   }
   REQUIRE(survivingReports.objectDiscoveryReports.size() == 1);
-  REQUIRE(survivingReports.objectDiscoveryReports.front().objectInstance == deletedObject);
+  REQUIRE(survivingReports.objectDiscoveryReports.front().objectInstance ==
+          deletedObject);
 
-  // The pending regular acquisition queues an owner-release callback at the
-  // survivor. Directive 5's cancellation phase must make that queued work
-  // stale before delivery, rather than leave it aimed at the departed member.
+  // Leave a regular acquisition pending at the evoked owner. Directive 5
+  // must cancel its stale release before the owner services that queue.
   ObjectInstanceHandle acquisitionTarget;
   REQUIRE_NOTHROW(acquisitionTarget = surviving->registerObjectInstance(server));
-  while (lost->evokeCallback(0.0)) {
-  }
   REQUIRE(lostReports.objectDiscoveryReports.size() == 2);
   unsigned char const pendingAcquisitionTagBytes[] = {0xDA, 0x25};
   VariableLengthData const pendingAcquisitionTag(
@@ -107,29 +101,30 @@ TEST_CASE(
 
   REQUIRE_NOTHROW(lost->setAutomaticResignDirective(
       rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
-  REQUIRE(
-      lost->getAutomaticResignDirective() ==
-      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST);
+  REQUIRE(lost->getAutomaticResignDirective() ==
+          rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST);
 
   survivingReports.callbackOrder.clear();
+  survivingReports.attributeOwnershipAssumptionReports.clear();
+  survivingReports.objectRemovalReports.clear();
   REQUIRE(survivingReports.callbackOrder.empty());
   REQUIRE(umbra::detail::failEmbeddedTransportConnectionForTesting(
       *lost,
-      L"automatic cancel-delete-divest transport fault"));
-  REQUIRE(lostReports.faultDescriptions.empty());
+      L"automatic cancel-delete-divest immediate transport fault"));
+  REQUIRE(lostReports.faultDescriptions == std::vector<std::wstring>{
+      L"automatic cancel-delete-divest immediate transport fault"});
   REQUIRE(survivingReports.objectRemovalReports.empty());
   REQUIRE(survivingReports.attributeOwnershipAssumptionReports.empty());
 
-  REQUIRE_FALSE(lost->evokeCallback(0.0));
-  REQUIRE(lostReports.faultDescriptions == std::vector<std::wstring>{
-      L"automatic cancel-delete-divest transport fault"});
   while (surviving->evokeCallback(0.0)) {
   }
   REQUIRE(survivingReports.attributeOwnershipReleaseRequestReports.empty());
   REQUIRE(survivingReports.objectRemovalReports.size() == 1);
-  REQUIRE(survivingReports.objectRemovalReports.front().objectInstance == deletedObject);
+  REQUIRE(survivingReports.objectRemovalReports.front().objectInstance ==
+          deletedObject);
   REQUIRE(survivingReports.attributeOwnershipAssumptionReports.size() == 1);
-  auto const& assumption = survivingReports.attributeOwnershipAssumptionReports.front();
+  auto const& assumption =
+      survivingReports.attributeOwnershipAssumptionReports.front();
   REQUIRE(assumption.objectInstance == retainedObject);
   REQUIRE(assumption.attributes == efficiencyOnly);
   REQUIRE(survivingReports.callbackOrder ==
@@ -140,10 +135,10 @@ TEST_CASE(
       rti1516_2025::ObjectInstanceNotKnown);
   REQUIRE_FALSE(surviving->isAttributeOwnedByFederate(retainedObject, efficiency));
 
-  REQUIRE_NOTHROW(
-      surviving->resignFederationExecution(rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(surviving->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(surviving->destroyFederationExecution(federationName));
-  REQUIRE_NOTHROW(lost->connect(lostReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(lost->connect(lostReports, rti1516_2025::HLA_IMMEDIATE));
   REQUIRE_NOTHROW(lost->disconnect());
   REQUIRE_NOTHROW(surviving->disconnect());
 }
