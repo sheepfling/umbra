@@ -38846,6 +38846,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-211-l86-22"
       ],
       "test_case": "Embedded suppressed timestamped attribute callback does not request retraction",
+      "source_location": "cpp/tests/ieee1516_2025_request_retraction_suppressed_attribute_update_catch2.cpp:5",
       "tags": [
         "integration",
         "development-profile",
@@ -38861,7 +38862,7 @@
         "federate.callback.request-retraction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "Current focused CTest is red during setup: after object discovery, publisher->evokeCallback(0.0) consumes a provider-side Auto Provide callback where the test expects an empty queue (14/15 assertions pass before failure); three consecutive focused runs reproduce it. Diagnose and drain or otherwise isolate setup-generated publisher callbacks before the time-regulation assertion, then rerun the complete suppression case. Preserve this immediate-recipient lane separately from mixed-fanout; no constrained, regional, directed, save/restore, transport, package/JUnit/protected-review, or conformance claim. RL-019 and RL-070 record the Lab source/lifecycle extraction gaps."
+      "next_action": "The setup now drains provider-side Auto Provide callbacks enqueued by object discovery before asserting the time-regulation callback queue. The focused HLA_EVOKED case retains the original 33 suppression/retraction assertions, exact four direct IEEE 1516.1-2025 mappings, and five API surfaces. It remains a development-profile-only immediate-recipient regression, separate from mixed-fanout; constrained, regional, directed, save/restore, transport, package/JUnit/protected-review evidence, and conformance remain open. RL-019 and RL-070 record the Lab source/lifecycle extraction gaps."
     },
     {
       "id": "umbra-cpp-request-retraction-suppressed-regional-attribute-update-integration",

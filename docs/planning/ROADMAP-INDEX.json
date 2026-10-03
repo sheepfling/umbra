@@ -35,73 +35,70 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-mixed-fanout-timestamped-update-attribute-retraction",
+    "id": "diagnose-extract-2025-suppressed-timestamped-attribute-retraction",
     "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-request-retraction-attribute-update-mixed-fanout-integration",
+    "plan_id": "umbra-cpp-request-retraction-suppressed-attribute-update-integration",
     "family": "time-save-restore",
-    "lane": "request-retraction-attribute-update-mixed-fanout",
-    "objective": "Extract the already-mapped mixed-fanout timestamped Update Attribute Values retraction case into its own 2025-only translation unit without changing its behavior or evidence.",
-    "test_case": "Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction",
-    "source_target": "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp:5",
-    "assertions": 75,
+    "lane": "request-retraction-suppressed-attribute-update",
+    "objective": "Isolate the setup-generated publisher Auto Provide callback, then extract the mapped timestamped attribute retraction-suppression case into a focused 2025-only unit while preserving its behavior and evidence.",
+    "test_case": "Embedded suppressed timestamped attribute callback does not request retraction",
+    "source_target": "cpp/tests/ieee1516_2025_request_retraction_suppressed_attribute_update_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_request_retraction_suppressed_attribute_update_catch2.cpp:5",
+    "assertions": 33,
     "callback_models": [
       "HLA_EVOKED"
     ],
-    "mapping_seed_policy": "This exact source-only extraction preserves all 12 direct IEEE 1516.1-2025 requirement-to-subsection pairs across clauses 6.10, 6.11.1, 8.1.4, 8.1.5, 8.22.3, and 8.23.3 plus its six official C++ API surfaces. Development-profile evidence only; no 2010 mapping or conformance claim.",
+    "mapping_seed_policy": "This focused case retains its exact four direct IEEE 1516.1-2025 requirement-to-subsection pairs across clauses 6.10, 6.11.1, 8.22.3, and 8.23.3, plus its five official C++ API surfaces. The only added setup work drains discovery-generated Auto Provide callbacks before the time-management assertion; development-profile evidence only, with no 2010 mapping or conformance claim.",
     "api_surfaces": [
       "api.2025.cpp.rtiambassador.updateattributevalues.7f3fa1308884",
+      "api.2025.cpp.rtiambassador.unsubscribeobjectclassattributes.dcc5d2b291dd",
       "api.2025.cpp.rtiambassador.retract.d2de2342935e",
-      "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
       "api.2025.cpp.federateambassador.reflectattributevalues.0a0162364e89",
-      "api.2025.cpp.federateambassador.requestretraction.071956ceac30",
-      "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66"
+      "api.2025.cpp.federateambassador.requestretraction.071956ceac30"
     ],
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction$",
-    "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-request-retraction-attribute-update-mixed-fanout-integration --summary --compact",
-      "lane_check": "python tools/query_rti_work.py check --lane request-retraction-attribute-update-mixed-fanout --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction$\" --output-on-failure",
-      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient|Embedded suppressed timestamped attribute callback does not request retraction\" --output-on-failure"
-    },
-    "acceptance": [
-      "The 157-line test body matches its committed original exactly; the plan row points to the focused source and retains all 12 direct pairs and six API surfaces.",
-      "The aggregate 2025 target built; the extracted case and immediate-only neighboring CTest passed. The separate suppressed-attribute neighbor was reproduced failing three times during setup and is recorded for the next handoff.",
-      "The lane mapping check reports one mapped case and 12 direct requirement-to-2025-subsection pairs; the monolith and legacy ceiling are both reduced to 39,964 lines.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
-    ]
-  },
-  "active_handoff_note": "Verified progress: The mixed-fanout timestamped Update Attribute Values retraction case moved as an exact 157-line test body to its own 2025 translation unit. The federation-management monolith and legacy ceiling both fell from 40,122 to 39,964 lines. The aggregate 2025 target built; the extracted test and immediate-only retraction neighbor passed; the lane mapping and size checks pass. A distinct mapped suppression neighbor fails consistently during setup when publisher->evokeCallback consumes a discovery-generated Auto Provide callback (14/15 assertions pass); this is explicitly separated into the next handoff. No IEEE 1516.1-2010 source, target, fixture, or mapping changed.",
-  "active_handoff": {
-    "id": "diagnose-extract-2025-suppressed-timestamped-attribute-retraction",
-    "state": "source-reconciliation",
-    "family": "time-save-restore",
-    "lane": "request-retraction-suppressed-attribute-update",
-    "objective": "Diagnose the repeatable publisher callback-queue setup failure in the already-mapped timestamped attribute retraction-suppression case, isolate that setup callback from the time-management assertion, then extract the case into a focused 2025-only unit. Preserve the immediate-recipient suppression behavior and existing mapping; do not merge claims with mixed-fanout or any 2010 evidence.",
-    "plan_id": "umbra-cpp-request-retraction-suppressed-attribute-update-integration",
-    "mapping_seed_plan_id": "umbra-cpp-request-retraction-suppressed-attribute-update-integration",
-    "mapping_seed_policy": "Treat this case's own existing four direct requirement-to-2025-section pairs and five API surfaces as authoritative. Reproduce and fix only setup callback isolation; do not copy mappings or behavior claims from the separate mixed-fanout case.",
-    "related_plan_ids": [
-      "umbra-cpp-request-retraction-attribute-update-mixed-fanout-integration"
-    ],
-    "test_case": "Embedded suppressed timestamped attribute callback does not request retraction",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39234",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded suppressed timestamped attribute callback does not request retraction$",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-request-retraction-suppressed-attribute-update-integration --summary --compact",
+      "case": "python tools/query_rti_work.py case umbra-cpp-request-retraction-suppressed-attribute-update-integration --summary --compact",
+      "lane_check": "python tools/query_rti_work.py check --lane request-retraction-suppressed-attribute-update --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
       "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded suppressed timestamped attribute callback does not request retraction$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane request-retraction-suppressed-attribute-update --summary --compact",
+      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction|Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient\" --output-on-failure"
+    },
+    "acceptance": [
+      "The original suppression and retraction assertions are preserved; only discovery-generated publisher Auto Provide setup callbacks are drained before the time-management assertion. The plan row points to the focused source and retains all four direct pairs and five API surfaces.",
+      "The aggregate 2025 target built; the exact suppression CTest plus immediate-only and mixed-fanout neighboring CTests passed.",
+      "The lane mapping check reports one mapped case and four direct requirement-to-2025-subsection pairs; the monolith and legacy ceiling are both reduced to 39,872 lines.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
+    ]
+  },
+  "active_handoff_note": "Verified progress: The mapped timestamped attribute suppression case now lives in a focused 2025 unit; draining discovery-generated publisher Auto Provide setup callbacks fixed its repeatable setup failure without changing the 33 suppression/retraction assertions. The federation-management monolith and size ceiling fell from 39,964 to 39,872 lines. The 2025 aggregate target built; the exact case, immediate-only neighbor, and mixed-fanout neighbor all passed; lane mapping and source-size checks pass. No 2010 source, target, fixture, or mapping changed. Next handoff: extract the mapped timestamped Send Directed Interaction service-report file case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39234, preserving its four direct mappings and four API surfaces.",
+  "active_handoff": {
+    "id": "extract-2025-timestamped-send-directed-interaction-service-report-file",
+    "state": "implementation",
+    "family": "time-save-restore",
+    "lane": "timestamped-directed-interaction-service-report",
+    "objective": "Extract the already-mapped timestamped Send Directed Interaction service-report file case from the 2025 federation-management source into its own focused 2025-only translation unit. Preserve its exact file-report/callback assertions and existing mapping; keep it separate from all IEEE 1516.1-2010 evidence.",
+    "plan_id": "umbra-cpp-timestamped-send-directed-interaction-service-report-file-integration",
+    "mapping_seed_plan_id": "umbra-cpp-timestamped-send-directed-interaction-service-report-file-integration",
+    "mapping_seed_policy": "This is a source-only extraction: preserve this exact case's four direct requirement-to-2025-section pairs across clauses 6.13, 8.22.3, and 11.5 plus its four API surfaces. Do not transfer claims from other directed-interaction or service-report cases.",
+    "related_plan_ids": [],
+    "test_case": "Embedded service reporting records timestamped Send Directed Interaction before directed callback",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39234",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records timestamped Send Directed Interaction before directed callback$",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-timestamped-send-directed-interaction-service-report-file-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records timestamped Send Directed Interaction before directed callback$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane timestamped-directed-interaction-service-report --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Reproduce the publisher callback-queue failure and isolate discovery-generated setup callbacks without changing the suppression/retraction assertions.",
-      "Extract the 33-assertion case into a focused 2025 translation unit while preserving its four direct requirement mappings, five API surfaces, and development-profile-only status.",
-      "Build the 2025 aggregate target; pass the exact CTest and focused neighbors; validate the lane and lower the source-size ceiling.",
+      "Extract the exact mapped case into a focused 2025 translation unit while preserving all existing file-report/callback assertions and its four direct mappings/four API surfaces.",
+      "Retain development-profile-only status and do not broaden the case to other directed-interaction modes or report destinations.",
+      "Build the 2025 aggregate target, pass its exact CTest and focused neighbors, validate the lane, and lower the source-size ceiling.",
       "Do not include or alter IEEE 1516.1-2010 sources, targets, fixtures, or mappings."
     ]
   },
