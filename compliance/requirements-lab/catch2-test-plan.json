@@ -47946,6 +47946,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting records order and transportation lookup return arguments",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
       "tags": [
         "integration",
         "development-profile",
@@ -68366,7 +68367,7 @@
         "rti.service.ddm-mutation-failure-matrix"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+      "source_location": "cpp/tests/ieee1516_2025_ddm_mutation_failure_matrix_service_report_file_catch2.cpp:5",
       "assertions": 30,
       "callback_models": [
         "HLA_EVOKED"
