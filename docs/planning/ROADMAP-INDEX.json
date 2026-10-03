@@ -35,54 +35,16 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-support-object-attribute-update-rate-lookup-failure-matrix-file",
-    "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-support-object-attribute-update-rate-lookup-failure-matrix",
-    "family": "mom-after-base-services",
-    "lane": "service-failure",
-    "objective": "Extract the existing seven object and update-rate lookup failure matrix into a focused 2025-only unit. Preserve its two direct requirement mappings to clauses 11.5 and 11.5.1, ten selected C++ API surfaces, current Catch2 tags, and development-profile classification; do not cross the 2010/2025 boundary or imply a row-level conditional-failure mapping absent from the Lab source.",
-    "test_case": "Embedded service reporting records the seven object and update-rate lookup failures",
-    "source_target": "cpp/tests/ieee1516_2025_support_object_attribute_update_rate_lookup_failure_matrix_service_report_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_support_object_attribute_update_rate_lookup_failure_matrix_service_report_catch2.cpp:5",
-    "mapping_seed_policy": "The existing plan maps two candidate requirements directly to clauses 11.5 and 11.5.1 and selects seven lookup APIs plus GetObjectClassHandle and two reporting-switch APIs. Preserve the direct pairs and all ten API surfaces without overclaiming conditional failure evidence; keep this as development-profile traceability only.",
-    "api_surfaces": [
-      "api.2025.cpp.rtiambassador.getobjectclasshandle.36d1b269a059",
-      "api.2025.cpp.rtiambassador.getknownobjectclasshandle.34448f8372d0",
-      "api.2025.cpp.rtiambassador.getobjectinstancehandle.4dfe8e4f66fe",
-      "api.2025.cpp.rtiambassador.getobjectinstancename.8445cd076ee4",
-      "api.2025.cpp.rtiambassador.getattributehandle.aa05f6c28dcb",
-      "api.2025.cpp.rtiambassador.getattributename.c33d4c71afe4",
-      "api.2025.cpp.rtiambassador.getupdateratevalue.2154436e4391",
-      "api.2025.cpp.rtiambassador.getupdateratevalueforattribute.ddc71a56947d",
-      "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
-      "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c"
-    ],
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records the seven object and update-rate lookup failures$",
-    "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-support-object-attribute-update-rate-lookup-failure-matrix --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records the seven object and update-rate lookup failures$\" --output-on-failure",
-      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records (the seven object and update-rate lookup failures|failed federate lookup invocations|failed non-void lookup invocations|failed order and transportation lookups)\" --output-on-failure",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The exact existing 127-line test body is preserved byte-for-byte. Its plan row retains two direct clause mappings (11.5 and 11.5.1), all ten selected API-surface IDs, original Catch2 tags, and development-profile classification. No row-level conditional-failure mapping is claimed.",
-      "The aggregate 2025 target builds; this test and three neighboring lookup regressions pass focused CTest, and the service-failure lane mapping check passes.",
-      "The source-size check passes; the monolith and ceiling fall from 37,456 to 37,328 lines while CMake remains at its 12,392-line baseline.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
-    ]
-  },
-  "active_handoff_note": "Verified progress: The seven object and update-rate lookup failure matrix now lives in a focused 2025 unit. Its exact 127-line body and original tags are preserved; its two direct mappings to clauses 11.5 and 11.5.1 and all ten selected C++ API surfaces remain unchanged, without claiming row-level conditional-failure coverage. After the aggregate 2025 build, this test plus three neighboring lookup regressions passed focused CTest; the service-failure lane check, plan trace, and source-size check pass. The largest test file is 37,328 lines, down 1,944 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: isolate the handle-normalization service-report return-argument test at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764, preserving its two direct clause mappings and seven selected C++ API surfaces while keeping the absence of a row-level Table 5 ReturnArgument mapping explicit.",
-  "active_handoff": {
     "id": "extract-2025-support-handle-normalization-service-report-returns-file",
-    "state": "implementation",
+    "state": "implemented-in-noninstallable-development-profile",
+    "plan_id": "umbra-cpp-support-handle-normalization-nonvoid-service-report-integration",
     "family": "transport-and-conformance",
     "lane": "handle-normalization-service-reports",
-    "objective": "Extract the existing handle-normalization service-report return-argument test into a focused 2025-only unit. Preserve the two direct clause mappings, seven selected C++ API surfaces, Catch2 tags, and development-profile classification. Keep 2010/2025 boundaries intact and do not invent a row-level Table 5 ReturnArgument mapping where the Lab export does not provide one.",
-    "plan_id": "umbra-cpp-support-handle-normalization-nonvoid-service-report-integration",
-    "mapping_seed_plan_id": "umbra-cpp-support-handle-normalization-nonvoid-service-report-integration",
-    "mapping_seed_policy": "Preserve the existing two direct pairs to clauses 11.5 and 11.5.1 and all seven API surfaces. The Lab has no row-level Table 5 ReturnArgument mapping for these normalization results (RL-042/RL-067/RL-076/RL-148); keep this bounded to development-profile traceability.",
+    "objective": "Extract the existing five handle-normalization service-report return-argument checks into a focused 2025-only unit. Preserve the two direct mappings to clauses 11.5 and 11.5.1, seven selected C++ API surfaces, original tags, and development-profile classification. Do not cross the 2010/2025 boundary or invent a row-level Table 5 ReturnArgument mapping absent from the Lab source.",
+    "test_case": "Embedded service reporting records handle normalization return arguments",
+    "source_target": "cpp/tests/ieee1516_2025_support_handle_normalization_service_report_return_arguments_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_support_handle_normalization_service_report_return_arguments_catch2.cpp:5",
+    "mapping_seed_policy": "Preserve the two direct clause pairs and all seven API surfaces. The Lab has no row-level Table 5 ReturnArgument mapping for these normalization results (RL-042/RL-067/RL-076/RL-148); retain development-profile traceability only.",
     "api_surfaces": [
       "api.2025.cpp.rtiambassador.normalizeservicegroup.766646292813",
       "api.2025.cpp.rtiambassador.normalizefederatehandle.ed3858cc768a",
@@ -92,13 +54,10 @@
       "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
       "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c"
     ],
-    "test_case": "Embedded service reporting records handle normalization return arguments",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records handle normalization return arguments$",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-support-handle-normalization-nonvoid-service-report-integration --summary --compact",
+      "case": "python tools/query_rti_work.py case umbra-cpp-support-handle-normalization-nonvoid-service-report-integration --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
       "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records handle normalization return arguments$\" --output-on-failure",
       "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records (handle normalization return arguments|the seven object and update-rate lookup failures|failed federate lookup invocations|failed non-void lookup invocations)\" --output-on-failure",
@@ -107,8 +66,48 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Move the exact existing 25-assertion test body without behavioral edits; retain its two direct clause mappings, seven selected C++ API surfaces, current Catch2 tags, and development-profile classification. Do not invent row-level Table 5 ReturnArgument coverage.",
-      "Build the aggregate 2025 target, pass the exact CTest and adjacent service-report regressions, confirm the plan trace and handle-normalization lane mapping, and lower the monolith ceiling.",
+      "The exact existing 105-line test body is preserved byte-for-byte (25 assertions). Its two direct clause mappings, seven API-surface IDs, original Catch2 tags, and development-profile classification are retained; no row-level Table 5 ReturnArgument mapping is invented.",
+      "The aggregate 2025 target builds; this test and neighboring lookup regressions pass focused CTest, and the handle-normalization service-report lane mapping check passes.",
+      "The source-size check passes; the monolith and ceiling fall from 37,328 to 37,222 lines while CMake remains at its 12,392-line baseline.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
+    ]
+  },
+  "active_handoff_note": "Verified progress: The successful handle-normalization return-argument test now lives in a focused 2025 unit. Its exact 105-line body (25 assertions), original tags, two direct clause mappings, and seven API surfaces are preserved; no row-level Table 5 ReturnArgument mapping is claimed. The aggregate 2025 target and focused normalization/report regressions pass, and the plan trace, lane mapping, and source-size checks are green. The largest test file is 37,222 lines, down 2,050 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: extract the failed handle-normalization invocation matrix at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764, preserving its two direct clause mappings and seven API surfaces while retaining the RL-152 conditional-failure mapping caveat.",
+  "active_handoff": {
+    "id": "extract-2025-support-handle-normalization-failure-matrix-file",
+    "state": "implementation",
+    "family": "mom-after-base-services",
+    "lane": "handle-normalization-service-reports",
+    "objective": "Extract the existing failed handle-normalization invocation matrix into a focused 2025-only unit. Preserve its two direct clause mappings, seven selected C++ API surfaces, existing Catch2 tags, and development-profile classification. Keep the 2010/2025 boundary intact and do not imply row-level conditional-failure mappings absent from the Lab source.",
+    "plan_id": "umbra-cpp-support-handle-normalization-failure-matrix",
+    "mapping_seed_plan_id": "umbra-cpp-support-handle-normalization-failure-matrix",
+    "mapping_seed_policy": "Preserve the two direct mappings to clauses 11.5 and 11.5.1 and all seven API surfaces. The Lab has no row-level conditional-failure mapping for these rows (RL-152); keep the existing development-profile traceability classification without overclaiming.",
+    "api_surfaces": [
+      "api.2025.cpp.rtiambassador.normalizeservicegroup.766646292813",
+      "api.2025.cpp.rtiambassador.normalizefederatehandle.ed3858cc768a",
+      "api.2025.cpp.rtiambassador.normalizeobjectclasshandle.e33f8b0b4661",
+      "api.2025.cpp.rtiambassador.normalizeinteractionclasshandle.dadfefad8ca6",
+      "api.2025.cpp.rtiambassador.normalizeobjectinstancehandle.31623897189d",
+      "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
+      "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c"
+    ],
+    "test_case": "Embedded service reporting records failed handle normalization invocations",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed handle normalization invocations$",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-support-handle-normalization-failure-matrix --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed handle normalization invocations$\" --output-on-failure",
+      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records (failed handle normalization invocations|handle normalization return arguments|failed federate lookup invocations|the seven object and update-rate lookup failures)\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane handle-normalization-service-reports --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-support-handle-normalization-failure-matrix --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Move the exact existing 28-assertion test body without behavioral edits; retain its two direct clause mappings, seven selected C++ API surfaces, existing Catch2 tags, and development-profile classification. Do not claim row-level conditional-failure mappings absent from the Lab source.",
+      "Build the aggregate 2025 target, pass the exact CTest and adjacent normalization/lookup regressions, confirm the plan trace and handle-normalization lane mapping, and lower the monolith ceiling.",
       "Do not include or alter IEEE 1516.1-2010 sources, targets, fixtures, or mappings."
     ]
   },
