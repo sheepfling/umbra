@@ -35,66 +35,71 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-federate-resigned-callback-case-file",
+    "id": "extract-2025-federation-resign-lifecycle-case-file",
     "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-federate-resigned-integration",
-    "family": "transport-and-conformance",
-    "lane": "federate.callback.federate-resigned",
-    "objective": "Move the existing embedded-control Federate Resigned callback test into a focused 2025-only unit. Preserve its exact 57-line body, existing direct clause 4.13 mapping, FederateAmbassador.federateresigned API surface, callback tags, and development-profile classification. Keep the private trigger and assertions bounded to existing implementation evidence; do not expand them into public API or conformance claims.",
-    "test_case": "Embedded RTI control forces the official federate-resigned transition",
-    "source_target": "cpp/tests/ieee1516_2025_federate_resigned_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federate_resigned_catch2.cpp:4",
-    "mapping_seed_policy": "Preserve the existing direct req-federate-resigned-callback-behavior to hla-1516.1-2025:clause-4.13 mapping and the existing FederateAmbassador.federateresigned API surface; retain all current tags and development-profile classification.",
-    "api_surfaces": [
-      "api.2025.cpp.federateambassador.federateresigned.0f7e5f7b1858"
-    ],
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded RTI control forces the official federate-resigned transition$",
-    "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-federate-resigned-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded RTI control forces the official federate-resigned transition$\" --output-on-failure",
-      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^federate\\.callback\\.federate-resigned$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane federate.callback.federate-resigned --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-federate-resigned-integration --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The exact existing 57-line test body is preserved byte-for-byte in the focused unit. Its direct mapping to clause 4.13, one selected API surface, original callback tags, and development-profile classification remain intact; the private trigger is not represented as a public API.",
-      "The aggregate 2025 target builds; the exact test and all three tests with the existing federate.callback.federate-resigned label pass focused CTest; the trace and callback-lane mapping check pass.",
-      "The source-size check passes; the monolith and ceiling fall from 36,718 to 36,660 lines, while CMake stays at its 12,392-line baseline. Nearby stale source pointers are corrected and all downstream line references are rebased.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
-    ]
-  },
-  "active_handoff_note": "Verified progress: The embedded-control Federate Resigned callback test now lives in a focused 2025 unit. Its exact 57-line body, direct clause 4.13 mapping, FederateAmbassador.federateresigned API surface, original callback tags, and development-profile classification are preserved; the private trigger remains test-only. The aggregate 2025 target, exact CTest, all three tests with the existing federate.callback.federate-resigned label, trace, lane mapping, and source-size check pass. Four nearby stale test-plan source locations were corrected and 104 later monolith line references were rebased. The largest test file is 36,660 lines, down 2,612 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: split the existing membership-only resign lifecycle case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10765 into a focused 2025 unit, preserving its direct clause 4.12 mapping, RTIambassador.resignFederationExecution API surface, m16.transition.federate-resign tag, and development-profile status.",
-  "active_handoff": {
-    "id": "extract-2025-federation-resign-prevalidated-test",
-    "state": "implementation",
+    "plan_id": "umbra-cpp-resign-integration",
     "family": "transport-and-conformance",
     "lane": "m16.transition.federate-resign",
-    "objective": "Move the existing membership-only resign lifecycle test into a focused 2025-only unit. Preserve its existing direct clause 4.12 mapping, RTIambassador.resignFederationExecution API surface, m16.transition.federate-resign tag, and development-profile classification. Keep the already separate resign-action disposition cases distinct; do not expand this case into broader conformance or 2010 claims.",
-    "plan_id": "umbra-cpp-resign-integration",
-    "mapping_seed_plan_id": "umbra-cpp-resign-integration",
-    "mapping_seed_policy": "Preserve the existing direct requirement-candidate-content-clauses-04-federation-management-page-058-l112-33 to hla-1516.1-2025:clause-4.12 mapping and the existing RTIambassador.resignFederationExecution API surface. Retain the current development-profile and m16.transition.federate-resign classifications.",
-    "api_surfaces": [
-      "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e"
-    ],
+    "objective": "Move the existing membership-only resign lifecycle case into a focused 2025-only unit. Preserve its exact 76-line body, direct clause 4.12 mapping, RTIambassador.resignFederationExecution API surface, existing tags, and development-profile classification. Preserve the separate API-only lifecycle trace row and all its declaration mappings without upgrading it to conformance evidence; keep adjacent resign-action disposition tests separate.",
     "test_case": "Embedded federation-management services commit only a prevalidated federation definition",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10765",
+    "source_target": "cpp/tests/ieee1516_2025_federation_resign_lifecycle_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_resign_lifecycle_catch2.cpp:4",
+    "mapping_seed_policy": "Preserve the main plan row's direct requirement-candidate-content-clauses-04-federation-management-page-058-l112-33 to hla-1516.1-2025:clause-4.12 mapping and RTIambassador.resignFederationExecution surface. Preserve the separate implemented-public-api-not-conformance-evidence lifecycle row, its six C++ API surfaces and four direct requirement-section mappings, and both row source pointers to this focused unit.",
+    "api_surfaces": [
+      "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
+      "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
+      "api.2025.cpp.rtiambassador.createfederationexecution.b7555a12e578",
+      "api.2025.cpp.rtiambassador.createfederationexecutionwithmim.1de0ecdf0f4b",
+      "api.2025.cpp.rtiambassador.destroyfederationexecution.f403cac5930f",
+      "api.2025.cpp.rtiambassador.joinfederationexecution.ec791fdee4a1",
+      "api.2025.cpp.rtiambassador.joinfederationexecution.9e7e3b227992"
+    ],
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded federation-management services commit only a prevalidated federation definition$",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-resign-integration --summary --compact",
+      "case": "python tools/query_rti_work.py case umbra-cpp-resign-integration --summary --compact",
+      "secondary_trace": "python tools/query_rti_work.py trace umbra-cpp-federation-execution-lifecycle-integration --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
       "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded federation-management services commit only a prevalidated federation definition$\" --output-on-failure",
+      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^m16\\.transition\\.federate-resign$\" --output-on-failure",
       "mapping_check": "python tools/query_rti_work.py check --lane m16.transition.federate-resign --summary --compact",
       "trace": "python tools/query_rti_work.py trace umbra-cpp-resign-integration --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Move the existing membership-only resign test without behavioral edits; preserve its direct clause 4.12 mapping, RTIambassador.resignFederationExecution API surface, existing tags, and development-profile classification. Keep other resign-action dispositions separate.",
-      "Build the aggregate 2025 target, pass the exact CTest, confirm the source location, trace, and m16.transition.federate-resign lane mapping, and lower the monolith ceiling.",
+      "The exact existing 76-line test body is preserved byte-for-byte. Its main direct mapping to clause 4.12, selected resign API surface, tags, and development-profile classification remain intact; the separate API-only lifecycle row retains its six API surfaces, four direct requirement-section mappings, and non-conformance status.",
+      "The aggregate 2025 target builds; the exact test and the m16.transition.federate-resign lane test pass focused CTest; both plan traces and the lane mapping check pass.",
+      "The source-size check passes; the monolith and ceiling fall from 36,660 to 36,583 lines, while CMake remains at 12,392. All 104 downstream monolith source locations are rebased.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
+    ]
+  },
+  "active_handoff_note": "Verified progress: The 76-line membership-only resign lifecycle case now lives in a focused 2025 unit. Its main direct clause 4.12 mapping, resign API surface, current tags, and development-profile classification are intact; the separate API-only lifecycle row and its six API surfaces/four direct requirement mappings still point at the same extracted body without a conformance upgrade. The aggregate 2025 target, exact CTest, resign-lane CTest, both traces, mapping check, and source-size check pass. All 104 later monolith source references were rebased. The largest test file is 36,583 lines, down 2,689 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: split the non-file FOM-source ErrorReadingFOM diagnostic at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10765 into a focused 2025 unit, preserving its existing clause 4 mapping, development-profile status, and FOM-source-diagnostics tag without adding API or conformance claims.",
+  "active_handoff": {
+    "id": "extract-2025-fom-nonfile-source-error-case",
+    "state": "implementation",
+    "family": "fom-module-declaration-management",
+    "lane": "fom-source-diagnostics",
+    "objective": "Move the existing public-boundary regression for an existing but unusable non-file FOM source into a focused 2025-only unit. Preserve its direct clause 4 mapping, FOM-source-diagnostics tag, and development-profile classification. Keep the assertion bounded to ErrorReadingFOM and atomic non-creation; do not claim full composition, remote transport, packaging, or conformance.",
+    "plan_id": "umbra-cpp-fom-source-diagnostics-integration",
+    "mapping_seed_plan_id": "umbra-cpp-fom-source-diagnostics-integration",
+    "mapping_seed_policy": "Preserve the existing requirement-candidate-content-clauses-04-federation-management-page-048-l57-18 to hla-1516.1-2025:clause-4 mapping and the existing FOM diagnostic tags/status. This case has no selected C++ API surface; do not add one or broaden the normative claim.",
+    "api_surfaces": [],
+    "test_case": "Embedded Create Federation Execution maps an existing non-file FOM source to ErrorReadingFOM",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10765",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Create Federation Execution maps an existing non-file FOM source to ErrorReadingFOM$",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-fom-source-diagnostics-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded Create Federation Execution maps an existing non-file FOM source to ErrorReadingFOM$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane fom-source-diagnostics --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-fom-source-diagnostics-integration --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Move the existing non-file FOM-source diagnostic without behavioral edits; preserve its direct clause 4 mapping, existing FOM-source-diagnostics tag, and development-profile classification, with no invented API or requirement mappings.",
+      "Build the aggregate 2025 target, pass the exact CTest, confirm the source location, trace, and FOM source-diagnostics lane mapping, and lower the monolith ceiling.",
       "Do not include or alter IEEE 1516.1-2010 sources, targets, fixtures, or mappings."
     ]
   },
@@ -502,6 +507,7 @@
       "timestamped-regional-interaction-timed-restore": "time-save-restore",
       "timestamped-regional-interaction-source-resignation": "time-save-restore",
       "fom-module-management": "fom-module-declaration-management",
+      "fom-source-diagnostics": "fom-module-declaration-management",
       "fom-summary-rule-1": "fom-module-declaration-management",
       "summary-rule-2": "object-ddm-ownership",
       "summary-rule-3": "transport-and-conformance",
@@ -3873,6 +3879,11 @@
         "catch2_target": "umbra_fom_declaration_management_catch2",
         "ctest_filter": "^umbra\\.fom_declaration_management\\.catch2\\.Embedded joined federates retain a validated 2025 HLA FOM$",
         "source": "cpp/tests/fom_declaration_management_catch2.cpp"
+      },
+      "fom-source-diagnostics": {
+        "catch2_target": "umbra_ieee1516_2025_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Create Federation Execution maps an existing non-file FOM source to ErrorReadingFOM$",
+        "source": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp"
       },
       "schema-conflict": {
         "catch2_target": "umbra_fom_composer_catch2",
@@ -26893,7 +26904,8 @@
       "next_lane": "fom-module-management",
       "focused_lane_tags": [
         "fom-summary-rule-1",
-        "join-automatic-resign-directive"
+        "join-automatic-resign-directive",
+        "fom-source-diagnostics"
       ],
       "next_test_role": "baseline",
       "next_test_query": "Embedded Create Federation Execution rejects an empty FOM module set",
