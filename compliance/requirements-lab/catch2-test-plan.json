@@ -42216,6 +42216,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5"
       ],
       "test_case": "Embedded service reporting delivers failed interaction-class and parameter lookups through MOM interaction",
+      "primary_lane": "mom-service-report-failed-interaction-parameter-lookup-matrix",
       "tags": [
         "integration",
         "development-profile",
@@ -42224,9 +42225,11 @@
         "service-reporting",
         "service-report-interaction",
         "service-failure",
+        "mom-service-report-failed-interaction-parameter-lookup-matrix",
         "rti.service.interaction-lookup-failure-matrix-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_mom_service_report_failed_interaction_parameter_lookup_matrix_catch2.cpp:5",
       "next_action": "This HLA_IMMEDIATE native matrix decodes all four \u00a710.13\u2013\u00a710.16 failed interaction-class and parameter lookups through the public HLAreportServiceInvocation sink. Each report preserves service type 6, its typed supplied arguments, Null returned argument, false success indicator, public exception text, and contiguous serials zero through three; a successful lookup follows at serial four. The Lab has no row-level conditional failure relation (RL-152), so other failure families, JUnit/protected review, and conformance remain open."
     },
     {
