@@ -59385,7 +59385,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This C++ filesystem matrix proves failed GetInteractionClassHandle, GetInteractionClassName, GetParameterHandle, and GetParameterName invocations preserve their official type-53/type-27/type-39 supplied forms, Null returned arguments, false success indicators, public exception text, and serials zero through three before a successful serial-four lookup. The Lab has no row-level conditional failure relation (RL-152); the matching public interaction matrix, other failure families, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11505",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ service\\ reporting\\ records\\ failed\\ interaction\\-class\\ and\\ parameter\\ lookups$"
     },
