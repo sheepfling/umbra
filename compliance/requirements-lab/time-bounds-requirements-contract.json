@@ -14,7 +14,7 @@
       "tests": [
         "cpp/tests/federation_time_bounds_catch2.cpp::No-TSO federation time bounds use other regulators current or pending time plus lookahead",
         "cpp/tests/federation_time_bounds_catch2.cpp::No-TSO federation time bounds use a time-advancing regulator requested time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances",
+        "cpp/tests/ieee1516_2025_query_galt_lits_other_regulator_pending_advances_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded three-federate GALT tracks the minimum regulator and resignation"
       ]
     },
@@ -27,7 +27,7 @@
       "tests": [
         "cpp/tests/federation_time_bounds_catch2.cpp::No-TSO federation time bounds use other regulators current or pending time plus lookahead",
         "cpp/tests/federation_time_bounds_catch2.cpp::No-TSO federation time bounds use a time-advancing regulator requested time",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances"
+        "cpp/tests/ieee1516_2025_query_galt_lits_other_regulator_pending_advances_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances"
       ]
     },
     {
@@ -48,7 +48,7 @@
       "source_symbol": "FederationTimeBoundsCalculator::calculate",
       "tests": [
         "cpp/tests/federation_time_bounds_catch2.cpp::No-TSO federation time bounds are undefined without another regulator",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances"
+        "cpp/tests/ieee1516_2025_query_galt_lits_other_regulator_pending_advances_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances"
       ]
     },
     {
@@ -58,7 +58,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryGALT",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances",
+        "cpp/tests/ieee1516_2025_query_galt_lits_other_regulator_pending_advances_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded three-federate GALT tracks the minimum regulator and resignation"
       ]
     },
@@ -69,7 +69,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLITS",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances",
+        "cpp/tests/ieee1516_2025_query_galt_lits_other_regulator_pending_advances_catch2.cpp::Embedded Query GALT and Query LITS observe other regulator time and pending advances",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded three-federate GALT tracks the minimum regulator and resignation"
       ]
     }

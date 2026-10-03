@@ -566,15 +566,25 @@ The first wave should be staged rather than attempted as one rewrite:
     pairs in clause 8.20.4, and 11 official API surfaces). Its focused and
     aggregate targets build; five exact focused/aggregate and neighboring
     CTests pass. Negative-interval validation and MOM reporting remain
-    separately scoped. The federation-
-    management monolith is 40,679 lines, 29,608 below its 70,287-line start,
-    with its ceiling ratcheted down to 40,679. Neither extraction changes
-    runtime behavior or crosses into IEEE 1516.1-2010. No Requirements Lab
-    resync occurred. Next handoff: inspect `Embedded Query GALT and Query LITS
-    observe other regulator time and pending advances` at
-    `ieee1516_2025_federation_management_catch2.cpp:33746`; keep this two-
-    federate no-TSO case separate from the three-federate minimum-regulator,
-    resignation, and configured-process lanes.
+    separately scoped. The embedded two-federate Query GALT/Query LITS case
+    is now isolated in
+    `ieee1516_2025_query_galt_lits_other_regulator_pending_advances_catch2.cpp`
+    (65 lines, 35 assertions, 5 direct requirement-section pairs across clauses
+    8, 8.1.5, 8.18.1, and 8.19.3, and 12 official API surfaces). It preserves
+    undefined bounds without another regulator, defined bounds at 2 from
+    current time plus lookahead, pending requested-time bounds at 7, and the
+    return to undefined after regulation is disabled. Focused and aggregate
+    targets build; focused/aggregate, three-federate, and process-boundary
+    CTests pass (5 exact CTests), and its mapping lane passes. The
+    federation-management monolith is 40,617 lines, 29,670 below its
+    70,287-line start, with its ceiling ratcheted down to 40,617. No runtime
+    behavior changed, no IEEE 1516.1-2010 path or mapping was touched, and no
+    Requirements Lab resync occurred. Next handoff: reconcile the source-
+    unplanned `Embedded service reporting delivers time-regulated timestamped
+    Send Interaction through MOM interaction` case at
+    `ieee1516_2025_federation_management_catch2.cpp:39000` against its roadmap
+    pointer and unregulated timestamped-report companion; map only this
+    time-regulated case's observed assertions.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in

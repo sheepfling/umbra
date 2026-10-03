@@ -1372,7 +1372,7 @@
         "HLA_EVOKED"
       ],
       "requirements_lab_api_surface_status": "The official Connect/Create/Join, object and attribute lookup, publication, ordinary update-rate subscription, registration, receive-order Update Attribute Values, Reflect Attribute Values, Resign, Destroy, and Disconnect C++ surfaces are exercised through the embedded HLA_EVOKED development profile. Two live executions use names where one is a textual prefix of the other; each establishes an independent Low-rate admission history, then the first execution resigns and is destroyed. The surviving execution remains suppressed on its immediate third update, proving teardown does not clear another execution's update-rate history. The selected Requirements-Lab candidates anchor the Create/Join/Resign/Destroy federation-management services and \u00a76.1.13 update-rate limits, best-effort spacing, and producer/subscriber relation. Exact execution-key isolation and the no-cross-federation state-retention consequence are source-derived refinements. The case does not claim unsubscribe removal, reliable no-drop, producer-rate measurement, timestamped or regional delivery, MOM, alternate advances, save/restore, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
-      "next_action": "This focused HLA_EVOKED federation-isolation case is green with 46 assertions and is now queryable by its exact selector, mapping id, update-rate-reduction and teardown-isolation tags, 9 Requirements-Lab anchors, 5 canonical 2025 sections, and 15 official C++ API surfaces. Keep per-execution admission history separate from the mixed per-attribute gate, unsubscribe, reliable-bypass, timestamped, regional, and producer-measurement families. Continue with the next exact source pointer: Embedded regional best-effort attribute updates honor the subscribed rate at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46548."
+      "next_action": "This focused HLA_EVOKED federation-isolation case is green with 46 assertions and is now queryable by its exact selector, mapping id, update-rate-reduction and teardown-isolation tags, 9 Requirements-Lab anchors, 5 canonical 2025 sections, and 15 official C++ API surfaces. Keep per-execution admission history separate from the mixed per-attribute gate, unsubscribe, reliable-bypass, timestamped, regional, and producer-measurement families. Continue with the next exact source pointer: Embedded regional best-effort attribute updates honor the subscribed rate at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46486."
     },
     {
       "id": "umbra-cpp-process-time-advance-invalid-time-integration",
@@ -3979,7 +3979,7 @@
       ],
       "requirements_lab_api_surface_status": "The official Connect/Create/Join, Non-Regulated-Grant switch getter, Enable Time Constrained, Time Advance Request, Enable/Disable Time Regulation, Evoke Callback, Time Advance Grant, and lifecycle C++ surfaces are exercised through the embedded HLA_EVOKED development profile. The composed FOM reports the enabled NRG switch; while its sole regulator is active at time zero with lookahead two, a constrained receiver's TAR(2) remains pending at the strict GALT boundary. Disabling that regulator makes GALT undefined and the enabled NRG policy releases exactly the queued grant at time two. This is bounded no-TSO NRG-enabled GALT release evidence; it does not claim regulator resignation, NRG-disabled behavior, Query GALT/LITS, alternate advance modes, TSO ordering, DDM, interaction/object delivery, ownership, save/restore, MOM, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
       "next_action": "This focused HLA_EVOKED NRG-enabled constrained-TAR/regulator-disable case is green with 27 assertions and is queryable by its exact selector, m68 mapping id, galt/non-regulated-grant tags, 17 Requirements-Lab anchors, canonical 2025 sections, and official C++ API surfaces. Keep policy-enabled undefined-GALT release separate from regulator resignation, NRG-disabled, Query GALT/LITS, TSO, alternate-advance, DDM, ownership, save/restore, transport, package/JUnit/protected-review, interoperability, and conformance matrices; continue with the next exact source pointer.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35016"
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34954"
     },
     {
       "id": "umbra-cpp-nrg-enabled-constrained-tar-regulator-resignation-release-integration",
@@ -4040,7 +4040,7 @@
       ],
       "requirements_lab_api_surface_status": "The official Connect/Create/Join, Non-Regulated-Grant switch getter, Enable Time Constrained, Time Advance Request, Enable Time Regulation, Evoke Callback, Time Advance Grant, Resign Federation Execution, and lifecycle C++ surfaces are exercised through the embedded HLA_EVOKED development profile. The composed FOM reports the enabled NRG switch; while its sole regulator is active at time zero with lookahead two, a constrained receiver's TAR(2) remains pending at the strict GALT boundary. Resigning that regulator removes the GALT bound and the enabled NRG policy releases exactly the queued grant at time two. This is bounded no-TSO NRG-enabled GALT release evidence; it does not claim regulator disable, NRG-disabled behavior, Query GALT/LITS, alternate advance modes, TSO ordering, DDM, interaction/object delivery, ownership, save/restore, MOM, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
       "next_action": "This focused HLA_EVOKED NRG-enabled constrained-TAR/regulator-resignation case is green with 24 assertions and is queryable by its exact selector, m69 mapping id, galt/non-regulated-grant tags, 16 Requirements-Lab anchors, canonical 2025 sections, and official C++ API surfaces. Keep policy-enabled resignation release separate from regulator disable, NRG-disabled, Query GALT/LITS, TSO, alternate-advance, DDM, ownership, save/restore, transport, package/JUnit/protected-review, interoperability, and conformance matrices; continue with the next exact source pointer.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35062"
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35000"
     },
     {
       "id": "umbra-cpp-restore-mixed-tso-object-interaction-four-member-integration",
@@ -4141,7 +4141,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This bounded four-member image saves one timestamped object update, one timestamped interaction, and one timestamped object deletion, terminalizes all three post-save designators, restores the recipient/retraction ledgers plus the deletion invocation snapshot, and proves independent Flush Queue callback-before-grant delivery for reflection, interaction, and Remove Object Instance payloads plus post-delivery Request Retraction. The route-free image now serializes the shared Request Retraction record and recipient states; disk-only/process-restart rehydration, timed or changed-membership recovery, arbitrary post-restore handle remapping, remote transport, package/JUnit/protected-review evidence, validation, and conformance remain open. The r15 Requirements Lab re-sync found no requirement renumbering or source change; RL-176 is the latest recorded go-back, RL-177 records the separate source-artifact tension, and RL-178 is reserved for a future reproduced recurrence.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35299",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35237",
       "assertions": 130,
       "callback_models": [
         "HLA_EVOKED"
@@ -5589,7 +5589,7 @@
         "HLA_EVOKED"
       ],
       "requirements_lab_api_surface_status": "The official Connect/Create/Join, object and attribute lookup, publication, ordinary subscription with update-rate designators, registration, Evoke Callback, receive-order Update Attribute Values, Reflect Attribute Values, and lifecycle C++ surfaces are exercised through the embedded HLA_EVOKED development profile. The composed FOM declares Low at 0.2 Hz and High at 30 Hz; one best-effort attribute is actively subscribed with Low while a second best-effort attribute uses HLAdefault. The first update delivers both attributes together, while an immediate second update suppresses only the Low attribute and still delivers the default-rate attribute in its own passel. The selected Requirements-Lab candidates anchor \u00a75.2.4 update-rate designator definition/selection/default no-reduction and \u00a76.1.13 producer-versus-subscriber rate, per-attribute reduction, and best-effort suppression. The case does not claim unsubscribe removal, reliable no-drop, producer-rate measurement, timestamped or regional delivery, MOM, alternate advances, save/restore, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
-      "next_action": "This focused HLA_EVOKED mixed update-rate case is green with 37 assertions and is now queryable by its exact selector, mapping id, update-rate-reduction and update-rate-mixed-attribute-gating tags, 8 Requirements-Lab anchors, 2 canonical 2025 sections, and 15 official C++ API surfaces. Keep independent subscription gating separate from unsubscribe, reliable-bypass, timestamped, regional, and producer-measurement families. Continue with the next exact source pointer: Embedded federation teardown preserves update-rate history for another live federation at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46410."
+      "next_action": "This focused HLA_EVOKED mixed update-rate case is green with 37 assertions and is now queryable by its exact selector, mapping id, update-rate-reduction and update-rate-mixed-attribute-gating tags, 8 Requirements-Lab anchors, 2 canonical 2025 sections, and 15 official C++ API surfaces. Keep independent subscription gating separate from unsubscribe, reliable-bypass, timestamped, regional, and producer-measurement families. Continue with the next exact source pointer: Embedded federation teardown preserves update-rate history for another live federation at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46348."
     },
     {
       "id": "umbra-cpp-mom-service-report-initial-record-unit",
@@ -7085,7 +7085,7 @@
         "HLA_EVOKED"
       ],
       "requirements_lab_api_surface_status": "The official object-class and attribute lookup, publication, subscription, default-order, registration, discovery, time-role, Evoke Callback, timestamped Update Attribute Values, Retract, Time Advance Request, reflection, grant, transportation lookup, and lifecycle C++ surfaces are exercised through the embedded HLA_EVOKED development profile. The case registers one object with reliable and best-effort attributes after selecting TimeStamp order, rejects a timestamp below the producer lookahead, retracts the accepted timestamp-6 passel before the constrained recipient's grant, and delivers two timestamp-7 reflections before the matching grant with per-transportation passels, source/producer identity, tag, order, timestamp, and valid retraction metadata preserved. The selected Requirements-Lab candidates anchor clause 6.10 update and designator behavior, clause 6.11.1 reflection/passel behavior, clause 8.1.4/8.1.5 time-management ordering, and clause 8.22.3/8.23.3 retraction boundaries; the internal MOM-queue drain and mixed transport split are source-derived refinements. It is not evidence for regions, MOM service-report routing, alternate advances, re-enable, save/restore, asynchronous delivery, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
-      "next_action": "This focused HLA_EVOKED timestamped attribute-update case is green with 68 assertions and is now queryable by its exact selector, m53 mapping id, delivery-before-grant and mixed-transportation tags, 12 Requirements-Lab anchors, 6 canonical 2025 sections, and 24 official C++ API surfaces. Keep the pre-grant retract and post-retract delivery assertions separate from alternate-advance, regional, MOM, and recovery families. Continue with the next exact source pointer: Embedded mixed update-rate subscriptions gate each attribute independently at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46314."
+      "next_action": "This focused HLA_EVOKED timestamped attribute-update case is green with 68 assertions and is now queryable by its exact selector, m53 mapping id, delivery-before-grant and mixed-transportation tags, 12 Requirements-Lab anchors, 6 canonical 2025 sections, and 24 official C++ API surfaces. Keep the pre-grant retract and post-retract delivery assertions separate from alternate-advance, regional, MOM, and recovery families. Continue with the next exact source pointer: Embedded mixed update-rate subscriptions gate each attribute independently at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46252."
     },
     {
       "id": "umbra-cpp-timestamped-attribute-update-reenable-focused-integration",
@@ -7735,7 +7735,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion is green for both HLA_EVOKED and HLA_IMMEDIATE (172 assertions). It saves a directed publication and universal directed subscription for the same object-class/interaction-class pair on separate joined federates, restores both directed ledgers into a fresh registry, proves the declarations survive a second public durable round trip, and preserves distinct immutable filesystem report-file identities. It does not claim directed send/target routing, by-ownership selectors, multiple directed classes, directed DDM, ordering, timestamped/retraction behavior, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38015",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:37953",
       "assertions": 172,
       "callback_models": [
         "HLA_EVOKED",
@@ -9368,7 +9368,7 @@
         "federate.callback.federation-restored"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39064",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39002",
       "assertions": 99,
       "callback_models": [
         "HLA_EVOKED"
@@ -19792,7 +19792,7 @@
         "api.2025.cpp.federateambassador.multipleobjectinstancenamereservationfailed.1def6acfecf1"
       ],
       "test_case": "Embedded 2025 object-instance name reservation commits and reports asynchronously",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35152",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:35090",
       "assertions": 68,
       "tags": [
         "integration",
@@ -28413,7 +28413,7 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
       ],
       "test_case": "Embedded RTI-owned MOM attributes participate in ownership queries",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36762",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36700",
       "primary_lane": "rti-owned-mom-ownership-query",
       "focus_lane": "rti-owned-mom-ownership-query",
       "assertions": 17,
@@ -28455,7 +28455,7 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
       ],
       "test_case": "Embedded Confirm Divestiture rejects an RTI-owned joined-federate MOM attribute",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36827",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36765",
       "primary_lane": "rti-owned-mom-confirm-divestiture",
       "focus_lane": "rti-owned-mom-confirm-divestiture",
       "assertions": 22,
@@ -29935,7 +29935,7 @@
         "hla-1516.1-2025:clause-7.8"
       ],
       "test_case": "Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:37208",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:37146",
       "primary_lane": "attribute-ownership-release-denied-multi-acquirer",
       "focus_lane": "attribute-ownership-release-denied-multi-acquirer",
       "assertions": 53,
@@ -30320,7 +30320,7 @@
         "federate.callback.attribute-ownership-acquisition-notification"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36459",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36397",
       "assertions": 138,
       "callback_models": [
         "HLA_EVOKED"
@@ -35605,7 +35605,7 @@
         "2025"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34202",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34140",
       "assertions": 41,
       "callback_models": [
         "HLA_EVOKED",
@@ -35640,7 +35640,7 @@
         "2025"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34202",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34140",
       "assertions": 41,
       "callback_models": [
         "HLA_EVOKED",
@@ -39827,7 +39827,7 @@
         "federate.callback.time-advance-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34285",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34223",
       "assertions": 40,
       "callback_models": [
         "HLA_EVOKED",
@@ -39880,7 +39880,7 @@
         "federate.callback.flush-queue-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34376",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34314",
       "assertions": 21,
       "callback_models": [
         "HLA_EVOKED"
@@ -39927,7 +39927,7 @@
         "federate.callback.flush-queue-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:41046",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:40984",
       "assertions": 17,
       "callback_models": [
         "HLA_IMMEDIATE"
@@ -40196,7 +40196,7 @@
         "2025"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34887",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34825",
       "assertions": 30,
       "callback_models": [
         "HLA_EVOKED"
@@ -42097,7 +42097,7 @@
         "federate.callback.receive-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:40907",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:40845",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded MOM service invocation reports include inherited HLAfederate$",
       "requirements_lab_api_surface_status": "This native C++ case verifies inherited HLAfederate context in HLAreportServiceInvocation under HLA_EVOKED and HLA_IMMEDIATE. Its pinned candidate mappings point to the 2025 HLAfederate MOM subsection; evidence remains limited to the non-installable development profile, not validation or conformance.",
       "next_action": "Keep this parameter-specific invocation report case as an exact C++ lane. Add other report-parameter combinations only as separately mapped cases; do not treat embedded-profile evidence as validation or conformance."
@@ -64499,7 +64499,7 @@
       ],
       "requirements_lab_api_surface_status": "The official Connect/Create/Join, selected time-factory, Query Logical Time, Query Lookahead, Enable Time Regulation, Time Advance Request, Evoke Callback, Time Regulation Enabled, and Time Advance Grant C++ surfaces are exercised through the embedded HLAfloat64Time development profile. The joined federate starts at the float64 initial value, reports the selected factory and implementation name, keeps logical time at zero until the grant, delivers the regulation callback through HLA_EVOKED, preserves the requested 0.25 lookahead, and advances to 1.5 only when the Time Advance Grant is evoked. This is bounded representation and ordinary TAR evidence; it does not claim alternate advance modes, time-constrained enablement, TSO ordering, DDM, interaction/object delivery, ownership, save/restore, MOM, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
       "next_action": "This focused HLA_EVOKED float64-time representation case is green with 31 assertions and is queryable by its exact selector, m65 mapping id, float-time/time-representation tags, 15 Requirements-Lab anchors, canonical 2025 sections, and official C++ API surfaces. Keep selected time-factory representation and ordinary TAR separate from TSO, alternate advances, DDM, ownership, save/restore, transport, package/JUnit/protected-review, interoperability, and conformance matrices; continue with the next exact source pointer.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34418"
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34356"
     },
     {
       "id": "umbra-cpp-nrg-disabled-constrained-tar-regulator-activation-integration",
@@ -64558,7 +64558,7 @@
       ],
       "requirements_lab_api_surface_status": "The official Connect/Create/Join, Enable Time Constrained, Time Advance Request, Enable Time Regulation, Evoke Callback, Time Regulation Enabled, Time Advance Grant, and lifecycle C++ surfaces are exercised through the embedded HLA_EVOKED development profile. With the Restaurant FOM's Non-Regulated-Grant switch disabled, a constrained receiver's TAR(1) remains pending while GALT is undefined; after a second federate becomes a regulator at time zero with lookahead two, the receiver becomes eligible and its grant callback is evoked at time one. This is bounded no-TSO GALT/NRG grant-policy evidence; it does not claim NRG-enabled behavior, Query GALT/LITS, alternate advance modes, TSO ordering, DDM, interaction/object delivery, ownership, save/restore, MOM, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
       "next_action": "This focused HLA_EVOKED NRG-disabled constrained-TAR case is green with 21 assertions and is queryable by its exact selector, m66 mapping id, galt/non-regulated-grant tags, 15 Requirements-Lab anchors, canonical 2025 sections, and official C++ API surfaces. Keep undefined-GALT waiting and regulator-activation release separate from NRG-enabled, Query GALT/LITS, TSO, alternate-advance, DDM, ownership, save/restore, transport, package/JUnit/protected-review, interoperability, and conformance matrices; continue with the next exact source pointer.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34941"
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34879"
     },
     {
       "id": "umbra-cpp-public-federation-save-commit-filesystem-process-restart-confirm-divestiture-resignation",
@@ -68018,7 +68018,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ companion is green for both HLA_EVOKED and HLA_IMMEDIATE (216 assertions). It saves a target object with a published marker and a directed publication/universal subscription pair, restores the object and declaration ledgers into a fresh registry, then sends a receive-order directed interaction to the restored target and proves only the subscribed recipient receives it. It preserves distinct immutable filesystem report-file identities. It does not claim by-ownership selectors, target departure, multiple directed classes, directed DDM, timestamped/retraction behavior, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38298",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38236",
       "assertions": 216,
       "callback_models": [
         "HLA_EVOKED",
@@ -70853,6 +70853,67 @@
       "status": "implemented-in-noninstallable-development-profile",
       "requirements_lab_api_surface_status": "Under HLA_EVOKED, the embedded case confirms that increasing actual lookahead from 2 to 5 is immediate. A lower request to 1 leaves the queried actual value at 5 until time advances, then moves it to 2 and finally 1 on successive advances. The five directly exercised Modify Lookahead anchors map only to IEEE 1516.1-2025 clause 8.20.4. Negative-interval validation and MOM service-report behavior are not exercised by this case and are not mapped here. Connection/federation setup, Query Lookahead readback, TAR requests, callback pumping, local exception guards, and cleanup are scenario or development-profile evidence, not separate normative claims. No IEEE 1516.1-2010 behavior, validation, interoperability, or conformance claim is made.",
       "next_action": "Keep immediate increases, deferred decreases, and the separate negative-interval and MOM-report cases distinct; map only assertions present in this case."
+    },
+    {
+      "id": "umbra-cpp-query-galt-lits-other-regulator-pending-advances-integration",
+      "primary_lane": "query-galt-lits-other-regulator-pending-advances",
+      "focus_lane": "query-galt-lits-other-regulator-pending-advances",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.connect.027cac2b3705",
+        "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
+        "api.2025.cpp.rtiambassador.joinfederationexecution.9e7e3b227992",
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+        "api.2025.cpp.rtiambassador.querygalt.f265712267b1",
+        "api.2025.cpp.rtiambassador.querylits.e477a99502bd",
+        "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",
+        "api.2025.cpp.rtiambassador.disabletimeregulation.e230be751f0d",
+        "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
+        "api.2025.cpp.rtiambassador.destroyfederationexecution.f403cac5930f",
+        "api.2025.cpp.rtiambassador.disconnect.72028b809529"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-182-l133-42",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+        "requirement-candidate-content-clauses-08-time-management-page-183-l133-44",
+        "requirement-candidate-content-clauses-08-time-management-page-206-l29-4",
+        "requirement-candidate-content-clauses-08-time-management-page-207-l112-28"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8",
+        "hla-1516.1-2025:clause-8.1.5",
+        "hla-1516.1-2025:clause-8.18.1",
+        "hla-1516.1-2025:clause-8.19.3"
+      ],
+      "test_case": "Embedded Query GALT and Query LITS observe other regulator time and pending advances",
+      "requirements_lab_mapping_id": "time-management.query-galt-lits",
+      "source_location": "cpp/tests/ieee1516_2025_query_galt_lits_other_regulator_pending_advances_catch2.cpp:4",
+      "assertions": 35,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "delivery_modes": [
+        "undefined-without-other-regulator",
+        "defined-current-time-plus-lookahead",
+        "pending-requested-time-plus-lookahead",
+        "undefined-after-regulation-disabled"
+      ],
+      "ctest_target": "umbra_ieee1516_2025_query_galt_lits_other_regulator_pending_advances_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025_query_galt_lits_other_regulator_pending_advances\\.catch2\\.Embedded Query GALT and Query LITS observe other regulator time and pending advances$",
+      "tags": [
+        "integration",
+        "development-profile",
+        "time-management",
+        "galt",
+        "lits",
+        "rti.service.query-galt",
+        "rti.service.query-lits",
+        "query-galt-lits-other-regulator-pending-advances",
+        "2025"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "requirements_lab_api_surface_status": "This embedded two-federate HLA_EVOKED case directly verifies that Query GALT and Query LITS are undefined without another active regulator, become 2 with the other regulator's current time 0 plus lookahead 2, become 7 while that regulator has TAR(5) pending with lookahead 2, and return to undefined after regulation is disabled. The five direct requirement-section pairs cover the no-TSO other-regulator bound, pending requested-time boundary, undefined LITS with undefined GALT, and the defined results of Query GALT and Query LITS. Connection/federation setup, callback pumping, exception guards, type-mismatch behavior, and cleanup are scenario or development-profile evidence, not separate normative claims. This is distinct from the three-federate minimum/resignation and configured-process lanes; it does not cover queued TSO, zero-lookahead epsilon behavior, IEEE 1516.1-2010, validation, interoperability, or conformance.",
+      "next_action": "Keep the two-federate no-TSO bounds case separate from the three-federate minimum/resignation and configured-process companions; continue with the next bounded source-reconciliation lane."
     }
   ]
 }

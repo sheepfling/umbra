@@ -249,7 +249,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8.14.3",
             "hla-1516.1-2025:clause-8.18.1",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38289",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38227",
         "assertions": 40,
     },
     "Embedded time-role services keep enable requests callback-gated before TSO support": {
@@ -343,7 +343,7 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-8",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38848",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38786",
         "assertions": 30,
     },
     "Embedded Query GALT and Query LITS observe other regulator time and pending advances": {
@@ -355,7 +355,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8.18.1",
             "hla-1516.1-2025:clause-8.19.3",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38616",
+        "source_location": "cpp/tests/ieee1516_2025_query_galt_lits_other_regulator_pending_advances_catch2.cpp:4",
         "assertions": 35,
     },
     "RTIambassador queries GALT and LITS through a configured process endpoint": {
@@ -765,7 +765,7 @@ RECOVERED_TRACE_CASES = {
         "lane": "process-restart-pending-attribute-value-update",
     },
     "Embedded public fresh-registry restore rebinds pending object-instance Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51678",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51616",
         "assertions": 61,
         "requirements": 17,
         "sections": 8,
@@ -779,7 +779,7 @@ RECOVERED_TRACE_CASES = {
         "lane": "process-restart-class-pending-attribute-value-update",
     },
     "Embedded public fresh-registry restore rebinds pending object-class Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51935",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:51873",
         "assertions": 61,
         "requirements": 12,
         "sections": 6,
@@ -1157,16 +1157,16 @@ def assert_bounded_discovery_output() -> None:
     if (
         scoped_ready_result.returncode != 0
         or "state: source-reconciliation" not in scoped_ready
-        or "proposed_plan_id: umbra-cpp-query-galt-lits-other-regulator-pending-advances-integration"
+        or "proposed_plan_id: umbra-cpp-timestamped-send-interaction-time-regulated-service-report-mom-interaction"
         not in scoped_ready
     ):
         raise AssertionError(
             "scoped ready query lost the active source-reconciliation handoff"
         )
     if (
-        "mapping_seed: umbra-cpp-three-federate-galt-resign-integration status=seed-from-existing-case"
+        "mapping_seed: umbra-cpp-timestamped-send-interaction-service-report-mom-interaction status=seed-from-existing-case"
         not in scoped_ready
-        or "mapping_seed_only: requirements=14 standard_sections=12 api_surfaces=6"
+        or "mapping_seed_only: requirements=4 standard_sections=3 api_surfaces=5"
         not in scoped_ready
         or "direct_pairs:" in scoped_ready
         or "seed_trace_command:" not in scoped_ready
@@ -1185,9 +1185,9 @@ def assert_bounded_discovery_output() -> None:
             "compact ready family output leaked mapping previews; use matrix queries"
         )
     if (
-        'matrix_requirements=python tools/query_rti_work.py matrix "umbra-cpp-query-galt-lits-other-regulator-pending-advances-integration" --group-by requirement --summary --compact'
+        'matrix_requirements=python tools/query_rti_work.py matrix "umbra-cpp-timestamped-send-interaction-time-regulated-service-report-mom-interaction" --group-by requirement --summary --compact'
         not in scoped_ready
-        or 'matrix_sections=python tools/query_rti_work.py matrix "umbra-cpp-query-galt-lits-other-regulator-pending-advances-integration" --group-by section --summary --compact'
+        or 'matrix_sections=python tools/query_rti_work.py matrix "umbra-cpp-timestamped-send-interaction-time-regulated-service-report-mom-interaction" --group-by section --summary --compact'
         not in scoped_ready
     ):
         raise AssertionError(
@@ -6429,7 +6429,7 @@ def main() -> int:
     if not isinstance(acquisition_release, dict):
         raise AssertionError("attribute-ownership acquisition release plan row is absent")
     if query_rti_work.source_location_text(acquisition_release) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:41213"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:41151"
     ) or acquisition_release.get("assertions") != 73:
         raise AssertionError("attribute-ownership acquisition release source/evidence drifted")
     if acquisition_release.get("traceability_state") != "requirements-mapped":
@@ -6475,7 +6475,7 @@ def main() -> int:
     if not isinstance(release_denied_multi, dict):
         raise AssertionError("multi-acquirer Release Denied plan row is absent")
     if query_rti_work.source_location_text(release_denied_multi) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:41711"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:41649"
     ) or release_denied_multi.get("assertions") != 53:
         raise AssertionError("multi-acquirer Release Denied source/evidence drifted")
     if release_denied_multi.get("traceability_state") != "requirements-mapped":
@@ -6565,7 +6565,7 @@ def main() -> int:
     if not isinstance(ownership_query, dict):
         raise AssertionError("attribute-ownership query plan row is absent")
     if query_rti_work.source_location_text(ownership_query) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39545"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39483"
     ) or ownership_query.get("assertions") != 49:
         raise AssertionError("attribute-ownership query source/evidence drifted")
     if ownership_query.get("traceability_state") != "requirements-mapped":

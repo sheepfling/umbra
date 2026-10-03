@@ -2047,7 +2047,7 @@ green. The restored-baseline regional Provide Attribute Value Update case at
 251 assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 21
 official C++ API surfaces. The three-dimensional regional object-attribute
 overlap case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36719` is green with
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36657` is green with
 57 assertions, 10 Requirements-Lab anchors, 10 canonical 2025 sections, and 24
 official C++ API surfaces. The restored-baseline regional Request Attribute
 Value Update solicitation case at
@@ -2135,11 +2135,11 @@ evidence separate. The next source-backed action remains emitted by
 
 The m56
 regional best-effort attribute-rate case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46087` is green with
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46025` is green with
 47 HLA_EVOKED assertions, 19 Requirements-Lab anchors, 11 canonical 2025
 sections, and 22 official C++ API surfaces. The
 next unplanned head is the regional best-effort timestamped-rate case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46231`.
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:46169`.
 The m57 slice is green with 57 HLA_EVOKED assertions, 30 Requirements-Lab
 anchors, 19 canonical 2025 sections, and 28 official C++ API surfaces. The m58
 slice is green with 120 assertions, three Requirements-Lab anchors, one
@@ -2158,19 +2158,19 @@ it with
 `python tools/query_rti_work.py trace m60.embedded-timestamped-directed-interaction-tso-retraction --summary --compact`.
 The next source head is the immediate timestamped directed-interaction
 source-resignation case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49037`. The m61 case
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48975`. The m61 case
 is green with 45 HLA_EVOKED assertions and proves a timestamped directed
 interaction remains deliverable to a non-time-constrained receiver after the
 sender resigns. The m62 declaration at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50075` is retained as
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:50013` is retained as
 a disabled `#if 0` malformed source artifact with no executable evidence. The
 m63 regional source-region snapshot case is green with 42 HLA_EVOKED assertions
-at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:56297`. The m64
+at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:56235`. The m64
 timestamped regional interaction TSO/retraction case is green with 68
 HLA_EVOKED assertions at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61949`. The m65
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61887`. The m65
 public HLAfloat64Time representation case is green with 31 assertions at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:63305`. The m66,
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:63243`. The m66,
 m67, m68, and m69 no-TSO GALT/NRG cases are green with 21, 15, 27, and 24
 assertions at lines 77307, 77349, 77382, and 77428 respectively. The source
 queue for this translation unit is now exhausted; choose the next bounded
