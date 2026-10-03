@@ -26,7 +26,7 @@
         "cpp/tests/ieee1516_2025_embedded_resign_action_divestiture_catch2.cpp::Embedded resign action unconditionally divests attributes for the 2025 ownership model",
         "cpp/tests/ieee1516_2025_embedded_resign_action_divestiture_catch2.cpp::Embedded resign action independently queues assumptions for each surviving federate",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry rejects resignation route gaps atomically",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action deletes delete-privileged objects and reports removal",
+        "cpp/tests/ieee1516_2025_embedded_resign_action_delete_objects_catch2.cpp::Embedded resign action deletes delete-privileged objects and reports removal",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action deletes then divests in one voluntary transition",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action rejects pending ownership acquisition work",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action cancels pending ownership acquisition work",
