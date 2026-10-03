@@ -13,7 +13,7 @@
       "source_symbol": "resolveRegularFile",
       "tests": [
         "cpp/tests/libxml2_fom_validator_catch2.cpp::The libxml2 FOM validator reports an existing non-file source as unreadable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Create Federation Execution maps an existing non-file FOM source to ErrorReadingFOM"
+        "cpp/tests/ieee1516_2025_fom_source_diagnostics_catch2.cpp::Embedded Create Federation Execution maps an existing non-file FOM source to ErrorReadingFOM"
       ]
     }
   ]

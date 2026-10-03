@@ -43,7 +43,7 @@
       "source_symbol": "UmbraRtiAmbassador::createFederationExecutionWithMIM",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Create Federation Execution accepts a validated explicit MIM path"
+        "cpp/tests/ieee1516_2025_explicit_mim_create_catch2.cpp::Embedded Create Federation Execution accepts a validated explicit MIM path"
       ]
     },
     {

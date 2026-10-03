@@ -10763,64 +10763,6 @@ TEST_CASE(
 
 
 TEST_CASE(
-    "Embedded Create Federation Execution maps an existing non-file FOM source to ErrorReadingFOM",
-    "[integration][development-profile][federation-management][fom][fom-source-diagnostics]"
-    "[rti.service.create-federation-execution]") {
-  FederationEventFederateAmbassador reports;
-  auto creator = makeRti();
-  auto const federationName = nextFederationName();
-  auto const directorySource = resourcePath("examples").wstring();
-  auto const validFom = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
-
-  REQUIRE_NOTHROW(creator->connect(reports, HLA_EVOKED));
-  // The designator exists, but it names a directory rather than an XML file.
-  // That is a determined read failure, not a missing path, and must not leave
-  // a partially-created federation behind.
-  REQUIRE_THROWS_AS(
-      creator->createFederationExecution(
-          federationName,
-          directorySource,
-          standard_hla::mom::integer64_time),
-      rti1516_2025::ErrorReadingFOM);
-
-  REQUIRE_NOTHROW(creator->createFederationExecution(
-      federationName,
-      validFom,
-      standard_hla::mom::integer64_time));
-  REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
-  REQUIRE_NOTHROW(creator->disconnect());
-}
-
-TEST_CASE(
-    "Embedded Create Federation Execution accepts a validated explicit MIM path",
-    "[integration][development-profile][federation-management][fom][mim]"
-    "[rti.service.create-federation-execution-with-mim]"
-    "[federation-management][explicit-mim]") {
-  FederationEventFederateAmbassador reports;
-  auto creator = makeRti();
-  auto const federationName = nextFederationName();
-  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
-  auto const mimModule = resourcePath("mim/HLAstandardMIM-2025.xml").wstring();
-
-  REQUIRE_NOTHROW(creator->connect(reports, HLA_EVOKED));
-  // The reserved spelling HLAstandardMIM is rejected by the explicit-MIM
-  // overload. A valid local path to the same official 2025 MIM is a distinct
-  // caller-supplied designator and must take the normal validation,
-  // composition, and atomic-create path.
-  REQUIRE_NOTHROW(creator->createFederationExecutionWithMIM(
-      federationName,
-      std::vector<std::wstring>{fomModule},
-      mimModule,
-      standard_hla::mom::integer64_time));
-  auto const federate = creator->joinFederationExecution(
-      L"explicit-mim-subject", L"observer", federationName);
-  REQUIRE(federate.isValid());
-  REQUIRE_NOTHROW(creator->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
-  REQUIRE_NOTHROW(creator->disconnect());
-}
-
-TEST_CASE(
     "Embedded resign action unconditionally divests attributes for the 2025 ownership model",
     "[integration][development-profile][federation-management][ownership-management]"
     "[rti.service.resign-federation-execution]"

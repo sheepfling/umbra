@@ -25,7 +25,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation-management preparation failures leave shared federation state unchanged",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded additional FOM NRG metadata cannot change the static switch or TAR",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Create Federation Execution accepts a validated explicit MIM path"
+        "cpp/tests/ieee1516_2025_explicit_mim_create_catch2.cpp::Embedded Create Federation Execution accepts a validated explicit MIM path"
       ]
     },
     {
