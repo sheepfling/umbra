@@ -68366,7 +68366,7 @@
         "rti.service.ddm-mutation-failure-matrix"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11144",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
       "assertions": 30,
       "callback_models": [
         "HLA_EVOKED"
@@ -68406,7 +68406,7 @@
         "rti.service.ddm-mutation-failure-matrix-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21089",
+      "source_location": "cpp/tests/ieee1516_2025_ddm_mutation_failure_matrix_service_report_interaction_catch2.cpp:5",
       "assertions": 72,
       "callback_models": [
         "HLA_EVOKED",
