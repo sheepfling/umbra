@@ -60844,7 +60844,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This C++ filesystem matrix proves failed GetKnownObjectClassHandle, GetObjectInstanceHandle, GetObjectInstanceName, GetAttributeHandle, GetAttributeName, GetUpdateRateValue, and GetUpdateRateValueForAttribute invocations each retain their supplied arguments, Null returned argument, false success indicator, exception text, and contiguous per-federate serials. It remains source-backed development-profile evidence: the Lab has only the generic \u00a711.5.1 candidate and no row-level conditional failure relation (RL-152); the seven-case interaction matrix, other service families, JUnit/protected review, and conformance remain open.",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+    "source_location": "cpp/tests/ieee1516_2025_support_object_attribute_update_rate_lookup_failure_matrix_service_report_catch2.cpp:5",
       "assertions": 42,
       "callback_models": [
         "HLA_EVOKED"
@@ -60889,7 +60889,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This bounded C++ filesystem lane proves the five accepted \u00a710.29\u2013\u00a710.33 handle-normalization services append source-backed non-void records with type-50 ServiceGroup or type-15/type-36/type-27/type-37 handle supplied values and type-35 Number normalized returns. Setup calls are switch-gated, records retain one file and serial sequence, and the test remains development-profile traceability only because the Lab has no row-level Table 5 ReturnArgument mapping; normalized HLAnormalized* MIM datatypes are not substituted for the Table 5 Number return form (RL-042/RL-067/RL-076/RL-148). Public MOM interaction delivery, failures, broader non-void forms, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:12100",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
       "assertions": 25,
       "callback_models": [
         "HLA_EVOKED"
