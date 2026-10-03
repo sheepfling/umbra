@@ -12176,6 +12176,7 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-157-l103-29"
       ],
       "test_case": "Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
       "tags": [
         "development-profile",
         "federation-management",
@@ -41156,7 +41157,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5"
       ],
       "test_case": "Embedded service reporting records Delete Region arguments",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+      "source_location": "cpp/tests/ieee1516_2025_support_delete_region_service_report_catch2.cpp:5",
       "tags": [
         "integration",
         "development-profile",
