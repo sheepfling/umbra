@@ -60816,7 +60816,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This C++ filesystem matrix proves failed \u00a710.17\u2013\u00a710.20 GetOrderType, GetOrderName, GetTransportationTypeHandle, and GetTransportationTypeName invocations preserve their type-53/type-38/type-59 supplied forms, Null returned arguments, false success indicators, public exception text, and serials zero through three before a successful serial-four lookup. Invalid OrderType uses the deterministic type-38 UNSUPPORTED diagnostic. The Lab has no row-level conditional failure relation (RL-152), so the paired public interaction matrix, other failure families, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+      "source_location": "cpp/tests/ieee1516_2025_support_order_transportation_lookup_failure_matrix_service_report_catch2.cpp:5",
       "assertions": 26,
       "callback_models": [
         "HLA_EVOKED"
@@ -67208,7 +67208,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This bounded C++ filesystem lane proves one failed GetObjectClassHandle invocation records the type-53 supplied name, Null returned argument, false success indicator, and NameNotFound description, followed by a successful serial-1 lookup. The source export has only the generic \u00a711.5.1 candidate and no row-level conditional failure mapping (RL-152); other service families, public MOM interaction delivery, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11691",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
       "assertions": 17,
       "callback_models": [
         "HLA_EVOKED"
