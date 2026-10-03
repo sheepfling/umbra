@@ -17,7 +17,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives source resignation",
@@ -51,7 +51,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients"
       ]
     },
@@ -134,7 +134,7 @@
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped regional interaction at the save boundary"
@@ -168,7 +168,7 @@
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
+        "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
       ]
     },
     {
@@ -178,7 +178,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
+        "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
       ]
     },
     {

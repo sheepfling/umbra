@@ -15,7 +15,7 @@
         "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
         "cpp/tests/timestamped_default_region_attribute_mixed_fanout_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
@@ -39,7 +39,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
         "cpp/tests/timestamped_default_region_attribute_mixed_fanout_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
@@ -242,7 +242,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
+        "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
       ]
     },
     {

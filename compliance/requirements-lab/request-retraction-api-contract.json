@@ -27,7 +27,7 @@
         "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves the supplied Retract designator",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Retract through MOM before Request Retraction",
@@ -196,7 +196,7 @@
       "source_symbol": "UmbraRtiAmbassador::sendInteractionWithRegions",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
+        "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
       ]
     },
     {
