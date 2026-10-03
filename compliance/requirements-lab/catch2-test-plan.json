@@ -42158,7 +42158,7 @@
         "federate.callback.receive-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:40845",
+      "source_location": "cpp/tests/ieee1516_2025_mom_service_invocation_parameters_catch2.cpp:5",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded MOM service invocation reports include inherited HLAfederate$",
       "requirements_lab_api_surface_status": "This native C++ case verifies inherited HLAfederate context in HLAreportServiceInvocation under HLA_EVOKED and HLA_IMMEDIATE. Its pinned candidate mappings point to the 2025 HLAfederate MOM subsection; evidence remains limited to the non-installable development profile, not validation or conformance.",
       "next_action": "Keep this parameter-specific invocation report case as an exact C++ lane. Add other report-parameter combinations only as separately mapped cases; do not treat embedded-profile evidence as validation or conformance."
