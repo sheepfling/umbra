@@ -35,78 +35,79 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-mom-failed-dimension-region-lookup-matrix-file",
+    "id": "extract-2025-ddm-nonvoid-failure-matrix-service-report-interaction-file",
     "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-mom-service-report-failed-dimension-region-lookup-matrix-integration",
+    "plan_id": "umbra-cpp-ddm-nonvoid-failure-matrix-service-report-interaction",
     "family": "mom-after-base-services",
-    "lane": "mom-service-report-failed-dimension-region-lookup-matrix",
-    "objective": "Extract the mapped six-failure dimension and region lookup HLAreportServiceInvocation matrix into a focused 2025-only unit. Preserve its exact evidence and mappings, with a focused lane tag and no 2010 crossover.",
-    "test_case": "Embedded service reporting delivers failed dimension and region lookups through MOM interaction",
-    "source_target": "cpp/tests/ieee1516_2025_mom_service_report_failed_dimension_region_lookup_matrix_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_mom_service_report_failed_dimension_region_lookup_matrix_catch2.cpp:5",
+    "lane": "ddm-nonvoid-failure",
+    "objective": "Extract the mapped failed Create Region and Get Range Bounds service-report interaction case into a focused 2025-only unit. Preserve its two direct mappings across clauses 11.5 and 11.5.1, all eight API surfaces, its existing DDM lane, and the strict 2010/2025 boundary.",
+    "test_case": "Embedded service reporting delivers failed Create Region and Get Range Bounds invocations through MOM interaction",
+    "source_target": "cpp/tests/ieee1516_2025_ddm_nonvoid_failure_matrix_service_report_interaction_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_ddm_nonvoid_failure_matrix_service_report_interaction_catch2.cpp:5",
     "callback_models": [
       "HLA_IMMEDIATE"
     ],
-    "mapping_seed_policy": "This focused source preserves the exact two direct IEEE 1516.1-2025 requirement-to-subsection pairs, both mapped to clause 11.5, plus all ten official C++ API surfaces. Development-profile evidence only; no 2010 mapping or conformance claim.",
+    "assertions": 100,
+    "mapping_seed_policy": "This focused source preserves two direct IEEE 1516.1-2025 requirement mappings: failed non-void returned-argument semantics in clause 11.5.1 and MOM interaction delivery in clause 11.5, plus all eight official C++ API surfaces. Development-profile evidence only; no 2010 mapping or conformance claim.",
     "api_surfaces": [
-      "api.2025.cpp.rtiambassador.getavailabledimensionsforobjectclass.75b6c46cce37",
-      "api.2025.cpp.rtiambassador.getavailabledimensionsforinteractionclass.48fb2be6b10f",
+      "api.2025.cpp.rtiambassador.createregion.db9bf691b557",
+      "api.2025.cpp.rtiambassador.getrangebounds.c5db50c46578",
       "api.2025.cpp.rtiambassador.getdimensionhandle.7a343b0ace0a",
-      "api.2025.cpp.rtiambassador.getdimensionname.7b8202e09064",
-      "api.2025.cpp.rtiambassador.getdimensionupperbound.f13eafb4053e",
-      "api.2025.cpp.rtiambassador.getdimensionhandleset.dad4d47dece7",
+      "api.2025.cpp.rtiambassador.setrangebounds.7bcbe0e55f0b",
       "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
       "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c",
       "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
       "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1"
     ],
     "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed dimension and region lookups through MOM interaction$",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed Create Region and Get Range Bounds invocations through MOM interaction$",
     "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-mom-service-report-failed-dimension-region-lookup-matrix-integration --summary --compact",
-      "lane_check": "python tools/query_rti_work.py check --lane mom-service-report-failed-dimension-region-lookup-matrix --summary --compact",
+      "case": "python tools/query_rti_work.py case umbra-cpp-ddm-nonvoid-failure-matrix-service-report-interaction --summary --compact",
+      "lane_check": "python tools/query_rti_work.py check --lane ddm-nonvoid-failure --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed dimension and region lookups through MOM interaction$\" --output-on-failure",
-      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting delivers failed interaction-class and parameter lookups through MOM interaction|Embedded service reporting delivers failed dimension and region lookups through MOM interaction|Embedded service reporting delivers failed Create Region and Get Range Bounds invocations through MOM interaction\" --output-on-failure",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed Create Region and Get Range Bounds invocations through MOM interaction$\" --output-on-failure",
+      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records failed Create Region and Get Range Bounds invocations|Embedded service reporting delivers failed Create Region and Get Range Bounds invocations through MOM interaction|Embedded service reporting delivers failed DDM region mutation invocations through MOM interaction\" --output-on-failure",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "The exact 186-line test body is preserved; only the focused lane tag is added. The plan row points to the new source and retains both direct clause 11.5 pairs and all ten API surfaces.",
-      "The aggregate 2025 target builds; the exact matrix CTest and both neighboring lookup-matrix CTests pass.",
-      "The focused lane mapping and source-size checks pass; the monolith and legacy ceiling fall from 38,894 to 38,708 lines while CMake remains at its 12,392-line baseline.",
+      "The exact 175-line mapped test body is preserved without behavioral edits. Its plan row retains the existing ddm-nonvoid-failure lane, two direct mappings across clauses 11.5 and 11.5.1, and all eight API surfaces.",
+      "The aggregate 2025 target builds; both tests in the DDM non-void lane and the adjacent DDM mutation-failure CTest pass.",
+      "The ddm-nonvoid-failure mapping and source-size checks pass; the monolith and ceiling fall from 38,708 to 38,533 lines while CMake remains at its 12,392-line baseline.",
       "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
     ]
   },
-  "active_handoff_note": "Verified progress: The six-failure MOM dimension/region lookup matrix now lives in a focused 2025 unit. Its exact 186-line body is preserved with only the focused lane tag; both direct clause 11.5 mappings and all ten API surfaces remain unchanged. The 2025 aggregate target built, all three focused neighboring lookup CTests passed, and the lane/source-size checks pass. The federation-management monolith and ceiling fell from 38,894 to 38,708 lines; CMake remains at its 12,392-line baseline. No 2010 source, target, fixture, or mapping changed. Next handoff: extract the mapped failed Create Region/Get Range Bounds interaction case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21088, preserving its two direct mappings across clauses 11.5 and 11.5.1, eight API surfaces, and existing ddm-nonvoid-failure lane.",
+  "active_handoff_note": "Verified progress: The 100-assertion DDM non-void Create Region/Get Range Bounds MOM failure case is now in a focused 2025 unit. Its exact 175-line body and existing lane are preserved, with two direct mappings across clauses 11.5/11.5.1 and all eight API surfaces unchanged. The aggregate 2025 target built; both DDM lane tests and the adjacent DDM mutation CTest passed. The lane and source-size checks pass. The monolith and ceiling fell from 38,708 to 38,533 lines while CMake remains at 12,392 lines. No 2010 source, target, fixture, or mapping changed. Next: extract the mapped DDM region-mutation failure MOM case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21089, preserving its clause 11.5 mapping, nine API surfaces, and both callback models; focus it under ddm-mutation-failure.",
   "active_handoff": {
-    "id": "extract-2025-ddm-nonvoid-failure-matrix-service-report-interaction-file",
+    "id": "extract-2025-ddm-mutation-failure-matrix-service-report-interaction-file",
     "state": "implementation",
     "family": "mom-after-base-services",
-    "lane": "ddm-nonvoid-failure",
-    "objective": "Extract the mapped failed Create Region and Get Range Bounds service-report interaction case into a focused 2025-only unit. Preserve its two direct mappings across clauses 11.5 and 11.5.1, all eight API surfaces, its existing DDM lane, and the strict 2010/2025 boundary.",
-    "plan_id": "umbra-cpp-ddm-nonvoid-failure-matrix-service-report-interaction",
-    "mapping_seed_plan_id": "umbra-cpp-ddm-nonvoid-failure-matrix-service-report-interaction",
-    "mapping_seed_policy": "This source-only extraction preserves two direct IEEE 1516.1-2025 requirement mappings: failed non-void returned-argument semantics in clause 11.5.1 and MOM interaction delivery in clause 11.5. Keep this development-profile evidence separate from all 2010 requirements and conformance claims.",
+    "lane": "ddm-mutation-failure",
+    "objective": "Extract the mapped DDM region mutation failure MOM-interaction case into a focused 2025-only unit. Preserve its direct clause 11.5 mapping, all nine API surfaces, assign its existing ddm-mutation-failure tag as the focused lane, and keep it separate from IEEE 1516.1-2010 evidence.",
+    "plan_id": "umbra-cpp-ddm-mutation-failure-matrix-service-report-interaction",
+    "mapping_seed_plan_id": "umbra-cpp-ddm-mutation-failure-matrix-service-report-interaction",
+    "mapping_seed_policy": "This source-only extraction preserves the exact direct IEEE 1516.1-2025 requirement-to-subsection pair mapped to clause 11.5 and all nine official C++ API surfaces. Keep the evidence limited to the non-installable development profile; do not claim validation or conformance.",
     "related_plan_ids": [],
-    "test_case": "Embedded service reporting delivers failed Create Region and Get Range Bounds invocations through MOM interaction",
+    "test_case": "Embedded service reporting delivers failed DDM region mutation invocations through MOM interaction",
     "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21088",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21089",
     "callback_models": [
+      "HLA_EVOKED",
       "HLA_IMMEDIATE"
     ],
+    "assertions": 72,
     "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.(Embedded service reporting records failed Create Region and Get Range Bounds invocations|Embedded service reporting delivers failed Create Region and Get Range Bounds invocations through MOM interaction)$",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed DDM region mutation invocations through MOM interaction$",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-ddm-nonvoid-failure-matrix-service-report-interaction --summary --compact",
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-ddm-mutation-failure-matrix-service-report-interaction --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.(Embedded service reporting records failed Create Region and Get Range Bounds invocations|Embedded service reporting delivers failed Create Region and Get Range Bounds invocations through MOM interaction)$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane ddm-nonvoid-failure --summary --compact",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed DDM region mutation invocations through MOM interaction$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane ddm-mutation-failure --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Extract the exact mapped case while preserving its existing ddm-nonvoid-failure lane, two direct 2025 requirement mappings across clauses 11.5 and 11.5.1, and all eight API surfaces.",
+      "Extract the exact mapped test with one direct 2025 clause 11.5 mapping and all nine API surfaces, assigning its existing ddm-mutation-failure tag as primary_lane.",
       "Retain development-profile-only status; do not claim validation or conformance.",
-      "Build the 2025 aggregate target, pass the lane CTest selector and focused neighbors, validate the DDM lane, and lower the source-size ceiling.",
+      "Build the 2025 aggregate target, pass the exact CTest and focused neighbors, validate the lane, and lower the source-size ceiling.",
       "Do not include or alter IEEE 1516.1-2010 sources, targets, fixtures, or mappings."
     ]
   },
@@ -404,6 +405,7 @@
       "process-service-report-send-interaction-with-regions-invalid-parameter-failure-file-destination-selection": "mom-after-base-services",
       "process-service-report-send-interaction-with-regions-invalid-parameter-failure-interaction": "mom-after-base-services",
       "ddm-nonvoid-failure": "mom-after-base-services",
+      "ddm-mutation-failure": "mom-after-base-services",
       "service-report-object-name-reservation-file-failures": "mom-after-base-services",
       "service-report-object-name-reservation-mom-failures": "mom-after-base-services",
       "service-report-store": "mom-after-base-services",
@@ -1433,6 +1435,12 @@
         "catch2_target": "umbra_ieee1516_2025_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.(Embedded service reporting records failed Create Region and Get Range Bounds invocations|Embedded service reporting delivers failed Create Region and Get Range Bounds invocations through MOM interaction)$",
         "ctest_label": "ddm-nonvoid-failure",
+        "source": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp"
+      },
+      "ddm-mutation-failure": {
+        "catch2_target": "umbra_ieee1516_2025_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed DDM region mutation invocations through MOM interaction$",
+        "ctest_label": "ddm-mutation-failure",
         "source": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp"
       },
       "service-report-encoding": {
@@ -4381,6 +4389,7 @@
       "mom-auto-provide-switch-mutation": 41,
       "service-report-directory-config": 8,
       "ddm-nonvoid-failure": 272,
+      "ddm-mutation-failure": 72,
       "service-report-writer-failure": 27,
       "mom-federate-set-switches": 45,
       "register-federation-synchronization-point-service-report": 18,
@@ -27518,6 +27527,7 @@
         "attribute-region-association-list-array-encoding",
         "service-report-store",
         "ddm-nonvoid-failure",
+        "ddm-mutation-failure",
         "service-report-directory-config",
         "service-report-file-multifederate",
         "join-lifecycle",
@@ -27597,7 +27607,8 @@
         "service-report-table5-attribute-handle",
         "set-range-bounds-service-report",
         "dimension-handle-set-service-report",
-        "ddm-nonvoid-failure"
+        "ddm-nonvoid-failure",
+        "ddm-mutation-failure"
       ],
       "next_action": "The source-only directed-invocation report case and independent joined-federate file case are now mapped and MinGW-green. Next exact source-only queue head: inspect `Embedded service reporting records callback-gated no-argument time-constrained services` at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:29874; add a plan row only for behavior directly supported by IEEE 1516.1-2025 and classify any profile-only callback routing separately."
     },

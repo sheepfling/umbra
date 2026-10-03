@@ -8574,7 +8574,7 @@
         "rti.service.ddm-nonvoid-failure-matrix-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21088",
+      "source_location": "cpp/tests/ieee1516_2025_ddm_nonvoid_failure_matrix_service_report_interaction_catch2.cpp:5",
       "assertions": 100,
       "callback_models": [
         "HLA_IMMEDIATE"
@@ -68376,6 +68376,8 @@
     },
     {
       "id": "umbra-cpp-ddm-mutation-failure-matrix-service-report-interaction",
+      "primary_lane": "ddm-mutation-failure",
+      "focus_lane": "ddm-mutation-failure",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.commitregionmodifications.e066e7b1c53d",
         "api.2025.cpp.rtiambassador.deleteregion.6470d9fe34cf",
@@ -68404,7 +68406,7 @@
         "rti.service.ddm-mutation-failure-matrix-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22737",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21089",
       "assertions": 72,
       "callback_models": [
         "HLA_EVOKED",
