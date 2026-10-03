@@ -59385,7 +59385,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This C++ filesystem matrix proves failed GetInteractionClassHandle, GetInteractionClassName, GetParameterHandle, and GetParameterName invocations preserve their official type-53/type-27/type-39 supplied forms, Null returned arguments, false success indicators, public exception text, and serials zero through three before a successful serial-four lookup. The Lab has no row-level conditional failure relation (RL-152); the matching public interaction matrix, other failure families, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+      "source_location": "cpp/tests/ieee1516_2025_support_interaction_parameter_lookup_failure_matrix_service_report_catch2.cpp:5",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ service\\ reporting\\ records\\ failed\\ interaction\\-class\\ and\\ parameter\\ lookups$"
     },
@@ -60816,7 +60816,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This C++ filesystem matrix proves failed \u00a710.17\u2013\u00a710.20 GetOrderType, GetOrderName, GetTransportationTypeHandle, and GetTransportationTypeName invocations preserve their type-53/type-38/type-59 supplied forms, Null returned arguments, false success indicators, public exception text, and serials zero through three before a successful serial-four lookup. Invalid OrderType uses the deterministic type-38 UNSUPPORTED diagnostic. The Lab has no row-level conditional failure relation (RL-152), so the paired public interaction matrix, other failure families, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11600",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
       "assertions": 26,
       "callback_models": [
         "HLA_EVOKED"

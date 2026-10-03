@@ -35,43 +35,16 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-support-interaction-parameter-lookup-service-report-file",
-    "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-support-interaction-parameter-lookup-nonvoid-service-report-integration",
-    "family": "mom-after-base-services",
-    "lane": "federation-interaction-parameter-lookup-service-reports",
-    "objective": "Extract the existing service-report file case for interaction-class and parameter lookup return arguments into a focused 2025-only unit while preserving its two direct clause mappings, current tags, development-profile classification, and 2010/2025 boundary.",
-    "test_case": "Embedded service reporting records interaction-class and parameter lookup return arguments",
-    "source_target": "cpp/tests/ieee1516_2025_support_interaction_parameter_lookup_service_report_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_support_interaction_parameter_lookup_service_report_catch2.cpp:5",
-    "mapping_seed_policy": "The existing plan maps one requirement directly to IEEE 1516.1-2025 clause 11.5 and one to clause 11.5.1. It has no selected C++ API-surface IDs; none were added. Keep this as development-profile traceability only.",
-    "api_surfaces": [],
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records interaction-class and parameter lookup return arguments$",
-    "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-support-interaction-parameter-lookup-nonvoid-service-report-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records interaction-class and parameter lookup return arguments$\" --output-on-failure",
-      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records interaction-class and parameter lookup return arguments|Embedded service reporting records failed interaction-class and parameter lookups\" --output-on-failure",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The exact existing 83-line test body is preserved byte-for-byte. Its plan row retains its two direct clause mappings, original Catch2 tags, and no selected API-surface IDs.",
-      "The aggregate 2025 target builds; this test and the adjacent lookup regressions pass focused CTest.",
-      "The source-size check passes; the monolith and ceiling fall from 38,007 to 37,923 lines while CMake remains at its 12,392-line baseline.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
-    ]
-  },
-  "active_handoff_note": "Verified progress: The interaction-class/parameter lookup service-report case now lives in a focused 2025 unit. Its exact 83-line body and existing test tags are preserved; its two direct mappings to clauses 11.5 and 11.5.1 remain unchanged, with no API surfaces invented. The aggregate 2025 target built, and this test plus its federate/object-class lookup and adjacent failure-matrix regressions passed (3 focused CTests). The affected lane checks, plan trace, and source-size checks pass. The largest test file is 37,923 lines, down 1,349 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: isolate the failed interaction-class/parameter lookup matrix at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764, preserving its two direct clause mappings and six selected C++ API surfaces.",
-  "active_handoff": {
     "id": "extract-2025-support-interaction-parameter-lookup-failure-matrix-file",
-    "state": "implementation",
+    "state": "implemented-in-noninstallable-development-profile",
+    "plan_id": "umbra-cpp-support-interaction-parameter-lookup-failure-matrix",
     "family": "mom-after-base-services",
     "lane": "service-failure",
-    "objective": "Extract the existing service-report failure matrix for interaction-class and parameter lookups into a focused 2025-only unit. Preserve its two direct requirement mappings to clauses 11.5 and 11.5.1, six selected C++ API surfaces, current Catch2 tags, and development-profile classification; do not cross the 2010/2025 boundary.",
-    "plan_id": "umbra-cpp-support-interaction-parameter-lookup-failure-matrix",
-    "mapping_seed_plan_id": "umbra-cpp-support-interaction-parameter-lookup-failure-matrix",
-    "mapping_seed_policy": "The existing plan maps one requirement directly to IEEE 1516.1-2025 clause 11.5 and one to clause 11.5.1, and selects six C++ API surfaces for the four lookup failures and two reporting switches. Preserve all mappings without adding or removing API surfaces; keep this as development-profile traceability only.",
+    "objective": "Extract the existing service-report failure matrix for interaction-class and parameter lookups into a focused 2025-only unit while preserving its two direct clause mappings, six selected C++ API surfaces, current tags, development-profile classification, and 2010/2025 boundary.",
+    "test_case": "Embedded service reporting records failed interaction-class and parameter lookups",
+    "source_target": "cpp/tests/ieee1516_2025_support_interaction_parameter_lookup_failure_matrix_service_report_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_support_interaction_parameter_lookup_failure_matrix_service_report_catch2.cpp:5",
+    "mapping_seed_policy": "The existing plan maps one requirement directly to IEEE 1516.1-2025 clause 11.5 and one to clause 11.5.1, and selects six C++ API surfaces for the four lookup failures and two reporting switches. No mappings or API surfaces were added or removed; keep this as development-profile traceability only.",
     "api_surfaces": [
       "api.2025.cpp.rtiambassador.getinteractionclasshandle.99bb9271fea0",
       "api.2025.cpp.rtiambassador.getinteractionclassname.72630b5815b6",
@@ -80,18 +53,52 @@
       "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
       "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c"
     ],
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records failed interaction-class and parameter lookups$",
+    "commands": {
+      "case": "python tools/query_rti_work.py case umbra-cpp-support-interaction-parameter-lookup-failure-matrix --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ service\\ reporting\\ records\\ failed\\ interaction\\-class\\ and\\ parameter\\ lookups$\" --output-on-failure",
+      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records failed interaction-class and parameter lookups|Embedded service reporting records failed order and transportation lookups\" --output-on-failure",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "The exact existing 94-line test body is preserved byte-for-byte. Its plan row retains its two direct clause mappings, six selected API-surface IDs, and original Catch2 tags.",
+      "The aggregate 2025 target builds; this test and three neighboring lookup regressions pass focused CTest.",
+      "The source-size check passes; the monolith and ceiling fall from 37,923 to 37,828 lines while CMake remains at its 12,392-line baseline.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changes."
+    ]
+  },
+  "active_handoff_note": "Verified progress: The failed interaction-class/parameter lookup service-report matrix now lives in a focused 2025 unit. Its exact 94-line body and original tags are preserved; its two direct mappings to clauses 11.5 and 11.5.1 and six selected C++ API surfaces remain unchanged. The aggregate 2025 target built, and this test plus the order/transportation failure matrix and two successful lookup-report cases passed (4 focused CTests). The service-failure lane check, plan query, and source-size check pass. The largest test file is 37,828 lines, down 1,444 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: isolate the failed order/transportation lookup matrix at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764, preserving its two direct clause mappings and six selected C++ API surfaces.",
+  "active_handoff": {
+    "id": "extract-2025-support-order-transportation-lookup-failure-matrix-file",
+    "state": "implementation",
+    "family": "mom-after-base-services",
+    "lane": "service-failure",
+    "objective": "Extract the existing service-report failure matrix for order and transportation lookups into a focused 2025-only unit. Preserve its two direct requirement mappings to clauses 11.5 and 11.5.1, six selected C++ API surfaces, current Catch2 tags, and development-profile classification; do not cross the 2010/2025 boundary.",
+    "plan_id": "umbra-cpp-support-order-transportation-lookup-failure-matrix",
+    "mapping_seed_plan_id": "umbra-cpp-support-order-transportation-lookup-failure-matrix",
+    "mapping_seed_policy": "The existing plan maps one requirement directly to IEEE 1516.1-2025 clause 11.5 and one to clause 11.5.1, and selects six C++ API surfaces for the four lookup failures and two reporting switches. Preserve all mappings without adding or removing API surfaces; keep this as development-profile traceability only.",
+    "api_surfaces": [
+      "api.2025.cpp.rtiambassador.getordertype.1968b685f7e1",
+      "api.2025.cpp.rtiambassador.getordername.7d79fb80d635",
+      "api.2025.cpp.rtiambassador.gettransportationtypehandle.75110749dc30",
+      "api.2025.cpp.rtiambassador.gettransportationtypename.c3b15305d98e",
+      "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
+      "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c"
+    ],
     "related_plan_ids": [],
-    "test_case": "Embedded service reporting records failed interaction-class and parameter lookups",
+    "test_case": "Embedded service reporting records failed order and transportation lookups",
     "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
     "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
     "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ service\\ reporting\\ records\\ failed\\ interaction\\-class\\ and\\ parameter\\ lookups$",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ service\\ reporting\\ records\\ failed\\ order\\ and\\ transportation\\ lookups$",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-support-interaction-parameter-lookup-failure-matrix --summary --compact",
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-support-order-transportation-lookup-failure-matrix --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ service\\ reporting\\ records\\ failed\\ interaction\\-class\\ and\\ parameter\\ lookups$\" --output-on-failure",
-      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records interaction-class and parameter lookup return arguments|Embedded service reporting records failed interaction-class and parameter lookups\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py case umbra-cpp-support-interaction-parameter-lookup-failure-matrix --summary --compact",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ service\\ reporting\\ records\\ failed\\ order\\ and\\ transportation\\ lookups$\" --output-on-failure",
+      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"Embedded service reporting records failed order and transportation lookups|Embedded service reporting records order and transportation lookup return arguments\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py case umbra-cpp-support-order-transportation-lookup-failure-matrix --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
