@@ -110,7 +110,7 @@
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAssumptionsForFederate",
       "tests": [
         "cpp/tests/ieee1516_2025_embedded_assumption_publication_continuation_catch2.cpp::Embedded assumption search continues after a later eligible publication",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded assumption search continues after a later join and discovery"
+        "cpp/tests/ieee1516_2025_embedded_assumption_discovery_continuation_catch2.cpp::Embedded assumption search continues after a later join and discovery"
       ]
     }
   ]

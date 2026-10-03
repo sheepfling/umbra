@@ -35,57 +35,23 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-embedded-assumption-publication-continuation-case",
-    "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-resign-action-assumption-publication-continuation-integration",
-    "family": "multi-federate-callback-ordering",
-    "lane": "embedded-assumption-search-publication-continuation",
-    "objective": "Move the existing 2025 embedded ownership-assumption search continuation for a previously known but non-publishing federate into a focused unit. Preserve its two direct mappings across clauses 4.12 and 4.12.4, the RTIambassador.resignFederationExecution API surface, and development-profile classification. Keep this directive-1 continuation distinct from the directive-2 delete lane and standalone resign suite; do not claim conformance.",
-    "test_case": "Embedded assumption search continues after a later eligible publication",
-    "source_target": "cpp/tests/ieee1516_2025_embedded_assumption_publication_continuation_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_embedded_assumption_publication_continuation_catch2.cpp:4",
-    "mapping_seed_policy": "Preserve direct mappings requirement-candidate-content-clauses-04-federation-management-page-058-l112-33 -> hla-1516.1-2025:clause-4.12 and requirement-candidate-content-clauses-04-federation-management-page-059-l8-1 -> hla-1516.1-2025:clause-4.12.4, plus API surface api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e. Keep the evidence bounded to this callback-search continuation and do not upgrade it to conformance.",
-    "api_surfaces": [
-      "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e"
-    ],
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded assumption search continues after a later eligible publication$",
-    "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-resign-action-assumption-publication-continuation-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded assumption search continues after a later eligible publication$\" --output-on-failure",
-      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^embedded-assumption-search-publication-continuation$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane embedded-assumption-search-publication-continuation --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-resign-action-assumption-publication-continuation-integration --summary --compact",
-      "contract_traceability_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.resign_action_(requirements|api)_traceability$\" --output-on-failure",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The original 58-line test body is unchanged apart from the focused 2025 lane tag; its two direct mappings, resign API surface, and development-profile status are preserved.",
-      "The aggregate executable runs the exact case and focused lane CTests; both resign contract traceability CTests, exact trace, focused mapping check, and source-size audit pass.",
-      "The monolith and size ceiling fell by 58 lines to 36,260; all 103 later plan locations were shifted by the same amount, with the exact next join/discovery case pointer corrected. No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
-    ]
-  },
-  "active_handoff_note": "Verified progress: Prior 2025 federation-management splits remain intact. This pass isolated the 58-line embedded assumption-publication continuation in its own focused unit; its test body is unchanged except for the dedicated lane tag, and its two direct requirement mappings, resign API surface, and development-profile status are preserved. The aggregate target reached link; the exact test, focused lane, and both resign contract CTests pass, as do the exact trace, mapping check, JSON and size audits. All 103 later plan pointers were shifted by 58 lines, and the next join/discovery test's exact source pointer was corrected to its current line. The largest test file is 36,260 lines, down 3,012 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: isolate the distinct later join/discovery continuation at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10765.",
-  "active_handoff": {
     "id": "extract-2025-embedded-assumption-discovery-continuation-case",
-    "state": "implementation",
+    "state": "implemented-in-noninstallable-development-profile",
+    "plan_id": "umbra-cpp-resign-action-assumption-discovery-continuation-integration",
     "family": "object-ddm-ownership",
     "lane": "resign-action-assumption-discovery-continuation",
-    "objective": "Move the existing 2025 embedded continuation case for a newly joined federate discovering an unowned object before becoming eligible for ownership assumption into a focused unit. Preserve its two direct mappings across clauses 4.12 and 4.12.4, resign API surface, existing focused lane, and development-profile classification. Keep it distinct from the later-publication continuation and the directive-2 delete lane; do not claim conformance.",
-    "plan_id": "umbra-cpp-resign-action-assumption-discovery-continuation-integration",
-    "mapping_seed_plan_id": "umbra-cpp-resign-action-assumption-discovery-continuation-integration",
-    "mapping_seed_policy": "Preserve direct mappings requirement-candidate-content-clauses-04-federation-management-page-058-l112-33 -> hla-1516.1-2025:clause-4.12 and requirement-candidate-content-clauses-04-federation-management-page-059-l8-1 -> hla-1516.1-2025:clause-4.12.4, plus API surface api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e. Keep this evidence bounded and distinct from the separate later-publication continuation; do not claim conformance.",
+    "objective": "Move the existing 2025 embedded continuation case for a newly joined federate discovering an unowned object before becoming eligible for ownership assumption into a focused unit. Preserve its 26 assertions, HLA_EVOKED callback model, two direct requirement-section mappings across clauses 4.12 and 4.12.4, resign API surface, focused lane, and development-profile classification. Keep it distinct from the later-publication continuation and directive-2 delete lane; do not claim conformance.",
+    "test_case": "Embedded assumption search continues after a later join and discovery",
+    "source_target": "cpp/tests/ieee1516_2025_embedded_assumption_discovery_continuation_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_embedded_assumption_discovery_continuation_catch2.cpp:4",
+    "mapping_seed_policy": "Preserve direct mappings requirement-candidate-content-clauses-04-federation-management-page-058-l112-33 -> hla-1516.1-2025:clause-4.12 and requirement-candidate-content-clauses-04-federation-management-page-059-l8-1 -> hla-1516.1-2025:clause-4.12.4, plus API surface api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e. Keep this evidence development-profile only; do not claim conformance.",
     "api_surfaces": [
       "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e"
     ],
-    "test_case": "Embedded assumption search continues after a later join and discovery",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10765",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded assumption search continues after a later join and discovery$",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-resign-action-assumption-discovery-continuation-integration --summary --compact",
+      "case": "python tools/query_rti_work.py case umbra-cpp-resign-action-assumption-discovery-continuation-integration --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
       "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded assumption search continues after a later join and discovery$\" --output-on-failure",
       "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^resign-action-assumption-discovery-continuation$\" --output-on-failure",
@@ -95,9 +61,47 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Move the existing embedded join/discovery continuation without behavioral edits; preserve both direct requirement-section pairs, resign API surface, existing lane, and development-profile status.",
-      "Build the aggregate 2025 target, pass the exact test, focused lane, and contract traceability CTests, verify exact trace and mapping, and lower the monolith size baseline.",
-      "Keep this 2025 directive-1 continuation separate from the later-publication continuation, the embedded directive-2 deletion lane, standalone tests, and all IEEE 1516.1-2010 sources, targets, fixtures, and mappings; make no conformance claim."
+      "Moved the original 65-line case without behavioral changes; the focused 2025 lane tag now makes its existing lane directly selectable, while its 26 assertions, mappings, API surface, and development-profile status are preserved.",
+      "The aggregate target builds; exact-case, focused-lane, both resign contract CTests, exact trace, lane mapping check, JSON validation, and source-size audit pass.",
+      "The monolith and its ceiling fell by 65 lines to 36,195; 102 later plan locations were rebased and the next ownership-case pointer was corrected. No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
+    ]
+  },
+  "active_handoff_note": "Verified progress: This pass isolated the 65-line 2025 embedded join/discovery continuation in its own focused unit. The scenario is unchanged except for adding its existing lane tag, discovered necessary when the lane selector initially found no test. Its 26 assertions, two direct mappings, resign API surface, and development-profile classification are preserved. The aggregate target, exact case, focused lane, both resign contract CTests, exact trace, mapping, JSON, and size audits pass. Rebased 102 later plan locations and corrected the next ownership case to line 10766. The largest test file and its ceiling are now 36,195 lines, down 3,077 from the 39,272-line split-series baseline; CMake remains at 12,392. No 2010 source, target, fixture, or mapping changed. Next: isolate the declined-callback ownership-assumption continuation at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10766.",
+  "active_handoff": {
+    "id": "extract-2025-embedded-ownership-assumption-search-continuation",
+    "state": "implementation",
+    "family": "object-ddm-ownership",
+    "lane": "ownership-assumption-search-continuation",
+    "objective": "Move the existing 2025 embedded declined-callback ownership-assumption search continuation into a focused unit. Preserve its 36 assertions, HLA_EVOKED callback model, two direct requirement-section mappings to clauses 7 and 7.2, five selected API surfaces, existing lane, and development-profile classification. Keep it distinct from the just-isolated join/discovery and later-publication continuations, the directive-2 delete lane, standalone tests, and all 2010 sources; do not claim conformance.",
+    "plan_id": "umbra-cpp-ownership-assumption-search-continuation-integration",
+    "mapping_seed_plan_id": "umbra-cpp-ownership-assumption-search-continuation-integration",
+    "mapping_seed_policy": "Preserve direct mappings requirement-candidate-content-clauses-07-ownership-management-page-148-l70-21 -> hla-1516.1-2025:clause-7 and requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49 -> hla-1516.1-2025:clause-7.2, plus all five selected API surfaces in the plan row. Keep this evidence development-profile only and do not claim conformance.",
+    "api_surfaces": [
+      "api.2025.cpp.rtiambassador.unconditionalattributeownershipdivestiture.2570df96a3a7",
+      "api.2025.cpp.federateambassador.requestattributeownershipassumption.51900ab87732",
+      "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
+      "api.2025.cpp.rtiambassador.cancelattributeownershipacquisition.2c855e13192e",
+      "api.2025.cpp.federateambassador.confirmattributeownershipacquisitioncancellation.7eb7a984121a"
+    ],
+    "test_case": "Embedded ownership assumption search advances after a declined callback",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10766",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded ownership assumption search advances after a declined callback$",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-ownership-assumption-search-continuation-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded ownership assumption search advances after a declined callback$\" --output-on-failure",
+      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^ownership-assumption-search-continuation$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane ownership-assumption-search-continuation --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-ownership-assumption-search-continuation-integration --summary --compact",
+      "contract_traceability_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.resign_action_(requirements|api)_traceability$\" --output-on-failure",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Move the 36-assertion declined-callback test without behavioral edits and preserve its five API surfaces, two direct mappings, focused lane, callback model, and development-profile status.",
+      "Build the aggregate 2025 target and pass exact, lane, contract, trace, mapping, and size checks.",
+      "Keep the ownership-assumption callback continuation separate from the discovery/publication continuations, directive-2 deletion, standalone tests, and all IEEE 1516.1-2010 sources, targets, fixtures, and mappings."
     ]
   },
   "documents": [
@@ -989,7 +993,7 @@
       "resign-action-assumption-discovery-continuation": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded assumption search continues after a later join and discovery$",
-        "source": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp"
+        "source": "cpp/tests/ieee1516_2025_embedded_assumption_discovery_continuation_catch2.cpp"
       },
       "ownership-assumption-search-continuation": {
         "catch2_target": "umbra_ieee1516_2025_catch2",

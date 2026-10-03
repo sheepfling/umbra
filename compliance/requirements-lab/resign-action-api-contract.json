@@ -35,7 +35,7 @@
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate resignation applies directive two regardless of the supplied action",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate transport loss forces directive two",
         "cpp/tests/ieee1516_2025_embedded_assumption_publication_continuation_catch2.cpp::Embedded assumption search continues after a later eligible publication",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded assumption search continues after a later join and discovery",
+        "cpp/tests/ieee1516_2025_embedded_assumption_discovery_continuation_catch2.cpp::Embedded assumption search continues after a later join and discovery",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records the final Resign Federation Execution invocation",
         "cpp/tests/timestamped_attribute_source_resignation_catch2.cpp::Embedded queued timestamped attribute update survives source resignation",
         "cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
