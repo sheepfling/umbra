@@ -87,7 +87,7 @@
         "cpp/tests/timestamped_interaction_reenable_catch2.cpp::Embedded ordinary timestamped interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable"
       ],
       "notes": "The ordinary non-regional case isolates the joined-federate lifecycle boundary: a queued TSO interaction remains pending across Disable Time Constrained and callback-gated Enable Time Constrained, then is delivered exactly once before the matching Time Advance Grant with the original metadata. Regional and default-region companions cover their distinct source-region realizations separately. This is development-profile evidence only; alternate advances, remote transport, save/restore, package/JUnit/protected-review, and conformance remain open."
     },

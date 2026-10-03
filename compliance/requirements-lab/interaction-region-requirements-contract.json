@@ -13,7 +13,7 @@
       "source_symbol": "EmbeddedFederationRegistry::regionsOverlap",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
+        "cpp/tests/ieee1516_2025_ddm_regional_async_delivery_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction_immediate",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional interaction ranges"
@@ -27,7 +27,7 @@
       "source_symbol": "EmbeddedFederationRegistry::setInteractionClassRegionalSubscription",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
+        "cpp/tests/ieee1516_2025_ddm_regional_async_delivery_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction_immediate",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
@@ -115,7 +115,7 @@
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
+        "cpp/tests/ieee1516_2025_ddm_regional_async_delivery_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction"
       ]
     },

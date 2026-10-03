@@ -512,17 +512,37 @@ The first wave should be staged rather than attempted as one rewrite:
     (230 lines, 302 assertions, 8 direct IEEE 1516.1-2025 pairs across clauses
     9.6, 9.7.5, 11.5, and 11.5.2, and 7 API surfaces). Its file-destination
     behavior remains distinct from the mapped MOM-interaction sibling. The
-    focused and aggregate 2025 targets build, the focused CTest passes once,
-    the lane check resolves one roadmap item and two mapped cases, and all
-    post-extraction source pointers are adjusted. The shared CMake helper
-    serves nine focused targets; `CMakeLists.txt` is 12,391 lines (ceiling
-    12,392). The federation-management monolith is 41,575 lines, 28,712 below
-    its 70,287-line start, with its ceiling ratcheted down to 41,575. No IEEE
+    focused and aggregate 2025 targets build, the lane check resolves one
+    roadmap item and two mapped cases, and all post-extraction source pointers
+    are adjusted. The shared CMake helper serves twelve focused targets;
+    `CMakeLists.txt` remains 12,392 lines (ceiling 12,392). The receive-order
+    regional asynchronous delivery case is isolated in
+    `ieee1516_2025_ddm_regional_async_delivery_catch2.cpp` (131 lines, 51
+    assertions, 9 direct requirement-section pairs across 7 IEEE 1516.1-2025
+    clauses, and 11 official API surfaces). Its focused and aggregate tests
+    plus two neighboring async/regional tests pass (4 exact CTests). The
+    timestamped regional interaction Time Constrained re-enable case is now
+    isolated in
+    `ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp` (136
+    lines, 60 assertions, 11 direct requirement-section pairs across 9 IEEE
+    1516.1-2025 clauses, and 29 official API surfaces). The focused and
+    aggregate targets build; its focused and aggregate tests plus the mapped
+    TSO seed, time-role, and default-region neighbors pass (5 exact CTests).
+    The Flush Queue Request case is isolated in
+    `ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp`
+    (120 lines, 51 assertions, 12 direct requirement-section pairs across 7
+    IEEE 1516.1-2025 clauses, and 24 official API surfaces). The focused and
+    aggregate targets build; its focused and aggregate CTests plus the TSO
+    seed, Time Constrained re-enable, and default-region FQR neighbors pass
+    (5 exact CTests). All three mapping lanes pass. The federation-management
+    monolith is 41,195 lines, 29,092 below its 70,287-line start, with its
+    ceiling ratcheted down to 41,195. No runtime
+    behavior changed, no Requirements Lab resync occurred, and no IEEE
     1516.1-2010 path or mapping changed.
-    Next handoff: inspect and independently map `Embedded asynchronous delivery
-    gates regional receive-order interactions` at
-    `ieee1516_2025_federation_management_catch2.cpp:32155`; isolate only if its
-    focused behavior and direct 2025 requirements support it.
+    Next handoff: independently map `Embedded suppressed timestamped regional
+    interaction callback does not request retraction` at
+    `ieee1516_2025_federation_management_catch2.cpp:33468`; keep callback
+    suppression distinct from the extracted positive-overlap Flush Queue case.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in

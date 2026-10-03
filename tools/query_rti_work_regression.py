@@ -249,7 +249,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8.14.3",
             "hla-1516.1-2025:clause-8.18.1",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39185",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38805",
         "assertions": 40,
     },
     "Embedded time-role services keep enable requests callback-gated before TSO support": {
@@ -264,7 +264,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8.7.5",
             "hla-1516.1-2025:clause-8.21.5",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39337",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38957",
         "assertions": 51,
     },
     "Embedded Modify Lookahead applies increases immediately and decreases gradually": {
@@ -273,7 +273,7 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-8.20.4",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39454",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39074",
         "assertions": 28,
     },
     "RTIambassador requests Flush Queue through a configured process endpoint": {
@@ -344,7 +344,7 @@ MAPPED_CORE_CASES = {
         "sections": {
             "hla-1516.1-2025:clause-8",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39744",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39364",
         "assertions": 30,
     },
     "Embedded Query GALT and Query LITS observe other regulator time and pending advances": {
@@ -356,7 +356,7 @@ MAPPED_CORE_CASES = {
             "hla-1516.1-2025:clause-8.18.1",
             "hla-1516.1-2025:clause-8.19.3",
         },
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39512",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39132",
         "assertions": 35,
     },
     "RTIambassador queries GALT and LITS through a configured process endpoint": {
@@ -766,7 +766,7 @@ RECOVERED_TRACE_CASES = {
         "lane": "process-restart-pending-attribute-value-update",
     },
     "Embedded public fresh-registry restore rebinds pending object-instance Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52574",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52194",
         "assertions": 61,
         "requirements": 17,
         "sections": 8,
@@ -780,7 +780,7 @@ RECOVERED_TRACE_CASES = {
         "lane": "process-restart-class-pending-attribute-value-update",
     },
     "Embedded public fresh-registry restore rebinds pending object-class Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE": {
-        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52831",
+        "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:52451",
         "assertions": 61,
         "requirements": 12,
         "sections": 6,
@@ -1158,16 +1158,16 @@ def assert_bounded_discovery_output() -> None:
     if (
         scoped_ready_result.returncode != 0
         or "state: source-reconciliation" not in scoped_ready
-        or "proposed_plan_id: umbra-cpp-ddm-regional-asynchronous-receive-order-delivery-integration"
+        or "proposed_plan_id: umbra-cpp-suppressed-timestamped-regional-interaction-callback-no-retraction-integration"
         not in scoped_ready
     ):
         raise AssertionError(
             "scoped ready query lost the active source-reconciliation handoff"
         )
     if (
-        "mapping_seed: umbra-cpp-interaction-region-integration status=seed-from-existing-case"
+        "mapping_seed: umbra-cpp-timestamped-regional-interaction-tso-retraction-integration status=seed-from-existing-case"
         not in scoped_ready
-        or "mapping_seed_only: requirements=12 standard_sections=7 api_surfaces=3"
+        or "mapping_seed_only: requirements=14 standard_sections=14 api_surfaces=26"
         not in scoped_ready
         or "direct_pairs:" in scoped_ready
         or "seed_trace_command:" not in scoped_ready
@@ -1186,9 +1186,9 @@ def assert_bounded_discovery_output() -> None:
             "compact ready family output leaked mapping previews; use matrix queries"
         )
     if (
-        'matrix_requirements=python tools/query_rti_work.py matrix "umbra-cpp-ddm-regional-asynchronous-receive-order-delivery-integration" --group-by requirement --summary --compact'
+        'matrix_requirements=python tools/query_rti_work.py matrix "umbra-cpp-suppressed-timestamped-regional-interaction-callback-no-retraction-integration" --group-by requirement --summary --compact'
         not in scoped_ready
-        or 'matrix_sections=python tools/query_rti_work.py matrix "umbra-cpp-ddm-regional-asynchronous-receive-order-delivery-integration" --group-by section --summary --compact'
+        or 'matrix_sections=python tools/query_rti_work.py matrix "umbra-cpp-suppressed-timestamped-regional-interaction-callback-no-retraction-integration" --group-by section --summary --compact'
         not in scoped_ready
     ):
         raise AssertionError(
@@ -6430,7 +6430,7 @@ def main() -> int:
     if not isinstance(acquisition_release, dict):
         raise AssertionError("attribute-ownership acquisition release plan row is absent")
     if query_rti_work.source_location_text(acquisition_release) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:42109"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:41729"
     ) or acquisition_release.get("assertions") != 73:
         raise AssertionError("attribute-ownership acquisition release source/evidence drifted")
     if acquisition_release.get("traceability_state") != "requirements-mapped":
@@ -6476,7 +6476,7 @@ def main() -> int:
     if not isinstance(release_denied_multi, dict):
         raise AssertionError("multi-acquirer Release Denied plan row is absent")
     if query_rti_work.source_location_text(release_denied_multi) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:42607"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:42227"
     ) or release_denied_multi.get("assertions") != 53:
         raise AssertionError("multi-acquirer Release Denied source/evidence drifted")
     if release_denied_multi.get("traceability_state") != "requirements-mapped":
@@ -6566,7 +6566,7 @@ def main() -> int:
     if not isinstance(ownership_query, dict):
         raise AssertionError("attribute-ownership query plan row is absent")
     if query_rti_work.source_location_text(ownership_query) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:40441"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:40061"
     ) or ownership_query.get("assertions") != 49:
         raise AssertionError("attribute-ownership query source/evidence drifted")
     if ownership_query.get("traceability_state") != "requirements-mapped":
@@ -6612,7 +6612,7 @@ def main() -> int:
     if not isinstance(evoked_regional_snapshot, dict):
         raise AssertionError("evoked regional source-region snapshot plan row is absent")
     if query_rti_work.source_location_text(evoked_regional_snapshot) != (
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32992"
+        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32729"
     ) or evoked_regional_snapshot.get("assertions") != 42:
         raise AssertionError("evoked regional source-region snapshot source/evidence drifted")
     if evoked_regional_snapshot.get("traceability_state") != "requirements-mapped":
