@@ -67208,7 +67208,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This bounded C++ filesystem lane proves one failed GetObjectClassHandle invocation records the type-53 supplied name, Null returned argument, false success indicator, and NameNotFound description, followed by a successful serial-1 lookup. The source export has only the generic \u00a711.5.1 candidate and no row-level conditional failure mapping (RL-152); other service families, public MOM interaction delivery, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+      "source_location": "cpp/tests/ieee1516_2025_support_failed_object_class_lookup_service_report_catch2.cpp:5",
       "assertions": 17,
       "callback_models": [
         "HLA_EVOKED"
@@ -67245,7 +67245,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This bounded C++ filesystem lane proves the seven accepted \u00a710.6\u2013\u00a710.12 support lookups append source-backed non-void records with type-37/type-36 object-instance/object-class forms, type-53 object/attribute names, type-0 AttributeHandle forms, and type-35 maximum update-rate Number returns. Setup calls are switch-gated, records retain one file and serial sequence, and the test remains development-profile traceability only because the Lab has no positive Table 5 row-level ReturnArgument mapping (RL-042/RL-067/RL-076/RL-151); public MOM interaction delivery, failures, broader non-void forms, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11758",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
       "assertions": 35,
       "callback_models": [
         "HLA_EVOKED"
