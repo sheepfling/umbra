@@ -13,7 +13,7 @@
       "source_symbol": "EmbeddedFederationRegistry::resign",
       "tests": [
         "cpp/tests/ieee1516_2025_embedded_resign_action_divestiture_catch2.cpp::Embedded resign action unconditionally divests attributes for the 2025 ownership model",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action independently queues assumptions for each surviving federate",
+        "cpp/tests/ieee1516_2025_embedded_resign_action_divestiture_catch2.cpp::Embedded resign action independently queues assumptions for each surviving federate",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry rejects resignation route gaps atomically",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action deletes delete-privileged objects and reports removal",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
@@ -44,7 +44,7 @@
       "source_symbol": "EmbeddedFederationRegistry::resign",
       "tests": [
         "cpp/tests/ieee1516_2025_embedded_resign_action_divestiture_catch2.cpp::Embedded resign action unconditionally divests attributes for the 2025 ownership model",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action independently queues assumptions for each surviving federate",
+        "cpp/tests/ieee1516_2025_embedded_resign_action_divestiture_catch2.cpp::Embedded resign action independently queues assumptions for each surviving federate",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry rejects resignation route gaps atomically",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action deletes then divests in one voluntary transition",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
@@ -85,7 +85,7 @@
       "source_symbol": "EmbeddedFederationRegistry::resign",
       "tests": [
         "cpp/tests/ieee1516_2025_embedded_resign_action_divestiture_catch2.cpp::Embedded resign action unconditionally divests attributes for the 2025 ownership model",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded resign action independently queues assumptions for each surviving federate",
+        "cpp/tests/ieee1516_2025_embedded_resign_action_divestiture_catch2.cpp::Embedded resign action independently queues assumptions for each surviving federate",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry rejects resignation route gaps atomically",
         "cpp/tests/ieee1516_2025_connection_lost_cancel_delete_divest_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
         "cpp/tests/timestamped_attribute_source_resignation_catch2.cpp::Embedded queued timestamped attribute update survives source resignation"
