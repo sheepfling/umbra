@@ -41156,6 +41156,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5"
       ],
       "test_case": "Embedded service reporting records Delete Region arguments",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
       "tags": [
         "integration",
         "development-profile",
@@ -60937,7 +60938,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This C++ filesystem matrix proves the five \u00a710.29\u2013\u00a710.33 failed normalization invocations preserve their type-50/type-15/type-36/type-27/type-37 supplied forms, Null returned arguments, false success indicators, public exception text, deterministic UNSUPPORTED text for invalid ServiceGroup, and serials zero through four before a successful serial-five NormalizeServiceGroup. The Lab has no row-level conditional failure relation (RL-152), so the paired public interaction matrix, other failure families, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10764",
+      "source_location": "cpp/tests/ieee1516_2025_support_handle_normalization_failure_matrix_service_report_catch2.cpp:5",
       "assertions": 28,
       "callback_models": [
         "HLA_EVOKED"
