@@ -35,75 +35,76 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "isolate-2025-join-automatic-resign-directive",
+    "id": "isolate-2025-regulated-timestamped-send-interaction-mom-report",
     "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-join-automatic-resign-directive-integration",
-    "family": "fom-module-declaration-management",
-    "lane": "join-automatic-resign-directive",
-    "objective": "Isolate the mapped 2025 Join-time FOM NoAction automatic-resign regression without changing its seven HLA_EVOKED assertions or its existing cross-standard mapping boundary.",
-    "test_case": "Embedded joins preserve an explicit FOM NoAction automatic-resign directive",
-    "source_target": "cpp/tests/join_automatic_resign_directive_catch2.cpp",
-    "source_location": "cpp/tests/join_automatic_resign_directive_catch2.cpp:4",
-    "assertions": 7,
-    "callback_models": [
-      "HLA_EVOKED"
-    ],
-    "mapping_seed_policy": "The extracted case retains all 9 direct requirement-to-subsection pairs, with four IEEE 1516.1-2025 clauses (4, 4.1.1, 4.2, 10.44) and two IEEE 1516.2-2025 clauses (4.13.3, 6.2.13) kept distinct. It retains the seven selected official C++ API surfaces and seven HLA_EVOKED assertions. Development-profile evidence only; no 2010 evidence or conformance claim.",
-    "api_surfaces": [
-      "api.2025.cpp.rtiambassador.connect.ed13bdcc70d7",
-      "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
-      "api.2025.cpp.rtiambassador.joinfederationexecution.9e7e3b227992",
-      "api.2025.cpp.rtiambassador.getautomaticresigndirective.0d958079c7f9",
-      "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
-      "api.2025.cpp.rtiambassador.destroyfederationexecution.f403cac5930f",
-      "api.2025.cpp.rtiambassador.disconnect.72028b809529"
-    ],
-    "ctest_target": "umbra_join_automatic_resign_directive_catch2",
-    "ctest_filter": "^umbra\\.join_automatic_resign_directive\\.catch2\\.Embedded joins preserve an explicit FOM NoAction automatic-resign directive$",
-    "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-join-automatic-resign-directive-integration --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-join-automatic-resign-directive-integration --summary --compact",
-      "lane_check": "python tools/query_rti_work.py check --lane join-automatic-resign-directive --summary --compact",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.join_automatic_resign_directive\\.catch2\\.Embedded joins preserve an explicit FOM NoAction automatic-resign directive$\" --output-on-failure",
-      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers HLAreportServiceInvocation to an eligible observer$\" --output-on-failure"
-    },
-    "acceptance": [
-      "The focused and aggregate 2025 targets build, the focused CTest passes once, and the adjacent observer regression passes in the aggregate.",
-      "The lane check resolves one roadmap item and one mapped case with 9 direct requirement-section pairs and 7 API surfaces.",
-      "IEEE 1516.1-2025 and IEEE 1516.2-2025 mappings remain distinct; no IEEE 1516.1-2010 source, target, fixture, or mapping is included."
-    ]
-  },
-  "active_handoff_note": "Verified progress: The delivered-recipient regional Request Retraction case is isolated in ieee1516_2025_request_retraction_delivered_regional_interaction_fanout_catch2.cpp (149 lines, 70 assertions, 4 direct requirement-section pairs, 26 API surfaces); time-role enable callback gating in ieee1516_2025_time_role_enable_callback_gating_catch2.cpp (120 lines, 51 assertions, 8 pairs, 15 APIs); immediate/gradual Modify Lookahead in ieee1516_2025_modify_lookahead_increase_and_gradual_decrease_catch2.cpp (61 lines, 28 assertions, 5 pairs, 11 APIs); and the two-federate Query GALT/Query LITS bounds case in ieee1516_2025_query_galt_lits_other_regulator_pending_advances_catch2.cpp (65 lines, 35 assertions, 5 pairs across clauses 8, 8.1.5, 8.18.1, and 8.19.3, 12 APIs). The four extraction lanes and exact focused/aggregate plus boundary CTests pass. The federation-management monolith is 40,617 lines, 29,670 below its 70,287-line start, with its ceiling ratcheted down to 40,617. Runtime behavior is unchanged; no Requirements Lab resync or IEEE 1516.1-2010 path, target, fixture, or mapping changed. Next handoff: reconcile the source-unplanned time-regulated timestamped Send Interaction MOM case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39000 with its roadmap pointer and ordinary timestamped-report companion; map only its observed assertions.",
-  "active_handoff": {
-    "id": "inspect-2025-timestamped-send-interaction-time-regulated-mom-service-report",
-    "state": "source-reconciliation",
+    "plan_id": "umbra-cpp-timestamped-send-interaction-time-regulated-service-report-mom-interaction",
     "family": "time-save-restore",
     "lane": "timestamped-send-interaction-time-regulated-service-report-interaction",
-    "objective": "Reconcile the live, source-unplanned time-regulated timestamped Send Interaction MOM case with its stale roadmap pointer. Add exact 2025 requirement/API mappings only for assertions in this regulated scenario, isolate if coherent, and keep it distinct from the ordinary timestamped-report companion and IEEE 1516.1-2010.",
-    "plan_id": "umbra-cpp-timestamped-send-interaction-time-regulated-service-report-mom-interaction",
+    "objective": "Extract the already implemented time-regulated timestamped Send Interaction MOM case into its own 2025-only test translation unit without changing behavior; keep its MOM return and callback-order claims distinct from the ordinary companion.",
     "test_case": "Embedded service reporting delivers time-regulated timestamped Send Interaction through MOM interaction",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39000",
-    "mapping_seed_plan_id": "umbra-cpp-timestamped-send-interaction-service-report-mom-interaction",
-    "mapping_seed_policy": "Use the ordinary timestamped Send Interaction MOM companion only to locate candidate 2025 requirement and API surfaces. Do not transfer its non-regulator return value, callback/order, or service-result claims; inspect and map only assertions in this time-regulated scenario and do not add IEEE 1516.1-2010 mappings.",
-    "related_plan_ids": [
-      "umbra-cpp-timestamped-send-interaction-service-report-mom-interaction"
+    "source_target": "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_interaction_service_report_mom_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_interaction_service_report_mom_catch2.cpp:5",
+    "assertions": 100,
+    "callback_models": [
+      "HLA_EVOKED",
+      "HLA_IMMEDIATE"
+    ],
+    "mapping_seed_policy": "The focused case retains 4 direct IEEE 1516.1-2025 requirement-to-subsection pairs (clause 6.13 twice, 8.22.3, and 11.5) and 11 official 2025 C++ API surfaces. Its accepted MOM report returns a MessageRetractionHandle, unlike the ordinary companion's Null result; the constrained recipient is released only after advance and its callback precedes the grant. Development-profile evidence only; no 2010 mapping or conformance claim.",
+    "api_surfaces": [
+      "api.2025.cpp.rtiambassador.sendinteraction.dd73a76182aa",
+      "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
+      "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c",
+      "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
+      "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1",
+      "api.2025.cpp.rtiambassador.changeinteractionordertype.1981a12c6b99",
+      "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+      "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+      "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",
+      "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+      "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66"
     ],
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers time-regulated timestamped Send Interaction through MOM interaction$",
     "commands": {
-      "source_query": "python tools/query_rti_work.py unplanned --path cpp/tests/ieee1516_2025_federation_management_catch2.cpp --summary --compact --limit 1",
-      "related_case": "python tools/query_rti_work.py case umbra-cpp-timestamped-send-interaction-service-report-mom-interaction --summary --compact",
+      "case": "python tools/query_rti_work.py case umbra-cpp-timestamped-send-interaction-time-regulated-service-report-mom-interaction --summary --compact",
+      "lane_check": "python tools/query_rti_work.py check --lane timestamped-send-interaction-time-regulated-service-report-interaction --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
       "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers time-regulated timestamped Send Interaction through MOM interaction$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane timestamped-send-interaction-time-regulated-service-report-interaction --summary --compact",
+      "adjacent_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.(Embedded service reporting delivers timestamped Send Interaction through MOM interaction|Embedded service reporting delivers time-regulated timestamped Update Attribute Values through MOM interaction)$\" --output-on-failure"
+    },
+    "acceptance": [
+      "The 2025 aggregate target built and the extracted 100-assertion case plus both focused neighboring CTests passed.",
+      "The lane mapping check resolves 4 direct requirement-to-2025-subsection pairs; the source-size ceiling is lowered to the new 40,375-line monolith size.",
+      "No IEEE 1516.1-2010 path, target, fixture, or mapping was added or changed."
+    ]
+  },
+  "active_handoff_note": "Verified progress: The time-regulated timestamped Send Interaction MOM case is isolated in ieee1516_2025_time_regulated_timestamped_send_interaction_service_report_mom_catch2.cpp (100 assertions, 4 direct requirement-to-2025-subsection pairs, 11 API surfaces). The full 2025 aggregate target built; its exact CTest and the ordinary Send Interaction and time-regulated Update Attribute Values neighboring CTests passed; the lane mapping and source-size checks passed. The federation-management monolith is now 40,375 lines, 29,912 below its 70,287-line starting size, with its ceiling ratcheted to 40,375. No IEEE 1516.1-2010 source, target, fixture, or mapping changed. Next handoff: isolate the already mapped time-regulated timestamped Update Attribute Values MOM case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39000, preserving its 119 assertions, 6 direct 2025 requirement-section pairs, and 8 API surfaces.",
+  "active_handoff": {
+    "id": "extract-2025-time-regulated-timestamped-update-attribute-values-mom-report",
+    "state": "source-reconciliation",
+    "family": "time-save-restore",
+    "lane": "timestamped-attribute-update-time-regulated-service-report-interaction",
+    "objective": "Extract the already mapped time-regulated timestamped Update Attribute Values MOM interaction case from the 2025 federation-management monolith into a focused translation unit without changing behavior; preserve its exact mapping and keep the 2010 stream separate.",
+    "plan_id": "umbra-cpp-timestamped-attribute-update-time-regulated-service-report-mom-interaction",
+    "mapping_seed_plan_id": "umbra-cpp-timestamped-attribute-update-time-regulated-service-report-mom-interaction",
+    "mapping_seed_policy": "This test already has six exact direct requirement-to-2025-subsection pairs and eight selected API surfaces in its own plan row. Use that row only as the extraction baseline; do not import or broaden another case's mappings.",
+    "test_case": "Embedded service reporting delivers time-regulated timestamped Update Attribute Values through MOM interaction",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39000",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers time-regulated timestamped Update Attribute Values through MOM interaction$",
+    "commands": {
+      "case": "python tools/query_rti_work.py case umbra-cpp-timestamped-attribute-update-time-regulated-service-report-mom-interaction --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers time-regulated timestamped Update Attribute Values through MOM interaction$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane timestamped-attribute-update-time-regulated-service-report-interaction --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Resolve the current time-regulated TEST_CASE at the live source pointer and reconcile the existing roadmap row's stale location.",
-      "Map only exact direct IEEE 1516.1-2025 requirement-section pairs supported by this case's assertions; classify setup and report/callback decoding separately where not normative.",
-      "Keep the time-regulated case distinct from the ordinary timestamped Send Interaction MOM companion and other service-report lanes; isolate if coherent and run focused/aggregate and relevant neighboring CTests.",
-      "Do not mix any IEEE 1516.1-2010 sources, targets, fixtures, or mappings into this case."
+      "Move only this mapped 2025 test case into a focused translation unit and update its source location; preserve all 119 assertions and behavior.",
+      "Retain the existing 6 direct requirement-to-2025-subsection pairs across clauses 6.10, 6.11.1, 8.1.5, 8.22.3, and 11.5 and all 8 selected 2025 API surfaces.",
+      "Build the aggregate 2025 target, run the exact case and neighboring service-report tests, validate its lane mapping, and lower the monolith ceiling to the resulting line count.",
+      "Do not include or modify IEEE 1516.1-2010 sources, targets, fixtures, or mappings."
     ]
   },
   "documents": [

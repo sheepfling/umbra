@@ -38405,6 +38405,61 @@
       "next_action": "This native HLA_IMMEDIATE matrix decodes failed timestamped \u00a76.12 Send Interaction calls through HLAreportServiceInvocation with object-management service type 2, type-27/type-40/type-63/type-31 supplied forms, Null returned arguments, false indicators, exact InteractionClassNotDefined/InteractionParameterNotDefined/InvalidLogicalTime text, and serials zero through two. Timestamped success/retraction/receipt delivery, broader MOM/conformance evidence, and Requirements Lab row-level validation remain open (RL-152)."
     },
     {
+      "id": "umbra-cpp-timestamped-send-interaction-time-regulated-service-report-mom-interaction",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.sendinteraction.dd73a76182aa",
+        "api.2025.cpp.rtiambassador.setservicereportingswitch.86951b8e3e77",
+        "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c",
+        "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
+        "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1",
+        "api.2025.cpp.rtiambassador.changeinteractionordertype.1981a12c6b99",
+        "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+        "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+        "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",
+        "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+        "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-125-l97-28",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l112-33",
+        "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "test_case": "Embedded service reporting delivers time-regulated timestamped Send Interaction through MOM interaction",
+      "source_location": "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_interaction_service_report_mom_catch2.cpp:5",
+      "assertions": 100,
+      "callback_models": [
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
+      ],
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers time-regulated timestamped Send Interaction through MOM interaction$",
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "interaction-management",
+        "time-management",
+        "tso",
+        "mom",
+        "service-reporting",
+        "service-report-interaction",
+        "timestamped-send-interaction-time-regulated-service-report-interaction",
+        "rti.service.timestamped-send-interaction-time-regulated-service-report-interaction",
+        "rti.service.send-interaction",
+        "rti.service.change-interaction-order-type",
+        "rti.service.enable-time-regulation",
+        "rti.service.enable-time-constrained",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.set-service-reporting-switch",
+        "rti.service.set-send-service-reports-to-file-switch",
+        "federate.callback.receive-interaction",
+        "federate.callback.time-advance-grant"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "next_action": "The time-regulated sender and constrained receiver run under HLA_EVOKED while an HLA_IMMEDIATE observer decodes the accepted Send Interaction MOM report, including its MessageRetractionHandle return (not the ordinary companion's Null return). The receiver's timestamped interaction remains pending until advance and is observed before its grant, with exact time/order/tag/parameter/retraction metadata. Development-profile evidence only; do not claim conformance or Requirements-Lab row-level backend validation. Keep separate from the ordinary timestamped Send Interaction row."
+    },
+    {
       "id": "umbra-cpp-timestamped-send-interaction-service-report-mom-interaction",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.sendinteraction.dd73a76182aa",
