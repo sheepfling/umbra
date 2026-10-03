@@ -514,7 +514,7 @@ The first wave should be staged rather than attempted as one rewrite:
     behavior remains distinct from the mapped MOM-interaction sibling. The
     focused and aggregate 2025 targets build, the lane check resolves one
     roadmap item and two mapped cases, and all post-extraction source pointers
-    are adjusted. The shared CMake helper serves thirteen focused targets;
+    are adjusted. The shared CMake helper serves fourteen focused targets;
     `CMakeLists.txt` remains 12,392 lines (ceiling 12,392). The receive-order
     regional asynchronous delivery case is isolated in
     `ieee1516_2025_ddm_regional_async_delivery_catch2.cpp` (131 lines, 51
@@ -541,16 +541,23 @@ The first wave should be staged rather than attempted as one rewrite:
     8.23.3, and 9.12.5, and 23 official API surfaces). Its focused and
     aggregate targets build; its focused and aggregate CTests plus the TSO
     seed, Flush Queue, and Time Constrained re-enable neighbors pass (5 exact
-    CTests), and its mapping lane passes. The federation-management monolith
-    is 41,096 lines, 29,191 below its 70,287-line start, with its ceiling
-    ratcheted down to 41,096. No runtime
+    CTests), and its mapping lane passes. The no-overlap-at-send timestamped
+    regional designator case is isolated in
+    `ieee1516_2025_tso_regional_no_overlap_designator_catch2.cpp` (99 lines,
+    36 assertions, 3 direct requirement-section pairs across clauses 8.22.3
+    and 9.12.5, and 24 official API surfaces). Its focused and aggregate
+    targets build; its focused and aggregate CTests plus the TSO seed, callback
+    suppression, and delivered-retraction neighbors pass (5 exact CTests), and
+    its mapping lane passes. The federation-management monolith is 41,000
+    lines, 29,287 below its 70,287-line start, with its ceiling ratcheted down
+    to 41,000. No runtime
     behavior changed, no Requirements Lab resync occurred, and no IEEE
     1516.1-2010 path or mapping changed.
-    Next handoff: independently map `Embedded timestamped Send Interaction
-    With Regions returns a retraction designator without overlap-qualified
-    recipients` at `ieee1516_2025_federation_management_catch2.cpp:33468`; keep
-    no-overlap-at-send behavior distinct from callback-time suppression and
-    delivered-recipient retraction.
+    Next handoff: independently map `Embedded Request Retraction notifies
+    delivered regional-interaction recipients and suppresses queued fanout` at
+    `ieee1516_2025_federation_management_catch2.cpp:33468`; keep delivered-
+    recipient callbacks distinct from callback-time regional suppression and
+    no-overlap-at-send designator behavior.
 - The first 2025 federation-management service-report lane is isolated in
   `ieee1516_2025_service_report_catch2.cpp` (2,452 lines), and the process
   service-report lifecycle block is isolated in

@@ -470,14 +470,14 @@ subscription case at
 with 43 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 12 canonical 2025
 sections, and 21 official C++ API surfaces. The custom-transportation
 handle-stability case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33879` and the
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33783` and the
 restored-baseline timestamped MOM interaction case at
 `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1635` are mapped and
 green. The restored-baseline regional Provide Attribute Value Update case at
 `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1794` is green with
 251 assertions and 11 Requirements-Lab anchors. The three-dimensional
 regional object-attribute overlap case at
-`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:37136` is green with
+`cpp/tests/ieee1516_2025_federation_management_catch2.cpp:37040` is green with
 57 assertions and 10 Requirements-Lab anchors. The restored-baseline regional
 Request Attribute Value Update solicitation case at
 `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2096` is green with
