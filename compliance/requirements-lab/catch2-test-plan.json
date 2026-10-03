@@ -38587,6 +38587,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5"
       ],
       "test_case": "Embedded service reporting delivers time-regulated timestamped Update Attribute Values through MOM interaction",
+      "source_location": "cpp/tests/ieee1516_2025_time_regulated_timestamped_update_attribute_values_service_report_mom_catch2.cpp:5",
       "tags": [
         "integration",
         "development-profile",
