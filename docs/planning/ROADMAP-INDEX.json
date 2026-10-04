@@ -37,54 +37,15 @@
   "last_completed_handoff": {
     "state": "implemented-in-noninstallable-development-profile",
     "family": "object-ddm-ownership",
-    "id": "extract-2025-unconditional-attribute-ownership-divestiture",
-    "lane": "ownership-assumption-research",
-    "objective": "Extract the 310-line IEEE 1516.1-2025 Unconditional Attribute Ownership Divestiture case into a focused unit. Preserve all 122 assertions, 14 direct requirement-to-2025-clause pairs, five API surfaces, its existing lane, and development-profile status. Keep it separate from Confirm Divestiture and the IEEE 1516.1-2010 stream; make no conformance claim.",
-    "plan_id": "umbra-cpp-unconditional-attribute-ownership-divestiture-integration",
-    "mapping_seed_plan_id": "umbra-cpp-unconditional-attribute-ownership-divestiture-integration",
-    "mapping_seed_policy": "Preserve the existing 14 requirement IDs and their direct pairs to clauses 7.1.2.1, 7.2, 7.4, and 7.4.3; preserve the five API surface IDs and development-profile status. Do not broaden the mappings or claim conformance.",
-    "test_case": "Embedded Unconditional Attribute Ownership Divestiture offers eligible 2025 federates",
-    "source_target": "cpp/tests/ieee1516_2025_unconditional_attribute_ownership_divestiture_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_unconditional_attribute_ownership_divestiture_catch2.cpp:4",
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Unconditional Attribute Ownership Divestiture offers eligible 2025 federates$",
-    "ctest_label": "ownership-assumption-research",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-unconditional-attribute-ownership-divestiture-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded Unconditional Attribute Ownership Divestiture offers eligible 2025 federates$\" --output-on-failure",
-      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^ownership-assumption-research$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane ownership-assumption-research --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-unconditional-attribute-ownership-divestiture-integration --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The exact 310-line test body now lives in a focused 2025 translation unit, unchanged, with all 122 assertions, 14 direct requirement-clause pairs, five API surfaces, HLA_EVOKED callback model, and development-profile status preserved.",
-      "The 2025 aggregate linked successfully; the exact CTest passed 1/1 and the ownership-assumption-research lane passed 5/5 after updating all stale Requirements Lab contract selectors. The lane check and trace preserve 14 direct pairs across clauses 7.1.2.1, 7.2, 7.4, and 7.4.3. JSON and source-size-policy checks pass, affected monolith pointers were rebased, CMake remains at 12,392 lines, and the monolith is 28,066 lines (11,206 below the 39,272-line starting baseline). The broad mapping audit remains at 22 known query-tag association errors and three non-actionable source-unlocated notices.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
-    ],
-    "requirements": 14,
-    "standard_sections": 4,
-    "api_surface_count": 5,
-    "assertions": 122,
-    "direct_pairs": 14,
-    "callback_models": [
-      "HLA_EVOKED"
-    ]
-  },
-  "active_handoff_note": "Extract the adjacent 73-assertion 2025 Attribute Ownership Acquisition release/denial callback case from cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172. Preserve its nine direct requirement-to-2025-clause pairs, five API surfaces, dedicated lane, and development-profile status; keep all work separate from IEEE 1516.1-2010.",
-  "active_handoff": {
-    "state": "implementation",
-    "family": "object-ddm-ownership",
     "id": "extract-2025-attribute-ownership-acquisition-release-callback",
     "lane": "attribute-ownership-acquisition-release-callback",
-    "objective": "Extract only the adjacent 73-assertion IEEE 1516.1-2025 Attribute Ownership Acquisition release/denial callback case into a focused translation unit. Preserve its nine exact requirement-to-2025-clause pairs across clauses 7.7.3, 7.8, 7.11, and 7.12, five API surfaces, dedicated lane, and development-profile status. Do not mix in other acquisition/divestiture cases or any IEEE 1516.1-2010 behavior; make no conformance claim.",
+    "objective": "Extract the 220-line IEEE 1516.1-2025 Attribute Ownership Acquisition release/denial callback case into a focused unit. Preserve all 73 assertions, nine direct requirement-to-2025-clause pairs, five API surfaces, its dedicated CTest lane, and development-profile status. Keep this separate from the adjacent If Available case and all IEEE 1516.1-2010 behavior; make no conformance claim.",
     "plan_id": "umbra-cpp-attribute-ownership-acquisition-integration",
     "mapping_seed_plan_id": "umbra-cpp-attribute-ownership-acquisition-integration",
-    "mapping_seed_policy": "Preserve the current plan row's nine requirement IDs and their direct pairs to clauses 7.7.3, 7.8, 7.11, and 7.12, plus all five API surface IDs and development-profile status. Do not broaden mappings or claim conformance.",
+    "mapping_seed_policy": "Preserve the existing nine requirement IDs and their direct pairs to clauses 7.7.3, 7.8, 7.11, and 7.12; preserve the five API surface IDs, existing dedicated CTest lane, and development-profile status. Do not broaden mappings or claim conformance.",
     "test_case": "Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172",
+    "source_target": "cpp/tests/ieee1516_2025_attribute_ownership_acquisition_release_callbacks_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_attribute_ownership_acquisition_release_callbacks_catch2.cpp:4",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks$",
     "ctest_label": "attribute-ownership-acquisition-release-callback",
@@ -98,15 +59,51 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Extract only the specified acquisition/release callback case, preserving all 73 assertions, nine direct requirement-clause pairs, five API surfaces, and development-profile status.",
-      "Build the 2025 aggregate; run its exact CTest selector and dedicated lane, then run the lane mapping check, exact trace, and source-size/mapping validations.",
-      "Keep this slice independent from the neighboring cases and all IEEE 1516.1-2010 work; make no validation or conformance claim."
+      "The exact 220-line test body now lives in a focused 2025 translation unit with all 73 assertions, nine direct requirement-clause pairs, five API surfaces, and development-profile status preserved; its pre-existing dedicated lane tag is now present in the TEST_CASE and CTest passes under that lane.",
+      "The 2025 aggregate linked successfully; the exact CTest and the dedicated attribute-ownership-acquisition-release-callback label passed 1/1. The lane check and trace preserve nine direct pairs across clauses 7.7.3, 7.8, 7.11, and 7.12. JSON and source-size-policy checks pass, affected monolith pointers were rebased, and the monolith is 27,845 lines (11,427 below the 39,272-line starting baseline). The broad mapping audit remains at 22 known query-tag association errors and three non-actionable source-unlocated notices.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
     ],
     "requirements": 9,
     "standard_sections": 4,
     "api_surface_count": 5,
     "assertions": 73,
-    "direct_pairs": 9
+    "direct_pairs": 9,
+    "callback_models": [
+      "HLA_EVOKED"
+    ]
+  },
+  "active_handoff_note": "The next adjacent case is Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks in cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172. Preserve its four direct requirement-to-2025-clause pairs and three API surfaces. Use only its existing rti.service.attribute-ownership-acquisition-if-available CTest tag (there is no dedicated custom lane); do not invent mappings or cross into IEEE 1516.1-2010.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "object-ddm-ownership",
+    "id": "extract-2025-attribute-ownership-acquisition-if-available",
+    "lane": "rti.service.attribute-ownership-acquisition-if-available",
+    "objective": "Extract only the existing IEEE 1516.1-2025 Attribute Ownership Acquisition If Available case into a focused translation unit. Preserve its four exact requirement-to-2025-clause pairs across clauses 7.7.3, 7.9.1, and 7.10.6, three API surfaces, existing development-profile status, and original CTest labels. Do not invent a dedicated lane, mix in neighboring acquisition cases, or cross into IEEE 1516.1-2010; make no conformance claim.",
+    "plan_id": "umbra-cpp-attribute-ownership-acquisition-if-available-integration",
+    "mapping_seed_plan_id": "umbra-cpp-attribute-ownership-acquisition-if-available-integration",
+    "mapping_seed_policy": "Preserve the current plan row's four requirement IDs and their direct pairs to clauses 7.7.3, 7.9.1, and 7.10.6, plus all three API surface IDs and development-profile status. Preserve its existing CTest labels; do not introduce an unplanned lane or claim conformance.",
+    "test_case": "Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks$",
+    "ctest_label": "rti.service.attribute-ownership-acquisition-if-available",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-attribute-ownership-acquisition-if-available-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks$\" --output-on-failure",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-attribute-ownership-acquisition-if-available-integration --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Extract only this existing If Available case, preserving its existing assertion body, four direct requirement-clause pairs, three API surfaces, development-profile status, and CTest labels.",
+      "Build the 2025 aggregate, run its exact CTest selector and trace, and verify shifted source pointers without broadening or inventing mappings.",
+      "Keep this case separate from regular acquisition, divestiture, and all IEEE 1516.1-2010 behavior; make no validation or conformance claim."
+    ],
+    "requirements": 4,
+    "standard_sections": 3,
+    "api_surface_count": 3,
+    "direct_pairs": 4
   },
   "documents": [
     {
@@ -4946,6 +4943,26 @@
     ]
   },
   "recent_completed_slices": [
+    {
+      "plan_id": "umbra-cpp-attribute-ownership-acquisition-integration",
+      "test_query": "Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
+      "lane_queries": [
+        "attribute-ownership-acquisition-release-callback"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_attribute_ownership_acquisition_release_callbacks_catch2.cpp:4",
+      "primary_lane": "attribute-ownership-acquisition-release-callback",
+      "focus_lane": "attribute-ownership-acquisition-release-callback",
+      "assertions": 73,
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.7.3",
+        "hla-1516.1-2025:clause-7.8",
+        "hla-1516.1-2025:clause-7.11",
+        "hla-1516.1-2025:clause-7.12"
+      ],
+      "requirements": 9,
+      "api_surfaces": 5,
+      "status": "implemented-in-noninstallable-development-profile"
+    },
     {
       "plan_id": "umbra-cpp-unconditional-attribute-ownership-divestiture-integration",
       "test_query": "Embedded Unconditional Attribute Ownership Divestiture offers eligible 2025 federates",
@@ -11700,7 +11717,7 @@
         "rti.service.update-attribute-values",
         "rti.service.retract"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:72458",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:72237",
       "assertions": 69,
       "callback_models": [
         "HLA_EVOKED"
@@ -12050,7 +12067,7 @@
         "service-reporting",
         "service-report-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:31161",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:30940",
       "assertions": 115,
       "callback_models": [
         "HLA_EVOKED",
@@ -19156,7 +19173,7 @@
         "federate.callback.time-regulation-enabled",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26517",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26296",
       "assertions": 31,
       "callback_models": [
         "HLA_EVOKED"
@@ -19196,7 +19213,7 @@
         "federate.callback.time-regulation-enabled",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27040",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26819",
       "assertions": 21,
       "callback_models": [
         "HLA_EVOKED"
@@ -19277,7 +19294,7 @@
         "rti.service.evoke-callback",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27115",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26894",
       "assertions": 27,
       "callback_models": [
         "HLA_EVOKED"
@@ -19319,7 +19336,7 @@
         "rti.service.evoke-callback",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27161",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26940",
       "assertions": 24,
       "callback_models": [
         "HLA_EVOKED"
@@ -21583,7 +21600,7 @@
         "federate.callback.multiple-object-instance-name-reservation-succeeded",
         "federate.callback.multiple-object-instance-name-reservation-failed"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27251",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27030",
       "assertions": 68,
       "callback_models": [
         "HLA_EVOKED"
