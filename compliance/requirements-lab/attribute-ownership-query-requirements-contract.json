@@ -14,7 +14,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query Attribute Ownership reports 2025 federate and unowned attributes",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded RTI-owned MOM attributes participate in ownership queries"
+        "cpp/tests/ieee1516_2025_rti_owned_mom_ownership_query_catch2.cpp::Embedded RTI-owned MOM attributes participate in ownership queries"
       ]
     },
     {
@@ -25,7 +25,7 @@
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipQuery",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query Attribute Ownership reports 2025 federate and unowned attributes",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded RTI-owned MOM attributes participate in ownership queries"
+        "cpp/tests/ieee1516_2025_rti_owned_mom_ownership_query_catch2.cpp::Embedded RTI-owned MOM attributes participate in ownership queries"
       ]
     },
     {
@@ -36,7 +36,7 @@
       "source_symbol": "queueAttributeOwnershipQueryReport",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query Attribute Ownership reports 2025 federate and unowned attributes",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded RTI-owned MOM attributes participate in ownership queries"
+        "cpp/tests/ieee1516_2025_rti_owned_mom_ownership_query_catch2.cpp::Embedded RTI-owned MOM attributes participate in ownership queries"
       ]
     },
     {
@@ -47,7 +47,7 @@
       "source_symbol": "queueAttributeOwnershipQueryReport",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Query Attribute Ownership reports 2025 federate and unowned attributes",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded RTI-owned MOM attributes participate in ownership queries"
+        "cpp/tests/ieee1516_2025_rti_owned_mom_ownership_query_catch2.cpp::Embedded RTI-owned MOM attributes participate in ownership queries"
       ]
     },
     {

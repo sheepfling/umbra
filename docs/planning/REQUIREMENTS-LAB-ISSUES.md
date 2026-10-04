@@ -111,3 +111,17 @@ Workaround: repair each affected row only after checking its exact 2025 source
 and Lab identity. Keep this drift separate from portable TCK evidence; do not
 resynchronize or rewrite the pinned Requirements Lab export to silence the
 validator.
+
+### RL-269 — ownership-query test selectors retained the old source path
+
+The ownership-query requirements/API contracts and ownership-check requirements
+contract still selected the RTI-owned MOM query case from the large federation
+management test file after it had been extracted to
+`cpp/tests/ieee1516_2025_rti_owned_mom_ownership_query_catch2.cpp`. This made the
+focused ownership-check requirements traceability test fail with contract drift;
+the requirement IDs and clause mappings themselves were unchanged.
+
+Resolution: updated the seven stale selectors to the focused 2025 test path.
+The four requirements/API traceability tests for the ownership-query and
+ownership-check contracts now pass, as do the mapping checks for both lanes.
+No pinned Requirements Lab export or normative mapping was changed.

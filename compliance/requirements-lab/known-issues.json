@@ -493,6 +493,30 @@
       "reproduction": "python tools/requirements_lab.py check-plan --plan compliance/requirements-lab/catch2-test-plan.json",
       "verification": "The command exits with the eight findings summarized above. Focused portable TCK promoted-evidence validation passes for the current interaction-publication slice; no edits to the affected Catch2 rows or Requirements Lab synchronization were made.",
       "detected": "2026-09-28"
+    },
+    {
+      "id": "RL-269",
+      "status": "resolved-in-umbra",
+      "kind": "traceability-contract-selector-drift",
+      "title": "Ownership-query traceability contracts retain the pre-extraction RTI-owned MOM selector",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-01-overview-page-018-l4-1",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
+        "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13",
+        "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
+      ],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/attribute-ownership-query-requirements-contract.json",
+        "lines": "17, 28, 39, 50; sibling API and ownership-check contracts also referenced the same selector"
+      },
+      "symptom": "The focused ownership-check requirements traceability CTest failed because contract entries selected `cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded RTI-owned MOM attributes participate in ownership queries`, while that already-extracted case now lives in `cpp/tests/ieee1516_2025_rti_owned_mom_ownership_query_catch2.cpp`. Seven stale selector references were present across three local contracts.",
+      "impact": "The Requirements Lab traceability gate reported contract drift despite unchanged requirement IDs, direct clause mappings, and passing behavior tests. The stale selector prevented focused requirements validation from going green.",
+      "workaround": "Update only the exact test selectors to the focused 2025 source path. Preserve all requirement identifiers, canonical clauses, API mappings, and pinned Requirements Lab inputs; do not resynchronize the Lab export.",
+      "reproduction": "ctest --test-dir .build-mingw-rti -C Debug -R ^umbra\\.ieee1516_2025\\.attribute_ownership_check_requirements_traceability$ --output-on-failure",
+      "verification": "Corrected all seven stale selectors in the ownership-query requirements/API and ownership-check requirements contracts. The four focused ownership-query/ownership-check requirements and API traceability CTests pass 4/4, and both service-tag mapping checks pass. No Requirements Lab synchronization or normative mapping change was made.",
+      "detected": "2026-10-04"
     }
   ]
 }
