@@ -36,55 +36,16 @@
   },
   "last_completed_handoff": {
     "state": "implemented-in-noninstallable-development-profile",
-    "family": "mom-after-base-services",
-    "id": "extract-2025-timestamped-directed-send-service-report-mom",
-    "lane": "timestamped-directed-interaction-time-regulated-service-report-interaction",
-    "objective": "Extract only the mapped IEEE 1516.1-2025 time-regulated timestamped Send Directed Interaction service-report MOM case into a focused translation unit. Preserve its 123 runtime assertions, five direct requirement-to-2025-clause pairs across five clauses, eight API surfaces, HLA_EVOKED and HLA_IMMEDIATE callback behavior, development-profile status, and existing CTest labels. Keep the MOM report case separate from the file-report companion and from IEEE 1516.1-2010; make no conformance claim.",
-    "plan_id": "umbra-cpp-timestamped-send-directed-interaction-time-regulated-service-report-mom-interaction",
-    "mapping_seed_plan_id": "umbra-cpp-timestamped-send-directed-interaction-time-regulated-service-report-mom-interaction",
-    "mapping_seed_policy": "Preserve all five requirement IDs and exact direct pairs across clauses 5.1.5, 8.1.5, 8.1.6, 8.22.3, and 11.5; preserve all eight API surface IDs, both callback modes, development-profile status, and existing CTest labels. Do not broaden mappings or claim conformance.",
-    "test_case": "Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
-    "source_target": "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_directed_interaction_service_report_mom_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_directed_interaction_service_report_mom_catch2.cpp:5",
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction$",
-    "ctest_label": "timestamped-directed-interaction-time-regulated-service-report-interaction",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-timestamped-send-directed-interaction-time-regulated-service-report-mom-interaction --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane directed --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-timestamped-send-directed-interaction-time-regulated-service-report-mom-interaction --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The 285-line 2025 test block remains in a focused translation unit with all 123 runtime assertions, five direct requirement-clause pairs, eight API surfaces, HLA_EVOKED and HLA_IMMEDIATE callback behavior, development-profile status, and existing CTest labels preserved.",
-      "The 2025 aggregate linked successfully; this MOM report case and its file-report companion passed 2/2, and the extracted case still reports exactly 123 assertions. All three related Requirements Lab traceability gates pass; the current trace retains all five direct pairs. The directed-lane mapping check passes with no cases missing source locations. The source-size policy is updated; the monolith is 26,351 lines (12,921 below the 39,272-line starting baseline).",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
-    ],
-    "requirements": 5,
-    "standard_sections": 5,
-    "api_surface_count": 8,
-    "assertions": 123,
-    "direct_pairs": 5,
-    "callback_models": [
-      "HLA_EVOKED",
-      "HLA_IMMEDIATE"
-    ]
-  },
-  "active_handoff_note": "The next test is Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback in cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25337. Preserve its seven direct requirement-to-2025-clause pairs across clauses 5.1.5, 6.13, 8.1.5, 8.1.6, 8.22.3, and 11.5, and its eight API surfaces; keep the file-backed report separate from the MOM report and the 2010 stream.",
-  "active_handoff": {
-    "state": "implementation",
     "family": "time-save-restore",
     "id": "extract-2025-timestamped-directed-send-service-report-file",
-    "lane": "directed",
-    "objective": "Extract only the mapped IEEE 1516.1-2025 time-regulated timestamped Send Directed Interaction file-report case from the federation-management test suite into a focused translation unit. Preserve its seven direct requirement-to-2025-clause pairs across six clauses, eight API surfaces, development-profile status, and existing CTest labels. Keep the file report separate from the MOM report and from IEEE 1516.1-2010; make no conformance claim.",
+    "lane": "timestamped-directed-interaction-time-regulated-service-report-file",
+    "objective": "Extract only the mapped IEEE 1516.1-2025 time-regulated timestamped Send Directed Interaction file-report case from the federation-management test suite into a focused translation unit. Preserve its 235 runtime assertions, seven direct requirement-to-2025-clause pairs across six clauses, eight API surfaces, development-profile status, and existing CTest labels. Keep it separate from the MOM report and IEEE 1516.1-2010; make no conformance claim.",
     "plan_id": "umbra-cpp-timestamped-send-directed-interaction-time-regulated-service-report-file",
     "mapping_seed_plan_id": "umbra-cpp-timestamped-send-directed-interaction-time-regulated-service-report-file",
     "mapping_seed_policy": "Preserve all seven requirement IDs and exact direct pairs across clauses 5.1.5, 6.13, 8.1.5, 8.1.6, 8.22.3, and 11.5; preserve all eight API surface IDs, development-profile status, and existing CTest labels. Do not broaden mappings or claim conformance.",
     "test_case": "Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25337",
+    "source_target": "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_directed_interaction_service_report_file_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_directed_interaction_service_report_file_catch2.cpp:5",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback$",
     "ctest_label": "timestamped-directed-interaction-time-regulated-service-report-file",
@@ -97,14 +58,56 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Extract only this mapped 2025 timestamped directed-interaction file-report case; preserve all seven direct requirement-clause pairs, eight API surfaces, development-profile status, and existing CTest labels.",
-      "Build the 2025 aggregate, run the exact CTest selector and trace, and verify source pointers without changing test behavior or mappings.",
-      "Keep this file-report test separate from the MOM report and all 2010 paths; make no validation or conformance claim."
+      "Extracted the exact 204-line 2025 test block into a focused translation unit; its 235 runtime assertions, seven direct requirement-clause pairs, eight API surfaces, development-profile status, and existing CTest labels are preserved.",
+      "The 2025 aggregate linked successfully; this file-report case and the MOM companion passed 2/2. All three related Requirements Lab traceability gates passed, the directed-lane mapping check found no cases missing source locations, and the source-size policy now matches the 26,147-line monolith (13,125 lines below the 39,272-line starting baseline).",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
     ],
     "requirements": 7,
     "standard_sections": 6,
     "api_surface_count": 8,
-    "direct_pairs": 7
+    "direct_pairs": 7,
+    "assertions": 235,
+    "callback_models": [
+      "HLA_EVOKED"
+    ]
+  },
+  "active_handoff_note": "Continue reducing oversized 2025 test units with the mapped callback-gated no-argument time-constrained service-report case at cpp/tests/ieee1516_2025_service_report_catch2.cpp:371. Extract this 17-assertion case into a focused translation unit while preserving its one direct requirement-to-2025-clause pair (§11.5.1), four API surfaces, HLA_EVOKED callback behavior, and development-profile status. Keep the change in the 2025 stream; do not touch 2010.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "time-save-restore",
+    "id": "extract-2025-no-argument-time-constrained-service-report-file",
+    "lane": "service-report-time-constrained-no-argument-services",
+    "objective": "Extract the mapped IEEE 1516.1-2025 callback-gated no-argument Enable Time Constrained/Disable Time Constrained service-report test from the oversized service-report translation unit into a focused test file. Preserve its 17 assertions, one direct requirement-to-2025-clause pair, four API surfaces, HLA_EVOKED callback behavior, development-profile status, and existing CTest labels. Keep all 2010 sources and mappings untouched.",
+    "plan_id": "umbra-cpp-service-report-time-constrained-no-argument-services",
+    "mapping_seed_plan_id": "umbra-cpp-service-report-time-constrained-no-argument-services",
+    "mapping_seed_policy": "Preserve the existing direct mapping requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35 -> hla-1516.1-2025:clause-11.5.1, all four API surfaces, HLA_EVOKED behavior, and development-profile status. Do not broaden mappings or claim conformance.",
+    "test_case": "Embedded service reporting records callback-gated no-argument time-constrained services",
+    "source_target": "cpp/tests/ieee1516_2025_service_report_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:371",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records callback-gated no-argument time-constrained services$",
+    "ctest_label": "service-report-time-constrained-no-argument-services",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-service-report-time-constrained-no-argument-services --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records callback-gated no-argument time-constrained services$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane service-report-time-constrained-no-argument-services --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-service-report-time-constrained-no-argument-services --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Extract only the mapped no-argument time-constrained service-report test into a focused 2025 translation unit; preserve all 17 assertions, its one direct requirement-clause pair, four API surfaces, callback behavior, development-profile status, and existing CTest labels.",
+      "Build the 2025 aggregate, run its exact CTest selector and lane check, and verify the trace/source pointer without broadening mappings.",
+      "Do not change IEEE 1516.1-2010 source, target, fixture, or mapping; make no validation or conformance claim."
+    ],
+    "requirements": 1,
+    "standard_sections": 1,
+    "api_surface_count": 4,
+    "direct_pairs": 1,
+    "assertions": 17,
+    "callback_models": [
+      "HLA_EVOKED"
+    ]
   },
   "documents": [
     {
@@ -12348,8 +12351,8 @@
         "mom",
         "service-report-file"
       ],
-      "source_location": "",
-      "assertions": 236,
+      "source_location": "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_directed_interaction_service_report_file_catch2.cpp:5",
+      "assertions": 235,
       "callback_models": [
         "HLA_EVOKED"
       ],
