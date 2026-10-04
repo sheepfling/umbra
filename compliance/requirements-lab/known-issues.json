@@ -554,6 +554,25 @@
       "recurrence_of": "RL-270",
       "verification": "Corrected all 46 stale selector occurrences across nine test titles. The MOM service-reporting and both time-role traceability CTests pass 3/3; the extracted no-argument time-constrained and adjacent time-regulation service-report tests pass 2/2; both lane mapping checks pass with one mapped case and no missing C++ source locations. No requirement mapping, canonical clause mapping, pinned export, or IEEE 1516.1-2010 file changed.",
       "detected": "2026-10-04"
+    },
+    {
+      "id": "RL-272",
+      "status": "resolved-in-umbra",
+      "kind": "traceability-contract-selector-drift",
+      "title": "Service-report time-regulation contracts retain the pre-extraction selector",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/mom-service-reporting-requirements-contract.json",
+        "lines": "12 stale selector occurrences across three contracts"
+      },
+      "symptom": "The time-regulation service-report case was moved from `cpp/tests/ieee1516_2025_service_report_catch2.cpp` into its own 2025 translation unit, leaving its old source-qualified selector in the MOM service-reporting, time-role requirements, and time-role API contracts.",
+      "impact": "The stale selectors could make focused Requirements Lab traceability tests report contract drift even while the case, requirement mapping, API coverage, and behavior remain intact.",
+      "workaround": "Update only the exact selector source paths to the file containing the TEST_CASE declaration. Preserve requirement IDs, canonical 2025 clauses, API-surface IDs, and pinned Requirements Lab inputs; do not resynchronize the Lab export.",
+      "reproduction": "ctest --test-dir .build-mingw-rti -C Debug -R ^umbra\\.ieee1516_2025\\.(mom_service_reporting_requirements|time_role_requirements_traceability|time_role_api_traceability)$ --output-on-failure",
+      "recurrence_of": "RL-271",
+      "verification": "Updated all 12 stale selector occurrences. The MOM service-reporting and both time-role traceability CTests pass 3/3; the extracted case and four neighboring service-report regressions pass 5/5; both relevant lane mapping checks pass with no missing source location. Requirement and clause mappings, the pinned Lab export, and IEEE 1516.1-2010 files are unchanged.",
+      "detected": "2026-10-04"
     }
   ]
 }

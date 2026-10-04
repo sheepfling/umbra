@@ -249,7 +249,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting records callback-gated time-regulation services",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:555",
+      "source_location": "cpp/tests/ieee1516_2025_time_regulation_service_report_file_catch2.cpp:11",
       "primary_lane": "service-report-time-regulation-services",
       "focus_lane": "service-report-time-regulation-services",
       "assertions": 17,
@@ -279,7 +279,7 @@
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records callback-gated time-regulation services$",
       "ctest_label": "service-report-time-regulation-services",
-      "next_action": "Keep service-report payload evidence separate from the callback-gating observation. Continue with the next exact source-only C++ handoff after this row is indexed; do not promote the development-profile result as conformance."
+      "next_action": "The extracted 17-assertion case retains its direct §11.5.1 service-report mapping; treat callback gating as an HLA_EVOKED observation, not a separate normative claim. Continue with the mapped Next Message Request Available boundary extraction at cpp/tests/ieee1516_2025_service_report_catch2.cpp:801; keep the development-profile result separate from conformance."
     },
     {
       "id": "umbra-cpp-service-report-next-message-request-available-boundary",
@@ -297,7 +297,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting preserves the supplied Next Message Request Available boundary",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:851",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:801",
       "primary_lane": "service-report-next-message-request-available-boundary",
       "focus_lane": "service-report-next-message-request-available-boundary",
       "assertions": 37,
@@ -349,7 +349,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting preserves Request Interaction Transportation Type Change arguments",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1122",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1072",
       "primary_lane": "service-report-request-interaction-transportation-type-change",
       "focus_lane": "service-report-request-interaction-transportation-type-change",
       "assertions": 136,
@@ -394,7 +394,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting preserves Change Default Attribute Transportation Type arguments",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1328",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1278",
       "primary_lane": "service-report-change-default-attribute-transportation-type",
       "focus_lane": "service-report-change-default-attribute-transportation-type",
       "assertions": 151,
@@ -15419,7 +15419,7 @@
         "rti.service.set-send-service-reports-to-file-switch"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:2240",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:2190",
       "assertions": 34,
       "callback_models": [
         "HLA_EVOKED"
@@ -63110,7 +63110,7 @@
         "rti.service.change-default-attribute-transportation-type"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1022",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:972",
       "assertions": 66,
       "callback_models": [
         "HLA_EVOKED",
