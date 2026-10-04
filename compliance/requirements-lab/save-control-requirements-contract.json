@@ -12,13 +12,13 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::requestFederationSave",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
+        "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance"
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore reschedules a saved pending time advance"
       ]
     },
     {
@@ -50,7 +50,7 @@
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance"
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore reschedules a saved pending time advance"
       ]
     },
     {
@@ -82,7 +82,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::requestFederationSave",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort"
+        "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort"
       ]
     },
     {
@@ -92,13 +92,13 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::federateSaveBegun",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
+        "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted Federate Save Begun invocation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance"
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore reschedules a saved pending time advance"
       ]
     },
     {
@@ -108,13 +108,13 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::federateSaveComplete",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
+        "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Federate Save Complete success-indicator forms",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Saved at recipient files"
       ]
     },
@@ -125,7 +125,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::federateSaveNotComplete",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
+        "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Federate Save Complete success-indicator forms",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Federation Saved at recipient files"
       ]
@@ -149,7 +149,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::abortFederationSave",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
+        "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted Abort Federation Save invocation"
       ]
     },
@@ -160,7 +160,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::queryFederationSaveStatus",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
+        "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Query Federation Save Status before its response"
       ]
     },
@@ -172,7 +172,7 @@
       "source_symbol": "submitFederationSaveNotifications",
       "notes": "The immutable source candidate is §4.26 Federation Save Status Response prose, but its checker-required clause_id is the following §4.27.2 due to the coalesced-page ownership defect recorded in RL-078. This entry retains that exported value while identifying the actual callback service.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
+        "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records Query Federation Save Status before its response"
       ]
     },
