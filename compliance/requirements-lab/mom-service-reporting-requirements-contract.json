@@ -2110,7 +2110,7 @@
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "notes": "The native HLA_IMMEDIATE companion routes an accepted time-regulated timestamped §6.14 Send Directed Interaction through the public HLAreportServiceInvocation sink after TSO admission assigns the message-retraction identity and before the constrained Receive Directed Interaction callback. It decodes reliable service type 2, type-27/type-37/type-40/type-63/type-31 supplied forms, the quoted type-33 MessageRetractionHandle return, success true, empty exception, invalid RTI-originated producer, no regions, and serial zero; the callback preserves target, timestamp/order/tag/parameter metadata and a valid retraction. The filesystem, non-time-regulating, failure, directed-DDM, transport, and conformance matrices remain separate. RL-105/RL-152 record the Lab's missing row-level backend/conditional relation, so this is development-profile evidence rather than validation or conformance.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction"
+        "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_directed_interaction_service_report_mom_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction"
       ]
     },
     {

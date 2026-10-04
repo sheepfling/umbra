@@ -80,7 +80,7 @@
         "cpp/tests/connection_loss_directed_tso_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
         "cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
         "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
+        "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_directed_interaction_service_report_mom_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback",
         "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
       ]
@@ -99,7 +99,7 @@
         "cpp/tests/connection_loss_directed_tso_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
         "cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
         "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
+        "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_directed_interaction_service_report_mom_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback",
         "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
       ]
@@ -150,7 +150,7 @@
         "cpp/tests/connection_loss_directed_tso_catch2.cpp::Embedded transport loss delivers timestamped directed interactions through the lost federate's last-known time",
         "cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup",
         "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
+        "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_directed_interaction_service_report_mom_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback"
       ]
     },
