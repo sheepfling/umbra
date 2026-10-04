@@ -37,59 +37,12 @@
   "last_completed_handoff": {
     "state": "implemented-in-noninstallable-development-profile",
     "family": "time-save-restore",
-    "id": "extract-2025-timed-save-mixed-fqr-tar-members",
-    "lane": "timed-save-mixed-fqr-tar-members",
-    "objective": "Extract the bounded IEEE 1516.1-2025 mixed four-member timed-save case into a focused unit. Preserve its 71 assertions, HLA_EVOKED callback model, exact five direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, eleven selected API surfaces, and development-profile classification. Keep all IEEE 1516.1-2010 sources, targets, fixtures, and mappings separate; do not claim conformance.",
-    "plan_id": "umbra-cpp-timed-save-mixed-flush-queue-ordinary-constrained-members-integration",
-    "mapping_seed_plan_id": "umbra-cpp-timed-save-mixed-flush-queue-ordinary-constrained-members-integration",
-    "mapping_seed_policy": "Preserve the five direct mappings: page-065-l109-26 -> clause 4.19; page-066-l10-1 and page-066-l16-3 -> clause 4.19.6; page-067-l37-8 and page-067-l40-9 -> clause 4.20. Preserve all eleven selected API surfaces. Record 71 assertions and HLA_EVOKED. This remains development-profile test evidence, not conformance.",
-    "api_surfaces": [
-      "api.2025.cpp.rtiambassador.requestfederationsave.00166fe13269",
-      "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
-      "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
-      "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
-      "api.2025.cpp.rtiambassador.flushqueuerequest.923ef48b62c9",
-      "api.2025.cpp.rtiambassador.federatesavebegun.4d2693ce9551",
-      "api.2025.cpp.rtiambassador.federatesavecomplete.e775cf801fae",
-      "api.2025.cpp.federateambassador.initiatefederatesave.47c9e9fdb49f",
-      "api.2025.cpp.federateambassador.flushqueuegrant.1586703b34eb",
-      "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66",
-      "api.2025.cpp.federateambassador.federationsaved.5c6a41e2de0c"
-    ],
-    "test_case": "Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
-    "source_target": "cpp/tests/ieee1516_2025_timed_save_mixed_fqr_tar_members_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_timed_save_mixed_fqr_tar_members_catch2.cpp:4",
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded timed federation save admits mixed Flush Queue and ordinary constrained members$",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-timed-save-mixed-flush-queue-ordinary-constrained-members-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded timed federation save admits mixed Flush Queue and ordinary constrained members$\" --output-on-failure",
-      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^timed-save-mixed-fqr-tar-members$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane timed-save-mixed-fqr-tar-members --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-timed-save-mixed-flush-queue-ordinary-constrained-members-integration --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The extracted behavior body matches the prior monolith exactly; it retains 71 assertions, HLA_EVOKED, all five direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, all eleven selected API surfaces, and development-profile status.",
-      "The 2025 aggregate, exact case, lane, trace and mapping checks pass; the Catch2 plan points to the focused 2025 unit and records 71 source-verified assertions.",
-      "The monolith and ceiling fell by 129 lines to 34,151; 98 later Catch2-plan pointers and 29 later roadmap-index source pointers were adjusted by -129. The cumulative reduction is 5,121 lines from the 39,272-line split-series baseline. No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
-    ],
-    "assertions": 71,
-    "callback_models": [
-      "HLA_EVOKED"
-    ]
-  },
-  "active_handoff_note": "Verified progress: Extracted the 2025 four-member mixed FQR/TAR timed-save case into its own focused unit, retaining 71 source-verified assertions and HLA_EVOKED. Preserved all five direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, eleven API surfaces, and development-profile status. The monolith and ceiling are 34,151 lines, down 5,121 from the 39,272-line split-series baseline. No 2010 source, target, fixture, or mapping changed. Next: inspect the three-member ordinary-boundary timed-save case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10992; preserve its five direct pairs and eleven APIs, deriving assertion and callback metadata from source.",
-  "active_handoff": {
-    "state": "implementation",
-    "family": "time-save-restore",
     "id": "extract-2025-timed-save-ordinary-boundary-before-flush-queue",
     "lane": "timed-save-mixed-fqr-tar-members",
-    "objective": "Inspect and extract the bounded IEEE 1516.1-2025 three-member timed-save case where an ordinary TAR reaches the inclusive save boundary before a later Flush Queue grant. Preserve the exact five direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, eleven selected API surfaces, and development-profile classification; derive assertion and callback-model metadata from source. Keep IEEE 1516.1-2010 sources, targets, fixtures, and mappings separate; do not claim conformance.",
+    "objective": "Extract the bounded IEEE 1516.1-2025 three-member ordinary-boundary timed-save case into a focused unit. Preserve its 49 assertions, HLA_EVOKED callback model, exact five direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, eleven selected API surfaces, and development-profile classification. Keep all IEEE 1516.1-2010 sources, targets, fixtures, and mappings separate; do not claim conformance.",
     "plan_id": "umbra-cpp-timed-save-ordinary-boundary-before-flush-queue-integration",
     "mapping_seed_plan_id": "umbra-cpp-timed-save-ordinary-boundary-before-flush-queue-integration",
-    "mapping_seed_policy": "Preserve the exact five direct requirement-section pairs and all eleven API surface IDs in the current plan row. Keep the test development-profile only, and keep IEEE 1516.1-2010 evidence separate.",
+    "mapping_seed_policy": "Preserve requirement-candidate-content-clauses-04-federation-management-page-065-l109-26 -> clause 4.19; page-066-l10-1 and page-066-l16-3 -> clause 4.19.6; page-067-l37-8 and page-067-l40-9 -> clause 4.20. Preserve all eleven selected API surfaces. Record 49 assertions and HLA_EVOKED. This remains development-profile test evidence, not conformance.",
     "api_surfaces": [
       "api.2025.cpp.rtiambassador.requestfederationsave.00166fe13269",
       "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
@@ -104,8 +57,8 @@
       "api.2025.cpp.federateambassador.federationsaved.5c6a41e2de0c"
     ],
     "test_case": "Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10992",
+    "source_target": "cpp/tests/ieee1516_2025_timed_save_ordinary_boundary_before_flush_queue_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_timed_save_ordinary_boundary_before_flush_queue_catch2.cpp:4",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded timed federation save can begin at an ordinary boundary before Flush Queue$",
     "commands": {
@@ -118,8 +71,54 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Extract only this three-member 2025 ordinary-boundary case, preserving its callback ordering, exact five direct requirement-section pairs, all eleven API surfaces, and development-profile classification; derive assertions and callback model from the actual source.",
-      "Build the 2025 aggregate and run the exact case, focused lane, trace, and mapping checks; update only 2025 CMake/test-plan/source-size references for this slice.",
+      "The extracted test body matches the prior monolith exactly and retains 49 Catch2 assertions, HLA_EVOKED, the same callback ordering, all five direct requirement-section pairs, all eleven API surfaces, and development-profile status.",
+      "The 2025 aggregate build, exact test, shared timed-save lane (2/2), trace, mapping, JSON, and size-policy checks pass; the plan points to the focused 2025 file.",
+      "The monolith and ceiling fell by 99 lines to 34,052; 97 later Catch2-plan pointers and 29 later roadmap source pointers were rebased by -99. The cumulative reduction is 5,220 lines from the 39,272-line split-series baseline. No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
+    ],
+    "assertions": 49,
+    "callback_models": [
+      "HLA_EVOKED"
+    ]
+  },
+  "active_handoff_note": "Verified progress: Extracted the 2025 three-member ordinary-boundary timed-save case into its own focused unit, retaining 49 assertions and HLA_EVOKED. Preserved its five direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, eleven API surfaces, and development-profile status. The monolith and ceiling are 34,052 lines, down 5,220 from the 39,272-line split-series baseline. No 2010 source, target, fixture, or mapping changed. Next: extract the resigned-FQR ordinary-admission case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10992, preserving six direct mappings across clauses 4.12, 4.19, 4.19.6, and 4.20 and ten API surfaces; add its focused lane/tag.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "time-save-restore",
+    "id": "extract-2025-timed-save-resigned-fqr-ordinary-admission",
+    "lane": "timed-save-resigned-fqr-ordinary-admission",
+    "objective": "Inspect and extract the bounded IEEE 1516.1-2025 three-member timed-save case where a pending Flush Queue member resigns before the remaining ordinary TAR reaches the save boundary. Preserve six direct requirement-section pairs across clauses 4.12, 4.19, 4.19.6, and 4.20, ten API surfaces, and development-profile classification; derive assertions and callback-model metadata from source. Add a focused lane/tag and exact plan row. Keep IEEE 1516.1-2010 sources, targets, fixtures, and mappings separate; do not claim conformance.",
+    "plan_id": "umbra-cpp-timed-save-resigned-fqr-ordinary-admission-integration",
+    "mapping_seed_plan_id": "umbra-cpp-timed-save-resigned-fqr-ordinary-admission-integration",
+    "mapping_seed_policy": "Preserve page-058-l112-33 -> clause 4.12; page-065-l109-26 -> clause 4.19; page-066-l10-1 and page-066-l16-3 -> clause 4.19.6; page-067-l37-8 and page-067-l40-9 -> clause 4.20. Preserve all ten selected API surface IDs and the development-profile classification; add the focused lane/tag to the test and plan row without changing the standard mappings. Keep 2010 evidence separate.",
+    "api_surfaces": [
+      "api.2025.cpp.rtiambassador.requestfederationsave.00166fe13269",
+      "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
+      "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+      "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+      "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+      "api.2025.cpp.rtiambassador.federatesavebegun.4d2693ce9551",
+      "api.2025.cpp.rtiambassador.federatesavecomplete.e775cf801fae",
+      "api.2025.cpp.federateambassador.initiatefederatesave.47c9e9fdb49f",
+      "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66",
+      "api.2025.cpp.federateambassador.federationsaved.5c6a41e2de0c"
+    ],
+    "test_case": "Embedded timed federation save drops a resigned FQR before ordinary admission",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10992",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ timed\\ federation\\ save\\ drops\\ a\\ resigned\\ FQR\\ before\\ ordinary\\ admission$",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-timed-save-resigned-fqr-ordinary-admission-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ timed\\ federation\\ save\\ drops\\ a\\ resigned\\ FQR\\ before\\ ordinary\\ admission$\" --output-on-failure",
+      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^timed-save-resigned-fqr-ordinary-admission$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane timed-save-resigned-fqr-ordinary-admission --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-timed-save-resigned-fqr-ordinary-admission-integration --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Extract only this bounded 2025 resignation/admission case. Preserve its six exact direct requirement-section pairs, ten APIs, unchanged behavior, and development-profile status; derive assertion and callback metadata from the source and actual test report.",
+      "Add a focused lane/tag and plan row; build the 2025 aggregate and run the exact case, focused lane, trace, and mapping checks.",
       "Keep IEEE 1516.1-2010 sources, targets, fixtures, and mappings untouched; do not claim conformance."
     ]
   },
@@ -315,7 +314,7 @@
       "owner": "object-ddm-ownership",
       "plan_id": "umbra-cpp-service-report-directed-invocation-ordering-interaction",
       "test_case": "Embedded service reporting delivers directed invocation reports before directed callbacks",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25152",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25053",
       "primary_lane": "directed-send-interaction-service-report-interaction",
       "focus_lane": "directed-send-interaction-service-report-interaction",
       "assertions": 140,
@@ -5410,7 +5409,7 @@
         "federate.callback.receive-interaction",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:20409",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:20310",
       "primary_lane": "service-report-failed-support-lookup-interaction",
       "focus_lane": "service-report-failed-support-lookup-interaction",
       "assertions": 55,
@@ -5443,7 +5442,7 @@
         "federate.callback.receive-interaction",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21858",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21759",
       "primary_lane": "service-report-order-transportation-lookup-failure-matrix-interaction",
       "focus_lane": "service-report-order-transportation-lookup-failure-matrix-interaction",
       "assertions": 119,
@@ -6962,7 +6961,7 @@
         "federate.callback.remove-object-instance",
         "federate.callback.request-attribute-ownership-assumption"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11266",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11167",
       "primary_lane": "connection-lost-automatic-cancel-delete-divest-immediate",
       "focus_lane": "connection-lost-automatic-cancel-delete-divest-immediate",
       "assertions": 45,
@@ -7825,7 +7824,7 @@
         "federate.callback.federation-restored",
         "federate.callback.federation-synchronized"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15637",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15538",
       "primary_lane": "evoked-synchronization-save-restore",
       "focus_lane": "evoked-synchronization-save-restore",
       "assertions": 39,
@@ -11209,7 +11208,7 @@
         "fom",
         "fom-module-management"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27213",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27114",
       "assertions": 164,
       "callback_models": [
         "HLA_EVOKED",
@@ -11426,7 +11425,7 @@
         "rti.service.update-attribute-values",
         "rti.service.retract"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:78994",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:78895",
       "assertions": 69,
       "callback_models": [
         "HLA_EVOKED"
@@ -11776,7 +11775,7 @@
         "service-reporting",
         "service-report-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:37697",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:37598",
       "assertions": 115,
       "callback_models": [
         "HLA_EVOKED",
@@ -17280,7 +17279,7 @@
         "federate.callback.time-advance-grant",
         "federate.callback.federation-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:12875",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:12776",
       "assertions": 38,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
@@ -17316,7 +17315,7 @@
         "federate.callback.federation-not-saved",
         "federate.callback.federation-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15297",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15198",
       "assertions": 18,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
@@ -17351,7 +17350,7 @@
         "federate.callback.request-federation-restore-failed",
         "federate.callback.federation-not-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15433",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15334",
       "assertions": 29,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
@@ -17470,7 +17469,7 @@
         "rti.service.delete-object-instance",
         "rti.service.delete-region"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16666",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16567",
       "assertions": 17,
       "standard_sections": [
         "hla-1516.1-2025:clause-4",
@@ -17506,7 +17505,7 @@
         "rti.service.delete-region",
         "federate.callback.remove-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16732",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16633",
       "assertions": 27,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.1.1",
@@ -17546,7 +17545,7 @@
         "rti.service.register-object-instance-with-regions",
         "federate.callback.discover-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17366",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17267",
       "assertions": 33,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.1.1",
@@ -17590,7 +17589,7 @@
         "rti.service.unassociate-regions-for-updates",
         "federate.callback.discover-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17474",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17375",
       "assertions": 42,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.1.1",
@@ -17737,7 +17736,7 @@
         "service-report-file",
         "fom-module-management"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:23907",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:23808",
       "assertions": 12,
       "callback_models": [
         "HLA_EVOKED"
@@ -17774,7 +17773,7 @@
         "rti.service.request-attribute-value-update",
         "federate.callback.reflect-attribute-values"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:23966",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:23867",
       "assertions": 46,
       "callback_models": [
         "HLA_IMMEDIATE"
@@ -17831,7 +17830,7 @@
         "federate.callback.reflect-attribute-values",
         "federate.callback.remove-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:24418",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:24319",
       "assertions": 124,
       "callback_models": [
         "HLA_EVOKED",
@@ -18905,7 +18904,7 @@
         "federate.callback.time-regulation-enabled",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33053",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:32954",
       "assertions": 31,
       "callback_models": [
         "HLA_EVOKED"
@@ -18945,7 +18944,7 @@
         "federate.callback.time-regulation-enabled",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33576",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33477",
       "assertions": 21,
       "callback_models": [
         "HLA_EVOKED"
@@ -19026,7 +19025,7 @@
         "rti.service.evoke-callback",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33651",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33552",
       "assertions": 27,
       "callback_models": [
         "HLA_EVOKED"
@@ -19068,7 +19067,7 @@
         "rti.service.evoke-callback",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33697",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33598",
       "assertions": 24,
       "callback_models": [
         "HLA_EVOKED"
@@ -21332,7 +21331,7 @@
         "federate.callback.multiple-object-instance-name-reservation-succeeded",
         "federate.callback.multiple-object-instance-name-reservation-failed"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33787",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33688",
       "assertions": 68,
       "callback_models": [
         "HLA_EVOKED"
@@ -21513,7 +21512,7 @@
         "rti.service.get-object-class-name",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15850",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15751",
       "assertions": 25,
       "callback_models": [
         "HLA_EVOKED"
@@ -21539,7 +21538,7 @@
         "rti.service.get-interaction-class-name",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16005",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15906",
       "assertions": 25,
       "callback_models": [
         "HLA_EVOKED"
@@ -21565,7 +21564,7 @@
         "rti.service.get-attribute-name",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15917",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15818",
       "assertions": 30,
       "callback_models": [
         "HLA_EVOKED"
@@ -21591,7 +21590,7 @@
         "rti.service.get-parameter-name",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16080",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15981",
       "assertions": 28,
       "callback_models": [
         "HLA_EVOKED"
@@ -21620,7 +21619,7 @@
         "rti.service.get-dimension-upper-bound",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16167",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16068",
       "assertions": 41,
       "callback_models": [
         "HLA_EVOKED"
@@ -25615,7 +25614,7 @@
         "rti.service.destroy-federation-execution",
         "rti.service.disconnect"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25458",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25359",
       "primary_lane": "service-report-file-multifederate",
       "focus_lane": "service-report-file-multifederate",
       "assertions": 18,
