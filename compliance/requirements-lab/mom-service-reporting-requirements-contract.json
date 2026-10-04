@@ -25,7 +25,7 @@
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted Time Advance Request before its grant",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted Time Advance Request Available before its grant",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request boundary",
-        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request Available boundary",
+        "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request Available boundary",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Flush Queue Request boundary",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Retract designator",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Change Interaction Order Type arguments",
@@ -74,7 +74,7 @@
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted Time Advance Request before its grant",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted Time Advance Request Available before its grant",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request boundary",
-        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request Available boundary",
+        "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request Available boundary",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Flush Queue Request boundary",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Retract designator",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Change Interaction Order Type arguments",
@@ -149,7 +149,7 @@
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted Time Advance Request before its grant",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted Time Advance Request Available before its grant",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request boundary",
-        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request Available boundary",
+        "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request Available boundary",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Flush Queue Request boundary",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Retract designator",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Change Interaction Order Type arguments",
@@ -1241,7 +1241,7 @@
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted Time Advance Request before its grant",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted Time Advance Request Available before its grant",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request boundary",
-        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request Available boundary",
+        "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request Available boundary",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Flush Queue Request boundary",
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use timestamped Remove Object Instance descriptor form",
         "cpp/tests/timestamped_remove_object_instance_service_report_catch2.cpp::Embedded service reporting records timestamped Remove Object Instance before immediate and TSO callbacks",
@@ -1628,7 +1628,7 @@
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted Time Advance Request before its grant",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted Time Advance Request Available before its grant",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request boundary",
-        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request Available boundary"
+        "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp::Embedded service reporting preserves the supplied Next Message Request Available boundary"
       ]
     },
     {

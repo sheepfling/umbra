@@ -36,44 +36,6 @@
   },
   "last_completed_handoff": {
     "state": "implemented-in-noninstallable-development-profile",
-    "family": "time-save-restore",
-    "id": "extract-2025-time-regulation-service-report-file",
-    "lane": "service-report-time-regulation-services",
-    "objective": "Extract the mapped IEEE 1516.1-2025 callback-gated Enable Time Regulation/Disable Time Regulation file-report case from the service-report test suite into a focused translation unit. Preserve its 17 assertions, one direct requirement-to-2025-clause pair, four API surfaces, HLA_EVOKED callback observation, development-profile status, and existing CTest labels. Keep IEEE 1516.1-2010 sources and mappings untouched.",
-    "plan_id": "umbra-cpp-service-report-time-regulation-services",
-    "mapping_seed_plan_id": "umbra-cpp-service-report-time-regulation-services",
-    "mapping_seed_policy": "Preserve the direct mapping requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35 -> hla-1516.1-2025:clause-11.5.1, all four API surfaces (Enable/Disable Time Regulation, Evoke Callback, Time Regulation Enabled), HLA_EVOKED behavior, development-profile status, and existing labels. Do not broaden mappings or make a conformance claim.",
-    "test_case": "Embedded service reporting records callback-gated time-regulation services",
-    "source_target": "cpp/tests/ieee1516_2025_time_regulation_service_report_file_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_time_regulation_service_report_file_catch2.cpp:11",
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records callback-gated time-regulation services$",
-    "ctest_label": "service-report-time-regulation-services",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-service-report-time-regulation-services --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records callback-gated time-regulation services$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane service-report-time-regulation-services --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-service-report-time-regulation-services --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "Moved the callback-gated Enable Time Regulation/Disable Time Regulation report test into a focused 2025 translation unit and reused ReportingFederateAmbassador plus the shared RTI, temporary-directory, and report-file helpers. All 17 assertions, the direct requirement-clause pair, four API surfaces, callback observation, and tags are preserved.",
-      "The 2025 aggregate linked; the extracted case and four neighboring service-report regressions passed 5/5. MOM service-reporting and both time-role traceability gates passed 3/3, and the current and next lane checks each found one mapped case with a valid source location. All shifted source pointers were updated.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
-    ],
-    "requirements": 1,
-    "standard_sections": 1,
-    "api_surface_count": 4,
-    "direct_pairs": 1,
-    "assertions": 17,
-    "callback_models": [
-      "HLA_EVOKED"
-    ]
-  },
-  "active_handoff_note": "Continue the 2025 service-report split by extracting the mapped Next Message Request Available boundary case at cpp/tests/ieee1516_2025_service_report_catch2.cpp:801. Preserve its 37 assertions, two direct mappings (§8.11 and §11.5.1), seven API surfaces, HLA_EVOKED behavior, and development-profile status; keep 2010 separate.",
-  "active_handoff": {
-    "state": "implementation",
     "family": "mom-after-base-services",
     "id": "extract-2025-next-message-request-available-boundary-service-report-file",
     "lane": "service-report-next-message-request-available-boundary",
@@ -82,8 +44,8 @@
     "mapping_seed_plan_id": "umbra-cpp-service-report-next-message-request-available-boundary",
     "mapping_seed_policy": "Preserve requirement-candidate-content-clauses-08-time-management-page-198-l177-52 -> hla-1516.1-2025:clause-8.11 and requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35 -> hla-1516.1-2025:clause-11.5.1; preserve all seven API surfaces (Next Message Request Available, Send Interaction, Time Advance Request, Query Logical Time, Evoke Callback, Receive Interaction, Time Advance Grant), HLA_EVOKED behavior, development-profile status, and existing labels. Do not broaden mappings or make a conformance claim.",
     "test_case": "Embedded service reporting preserves the supplied Next Message Request Available boundary",
-    "source_target": "cpp/tests/ieee1516_2025_service_report_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:801",
+    "source_target": "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp:11",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves the supplied Next Message Request Available boundary$",
     "ctest_label": "service-report-next-message-request-available-boundary",
@@ -96,15 +58,53 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Extract only the mapped Next Message Request Available boundary case, preserving all 37 assertions, both direct requirement-clause pairs, seven API surfaces, callback behavior, development-profile status, and CTest labels.",
-      "Reuse the shared service-report fixture support where the existing callback models permit; build the aggregate, run the exact CTest selector and lane check, and verify the trace and all shifted source pointers.",
-      "Do not change IEEE 1516.1-2010 source, targets, fixtures, or mappings; make no validation or conformance claim."
+      "Moved the 37-assertion Next Message Request Available boundary test into a focused 2025 translation unit and reused ReportingFederateAmbassador plus the shared RTI, temporary-directory, and report-file helpers. Both direct requirement-clause pairs, seven API surfaces, callback observations, and tags are preserved.",
+      "The 2025 aggregate linked; seven focused behavior/regression cases passed 7/7. The MOM service-reporting and both Next Message traceability gates passed 3/3, and both current/next lane checks found a mapped case with a valid source location. All shifted source pointers were updated.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
     ],
     "requirements": 2,
     "standard_sections": 2,
     "api_surface_count": 7,
     "direct_pairs": 2,
     "assertions": 37,
+    "callback_models": [
+      "HLA_EVOKED"
+    ]
+  },
+  "active_handoff_note": "Extract the mapped Request Interaction Transportation Type Change service-report case from cpp/tests/ieee1516_2025_service_report_catch2.cpp:970 into a focused 2025 translation unit. Preserve 136 assertions, the two direct mappings (§6.31.3 and §11.5.1), six API surfaces, HLA_EVOKED behavior, and development-profile status; keep 2010 separate.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "mom-after-base-services",
+    "id": "extract-2025-request-interaction-transportation-type-change-service-report-file",
+    "lane": "service-report-request-interaction-transportation-type-change",
+    "objective": "Extract the mapped IEEE 1516.1-2025 Request Interaction Transportation Type Change service-report case from the broad service-report test file into a focused translation unit. Preserve its 136 assertions, two direct requirement-to-2025-clause pairs, six API surfaces, HLA_EVOKED behavior, development-profile status, and existing CTest labels. Keep IEEE 1516.1-2010 sources and mappings untouched.",
+    "plan_id": "umbra-cpp-service-report-request-interaction-transportation-type-change",
+    "mapping_seed_plan_id": "umbra-cpp-service-report-request-interaction-transportation-type-change",
+    "mapping_seed_policy": "Preserve requirement-candidate-content-clauses-06-object-management-page-145-l122-34 -> hla-1516.1-2025:clause-6.31.3 and requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35 -> hla-1516.1-2025:clause-11.5.1; preserve all six API surfaces (Request Interaction Transportation Type Change, Publish Interaction Class, Evoke Callback, Set Service Reporting Switch, Set Send Service Reports To File Switch, Confirm Interaction Transportation Type Change), HLA_EVOKED behavior, development-profile status, and existing labels. Do not broaden mappings or make a conformance claim.",
+    "test_case": "Embedded service reporting preserves Request Interaction Transportation Type Change arguments",
+    "source_target": "cpp/tests/ieee1516_2025_service_report_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:970",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Request Interaction Transportation Type Change arguments$",
+    "ctest_label": "service-report-request-interaction-transportation-type-change",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-service-report-request-interaction-transportation-type-change --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Request Interaction Transportation Type Change arguments$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane service-report-request-interaction-transportation-type-change --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-service-report-request-interaction-transportation-type-change --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Extract only the mapped Request Interaction Transportation Type Change arguments case, preserving all 136 assertions, both direct requirement-clause pairs, six API surfaces, callback behavior, development-profile status, and CTest labels.",
+      "Reuse the shared service-report fixture support where the existing callback models permit; build the aggregate, run the exact CTest selector and lane check, and verify the trace and shifted source pointers.",
+      "Do not change IEEE 1516.1-2010 source, targets, fixtures, or mappings; make no validation or conformance claim."
+    ],
+    "requirements": 2,
+    "standard_sections": 2,
+    "api_surface_count": 6,
+    "direct_pairs": 2,
+    "assertions": 136,
     "callback_models": [
       "HLA_EVOKED"
     ]
@@ -11643,7 +11643,7 @@
         "rti.service.set-service-reporting-switch",
         "rti.service.set-send-service-reports-to-file-switch"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:2190",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:2088",
       "assertions": 34,
       "callback_models": [
         "HLA_EVOKED"
@@ -18098,7 +18098,7 @@
         "rti.service.change-interaction-order-type",
         "rti.service.change-default-attribute-transportation-type"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:972",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:870",
       "assertions": 66,
       "callback_models": [
         "HLA_EVOKED",

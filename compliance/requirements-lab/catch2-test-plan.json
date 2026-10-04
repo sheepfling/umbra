@@ -297,7 +297,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting preserves the supplied Next Message Request Available boundary",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:801",
+      "source_location": "cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp:11",
       "primary_lane": "service-report-next-message-request-available-boundary",
       "focus_lane": "service-report-next-message-request-available-boundary",
       "assertions": 37,
@@ -332,7 +332,7 @@
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves the supplied Next Message Request Available boundary$",
       "ctest_label": "service-report-next-message-request-available-boundary",
-      "next_action": "Keep the requested Next Message Request Available boundary distinct from the later effective grant, and keep service-report payload mapping separate from callback observations. Continue with the next exact source-only C++ handoff; do not promote the development-profile result as conformance."
+      "next_action": "The extracted 37-assertion case preserves the supplied Next Message Request Available boundary of 10 separately from the later grant at 7. Keep its two mappings (§8.11 behavior and §11.5.1 service-report payload) distinct, with no development-profile conformance claim. Continue with the mapped Request Interaction Transportation Type Change extraction at cpp/tests/ieee1516_2025_service_report_catch2.cpp:970."
     },
     {
       "id": "umbra-cpp-service-report-request-interaction-transportation-type-change",
@@ -349,7 +349,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting preserves Request Interaction Transportation Type Change arguments",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1072",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:970",
       "primary_lane": "service-report-request-interaction-transportation-type-change",
       "focus_lane": "service-report-request-interaction-transportation-type-change",
       "assertions": 136,
@@ -394,7 +394,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting preserves Change Default Attribute Transportation Type arguments",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1278",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1176",
       "primary_lane": "service-report-change-default-attribute-transportation-type",
       "focus_lane": "service-report-change-default-attribute-transportation-type",
       "assertions": 151,
@@ -15419,7 +15419,7 @@
         "rti.service.set-send-service-reports-to-file-switch"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:2190",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:2088",
       "assertions": 34,
       "callback_models": [
         "HLA_EVOKED"
@@ -63110,7 +63110,7 @@
         "rti.service.change-default-attribute-transportation-type"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:972",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:870",
       "assertions": 66,
       "callback_models": [
         "HLA_EVOKED",

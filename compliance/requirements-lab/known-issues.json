@@ -573,6 +573,25 @@
       "recurrence_of": "RL-271",
       "verification": "Updated all 12 stale selector occurrences. The MOM service-reporting and both time-role traceability CTests pass 3/3; the extracted case and four neighboring service-report regressions pass 5/5; both relevant lane mapping checks pass with no missing source location. Requirement and clause mappings, the pinned Lab export, and IEEE 1516.1-2010 files are unchanged.",
       "detected": "2026-10-04"
+    },
+    {
+      "id": "RL-273",
+      "status": "resolved-in-umbra",
+      "kind": "traceability-contract-selector-drift",
+      "title": "Next Message service-report contracts retain selectors for extracted cases",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/next-message-request-available-requirements-contract.json",
+        "lines": "17 stale selector occurrences across three contracts and five extracted test titles"
+      },
+      "symptom": "The focused Next Message Request Available requirements and API traceability CTests failed because selectors for extracted 2025 tests still named `cpp/tests/ieee1516_2025_federation_management_catch2.cpp` or `cpp/tests/ieee1516_2025_service_report_catch2.cpp`.",
+      "impact": "Stale source-qualified selectors caused traceability contract drift for otherwise-present 2025 evidence, preventing the focused regression gates from passing.",
+      "workaround": "Update only the exact source paths to the translation units containing the corresponding TEST_CASE declarations. Preserve requirement IDs, canonical 2025 clauses, API-surface IDs, and pinned Requirements Lab inputs; do not resynchronize the Lab export.",
+      "reproduction": "ctest --test-dir .build-mingw-rti -C Debug -R \"mom_service_reporting_requirements_traceability|next_message_request_available_requirements_traceability|next_message_request_available_api_traceability\" --output-on-failure",
+      "recurrence_of": "RL-272",
+      "verification": "Corrected 17 stale selector occurrences across the MOM service-reporting and Next Message requirements/API contracts, covering five test titles. The three traceability CTests pass 3/3, seven focused behavior regressions pass 7/7, and both Next Message/service-report lane mapping checks pass with valid source locations. No requirement mapping, canonical clause mapping, pinned Lab export, or IEEE 1516.1-2010 source or mapping changed.",
+      "detected": "2026-10-04"
     }
   ]
 }
