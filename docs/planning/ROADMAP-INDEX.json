@@ -35,55 +35,20 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-untimed-save-time-constrained-admission",
-    "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-untimed-save-time-constrained-admission-integration",
-    "family": "time-save-restore",
-    "lane": "untimed-save-time-constrained-admission",
-    "objective": "Extract the bounded IEEE 1516.1-2025 three-member untimed-save constrained-admission test into a focused unit. Preserve its 51 assertions, HLA_EVOKED callback model, exact five direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, nine selected API surfaces, and development-profile classification. Keep all IEEE 1516.1-2010 sources, targets, fixtures, and mappings separate; do not claim conformance.",
-    "test_case": "Embedded untimed federation save admits constrained members at time-advance boundaries",
-    "source_target": "cpp/tests/ieee1516_2025_untimed_save_time_constrained_admission_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_untimed_save_time_constrained_admission_catch2.cpp:4",
-    "mapping_seed_policy": "Preserve requirement-candidate-content-clauses-04-federation-management-page-065-l96-24 -> clause 4.19; page-066-l10-1 and page-066-l16-3 -> clause 4.19.6; page-067-l37-8 and page-067-l40-9 -> clause 4.20. Preserve all nine selected API surfaces. Record 51 assertions and HLA_EVOKED. This remains development-profile test evidence, not conformance.",
-    "api_surfaces": [
-      "api.2025.cpp.rtiambassador.requestfederationsave.32986a607094",
-      "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
-      "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
-      "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
-      "api.2025.cpp.rtiambassador.federatesavebegun.4d2693ce9551",
-      "api.2025.cpp.rtiambassador.federatesavecomplete.e775cf801fae",
-      "api.2025.cpp.federateambassador.initiatefederatesave.47c9e9fdb49f",
-      "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66",
-      "api.2025.cpp.federateambassador.federationsaved.5c6a41e2de0c"
-    ],
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded untimed federation save admits constrained members at time-advance boundaries$",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-untimed-save-time-constrained-admission-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded untimed federation save admits constrained members at time-advance boundaries$\" --output-on-failure",
-      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^untimed-save-time-constrained-admission$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane untimed-save-time-constrained-admission --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-untimed-save-time-constrained-admission-integration --summary --compact",
-      "contract_traceability_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.(save_control_requirements|save_control_api)_traceability$\" --output-on-failure",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The extracted behavior body matches the prior monolith apart from the focused lane tag; it retains 51 assertions, HLA_EVOKED, all five direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, all nine selected API surfaces, and development-profile status.",
-      "The 2025 aggregate target, exact case, focused lane, save-control traceability contracts, trace/mapping checks, JSON, and source-size policy pass; the nine selectors for this case now point to its focused 2025 unit.",
-      "The monolith and ceiling fell by 103 lines to 35,277; 103 later Catch2-plan source locations and 66 roadmap-index source locations were rebased, for a cumulative 3,995-line reduction from the 39,272-line split-series baseline. No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
-    ]
-  },
-  "active_handoff_note": "Verified progress: Extracted the three-member 2025 untimed-save constrained-admission case into its own focused unit, retaining 51 assertions and HLA_EVOKED. Preserved all five direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, nine API surfaces, and development-profile status. Rebased 103 later test-plan and 66 roadmap-index source pointers; nine contract selectors now point to the extracted unit. The monolith and ceiling are 35,277 lines, down 3,995 from the 39,272-line split-series baseline. No 2010 source, target, fixture, or mapping changed. Next: inspect the separate timed-save three-member admission case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10992; preserve its five direct pairs and nine APIs, deriving assertion and callback metadata from source.",
-  "active_handoff": {
-    "state": "implementation",
-    "family": "time-save-restore",
     "id": "extract-2025-timed-save-time-constrained-admission",
-    "lane": "timed-save-time-constrained-admission",
-    "objective": "Inspect the bounded IEEE 1516.1-2025 timed-save three-member admission case and assess a behavior-preserving thematic extraction. Preserve its exact five direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, nine selected API surfaces, and development-profile classification; derive assertion and callback-model metadata from source rather than assuming it. Keep IEEE 1516.1-2010 sources, targets, fixtures, and mappings separate; do not claim conformance.",
+    "state": "implemented-in-noninstallable-development-profile",
     "plan_id": "umbra-cpp-timed-save-time-constrained-admission-integration",
-    "mapping_seed_plan_id": "umbra-cpp-timed-save-time-constrained-admission-integration",
-    "mapping_seed_policy": "Preserve the exact five direct requirement-section pairs and all nine API surface IDs in the current plan row. Keep the test development-profile only, and keep IEEE 1516.1-2010 evidence separate.",
+    "family": "time-save-restore",
+    "lane": "timed-save-time-constrained-admission",
+    "objective": "Extract the bounded IEEE 1516.1-2025 timed-save three-member constrained-admission test into a focused unit. Preserve its 53 assertions, HLA_EVOKED callback model, exact five direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, nine selected API surfaces, and development-profile classification. Keep all IEEE 1516.1-2010 sources, targets, fixtures, and mappings separate; do not claim conformance.",
+    "test_case": "Embedded timed federation save admits every constrained member before non-constrained members",
+    "source_target": "cpp/tests/ieee1516_2025_timed_save_time_constrained_admission_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_timed_save_time_constrained_admission_catch2.cpp:4",
+    "assertions": 53,
+    "callback_models": [
+      "HLA_EVOKED"
+    ],
+    "mapping_seed_policy": "Preserve requirement-candidate-content-clauses-04-federation-management-page-065-l109-26 -> clause 4.19; page-066-l10-1 and page-066-l16-3 -> clause 4.19.6; page-067-l37-8 and page-067-l40-9 -> clause 4.20. Preserve all nine selected API surfaces. Record 53 assertions and HLA_EVOKED. This remains development-profile test evidence, not conformance.",
     "api_surfaces": [
       "api.2025.cpp.rtiambassador.requestfederationsave.00166fe13269",
       "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
@@ -95,9 +60,6 @@
       "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66",
       "api.2025.cpp.federateambassador.federationsaved.5c6a41e2de0c"
     ],
-    "test_case": "Embedded timed federation save admits every constrained member before non-constrained members",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10992",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded timed federation save admits every constrained member before non-constrained members$",
     "commands": {
@@ -110,8 +72,50 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Inspect the timed three-member admission test and derive its assertion/callback metadata from source before deciding whether it forms a coherent extraction boundary.",
-      "If extracted, retain the exact five selected requirement-section pairs, all nine APIs, development-profile status, and unchanged behavior; build the 2025 aggregate and run the exact case plus mapping/trace checks.",
+      "The extracted behavior body matches the prior monolith apart from the focused lane tag; it retains 53 assertions, HLA_EVOKED, all five direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, all nine selected API surfaces, and development-profile status.",
+      "The 2025 aggregate target, exact case, focused lane, trace/mapping checks, JSON, and source-size policy pass; the test plan points to the focused 2025 unit.",
+      "The monolith and ceiling fell by 110 lines to 35,167; 103 later Catch2-plan references and 66 roadmap-index references were adjusted using the established 108-body-line source-pointer offset, for a cumulative 4,105-line reduction from the 39,272-line split-series baseline. No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
+    ]
+  },
+  "active_handoff_note": "Verified progress: Extracted the three-member 2025 timed-save constrained-admission case into its own focused unit, retaining 53 assertions and HLA_EVOKED. Preserved all five direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, nine API surfaces, and development-profile status. The monolith and ceiling are 35,167 lines, down 4,105 from the 39,272-line split-series baseline. No 2010 source, target, fixture, or mapping changed. Next: inspect the separate timed-save available-advance boundary case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10992; preserve its four direct pairs and ten APIs, deriving assertion and callback metadata from source.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "time-save-restore",
+    "id": "extract-2025-timed-save-available-admission",
+    "lane": "timed-save-available-advance-boundary",
+    "objective": "Inspect the bounded IEEE 1516.1-2025 timed-save two-member TARA boundary case and assess a behavior-preserving thematic extraction. Preserve its exact four direct requirement-section pairs across clauses 4.19, 4.19.6, and 4.20, ten selected API surfaces, and development-profile classification; derive assertion and callback-model metadata from source rather than assuming it. Keep IEEE 1516.1-2010 sources, targets, fixtures, and mappings separate; do not claim conformance.",
+    "plan_id": "umbra-cpp-timed-save-available-admission-integration",
+    "mapping_seed_plan_id": "umbra-cpp-timed-save-available-admission-integration",
+    "mapping_seed_policy": "Preserve the exact four direct requirement-section pairs and all ten API surface IDs in the current plan row. Keep the test development-profile only, and keep IEEE 1516.1-2010 evidence separate.",
+    "api_surfaces": [
+      "api.2025.cpp.rtiambassador.requestfederationsave.00166fe13269",
+      "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
+      "api.2025.cpp.rtiambassador.enabletimeconstrained.7616af64f32d",
+      "api.2025.cpp.rtiambassador.timeadvancerequest.1bad7a98bd8a",
+      "api.2025.cpp.rtiambassador.timeadvancerequestavailable.44aebf48db58",
+      "api.2025.cpp.rtiambassador.federatesavebegun.4d2693ce9551",
+      "api.2025.cpp.rtiambassador.federatesavecomplete.e775cf801fae",
+      "api.2025.cpp.federateambassador.initiatefederatesave.47c9e9fdb49f",
+      "api.2025.cpp.federateambassador.timeadvancegrant.aaff0f0dbe66",
+      "api.2025.cpp.federateambassador.federationsaved.5c6a41e2de0c"
+    ],
+    "test_case": "Embedded timed federation save uses an exclusive available-advance boundary",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10992",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded timed federation save uses an exclusive available-advance boundary$",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-timed-save-available-admission-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded timed federation save uses an exclusive available-advance boundary$\" --output-on-failure",
+      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^timed-save-available-advance-boundary$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane timed-save-available-advance-boundary --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-timed-save-available-admission-integration --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Inspect the timed two-member TARA boundary case and derive its assertion/callback metadata from source before deciding whether it forms a coherent extraction boundary.",
+      "If extracted, retain the exact four selected requirement-section pairs, all ten APIs, development-profile status, and unchanged behavior; build the 2025 aggregate and run the exact case plus mapping/trace checks.",
       "Keep all IEEE 1516.1-2010 sources, targets, fixtures, and mappings untouched; do not claim conformance."
     ]
   },
@@ -307,7 +311,7 @@
       "owner": "object-ddm-ownership",
       "plan_id": "umbra-cpp-service-report-directed-invocation-ordering-interaction",
       "test_case": "Embedded service reporting delivers directed invocation reports before directed callbacks",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26268",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26160",
       "primary_lane": "directed-send-interaction-service-report-interaction",
       "focus_lane": "directed-send-interaction-service-report-interaction",
       "assertions": 140,
@@ -5402,7 +5406,7 @@
         "federate.callback.receive-interaction",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21525",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21417",
       "primary_lane": "service-report-failed-support-lookup-interaction",
       "focus_lane": "service-report-failed-support-lookup-interaction",
       "assertions": 55,
@@ -5435,7 +5439,7 @@
         "federate.callback.receive-interaction",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22974",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22866",
       "primary_lane": "service-report-order-transportation-lookup-failure-matrix-interaction",
       "focus_lane": "service-report-order-transportation-lookup-failure-matrix-interaction",
       "assertions": 119,
@@ -6954,7 +6958,7 @@
         "federate.callback.remove-object-instance",
         "federate.callback.request-attribute-ownership-assumption"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:12382",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:12274",
       "primary_lane": "connection-lost-automatic-cancel-delete-divest-immediate",
       "focus_lane": "connection-lost-automatic-cancel-delete-divest-immediate",
       "assertions": 45,
@@ -7817,7 +7821,7 @@
         "federate.callback.federation-restored",
         "federate.callback.federation-synchronized"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16753",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16645",
       "primary_lane": "evoked-synchronization-save-restore",
       "focus_lane": "evoked-synchronization-save-restore",
       "assertions": 39,
@@ -11201,7 +11205,7 @@
         "fom",
         "fom-module-management"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:28329",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:28221",
       "assertions": 164,
       "callback_models": [
         "HLA_EVOKED",
@@ -11418,7 +11422,7 @@
         "rti.service.update-attribute-values",
         "rti.service.retract"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:80110",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:80002",
       "assertions": 69,
       "callback_models": [
         "HLA_EVOKED"
@@ -11768,7 +11772,7 @@
         "service-reporting",
         "service-report-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38813",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:38705",
       "assertions": 115,
       "callback_models": [
         "HLA_EVOKED",
@@ -12810,7 +12814,7 @@
         "tso-attribute-update-state",
         "tso-regional-attribute-update-state"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11311",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:11203",
       "assertions": 100,
       "callback_models": [
         "HLA_EVOKED",
@@ -17272,7 +17276,7 @@
         "federate.callback.time-advance-grant",
         "federate.callback.federation-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:13991",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:13883",
       "assertions": 38,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
@@ -17308,7 +17312,7 @@
         "federate.callback.federation-not-saved",
         "federate.callback.federation-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16413",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16305",
       "assertions": 18,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
@@ -17343,7 +17347,7 @@
         "federate.callback.request-federation-restore-failed",
         "federate.callback.federation-not-restored"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16549",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16441",
       "assertions": 29,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
@@ -17462,7 +17466,7 @@
         "rti.service.delete-object-instance",
         "rti.service.delete-region"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17782",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17674",
       "assertions": 17,
       "standard_sections": [
         "hla-1516.1-2025:clause-4",
@@ -17498,7 +17502,7 @@
         "rti.service.delete-region",
         "federate.callback.remove-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17848",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17740",
       "assertions": 27,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.1.1",
@@ -17538,7 +17542,7 @@
         "rti.service.register-object-instance-with-regions",
         "federate.callback.discover-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:18482",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:18374",
       "assertions": 33,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.1.1",
@@ -17582,7 +17586,7 @@
         "rti.service.unassociate-regions-for-updates",
         "federate.callback.discover-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:18590",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:18482",
       "assertions": 42,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.1.1",
@@ -17729,7 +17733,7 @@
         "service-report-file",
         "fom-module-management"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25023",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:24915",
       "assertions": 12,
       "callback_models": [
         "HLA_EVOKED"
@@ -17766,7 +17770,7 @@
         "rti.service.request-attribute-value-update",
         "federate.callback.reflect-attribute-values"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25082",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:24974",
       "assertions": 46,
       "callback_models": [
         "HLA_IMMEDIATE"
@@ -17823,7 +17827,7 @@
         "federate.callback.reflect-attribute-values",
         "federate.callback.remove-object-instance"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25534",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25426",
       "assertions": 124,
       "callback_models": [
         "HLA_EVOKED",
@@ -18897,7 +18901,7 @@
         "federate.callback.time-regulation-enabled",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34169",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34061",
       "assertions": 31,
       "callback_models": [
         "HLA_EVOKED"
@@ -18937,7 +18941,7 @@
         "federate.callback.time-regulation-enabled",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34692",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34584",
       "assertions": 21,
       "callback_models": [
         "HLA_EVOKED"
@@ -19018,7 +19022,7 @@
         "rti.service.evoke-callback",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34767",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34659",
       "assertions": 27,
       "callback_models": [
         "HLA_EVOKED"
@@ -19060,7 +19064,7 @@
         "rti.service.evoke-callback",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34813",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34705",
       "assertions": 24,
       "callback_models": [
         "HLA_EVOKED"
@@ -21324,7 +21328,7 @@
         "federate.callback.multiple-object-instance-name-reservation-succeeded",
         "federate.callback.multiple-object-instance-name-reservation-failed"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34903",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:34795",
       "assertions": 68,
       "callback_models": [
         "HLA_EVOKED"
@@ -21505,7 +21509,7 @@
         "rti.service.get-object-class-name",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16966",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16858",
       "assertions": 25,
       "callback_models": [
         "HLA_EVOKED"
@@ -21531,7 +21535,7 @@
         "rti.service.get-interaction-class-name",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17121",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17013",
       "assertions": 25,
       "callback_models": [
         "HLA_EVOKED"
@@ -21557,7 +21561,7 @@
         "rti.service.get-attribute-name",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17033",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16925",
       "assertions": 30,
       "callback_models": [
         "HLA_EVOKED"
@@ -21583,7 +21587,7 @@
         "rti.service.get-parameter-name",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17196",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17088",
       "assertions": 28,
       "callback_models": [
         "HLA_EVOKED"
@@ -21612,7 +21616,7 @@
         "rti.service.get-dimension-upper-bound",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17283",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:17175",
       "assertions": 41,
       "callback_models": [
         "HLA_EVOKED"
@@ -25607,7 +25611,7 @@
         "rti.service.destroy-federation-execution",
         "rti.service.disconnect"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26574",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26466",
       "primary_lane": "service-report-file-multifederate",
       "focus_lane": "service-report-file-multifederate",
       "assertions": 18,
@@ -27142,8 +27146,8 @@
       "current_focus": "Focused time-management evidence now separates Time Advance Grant and Flush Queue Grant logical-time boundaries into independent C++ lanes. Both tests map the direct page-178 clause-8 requirement and enumerate exact API surfaces; use case/matrix for traceability, focus/check --lane for the focused gate, and dashboard for live global counts. These private development-profile regressions do not establish HLA_IMMEDIATE Flush Queue Grant behavior or conformance.",
       "next_work_id": "transport-and-conformance",
       "next_work_status": "in-progress",
-      "next_work_query": "The focused process-boundary C++ spine is green at 63 mapped/source-located cases and 2,497 indexed Catch2 assertions; the process TSO interaction-before-grant slice is 60 HLA_EVOKED assertions mapped to 15 Requirements-Lab anchors and nine canonical 2025 sections; query `process-tso-interaction-before-grant`. Query the exact completed public object-discovery endpoint slice with `python tools/query_rti_work.py trace \"RTIambassador delivers object discovery through a configured process endpoint\" --summary --compact`. The dimension/transportation reverse-lookup slice is now indexed with 16 assertions, six Requirements-Lab anchors, three canonical 2025 sections, and four official C++ API surfaces; the separate reverse-FOM error matrix adds 16 assertions with the same six anchors and three clauses; the connection configuration block, handle baselines, callback-route receive-order, immediate-callback reentrancy, callback-disable, evoked one-at-a-time, concurrent-serialization, disabled-backlog, Evoke Multiple FIFO, evoked-disabled-pending, callback-session-close, callback-session concurrent-invocation, callback-session active-close, callback instrumentation, transport instrumentation, and DimensionHandle seams are now explicitly indexed; the RPR full-family object-registration and custom-payload compatibility slices, the official FederateHandle SDK-consumability/encoding baselines, the private federate lifecycle state-machine slices, and the initial-grant/NMR/Available/Flush-Queue time-state boundaries are now indexed; the accepted time-role MOM vector is indexed with 99 assertions and 24 Lab anchors; the float64 timed-save provider-time scheduling vector is indexed with 38 assertions and 11 Lab anchors; the federation-save resignation-recovery vector is indexed with 18 assertions and 8 Lab anchors; the restore-failure vector is indexed with 29 assertions and 11 Lab anchors; the service-report save/restore MOM vector is indexed with 46 assertions and 18 requirement anchors; the regional-unpublish update-region lifetime vector is indexed with 17 assertions and 18 requirement anchors; the regional-receive-order deletion update-region lifetime vector is indexed with 17 assertions and 20 requirement anchors; the final-object-removal region-release vector is indexed with 27 assertions and 21 requirement anchors; the associated-region discovery vector is indexed with 42 assertions and 22 requirement anchors; the Join advisory-switch seed vector is indexed with 16 assertions and 13 requirement anchors; the Join-time explicit NoAction automatic-resign vector is indexed with 7 assertions and 9 requirement anchors; the order and transportation MOM service-classification vector is indexed with 66 assertions and 19 requirement anchors; the joined-federate MOM/FOM-module snapshot vector is indexed with 12 assertions and 6 requirement anchors; the joined-federate MOM report-file identity save/restore vector is indexed with 46 assertions and 18 requirement anchors; the joined-federate MOM regional discovery vector is indexed with 124 assertions and 17 requirement anchors; the restored-baseline regional provider-response vector is indexed with 44 assertions and 20 requirement anchors; the timestamped Delete Object Instance retraction slice is green with 49 HLA_EVOKED assertions at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1402` and 26 requirement anchors; its queue drain after Enable Time Regulation reaches deletion/retraction/removal ordering. Keep it bounded to development-profile evidence and use the exact trace before promotion. The mapped known-class-disabled attribute-relevance case at `cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp:320` is green with 35 HLA_EVOKED assertions, 18 Requirements-Lab anchors, 13 canonical 2025 sections, and 18 official C++ API surfaces; its source-derived known-class subscription consequence remains bounded. The paired static known-class-enabled case at `cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp:417` is also green with 30 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 13 canonical 2025 sections, and 17 official C++ API surfaces; its known-class suppression consequence remains a source-derived refinement. The mapped update-rate passive-regional-subscription case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33478` is green with 43 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 12 canonical 2025 sections, and 21 official C++ API surfaces; its passive-regional filtering consequence remains bounded. The mapped custom-transportation handle stability case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33450` is green with 21 HLA_EVOKED assertions, 12 Requirements-Lab anchors, 11 canonical 2025 sections, and 8 official C++ API surfaces; query its exact title or `transportation-handle-stability`. The mapped restored-baseline timestamped Update Attribute Values MOM interaction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1635` is green with 125 HLA_EVOKED/HLA_IMMEDIATE assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 13 official C++ API surfaces; query its exact title or `restored-baseline-copy`. The mapped restored-baseline regional Provide Attribute Value Update case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1794` is green with 251 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 21 official C++ API surfaces; query its exact title or `restored-baseline-copy`. The mapped three-dimensional regional object-attribute overlap case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36470` is green with 57 HLA_EVOKED assertions, 10 Requirements-Lab anchors, 10 canonical 2025 sections, and 24 official C++ API surfaces; query its exact title or `complete-overlap`. The m43 restored-baseline regional Request Attribute Value Update solicitation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2096` is green with 58 HLA_EVOKED assertions, 9 Requirements-Lab anchors, 7 canonical 2025 sections, and 20 official C++ API surfaces; its filtering and current-export traceability gap remain bounded. The m44 restored-baseline timestamped regional Update Attribute Values MOM interaction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2558` is green with 138 HLA_EVOKED/HLA_IMMEDIATE assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 30 official C++ API surfaces; its regional setup and RL-152 conditional-failure boundary remain bounded. The m45 restored-baseline timestamped Update Attribute Values file-failure case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2960` is green with 218 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 15 official C++ API surfaces; its filesystem-sink conditional-failure boundary remains bounded by RL-152. The m49 pre-delivery acquisition-cancellation race at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39610` is green with 33 HLA_EVOKED assertions; its stale internal owner work items are drained while the public confirmation and release callback streams remain empty. The m50 disabled Auto Provide discovery-only baseline at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:41003` is green with 21 HLA_EVOKED assertions and proves discovery remains delivered while provider callbacks stay suppressed. The m51 Federation Synchronized-after-resignation service-report case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:43938` is green with 23 HLA_EVOKED assertions and verifies the completion record before the remaining federate callback. The m52 terminal TSO-designator case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44602` is green with 40 HLA_EVOKED assertions and verifies five returned designators terminalize across TAR, TARA, NMR, NMRA, and FQR boundaries without recipient fanout. The m53 timestamped Update Attribute Values queue/retraction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45304` is green with 68 HLA_EVOKED assertions and verifies an internal MOM-queue drain before Time Regulation Enabled, pre-grant retraction at timestamp 6, and reliable/best-effort timestamp-7 reflections before the matching grant. The m54 mixed update-rate subscription case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45604` is green with 37 HLA_EVOKED assertions and is mapped to 8 Requirements-Lab anchors and 2 canonical 2025 sections. The m55 federation-teardown update-rate-history case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45700` is green with 46 HLA_EVOKED assertions and is mapped to 9 Requirements-Lab anchors and 5 canonical 2025 sections. The m56 regional best-effort attribute-rate case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45838` is green with 47 HLA_EVOKED assertions and is mapped to 19 Requirements-Lab anchors and 11 canonical 2025 sections. The m57 regional best-effort timestamped-rate case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45982` is green with 57 HLA_EVOKED assertions and maps to 30 Requirements-Lab anchors and 19 canonical 2025 sections; it verifies exact regional overlap, timestamped Low-rate admission at time 2, and suppression at time 3 through the matching grant. The completed m58 directed-interaction Delay Subscription Evaluation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47277` is green with 120 assertions, three Requirements-Lab anchors, and one canonical Section 8.1.10 mapping. The m59 timestamped directed-interaction Delay Subscription Evaluation case is green in its focused C++ target at cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp:129 with 166 assertions under HLA_EVOKED and HLA_IMMEDIATE; query its m59 mapping and keep it bounded to Section 8.1.10 development-profile evidence. The m60 timestamped directed-interaction TSO/retraction case is green in its focused C++ target at cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp:150 with 56 HLA_EVOKED assertions; query its m60 mapping and keep TSO/retraction evidence bounded to the mapped 2025 clauses. The completed m61 immediate timestamped directed-interaction source-resignation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48788` is green with 45 HLA_EVOKED assertions. The m62 #if 0 malformed transport-loss declaration at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49826` is indexed as a disabled source artifact with no executable assertions or normative evidence. The completed m63 evoked regional-interaction source-region snapshot case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:56048` is green with 42 HLA_EVOKED assertions; the next source-backed action is the unplanned timestamped regional interaction TSO/retraction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61700`, emitted by `next --pointer`; the source-only queue is ordered by numeric declaration line. Keep package evidence, protected review, interoperability, and conformance promotion separate without rescanning the unchanged Requirements Lab.",
-      "next_task": "Keep the thirteen installed-profile process smoke lanes and exact CTest/JUnit/Requirements-Lab mappings protected; the public object-discovery endpoint slice is green with 44 assertions under both callback models and is indexed to its three 2025 requirements and clauses 5.1.2, 6.8.4, and 6.9.3. The connection support-types baseline remains indexed as SDK-consumability evidence with no standalone Lab surface, the embedded service-report directory cases record their Connect mapping and negative-path behavior, the AttributeHandle baselines are indexed, and the callback-route receive-order, immediate-callback reentrancy, callback-disable, evoked one-at-a-time, concurrent-serialization, disabled-backlog, Evoke Multiple FIFO, evoked-disabled-pending, callback-session-close, callback-session concurrent-invocation, callback-session active-close, instrumentation, transport, and DimensionHandle seams record private/SDK foundation assertions. The installed-package directed/retraction consumer is green and independently addressable as `umbra_rti_package_process_directed_retraction_consumer` / `package-process-directed-retraction`. The installed-package federation save/restore consumer is green and independently addressable as `umbra_rti_package_process_federation_save_restore_consumer` / `package-process-federation-save-restore`. The installed-package federation restore-failure consumer is green and independently addressable as `umbra_rti_package_process_federation_save_restore_failure_consumer` / `package-process-federation-save-restore-failure`. The installed-package federation restore-abort consumer is green and independently addressable as `umbra_rti_package_process_federation_save_restore_abort_consumer` / `package-process-federation-save-restore-abort`. The installed-package federation restore-status consumer is green and independently addressable as `umbra_rti_package_process_federation_save_restore_status_consumer` / `package-process-federation-save-restore-status`. The RPR full-family object-registration and custom-payload compatibility slices, the official FederateHandle SDK-consumability/encoding baselines, the private federate lifecycle state-machine slices; the initial-grant/NMR/Available/Flush-Queue time-state boundaries are now indexed. The accepted time-role MOM vector is indexed with 99 assertions and 24 Lab anchors. The float64 timed-save provider-time scheduling vector is indexed with 38 assertions and 11 Lab anchors. The federation-save resignation-recovery vector is indexed with 18 assertions and 8 Lab anchors. The restore-failure vector is indexed with 29 assertions and 11 Lab anchors. The service-report save/restore MOM vector is indexed with 46 assertions and 18 requirement anchors. The regional-unpublish update-region lifetime vector is indexed with 17 assertions and 18 requirement anchors. The regional-receive-order deletion update-region lifetime vector is indexed with 17 assertions and 20 requirement anchors. The final-object-removal region-release vector is indexed with 27 assertions and 21 requirement anchors. The associated-region discovery vector is indexed with 42 assertions and 22 requirement anchors. The Join advisory-switch seed vector is indexed with 16 assertions and 13 requirement anchors. The Join-time explicit NoAction automatic-resign vector is indexed with 7 assertions and 9 requirement anchors. The order and transportation MOM service-classification vector is indexed with 66 assertions and 19 requirement anchors. The joined-federate MOM/FOM-module snapshot vector is indexed with 12 assertions and 6 requirement anchors. The joined-federate MOM report-file identity save/restore vector is now indexed with 46 assertions and 18 requirement anchors. The joined-federate MOM regional discovery vector is now indexed with 124 assertions and 17 requirement anchors. The restored-baseline regional provider-response vector is now indexed with 44 assertions and 20 requirement anchors. The timestamped Delete Object Instance retraction case is green with 49 HLA_EVOKED assertions at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1402 and 26 requirement anchors; its queue drain after Enable Time Regulation reaches deletion/retraction/removal ordering. Keep it bounded to development-profile evidence and use the exact trace before promotion. The embedded known-class-disabled attribute-relevance case at cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp:320 is green with 35 HLA_EVOKED assertions, 18 Requirements-Lab anchors, 13 canonical 2025 sections, and 18 official C++ API surfaces; query its exact title or `known-class-disabled`. The paired static known-class-enabled case at cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp:417 is also green with 30 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 13 canonical 2025 sections, and 17 official C++ API surfaces; query its exact title or `known-class-enabled`. The embedded update-rate passive-regional-subscription case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33478 is green with 43 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 12 canonical 2025 sections, and 21 official C++ API surfaces; query its exact title or `update-rate-reduction`. The mapped custom-transportation handle stability case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33450 is green with 21 HLA_EVOKED assertions, 12 Requirements-Lab anchors, 11 canonical 2025 sections, and 8 official C++ API surfaces; query its exact title or `transportation-handle-stability`. The mapped restored-baseline timestamped Update Attribute Values MOM interaction case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1635 is green with 125 HLA_EVOKED/HLA_IMMEDIATE assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 13 official C++ API surfaces; query its exact title or `restored-baseline-copy`. The mapped restored-baseline regional Provide Attribute Value Update case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1794 is green with 251 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 21 official C++ API surfaces; query its exact title or `restored-baseline-copy`. The mapped three-dimensional regional object-attribute overlap case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36470 is green with 57 HLA_EVOKED assertions, 10 Requirements-Lab anchors, 10 canonical 2025 sections, and 24 official C++ API surfaces; query its exact title or `complete-overlap`. The m43 restored-baseline regional Request Attribute Value Update solicitation case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2096 is green with 58 assertions, 9 Requirements-Lab anchors, 7 canonical 2025 sections, and 20 official C++ API surfaces; its filtering and current-export traceability gap remain bounded. The m44 restored-baseline timestamped Update Attribute Values MOM interaction case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2558 is green with 138 HLA_EVOKED/HLA_IMMEDIATE assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 30 official C++ API surfaces; its regional setup and RL-152 conditional-failure boundary remain bounded. The m45 restored-baseline timestamped Update Attribute Values file-failure case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2960 is green with 218 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 15 official C++ API surfaces; its filesystem-sink conditional-failure boundary remains bounded by RL-152. The m46 restored-baseline timestamped regional Update Attribute Values reflection-order case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3394 is green with 206 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 30 official C++ API surfaces; its callback-entry durability and explicit regional setup remain bounded by RL-152. The m47 restored-baseline Unpublish Object Class Attributes case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5722 is green with 102 HLA_EVOKED assertions, 7 Requirements-Lab anchors, 5 canonical 2025 sections, and 1 official C++ API surface; its accepted-argument and Table 5 boundary remain source-derived under RL-067/RL-076/RL-078. The m48 negotiated-divestiture partial-acquisition-cancellation case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39477 is green with 48 HLA_EVOKED assertions, 12 Requirements-Lab anchors, 8 canonical 2025 sections, and 22 official C++ API surfaces; its retained-versus-cancelled member continuation remains bounded by the ownership contract. The m49 pre-delivery acquisition-cancellation race at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39610 is green with 33 HLA_EVOKED assertions; its stale internal owner work items are drained while the public confirmation and release callback streams remain empty. The m50 disabled Auto Provide discovery-only baseline at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:41003 is green with 21 HLA_EVOKED assertions and proves discovery remains delivered while provider callbacks stay suppressed. The m51 Federation Synchronized-after-resignation service-report case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:43938 is green with 23 HLA_EVOKED assertions and verifies the completion record before the remaining federate callback. The m52 terminal TSO-designator case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44602` is green with 40 HLA_EVOKED assertions and verifies five returned designators terminalize across TAR, TARA, NMR, NMRA, and FQR boundaries without recipient fanout. The m53 timestamped Update Attribute Values queue/retraction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45304` is green with 68 HLA_EVOKED assertions and verifies an internal MOM-queue drain before Time Regulation Enabled, pre-grant retraction at timestamp 6, and reliable/best-effort timestamp-7 reflections before the matching grant. The m54 mixed update-rate subscription case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45604` is green with 37 HLA_EVOKED assertions and verifies independent Low/HLAdefault best-effort gating with 8 Requirements-Lab anchors and 2 canonical sections. The m55 federation-teardown update-rate-history case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45700` is green with 46 HLA_EVOKED assertions and verifies cross-federation update-rate history isolation with 9 Requirements-Lab anchors and 5 canonical sections. The m56 regional best-effort attribute-rate case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45838 is green with 47 HLA_EVOKED assertions and verifies regional Low-rate admission and unsubscribe/resubscribe reset with 19 Requirements-Lab anchors and 11 canonical sections. The m57 regional best-effort timestamped-rate case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45982 is green with 57 HLA_EVOKED assertions and maps to 30 Requirements-Lab anchors and 19 canonical 2025 sections; it verifies exact regional overlap, timestamped Low-rate admission at time 2, and suppression at time 3 through the matching grant. The completed m58 directed-interaction Delay Subscription Evaluation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47277` is green with 120 assertions, three Requirements-Lab anchors, and one canonical Section 8.1.10 mapping. The m59 timestamped directed-interaction Delay Subscription Evaluation case is green in its focused C++ target at cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp:129 with 166 assertions under HLA_EVOKED and HLA_IMMEDIATE; query its m59 mapping and keep it bounded to Section 8.1.10 development-profile evidence. The m60 timestamped directed-interaction TSO/retraction case is green in its focused C++ target at cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp:150 with 56 HLA_EVOKED assertions; query its m60 mapping and keep TSO/retraction evidence bounded to the mapped 2025 clauses. The completed m61 immediate timestamped directed-interaction source-resignation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48788` is green with 45 HLA_EVOKED assertions. The m62 #if 0 malformed transport-loss declaration at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49826` is indexed as a disabled source artifact with no executable assertions or normative evidence. The completed m63 evoked regional-interaction source-region snapshot case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:56048` is green with 42 HLA_EVOKED assertions; the next bounded source action is the unplanned timestamped regional interaction TSO/retraction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61700`; the source-only queue is ordered by numeric declaration line. Keep package evidence, protected review, interoperability, and conformance promotion separate.",
+      "next_work_query": "The focused process-boundary C++ spine is green at 63 mapped/source-located cases and 2,497 indexed Catch2 assertions; the process TSO interaction-before-grant slice is 60 HLA_EVOKED assertions mapped to 15 Requirements-Lab anchors and nine canonical 2025 sections; query `process-tso-interaction-before-grant`. Query the exact completed public object-discovery endpoint slice with `python tools/query_rti_work.py trace \"RTIambassador delivers object discovery through a configured process endpoint\" --summary --compact`. The dimension/transportation reverse-lookup slice is now indexed with 16 assertions, six Requirements-Lab anchors, three canonical 2025 sections, and four official C++ API surfaces; the separate reverse-FOM error matrix adds 16 assertions with the same six anchors and three clauses; the connection configuration block, handle baselines, callback-route receive-order, immediate-callback reentrancy, callback-disable, evoked one-at-a-time, concurrent-serialization, disabled-backlog, Evoke Multiple FIFO, evoked-disabled-pending, callback-session-close, callback-session concurrent-invocation, callback-session active-close, callback instrumentation, transport instrumentation, and DimensionHandle seams are now explicitly indexed; the RPR full-family object-registration and custom-payload compatibility slices, the official FederateHandle SDK-consumability/encoding baselines, the private federate lifecycle state-machine slices, and the initial-grant/NMR/Available/Flush-Queue time-state boundaries are now indexed; the accepted time-role MOM vector is indexed with 99 assertions and 24 Lab anchors; the float64 timed-save provider-time scheduling vector is indexed with 38 assertions and 11 Lab anchors; the federation-save resignation-recovery vector is indexed with 18 assertions and 8 Lab anchors; the restore-failure vector is indexed with 29 assertions and 11 Lab anchors; the service-report save/restore MOM vector is indexed with 46 assertions and 18 requirement anchors; the regional-unpublish update-region lifetime vector is indexed with 17 assertions and 18 requirement anchors; the regional-receive-order deletion update-region lifetime vector is indexed with 17 assertions and 20 requirement anchors; the final-object-removal region-release vector is indexed with 27 assertions and 21 requirement anchors; the associated-region discovery vector is indexed with 42 assertions and 22 requirement anchors; the Join advisory-switch seed vector is indexed with 16 assertions and 13 requirement anchors; the Join-time explicit NoAction automatic-resign vector is indexed with 7 assertions and 9 requirement anchors; the order and transportation MOM service-classification vector is indexed with 66 assertions and 19 requirement anchors; the joined-federate MOM/FOM-module snapshot vector is indexed with 12 assertions and 6 requirement anchors; the joined-federate MOM report-file identity save/restore vector is indexed with 46 assertions and 18 requirement anchors; the joined-federate MOM regional discovery vector is indexed with 124 assertions and 17 requirement anchors; the restored-baseline regional provider-response vector is indexed with 44 assertions and 20 requirement anchors; the timestamped Delete Object Instance retraction slice is green with 49 HLA_EVOKED assertions at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1402` and 26 requirement anchors; its queue drain after Enable Time Regulation reaches deletion/retraction/removal ordering. Keep it bounded to development-profile evidence and use the exact trace before promotion. The mapped known-class-disabled attribute-relevance case at `cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp:320` is green with 35 HLA_EVOKED assertions, 18 Requirements-Lab anchors, 13 canonical 2025 sections, and 18 official C++ API surfaces; its source-derived known-class subscription consequence remains bounded. The paired static known-class-enabled case at `cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp:417` is also green with 30 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 13 canonical 2025 sections, and 17 official C++ API surfaces; its known-class suppression consequence remains a source-derived refinement. The mapped update-rate passive-regional-subscription case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33370` is green with 43 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 12 canonical 2025 sections, and 21 official C++ API surfaces; its passive-regional filtering consequence remains bounded. The mapped custom-transportation handle stability case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33342` is green with 21 HLA_EVOKED assertions, 12 Requirements-Lab anchors, 11 canonical 2025 sections, and 8 official C++ API surfaces; query its exact title or `transportation-handle-stability`. The mapped restored-baseline timestamped Update Attribute Values MOM interaction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1635` is green with 125 HLA_EVOKED/HLA_IMMEDIATE assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 13 official C++ API surfaces; query its exact title or `restored-baseline-copy`. The mapped restored-baseline regional Provide Attribute Value Update case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1794` is green with 251 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 21 official C++ API surfaces; query its exact title or `restored-baseline-copy`. The mapped three-dimensional regional object-attribute overlap case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36362` is green with 57 HLA_EVOKED assertions, 10 Requirements-Lab anchors, 10 canonical 2025 sections, and 24 official C++ API surfaces; query its exact title or `complete-overlap`. The m43 restored-baseline regional Request Attribute Value Update solicitation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2096` is green with 58 HLA_EVOKED assertions, 9 Requirements-Lab anchors, 7 canonical 2025 sections, and 20 official C++ API surfaces; its filtering and current-export traceability gap remain bounded. The m44 restored-baseline timestamped regional Update Attribute Values MOM interaction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2558` is green with 138 HLA_EVOKED/HLA_IMMEDIATE assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 30 official C++ API surfaces; its regional setup and RL-152 conditional-failure boundary remain bounded. The m45 restored-baseline timestamped Update Attribute Values file-failure case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2960` is green with 218 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 15 official C++ API surfaces; its filesystem-sink conditional-failure boundary remains bounded by RL-152. The m49 pre-delivery acquisition-cancellation race at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39502` is green with 33 HLA_EVOKED assertions; its stale internal owner work items are drained while the public confirmation and release callback streams remain empty. The m50 disabled Auto Provide discovery-only baseline at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:40895` is green with 21 HLA_EVOKED assertions and proves discovery remains delivered while provider callbacks stay suppressed. The m51 Federation Synchronized-after-resignation service-report case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:43830` is green with 23 HLA_EVOKED assertions and verifies the completion record before the remaining federate callback. The m52 terminal TSO-designator case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44494` is green with 40 HLA_EVOKED assertions and verifies five returned designators terminalize across TAR, TARA, NMR, NMRA, and FQR boundaries without recipient fanout. The m53 timestamped Update Attribute Values queue/retraction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45196` is green with 68 HLA_EVOKED assertions and verifies an internal MOM-queue drain before Time Regulation Enabled, pre-grant retraction at timestamp 6, and reliable/best-effort timestamp-7 reflections before the matching grant. The m54 mixed update-rate subscription case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45496` is green with 37 HLA_EVOKED assertions and is mapped to 8 Requirements-Lab anchors and 2 canonical 2025 sections. The m55 federation-teardown update-rate-history case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45592` is green with 46 HLA_EVOKED assertions and is mapped to 9 Requirements-Lab anchors and 5 canonical 2025 sections. The m56 regional best-effort attribute-rate case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45730` is green with 47 HLA_EVOKED assertions and is mapped to 19 Requirements-Lab anchors and 11 canonical 2025 sections. The m57 regional best-effort timestamped-rate case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45874` is green with 57 HLA_EVOKED assertions and maps to 30 Requirements-Lab anchors and 19 canonical 2025 sections; it verifies exact regional overlap, timestamped Low-rate admission at time 2, and suppression at time 3 through the matching grant. The completed m58 directed-interaction Delay Subscription Evaluation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47169` is green with 120 assertions, three Requirements-Lab anchors, and one canonical Section 8.1.10 mapping. The m59 timestamped directed-interaction Delay Subscription Evaluation case is green in its focused C++ target at cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp:129 with 166 assertions under HLA_EVOKED and HLA_IMMEDIATE; query its m59 mapping and keep it bounded to Section 8.1.10 development-profile evidence. The m60 timestamped directed-interaction TSO/retraction case is green in its focused C++ target at cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp:150 with 56 HLA_EVOKED assertions; query its m60 mapping and keep TSO/retraction evidence bounded to the mapped 2025 clauses. The completed m61 immediate timestamped directed-interaction source-resignation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48680` is green with 45 HLA_EVOKED assertions. The m62 #if 0 malformed transport-loss declaration at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49718` is indexed as a disabled source artifact with no executable assertions or normative evidence. The completed m63 evoked regional-interaction source-region snapshot case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:55940` is green with 42 HLA_EVOKED assertions; the next source-backed action is the unplanned timestamped regional interaction TSO/retraction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61592`, emitted by `next --pointer`; the source-only queue is ordered by numeric declaration line. Keep package evidence, protected review, interoperability, and conformance promotion separate without rescanning the unchanged Requirements Lab.",
+      "next_task": "Keep the thirteen installed-profile process smoke lanes and exact CTest/JUnit/Requirements-Lab mappings protected; the public object-discovery endpoint slice is green with 44 assertions under both callback models and is indexed to its three 2025 requirements and clauses 5.1.2, 6.8.4, and 6.9.3. The connection support-types baseline remains indexed as SDK-consumability evidence with no standalone Lab surface, the embedded service-report directory cases record their Connect mapping and negative-path behavior, the AttributeHandle baselines are indexed, and the callback-route receive-order, immediate-callback reentrancy, callback-disable, evoked one-at-a-time, concurrent-serialization, disabled-backlog, Evoke Multiple FIFO, evoked-disabled-pending, callback-session-close, callback-session concurrent-invocation, callback-session active-close, instrumentation, transport, and DimensionHandle seams record private/SDK foundation assertions. The installed-package directed/retraction consumer is green and independently addressable as `umbra_rti_package_process_directed_retraction_consumer` / `package-process-directed-retraction`. The installed-package federation save/restore consumer is green and independently addressable as `umbra_rti_package_process_federation_save_restore_consumer` / `package-process-federation-save-restore`. The installed-package federation restore-failure consumer is green and independently addressable as `umbra_rti_package_process_federation_save_restore_failure_consumer` / `package-process-federation-save-restore-failure`. The installed-package federation restore-abort consumer is green and independently addressable as `umbra_rti_package_process_federation_save_restore_abort_consumer` / `package-process-federation-save-restore-abort`. The installed-package federation restore-status consumer is green and independently addressable as `umbra_rti_package_process_federation_save_restore_status_consumer` / `package-process-federation-save-restore-status`. The RPR full-family object-registration and custom-payload compatibility slices, the official FederateHandle SDK-consumability/encoding baselines, the private federate lifecycle state-machine slices; the initial-grant/NMR/Available/Flush-Queue time-state boundaries are now indexed. The accepted time-role MOM vector is indexed with 99 assertions and 24 Lab anchors. The float64 timed-save provider-time scheduling vector is indexed with 38 assertions and 11 Lab anchors. The federation-save resignation-recovery vector is indexed with 18 assertions and 8 Lab anchors. The restore-failure vector is indexed with 29 assertions and 11 Lab anchors. The service-report save/restore MOM vector is indexed with 46 assertions and 18 requirement anchors. The regional-unpublish update-region lifetime vector is indexed with 17 assertions and 18 requirement anchors. The regional-receive-order deletion update-region lifetime vector is indexed with 17 assertions and 20 requirement anchors. The final-object-removal region-release vector is indexed with 27 assertions and 21 requirement anchors. The associated-region discovery vector is indexed with 42 assertions and 22 requirement anchors. The Join advisory-switch seed vector is indexed with 16 assertions and 13 requirement anchors. The Join-time explicit NoAction automatic-resign vector is indexed with 7 assertions and 9 requirement anchors. The order and transportation MOM service-classification vector is indexed with 66 assertions and 19 requirement anchors. The joined-federate MOM/FOM-module snapshot vector is indexed with 12 assertions and 6 requirement anchors. The joined-federate MOM report-file identity save/restore vector is now indexed with 46 assertions and 18 requirement anchors. The joined-federate MOM regional discovery vector is now indexed with 124 assertions and 17 requirement anchors. The restored-baseline regional provider-response vector is now indexed with 44 assertions and 20 requirement anchors. The timestamped Delete Object Instance retraction case is green with 49 HLA_EVOKED assertions at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1402 and 26 requirement anchors; its queue drain after Enable Time Regulation reaches deletion/retraction/removal ordering. Keep it bounded to development-profile evidence and use the exact trace before promotion. The embedded known-class-disabled attribute-relevance case at cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp:320 is green with 35 HLA_EVOKED assertions, 18 Requirements-Lab anchors, 13 canonical 2025 sections, and 18 official C++ API surfaces; query its exact title or `known-class-disabled`. The paired static known-class-enabled case at cpp/tests/ieee1516_2025_restore_pending_request_rescheduling_catch2.cpp:417 is also green with 30 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 13 canonical 2025 sections, and 17 official C++ API surfaces; query its exact title or `known-class-enabled`. The embedded update-rate passive-regional-subscription case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33370 is green with 43 HLA_EVOKED assertions, 15 Requirements-Lab anchors, 12 canonical 2025 sections, and 21 official C++ API surfaces; query its exact title or `update-rate-reduction`. The mapped custom-transportation handle stability case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:33342 is green with 21 HLA_EVOKED assertions, 12 Requirements-Lab anchors, 11 canonical 2025 sections, and 8 official C++ API surfaces; query its exact title or `transportation-handle-stability`. The mapped restored-baseline timestamped Update Attribute Values MOM interaction case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1635 is green with 125 HLA_EVOKED/HLA_IMMEDIATE assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 13 official C++ API surfaces; query its exact title or `restored-baseline-copy`. The mapped restored-baseline regional Provide Attribute Value Update case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1794 is green with 251 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 21 official C++ API surfaces; query its exact title or `restored-baseline-copy`. The mapped three-dimensional regional object-attribute overlap case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:36362 is green with 57 HLA_EVOKED assertions, 10 Requirements-Lab anchors, 10 canonical 2025 sections, and 24 official C++ API surfaces; query its exact title or `complete-overlap`. The m43 restored-baseline regional Request Attribute Value Update solicitation case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2096 is green with 58 assertions, 9 Requirements-Lab anchors, 7 canonical 2025 sections, and 20 official C++ API surfaces; its filtering and current-export traceability gap remain bounded. The m44 restored-baseline timestamped Update Attribute Values MOM interaction case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2558 is green with 138 HLA_EVOKED/HLA_IMMEDIATE assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 30 official C++ API surfaces; its regional setup and RL-152 conditional-failure boundary remain bounded. The m45 restored-baseline timestamped Update Attribute Values file-failure case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:2960 is green with 218 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 15 official C++ API surfaces; its filesystem-sink conditional-failure boundary remains bounded by RL-152. The m46 restored-baseline timestamped regional Update Attribute Values reflection-order case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3394 is green with 206 HLA_EVOKED assertions, 11 Requirements-Lab anchors, 9 canonical 2025 sections, and 30 official C++ API surfaces; its callback-entry durability and explicit regional setup remain bounded by RL-152. The m47 restored-baseline Unpublish Object Class Attributes case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5722 is green with 102 HLA_EVOKED assertions, 7 Requirements-Lab anchors, 5 canonical 2025 sections, and 1 official C++ API surface; its accepted-argument and Table 5 boundary remain source-derived under RL-067/RL-076/RL-078. The m48 negotiated-divestiture partial-acquisition-cancellation case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39369 is green with 48 HLA_EVOKED assertions, 12 Requirements-Lab anchors, 8 canonical 2025 sections, and 22 official C++ API surfaces; its retained-versus-cancelled member continuation remains bounded by the ownership contract. The m49 pre-delivery acquisition-cancellation race at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:39502 is green with 33 HLA_EVOKED assertions; its stale internal owner work items are drained while the public confirmation and release callback streams remain empty. The m50 disabled Auto Provide discovery-only baseline at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:40895 is green with 21 HLA_EVOKED assertions and proves discovery remains delivered while provider callbacks stay suppressed. The m51 Federation Synchronized-after-resignation service-report case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:43830 is green with 23 HLA_EVOKED assertions and verifies the completion record before the remaining federate callback. The m52 terminal TSO-designator case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:44494` is green with 40 HLA_EVOKED assertions and verifies five returned designators terminalize across TAR, TARA, NMR, NMRA, and FQR boundaries without recipient fanout. The m53 timestamped Update Attribute Values queue/retraction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45196` is green with 68 HLA_EVOKED assertions and verifies an internal MOM-queue drain before Time Regulation Enabled, pre-grant retraction at timestamp 6, and reliable/best-effort timestamp-7 reflections before the matching grant. The m54 mixed update-rate subscription case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45496` is green with 37 HLA_EVOKED assertions and verifies independent Low/HLAdefault best-effort gating with 8 Requirements-Lab anchors and 2 canonical sections. The m55 federation-teardown update-rate-history case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45592` is green with 46 HLA_EVOKED assertions and verifies cross-federation update-rate history isolation with 9 Requirements-Lab anchors and 5 canonical sections. The m56 regional best-effort attribute-rate case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45730 is green with 47 HLA_EVOKED assertions and verifies regional Low-rate admission and unsubscribe/resubscribe reset with 19 Requirements-Lab anchors and 11 canonical sections. The m57 regional best-effort timestamped-rate case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:45874 is green with 57 HLA_EVOKED assertions and maps to 30 Requirements-Lab anchors and 19 canonical 2025 sections; it verifies exact regional overlap, timestamped Low-rate admission at time 2, and suppression at time 3 through the matching grant. The completed m58 directed-interaction Delay Subscription Evaluation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:47169` is green with 120 assertions, three Requirements-Lab anchors, and one canonical Section 8.1.10 mapping. The m59 timestamped directed-interaction Delay Subscription Evaluation case is green in its focused C++ target at cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp:129 with 166 assertions under HLA_EVOKED and HLA_IMMEDIATE; query its m59 mapping and keep it bounded to Section 8.1.10 development-profile evidence. The m60 timestamped directed-interaction TSO/retraction case is green in its focused C++ target at cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp:150 with 56 HLA_EVOKED assertions; query its m60 mapping and keep TSO/retraction evidence bounded to the mapped 2025 clauses. The completed m61 immediate timestamped directed-interaction source-resignation case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:48680` is green with 45 HLA_EVOKED assertions. The m62 #if 0 malformed transport-loss declaration at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:49718` is indexed as a disabled source artifact with no executable assertions or normative evidence. The completed m63 evoked regional-interaction source-region snapshot case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:55940` is green with 42 HLA_EVOKED assertions; the next bounded source action is the unplanned timestamped regional interaction TSO/retraction case at `cpp/tests/ieee1516_2025_federation_management_catch2.cpp:61592`; the source-only queue is ordered by numeric declaration line. Keep package evidence, protected review, interoperability, and conformance promotion separate.",
       "next_lane": "process-boundary",
       "next_test_role": "baseline",
       "next_test_query": "RTIambassador delivers a directed interaction through the official Evoke callback surface",
@@ -27660,7 +27664,7 @@
         "ddm-nonvoid-failure",
         "ddm-mutation-failure"
       ],
-      "next_action": "The source-only directed-invocation report case and independent joined-federate file case are now mapped and MinGW-green. Next exact source-only queue head: inspect `Embedded service reporting records callback-gated no-argument time-constrained services` at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:29687; add a plan row only for behavior directly supported by IEEE 1516.1-2025 and classify any profile-only callback routing separately."
+      "next_action": "The source-only directed-invocation report case and independent joined-federate file case are now mapped and MinGW-green. Next exact source-only queue head: inspect `Embedded service reporting records callback-gated no-argument time-constrained services` at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:29579; add a plan row only for behavior directly supported by IEEE 1516.1-2025 and classify any profile-only callback routing separately."
     },
     {
       "id": "transport-and-conformance",
