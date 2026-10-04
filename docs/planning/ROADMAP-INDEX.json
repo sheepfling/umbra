@@ -36,52 +36,16 @@
   },
   "last_completed_handoff": {
     "state": "implemented-in-noninstallable-development-profile",
-    "family": "object-ddm-ownership",
-    "id": "extract-2025-attribute-ownership-query",
-    "lane": "rti.service.is-attribute-owned-by-federate",
-    "objective": "Extract only the IEEE 1516.1-2025 Is Attribute Owned By Federate case into a focused translation unit. Preserve its 33 assertions, three direct requirement-to-2025-clause pairs across clauses 7.19.6 and 10.6.2, two API surfaces, development-profile status, and existing CTest labels. Keep it separate from RTI-owned and IEEE 1516.1-2010 ownership state; make no conformance claim.",
-    "plan_id": "umbra-cpp-attribute-ownership-check-integration",
-    "mapping_seed_plan_id": "umbra-cpp-attribute-ownership-check-integration",
-    "mapping_seed_policy": "Preserve the existing three requirement IDs and their direct pairs to clauses 7.19.6 and 10.6.2; preserve both API surface IDs, existing CTest labels, and development-profile status. Do not broaden mappings or claim conformance.",
-    "test_case": "Embedded Is Attribute Owned By Federate reads 2025 ownership state",
-    "source_target": "cpp/tests/ieee1516_2025_attribute_ownership_check_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_attribute_ownership_check_catch2.cpp:4",
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Is Attribute Owned By Federate reads 2025 ownership state$",
-    "ctest_label": "rti.service.is-attribute-owned-by-federate",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-attribute-ownership-check-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded Is Attribute Owned By Federate reads 2025 ownership state$\" --output-on-failure",
-      "traceability_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.attribute_ownership_check_(requirements|api)_traceability$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane rti.service.is-attribute-owned-by-federate --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-attribute-ownership-check-integration --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The exact 88-line test body now lives in a focused 2025 translation unit with all 33 assertions, three direct requirement-clause pairs, two API surfaces, development-profile status, and existing CTest labels preserved.",
-      "The 2025 aggregate linked successfully; the exact CTest and the adjacent service-report boundary test passed, and the Requirements-Lab requirements/API traceability tests passed 2/2. Trace preserves three direct pairs across clauses 7.19.6 and 10.6.2. The service-tag mapping check, JSON, source-size policy, and handoff pointers pass; the monolith is 27,546 lines (11,726 below the 39,272-line starting baseline).",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
-    ],
-    "requirements": 3,
-    "standard_sections": 2,
-    "api_surface_count": 2,
-    "assertions": 33,
-    "direct_pairs": 3
-  },
-  "active_handoff_note": "The next case is Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments in cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172. Preserve its five direct requirement-to-2025-clause pairs and six API surfaces; keep the 2010 stream untouched.",
-  "active_handoff": {
-    "state": "implementation",
     "family": "mom-after-base-services",
     "id": "extract-2025-cancel-negotiated-divestiture-service-report",
     "lane": "rti.service.cancel-negotiated-attribute-ownership-divestiture",
-    "objective": "Continue splitting the IEEE 1516.1-2025 federation-management suite at the adjacent service-report case. Keep its service-report behavior separate from ownership-state queries and all IEEE 1516.1-2010 paths.",
+    "objective": "Extract only the 2025 Cancel Negotiated Attribute Ownership Divestiture service-report case into a focused translation unit. Preserve its 45 assertions, five direct requirement-to-2025-clause pairs, six API surfaces, development-profile status, and existing CTest labels. Keep it separate from the adjacent public restore and IEEE 1516.1-2010 behavior; make no conformance claim.",
     "plan_id": "umbra-cpp-service-report-file-cancel-negotiated-attribute-ownership-divestiture-integration",
     "mapping_seed_plan_id": "umbra-cpp-service-report-file-cancel-negotiated-attribute-ownership-divestiture-integration",
     "mapping_seed_policy": "Preserve the existing five requirement IDs and direct pairs across clauses 7.8, 7.14.6, 11.5, 11.5.2, and 11.5.2.1; preserve all six API surface IDs, existing CTest labels, and development-profile status. Do not broaden mappings or claim conformance.",
     "test_case": "Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172",
+    "source_target": "cpp/tests/ieee1516_2025_cancel_negotiated_attribute_ownership_divestiture_service_report_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_cancel_negotiated_attribute_ownership_divestiture_service_report_catch2.cpp:4",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments$",
     "ctest_label": "rti.service.cancel-negotiated-attribute-ownership-divestiture",
@@ -89,18 +53,58 @@
       "source_query": "python tools/query_rti_work.py case umbra-cpp-service-report-file-cancel-negotiated-attribute-ownership-divestiture-integration --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
       "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments$\" --output-on-failure",
+      "traceability_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.(mom_service_reporting_requirements|attribute_ownership_acquisition_api|negotiated_attribute_ownership_divestiture_(requirements|api))_traceability$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane rti.service.cancel-negotiated-attribute-ownership-divestiture --summary --compact",
       "trace": "python tools/query_rti_work.py trace umbra-cpp-service-report-file-cancel-negotiated-attribute-ownership-divestiture-integration --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Inspect and isolate only this adjacent 2025 service-report case if its current source organization warrants it; preserve its five direct requirement-clause pairs, six API surfaces, development-profile status, and CTest labels.",
-      "Build the 2025 aggregate, run the exact CTest selector and trace, and update only verified pointers without changing service-report behavior or mappings.",
-      "Keep service-report, ownership-query, and 2010 boundaries separate; make no validation or conformance claim."
+      "The exact 144-line test body now lives in a focused 2025 translation unit with all 45 assertion macros, five direct requirement-clause pairs, six API surfaces, development-profile status, and existing CTest labels preserved.",
+      "The 2025 aggregate linked successfully; the exact CTest and adjacent public-restore boundary test passed 2/2. The four affected Requirements-Lab requirements/API traceability tests pass 4/4 after correcting 65 unique stale selectors (176 references) to their verified focused source files; RL-270 records this local contract drift. The mapping gate, JSON, source-size policy, and handoff pointers pass; the monolith is 27,400 lines (11,872 below the 39,272-line starting baseline).",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
     ],
     "requirements": 5,
     "standard_sections": 5,
     "api_surface_count": 6,
+    "assertions": 45,
     "direct_pairs": 5
+  },
+  "active_handoff_note": "The next case is Embedded public fresh-registry restore rehydrates directed interaction declaration and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE in cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172. Preserve its nine direct requirement-to-2025-clause pairs, 15 API surfaces, and both callback models; keep the 2010 stream untouched.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "time-save-restore",
+    "id": "extract-2025-public-fresh-registry-directed-interaction-restore",
+    "lane": "process-restart-directed-interaction-declaration",
+    "objective": "Extract only the mapped IEEE 1516.1-2025 public fresh-registry directed-interaction declaration and report-file-lifetime case into a focused translation unit. Preserve all 172 assertions, nine direct requirement-to-2025-clause pairs across seven clauses, 15 API surfaces, both callback models, development-profile status, and existing CTest labels. Do not merge other restore behavior or touch IEEE 1516.1-2010; make no conformance claim.",
+    "plan_id": "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-declaration-integration",
+    "mapping_seed_plan_id": "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-declaration-integration",
+    "mapping_seed_policy": "Preserve the current nine requirement IDs and exact direct pairs across clauses 4.19, 4.21.1, 4.23, 4.27, 4.32, 5.1.4, and 5.12; preserve all 15 API surface IDs, both callback models, existing CTest labels, and development-profile status. Do not broaden mappings or claim conformance.",
+    "test_case": "Embedded public fresh-registry restore rehydrates directed interaction declaration and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore rehydrates directed interaction declaration and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE$",
+    "ctest_label": "process-restart-directed-interaction-declaration",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-declaration-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore rehydrates directed interaction declaration and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE$\" --output-on-failure",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-declaration-integration --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Extract only this mapped 2025 restore case; preserve all 172 assertions, nine direct requirement-clause pairs, 15 API surfaces, both callback models, development-profile status, and existing CTest labels.",
+      "Build the 2025 aggregate, run the exact CTest selector and trace, and verify source pointers without changing restore behavior or mappings.",
+      "Keep this public restore slice separate from adjacent cases and all 2010 paths; make no validation or conformance claim."
+    ],
+    "requirements": 9,
+    "standard_sections": 7,
+    "api_surface_count": 15,
+    "direct_pairs": 9,
+    "callback_models": [
+      "HLA_EVOKED",
+      "HLA_IMMEDIATE"
+    ]
   },
   "documents": [
     {
@@ -4940,6 +4944,27 @@
     ]
   },
   "recent_completed_slices": [
+    {
+      "plan_id": "umbra-cpp-service-report-file-cancel-negotiated-attribute-ownership-divestiture-integration",
+      "test_query": "Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments",
+      "lane_queries": [
+        "rti.service.cancel-negotiated-attribute-ownership-divestiture"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_cancel_negotiated_attribute_ownership_divestiture_service_report_catch2.cpp:4",
+      "primary_lane": "rti.service.cancel-negotiated-attribute-ownership-divestiture",
+      "focus_lane": "rti.service.cancel-negotiated-attribute-ownership-divestiture",
+      "assertions": 45,
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.8",
+        "hla-1516.1-2025:clause-7.14.6",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.2",
+        "hla-1516.1-2025:clause-11.5.2.1"
+      ],
+      "requirements": 5,
+      "api_surfaces": 6,
+      "status": "implemented-in-noninstallable-development-profile"
+    },
     {
       "plan_id": "umbra-cpp-attribute-ownership-check-integration",
       "test_query": "Embedded Is Attribute Owned By Federate reads 2025 ownership state",

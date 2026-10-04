@@ -28,7 +28,7 @@
       "tests": [
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments",
+        "cpp/tests/ieee1516_2025_cancel_negotiated_attribute_ownership_divestiture_service_report_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments",
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded service reporting delivers Cancel Negotiated Attribute Ownership Divestiture through MOM interaction",
         "cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
         "cpp/tests/negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
@@ -139,7 +139,7 @@
       "tests": [
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments",
+        "cpp/tests/ieee1516_2025_cancel_negotiated_attribute_ownership_divestiture_service_report_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments",
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded service reporting delivers Cancel Negotiated Attribute Ownership Divestiture through MOM interaction",
         "cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
         "cpp/tests/negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"

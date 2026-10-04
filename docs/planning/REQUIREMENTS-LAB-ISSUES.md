@@ -125,3 +125,17 @@ Resolution: updated the seven stale selectors to the focused 2025 test path.
 The four requirements/API traceability tests for the ownership-query and
 ownership-check contracts now pass, as do the mapping checks for both lanes.
 No pinned Requirements Lab export or normative mapping was changed.
+
+### RL-270 — extracted service-report tests retained old selectors
+
+The MOM service-reporting requirements contract contained 64 unique selectors
+(176 references) that still named the federation-management monolith after the
+corresponding 2025 tests had moved into focused units. The Attribute Ownership
+Acquisition API contract also retained one selector for the focused multi-acquirer
+Release Denied case.
+
+Resolution: changed only those selectors to the unique source files containing
+the matching `TEST_CASE` declarations. The MOM service-reporting, ownership-
+acquisition API, and negotiated-divestiture requirements/API traceability tests
+now pass 4/4. Requirement IDs and normative mappings are unchanged; the pinned
+Requirements Lab export was not synchronized or modified.

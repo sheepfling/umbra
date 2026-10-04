@@ -517,6 +517,24 @@
       "reproduction": "ctest --test-dir .build-mingw-rti -C Debug -R ^umbra\\.ieee1516_2025\\.attribute_ownership_check_requirements_traceability$ --output-on-failure",
       "verification": "Corrected all seven stale selectors in the ownership-query requirements/API and ownership-check requirements contracts. The four focused ownership-query/ownership-check requirements and API traceability CTests pass 4/4, and both service-tag mapping checks pass. No Requirements Lab synchronization or normative mapping change was made.",
       "detected": "2026-10-04"
+    },
+    {
+      "id": "RL-270",
+      "status": "resolved-in-umbra",
+      "kind": "traceability-contract-selector-drift",
+      "title": "Service-reporting and ownership-acquisition contracts retain selectors for extracted 2025 tests",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/mom-service-reporting-requirements-contract.json",
+        "lines": "64 unique stale selectors across 176 occurrences; one additional selector in attribute-ownership-acquisition-api-contract.json"
+      },
+      "symptom": "The focused MOM service-reporting requirements traceability CTest found 64 unique test selectors that still named the large federation-management source after those test cases had moved to focused 2025 units. The Attribute Ownership Acquisition API contract had one additional stale selector for the focused multi-acquirer Release Denied case.",
+      "impact": "Two focused Requirements Lab traceability CTests failed with contract drift even though the test cases and normative requirement/API mappings remained present. The stale file paths obscured otherwise valid source-to-requirement evidence.",
+      "workaround": "For each failing selector, resolve the exact TEST_CASE title to its unique current C++ source and update only the source path. Preserve requirement IDs, canonical 2025 clauses, API-surface IDs, and the pinned Requirements Lab export.",
+      "reproduction": "ctest --test-dir .build-mingw-rti -C Debug -R ^umbra\\.ieee1516_2025\\.(mom_service_reporting_requirements|attribute_ownership_acquisition_api)_traceability$ --output-on-failure",
+      "verification": "Updated 65 unique selectors (176 contract occurrences) to source files containing the exact TEST_CASE declarations. The MOM service-reporting, ownership-acquisition API, and negotiated-divestiture requirements/API traceability tests pass 4/4; the focused service-tag mapping check passes. No pinned Requirements Lab export, requirement mapping, or normative clause mapping was changed.",
+      "detected": "2026-10-04"
     }
   ]
 }

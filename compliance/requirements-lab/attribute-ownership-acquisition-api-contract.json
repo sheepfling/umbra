@@ -28,11 +28,11 @@
       "tests": [
         "cpp/tests/ieee1516_2025_attribute_ownership_acquisition_release_callbacks_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_attribute_ownership_release_denied_multi_acquirer_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
         "cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
         "cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments"
+        "cpp/tests/ieee1516_2025_cancel_negotiated_attribute_ownership_divestiture_service_report_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments"
       ]
     },
     {
@@ -49,7 +49,7 @@
       "tests": [
         "cpp/tests/ieee1516_2025_attribute_ownership_acquisition_release_callbacks_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_attribute_ownership_release_denied_multi_acquirer_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
         "cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
         "cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition arguments"
@@ -75,7 +75,7 @@
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipReleaseDenied",
       "tests": [
         "cpp/tests/ieee1516_2025_attribute_ownership_acquisition_release_callbacks_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_attribute_ownership_release_denied_multi_acquirer_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
         "cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Release Denied arguments"
       ]
@@ -157,7 +157,7 @@
       "source_symbol": "queueAttributeOwnershipUnavailableRecipients",
       "tests": [
         "cpp/tests/ieee1516_2025_attribute_ownership_acquisition_release_callbacks_catch2.cpp::Embedded Attribute Ownership Acquisition honors 2025 release and denial callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
+        "cpp/tests/ieee1516_2025_attribute_ownership_release_denied_multi_acquirer_catch2.cpp::Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
         "cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Release Denied arguments"
       ]
