@@ -103,7 +103,7 @@
         "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
         "cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
         "cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership assumption search advances after a declined callback",
+        "cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_continuation_catch2.cpp::Embedded ownership assumption search advances after a declined callback",
     "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
     "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM"
       ]
@@ -123,7 +123,7 @@
         "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded Cancel Attribute Ownership Acquisition honors the 2025 confirmation boundary",
         "cpp/tests/ownership_acquisition_cancellation_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Unavailable after owner denial",
         "cpp/tests/ownership_acquisition_cancellation_transfer_race_catch2.cpp::Embedded cancellation race returns Attribute Ownership Acquisition Notification after transfer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership assumption search advances after a declined callback",
+        "cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_continuation_catch2.cpp::Embedded ownership assumption search advances after a declined callback",
     "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
     "cpp/tests/attribute_ownership_acquisition_cancellation_catch2.cpp::Embedded service reporting delivers Cancel Attribute Ownership Acquisition through MOM"
       ]

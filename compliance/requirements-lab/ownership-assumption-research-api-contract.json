@@ -25,7 +25,7 @@
       "source_symbol": "UmbraRtiAmbassador::unconditionalAttributeOwnershipDivestiture",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Unconditional Attribute Ownership Divestiture offers eligible 2025 federates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership assumption search advances after a declined callback",
+        "cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_continuation_catch2.cpp::Embedded ownership assumption search advances after a declined callback",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership assumption search starts a fresh epoch after transfer"
       ]
     },
@@ -42,7 +42,7 @@
       "source_symbol": "queueAttributeOwnershipAssumptionRecipients",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Unconditional Attribute Ownership Divestiture offers eligible 2025 federates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership assumption search advances after a declined callback",
+        "cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_continuation_catch2.cpp::Embedded ownership assumption search advances after a declined callback",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership assumption search starts a fresh epoch after transfer"
       ]
     }
