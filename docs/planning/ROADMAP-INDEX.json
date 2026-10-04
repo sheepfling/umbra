@@ -35,54 +35,16 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-resign-action-final-federate",
-    "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-resign-action-final-federate-integration",
-    "family": "object-ddm-ownership",
-    "lane": "resign-action-final-federate",
-    "objective": "Extract the 2025 final-federate directive-two resignation case into a focused unit. Preserve its 18 assertions, HLA_EVOKED callback model, four direct requirement mappings across clauses 4.12, 4.12.4, 6.2, and 6.3, eight selected API surfaces, and development-profile classification. Keep it separate from IEEE 1516.1-2010 sources, targets, fixtures, and mappings; do not claim conformance.",
-    "test_case": "Embedded final-federate resignation applies directive two regardless of the supplied action",
-    "source_target": "cpp/tests/ieee1516_2025_embedded_resign_action_final_federate_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_embedded_resign_action_final_federate_catch2.cpp:4",
-    "mapping_seed_policy": "Preserve requirement-candidate-content-clauses-04-federation-management-page-058-l112-33 -> hla-1516.1-2025:clause-4.12; requirement-candidate-content-clauses-04-federation-management-page-059-l8-1 -> clause 4.12.4; requirement-candidate-content-clauses-06-object-management-page-113-l21-3 -> clause 6.2; and requirement-candidate-content-clauses-06-object-management-page-113-l153-40 -> clause 6.3, plus all eight selected API surfaces. Record 18 assertions and HLA_EVOKED; preserve development-profile status and keep 2010 evidence separate.",
-    "api_surfaces": [
-      "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
-      "api.2025.cpp.rtiambassador.getobjectclasshandle.36d1b269a059",
-      "api.2025.cpp.rtiambassador.getattributehandle.aa05f6c28dcb",
-      "api.2025.cpp.rtiambassador.publishobjectclassattributes.f9f6fdeb6157",
-      "api.2025.cpp.rtiambassador.registerobjectinstance.b7f8e9ace8d0",
-      "api.2025.cpp.rtiambassador.getobjectinstancename.8445cd076ee4",
-      "api.2025.cpp.rtiambassador.reserveobjectinstancename.f45e6871e13d",
-      "api.2025.cpp.federateambassador.objectinstancenamereservationsucceeded.311ec07d3cd3"
-    ],
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded final-federate resignation applies directive two regardless of the supplied action$",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-resign-action-final-federate-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded final-federate resignation applies directive two regardless of the supplied action$\" --output-on-failure",
-      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^resign-action-final-federate$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane resign-action-final-federate --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-resign-action-final-federate-integration --summary --compact",
-      "contract_traceability_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.(resign_action|object_instance_registration|object_instance_name_reservation)_(requirements|api)_traceability$\" --output-on-failure",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The extracted behavior body matches the committed source apart from the focused lane tag; it retains 18 assertions, HLA_EVOKED, all four direct mappings across clauses 4.12, 4.12.4, 6.2, and 6.3, all eight selected API surfaces, and development-profile status.",
-      "The aggregate target, exact case, focused lane, six related resign/object-registration/name-reservation contract CTests, trace/mapping checks, JSON, and source-size policy pass.",
-      "The monolith and ceiling fell by 49 lines to 35,510; 100 later plan source locations were rebased, for a cumulative 3,762-line reduction from the 39,272-line split-series baseline. The next FOM-preparation case pointer was corrected to its current line. No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
-    ]
-  },
-  "active_handoff_note": "Verified progress: This pass extracted the 2025 final-federate directive-two resignation case into its own focused unit, retaining 18 assertions and HLA_EVOKED. The row records four direct requirement mappings across clauses 4.12, 4.12.4, 6.2, and 6.3, eight selected API surfaces, and development-profile status. Rebased 100 later plan locations and corrected the next FOM-preparation source pointer. The monolith and ceiling are now 35,510 lines, down 3,762 from the 39,272-line split-series baseline. No 2010 source, target, fixture, or mapping changed. Next: inspect the bounded FOM-preparation atomicity case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10768; preserve its 11 assertions, HLA_EVOKED model, nine selected requirement IDs, six API surfaces, and development-only classification.",
-  "active_handoff": {
-    "state": "implementation",
-    "family": "transport-and-conformance",
     "id": "extract-2025-federation-management-fom-preparation-failure-atomicity",
-    "lane": "fom-preparation-failure-atomicity",
-    "objective": "Inspect the bounded 2025 federation-management FOM-preparation failure atomicity case and assess a behavior-preserving thematic extraction. Preserve its 11 assertions, HLA_EVOKED callback model, exact nine selected Requirements Lab IDs, six selected API surfaces, and development-profile atomicity classification. Classify req-federate-disconnect-after-resign as internal evidence with no invented normative mapping. Keep 2010 sources, targets, fixtures, and mappings separate; do not claim complete FOM/XSD coverage or conformance.",
+    "state": "implemented-in-noninstallable-development-profile",
     "plan_id": "umbra-cpp-federation-management-fom-preparation-failure-atomicity-integration",
-    "mapping_seed_plan_id": "umbra-cpp-federation-management-fom-preparation-failure-atomicity-integration",
-    "mapping_seed_policy": "Preserve all nine selected requirement IDs and their existing exact plan relationships; explicitly classify req-federate-disconnect-after-resign as internal with no normative mapping. Preserve api.2025.cpp.rtiambassador.connect.ed13bdcc70d7, api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369, api.2025.cpp.rtiambassador.joinfederationexecution.9e7e3b227992, api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e, api.2025.cpp.rtiambassador.destroyfederationexecution.f403cac5930f, and api.2025.cpp.rtiambassador.disconnect.72028b809529. This is development-profile atomicity evidence only.",
+    "family": "transport-and-conformance",
+    "lane": "fom-preparation-failure-atomicity",
+    "objective": "Extract the bounded 2025 federation-management FOM-preparation atomicity test into a focused unit. Preserve its 11 assertions, HLA_EVOKED callback model, nine direct requirement mappings across clauses 4, 4.1.1, and 4.5.5, six selected API surfaces, and development-profile classification. Keep it separate from IEEE 1516.1-2010 sources, targets, fixtures, and mappings; do not claim complete FOM/XSD coverage, Lab validation, or conformance.",
+    "test_case": "Embedded federation-management preparation failures leave shared federation state unchanged",
+    "source_target": "cpp/tests/ieee1516_2025_embedded_fom_preparation_atomicity_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_embedded_fom_preparation_atomicity_catch2.cpp:4",
+    "mapping_seed_policy": "Preserve the six requirement-candidate-content-clauses-04-federation-management-page-048 IDs -> hla-1516.1-2025:clause-4; requirement-candidate-content-clauses-04-federation-management-page-053-l50-8 and -l58-10 -> clause 4.5.5; and req-federate-disconnect-after-resign -> clause 4.1.1. Preserve all six selected API surfaces. Record 11 assertions and HLA_EVOKED; this remains development-profile atomicity evidence, not complete FOM/XSD coverage or conformance.",
     "api_surfaces": [
       "api.2025.cpp.rtiambassador.connect.ed13bdcc70d7",
       "api.2025.cpp.rtiambassador.createfederationexecution.6e54bf6c7369",
@@ -91,22 +53,65 @@
       "api.2025.cpp.rtiambassador.destroyfederationexecution.f403cac5930f",
       "api.2025.cpp.rtiambassador.disconnect.72028b809529"
     ],
-    "test_case": "Embedded federation-management preparation failures leave shared federation state unchanged",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10768",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded federation-management preparation failures leave shared federation state unchanged$",
     "commands": {
       "source_query": "python tools/query_rti_work.py case umbra-cpp-federation-management-fom-preparation-failure-atomicity-integration --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
       "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded federation-management preparation failures leave shared federation state unchanged$\" --output-on-failure",
+      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^fom-preparation-failure-atomicity$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane fom-preparation-failure-atomicity --summary --compact",
       "trace": "python tools/query_rti_work.py trace umbra-cpp-federation-management-fom-preparation-failure-atomicity-integration --summary --compact",
+      "contract_traceability_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.(federation_management_preparation|embedded_federation_management|federation_execution_api)_traceability$\" --output-on-failure",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Inspect the current test boundaries and determine whether the FOM-preparation atomicity scenario has a coherent standalone home without changing behavior or widening its evidence claims.",
-      "If extracted, retain 11 assertions, HLA_EVOKED, all nine selected requirement IDs, all six APIs, and the explicit internal classification; build the 2025 aggregate and run the exact case plus trace/plan validation.",
-      "Keep all IEEE 1516.1-2010 sources, targets, fixtures, and mappings untouched; do not claim complete FOM validation, Lab validation, or conformance."
+      "The extracted behavior body matches the committed source apart from the focused lane tag; it retains 11 assertions, HLA_EVOKED, all nine direct mappings across clauses 4, 4.1.1, and 4.5.5, all six selected API surfaces, and development-profile status.",
+      "The aggregate target, exact case, focused lane, federation-execution and embedded-federation-management contract CTests, trace/mapping checks, JSON, and source-size policy pass.",
+      "The monolith and ceiling fell by 44 lines to 35,466; 99 later plan source locations were rebased, for a cumulative 3,806-line reduction from the 39,272-line split-series baseline. No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
+    ]
+  },
+  "active_handoff_note": "Verified progress: This pass extracted the 2025 federation-management FOM-preparation atomicity case into its own focused unit, retaining 11 assertions and HLA_EVOKED. The exact row preserves nine direct mappings across clauses 4, 4.1.1, and 4.5.5, six selected API surfaces, and development-profile status; req-federate-disconnect-after-resign maps normatively to clause 4.1.1. Rebased 99 later plan locations. The monolith and ceiling are now 35,466 lines, down 3,806 from the 39,272-line split-series baseline. No 2010 source, target, fixture, or mapping changed. Next: inspect the bounded untimed federation-save control case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10768; its current plan has nine direct mappings across seven clauses and ten API surfaces, while assertion and callback-model metadata remain unspecified.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "time-save-restore",
+    "id": "extract-2025-federation-save-control",
+    "lane": "federation-save-control",
+    "objective": "Inspect the bounded 2025 untimed federation-save control case and assess a behavior-preserving thematic extraction. Preserve the exact nine requirement-to-canonical-section mappings across seven clauses, ten selected API surfaces, and development-profile classification; derive assertion and callback-model metadata from source rather than assuming it. Keep IEEE 1516.1-2010 sources, targets, fixtures, and mappings separate; do not claim conformance.",
+    "plan_id": "umbra-cpp-save-control-integration",
+    "mapping_seed_plan_id": "umbra-cpp-save-control-integration",
+    "mapping_seed_policy": "Preserve the exact nine direct requirement-section pairs and all ten API surface IDs in the current plan row. Keep the test development-profile only, and keep IEEE 1516.1-2010 evidence separate.",
+    "api_surfaces": [
+      "api.2025.cpp.rtiambassador.requestfederationsave.32986a607094",
+      "api.2025.cpp.rtiambassador.federatesavebegun.4d2693ce9551",
+      "api.2025.cpp.rtiambassador.federatesavecomplete.e775cf801fae",
+      "api.2025.cpp.rtiambassador.federatesavenotcomplete.d5e52be2807e",
+      "api.2025.cpp.rtiambassador.abortfederationsave.75c91752b68d",
+      "api.2025.cpp.rtiambassador.queryfederationsavestatus.765ddc986cd4",
+      "api.2025.cpp.federateambassador.initiatefederatesave.47c9e9fdb49f",
+      "api.2025.cpp.federateambassador.federationsaved.5c6a41e2de0c",
+      "api.2025.cpp.federateambassador.federationnotsaved.a19d023fe53a",
+      "api.2025.cpp.federateambassador.federationsavestatusresponse.9016f4d3a218"
+    ],
+    "test_case": "Embedded federation save control coordinates initiation, status, completion, and abort",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10768",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded federation save control coordinates initiation, status, completion, and abort$",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-save-control-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded federation save control coordinates initiation, status, completion, and abort$\" --output-on-failure",
+      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^federation-save-control$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane federation-save-control --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-save-control-integration --summary --compact",
+      "contract_traceability_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.(save_control_requirements|save_control_api)_traceability$\" --output-on-failure",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Inspect the current federation-save test boundary and derive assertion/callback metadata from source; extract only if it forms a coherent bounded unit.",
+      "If extracted, retain all nine selected requirement-section pairs, all ten APIs, development-profile status, and unchanged behavior; build the 2025 aggregate and run the exact case plus mapping/trace checks.",
+      "Keep all IEEE 1516.1-2010 sources, targets, fixtures, and mappings untouched; do not claim conformance."
     ]
   },
   "documents": [
@@ -17227,17 +17232,18 @@
         "validation",
         "preflight",
         "atomicity",
+        "fom-preparation-failure-atomicity",
         "state-preservation",
         "rti.service.create-federation-execution",
         "rti.service.join-federation-execution",
         "rti.service.destroy-federation-execution"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10768",
+      "source_location": "cpp/tests/ieee1516_2025_embedded_fom_preparation_atomicity_catch2.cpp:4",
       "assertions": 11,
       "standard_sections": [
         "hla-1516.1-2025:clause-4",
-        "hla-1516.1-2025:clause-4.5.5",
-        "hla-1516.1-2025:clause-4.11.4"
+        "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.5.5"
       ],
       "requirements_lab_api_surface_status": "The official Connect, Create Federation Execution, Join Federation Execution, Resign Federation Execution, Destroy Federation Execution, and Disconnect C++ surfaces are exercised in the accepted/rejected FOM-preparation path. The selected Lab candidates anchor compliant-module admission, rejection, FDD merge, and failed-addition exclusion; this row is development-profile atomicity evidence, not a complete FOM/XSD or conformance claim.",
       "status": "implemented-in-noninstallable-development-profile"
@@ -27122,8 +27128,8 @@
         "subscribe-object-class-attributes-default-update-rate",
         "implicit-self-unsubscribe-no-out-of-scope-advisory"
       ],
-      "next_task": "The 2025 final-federate directive-two resignation case is now extracted into its own focused unit with 18 assertions, HLA_EVOKED, four direct requirement mappings across clauses 4.12, 4.12.4, 6.2, and 6.3, and eight selected APIs. The active handoff has moved to the separate FOM-preparation atomicity case under transport-and-conformance; preserve its development-profile boundary and keep the 2010 stream untouched.",
-      "next_action": "The resign-action-final-federate slice is complete. Continue from the active_handoff at umbra-cpp-federation-management-fom-preparation-failure-atomicity-integration, cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10768; inspect whether that bounded 11-assertion HLA_EVOKED FOM-preparation atomicity test merits thematic extraction, preserve all nine selected requirement IDs and six API surfaces, and classify req-federate-disconnect-after-resign as internal without a normative mapping."
+      "next_task": "The 2025 FOM-preparation atomicity case is now extracted into its own focused unit with 11 assertions, HLA_EVOKED, nine direct requirement mappings across clauses 4, 4.1.1, and 4.5.5, and six selected APIs. The active handoff has moved to the distinct untimed save-control case under time-save-restore; preserve each service family and the 2010 stream separately.",
+      "next_action": "The fom-preparation-failure-atomicity slice is complete. Continue from the active_handoff at umbra-cpp-save-control-integration, cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10768; inspect the bounded save-control test and derive its assertion/callback metadata, preserve its nine direct requirement-section pairs and ten selected APIs, and keep it development-profile only with the 2010 stream untouched."
     },
     {
       "id": "time-save-restore",
