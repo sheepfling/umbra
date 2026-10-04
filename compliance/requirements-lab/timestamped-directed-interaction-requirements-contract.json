@@ -27,7 +27,7 @@
         "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
         "cpp/tests/timestamped_directed_interaction_multi_recipient_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -41,7 +41,7 @@
         "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
         "cpp/tests/timestamped_directed_interaction_multi_recipient_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -51,7 +51,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::receiveOrderDirectedInteractionRecipientFor",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped target departure suppresses directed delivery at the grant boundary"
+        "cpp/tests/ieee1516_2025_timestamped_directed_target_departure_catch2.cpp::Embedded timestamped target departure suppresses directed delivery at the grant boundary"
       ]
     },
     {
@@ -82,7 +82,7 @@
         "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -101,7 +101,7 @@
         "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Send Directed Interaction through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -121,8 +121,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live timestamped directed interaction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live timestamped directed interaction",
+        "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -182,8 +182,8 @@
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves TSO retraction-designator uniqueness",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore preserves TSO retraction-designator uniqueness",
+        "cpp/tests/ieee1516_2025_request_retraction_directed_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
       ]
     },
     {
@@ -193,8 +193,8 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_request_retraction_directed_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -204,8 +204,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_request_retraction_directed_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -215,8 +215,8 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoDirectedInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_request_retraction_directed_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -266,7 +266,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped directed interaction classification"
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore preserves a terminal timestamped directed interaction classification"
       ],
       "notes": "The bounded two-member image saves a terminal timestamped Send Directed Interaction tombstone after a successful pre-save Retract, while a separate live passel provides the constrained save-admission frontier. A distinct post-save directed interaction is discarded by restore; the saved handle remains MessageCanNoLongerBeRetracted and the post-save handle is invalid. This does not claim directed callback delivery, live payload recovery, timed, durable, alternate-advance, changed-membership, remote, package/JUnit, or conformance coverage."
     },
@@ -278,7 +278,7 @@
       "source_symbol": "EmbeddedFederationRegistry::resignLocked",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
       ],
       "notes": "This bounded three-survivor fixture separates the target owner, directed interaction producer, constrained recipient, and remaining regulator. The producer resigns with NO_ACTION after the directed TSO payload is accepted; the target stays owned and known by the recipient, and delivery preserves the original producer and retraction metadata before the grant. This is development-profile evidence only; other resignation actions, target/ownership arbitration, alternate advances, recovery, remote transport, package/JUnit/protected-review evidence, and conformance remain open."
     },
@@ -290,7 +290,7 @@
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoDirectedInteraction",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_multi_recipient_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_public_directed_tso_post_delivery_resignation_restore_catch2.cpp::Embedded public fresh-registry restore keeps an ownership-qualified directed TSO route after a peer's post-delivery resignation under HLA_EVOKED and HLA_IMMEDIATE"
       ],
       "notes": "This two-survivor development-profile case proves recipient-local TSO state: after voluntary source resignation, one constrained directed recipient drains its accepted callback before grant while the second remains pending, then the second advances later and receives the same payload exactly once. This is callback-ordering evidence, not a complete multi-recipient, resignation-action, alternate-advance, transport, or conformance matrix."
     },
@@ -312,7 +312,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreTsoPayloadsFromStateImage",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_public_directed_tso_alternate_advances_restore_catch2.cpp::Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE"
       ],
       "notes": "The public fresh-registry regression persists one timestamped directed payload, its per-recipient retraction ledger, and three constrained queue entries to the filesystem save image, then rebinds the same joined-federate identities and report-file lifetime before alternate-advance delivery. This is a focused development-profile save/restore case; ownership transfer, resignation, directed DDM, remote transport, package/JUnit/protected-review evidence, Lab validation, and conformance remain open."
     },
@@ -324,7 +324,7 @@
       "source_symbol": "UmbraRtiAmbassador::flushQueueRequest",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_public_directed_tso_alternate_advances_restore_catch2.cpp::Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE"
       ],
       "notes": "This entry keeps the two standard alternate-advance families queryable together: a direct pre-save directed interaction baseline and the public fresh-registry companion. Both require the Receive Directed Interaction callback to precede the applicable FQR, TARA, or NMRA grant at the inclusive timestamp frontier; broader mixed fanout, resignation, and directed-DDM combinations remain separate."
     },
@@ -335,7 +335,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueTimestampedReceiveOrderDirectedInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_public_directed_tso_alternate_advances_restore_catch2.cpp::Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE"
       ],
       "notes": "The restored callback is checked for target object, empty parameter map, user tag, reliable transportation, producing federate, integer64 timestamp 9, sent/received TIMESTAMP order, and a valid retraction designator before each alternate grant."
     }
