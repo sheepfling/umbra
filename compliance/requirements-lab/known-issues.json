@@ -535,6 +535,25 @@
       "reproduction": "ctest --test-dir .build-mingw-rti -C Debug -R ^umbra\\.ieee1516_2025\\.(mom_service_reporting_requirements|attribute_ownership_acquisition_api)_traceability$ --output-on-failure",
       "verification": "Updated 65 unique selectors (176 contract occurrences) to source files containing the exact TEST_CASE declarations. The MOM service-reporting, ownership-acquisition API, and negotiated-divestiture requirements/API traceability tests pass 4/4; the focused service-tag mapping check passes. No pinned Requirements Lab export, requirement mapping, or normative clause mapping was changed.",
       "detected": "2026-10-04"
+    },
+    {
+      "id": "RL-271",
+      "status": "resolved-in-umbra",
+      "kind": "traceability-contract-selector-drift",
+      "title": "Time-role traceability contracts retain selectors for extracted 2025 cases",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/time-role-requirements-contract.json",
+        "lines": "46 stale selector occurrences across both time-role contracts (9 unique test titles)"
+      },
+      "symptom": "The focused time-role requirements and API traceability CTests reported contract drift because selectors for extracted restore, service-reporting, and timestamped provider-response cases still named `cpp/tests/ieee1516_2025_federation_management_catch2.cpp`.",
+      "impact": "Valid 2025 requirement/API evidence and unchanged runtime tests could not pass the focused traceability gates while contract selectors referenced the old aggregate source path.",
+      "workaround": "Update only the exact stale test source paths to the files containing the corresponding TEST_CASE declarations. Preserve requirement IDs, canonical 2025 clauses, API-surface IDs, and pinned Requirements Lab inputs; do not resynchronize the Lab export.",
+      "reproduction": "ctest --test-dir .build-mingw-rti -C Debug -R ^umbra\\.ieee1516_2025\\.(time_role_requirements_traceability|time_role_api_traceability)$ --output-on-failure",
+      "recurrence_of": "RL-270",
+      "verification": "Corrected all 46 stale selector occurrences across nine test titles. The MOM service-reporting and both time-role traceability CTests pass 3/3; the extracted no-argument time-constrained and adjacent time-regulation service-report tests pass 2/2; both lane mapping checks pass with one mapped case and no missing C++ source locations. No requirement mapping, canonical clause mapping, pinned export, or IEEE 1516.1-2010 file changed.",
+      "detected": "2026-10-04"
     }
   ]
 }

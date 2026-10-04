@@ -16,16 +16,16 @@
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
         "cpp/tests/federation_registry_catch2.cpp::Federation restore rebinds pending time-role callbacks and fences stale work",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds pending time-role callbacks through public callback models",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds pending time-constrained callbacks through public callback models",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds mixed pending time-role callbacks per member",
+        "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp::Embedded federation restore rebinds pending time-role callbacks through public callback models",
+        "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp::Embedded federation restore rebinds pending time-constrained callbacks through public callback models",
+        "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp::Embedded federation restore rebinds mixed pending time-role callbacks per member",
         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores route-free control and temporal state in a fresh registry",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records callback-gated time-regulation services",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records callback-gated time-regulation services",
+        "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_timestamped_object_class_request_provider_response_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE"
       ]
     },
     {
@@ -40,16 +40,16 @@
        "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
        "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
-       "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-       "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+       "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+       "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
        "cpp/tests/federation_registry_catch2.cpp::Federation restore rebinds pending time-role callbacks and fences stale work",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds pending time-role callbacks through public callback models",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds pending time-constrained callbacks through public callback models",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds mixed pending time-role callbacks per member",
+        "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp::Embedded federation restore rebinds pending time-role callbacks through public callback models",
+        "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp::Embedded federation restore rebinds pending time-constrained callbacks through public callback models",
+        "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp::Embedded federation restore rebinds mixed pending time-role callbacks per member",
         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores route-free control and temporal state in a fresh registry",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records callback-gated time-regulation services",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE"
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records callback-gated time-regulation services",
+        "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_timestamped_object_class_request_provider_response_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE"
      ]
    },
     {
@@ -62,8 +62,8 @@
         "cpp/tests/federate_time_state_catch2.cpp::Federate time state keeps time-role enables callback-gated and blocks advances",
         "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
       ]
     },
     {
@@ -77,7 +77,7 @@
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records callback-gated time-regulation services"
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records callback-gated time-regulation services"
       ]
     },
     {
@@ -94,11 +94,11 @@
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
         "cpp/tests/timestamped_default_region_attribute_reenable_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds mixed pending time-role callbacks per member",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records callback-gated no-argument time-constrained services",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
+        "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp::Embedded federation restore rebinds mixed pending time-role callbacks per member",
+        "cpp/tests/ieee1516_2025_time_constrained_no_argument_service_report_file_catch2.cpp::Embedded service reporting records callback-gated no-argument time-constrained services",
+        "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_timestamped_object_class_request_provider_response_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
         "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
       ]
     },
@@ -117,10 +117,10 @@
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
         "cpp/tests/timestamped_default_region_attribute_reenable_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore rebinds mixed pending time-role callbacks per member",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
+        "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp::Embedded federation restore rebinds mixed pending time-role callbacks per member",
+        "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_timestamped_object_class_request_provider_response_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
         "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
       ]
     },
@@ -138,7 +138,7 @@
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
         "cpp/tests/timestamped_default_region_attribute_reenable_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records callback-gated no-argument time-constrained services",
+        "cpp/tests/ieee1516_2025_time_constrained_no_argument_service_report_file_catch2.cpp::Embedded service reporting records callback-gated no-argument time-constrained services",
         "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
       ]
     },
@@ -150,8 +150,8 @@
       "source_symbol": "UmbraRtiAmbassador::queryLookahead",
       "tests": [
         "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease"
       ]
     }
   ]

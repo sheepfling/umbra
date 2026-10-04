@@ -37,53 +37,15 @@
   "last_completed_handoff": {
     "state": "implemented-in-noninstallable-development-profile",
     "family": "time-save-restore",
-    "id": "extract-2025-timestamped-directed-send-service-report-file",
-    "lane": "timestamped-directed-interaction-time-regulated-service-report-file",
-    "objective": "Extract only the mapped IEEE 1516.1-2025 time-regulated timestamped Send Directed Interaction file-report case from the federation-management test suite into a focused translation unit. Preserve its 235 runtime assertions, seven direct requirement-to-2025-clause pairs across six clauses, eight API surfaces, development-profile status, and existing CTest labels. Keep it separate from the MOM report and IEEE 1516.1-2010; make no conformance claim.",
-    "plan_id": "umbra-cpp-timestamped-send-directed-interaction-time-regulated-service-report-file",
-    "mapping_seed_plan_id": "umbra-cpp-timestamped-send-directed-interaction-time-regulated-service-report-file",
-    "mapping_seed_policy": "Preserve all seven requirement IDs and exact direct pairs across clauses 5.1.5, 6.13, 8.1.5, 8.1.6, 8.22.3, and 11.5; preserve all eight API surface IDs, development-profile status, and existing CTest labels. Do not broaden mappings or claim conformance.",
-    "test_case": "Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback",
-    "source_target": "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_directed_interaction_service_report_file_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_time_regulated_timestamped_send_directed_interaction_service_report_file_catch2.cpp:5",
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback$",
-    "ctest_label": "timestamped-directed-interaction-time-regulated-service-report-file",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-timestamped-send-directed-interaction-time-regulated-service-report-file --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records time-regulated timestamped Send Directed Interaction before directed callback$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane directed --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-timestamped-send-directed-interaction-time-regulated-service-report-file --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "Extracted the exact 204-line 2025 test block into a focused translation unit; its 235 runtime assertions, seven direct requirement-clause pairs, eight API surfaces, development-profile status, and existing CTest labels are preserved.",
-      "The 2025 aggregate linked successfully; this file-report case and the MOM companion passed 2/2. All three related Requirements Lab traceability gates passed, the directed-lane mapping check found no cases missing source locations, and the source-size policy now matches the 26,147-line monolith (13,125 lines below the 39,272-line starting baseline).",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
-    ],
-    "requirements": 7,
-    "standard_sections": 6,
-    "api_surface_count": 8,
-    "direct_pairs": 7,
-    "assertions": 235,
-    "callback_models": [
-      "HLA_EVOKED"
-    ]
-  },
-  "active_handoff_note": "Continue reducing oversized 2025 test units with the mapped callback-gated no-argument time-constrained service-report case at cpp/tests/ieee1516_2025_service_report_catch2.cpp:371. Extract this 17-assertion case into a focused translation unit while preserving its one direct requirement-to-2025-clause pair (§11.5.1), four API surfaces, HLA_EVOKED callback behavior, and development-profile status. Keep the change in the 2025 stream; do not touch 2010.",
-  "active_handoff": {
-    "state": "implementation",
-    "family": "time-save-restore",
     "id": "extract-2025-no-argument-time-constrained-service-report-file",
     "lane": "service-report-time-constrained-no-argument-services",
-    "objective": "Extract the mapped IEEE 1516.1-2025 callback-gated no-argument Enable Time Constrained/Disable Time Constrained service-report test from the oversized service-report translation unit into a focused test file. Preserve its 17 assertions, one direct requirement-to-2025-clause pair, four API surfaces, HLA_EVOKED callback behavior, development-profile status, and existing CTest labels. Keep all 2010 sources and mappings untouched.",
+    "objective": "Extract the mapped IEEE 1516.1-2025 callback-gated no-argument Enable Time Constrained/Disable Time Constrained service-report case into a focused test file. Preserve its 17 runtime assertions, one direct requirement-to-2025-clause pair, four API surfaces, HLA_EVOKED callback observation, development-profile status, and existing CTest labels. Reuse the existing shared service-report test and fixture support; keep IEEE 1516.1-2010 untouched and make no conformance claim.",
     "plan_id": "umbra-cpp-service-report-time-constrained-no-argument-services",
     "mapping_seed_plan_id": "umbra-cpp-service-report-time-constrained-no-argument-services",
-    "mapping_seed_policy": "Preserve the existing direct mapping requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35 -> hla-1516.1-2025:clause-11.5.1, all four API surfaces, HLA_EVOKED behavior, and development-profile status. Do not broaden mappings or claim conformance.",
+    "mapping_seed_policy": "Preserve the direct mapping requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35 -> hla-1516.1-2025:clause-11.5.1; preserve the four API surface IDs, HLA_EVOKED behavior, development-profile status, and existing CTest labels. Do not broaden mappings or claim conformance.",
     "test_case": "Embedded service reporting records callback-gated no-argument time-constrained services",
-    "source_target": "cpp/tests/ieee1516_2025_service_report_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:371",
+    "source_target": "cpp/tests/ieee1516_2025_time_constrained_no_argument_service_report_file_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_time_constrained_no_argument_service_report_file_catch2.cpp:11",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records callback-gated no-argument time-constrained services$",
     "ctest_label": "service-report-time-constrained-no-argument-services",
@@ -96,9 +58,47 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Extract only the mapped no-argument time-constrained service-report test into a focused 2025 translation unit; preserve all 17 assertions, its one direct requirement-clause pair, four API surfaces, callback behavior, development-profile status, and existing CTest labels.",
-      "Build the 2025 aggregate, run its exact CTest selector and lane check, and verify the trace/source pointer without broadening mappings.",
-      "Do not change IEEE 1516.1-2010 source, target, fixture, or mapping; make no validation or conformance claim."
+      "Moved this 48-line test into its own 2025 translation unit and reused the existing ReportingFederateAmbassador, RTI factory, temporary-directory, and report-file helpers rather than duplicating them. All 17 assertions, the one direct requirement-clause pair, four API surfaces, callback observation, and labels are preserved.",
+      "The 2025 aggregate linked successfully and the extracted case passed with 17 assertions. The MOM service-reporting, time-role requirement, and time-role API traceability gates passed; the lane check found one mapped case with a valid source location. The former source now uses shared fixture helpers, and its remaining mapped source pointers were updated.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
+    ],
+    "requirements": 1,
+    "standard_sections": 1,
+    "api_surface_count": 4,
+    "direct_pairs": 1,
+    "assertions": 17,
+    "callback_models": [
+      "HLA_EVOKED"
+    ]
+  },
+  "active_handoff_note": "Continue the 2025 service-report extraction lane with the mapped callback-gated Enable Time Regulation/Disable Time Regulation case at cpp/tests/ieee1516_2025_service_report_catch2.cpp:555. Preserve its 17 assertions, the direct §11.5.1 service-report mapping, four API surfaces, HLA_EVOKED callback observation, and development-profile status; keep 2010 separate.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "time-save-restore",
+    "id": "extract-2025-time-regulation-service-report-file",
+    "lane": "service-report-time-regulation-services",
+    "objective": "Extract the mapped IEEE 1516.1-2025 callback-gated Enable Time Regulation/Disable Time Regulation file-report case from the service-report test suite into a focused translation unit. Preserve its 17 assertions, one direct requirement-to-2025-clause pair, four API surfaces, HLA_EVOKED callback observation, development-profile status, and existing CTest labels. Keep IEEE 1516.1-2010 sources and mappings untouched.",
+    "plan_id": "umbra-cpp-service-report-time-regulation-services",
+    "mapping_seed_plan_id": "umbra-cpp-service-report-time-regulation-services",
+    "mapping_seed_policy": "Preserve the direct mapping requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35 -> hla-1516.1-2025:clause-11.5.1, all four API surfaces (Enable/Disable Time Regulation, Evoke Callback, Time Regulation Enabled), HLA_EVOKED behavior, development-profile status, and existing labels. Do not broaden mappings or make a conformance claim.",
+    "test_case": "Embedded service reporting records callback-gated time-regulation services",
+    "source_target": "cpp/tests/ieee1516_2025_service_report_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:555",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records callback-gated time-regulation services$",
+    "ctest_label": "service-report-time-regulation-services",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-service-report-time-regulation-services --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records callback-gated time-regulation services$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane service-report-time-regulation-services --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-service-report-time-regulation-services --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Extract only this mapped 2025 case, preserving all 17 assertions, its direct §11.5.1 mapping, four API surfaces, callback observation, development-profile status, and CTest labels.",
+      "Reuse the shared service-report fixture support; build the aggregate, run the exact CTest selector and lane check, and verify the trace and all shifted source pointers.",
+      "Do not change IEEE 1516.1-2010 source, targets, fixtures, or mappings; make no validation or conformance claim."
     ],
     "requirements": 1,
     "standard_sections": 1,
@@ -284,7 +284,7 @@
       "owner": "time-save-restore",
       "plan_id": "umbra-cpp-service-report-time-constrained-no-argument-services",
       "test_case": "Embedded service reporting records callback-gated no-argument time-constrained services",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:371",
+      "source_location": "cpp/tests/ieee1516_2025_time_constrained_no_argument_service_report_file_catch2.cpp:11",
       "primary_lane": "service-report-time-constrained-no-argument-services",
       "focus_lane": "service-report-time-constrained-no-argument-services",
       "assertions": 17,
@@ -294,7 +294,7 @@
       "callback_models": [
         "HLA_EVOKED"
       ],
-      "next_action": "The focused MinGW case verifies file records for successful no-argument Enable Time Constrained and Disable Time Constrained services, mapped to IEEE 1516.1-2025 §11.5.1. Callback gating is an observed HLA_EVOKED behavior, not an additional normative claim. Next exact source-only handoff: Embedded service reporting records callback-gated time-regulation services at cpp/tests/ieee1516_2025_service_report_catch2.cpp:704."
+      "next_action": "The extracted MinGW case verifies file records for successful no-argument Enable Time Constrained and Disable Time Constrained services, mapped to IEEE 1516.1-2025 §11.5.1. Callback gating is an observed HLA_EVOKED behavior, not an additional normative claim. Continue with the mapped time-regulation service-report extraction at cpp/tests/ieee1516_2025_service_report_catch2.cpp:555."
     },
     "previous_completed_slice": {
       "lane": "directed-send-interaction-service-report-interaction",
@@ -5395,7 +5395,7 @@
         "time-management",
         "time-role"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:371",
+      "source_location": "cpp/tests/ieee1516_2025_time_constrained_no_argument_service_report_file_catch2.cpp:11",
       "primary_lane": "service-report-time-constrained-no-argument-services",
       "focus_lane": "service-report-time-constrained-no-argument-services",
       "assertions": 17,
@@ -11643,7 +11643,7 @@
         "rti.service.set-service-reporting-switch",
         "rti.service.set-send-service-reports-to-file-switch"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:2388",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:2240",
       "assertions": 34,
       "callback_models": [
         "HLA_EVOKED"
@@ -18098,7 +18098,7 @@
         "rti.service.change-interaction-order-type",
         "rti.service.change-default-attribute-transportation-type"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1170",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1022",
       "assertions": 66,
       "callback_models": [
         "HLA_EVOKED",

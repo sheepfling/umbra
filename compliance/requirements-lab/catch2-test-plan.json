@@ -205,7 +205,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting records callback-gated no-argument time-constrained services",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:371",
+      "source_location": "cpp/tests/ieee1516_2025_time_constrained_no_argument_service_report_file_catch2.cpp:11",
       "primary_lane": "service-report-time-constrained-no-argument-services",
       "focus_lane": "service-report-time-constrained-no-argument-services",
       "assertions": 17,
@@ -235,7 +235,7 @@
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting records callback-gated no-argument time-constrained services$",
       "ctest_label": "service-report-time-constrained-no-argument-services",
-      "next_action": "Keep file-report content mapping separate from callback-gating observations. Continue with the next exact source-only C++ handoff after this row is indexed; do not promote the development-profile result as conformance."
+      "next_action": "This 17-assertion case is isolated in a focused 2025 test file and still maps only the successful service-report payload to IEEE 1516.1-2025 §11.5.1. Keep callback gating as an HLA_EVOKED observation, not a normative mapping; continue from the active_handoff in ROADMAP-INDEX."
     },
     {
       "id": "umbra-cpp-service-report-time-regulation-services",
@@ -249,7 +249,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting records callback-gated time-regulation services",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:704",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:555",
       "primary_lane": "service-report-time-regulation-services",
       "focus_lane": "service-report-time-regulation-services",
       "assertions": 17,
@@ -297,7 +297,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting preserves the supplied Next Message Request Available boundary",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:999",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:851",
       "primary_lane": "service-report-next-message-request-available-boundary",
       "focus_lane": "service-report-next-message-request-available-boundary",
       "assertions": 37,
@@ -349,7 +349,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting preserves Request Interaction Transportation Type Change arguments",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1270",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1122",
       "primary_lane": "service-report-request-interaction-transportation-type-change",
       "focus_lane": "service-report-request-interaction-transportation-type-change",
       "assertions": 136,
@@ -394,7 +394,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting preserves Change Default Attribute Transportation Type arguments",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1476",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1328",
       "primary_lane": "service-report-change-default-attribute-transportation-type",
       "focus_lane": "service-report-change-default-attribute-transportation-type",
       "assertions": 151,
@@ -15419,7 +15419,7 @@
         "rti.service.set-send-service-reports-to-file-switch"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:2388",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:2240",
       "assertions": 34,
       "callback_models": [
         "HLA_EVOKED"
@@ -63110,7 +63110,7 @@
         "rti.service.change-default-attribute-transportation-type"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1170",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1022",
       "assertions": 66,
       "callback_models": [
         "HLA_EVOKED",

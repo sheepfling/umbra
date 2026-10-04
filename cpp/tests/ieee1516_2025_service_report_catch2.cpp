@@ -44,14 +44,11 @@
 #error "The 2025 federation-management service-report tests require the Umbra source directory."
 #endif
 
+#include "ieee1516_2025_federation_management_fixture_support.hpp"
+
 namespace {
 
-namespace standard_hla = umbra::detail::hla::wide;
-namespace fixture_hla = umbra::test::hla::wide;
-
 using namespace rti1516_2025;
-
-using TestFederateAmbassador = NullFederateAmbassador;
 
 class ServiceReportFederationEventAmbassador final : public NullFederateAmbassador {
  public:
@@ -160,10 +157,6 @@ class ServiceReportFederateAmbassador final : public NullFederateAmbassador {
     timeRegulationEnabledReports.push_back({time.implementationName(), time.toString()});
   }
 
-  void timeConstrainedEnabled(LogicalTime const& time) override {
-    timeConstrainedEnabledReports.push_back({time.implementationName(), time.toString()});
-  }
-
   void receiveInteraction(
       InteractionClassHandle const& interactionClass,
       ParameterHandleValueMap const& parameterValues,
@@ -264,7 +257,6 @@ class ServiceReportFederateAmbassador final : public NullFederateAmbassador {
   std::vector<TimeAdvanceGrantReport> timeAdvanceGrantReports;
   std::vector<FlushQueueGrantReport> flushQueueGrantReports;
   std::vector<TimeAdvanceGrantReport> timeRegulationEnabledReports;
-  std::vector<TimeAdvanceGrantReport> timeConstrainedEnabledReports;
   std::vector<InteractionReport> interactionReports;
   std::vector<TimestampedInteractionReport> timestampedInteractionReports;
   std::vector<RequestRetractionReport> requestRetractionReports;
@@ -275,147 +267,6 @@ class ServiceReportFederateAmbassador final : public NullFederateAmbassador {
       interactionTransportationTypeChangeReports;
   std::vector<InteractionTransportationTypeReport> interactionTransportationTypeReports;
 };
-
-class ScopedTemporaryFile final {
- public:
-  explicit ScopedTemporaryFile(std::filesystem::path path) : path_(std::move(path)) {}
-  ScopedTemporaryFile(ScopedTemporaryFile const&) = delete;
-  ScopedTemporaryFile& operator=(ScopedTemporaryFile const&) = delete;
-  ~ScopedTemporaryFile() {
-    std::error_code ignored;
-    std::filesystem::remove(path_, ignored);
-  }
-
- private:
-  std::filesystem::path path_;
-};
-
-class ScopedTemporaryDirectory final {
- public:
-  explicit ScopedTemporaryDirectory(std::filesystem::path path)
-      : path_(std::move(path)) {}
-  ScopedTemporaryDirectory(ScopedTemporaryDirectory const&) = delete;
-  ScopedTemporaryDirectory& operator=(ScopedTemporaryDirectory const&) = delete;
-  ~ScopedTemporaryDirectory() {
-    std::error_code ignored;
-    std::filesystem::remove_all(path_, ignored);
-  }
-
-  [[nodiscard]] std::filesystem::path const& path() const noexcept {
-    return path_;
-  }
-
- private:
-  std::filesystem::path path_;
-};
-
-std::unique_ptr<RTIambassador> makeRti() {
-  RTIambassadorFactory factory;
-  return factory.createRTIambassador();
-}
-
-std::filesystem::path resourcePath(std::filesystem::path const& relativePath) {
-  return std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
-      "third_party" / "ieee1516.2-2025" / "resources" / relativePath;
-}
-
-std::wstring nextFederationName() {
-  static std::atomic_uint64_t counter{0};
-  return L"umbra-catch2-federation-" + std::to_wstring(++counter);
-}
-
-ScopedTemporaryDirectory temporaryServiceReportDirectory() {
-  static std::atomic_uint64_t counter{0};
-  auto const parent = std::filesystem::temp_directory_path();
-  for (std::size_t attempt = 0U; attempt != 1024U; ++attempt) {
-    auto const path = parent /
-        ("umbra-service-report-lifecycle-" + std::to_string(++counter));
-    std::error_code error;
-    if (std::filesystem::create_directory(path, error)) {
-      return ScopedTemporaryDirectory(path);
-    }
-    if (error && error != std::errc::file_exists) {
-      throw std::filesystem::filesystem_error(
-          "Unable to reserve a temporary service-report directory", path, error);
-    }
-  }
-  throw std::runtime_error("Unable to reserve a unique temporary service-report directory.");
-}
-
-[[nodiscard]] RtiConfiguration configurationForServiceReportDirectory(
-    std::filesystem::path const& directory) {
-  return umbra::embedded::makeEmbeddedRtiConfiguration(
-      umbra::embedded::ServiceReportConfiguration{directory});
-}
-
-std::vector<std::filesystem::path> serviceReportFiles(
-    std::filesystem::path const& directory) {
-  std::vector<std::filesystem::path> files;
-  for (auto const& entry : std::filesystem::directory_iterator(directory)) {
-    if (entry.is_regular_file()) {
-      files.push_back(entry.path());
-    }
-  }
-  std::sort(files.begin(), files.end());
-  return files;
-}
-
-std::string readTextFile(std::filesystem::path const& path) {
-  std::ifstream input(path, std::ios::binary);
-  REQUIRE(input.good());
-  return {
-      std::istreambuf_iterator<char>(input),
-      std::istreambuf_iterator<char>()};
-}
-
-TEST_CASE(
-    "Embedded service reporting records callback-gated no-argument time-constrained services",
-    "[integration][development-profile][federation-management][mom][service-report-file]"
-    "[service-reporting][time-management][time-role][service-report-time-constrained-no-argument-services][2025]"
-    "[rti.service.enable-time-constrained]"
-    "[rti.service.disable-time-constrained]"
-    "[federate.callback.time-constrained-enabled]") {
-  ServiceReportFederateAmbassador reports;
-  auto rti = makeRti();
-  auto const federationName = nextFederationName();
-  auto const fomModule =
-      (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data" /
-       "switch-support-enabled-fom.xml")
-          .wstring();
-  auto directory = temporaryServiceReportDirectory();
-  auto configuration = configurationForServiceReportDirectory(directory.path());
-  configuration.withRtiAddress(L"in-process");
-
-  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED, configuration));
-  REQUIRE_NOTHROW(
-      rti->createFederationExecution(federationName, fomModule, standard_hla::mom::integer64_time));
-  REQUIRE_NOTHROW(rti->joinFederationExecution(
-      L"time-constrained-report-subject", L"subject", federationName));
-  auto const files = serviceReportFiles(directory.path());
-  REQUIRE(files.size() == 1U);
-  auto const initialText = readTextFile(files.front());
-
-  // The request is reportable immediately, but its semantic completion stays
-  // callback-gated.  The later disable therefore follows the actual Time
-  // Constrained Enabled callback rather than making the pending request look
-  // like enabled state.
-  REQUIRE_NOTHROW(rti->enableTimeConstrained());
-  auto const expectedEnable =
-      R"({"HLAserialNumber":0,"HLAreturnedArgument":[null],"HLAservice":"EnableTimeConstrained","HLAsuppliedArguments":[],"HLAsuccessIndicator":true,"HLAexception":null})";
-  REQUIRE(readTextFile(files.front()) == initialText + expectedEnable);
-  REQUIRE(reports.timeConstrainedEnabledReports.empty());
-  REQUIRE_FALSE(rti->evokeCallback(0.0));
-  REQUIRE(reports.timeConstrainedEnabledReports.size() == 1U);
-
-  REQUIRE_NOTHROW(rti->disableTimeConstrained());
-  auto const expectedDisable =
-      R"({"HLAserialNumber":1,"HLAreturnedArgument":[null],"HLAservice":"DisableTimeConstrained","HLAsuppliedArguments":[],"HLAsuccessIndicator":true,"HLAexception":null})";
-  REQUIRE(readTextFile(files.front()) == initialText + expectedEnable + expectedDisable);
-
-  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
-  REQUIRE_NOTHROW(rti->disconnect());
-}
 
 TEST_CASE(
     "Embedded service reporting records the final Resign Federation Execution invocation",
