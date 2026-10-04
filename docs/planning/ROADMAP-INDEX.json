@@ -37,45 +37,6 @@
   "last_completed_handoff": {
     "state": "implemented-in-noninstallable-development-profile",
     "family": "time-save-restore",
-    "id": "extract-2025-public-fresh-registry-directed-interaction-restore",
-    "lane": "process-restart-directed-interaction-declaration",
-    "objective": "Extract only the mapped IEEE 1516.1-2025 public fresh-registry directed-interaction declaration and report-file-lifetime case into a focused translation unit. Preserve all 172 runtime assertions, nine direct requirement-to-2025-clause pairs across seven clauses, 15 API surfaces, both callback models, development-profile status, and existing CTest labels. Do not merge other restore behavior or touch IEEE 1516.1-2010; make no conformance claim.",
-    "plan_id": "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-declaration-integration",
-    "mapping_seed_plan_id": "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-declaration-integration",
-    "mapping_seed_policy": "Preserve the current nine requirement IDs and exact direct pairs across clauses 4.19, 4.21.1, 4.23, 4.27, 4.32, 5.1.4, and 5.12; preserve all 15 API surface IDs, both callback models, existing CTest labels, and development-profile status. Do not broaden mappings or claim conformance.",
-    "test_case": "Embedded public fresh-registry restore rehydrates directed interaction declaration and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
-    "source_target": "cpp/tests/ieee1516_2025_public_fresh_registry_directed_interaction_restore_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_public_fresh_registry_directed_interaction_restore_catch2.cpp:4",
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore rehydrates directed interaction declaration and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE$",
-    "ctest_label": "process-restart-directed-interaction-declaration",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-declaration-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore rehydrates directed interaction declaration and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane process-restart-directed-interaction-declaration --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-declaration-integration --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The exact 282-line test body now lives in a focused 2025 translation unit with all 172 runtime assertions, nine direct requirement-clause pairs, 15 API surfaces, both callback models, development-profile status, and existing CTest labels preserved.",
-      "The 2025 aggregate linked successfully; this case and its adjacent directed-routing restore boundary test passed 2/2. The process-restart-directed-interaction-declaration mapping gate passes with two mapped Catch2 cases and no missing source pointers; the Requirements Lab trace resolves all nine direct pairs to the same canonical clauses. The source-size policy and handoff pointers pass; the monolith is 27,117 lines (12,155 below the 39,272-line starting baseline).",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
-    ],
-    "requirements": 9,
-    "standard_sections": 7,
-    "api_surface_count": 15,
-    "assertions": 172,
-    "direct_pairs": 9,
-    "callback_models": [
-      "HLA_EVOKED",
-      "HLA_IMMEDIATE"
-    ]
-  },
-  "active_handoff_note": "The next case is Embedded public fresh-registry restore rebinds directed target routing and receive-order delivery under HLA_EVOKED and HLA_IMMEDIATE in cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172. Preserve its 16 direct requirement-to-2025-clause pairs across ten clauses, 25 API surfaces, and both callback models; keep the 2010 stream untouched.",
-  "active_handoff": {
-    "state": "implementation",
-    "family": "time-save-restore",
     "id": "extract-2025-public-fresh-registry-directed-interaction-routing-restore",
     "lane": "process-restart-directed-interaction-routing",
     "objective": "Extract only the mapped IEEE 1516.1-2025 public fresh-registry directed-interaction routing and receive-order delivery case into a focused translation unit. Preserve all 216 runtime assertions, 16 direct requirement-to-2025-clause pairs across ten clauses, 25 API surfaces, both callback models, development-profile status, and existing CTest labels. Do not merge other restore behavior or touch IEEE 1516.1-2010; make no conformance claim.",
@@ -83,8 +44,8 @@
     "mapping_seed_plan_id": "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-routing-integration",
     "mapping_seed_policy": "Preserve the current 16 requirement IDs and exact direct pairs across clauses 4.19, 4.21.1, 4.23, 4.27, 4.32, 5.1.2, 5.1.4, 5.12, 6.10, and 6.8.4; preserve all 25 API surface IDs, both callback models, existing CTest labels, and development-profile status. Do not broaden mappings or claim conformance.",
     "test_case": "Embedded public fresh-registry restore rebinds directed target routing and receive-order delivery under HLA_EVOKED and HLA_IMMEDIATE",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172",
+    "source_target": "cpp/tests/ieee1516_2025_public_fresh_registry_directed_interaction_routing_restore_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_public_fresh_registry_directed_interaction_routing_restore_catch2.cpp:4",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public fresh-registry restore rebinds directed target routing and receive-order delivery under HLA_EVOKED and HLA_IMMEDIATE$",
     "ctest_label": "process-restart-directed-interaction-routing",
@@ -97,18 +58,53 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Extract only this mapped 2025 restore case; preserve all 216 runtime assertions, 16 direct requirement-clause pairs, 25 API surfaces, both callback models, development-profile status, and existing CTest labels.",
-      "Build the 2025 aggregate, run the exact CTest selector and trace, and verify source pointers without changing restore behavior or mappings.",
-      "Keep this public restore slice separate from adjacent cases and all 2010 paths; make no validation or conformance claim."
+      "The exact 322-line source block now lives in a focused 2025 translation unit with all 216 runtime assertions, 16 direct requirement-clause pairs, 25 API surfaces, both callback models, development-profile status, and existing CTest labels preserved.",
+      "The 2025 aggregate linked successfully; this case and its adjacent timestamped target-departure boundary test passed 2/2. The process-restart-directed-interaction-routing mapping gate passes with two mapped Catch2 cases and no missing source pointers; the Requirements Lab trace retains all 16 direct pairs across ten canonical clauses. The source-size policy and handoff pointers pass; the monolith is 26,795 lines (12,477 below the 39,272-line starting baseline).",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
     ],
     "requirements": 16,
     "standard_sections": 10,
     "api_surface_count": 25,
+    "assertions": 216,
     "direct_pairs": 16,
     "callback_models": [
       "HLA_EVOKED",
       "HLA_IMMEDIATE"
     ]
+  },
+  "active_handoff_note": "The next test is Embedded timestamped target departure suppresses directed delivery at the grant boundary in cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172. Preserve its four direct requirement-to-2025-clause pairs across clauses 5.1.5, 6.16, 8.1.5, and 8.1.6, and its six API surfaces; keep this separate from the 2010 stream.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "object-ddm-ownership",
+    "id": "extract-2025-timestamped-directed-target-departure",
+    "lane": "directed",
+    "objective": "Extract only the mapped IEEE 1516.1-2025 timestamped directed-target-departure case from the federation-management test suite into a focused translation unit. Preserve its four direct requirement-to-2025-clause pairs, six API surfaces, development-profile status, and existing CTest labels; keep it separate from neighboring directed-routing behavior and IEEE 1516.1-2010, and make no conformance claim.",
+    "plan_id": "umbra-cpp-timestamped-directed-target-departure-integration",
+    "mapping_seed_plan_id": "umbra-cpp-timestamped-directed-target-departure-integration",
+    "mapping_seed_policy": "Preserve all four requirement IDs and exact direct pairs across clauses 5.1.5, 6.16, 8.1.5, and 8.1.6; preserve all six API surface IDs, development-profile status, and existing CTest labels. Do not broaden mappings or claim conformance.",
+    "test_case": "Embedded timestamped target departure suppresses directed delivery at the grant boundary",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded timestamped target departure suppresses directed delivery at the grant boundary$",
+    "ctest_label": "directed-target-departure",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-timestamped-directed-target-departure-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded timestamped target departure suppresses directed delivery at the grant boundary$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane directed --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-timestamped-directed-target-departure-integration --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Extract only this mapped 2025 target-departure case; preserve all four direct requirement-clause pairs, six API surfaces, development-profile status, and existing CTest labels.",
+      "Build the 2025 aggregate, run the exact CTest selector and trace, and verify source pointers without changing test behavior or mappings.",
+      "Keep timestamped target departure separate from neighboring directed and restore cases and all 2010 paths; make no validation or conformance claim."
+    ],
+    "requirements": 4,
+    "standard_sections": 4,
+    "api_surface_count": 6,
+    "direct_pairs": 4
   },
   "documents": [
     {
@@ -4948,6 +4944,32 @@
     ]
   },
   "recent_completed_slices": [
+    {
+      "plan_id": "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-routing-integration",
+      "test_query": "Embedded public fresh-registry restore rebinds directed target routing and receive-order delivery under HLA_EVOKED and HLA_IMMEDIATE",
+      "lane_queries": [
+        "process-restart-directed-interaction-routing"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_public_fresh_registry_directed_interaction_routing_restore_catch2.cpp:4",
+      "primary_lane": "process-restart-directed-interaction-routing",
+      "focus_lane": "process-restart-directed-interaction-routing",
+      "assertions": 216,
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.19",
+        "hla-1516.1-2025:clause-4.21.1",
+        "hla-1516.1-2025:clause-4.23",
+        "hla-1516.1-2025:clause-4.27",
+        "hla-1516.1-2025:clause-4.32",
+        "hla-1516.1-2025:clause-5.1.2",
+        "hla-1516.1-2025:clause-5.1.4",
+        "hla-1516.1-2025:clause-5.12",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.8.4"
+      ],
+      "requirements": 16,
+      "api_surfaces": 25,
+      "status": "implemented-in-noninstallable-development-profile"
+    },
     {
       "plan_id": "umbra-cpp-public-fresh-registry-federation-save-restore-filesystem-directed-interaction-declaration-integration",
       "test_query": "Embedded public fresh-registry restore rehydrates directed interaction declaration and report-file lifetimes under HLA_EVOKED and HLA_IMMEDIATE",
