@@ -32,7 +32,7 @@
         "cpp/tests/ieee1516_2025_embedded_resign_action_cancel_pending_acquisition_catch2.cpp::Embedded resign action cancels pending ownership acquisition work",
         "cpp/tests/ieee1516_2025_embedded_resign_action_cancel_negotiated_pending_catch2.cpp::Embedded resign action cancels a pending negotiated ownership transfer for the departing acquirer",
         "cpp/tests/ieee1516_2025_embedded_resign_action_cancel_if_available_pending_catch2.cpp::Embedded resign action cancels a pending If Available acquisition for the departing federate",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate resignation applies directive two regardless of the supplied action",
+        "cpp/tests/ieee1516_2025_embedded_resign_action_final_federate_catch2.cpp::Embedded final-federate resignation applies directive two regardless of the supplied action",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate transport loss forces directive two",
         "cpp/tests/ieee1516_2025_embedded_assumption_publication_continuation_catch2.cpp::Embedded assumption search continues after a later eligible publication",
         "cpp/tests/ieee1516_2025_embedded_assumption_discovery_continuation_catch2.cpp::Embedded assumption search continues after a later join and discovery",
