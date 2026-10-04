@@ -35,61 +35,25 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "id": "extract-2025-embedded-ownership-assumption-search-epoch",
-    "state": "implemented-in-noninstallable-development-profile",
-    "plan_id": "umbra-cpp-ownership-assumption-search-epoch-integration",
-    "family": "object-ddm-ownership",
-    "lane": "ownership-assumption-search-epoch",
-    "objective": "Move the 2025 embedded ownership-assumption fresh-epoch case into a focused unit. Preserve its 120-line scenario, 39 assertions, HLA_EVOKED callback model, two direct mappings to clauses 7 and 7.2, all three selected API surfaces, focused lane, and development-profile classification. Keep this distinct from neighboring ownership-search cases and do not claim conformance.",
-    "test_case": "Embedded ownership assumption search starts a fresh epoch after transfer",
-    "source_target": "cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_epoch_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_epoch_catch2.cpp:4",
-    "mapping_seed_policy": "Preserve requirement-candidate-content-clauses-07-ownership-management-page-148-l70-21 -> hla-1516.1-2025:clause-7 and requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49 -> hla-1516.1-2025:clause-7.2; retain all five selected API surfaces in the plan row. Keep this evidence development-profile only, not conformance.",
-    "api_surfaces": [
-      "api.2025.cpp.rtiambassador.unconditionalattributeownershipdivestiture.2570df96a3a7",
-      "api.2025.cpp.federateambassador.requestattributeownershipassumption.51900ab87732",
-      "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b"
-    ],
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded ownership assumption search advances after a declined callback$",
-    "commands": {
-      "case": "python tools/query_rti_work.py case umbra-cpp-ownership-assumption-search-epoch-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded ownership assumption search starts a fresh epoch after transfer$\" --output-on-failure",
-      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^ownership-assumption-search-epoch$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane ownership-assumption-search-epoch --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-ownership-assumption-search-epoch-integration --summary --compact",
-      "contract_traceability_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.ownership_assumption_research_(requirements|api)_traceability$\" --output-on-failure",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The original 120-line scenario is unchanged; its two direct requirement-section mappings, three API surfaces, 39 assertions, lane, and development-profile status are preserved.",
-      "The aggregate target, exact case, focused lane, both relevant requirements/API contract CTests, lane trace/check, JSON, and source-size policy pass.",
-      "The monolith and ceiling fell by 120 lines to 35,908; 100 later plan locations were rebased and the next pending-acquisition source pointer was corrected. No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
-    ]
-  },
-  "active_handoff_note": "Verified progress: This pass moved the 120-line 2025 ownership-assumption fresh-epoch case into a focused unit verbatim. Its two direct clause mappings, three API surfaces, 39 assertions, existing lane, and development-profile classification are preserved. The aggregate build, exact case, focused lane, both relevant contract CTests, mapping/trace, JSON, and size audit pass. Rebased 100 later plan locations and corrected the adjacent pending-acquisition case source pointer to line 10768. The largest test file and ceiling are now 35,908 lines, down 3,364 from the 39,272-line split-series baseline. No 2010 source, target, fixture, or mapping changed. Next: classify and isolate the 51-line pending-acquisition resign-action case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10768; its plan currently lacks assertion, callback-model, primary-lane, and focus-lane metadata, and its declared release-callback tag needs reconciliation with the C++ tags.",
-  "active_handoff": {
     "id": "extract-2025-resign-action-pending-acquisition",
-    "state": "implementation",
+    "state": "implemented-in-noninstallable-development-profile",
+    "plan_id": "umbra-cpp-resign-action-pending-acquisition-integration",
     "family": "object-ddm-ownership",
     "lane": "resign-action-pending-acquisition",
-    "objective": "Move the 2025 pending-acquisition resign-action case into a focused unit. Preserve its 51-line scenario, 16 assertions, HLA_EVOKED callback model, three direct requirement-section pairs over clauses 4.12 and 7.8, three selected API surfaces, and development-profile classification. Add and reconcile the focused lane and callback tags with an exact plan row. Keep all 2010 sources, targets, fixtures, and mappings separate; do not claim conformance.",
-    "plan_id": "umbra-cpp-resign-action-pending-acquisition-integration",
-    "mapping_seed_plan_id": "umbra-cpp-resign-action-pending-acquisition-integration",
-    "mapping_seed_policy": "Preserve requirement-candidate-content-clauses-04-federation-management-page-058-l112-33 -> hla-1516.1-2025:clause-4.12; requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40 -> hla-1516.1-2025:clause-7.8; and requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42 -> hla-1516.1-2025:clause-7.8, plus all three selected API surfaces. Record 16 assertions and HLA_EVOKED callback model, establish primary/focus lane metadata, and reconcile federate.callback.request-attribute-ownership-release with the C++ tags. Keep development-profile classification; do not claim conformance.",
+    "objective": "Move the 50-line 2025 embedded resign-action pending-acquisition case into a focused unit. Preserve its behavior body, 17 assertions, HLA_EVOKED callback model, three direct mappings over clauses 4.12 and 7.8, all three selected API surfaces, focused lane, and development-profile classification. Add the lane/callback source tags and exact plan metadata. Do not claim conformance or cross into IEEE 1516.1-2010.",
+    "test_case": "Embedded resign action rejects pending ownership acquisition work",
+    "source_target": "cpp/tests/ieee1516_2025_embedded_resign_action_pending_acquisition_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_embedded_resign_action_pending_acquisition_catch2.cpp:4",
+    "mapping_seed_policy": "Preserve requirement-candidate-content-clauses-04-federation-management-page-058-l112-33 -> hla-1516.1-2025:clause-4.12; requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40 -> hla-1516.1-2025:clause-7.8; and requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42 -> hla-1516.1-2025:clause-7.8, plus all three selected API surfaces. Record 17 assertions and HLA_EVOKED callback model, focused primary/focus lane, and matching callback tags. Keep this evidence development-profile only, not conformance.",
     "api_surfaces": [
       "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
       "api.2025.cpp.rtiambassador.attributeownershipacquisition.44262cda900b",
       "api.2025.cpp.federateambassador.requestattributeownershiprelease.c700e99706ae"
     ],
-    "test_case": "Embedded resign action rejects pending ownership acquisition work",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10768",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded resign action rejects pending ownership acquisition work$",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-resign-action-pending-acquisition-integration --summary --compact",
+      "case": "python tools/query_rti_work.py case umbra-cpp-resign-action-pending-acquisition-integration --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
       "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded resign action rejects pending ownership acquisition work$\" --output-on-failure",
       "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^resign-action-pending-acquisition$\" --output-on-failure",
@@ -99,9 +63,43 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Move the 51-line, 16-assertion case without behavioral edits; add an explicit source lane tag and exact plan metadata for assertion count, HLA_EVOKED model, source location, and primary/focus lane while preserving three direct pairs, three APIs, and development-profile classification.",
-      "Build the aggregate 2025 target; pass the exact case, new focused lane, all directly relevant API/requirements contract CTests, trace, mapping check, JSON validation, and size audit.",
-      "Keep this resign-action precondition distinct from the neighboring delete-then-divest case and all IEEE 1516.1-2010 sources, targets, fixtures, and mappings."
+      "The original 50-line behavior body matches the committed source exactly; only the focused lane and callback tags were added. The 17 assertions, HLA_EVOKED model, three direct mappings, three API surfaces, and development-profile status are recorded accurately.",
+      "The aggregate target, exact case, focused lane, all four resign/acquisition requirements/API contract CTests, lane trace/check, JSON, and source-size policy pass.",
+      "The monolith and ceiling fell by 51 lines to 35,857; 100 later plan locations were rebased and the next delete-then-divest source pointer was corrected. No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
+    ]
+  },
+  "active_handoff_note": "Verified progress: This pass moved the 50-line 2025 pending-acquisition resign-action body into a focused unit with no behavior changes; only the new lane and request-release callback tags differ from the committed original. The case records 17 assertions, HLA_EVOKED, three direct mappings to clauses 4.12/7.8, three selected API surfaces, and development-profile status. The aggregate build, exact case, focused lane, four relevant contract CTests, mapping/trace, JSON, and size audit pass. Rebased 100 later plan locations and pointed the next directive-4 case to line 10768. The largest test file and ceiling are now 35,857 lines, down 3,415 from the 39,272-line split-series baseline. No 2010 source, target, fixture, or mapping changed. Next: classify and isolate the adjacent delete-then-divest case at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10768; its source plan currently lacks assertion, callback-model, primary-lane, and focus-lane metadata.",
+  "active_handoff": {
+    "id": "extract-2025-resign-action-delete-then-divest",
+    "state": "implementation",
+    "family": "object-ddm-ownership",
+    "lane": "resign-action-delete-then-divest",
+    "objective": "Move the 2025 embedded directive-4 delete-then-divest case into a focused unit. Preserve its 87-line scenario, 32 assertions, HLA_EVOKED callback model, three direct mappings to clause 4.12, selected Resign Federation Execution API surface, and development-profile classification. Establish an exact primary/focus lane and source tag; retain the observed recipient-local callback sequence only as a regression observation. Keep it distinct from pending acquisition and all IEEE 1516.1-2010 sources, targets, fixtures, and mappings; do not claim conformance.",
+    "plan_id": "umbra-cpp-resign-action-delete-then-divest-integration",
+    "mapping_seed_plan_id": "umbra-cpp-resign-action-delete-then-divest-integration",
+    "mapping_seed_policy": "Preserve requirement-candidate-content-clauses-04-federation-management-page-058-l112-33 -> hla-1516.1-2025:clause-4.12, requirement-candidate-content-clauses-04-federation-management-page-058-l125-35 -> hla-1516.1-2025:clause-4.12, and requirement-candidate-content-clauses-04-federation-management-page-058-l147-40 -> hla-1516.1-2025:clause-4.12, plus api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e. Record 32 assertions and HLA_EVOKED callback model; add primary/focus lane metadata and keep the existing remove-object/request-assumption tags. Retain the development-profile classification and observed callback-order description without claiming a normative cross-service order or conformance.",
+    "api_surfaces": [
+      "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e"
+    ],
+    "test_case": "Embedded resign action deletes then divests in one voluntary transition",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10768",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded resign action deletes then divests in one voluntary transition$",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-resign-action-delete-then-divest-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded resign action deletes then divests in one voluntary transition$\" --output-on-failure",
+      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^resign-action-delete-then-divest$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane resign-action-delete-then-divest --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-resign-action-delete-then-divest-integration --summary --compact",
+      "contract_traceability_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.resign_action_(requirements|api)_traceability$\" --output-on-failure",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Move the 87-line, 32-assertion case without behavior edits; record HLA_EVOKED, source location, three direct pairs, one selected API, and primary/focus lane metadata while preserving development-profile status and observational wording.",
+      "Build the aggregate 2025 target; pass the exact case, new focused lane, resign requirements/API contract tests, trace, mapping check, JSON validation, and size audit.",
+      "Keep this directive-4 transition distinct from pending-acquisition and other resign directives, and keep all IEEE 1516.1-2010 sources, targets, fixtures, and mappings unchanged."
     ]
   },
   "documents": [
@@ -774,7 +772,9 @@
       "unconditional-attribute-ownership-divestiture": "object-ddm-ownership",
       "resign-action-unconditional-divestiture": "object-ddm-ownership",
       "resign-action-pending-acquisition-rejection": "object-ddm-ownership",
+      "resign-action-pending-acquisition": "object-ddm-ownership",
       "resign-action-delete-objects": "object-ddm-ownership",
+      "resign-action-delete-then-divest": "object-ddm-ownership",
       "embedded-resign-action-delete-objects": "object-ddm-ownership",
       "embedded-assumption-search-publication-continuation": "multi-federate-callback-ordering",
       "resign-action-final-federate": "object-ddm-ownership",
@@ -26995,7 +26995,9 @@
         "unconditional-attribute-ownership-divestiture",
         "resign-action-unconditional-divestiture",
         "resign-action-pending-acquisition-rejection",
+        "resign-action-pending-acquisition",
         "resign-action-delete-objects",
+        "resign-action-delete-then-divest",
         "resign-action-final-federate",
         "resign-action-cancel-pending-acquisition",
         "resign-action-cancel-negotiated-pending",
@@ -27089,6 +27091,8 @@
         "confirm-divestiture-mixed-set-atomicity",
         "embedded-resign-action-unconditional-divestiture",
         "embedded-resign-action-delete-objects",
+        "resign-action-pending-acquisition",
+        "resign-action-delete-then-divest",
         "negotiated-assumption",
         "regional-object-attribute-region-context",
         "regional-object-attribute-subscription-isolation",
@@ -27109,8 +27113,8 @@
         "subscribe-object-class-attributes-default-update-rate",
         "implicit-self-unsubscribe-no-out-of-scope-advisory"
       ],
-      "next_task": "The §5.8 matrix now has traceable C++ Catch2 mappings for all 18 of 18 requirement candidates. Focused cases cover discovery, registration cardinality and class identity, attribute-set filtering, empty-set mode preservation, passive delivery, additive declarations with per-attribute active/passive changes, and the default update rate when omitted.",
-      "next_action": "The subscription §5.8 mapping lane has no uncovered candidates. Keep the passive-subscription target green (66 assertions) and the additive-subscription target green (38 assertions); the ordinary default-rate case is green at 24 assertions. The latest work was built with MinGW/Ninja and focused CTest passed 2/2 cases in each affected target. This is embedded development-profile evidence, not conformance. Continue on the global bounded source handoff; do not resync the unchanged Requirements Lab."
+      "next_task": "The 50-line 2025 pending-acquisition resign-action case is extracted into a focused unit with 17 assertions, HLA_EVOKED, three direct requirement-section pairs, and all selected API surfaces. The 2025 build, focused CTests, traceability gates, mapping check, and size audit pass; continue with the adjacent directive-4 delete-then-divest case.",
+      "next_action": "Continue from active_handoff: isolate umbra-cpp-resign-action-delete-then-divest-integration at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:10768. First establish assertion, callback, and lane metadata and preserve the three direct clause-4.12 mappings; keep development-profile evidence only and all 2010 streams untouched."
     },
     {
       "id": "time-save-restore",
