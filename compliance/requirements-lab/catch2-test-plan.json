@@ -67833,7 +67833,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This HLA_IMMEDIATE native matrix decodes all five \u00a710.29\u2013\u00a710.33 failed normalization invocations through HLAreportServiceInvocation. Each report preserves service type 6, its official type-50/type-15/type-36/type-27/type-37 supplied arguments, Null returned argument, false success indicator, public exception text, deterministic UNSUPPORTED text for invalid ServiceGroup, and serials zero through four; a successful NormalizeServiceGroup follows at serial five. The Lab has no row-level conditional failure relation (RL-152), so other failure families, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16577",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:14015",
       "assertions": 51,
       "callback_models": [
         "HLA_EVOKED",

@@ -5398,7 +5398,7 @@
         "federate.callback.receive-interaction",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16558",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:14015",
       "primary_lane": "service-report-failed-support-lookup-interaction",
       "focus_lane": "service-report-failed-support-lookup-interaction",
       "assertions": 55,
