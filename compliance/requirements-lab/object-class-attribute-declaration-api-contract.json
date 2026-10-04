@@ -48,7 +48,7 @@
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassAttributes",
       "tests": [
         "cpp/tests/fom_declaration_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks"
+        "cpp/tests/ieee1516_2025_attribute_ownership_acquisition_if_available_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks"
       ]
     },
     {
