@@ -63,7 +63,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::clearOwnershipAssumptionSearch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership assumption search starts a fresh epoch after transfer"
+        "cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_epoch_catch2.cpp::Embedded ownership assumption search starts a fresh epoch after transfer"
       ]
     },
     {
@@ -73,7 +73,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::clearOwnershipAssumptionSearch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded ownership assumption search starts a fresh epoch after transfer"
+        "cpp/tests/ieee1516_2025_embedded_ownership_assumption_search_epoch_catch2.cpp::Embedded ownership assumption search starts a fresh epoch after transfer"
       ]
     }
   ]
