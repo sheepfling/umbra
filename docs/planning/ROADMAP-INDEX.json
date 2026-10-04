@@ -37,45 +37,6 @@
   "last_completed_handoff": {
     "state": "implemented-in-noninstallable-development-profile",
     "family": "object-ddm-ownership",
-    "id": "extract-2025-attribute-ownership-release-denied-multi-acquirer",
-    "lane": "attribute-ownership-release-denied-multi-acquirer",
-    "objective": "Extract the 53-assertion IEEE 1516.1-2025 HLA_EVOKED Attribute Ownership Release Denied case for two regular acquirers into a focused unit. Preserve all four direct requirement-to-2025-clause pairs, all four API surfaces, and the exact ownership-management lane. Keep owner-side release requests, preserved ownership, and both unavailable callbacks bounded; do not broaden mappings or cross into the IEEE 1516.1-2010 stream.",
-    "plan_id": "umbra-cpp-attribute-ownership-release-denied-multi-acquirer-integration",
-    "mapping_seed_plan_id": "umbra-cpp-attribute-ownership-release-denied-multi-acquirer-integration",
-    "mapping_seed_policy": "Preserve the four existing requirement IDs and their direct pairs to clauses 7.8, 7.12, and 7.2; preserve all four API surface IDs, HLA_EVOKED, and development-profile status. Do not broaden the case or claim conformance.",
-    "test_case": "Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
-    "source_target": "cpp/tests/ieee1516_2025_attribute_ownership_release_denied_multi_acquirer_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_attribute_ownership_release_denied_multi_acquirer_catch2.cpp:4",
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers$",
-    "ctest_label": "attribute-ownership-release-denied-multi-acquirer",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-attribute-ownership-release-denied-multi-acquirer-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers$\" --output-on-failure",
-      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^attribute-ownership-release-denied-multi-acquirer$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane attribute-ownership-release-denied-multi-acquirer --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-attribute-ownership-release-denied-multi-acquirer-integration --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "The exact 140-line test body now lives in a focused 2025 translation unit. All 53 assertions, four direct requirement-clause pairs, four API surfaces, and HLA_EVOKED callbacks are preserved; the focused Catch2 lane tag makes the exact case selectable by CTest.",
-      "The 2025 aggregate linked successfully; the exact CTest and dedicated lane label passed 1/1. The ownership lane check and exact trace passed with four direct pairs across clauses 7.2, 7.8, and 7.12. JSON and source-size-policy checks pass, affected monolith pointers were rebased, CMake remains at 12,392 lines, and the monolith is 28,513 lines (10,759 below the 39,272-line starting baseline). The broad mapping audit remains at 22 known query-tag association errors and three non-actionable source-unlocated notices.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
-    ],
-    "requirements": 4,
-    "standard_sections": 3,
-    "api_surface_count": 4,
-    "assertions": 53,
-    "direct_pairs": 4,
-    "callback_models": [
-      "HLA_EVOKED"
-    ]
-  },
-  "active_handoff_note": "Extract the 17-assertion IEEE 1516.1-2025 RTI-owned joined-federate MOM ownership-query case from cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172 into a focused file. Preserve five direct requirement-to-2025-clause pairs, three API surfaces, HLA_EVOKED callbacks, its development-profile status, and the distinct rti-owned-mom-ownership-query lane. Keep the adjacent Confirm Divestiture boundary separate and do not cross into IEEE 1516.1-2010.",
-  "active_handoff": {
-    "state": "implementation",
-    "family": "object-ddm-ownership",
     "id": "extract-2025-rti-owned-mom-ownership-query",
     "lane": "rti-owned-mom-ownership-query",
     "objective": "Extract the 17-assertion IEEE 1516.1-2025 HLA_EVOKED RTI-owned joined-federate MOM ownership-query case into a focused unit. Preserve its five direct requirement-to-2025-clause pairs, three API surfaces, development-profile status, and exact query lane. Keep the adjacent RTI-owned Confirm Divestiture boundary distinct, preserve the current query behavior, and do not cross into the IEEE 1516.1-2010 stream.",
@@ -84,7 +45,7 @@
     "mapping_seed_policy": "Preserve all five existing requirement IDs and direct pairs to clauses 1, 7.17.5, and 7.18.4; preserve all three API surface IDs, HLA_EVOKED, and development-profile status. Do not broaden the case or claim conformance.",
     "test_case": "Embedded RTI-owned MOM attributes participate in ownership queries",
     "source_target": "cpp/tests/ieee1516_2025_rti_owned_mom_ownership_query_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172",
+    "source_location": "cpp/tests/ieee1516_2025_rti_owned_mom_ownership_query_catch2.cpp:4",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded RTI-owned MOM attributes participate in ownership queries$",
     "ctest_label": "rti-owned-mom-ownership-query",
@@ -98,14 +59,53 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Extract only the RTI-owned MOM ownership-query test into a focused 2025 unit, preserving its 17 assertions, five direct requirement-clause pairs, three API surfaces, HLA_EVOKED callbacks, and development-profile disposition.",
-      "Build the 2025 aggregate; run the exact CTest selector, exact lane label, lane mapping check, and trace; verify JSON, source-size policy, and shifted monolith pointers.",
-      "Keep the separate RTI-owned Confirm Divestiture test and all IEEE 1516.1-2010 work outside this slice; make no validation or conformance claim."
+      "The exact 64-line test body now lives in a focused 2025 translation unit; one lane taxonomy tag was added for an exact CTest label. All 17 assertions, five direct requirement-clause pairs, three API surfaces, HLA_EVOKED callbacks, and development-profile disposition are preserved.",
+      "The 2025 aggregate linked successfully; the exact CTest and dedicated lane label passed 1/1. The ownership-query lane check and exact trace passed with five direct pairs across clauses 1, 7.17.5, and 7.18.4. JSON and source-size-policy checks pass, affected monolith pointers were rebased, CMake remains at 12,392 lines, and the monolith is 28,448 lines (10,824 below the 39,272-line starting baseline). The broad mapping audit remains at 22 known query-tag association errors and three non-actionable source-unlocated notices.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
     ],
     "requirements": 5,
     "standard_sections": 3,
     "api_surface_count": 3,
     "assertions": 17,
+    "direct_pairs": 5,
+    "callback_models": [
+      "HLA_EVOKED"
+    ]
+  },
+  "active_handoff_note": "Extract the 22-assertion IEEE 1516.1-2025 HLA_EVOKED Confirm Divestiture case for an RTI-owned joined-federate MOM attribute from cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172 into a focused file. Preserve five direct requirement-to-2025-clause pairs, four API surfaces, the existing rti-owned-mom-confirm-divestiture lane, and public-foundation-not-conformance-evidence status. Keep it separate from the development-profile query case and do not cross into IEEE 1516.1-2010.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "object-ddm-ownership",
+    "id": "extract-2025-rti-owned-mom-confirm-divestiture",
+    "lane": "rti-owned-mom-confirm-divestiture",
+    "objective": "Extract the 22-assertion IEEE 1516.1-2025 HLA_EVOKED Confirm Divestiture case for an RTI-owned joined-federate MOM attribute into a focused unit. Preserve its five direct requirement-to-2025-clause pairs, four API surfaces, existing lane, and public-foundation-not-conformance-evidence status. Keep this mutation-rejection boundary separate from the neighboring development-profile ownership-query case and do not cross into the IEEE 1516.1-2010 stream.",
+    "plan_id": "umbra-cpp-rti-owned-mom-confirm-divestiture-integration",
+    "mapping_seed_plan_id": "umbra-cpp-rti-owned-mom-confirm-divestiture-integration",
+    "mapping_seed_policy": "Preserve all five existing requirement IDs and direct pairs to clauses 7.6.3, 7.17.5, and 7.18.4; preserve all four API surface IDs, HLA_EVOKED, and public-foundation-not-conformance-evidence status. Do not broaden the case or claim conformance.",
+    "test_case": "Embedded Confirm Divestiture rejects an RTI-owned joined-federate MOM attribute",
+    "source_target": "cpp/tests/ieee1516_2025_rti_owned_mom_confirm_divestiture_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25172",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded Confirm Divestiture rejects an RTI-owned joined-federate MOM attribute$",
+    "ctest_label": "rti-owned-mom-confirm-divestiture",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-rti-owned-mom-confirm-divestiture-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded Confirm Divestiture rejects an RTI-owned joined-federate MOM attribute$\" --output-on-failure",
+      "lane_ctest": "ctest --test-dir .build-mingw-rti -C Debug -L \"^rti-owned-mom-confirm-divestiture$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane rti-owned-mom-confirm-divestiture --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-rti-owned-mom-confirm-divestiture-integration --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Extract only the RTI-owned MOM Confirm Divestiture rejection test into a focused 2025 unit, preserving its 22 assertions, five direct requirement-clause pairs, four API surfaces, HLA_EVOKED callbacks, and existing public-foundation disposition.",
+      "Build the 2025 aggregate; run the exact CTest selector and existing lane label, lane mapping check, and trace; verify JSON, source-size policy, and shifted monolith pointers.",
+      "Keep the neighboring development-profile RTI-owned ownership-query case separate, and preserve all IEEE 1516.1-2010 boundaries; make no validation or conformance claim."
+    ],
+    "requirements": 5,
+    "standard_sections": 3,
+    "api_surface_count": 4,
+    "assertions": 22,
     "direct_pairs": 5,
     "callback_models": [
       "HLA_EVOKED"
@@ -4949,6 +4949,28 @@
     ]
   },
   "recent_completed_slices": [
+    {
+      "plan_id": "umbra-cpp-rti-owned-mom-ownership-query-integration",
+      "test_query": "Embedded RTI-owned MOM attributes participate in ownership queries",
+      "lane_queries": [
+        "rti-owned-mom-ownership-query"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_rti_owned_mom_ownership_query_catch2.cpp:4",
+      "primary_lane": "rti-owned-mom-ownership-query",
+      "focus_lane": "rti-owned-mom-ownership-query",
+      "assertions": 17,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-1",
+        "hla-1516.1-2025:clause-7.17.5",
+        "hla-1516.1-2025:clause-7.18.4"
+      ],
+      "requirements": 5,
+      "api_surfaces": 3,
+      "status": "implemented-in-noninstallable-development-profile"
+    },
     {
       "plan_id": "umbra-cpp-attribute-ownership-release-denied-multi-acquirer-integration",
       "test_query": "Embedded Attribute Ownership Release Denied reaches all 2025 regular acquirers",
@@ -11636,7 +11658,7 @@
         "rti.service.update-attribute-values",
         "rti.service.retract"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:72905",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:72840",
       "assertions": 69,
       "callback_models": [
         "HLA_EVOKED"
@@ -11986,7 +12008,7 @@
         "service-reporting",
         "service-report-interaction"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:31608",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:31543",
       "assertions": 115,
       "callback_models": [
         "HLA_EVOKED",
@@ -19092,7 +19114,7 @@
         "federate.callback.time-regulation-enabled",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26964",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26899",
       "assertions": 31,
       "callback_models": [
         "HLA_EVOKED"
@@ -19132,7 +19154,7 @@
         "federate.callback.time-regulation-enabled",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27487",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27422",
       "assertions": 21,
       "callback_models": [
         "HLA_EVOKED"
@@ -19213,7 +19235,7 @@
         "rti.service.evoke-callback",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27562",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27497",
       "assertions": 27,
       "callback_models": [
         "HLA_EVOKED"
@@ -19255,7 +19277,7 @@
         "rti.service.evoke-callback",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27608",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27543",
       "assertions": 24,
       "callback_models": [
         "HLA_EVOKED"
@@ -21519,7 +21541,7 @@
         "federate.callback.multiple-object-instance-name-reservation-succeeded",
         "federate.callback.multiple-object-instance-name-reservation-failed"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27698",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:27633",
       "assertions": 68,
       "callback_models": [
         "HLA_EVOKED"
