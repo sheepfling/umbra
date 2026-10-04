@@ -13,7 +13,7 @@
       "source_symbol": "EmbeddedFederationRegistry::requestFederationSave",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries",
+        "cpp/tests/ieee1516_2025_untimed_save_time_constrained_admission_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries",
         "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
         "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead",
@@ -28,7 +28,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitImmediateFederationSaveAtTimeAdvanceBoundary",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries"
+        "cpp/tests/ieee1516_2025_untimed_save_time_constrained_admission_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries"
       ]
     },
     {
@@ -49,7 +49,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries",
+        "cpp/tests/ieee1516_2025_untimed_save_time_constrained_admission_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries",
         "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore reschedules a saved pending time advance"
       ]
     },
@@ -72,7 +72,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries"
+        "cpp/tests/ieee1516_2025_untimed_save_time_constrained_admission_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries"
       ]
     },
     {
