@@ -592,6 +592,25 @@
       "recurrence_of": "RL-272",
       "verification": "Corrected 17 stale selector occurrences across the MOM service-reporting and Next Message requirements/API contracts, covering five test titles. The three traceability CTests pass 3/3, seven focused behavior regressions pass 7/7, and both Next Message/service-report lane mapping checks pass with valid source locations. No requirement mapping, canonical clause mapping, pinned Lab export, or IEEE 1516.1-2010 source or mapping changed.",
       "detected": "2026-10-04"
+    },
+    {
+      "id": "RL-274",
+      "status": "resolved-in-umbra",
+      "kind": "traceability-contract-selector-drift",
+      "title": "Transportation-type contracts retain selectors for extracted 2025 cases",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/transportation-type-change-api-contract.json",
+        "lines": "22 stale selector occurrences across two transportation contracts and six test titles"
+      },
+      "symptom": "The transportation API and interaction transport-requirements traceability CTests failed because selectors for six 2025 cases still named `cpp/tests/ieee1516_2025_federation_management_catch2.cpp`, although those cases were in the custom-transportation or service-report test files.",
+      "impact": "The stale selectors caused focused traceability contract drift for existing requirement/API evidence and prevented the transportation traceability gates from passing.",
+      "workaround": "Update only the source-qualified selectors to the translation units containing the corresponding TEST_CASE declarations. For the current extraction, update its six MOM selectors to the new focused 2025 file. Preserve requirement IDs, canonical clauses, API-surface IDs, and pinned Requirements Lab inputs; do not resynchronize the Lab export.",
+      "reproduction": "ctest --test-dir .build-mingw-rti -C Debug -R \"interaction_transportation_type_change_requirements_traceability|transportation_type_change_api_traceability|mom_service_reporting_requirements_traceability\" --output-on-failure",
+      "recurrence_of": "RL-273",
+      "verification": "Corrected all 22 pre-existing stale selectors across the two transportation contracts and six test titles, then moved the Request Interaction case's six MOM selectors to its new file. The transportation API, interaction requirements, and MOM traceability CTests pass 3/3; the extracted case, four neighboring service-report cases, and transport-control regression pass 6/6. Both current and next lane checks pass with valid source locations. No requirement/clause/API mapping, pinned export, or IEEE 1516.1-2010 source or mapping changed.",
+      "detected": "2026-10-04"
     }
   ]
 }

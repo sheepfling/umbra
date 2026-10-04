@@ -349,7 +349,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting preserves Request Interaction Transportation Type Change arguments",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:970",
+      "source_location": "cpp/tests/ieee1516_2025_request_interaction_transportation_type_change_service_report_file_catch2.cpp:11",
       "primary_lane": "service-report-request-interaction-transportation-type-change",
       "focus_lane": "service-report-request-interaction-transportation-type-change",
       "assertions": 136,
@@ -394,7 +394,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting preserves Change Default Attribute Transportation Type arguments",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1176",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1083",
       "primary_lane": "service-report-change-default-attribute-transportation-type",
       "focus_lane": "service-report-change-default-attribute-transportation-type",
       "assertions": 151,
@@ -15419,7 +15419,7 @@
         "rti.service.set-send-service-reports-to-file-switch"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:2088",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1995",
       "assertions": 34,
       "callback_models": [
         "HLA_EVOKED"
@@ -36760,6 +36760,9 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting preserves Request Attribute Transportation Type Change arguments",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:970",
+      "primary_lane": "request-attribute-transportation-type-change",
+      "focus_lane": "request-attribute-transportation-type-change",
       "tags": [
         "integration",
         "development-profile",
