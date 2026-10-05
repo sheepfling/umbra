@@ -37,53 +37,15 @@
   "last_completed_handoff": {
     "state": "implemented-in-noninstallable-development-profile",
     "family": "time-save-restore",
-    "id": "extract-2025-flush-queue-request-grant-dispatch-catch2-file",
-    "lane": "flush-queue-grant-logical-time-gating",
-    "objective": "Extract the already mapped IEEE 1516.1-2025 HLA_EVOKED Flush Queue Request case into the focused flush-queue translation unit. Preserve its 21 assertions, one direct requirement-section pair to canonical clause 8, five C++ API surfaces, explicit callback dispatch boundary, and exact CTest behavior. Keep its callback semantics distinct from HLA_IMMEDIATE and keep IEEE 1516.1-2010 separate.",
-    "plan_id": "umbra-cpp-flush-queue-request-logical-time-gating-integration",
-    "mapping_seed_plan_id": "umbra-cpp-flush-queue-request-logical-time-gating-integration",
-    "mapping_seed_policy": "Retained only the exact plan row's one direct requirement-to-canonical-2025-section pair and five API surfaces; no mappings were broadened and no 2010 evidence was used.",
-    "test_case": "Embedded Flush Queue Request changes logical time only at Flush Queue Grant dispatch",
-    "source_target": "cpp/tests/ieee1516_2025_flush_queue_request_grant_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_flush_queue_request_grant_catch2.cpp:44",
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ Flush\\ Queue\\ Request\\ changes\\ logical\\ time\\ only\\ at\\ Flush\\ Queue\\ Grant\\ dispatch$",
-    "ctest_label": "flush-queue-grant-logical-time-gating",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-flush-queue-request-logical-time-gating-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ Flush\\ Queue\\ Request\\ changes\\ logical\\ time\\ only\\ at\\ Flush\\ Queue\\ Grant\\ dispatch$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane flush-queue-grant-logical-time-gating --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-flush-queue-request-logical-time-gating-integration --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "Moved the 21-assertion HLA_EVOKED Flush Queue Request case into the focused 2025 translation unit with its explicit callback dispatch boundary, one direct clause-8 pair, five API surfaces, and development-profile classification preserved; its body matched the original exactly.",
-      "The 2025 aggregate built and the exact moved CTest passed (1/1). The lane and historical checks pass, and the explicit source pointer and API/requirement mapping remain exact.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
-    ],
-    "requirements": 1,
-    "standard_sections": 1,
-    "api_surface_count": 5,
-    "direct_pairs": 1,
-    "assertions": 21,
-    "callback_models": [
-      "HLA_EVOKED"
-    ]
-  },
-  "active_handoff_note": "Next, extract the already mapped 2025 case 'Embedded public time management preserves the official HLAfloat64Time representation' from cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22789 into a focused float64-time translation unit. Preserve all 31 assertions, 15 direct requirement-to-canonical-2025-section pairs, 14 API surfaces, HLA_EVOKED behavior, and exact CTest selector; keep all 2010 sources and mappings separate.",
-  "active_handoff": {
-    "state": "new-case-needed",
-    "family": "time-save-restore",
-    "lane": "time-save-restore",
     "id": "extract-2025-public-float64-time-representation-catch2-file",
+    "lane": null,
     "objective": "Extract the already mapped IEEE 1516.1-2025 public HLAfloat64Time representation test into a focused translation unit. Preserve its exact behavior, 31 assertions, 15 direct requirement-section pairs across 12 canonical 2025 clauses, 14 API surfaces, HLA_EVOKED behavior, and exact CTest selector. Keep IEEE 1516.1-2010 separate.",
     "plan_id": "umbra-cpp-public-float64-time-representation-integration",
     "mapping_seed_plan_id": "umbra-cpp-public-float64-time-representation-integration",
-    "mapping_seed_policy": "Retain only the existing plan row's 15 direct requirement-to-canonical-2025-section pairs and 14 API surfaces; do not broaden mappings or cross into IEEE 1516.1-2010.",
+    "mapping_seed_policy": "Retained only the existing plan row's 15 direct requirement-to-canonical-2025-section pairs and 14 API surfaces; no mappings were broadened and no 2010 evidence was used.",
     "test_case": "Embedded public time management preserves the official HLAfloat64Time representation",
-    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22789",
+    "source_target": "cpp/tests/ieee1516_2025_public_float64_time_representation_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_public_float64_time_representation_catch2.cpp:5",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded public time management preserves the official HLAfloat64Time representation$",
     "ctest_label": "float-time",
@@ -91,14 +53,14 @@
       "source_query": "python tools/query_rti_work.py case umbra-cpp-public-float64-time-representation-integration --summary --compact",
       "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
       "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded public time management preserves the official HLAfloat64Time representation$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --family time-save-restore --summary --compact",
+      "mapping_check": "python tools/query_rti_work.py case umbra-cpp-public-float64-time-representation-integration --summary --compact",
       "trace": "python tools/query_rti_work.py trace umbra-cpp-public-float64-time-representation-integration --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "The case is already mapped in Requirements Lab; preserve its exact 15 direct requirement-section pairs, 12 canonical clauses, and 14 API surfaces without assigning a new test lane.",
-      "Extract the 31-assertion HLA_EVOKED case into a focused 2025 translation unit and update only its source pointer; keep all 2010 tests, fixtures, mappings, and targets untouched.",
-      "Build the 2025 aggregate and run the exact CTest plus focused lane/historical checks. Make no validation or conformance claim."
+      "Moved the 31-assertion HLA_EVOKED public HLAfloat64Time test into a focused 2025 translation unit with its exact 15 direct pairs, 12 canonical clauses, 14 API surfaces, and development-profile classification preserved; its body matched the original exactly.",
+      "The 2025 aggregate built, the exact CTest passed (1/1), and the exact case and trace queries retain the source pointer and mapping. The broad time-save-restore check still reports two unrelated rows with missing query tags; no lane or mapping was invented for this case.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
     ],
     "requirements": 15,
     "standard_sections": 12,
@@ -108,6 +70,43 @@
     "callback_models": [
       "HLA_EVOKED"
     ]
+  },
+  "active_handoff_note": "Next, split the bounded control-state section (federation lookup, advisory/configuration switches, and joined-federate MOM control) from cpp/src/internal/federation/federation_registry.cpp:12314-13144 into cpp/src/internal/federation/federation_registry_control_state.cpp. It contains 831 lines and has no references to the file's anonymous-namespace helpers. Preserve method bodies exactly, leave behavior and Requirements-Lab mappings unchanged, and keep the 2010 stream separate.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "time-save-restore",
+    "lane": "federation-registry-control-state-source-split",
+    "id": "split-federation-registry-control-state-source-file",
+    "test_case": "Source-only registry refactor; use the existing Embedded MOM HLAsetTiming drives joined-federate periodic values case as a regression anchor only",
+    "objective": "Move the 831-line out-of-line federation lookup, advisory/configuration switch, and joined-federate MOM control section at lines 12314-13144 of federation_registry.cpp into federation_registry_control_state.cpp. Preserve all function bodies and behavior; do not alter public API, state semantics, tests, or Requirements-Lab mappings. Keep IEEE 1516.1-2010 separate.",
+    "mapping_seed_plan_id": "umbra-cpp-mom-hla-set-timing-periodic-values",
+    "mapping_seed_policy": "This existing 2025 test row is referenced only as a regression anchor for the MOM timing portion; retain its one direct pair and 13 API surfaces unchanged. Do not add a source-only mapping, new behavioral test, or lane.",
+    "source_target": "cpp/src/internal/federation/federation_registry.cpp",
+    "source_location": "cpp/src/internal/federation/federation_registry.cpp:12314-13144",
+    "target_file": "cpp/src/internal/federation/federation_registry_control_state.cpp",
+    "ctest_target": "umbra_federation_registry_catch2",
+    "ctest_filter": "umbra_federation_registry_catch2",
+    "ctest_label": "federation-registry",
+    "commands": {
+      "source_query": "rg -n '^.*EmbeddedFederationRegistry::' cpp/src/internal/federation/federation_registry.cpp",
+      "build": "cmake --build .build-mingw-rti --target umbra_federation_registry_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R umbra_federation_registry_catch2 --output-on-failure",
+      "regression_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded MOM HLAsetTiming drives joined-federate periodic values$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Move only the exact line-bounded method section; preserve every body and required include, and keep the new source file below the 2,000-line soft limit.",
+      "Build umbra_federation_registry_catch2 and run its focused CTest; run the source-size policy and confirm the catch2-test-plan.json diff remains empty for this source-only refactor.",
+      "Do not add a behavioral test lane or requirement mapping for a source-only move. Keep all 2010 sources, targets, tests, fixtures, and mappings untouched."
+    ],
+    "plan_id": "umbra-cpp-mom-hla-set-timing-periodic-values",
+    "requirements": 0,
+    "standard_sections": 0,
+    "api_surface_count": 0,
+    "direct_pairs": 0,
+    "assertions": 0,
+    "callback_models": []
   },
   "documents": [
     {
@@ -282,6 +281,23 @@
       "service_report_store_mapped_cases": 13
     },
     "latest_completed_slice": {
+      "lane": null,
+      "owner": "time-save-restore",
+      "plan_id": "umbra-cpp-public-float64-time-representation-integration",
+      "test_case": "Embedded public time management preserves the official HLAfloat64Time representation",
+      "source_location": "cpp/tests/ieee1516_2025_public_float64_time_representation_catch2.cpp:5",
+      "primary_lane": null,
+      "focus_lane": null,
+      "assertions": 31,
+      "requirements": 15,
+      "standard_sections": 12,
+      "api_surfaces": 14,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "next_action": "The 31-assertion public HLAfloat64Time case matched its original body exactly and now has a focused 2025 translation unit; its aggregate build, exact CTest, case query, and trace pass with all 15 direct pairs and 14 API surfaces intact. The broad family check still reports two unrelated rows missing query tags. Next split the 831-line control-state section from cpp/src/internal/federation/federation_registry.cpp:12314-13144; keep 2010 separate."
+    },
+    "previous_completed_slice": {
       "lane": "flush-queue-grant-logical-time-gating",
       "owner": "time-save-restore",
       "plan_id": "umbra-cpp-flush-queue-request-logical-time-gating-integration",
@@ -296,9 +312,9 @@
       "callback_models": [
         "HLA_EVOKED"
       ],
-      "next_action": "The 21-assertion HLA_EVOKED Flush Queue Request case matched its original body exactly and now shares a focused 2025 translation unit with the behaviorally distinct HLA_IMMEDIATE companion. Its aggregate build, exact CTest, lane/historical audit, and mapping trace pass. Next extract the 31-assertion public HLAfloat64Time representation test from cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22789, retaining its 15 direct pairs and 14 API surfaces; keep 2010 separate."
+      "next_action": "The 21-assertion HLA_EVOKED Flush Queue Request case matched its original body exactly and now shares a focused 2025 translation unit with the behaviorally distinct HLA_IMMEDIATE companion. Its aggregate build, exact CTest, lane/historical audit, and mapping trace pass."
     },
-    "previous_completed_slice": {
+    "prior_completed_slice": {
       "lane": "flush-queue-grant-logical-time-gating",
       "owner": "time-save-restore",
       "plan_id": "umbra-cpp-flush-queue-request-logical-time-gating-immediate-integration",
@@ -315,7 +331,7 @@
       ],
       "next_action": "The 17-assertion HLA_IMMEDIATE Flush Queue Request case moved unchanged into a focused 2025 translation unit with its one direct clause-8 pair and five API surfaces retained. Its aggregate build, exact CTest, trace, and size-policy checks pass."
     },
-    "prior_completed_slice": {
+    "earlier_completed_slice": {
       "lane": "request-retraction-suppressed-interaction",
       "owner": "time-save-restore",
       "plan_id": "umbra-cpp-request-retraction-suppressed-interaction-integration",
@@ -331,23 +347,6 @@
         "HLA_EVOKED"
       ],
       "next_action": "The 31-assertion suppressed-interaction retraction case matched the original body exactly and moved into a focused 2025 translation unit with six direct pairs across five clauses and five API surfaces. Its exact CTest, lane check, historical audit, and source-size guard pass."
-    },
-    "earlier_completed_slice": {
-      "lane": "timestamped-update-retraction-immediate-only-recipient",
-      "owner": "time-save-restore",
-      "plan_id": "umbra-cpp-timestamped-update-attribute-retraction-immediate-only-recipient-integration",
-      "test_case": "Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
-      "source_location": "cpp/tests/ieee1516_2025_timestamped_update_retraction_immediate_only_recipient_catch2.cpp:5",
-      "primary_lane": "timestamped-update-retraction-immediate-only-recipient",
-      "focus_lane": "timestamped-update-retraction-immediate-only-recipient",
-      "assertions": 57,
-      "requirements": 11,
-      "standard_sections": 6,
-      "api_surfaces": 6,
-      "callback_models": [
-        "HLA_EVOKED"
-      ],
-      "next_action": "The exact HLA_EVOKED immediate-only-recipient timestamped Update Attribute Values retraction case moved into a focused translation unit with 57 assertions, 11 direct requirement-section pairs across six 2025 clauses, and six API surfaces. Its exact CTest and traceability checks pass."
     },
     "latest_verified_restore_slice": {
       "id": "federation-registry-negotiated-ownership-assumption-ledger-restore",
@@ -19285,7 +19284,9 @@
         "federate.callback.time-regulation-enabled",
         "federate.callback.time-advance-grant"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25699",
+      "source_location": "cpp/tests/ieee1516_2025_public_float64_time_representation_catch2.cpp:5",
+      "primary_lane": null,
+      "focus_lane": null,
       "assertions": 31,
       "callback_models": [
         "HLA_EVOKED"
@@ -19305,6 +19306,7 @@
         "hla-1516.1-2025:clause-8.21.5"
       ],
       "requirements_lab_api_surface_status": "The official Connect/Create/Join, selected time-factory, Query Logical Time, Query Lookahead, Enable Time Regulation, Time Advance Request, Evoke Callback, Time Regulation Enabled, and Time Advance Grant C++ surfaces are exercised through the embedded HLAfloat64Time development profile. The joined federate starts at the float64 initial value, reports the selected factory and implementation name, keeps logical time at zero until the grant, delivers the regulation callback through HLA_EVOKED, preserves the requested 0.25 lookahead, and advances to 1.5 only when the Time Advance Grant is evoked. This is bounded representation and ordinary TAR evidence; it does not claim alternate advance modes, time-constrained enablement, TSO ordering, DDM, interaction/object delivery, ownership, save/restore, MOM, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
+      "api_surfaces": 14,
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
