@@ -394,7 +394,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting preserves Change Default Attribute Transportation Type arguments",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:970",
+      "source_location": "cpp/tests/ieee1516_2025_change_default_attribute_transportation_type_service_report_file_catch2.cpp:11",
       "primary_lane": "service-report-change-default-attribute-transportation-type",
       "focus_lane": "service-report-change-default-attribute-transportation-type",
       "assertions": 151,
@@ -15419,7 +15419,7 @@
         "rti.service.set-send-service-reports-to-file-switch"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1882",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1790",
       "assertions": 34,
       "callback_models": [
         "HLA_EVOKED"
