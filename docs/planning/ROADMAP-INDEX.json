@@ -37,67 +37,15 @@
   "last_completed_handoff": {
     "state": "implemented-in-noninstallable-development-profile",
     "family": "mom-after-base-services",
-    "id": "extract-2025-query-attribute-transportation-type-service-report-file",
-    "lane": "service-report-query-attribute-transportation-type",
-    "objective": "Extract the mapped IEEE 1516.1-2025 Query Attribute Transportation Type service-report case into a focused translation unit. Preserve all 118 assertions, seven direct requirement-section pairs across six 2025 clauses, two API surfaces, HLA_EVOKED file/callback behavior, development-profile status, and existing CTest behavior. Keep IEEE 1516.1-2010 sources and mappings untouched.",
-    "plan_id": "umbra-cpp-service-report-file-query-attribute-transportation-type-integration",
-    "mapping_seed_plan_id": "umbra-cpp-service-report-file-query-attribute-transportation-type-integration",
-    "mapping_seed_policy": "Preserved requirement-candidate-content-clauses-06-object-management-page-142-l173-48 -> clause-6.28; requirement-candidate-content-clauses-06-object-management-page-143-l156-42 -> clause-6.29.1; requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5 -> clause-11.5; requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30 and requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37 -> clause-11.5.1; requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31 -> clause-11.5.2; requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8 -> clause-11.5.2.1. Preserved both selected API surfaces, HLA_EVOKED behavior, development-profile classification, existing tags, and CTest selectors; no mappings were broadened and no conformance claim is made.",
-    "test_case": "Embedded service reporting preserves Query Attribute Transportation Type arguments",
-    "source_target": "cpp/tests/ieee1516_2025_query_attribute_transportation_type_service_report_file_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_query_attribute_transportation_type_service_report_file_catch2.cpp:11",
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Query Attribute Transportation Type arguments$",
-    "ctest_label": "service-report-query-attribute-transportation-type",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-service-report-file-query-attribute-transportation-type-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Query Attribute Transportation Type arguments$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane service-report-query-attribute-transportation-type --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-service-report-file-query-attribute-transportation-type-integration --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "Moved the 118-assertion Query Attribute Transportation Type case into a focused 2025 translation unit, preserving the test body while reusing ReportingFederateAmbassador and adding a focused lane tag. Its seven direct pairs across six clauses, two API surfaces, callback behavior, and development-profile status remain unchanged.",
-      "The 2025 aggregate built and six focused neighboring regressions passed. The exact lane check and trace show one mapped case with a valid focused source location. Updated only the source selectors affected by extraction; existing direct mappings were unchanged.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
-    ],
-    "requirements": 7,
-    "standard_sections": 6,
-    "api_surface_count": 2,
-    "direct_pairs": 7,
-    "assertions": 118,
-    "callback_models": [
-      "HLA_EVOKED"
-    ]
-  },
-  "active_handoff_note": "Continue by extracting the mapped Query Interaction Transportation Type service-report case from cpp/tests/ieee1516_2025_service_report_catch2.cpp:970. Preserve its nine direct mappings across six 2025 sections, two API surfaces, HLA_EVOKED file/callback behavior, and development-profile classification; add focused lane/source metadata and keep 2010 separate.",
-  "active_handoff": {
-    "state": "implementation",
-    "family": "mom-after-base-services",
     "id": "extract-2025-query-interaction-transportation-type-service-report-file",
     "lane": "service-report-query-interaction-transportation-type",
-    "objective": "Extract the mapped IEEE 1516.1-2025 Query Interaction Transportation Type service-report case into a focused translation unit. Preserve its nine direct requirement-to-subsection mappings across six sections, two API surfaces, HLA_EVOKED file-report and callback behavior, existing development-profile classification, and CTest behavior. Add exact source location and focused lane metadata to its existing test-plan row. Keep IEEE 1516.1-2010 sources and mappings untouched.",
+    "objective": "Extract the mapped IEEE 1516.1-2025 Query Interaction Transportation Type service-report case into a focused translation unit. Preserve all 117 assertions, nine direct requirement-section pairs across six 2025 clauses, two API surfaces, HLA_EVOKED file/callback behavior, development-profile status, and existing CTest behavior. Keep IEEE 1516.1-2010 sources and mappings untouched.",
     "plan_id": "umbra-cpp-service-report-file-query-interaction-transportation-type-integration",
     "mapping_seed_plan_id": "umbra-cpp-service-report-file-query-interaction-transportation-type-integration",
-    "mapping_seed_policy": "Preserve all nine current direct pairs: requirement-candidate-content-clauses-06-object-management-page-146-l58-12 -> clause-6.32.5; requirement-candidate-content-clauses-06-object-management-page-147-l24-3, page-147-l30-5, and page-147-l33-6 -> clause-6.33.6; requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5 -> clause-11.5; requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30 and page-292-l114-37 -> clause-11.5.1; requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31 -> clause-11.5.2; requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8 -> clause-11.5.2.1. Preserve Query Interaction Transportation Type and Report Interaction Transportation Type API surfaces, existing tags, HLA_EVOKED behavior, and development-profile limits. Do not broaden mappings or make a conformance claim.",
+    "mapping_seed_policy": "Preserved requirement-candidate-content-clauses-06-object-management-page-146-l58-12 -> clause-6.32.5; requirement-candidate-content-clauses-06-object-management-page-147-l24-3, page-147-l30-5, and page-147-l33-6 -> clause-6.33.6; requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5 -> clause-11.5; page-292-l93-30 and page-292-l114-37 -> clause-11.5.1; page-293-l95-31 -> clause-11.5.2; page-294-l26-8 -> clause-11.5.2.1. Preserved Query Interaction Transportation Type and Report Interaction Transportation Type API surfaces, HLA_EVOKED behavior, development-profile classification, existing tags, and CTest selectors; no mappings were broadened and no conformance claim is made.",
     "test_case": "Embedded service reporting preserves Query Interaction Transportation Type arguments",
-    "source_target": "cpp/tests/ieee1516_2025_service_report_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:970",
-    "primary_lane": "service-report-query-interaction-transportation-type",
-    "focus_lane": "service-report-query-interaction-transportation-type",
-    "assertions": 117,
-    "callback_models": [
-      "HLA_EVOKED"
-    ],
-    "standard_sections": [
-      "hla-1516.1-2025:clause-6.32.5",
-      "hla-1516.1-2025:clause-6.33.6",
-      "hla-1516.1-2025:clause-11.5",
-      "hla-1516.1-2025:clause-11.5.1",
-      "hla-1516.1-2025:clause-11.5.2",
-      "hla-1516.1-2025:clause-11.5.2.1"
-    ],
+    "source_target": "cpp/tests/ieee1516_2025_query_interaction_transportation_type_service_report_file_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_query_interaction_transportation_type_service_report_file_catch2.cpp:11",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Query Interaction Transportation Type arguments$",
     "ctest_label": "service-report-query-interaction-transportation-type",
@@ -110,14 +58,53 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Move only the Query Interaction Transportation Type service-report case. Preserve every assertion, callback observation, direct requirement mapping, API surface, existing tag, and development-profile boundary; add only the exact missing source/lane metadata.",
-      "Build the aggregate, run the exact CTest and neighboring query regressions, check the focused lane and trace, and update only selectors and source pointers affected by the extraction.",
-      "Do not change IEEE 1516.1-2010 sources or mappings; make no validation or conformance claim."
+      "Moved the 117-assertion Query Interaction Transportation Type case into a focused 2025 translation unit, preserving the test body while reusing ReportingFederateAmbassador and adding its focused lane tag. All nine direct pairs across six clauses, both API surfaces, callback behavior, and development-profile status remain unchanged.",
+      "The 2025 aggregate built; all six focused neighboring regressions and four transportation/MOM traceability gates passed. The lane check and trace show one mapped case with the focused source location. Updated twelve exact source selectors and the shifted file-switch test source pointer without changing mappings.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
     ],
     "requirements": 9,
     "standard_sections": 6,
     "api_surface_count": 2,
     "direct_pairs": 9,
+    "assertions": 117,
+    "callback_models": [
+      "HLA_EVOKED"
+    ]
+  },
+  "active_handoff_note": "The next split targets the largest remaining test file, cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5. Extract the mapped IEEE 1516.1-2025 queued timestamped default-region attribute-update restore case into a focused unit; preserve its 123 assertions, 18 direct pairs across 14 sections, 24 API surfaces, five recorded delivery modes, HLA_EVOKED behavior, and keep 2010 separate.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "time-save-restore",
+    "id": "extract-2025-live-tso-default-region-attribute-restore-multi-recipient-catch2-file",
+    "lane": "timestamped-default-region-attribute-restore-multi-recipient",
+    "objective": "Extract the mapped IEEE 1516.1-2025 test 'Embedded federation restore restores one queued timestamped default-region attribute update to multiple recipients' from the 26,147-line federation-management test file into a focused translation unit. Preserve its 123 assertions, 18 direct requirement-section pairs across 14 canonical sections, 24 official C++ API surfaces, HLA_EVOKED behavior, five recorded delivery modes, development-profile classification, and exact CTest behavior. Add focused lane/source metadata and keep IEEE 1516.1-2010 separate.",
+    "plan_id": "umbra-cpp-restore-live-tso-default-region-attribute-update-multi-recipient-integration",
+    "mapping_seed_plan_id": "umbra-cpp-restore-live-tso-default-region-attribute-update-multi-recipient-integration",
+    "mapping_seed_policy": "Preserve all 18 direct pairs: requirement-candidate-content-clauses-04-federation-management-page-065-l96-24 -> clause-4.19; requirement-candidate-content-clauses-04-federation-management-page-067-l142-36 -> clause-4.21.1; requirement-candidate-content-clauses-04-federation-management-page-069-l70-17 -> clause-4.23; requirement-candidate-content-clauses-04-federation-management-page-072-l131-32 -> clause-4.27; requirement-candidate-content-clauses-04-federation-management-page-076-l18-2 -> clause-4.32; requirement-candidate-content-clauses-06-object-management-page-120-l83-22 -> clause-6.10; requirement-candidate-content-clauses-06-object-management-page-122-l61-17 -> clause-6.11.1; requirement-candidate-content-clauses-06-object-management-page-122-l85-25 -> clause-6.11.1; requirement-candidate-content-clauses-06-object-management-page-122-l97-29 -> clause-6.11.1; requirement-candidate-content-clauses-06-object-management-page-122-l121-37 -> clause-6.11.1; requirement-candidate-content-clauses-08-time-management-page-180-l57-17 -> clause-8.1.4; requirement-candidate-content-clauses-08-time-management-page-184-l91-26 -> clause-8.1.5; requirement-candidate-content-clauses-08-time-management-page-210-l21-3 -> clause-8.22.3; requirement-candidate-content-clauses-08-time-management-page-211-l86-22 -> clause-8.23.3; requirement-candidate-content-clauses-08-time-management-page-211-l89-23 -> clause-8.23.3; requirement-candidate-content-clauses-09-data-distribution-management-page-220-l98-32 -> clause-9.1.3.3; requirement-candidate-content-clauses-09-data-distribution-management-page-225-l63-19 -> clause-9.1.8; requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43 -> clause-9.6. Preserve all selected API surfaces, current case tags, callback/delivery behavior, and development-profile limits. Do not broaden mappings or make a conformance claim.",
+    "test_case": "Embedded federation restore restores one queued timestamped default-region attribute update to multiple recipients",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ federation\\ restore\\ restores\\ one\\ queued\\ timestamped\\ default\\-region\\ attribute\\ update\\ to\\ multiple\\ recipients$",
+    "ctest_label": "timestamped-default-region-attribute-restore-multi-recipient",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-restore-live-tso-default-region-attribute-update-multi-recipient-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ federation\\ restore\\ restores\\ one\\ queued\\ timestamped\\ default\\-region\\ attribute\\ update\\ to\\ multiple\\ recipients$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane timestamped-default-region-attribute-restore-multi-recipient --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-restore-live-tso-default-region-attribute-update-multi-recipient-integration --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Move only the mapped timestamped default-region multi-recipient restore test. Preserve every assertion, callback observation, delivery mode, direct requirement mapping, API surface, existing tag, and development-profile boundary; add an exact focused lane/source pointer to the existing plan row.",
+      "Build the 2025 aggregate, run the exact CTest and neighboring restore regressions, check the focused lane and trace, and update only selectors and source pointers affected by extraction.",
+      "Do not change IEEE 1516.1-2010 sources or mappings; make no validation or conformance claim."
+    ],
+    "requirements": 18,
+    "standard_sections": 14,
+    "api_surface_count": 24,
+    "direct_pairs": 18,
+    "assertions": 123,
     "callback_models": [
       "HLA_EVOKED"
     ]
@@ -11656,7 +11643,7 @@
         "rti.service.set-service-reporting-switch",
         "rti.service.set-send-service-reports-to-file-switch"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1690",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1599",
       "assertions": 34,
       "callback_models": [
         "HLA_EVOKED"
