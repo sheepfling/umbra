@@ -11,6 +11,10 @@ std::optional<std::string> normalizedUpdateRateDesignator(
     FomCatalog const& catalog,
     std::string const& updateRateDesignator);
 
+std::string storedUpdateRateDesignator(
+    std::string const& suppliedDesignator,
+    std::string const& normalizedDesignator);
+
 std::optional<double> updateRateValueForNormalizedDesignator(
     FomCatalog const& catalog,
     std::string const& normalizedDesignator);
