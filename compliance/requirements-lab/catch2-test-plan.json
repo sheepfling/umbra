@@ -39116,6 +39116,11 @@
         "requirement-candidate-content-clauses-08-time-management-page-211-l86-22"
       ],
       "test_case": "Embedded suppressed timestamped interaction callback does not request retraction",
+      "source_location": "cpp/tests/ieee1516_2025_suppressed_timestamped_interaction_no_retraction_catch2.cpp:5",
+      "assertions": 31,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
       "tags": [
         "integration",
         "development-profile",
@@ -39131,7 +39136,11 @@
         "federate.callback.request-retraction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "Implemented and green (31 Catch2 assertions) under HLA_EVOKED. This nonconstrained-recipient regression queues a qualifying timestamped interaction, removes the ordinary subscription before callback dispatch, then applies a still-legal Retract. The recipient receives neither Receive Interaction nor Request Retraction because callback-boundary suppression is terminal but not delivered. Constrained, regional, directed, save/restore, transport, package/JUnit/protected-review evidence, and conformance remain open."
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ suppressed\\ timestamped\\ interaction\\ callback\\ does\\ not\\ request\\ retraction$",
+      "primary_lane": "request-retraction-suppressed-interaction",
+      "focus_lane": "request-retraction-suppressed-interaction",
+      "next_action": "The 31-assertion HLA_EVOKED nonconstrained-recipient regression now lives in a focused 2025 source file. It queues a qualifying timestamped interaction, removes the ordinary subscription before callback dispatch, then applies a still-legal Retract; the recipient receives neither Receive Interaction nor Request Retraction because callback-boundary suppression is terminal but not delivered. Constrained, regional, directed, save/restore, transport, package/JUnit/protected-review evidence, and conformance remain open."
     },
     {
       "id": "umbra-cpp-request-retraction-suppressed-attribute-update-integration",
