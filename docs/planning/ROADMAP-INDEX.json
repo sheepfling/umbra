@@ -37,53 +37,15 @@
   "last_completed_handoff": {
     "state": "implemented-in-noninstallable-development-profile",
     "family": "mom-after-base-services",
-    "id": "extract-2025-request-interaction-transportation-type-change-service-report-file",
-    "lane": "service-report-request-interaction-transportation-type-change",
-    "objective": "Extract the mapped IEEE 1516.1-2025 Request Interaction Transportation Type Change service-report case from the broad service-report test file into a focused translation unit. Preserve its 136 assertions, two direct requirement-to-2025-clause pairs, six API surfaces, HLA_EVOKED behavior, development-profile status, and existing CTest labels. Keep IEEE 1516.1-2010 sources and mappings untouched.",
-    "plan_id": "umbra-cpp-service-report-request-interaction-transportation-type-change",
-    "mapping_seed_plan_id": "umbra-cpp-service-report-request-interaction-transportation-type-change",
-    "mapping_seed_policy": "Preserve requirement-candidate-content-clauses-06-object-management-page-145-l122-34 -> hla-1516.1-2025:clause-6.31.3 and requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35 -> hla-1516.1-2025:clause-11.5.1; preserve all six API surfaces (Request Interaction Transportation Type Change, Publish Interaction Class, Evoke Callback, Set Service Reporting Switch, Set Send Service Reports To File Switch, Confirm Interaction Transportation Type Change), HLA_EVOKED behavior, development-profile status, and existing labels. Do not broaden mappings or make a conformance claim.",
-    "test_case": "Embedded service reporting preserves Request Interaction Transportation Type Change arguments",
-    "source_target": "cpp/tests/ieee1516_2025_request_interaction_transportation_type_change_service_report_file_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_request_interaction_transportation_type_change_service_report_file_catch2.cpp:11",
-    "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Request Interaction Transportation Type Change arguments$",
-    "ctest_label": "service-report-request-interaction-transportation-type-change",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-service-report-request-interaction-transportation-type-change --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Request Interaction Transportation Type Change arguments$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane service-report-request-interaction-transportation-type-change --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-service-report-request-interaction-transportation-type-change --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "Moved the 136-assertion Request Interaction Transportation Type Change test into a focused 2025 translation unit. Its assertion body and tags are unchanged; it now uses the shared ReportingFederateAmbassador. Both direct requirement-clause pairs, six API surfaces, callback observations, and development-profile status are preserved.",
-      "The 2025 aggregate linked; the extracted case, four neighboring transport service-report cases, and transport-control case passed 6/6. The MOM service-reporting, interaction transport requirements, and transportation API traceability gates passed 3/3. The lane check and trace show one mapped case with valid source location; 22 pre-existing stale selectors and six moved-case selectors were corrected without changing mappings.",
-      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
-    ],
-    "requirements": 2,
-    "standard_sections": 2,
-    "api_surface_count": 6,
-    "direct_pairs": 2,
-    "assertions": 136,
-    "callback_models": [
-      "HLA_EVOKED"
-    ]
-  },
-  "active_handoff_note": "Extract the mapped Request Attribute Transportation Type Change service-report case from cpp/tests/ieee1516_2025_service_report_catch2.cpp:970. Preserve the existing 11 direct requirement-to-2025-subsection pairs across six sections, two API surfaces, HLA_EVOKED callback behavior, and its production-filesystem assertions; keep 2010 separate.",
-  "active_handoff": {
-    "state": "implementation",
-    "family": "mom-after-base-services",
     "id": "extract-2025-request-attribute-transportation-type-change-service-report-file",
     "lane": "request-attribute-transportation-type-change",
-    "objective": "Extract the mapped IEEE 1516.1-2025 Request Attribute Transportation Type Change service-report case from the broad service-report test file into a focused translation unit. Preserve the existing 11 direct requirement-to-2025-subsection pairs across six sections, two API surfaces, HLA_EVOKED callback behavior, production-filesystem record assertions, development-profile status, and existing CTest labels. Keep IEEE 1516.1-2010 sources and mappings untouched.",
+    "objective": "Extract the mapped IEEE 1516.1-2025 Request Attribute Transportation Type Change service-report case from the broad service-report test file into a focused translation unit. Preserve its 11 direct requirement-to-2025-subsection pairs across six sections, two API surfaces, HLA_EVOKED behavior, production-filesystem record assertions, development-profile status, and existing CTest labels. Keep IEEE 1516.1-2010 sources and mappings untouched.",
     "plan_id": "umbra-cpp-service-report-file-request-attribute-transportation-type-change-integration",
     "mapping_seed_plan_id": "umbra-cpp-service-report-file-request-attribute-transportation-type-change-integration",
-    "mapping_seed_policy": "Preserve the exact 11 requirement IDs and direct canonical IEEE 1516.1-2025 subsection mappings recorded in this Catch2 plan row across its six sections. Preserve both API surfaces (Request Attribute Transportation Type Change and Confirm Attribute Transportation Type Change), HLA_EVOKED callback behavior, production-filesystem record behavior, and the existing focus tag. Do not infer extra table mappings or make a conformance claim.",
+    "mapping_seed_policy": "Preserved the exact 11 requirement IDs and direct canonical IEEE 1516.1-2025 subsection mappings recorded in the Catch2 plan row across six sections. Preserved both API surfaces (Request Attribute Transportation Type Change and Confirm Attribute Transportation Type Change), HLA_EVOKED callback behavior, production-filesystem record assertions, and the focus tag. No extra mappings or conformance claim.",
     "test_case": "Embedded service reporting preserves Request Attribute Transportation Type Change arguments",
-    "source_target": "cpp/tests/ieee1516_2025_service_report_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:970",
+    "source_target": "cpp/tests/ieee1516_2025_request_attribute_transportation_type_change_service_report_file_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_request_attribute_transportation_type_change_service_report_file_catch2.cpp:11",
     "ctest_target": "umbra_ieee1516_2025_catch2",
     "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Request Attribute Transportation Type Change arguments$",
     "ctest_label": "request-attribute-transportation-type-change",
@@ -96,14 +58,52 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Extract only the Request Attribute Transportation Type Change service-report case, preserving its exact 11 direct mappings, six canonical subsections, two API surfaces, callback behavior, and production-filesystem assertions.",
-      "Build the aggregate, run the exact CTest selector and lane check, and verify the trace and all shifted source pointers; update only selectors for this test where necessary.",
-      "Do not change IEEE 1516.1-2010 source, targets, fixtures, or mappings; make no validation or conformance claim."
+      "Moved the Request Attribute Transportation Type Change case into a focused 2025 translation unit and reused ReportingFederateAmbassador. The 11 direct mappings across six sections, two API surfaces, callback observations, file contents, and existing tags are preserved.",
+      "The 2025 aggregate built; the extracted case and three neighboring service-report cases plus the custom-transport control regression passed 5/5. Transportation requirements, transportation API, interaction transportation requirements, and MOM service-reporting traceability gates passed 4/4. The lane check and trace report one mapped case with a valid focused source location. Corrected the 14 stale selector occurrences reported by the transportation requirements gate and the moved-case selectors in the MOM and API contracts without changing mapping IDs or clauses.",
+      "No IEEE 1516.1-2010 source, target, fixture, or mapping changed. No validation or conformance claim is made."
     ],
     "requirements": 11,
     "standard_sections": 6,
     "api_surface_count": 2,
     "direct_pairs": 11,
+    "callback_models": [
+      "HLA_EVOKED"
+    ]
+  },
+  "active_handoff_note": "Continue with the mapped 151-assertion Change Default Attribute Transportation Type service-report case at cpp/tests/ieee1516_2025_service_report_catch2.cpp:970. Preserve its one direct clause 11.5.1 mapping, three API surfaces, HLA_EVOKED behavior, existing labels, and development-profile status; keep 2010 separate.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "mom-after-base-services",
+    "id": "extract-2025-change-default-attribute-transportation-type-service-report-file",
+    "lane": "service-report-change-default-attribute-transportation-type",
+    "objective": "Split the mapped IEEE 1516.1-2025 Change Default Attribute Transportation Type service-report case into a focused translation unit. Preserve its 151 assertions, one direct requirement-to-2025-clause 11.5.1 mapping, three API surfaces, HLA_EVOKED behavior, development-profile status, and existing CTest labels. Keep IEEE 1516.1-2010 sources and mappings untouched.",
+    "plan_id": "umbra-cpp-service-report-change-default-attribute-transportation-type",
+    "mapping_seed_plan_id": "umbra-cpp-service-report-change-default-attribute-transportation-type",
+    "mapping_seed_policy": "Preserve requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35 -> hla-1516.1-2025:clause-11.5.1, all three current API surfaces (Change Default Attribute Transportation Type, Set Service Reporting Switch, Set Send Service Reports To File Switch), HLA_EVOKED behavior, development-profile status, and existing labels. Keep successful payload evidence separate from ObjectClassNotDefined/no-record behavior and future-delivery effects. Do not broaden mappings or make a conformance claim.",
+    "test_case": "Embedded service reporting preserves Change Default Attribute Transportation Type arguments",
+    "source_target": "cpp/tests/ieee1516_2025_service_report_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:970",
+    "ctest_target": "umbra_ieee1516_2025_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Change Default Attribute Transportation Type arguments$",
+    "ctest_label": "service-report-change-default-attribute-transportation-type",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-service-report-change-default-attribute-transportation-type --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Change Default Attribute Transportation Type arguments$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane service-report-change-default-attribute-transportation-type --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-service-report-change-default-attribute-transportation-type --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Move only the Change Default Attribute Transportation Type service-report case, preserving its 151 assertions, exact clause 11.5.1 mapping, three API surfaces, HLA_EVOKED callbacks, existing tags, and development-profile classification.",
+      "Build the aggregate, run the exact case and focused neighbor regressions, check the lane and trace, and update only source selectors affected by the move.",
+      "Do not change IEEE 1516.1-2010 sources or mappings; make no validation or conformance claim."
+    ],
+    "requirements": 1,
+    "standard_sections": 1,
+    "api_surface_count": 3,
+    "direct_pairs": 1,
+    "assertions": 151,
     "callback_models": [
       "HLA_EVOKED"
     ]
@@ -11642,7 +11642,7 @@
         "rti.service.set-service-reporting-switch",
         "rti.service.set-send-service-reports-to-file-switch"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1995",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1882",
       "assertions": 34,
       "callback_models": [
         "HLA_EVOKED"
