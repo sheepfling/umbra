@@ -37,52 +37,15 @@
   "last_completed_handoff": {
     "state": "completed-source-only-refactor",
     "family": "time-save-restore",
-    "id": "split-federation-registry-time-tso-enqueue-source-file",
-    "lane": "federation-registry-time-tso-enqueue-source-split",
-    "objective": "Move the 1,003-line time-advance grant arbitration and TSO message/interaction/attribute/object-deletion enqueue section from federation_registry.cpp into federation_registry_time_tso_enqueue.cpp. Preserve all method bodies and behavior; the source-only move adds no normative mapping or behavioral case.",
-    "plan_id": "umbra-cpp-time-advance-request-integration",
-    "mapping_seed_plan_id": "umbra-cpp-time-advance-request-integration",
-    "mapping_seed_policy": "The existing TAR case served only as a regression anchor; its 8 direct 2025 requirement-section pairs and 3 API surfaces were unchanged. No source-only mapping or behavioral case was added.",
-    "test_case": "Source-only registry split; Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch used as a regression anchor",
-    "source_target": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
-    "source_location": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp:1",
-    "ctest_target": "umbra_federation_registry_catch2",
-    "ctest_filter": "federation_registry",
-    "ctest_label": "federation-registry",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-time-advance-request-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_federation_registry_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R federation_registry --output-on-failure",
-      "regression_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane time-advance-request-logical-time-gating --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-time-advance-request-integration --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "Moved exactly 1,003 source lines into the new focused translation unit; the new file is below the 2,000-line soft limit and has no dependency on the old anonymous-namespace helpers.",
-      "The registry target builds, all 86 focused registry tests pass, and the exact mapped TAR regression passes. The lane/trace and source-size policy pass.",
-      "The Catch2 test-plan file has no diff. No IEEE 1516.1-2010 source, target, fixture, or mapping changed; this is source organization only, not new normative evidence."
-    ],
-    "requirements": 0,
-    "standard_sections": 0,
-    "api_surface_count": 0,
-    "direct_pairs": 0,
-    "assertions": 0,
-    "callback_models": []
-  },
-  "active_handoff_note": "Next, split the 878-line TSO retraction, delivery-callback, and deferred-removal section from cpp/src/internal/federation/federation_registry.cpp:12314-13191 into cpp/src/internal/federation/federation_registry_tso_delivery.cpp. The bounded section has no references to the registry file's anonymous-namespace helpers. Use the existing mapped timestamped regional interaction retraction case only as a regression anchor; preserve its 14 direct pairs and 26 API surfaces. Keep the 2010 stream separate.",
-  "active_handoff": {
-    "state": "implementation",
-    "family": "time-save-restore",
-    "lane": "federation-registry-tso-delivery-source-split",
     "id": "split-federation-registry-tso-delivery-source-file",
-    "test_case": "Source-only registry split; Embedded timestamped regional interaction queues TSO before the grant and supports retraction used as a regression anchor",
-    "objective": "Move the 878-line TSO retraction, recipient callback/delivery, grant-boundary, and connection-loss deferred-removal section at lines 12314-13191 of federation_registry.cpp into federation_registry_tso_delivery.cpp. Preserve all method bodies and behavior. Do not alter public API or Requirements-Lab mappings. Keep IEEE 1516.1-2010 separate.",
+    "lane": "federation-registry-tso-delivery-source-split",
+    "objective": "Move the 878-line TSO retraction, recipient callback/delivery, grant-boundary, and connection-loss deferred-removal section from federation_registry.cpp into federation_registry_tso_delivery.cpp. Preserve all method bodies and behavior; the source-only move adds no normative mapping or behavioral case.",
+    "plan_id": "umbra-cpp-timestamped-regional-interaction-tso-retraction-integration",
     "mapping_seed_plan_id": "umbra-cpp-timestamped-regional-interaction-tso-retraction-integration",
-    "mapping_seed_policy": "The existing 68-assertion HLA_EVOKED regional TSO/retraction case is a regression anchor only; preserve its 14 direct requirement-section pairs, 14 canonical clauses, and 26 API surfaces unchanged. The source-only move adds no normative mapping or behavioral case.",
-    "source_target": "cpp/src/internal/federation/federation_registry.cpp",
-    "source_location": "cpp/src/internal/federation/federation_registry.cpp:12314-13191",
-    "target_file": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
+    "mapping_seed_policy": "The existing 68-assertion regional TSO/retraction case served only as a regression anchor; its 14 direct 2025 requirement-section pairs and 26 API surfaces were unchanged. No source-only mapping or behavioral case was added.",
+    "test_case": "Source-only registry split; Embedded timestamped regional interaction queues TSO before the grant and supports retraction used as a regression anchor",
+    "source_target": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
+    "source_location": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp:1",
     "ctest_target": "umbra_federation_registry_catch2",
     "ctest_filter": "federation_registry",
     "ctest_label": "federation-registry",
@@ -96,7 +59,44 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Audit all anonymous-namespace and header dependencies before moving the exact 878-line section; preserve every existing function without behavior changes and keep the new file below the 2,000-line soft limit.",
+      "Moved exactly 878 source lines into the new focused translation unit; the new file is below the 2,000-line soft limit and has no dependency on the old anonymous-namespace helpers.",
+      "The registry target builds, all 86 focused registry tests pass, and the exact mapped TSO/retraction regression passes. The lane/trace and source-size policy pass.",
+      "The Catch2 test-plan file has no diff. No IEEE 1516.1-2010 source, target, fixture, or mapping changed; this is source organization only, not new normative evidence."
+    ],
+    "requirements": 0,
+    "standard_sections": 0,
+    "api_surface_count": 0,
+    "direct_pairs": 0,
+    "assertions": 0,
+    "callback_models": []
+  },
+  "active_handoff_note": "Next, split the 763-line region lifecycle, range/overlap, and deferred-association section from cpp/src/internal/federation/federation_registry.cpp:12081-12843 into cpp/src/internal/federation/federation_registry_regions.cpp. The bounded section has no references to the registry file's anonymous-namespace helpers. Use the existing mapped timestamped regional interaction case only as a regression anchor; preserve its 14 direct pairs and 26 API surfaces. Keep the 2010 stream separate.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "time-save-restore",
+    "lane": "federation-registry-region-lifecycle-source-split",
+    "id": "split-federation-registry-region-lifecycle-source-file",
+    "test_case": "Source-only registry split; Embedded timestamped regional interaction queues TSO before the grant and supports retraction used as a regression anchor",
+    "objective": "Move the 763-line region lifecycle, range/overlap, and deferred-association section at lines 12081-12843 of federation_registry.cpp into federation_registry_regions.cpp. Preserve all method bodies and behavior. Do not alter public API or Requirements-Lab mappings. Keep IEEE 1516.1-2010 separate.",
+    "mapping_seed_plan_id": "umbra-cpp-timestamped-regional-interaction-tso-retraction-integration",
+    "mapping_seed_policy": "The existing 68-assertion HLA_EVOKED regional TSO/retraction case is a regression anchor only; preserve its 14 direct requirement-section pairs, 14 canonical clauses, and 26 API surfaces unchanged. The source-only move adds no normative mapping or behavioral case.",
+    "source_target": "cpp/src/internal/federation/federation_registry.cpp",
+    "source_location": "cpp/src/internal/federation/federation_registry.cpp:12081-12843",
+    "target_file": "cpp/src/internal/federation/federation_registry_regions.cpp",
+    "ctest_target": "umbra_federation_registry_catch2",
+    "ctest_filter": "federation_registry",
+    "ctest_label": "federation-registry",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-timestamped-regional-interaction-tso-retraction-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_federation_registry_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R federation_registry --output-on-failure",
+      "regression_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded timestamped regional interaction queues TSO before the grant and supports retraction$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane timestamped-regional-interaction-tso-retraction --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-timestamped-regional-interaction-tso-retraction-integration --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Audit all anonymous-namespace and header dependencies before moving the exact 763-line section; preserve every existing function without behavior changes and keep the new file below the 2,000-line soft limit.",
       "Build umbra_federation_registry_catch2, run all registry CTests plus the exact mapped TSO/retraction regression, and confirm the catch2-test-plan.json diff stays empty.",
       "Do not add a behavioral test lane or requirement mapping for this source-only move. Keep all 2010 sources, targets, tests, fixtures, and mappings untouched."
     ],
@@ -295,7 +295,7 @@
       "callback_models": [
         "HLA_EVOKED"
       ],
-      "next_action": "The 31-assertion public HLAfloat64Time case matched its original body exactly and now has a focused 2025 translation unit; its aggregate build, exact CTest, case query, and trace pass with all 15 direct pairs and 14 API surfaces intact. The registry control-state and time/TSO enqueue sections have since moved into focused source files with all 86 registry tests passing. Next split the 878-line TSO retraction/delivery section from cpp/src/internal/federation/federation_registry.cpp:12314-13191; keep 2010 separate."
+      "next_action": "The 31-assertion public HLAfloat64Time case matched its original body exactly and now has a focused 2025 translation unit; its aggregate build, exact CTest, case query, and trace pass with all 15 direct pairs and 14 API surfaces intact. Three coherent registry sections have since moved into focused source files with all 86 registry tests passing. Next split the 763-line region lifecycle/range/deferred-association section from cpp/src/internal/federation/federation_registry.cpp:12081-12843; keep 2010 separate."
     },
     "previous_completed_slice": {
       "lane": "flush-queue-grant-logical-time-gating",
