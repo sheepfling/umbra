@@ -32,7 +32,7 @@
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Change Attribute Order Type arguments",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Change Default Attribute Order Type arguments",
         "cpp/tests/ieee1516_2025_change_default_attribute_transportation_type_service_report_file_catch2.cpp::Embedded service reporting preserves Change Default Attribute Transportation Type arguments",
-        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
+        "cpp/tests/ieee1516_2025_query_attribute_transportation_type_service_report_file_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
         "cpp/tests/local_delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
@@ -81,7 +81,7 @@
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Change Attribute Order Type arguments",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Change Default Attribute Order Type arguments",
         "cpp/tests/ieee1516_2025_change_default_attribute_transportation_type_service_report_file_catch2.cpp::Embedded service reporting preserves Change Default Attribute Transportation Type arguments",
-        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
+        "cpp/tests/ieee1516_2025_query_attribute_transportation_type_service_report_file_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
         "cpp/tests/local_delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
@@ -156,7 +156,7 @@
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Change Attribute Order Type arguments",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Change Default Attribute Order Type arguments",
         "cpp/tests/ieee1516_2025_change_default_attribute_transportation_type_service_report_file_catch2.cpp::Embedded service reporting preserves Change Default Attribute Transportation Type arguments",
-        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
+        "cpp/tests/ieee1516_2025_query_attribute_transportation_type_service_report_file_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
         "cpp/tests/local_delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
@@ -1440,7 +1440,7 @@
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Unconditional Attribute Ownership Divestiture argument forms",
         "cpp/tests/ieee1516_2025_request_attribute_transportation_type_change_service_report_file_catch2.cpp::Embedded service reporting preserves Request Attribute Transportation Type Change arguments",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Change Attribute Order Type arguments",
-        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
+        "cpp/tests/ieee1516_2025_query_attribute_transportation_type_service_report_file_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Query Attribute Ownership arguments",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
         "cpp/tests/local_delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves Local Delete Object Instance arguments",
@@ -1484,7 +1484,7 @@
       "notes": "The external Java/JPype attribute-transport and reflection vectors decode quoted AttributeHandle values inside the standard report payloads.",
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 Query Attribute Transportation Type argument forms",
-        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
+        "cpp/tests/ieee1516_2025_query_attribute_transportation_type_service_report_file_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_attribute_transport_request_report_reaches_observer",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_service_report_precedes_reflection_callback"
       ]
@@ -2353,7 +2353,7 @@
       "tests": [
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_attribute_transport_query_report_reaches_observer",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_interaction_transport_query_report_reaches_observer",
-        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
+        "cpp/tests/ieee1516_2025_query_attribute_transportation_type_service_report_file_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments",
         "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Query Interaction Transportation Type arguments"
       ]
     },

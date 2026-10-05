@@ -15419,7 +15419,7 @@
         "rti.service.set-send-service-reports-to-file-switch"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1790",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:1690",
       "assertions": 34,
       "callback_models": [
         "HLA_EVOKED"
@@ -36688,6 +36688,24 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting preserves Query Attribute Transportation Type arguments",
+      "source_location": "cpp/tests/ieee1516_2025_query_attribute_transportation_type_service_report_file_catch2.cpp:11",
+      "primary_lane": "service-report-query-attribute-transportation-type",
+      "focus_lane": "service-report-query-attribute-transportation-type",
+      "assertions": 118,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.28",
+        "hla-1516.1-2025:clause-6.29.1",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.1",
+        "hla-1516.1-2025:clause-11.5.2",
+        "hla-1516.1-2025:clause-11.5.2.1"
+      ],
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Query Attribute Transportation Type arguments$",
+      "ctest_label": "service-report-query-attribute-transportation-type",
       "tags": [
         "integration",
         "development-profile",
@@ -36697,6 +36715,7 @@
         "mom",
         "service-report-file",
         "service-reporting",
+        "service-report-query-attribute-transportation-type",
         "query-attribute-transportation-type",
         "rti.service.publish-object-class-attributes",
         "rti.service.register-object-instance",
@@ -36724,6 +36743,24 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting preserves Query Interaction Transportation Type arguments",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_catch2.cpp:970",
+      "primary_lane": "service-report-query-interaction-transportation-type",
+      "focus_lane": "service-report-query-interaction-transportation-type",
+      "assertions": 117,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.32.5",
+        "hla-1516.1-2025:clause-6.33.6",
+        "hla-1516.1-2025:clause-11.5",
+        "hla-1516.1-2025:clause-11.5.1",
+        "hla-1516.1-2025:clause-11.5.2",
+        "hla-1516.1-2025:clause-11.5.2.1"
+      ],
+      "ctest_target": "umbra_ieee1516_2025_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Query Interaction Transportation Type arguments$",
+      "ctest_label": "service-report-query-interaction-transportation-type",
       "tags": [
         "integration",
         "development-profile",
@@ -36733,6 +36770,7 @@
         "mom",
         "service-report-file",
         "service-reporting",
+        "service-report-query-interaction-transportation-type",
         "query-interaction-transportation-type",
         "rti.service.query-interaction-transportation-type",
         "federate.callback.report-interaction-transportation-type"

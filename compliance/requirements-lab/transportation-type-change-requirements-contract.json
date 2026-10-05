@@ -130,7 +130,7 @@
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults",
         "cpp/tests/ieee1516_2025_custom_transportation_type_controls_catch2.cpp::Embedded transportation-type controls accept declared FOM transportation handles",
-        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments"
+        "cpp/tests/ieee1516_2025_query_attribute_transportation_type_service_report_file_catch2.cpp::Embedded service reporting preserves Query Attribute Transportation Type arguments"
       ]
     },
     {
