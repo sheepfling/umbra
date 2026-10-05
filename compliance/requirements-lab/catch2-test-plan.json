@@ -9072,17 +9072,17 @@
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-04-federation-management-page-049-l19-4"
       ],
-      "test_case": "Embedded MOM federation content reports FOM module and MIM data",
+      "test_case": "Embedded federation MOM content reports FOM module and MIM data through a focused lane",
       "tags": [
-        "disabled",
-        "source-artifact",
         "integration",
         "development-profile",
         "federation-management",
         "fom",
+        "fom-module-management",
         "mom",
         "mom-request-report",
         "interaction-management",
+        "federation-mom-content-reports",
         "2025",
         "rti.service.get-interaction-class-handle",
         "rti.service.get-parameter-handle",
@@ -9092,15 +9092,17 @@
         "rti.service.evoke-callback",
         "federate.callback.receive-interaction"
       ],
-      "status": "disabled-source-artifact",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:19746",
-      "assertions": 0,
-      "callback_models": [],
+      "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/federation_mom_current_fdd_catch2.cpp:324",
+      "assertions": 53,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4"
       ],
-      "requirements_lab_api_surface_status": "This declaration is inside the active #if 0 block and does not compile into the Catch2 executable, so no runtime evidence is claimed. Its retained intent is to consume federation-scoped HLArequestFOMmoduleData/HLArequestMIMdata and emit HLAreportFOMmoduleData/HLAreportMIMdata broadcasts, decoding HLAindex and HLAunicodeString FOM/MIM content. The frozen clause-4 requirement and official C++ API surfaces are recorded for re-enable review only; current-FDD reporting, remote transport, package/JUnit/protected-review evidence, validation, and conformance remain open.",
-      "next_action": "Keep this FOM/MIM content-report declaration out of executable evidence while it remains inside #if 0. Repair or deliberately re-enable it in a separately scoped change, run the focused C++ case, and only then promote status to implemented/verified."
+      "requirements_lab_api_surface_status": "The active focused C++ case exercises federation-scoped HLArequestFOMmoduleData and HLArequestMIMdata and observes HLAreportFOMmoduleData and HLAreportMIMdata through the official API. The existing clause-4 requirement and seven API-surface mappings are preserved. This is implementation evidence only; current-FDD reporting beyond this case, remote transport, package/JUnit/protected-review evidence, Requirements Lab validation, interoperability, and conformance remain open.",
+      "next_action": "Keep this evidence scoped to the active development-profile case and its federation-scoped FOM/MIM request/report behavior. Add separate coverage before broadening claims; do not promote this case to Lab-validated, package, interoperability, or conformance evidence."
     },
     {
       "id": "umbra-cpp-restore-terminal-tso-attribute-update-integration",

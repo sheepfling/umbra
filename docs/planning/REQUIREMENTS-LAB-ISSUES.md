@@ -139,3 +139,18 @@ the matching `TEST_CASE` declarations. The MOM service-reporting, ownership-
 acquisition API, and negotiated-divestiture requirements/API traceability tests
 now pass 4/4. Requirement IDs and normative mappings are unchanged; the pinned
 Requirements Lab export was not synchronized or modified.
+
+### RL-276 — federation MOM content-report case remained classified as disabled
+
+The bounded query reported the federation-scoped FOM/MIM content-report case as
+`disabled-source-artifact`, source-unlocated, and zero-assertion, with a note
+claiming its declaration remained inside `#if 0`. The current tree instead has
+an active focused test at
+`cpp/tests/federation_mom_current_fdd_catch2.cpp:324`; its target builds and its
+exact CTest passes.
+
+Resolution: reconciled the existing plan row with the active 53-assertion
+development-profile case, its `HLA_EVOKED` callback model and focused tag. The
+direct clause-4 mapping and seven API surfaces are unchanged. The focused test,
+trace, MOM lane check, and federation content-report check pass; no pinned
+Requirements Lab export or IEEE 1516.1-2010 source or mapping changed.

@@ -630,6 +630,24 @@
       "recurrence_of": "RL-274",
       "verification": "Corrected 23 unique stale selector occurrences across the transportation requirements, transportation API, and MOM service-reporting contracts covering four test titles. The transportation requirements, transportation API, interaction transportation requirements, and MOM service-reporting gates pass 4/4; the extracted case and four focused behavior regressions pass 5/5. The lane check and trace show one mapped case with a valid focused source location. No requirement, clause, or API mapping, pinned Lab export, or IEEE 1516.1-2010 source or mapping changed.",
       "detected": "2026-10-04"
+    },
+    {
+      "id": "RL-276",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-plan-source-status-drift",
+      "title": "Federation MOM content-report case remained classified as disabled",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "plan row umbra-cpp-federation-mom-content-reports-integration; active TEST_CASE at cpp/tests/federation_mom_current_fdd_catch2.cpp:324"
+      },
+      "symptom": "The bounded Requirements Lab query reported this mapped federation-scoped FOM/MIM content-report case as disabled-source-artifact with no source and zero assertions, claiming it was inside an active #if 0 block. The current source instead contains an active focused TEST_CASE, its CMake target builds, and its exact CTest passes.",
+      "impact": "The stale plan status and source pointer hid executable 2025 evidence, prevented reliable traceability, and made the existing focused lane appear not to have a valid source location.",
+      "workaround": "Reconcile only the existing plan row with the active focused TEST_CASE title, source location, assertion count, callback model, and tags. Preserve its existing direct clause-4 mapping and seven API-surface IDs; do not resynchronize or rewrite the pinned Requirements Lab export.",
+      "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-mom-content-reports-integration --summary --compact; python tools/query_rti_work.py test umbra-cpp-federation-mom-content-reports-integration --summary --compact; ctest --test-dir .build-mingw-rti -C Debug -R 'Embedded federation MOM content reports FOM module and MIM data through a focused lane' --output-on-failure",
+      "verification": "Corrected the existing plan row to the active 53-assertion development-profile case at cpp/tests/federation_mom_current_fdd_catch2.cpp:324 with HLA_EVOKED callback delivery and the existing federation-mom-content-reports focus tag. The direct requirement-to-clause-4 pair and seven API surfaces are unchanged. The case query and trace now resolve to the active source, the focused CTest passes 1/1, and both the MOM and federation-mom-content-reports mapping checks pass with zero C++ tests missing source locations. No pinned Lab export, IEEE 1516.1-2010 source, or mapping changed.",
+      "detected": "2026-10-05"
     }
   ]
 }
