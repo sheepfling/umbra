@@ -22787,48 +22787,6 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Embedded Flush Queue Request changes logical time only at Flush Queue Grant dispatch",
-    "[integration][development-profile][time-management][callbacks][flush-queue-request]"
-    "[flush-queue-grant-logical-time-gating][rti.service.flush-queue-request]"
-    "[rti.service.query-logical-time][rti.service.enable-time-constrained]"
-    "[federate.callback.time-constrained-enabled][federate.callback.flush-queue-grant]") {
-  ReportingFederateAmbassador reports;
-  auto rti = makeRti();
-  auto const federationName = nextFederationName();
-  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
-  rti1516_2025::HLAinteger64Time logicalTime;
-
-  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED));
-  REQUIRE_NOTHROW(rti->createFederationExecution(
-      federationName,
-      fomModule,
-      standard_hla::mom::integer64_time));
-  REQUIRE_NOTHROW(rti->joinFederationExecution(L"flush-queue-time-client", federationName));
-  REQUIRE_NOTHROW(rti->queryLogicalTime(logicalTime));
-  REQUIRE(logicalTime.isInitial());
-
-  REQUIRE_NOTHROW(rti->enableTimeConstrained());
-  REQUIRE(reports.timeConstrainedEnabledReports.empty());
-  REQUIRE_FALSE(rti->evokeCallback(0.0));
-  REQUIRE(reports.timeConstrainedEnabledReports.size() == 1U);
-
-  REQUIRE_NOTHROW(rti->flushQueueRequest(rti1516_2025::HLAinteger64Time(7)));
-  REQUIRE_NOTHROW(rti->queryLogicalTime(logicalTime));
-  REQUIRE(logicalTime.isInitial());
-  REQUIRE(reports.flushQueueGrantReports.empty());
-
-  REQUIRE_FALSE(rti->evokeCallback(0.0));
-  REQUIRE(reports.flushQueueGrantReports.size() == 1U);
-  REQUIRE(reports.flushQueueGrantReports.front().value == L"7");
-  REQUIRE_NOTHROW(rti->queryLogicalTime(logicalTime));
-  REQUIRE(logicalTime.getTime() == 7);
-
-  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
-  REQUIRE_NOTHROW(rti->disconnect());
-}
-
-TEST_CASE(
     "Embedded public time management preserves the official HLAfloat64Time representation",
     "[integration][development-profile][time-management][float-time]"
     "[rti.service.enable-time-regulation][rti.service.time-advance-request]"
