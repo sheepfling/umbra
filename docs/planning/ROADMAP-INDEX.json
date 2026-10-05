@@ -37,52 +37,15 @@
   "last_completed_handoff": {
     "state": "completed-source-only-refactor",
     "family": "time-save-restore",
-    "id": "split-federation-registry-catalog-queries-source-file",
-    "lane": "federation-registry-catalog-queries-source-split",
-    "objective": "Move the 996-line membership, handle/catalog, update-rate, dimension/transportation, and publication-query section from federation_registry.cpp into federation_registry_catalog_queries.cpp. Preserve every query body and behavior; declare shared update-rate helpers privately and keep their definitions single-sourced.",
-    "plan_id": "umbra-cpp-timestamped-regional-interaction-tso-retraction-integration",
-    "mapping_seed_plan_id": "umbra-cpp-timestamped-regional-interaction-tso-retraction-integration",
-    "mapping_seed_policy": "The existing 68-assertion regional TSO/retraction case served only as a regression anchor; its 14 direct 2025 requirement-section pairs and 26 API surfaces were unchanged. No source-only mapping or behavioral case was added. The preceding region-lifecycle extraction in the same turn also left the 2010 stream untouched.",
-    "test_case": "Source-only registry split; Embedded timestamped regional interaction queues TSO before the grant and supports retraction used as a regression anchor",
-    "source_target": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
-    "source_location": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp:1",
-    "ctest_target": "umbra_federation_registry_catch2",
-    "ctest_filter": "federation_registry",
-    "ctest_label": "federation-registry",
-    "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-timestamped-regional-interaction-tso-retraction-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_federation_registry_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R federation_registry --output-on-failure",
-      "regression_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded timestamped regional interaction queues TSO before the grant and supports retraction$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane timestamped-regional-interaction-tso-retraction --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-timestamped-regional-interaction-tso-retraction-integration --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
-    },
-    "acceptance": [
-      "Moved exactly 996 unchanged method-body lines into the new focused translation unit. Its original block was compared exactly after excluding the region methods moved to their own module earlier in the same turn; the private helper declarations preserve one implementation of each shared helper.",
-      "The registry target builds, all 86 focused registry tests pass, and the exact mapped regional TSO/retraction regression passes. The source-size policy and 2025 mapping/historical lane check pass.",
-      "The Catch2 test-plan file has no diff. No IEEE 1516.1-2010 source, target, fixture, or mapping changed; both extractions are source organization only, not new normative evidence."
-    ],
-    "requirements": 0,
-    "standard_sections": 0,
-    "api_surface_count": 0,
-    "direct_pairs": 0,
-    "assertions": 0,
-    "callback_models": []
-  },
-  "active_handoff_note": "Next, split the 756-line object-attribute scope, relevance-rate, scope-change, and advisory-transition cluster at cpp/src/internal/federation/federation_registry.cpp:13226-13981 into cpp/src/internal/federation/federation_registry_attribute_relevance.cpp. Audit its private-helper dependencies before moving. Use the existing mapped 2025 timestamped regional attribute-update re-enable case only as a regression anchor; preserve its 14 direct pairs and 16 API surfaces. Keep 2010 sources, tests, fixtures, targets, and mappings separate.",
-  "active_handoff": {
-    "state": "implementation",
-    "family": "time-save-restore",
-    "lane": "federation-registry-attribute-relevance-source-split",
     "id": "split-federation-registry-attribute-relevance-source-file",
-    "test_case": "Source-only registry split; Embedded timestamped regional attribute update survives time-constrained re-enable used as a regression anchor",
-    "objective": "Move the 756-line object-attribute scope, relevance-rate, scope-change, and advisory-transition cluster at lines 13226-13981 of federation_registry.cpp into federation_registry_attribute_relevance.cpp. Audit private-helper dependencies, preserve all method bodies and behavior, and do not alter public API or Requirements-Lab mappings. Keep IEEE 1516.1-2010 separate.",
+    "lane": "federation-registry-attribute-relevance-source-split",
+    "objective": "Move the exact 754-line object-attribute scope, relevance-rate, scope-change, and advisory-transition method block from federation_registry.cpp into federation_registry_attribute_relevance.cpp. Preserve every method body and behavior; use the existing private update-rate helper declaration and keep its implementation single-sourced.",
+    "plan_id": "umbra-cpp-timestamped-regional-attribute-update-reenable-integration",
     "mapping_seed_plan_id": "umbra-cpp-timestamped-regional-attribute-update-reenable-integration",
-    "mapping_seed_policy": "The existing 2025 regional attribute-update re-enable case is a regression anchor only; preserve its 14 direct requirement-section pairs across 12 clauses and 16 API surfaces unchanged. The source-only move adds no normative mapping or behavioral case.",
-    "source_target": "cpp/src/internal/federation/federation_registry.cpp",
-    "source_location": "cpp/src/internal/federation/federation_registry.cpp:13226-13981",
-    "target_file": "cpp/src/internal/federation/federation_registry_attribute_relevance.cpp",
+    "mapping_seed_policy": "The existing 2025 regional attribute-update re-enable case served only as a regression anchor; its 14 direct requirement-section pairs across 12 clauses and 16 API surfaces were unchanged. No source-only mapping or behavioral case was added.",
+    "test_case": "Source-only registry split; Embedded timestamped regional attribute update survives time-constrained re-enable used as a regression anchor",
+    "source_target": "cpp/src/internal/federation/federation_registry_attribute_relevance.cpp",
+    "source_location": "cpp/src/internal/federation/federation_registry_attribute_relevance.cpp:1",
     "ctest_target": "umbra_federation_registry_catch2",
     "ctest_filter": "federation_registry",
     "ctest_label": "federation-registry",
@@ -96,11 +59,48 @@
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Audit all anonymous-namespace and header dependencies before moving the exact 756-line section; preserve every existing function without behavior changes and keep the new file below the 2,000-line soft limit.",
-      "Build umbra_federation_registry_catch2, run all registry CTests plus the exact mapped regional attribute-update re-enable regression, and confirm the catch2-test-plan.json diff stays empty.",
+      "Moved exactly 754 method-body lines, matched against the committed source; no anonymous-namespace helper calls were found, and the next method signature remains intact.",
+      "The registry target builds, all 86 focused registry tests pass, the exact mapped regional attribute-update regression passes, and the live 2025 lane mapping check passes. The strict historical audit separately reports stale references in older recent_completed_slices entries (192, 193, 497, 498, 565, and 566), unrelated to this extraction.",
+      "The Catch2 test-plan file has no diff. No IEEE 1516.1-2010 source, target, fixture, or mapping changed; this source-only extraction adds no normative evidence."
+    ],
+    "requirements": 0,
+    "standard_sections": 0,
+    "api_surface_count": 0,
+    "direct_pairs": 0,
+    "assertions": 0,
+    "callback_models": []
+  },
+  "active_handoff_note": "Next, split the 1,006-line directed-interaction eligibility, declaration/subscription, and advisory-planning block at cpp/src/internal/federation/federation_registry.cpp:14373-15378 into cpp/src/internal/federation/federation_registry_directed_interactions.cpp. The bounded block has no anonymous-namespace helper calls. Use the existing mapped 2025 Delay Subscription Evaluation directed-interaction case only as a regression anchor; preserve its 3 direct pairs and 22 API surfaces. Keep 2010 sources, tests, fixtures, targets, and mappings separate.",
+  "active_handoff": {
+    "state": "implementation",
+    "family": "time-save-restore",
+    "lane": "federation-registry-directed-interaction-declarations-source-split",
+    "id": "split-federation-registry-directed-interactions-source-file",
+    "test_case": "Source-only registry split; Embedded Delay Subscription Evaluation defers directed interaction eligibility used as a regression anchor",
+    "objective": "Move the 1,006-line directed-interaction eligibility, declaration/subscription, and advisory-planning block at lines 14373-15378 of federation_registry.cpp into federation_registry_directed_interactions.cpp. Audit private dependencies, preserve all method bodies and behavior, and do not alter public API or Requirements-Lab mappings. Keep IEEE 1516.1-2010 separate.",
+    "mapping_seed_plan_id": "umbra-cpp-delay-subscription-evaluation-directed-interaction-integration",
+    "mapping_seed_policy": "The existing mapped 2025 Delay Subscription Evaluation directed-interaction case is a regression anchor only; preserve its 3 direct requirement-section pairs for clause 8.1.8, both callback models, and 22 API surfaces unchanged. The source-only move adds no normative mapping or behavioral case.",
+    "source_target": "cpp/src/internal/federation/federation_registry.cpp",
+    "source_location": "cpp/src/internal/federation/federation_registry.cpp:14373-15378",
+    "target_file": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
+    "ctest_target": "umbra_federation_registry_catch2",
+    "ctest_filter": "federation_registry",
+    "ctest_label": "federation-registry",
+    "commands": {
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-delay-subscription-evaluation-directed-interaction-integration --summary --compact",
+      "build": "cmake --build .build-mingw-rti --target umbra_federation_registry_catch2 -j 2",
+      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R federation_registry --output-on-failure",
+      "regression_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded Delay Subscription Evaluation defers directed interaction eligibility$\" --output-on-failure",
+      "mapping_check": "python tools/query_rti_work.py check --lane directed --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-delay-subscription-evaluation-directed-interaction-integration --summary --compact",
+      "size_report": "python tools/check_source_file_sizes.py --report"
+    },
+    "acceptance": [
+      "Audit private helper and header dependencies before moving the exact 1,006-line section; preserve every existing function without behavior changes and keep the new file below the 2,000-line soft limit.",
+      "Build umbra_federation_registry_catch2, run all registry CTests plus the exact mapped Delay Subscription Evaluation directed-interaction regression, and confirm the catch2-test-plan.json diff stays empty.",
       "Do not add a behavioral test lane or requirement mapping for this source-only move. Keep all 2010 sources, targets, tests, fixtures, and mappings untouched."
     ],
-    "plan_id": "umbra-cpp-timestamped-regional-attribute-update-reenable-integration",
+    "plan_id": "umbra-cpp-delay-subscription-evaluation-directed-interaction-integration",
     "requirements": 0,
     "standard_sections": 0,
     "api_surface_count": 0,
@@ -295,7 +295,7 @@
       "callback_models": [
         "HLA_EVOKED"
       ],
-      "next_action": "The 31-assertion public HLAfloat64Time case matched its original body exactly and now has a focused 2025 translation unit; its aggregate build, exact CTest, case query, and trace pass with all 15 direct pairs and 14 API surfaces intact. Five coherent registry sections now live in focused source files; the latest region and catalog extractions build, all 86 registry CTests pass, and the existing regional TSO regression plus mapping check pass. The registry implementation is smaller by 1,759 extracted method lines; 25 files still exceed a soft size limit. Next split the 756-line object-attribute scope/relevance/advisory cluster from federation_registry.cpp:13226-13981 into federation_registry_attribute_relevance.cpp; keep 2010 separate."
+      "next_action": "The 31-assertion public HLAfloat64Time case matched its original body exactly and now has a focused 2025 translation unit; its aggregate build, exact CTest, case query, and trace pass with all 15 direct pairs and 14 API surfaces intact. Six coherent registry sections now live in focused source files; the latest 754-line attribute-relevance extraction builds, all 86 registry CTests and its exact 2025 regression pass, and the live mapping check passes. The strict historical audit still flags stale older completion records; 25 files remain above a soft size limit. Next split the directed-interaction declaration/advisory block from federation_registry.cpp:14373-15378 into federation_registry_directed_interactions.cpp; keep 2010 separate."
     },
     "previous_completed_slice": {
       "lane": "flush-queue-grant-logical-time-gating",

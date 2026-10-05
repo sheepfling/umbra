@@ -236,7 +236,7 @@ add_library(umbra_rti STATIC
   cpp/src/internal/federation/federate_lifecycle.cpp
   cpp/src/internal/time/federate_time_state.cpp
     cpp/src/internal/federation/federation_management_coordinator.cpp
-    cpp/src/internal/federation/federation_registry.cpp cpp/src/internal/federation/federation_registry_control_state.cpp cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp cpp/src/internal/federation/federation_registry_tso_delivery.cpp cpp/src/internal/federation/federation_registry_regions.cpp cpp/src/internal/federation/federation_registry_catalog_queries.cpp
+    cpp/src/internal/federation/federation_registry.cpp cpp/src/internal/federation/federation_registry_control_state.cpp cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp cpp/src/internal/federation/federation_registry_tso_delivery.cpp cpp/src/internal/federation/federation_registry_regions.cpp cpp/src/internal/federation/federation_registry_catalog_queries.cpp cpp/src/internal/federation/federation_registry_attribute_relevance.cpp
     cpp/src/internal/federation/federation_state_image.cpp
     cpp/src/internal/federation/federation_save_commit_store.cpp
   cpp/src/internal/handles/interaction_class_handle_directory.cpp
