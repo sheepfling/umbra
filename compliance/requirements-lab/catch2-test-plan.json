@@ -35299,6 +35299,7 @@
         "federate.callback.receive-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_passive_interaction_subscription_catch2.cpp:4",
       "next_action": "This focused no-time regression proves that ordinary and overlapping regional passive subscriptions remain declared but cannot arrange a Receive Interaction callback; replacing each with active state enables the next send. The shared recipient planner also feeds bounded timestamped traffic, but this case does not independently characterize a timestamped passive matrix. Regional declaration advisories, general region realization, direct timestamped-default behavior, relaxed DDM, directed DDM, alternate advances, save/restore, remote transport, package/JUnit/protected-review evidence, and conformance remain open."
     },
     {
@@ -35836,7 +35837,7 @@
         "2025"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:24955",
+      "source_location": "cpp/tests/federation_listing_catch2.cpp:71",
       "assertions": 41,
       "callback_models": [
         "HLA_EVOKED",
@@ -35871,7 +35872,7 @@
         "2025"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:24955",
+      "source_location": "cpp/tests/federation_listing_catch2.cpp:71",
       "assertions": 41,
       "callback_models": [
         "HLA_EVOKED",
@@ -36053,6 +36054,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-293-l128-42"
       ],
       "test_case": "Embedded service-report files have one immutable joined-federate lifetime",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_lifecycle_catch2.cpp:4",
       "tags": [
         "development-profile",
         "federation-management",

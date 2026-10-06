@@ -1,4 +1,5 @@
 #include "ieee1516_2025_federation_management_test_support.hpp"
+#include "ieee1516_2025_federation_listing_test_support.hpp"
 #include "ieee1516_2025_public_federation_restore_test_support.hpp"
 
 namespace {
@@ -13359,77 +13360,6 @@ TEST_CASE(
   REQUIRE_NOTHROW(subject->disconnect());
 }
 
-TEST_CASE(
-    "Embedded service-report files have one immutable joined-federate lifetime",
-    "[integration][development-profile][federation-management][mom][service-report-file]"
-    "[service-reporting]") {
-  TestFederateAmbassador reports;
-  auto rti = makeRti();
-  auto const federationName = nextFederationName();
-  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
-  auto directory = temporaryServiceReportDirectory();
-  RtiConfiguration configuration = configurationForServiceReportDirectory(directory.path());
-  configuration.withConfigurationName(L"report-file-test").withRtiAddress(L"in-process");
-
-  REQUIRE_NOTHROW(rti->connect(reports, HLA_EVOKED, configuration));
-  REQUIRE_NOTHROW(
-      rti->createFederationExecution(federationName, fomModule, standard_hla::mom::integer64_time));
-  REQUIRE_NOTHROW(rti->joinFederationExecution(
-      L"service-report-subject", L"observer", federationName));
-  REQUIRE_FALSE(rti->getServiceReportingSwitch());
-  REQUIRE_FALSE(rti->getSendServiceReportsToFileSwitch());
-
-  auto files = serviceReportFiles(directory.path());
-  REQUIRE(files.size() == 1U);
-  auto const firstFile = files.front();
-  auto const initialText = readTextFile(firstFile);
-  REQUIRE_FALSE(initialText.empty());
-  REQUIRE(initialText.front() == '{');
-  REQUIRE(initialText.find("\"CallbackModel\":\"HLA_EVOKED\"") != std::string::npos);
-  REQUIRE(initialText.find("\"ConfigurationName\":\"report-file-test\"") != std::string::npos);
-  REQUIRE(initialText.find("\"HLAfederationName\":\"umbra-catch2-federation-") !=
-          std::string::npos);
-  REQUIRE(initialText.find("\"HLAMIMDesignator\":\"HLAstandardMIM\"") != std::string::npos);
-  REQUIRE(initialText.find("\"HLAfederateName\":\"service-report-subject\"") !=
-          std::string::npos);
-  REQUIRE(initialText.find("\"HLAserialNumber\"") == std::string::npos);
-
-  // File reporting switches gate future report appends only. They cannot
-  // rotate or replace the preallocated joined-federate file, even when both
-  // switches were disabled at the join that created its initial record.
-  REQUIRE_NOTHROW(rti->setExceptionReportingSwitch(false));
-  REQUIRE(readTextFile(firstFile) == initialText);
-  REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
-  REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
-  REQUIRE_NOTHROW(rti->setExceptionReportingSwitch(true));
-  auto const firstRecord =
-      R"({"HLAserialNumber":0,"HLAreturnedArgument":[null],"HLAservice":"SetExceptionReportingSwitch","HLAsuppliedArguments":[{"HLAargumentType":6,"HLAargumentName":"SwitchValue","HLAargumentValue":true}],"HLAsuccessIndicator":true,"HLAexception":null})";
-  REQUIRE(readTextFile(firstFile) == initialText + firstRecord);
-  REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(false));
-  REQUIRE_NOTHROW(rti->setServiceReportingSwitch(false));
-  REQUIRE_NOTHROW(rti->setExceptionReportingSwitch(false));
-  REQUIRE(readTextFile(firstFile) == initialText + firstRecord);
-  REQUIRE_NOTHROW(rti->setServiceReportingSwitch(true));
-  REQUIRE_NOTHROW(rti->setSendServiceReportsToFileSwitch(true));
-  REQUIRE_NOTHROW(rti->setExceptionReportingSwitch(false));
-  auto const secondRecord =
-      R"({"HLAserialNumber":1,"HLAreturnedArgument":[null],"HLAservice":"SetExceptionReportingSwitch","HLAsuppliedArguments":[{"HLAargumentType":6,"HLAargumentName":"SwitchValue","HLAargumentValue":false}],"HLAsuccessIndicator":true,"HLAexception":null})";
-  REQUIRE(serviceReportFiles(directory.path()) ==
-          std::vector<std::filesystem::path>{firstFile});
-  REQUIRE(readTextFile(firstFile) == initialText + firstRecord + secondRecord);
-
-  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(rti->joinFederationExecution(
-      L"service-report-subject", L"observer", federationName));
-  files = serviceReportFiles(directory.path());
-  REQUIRE(files.size() == 2U);
-  REQUIRE(files.front() != files.back());
-  REQUIRE(std::find(files.begin(), files.end(), firstFile) != files.end());
-  REQUIRE_NOTHROW(rti->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
-  REQUIRE_NOTHROW(rti->disconnect());
-}
-
 
 
 
@@ -14431,119 +14361,6 @@ TEST_CASE(
 
 
 TEST_CASE(
-    "Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
-    "[integration][development-profile][interaction-management][ddm][passive-subscription]"
-    "[rti.service.subscribe-interaction-class]"
-    "[rti.service.subscribe-interaction-class-with-regions]"
-    "[rti.service.send-interaction]"
-    "[rti.service.send-interaction-with-regions]"
-    "[federate.callback.receive-interaction]") {
-  ReportingFederateAmbassador publisherReports;
-  ReportingFederateAmbassador subscriberReports;
-  auto publisher = makeRti();
-  auto subscriber = makeRti();
-  auto const federationName = nextFederationName();
-  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
-  unsigned char const parameterBytes[] = {0x50, 0x41, 0x53};
-  unsigned char const tagBytes[] = {0x53, 0x55, 0x42};
-  VariableLengthData const tag(tagBytes, sizeof(tagBytes));
-  ParameterHandleValueMap parameterValues;
-
-  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(subscriber->connect(subscriberReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(
-      publisher->createFederationExecution(federationName, fomModule, standard_hla::mom::integer64_time));
-  FederateHandle publisherHandle;
-  REQUIRE_NOTHROW(
-      publisherHandle = publisher->joinFederationExecution(
-          L"passive-subscription-publisher", L"publisher", federationName));
-  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
-      L"passive-subscription-subscriber", L"subscriber", federationName));
-
-  auto const interactionClass = publisher->getInteractionClassHandle(
-      fixture_hla::fom::main_course_served);
-  auto const temperatureOk = publisher->getParameterHandle(interactionClass, fixture_hla::fixture::temperature_ok);
-  auto const serverId = publisher->getDimensionHandle(fixture_hla::fixture::server_id);
-  REQUIRE(interactionClass.isValid());
-  REQUIRE(temperatureOk.isValid());
-  REQUIRE(serverId.isValid());
-  parameterValues.emplace(
-      temperatureOk,
-      VariableLengthData(parameterBytes, sizeof(parameterBytes)));
-
-  REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
-
-  // An ordinary passive subscription is retained as declaration state but is
-  // not eligible for a Receive Interaction callback. Replacing it with an
-  // active subscription makes the next send eligible.
-  REQUIRE_NOTHROW(subscriber->subscribeInteractionClass(interactionClass, false));
-  REQUIRE_NOTHROW(publisher->sendInteraction(interactionClass, parameterValues, tag));
-  static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE(subscriberReports.interactionReports.empty());
-
-  REQUIRE_NOTHROW(subscriber->subscribeInteractionClass(interactionClass, true));
-  REQUIRE_NOTHROW(publisher->sendInteraction(interactionClass, parameterValues, tag));
-  static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE(subscriberReports.interactionReports.size() == 1);
-  REQUIRE(subscriberReports.interactionReports.back().producingFederate == publisherHandle);
-  REQUIRE_FALSE(subscriberReports.interactionReports.back().sentRegionsSupplied);
-  REQUIRE_NOTHROW(subscriber->unsubscribeInteractionClass(interactionClass));
-
-  auto const publisherRegion = publisher->createRegion(DimensionHandleSet{serverId});
-  REQUIRE_NOTHROW(publisher->setRangeBounds(
-      publisherRegion,
-      serverId,
-      RangeBounds(0UL, 10UL)));
-  REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{publisherRegion}));
-  auto const subscriberRegion = subscriber->createRegion(DimensionHandleSet{serverId});
-  REQUIRE_NOTHROW(subscriber->setRangeBounds(
-      subscriberRegion,
-      serverId,
-      RangeBounds(5UL, 15UL)));
-  REQUIRE_NOTHROW(subscriber->commitRegionModifications(RegionHandleSet{subscriberRegion}));
-
-  // The same eligibility rule applies to a regional pair: the region remains
-  // subscribed and in use while passive, but its overlap cannot arrange
-  // delivery until the pair is made active.
-  REQUIRE_NOTHROW(subscriber->subscribeInteractionClassWithRegions(
-      interactionClass,
-      RegionHandleSet{subscriberRegion},
-      false));
-  REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
-      interactionClass,
-      parameterValues,
-      RegionHandleSet{publisherRegion},
-      tag));
-  static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE(subscriberReports.interactionReports.size() == 1);
-
-  REQUIRE_NOTHROW(subscriber->subscribeInteractionClassWithRegions(
-      interactionClass,
-      RegionHandleSet{subscriberRegion},
-      true));
-  REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
-      interactionClass,
-      parameterValues,
-      RegionHandleSet{publisherRegion},
-      tag));
-  static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
-  REQUIRE(subscriberReports.interactionReports.size() == 2);
-  REQUIRE(subscriberReports.interactionReports.back().producingFederate == publisherHandle);
-  REQUIRE_FALSE(subscriberReports.interactionReports.back().sentRegionsSupplied);
-
-  REQUIRE_NOTHROW(subscriber->unsubscribeInteractionClassWithRegions(
-      interactionClass,
-      RegionHandleSet{subscriberRegion}));
-  REQUIRE_NOTHROW(subscriber->deleteRegion(subscriberRegion));
-  REQUIRE_NOTHROW(publisher->deleteRegion(publisherRegion));
-  REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
-  REQUIRE_NOTHROW(subscriber->disconnect());
-  REQUIRE_NOTHROW(publisher->disconnect());
-}
-
-TEST_CASE(
     "Embedded federation-list services dispatch standards reports in both callback models",
     "[integration][development-profile][federation-management][callbacks]"
     "[rti.service.list-federation-executions][rti.service.list-federation-execution-members]") {
@@ -14552,76 +14369,13 @@ TEST_CASE(
   ReportingFederateAmbassador disconnectedReports;
   TestFederateAmbassador creatorFederate;
   TestFederateAmbassador memberFederate;
-  auto evoked = makeRti();
-  auto immediate = makeRti();
-  auto disconnected = makeRti();
-  auto creator = makeRti();
-  auto member = makeRti();
-  auto const firstFederationName = nextFederationName();
-  auto const secondFederationName = nextFederationName();
-  auto const missingFederationName = nextFederationName();
-  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
-
-  REQUIRE_THROWS_AS(evoked->listFederationExecutions(), rti1516_2025::NotConnected);
-  REQUIRE_THROWS_AS(
-      evoked->listFederationExecutionMembers(firstFederationName),
-      rti1516_2025::NotConnected);
-
-  REQUIRE_NOTHROW(evoked->connect(evokedReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(immediate->connect(immediateReports, rti1516_2025::HLA_IMMEDIATE));
-  REQUIRE_NOTHROW(disconnected->connect(disconnectedReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(creator->connect(creatorFederate, HLA_EVOKED));
-  REQUIRE_NOTHROW(member->connect(memberFederate, HLA_EVOKED));
-  REQUIRE_NOTHROW(
-      creator->createFederationExecution(firstFederationName, fomModule, standard_hla::mom::integer64_time));
-  REQUIRE_NOTHROW(
-      creator->createFederationExecution(secondFederationName, fomModule, standard_hla::mom::integer64_time));
-  REQUIRE_NOTHROW(member->joinFederationExecution(L"listed-member", L"observer", firstFederationName));
-
-  REQUIRE_NOTHROW(evoked->listFederationExecutions());
-  REQUIRE(evokedReports.federationExecutionReports.empty());
-  REQUIRE_FALSE(evoked->evokeCallback(0.0));
-  REQUIRE(evokedReports.federationExecutionReports.size() == 1);
-  auto const& listedFederations = evokedReports.federationExecutionReports.front();
-  REQUIRE(listedFederations.size() == 2);
-  auto const first = std::find_if(
-      listedFederations.begin(),
-      listedFederations.end(),
-      [&firstFederationName](auto const& federation) {
-        return federation.federationExecutionName == firstFederationName;
-      });
-  REQUIRE(first != listedFederations.end());
-  REQUIRE(first->logicalTimeImplementationName == standard_hla::mom::integer64_time);
-
-  REQUIRE_NOTHROW(evoked->listFederationExecutionMembers(firstFederationName));
-  REQUIRE_FALSE(evoked->evokeCallback(0.0));
-  REQUIRE(evokedReports.federationExecutionMemberReports.size() == 1);
-  auto const& memberReport = evokedReports.federationExecutionMemberReports.front();
-  REQUIRE(memberReport.federationName == firstFederationName);
-  REQUIRE(memberReport.members.size() == 1);
-  REQUIRE(memberReport.members.front().federateName == L"listed-member");
-  REQUIRE(memberReport.members.front().federateType == L"observer");
-
-  REQUIRE_NOTHROW(evoked->listFederationExecutionMembers(missingFederationName));
-  REQUIRE_FALSE(evoked->evokeCallback(0.0));
-  REQUIRE(evokedReports.missingFederationReports == std::vector<std::wstring>{missingFederationName});
-
-  REQUIRE_NOTHROW(immediate->listFederationExecutions());
-  REQUIRE(immediateReports.federationExecutionReports.size() == 1);
-  REQUIRE(immediateReports.federationExecutionReports.front().size() == 2);
-
-  // Disconnect must discard a report that was queued against the prior
-  // callback session; a later Evoke cannot dereference that stale recipient.
-  REQUIRE_NOTHROW(disconnected->listFederationExecutions());
-  REQUIRE_NOTHROW(disconnected->disconnect());
-  REQUIRE_FALSE(disconnected->evokeCallback(0.0));
-  REQUIRE(disconnectedReports.federationExecutionReports.empty());
-
-  REQUIRE_NOTHROW(member->resignFederationExecution(NO_ACTION));
-  REQUIRE_NOTHROW(creator->destroyFederationExecution(firstFederationName));
-  REQUIRE_NOTHROW(creator->destroyFederationExecution(secondFederationName));
-  REQUIRE_NOTHROW(evoked->disconnect());
-  REQUIRE_NOTHROW(immediate->disconnect());
-  REQUIRE_NOTHROW(creator->disconnect());
-  REQUIRE_NOTHROW(member->disconnect());
+  umbra::test::ieee1516_2025::runFederationListingScenario(
+      evokedReports,
+      immediateReports,
+      disconnectedReports,
+      creatorFederate,
+      memberFederate,
+      makeRti,
+      resourcePath,
+      nextFederationName);
 }
