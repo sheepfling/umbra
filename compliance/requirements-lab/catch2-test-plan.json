@@ -38645,6 +38645,7 @@
         "rti.service.send-interaction",
         "federate.callback.receive-interaction"
       ],
+      "source_location": "cpp/tests/ieee1516_2025_service_report_timestamped_send_interaction_catch2.cpp:4",
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "The focused production-filesystem regression proves the accepted timestamped \u00a76.12 Send Interaction uses the shared file-or-interaction selector and appends type-27/type-40/type-63/type-31 supplied forms before the Receive Interaction callback. A non-time-regulating sender returns the official type-34 Null returned argument at serial zero; callback timestamp/order metadata is retained. The paired native HLA_IMMEDIATE matrix covers the time-regulated type-33 MessageRetractionHandle return before the constrained callback. Regional/timestamped object-update/delete families, remote transport, JUnit/protected-review evidence, and conformance remain open. RL-105/RL-152 record the missing Lab report-backend and row-level failure relations."
     },
@@ -38766,6 +38767,7 @@
         "rti.service.send-interaction",
         "federate.callback.receive-interaction"
       ],
+      "source_location": "cpp/tests/ieee1516_2025_service_report_timestamped_send_interaction_mom_interaction_catch2.cpp:4",
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This native HLA_IMMEDIATE companion decodes one accepted timestamped \u00a76.12 Send Interaction through HLAreportServiceInvocation before the queued Receive Interaction callback. It preserves reliable object-management service type 2, type-27/type-40/type-63/type-31 supplied forms, the type-34 Null return for a non-time-regulating sender, success true, empty exception, invalid RTI-originated producer, no regions, and serial zero; the receiver then verifies timestamp/order/tag/parameter metadata and the absent retraction. It remains development-profile evidence because RL-105/RL-152 record the missing row-level backend/conditional relation; time-regulated returns, regional/object-update/delete families, remote transport, JUnit/protected review, and conformance remain open."
     },
