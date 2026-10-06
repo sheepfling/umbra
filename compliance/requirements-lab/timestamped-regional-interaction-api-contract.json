@@ -46,7 +46,7 @@
         "cpp/tests/timestamped_regional_interaction_failure_service_report_file_catch2.cpp::Embedded service reporting records failed timestamped regional Send Interaction With Regions invocations",
         "cpp/tests/timestamped_regional_interaction_failure_service_report_interaction_catch2.cpp::Embedded service reporting delivers failed timestamped regional Send Interaction With Regions invocations through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction subscription replacement does not retarget a queued passel",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives source resignation",
+        "cpp/tests/timed_live_tso_regional_interaction_source_resignation_catch2.cpp::Embedded queued timestamped regional interaction survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped regional interaction at the save boundary"
       ]
     },
@@ -73,7 +73,7 @@
         "cpp/tests/timestamped_regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records timestamped Send Interaction With Regions before interaction callback",
         "cpp/tests/timestamped_regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted timestamped regional Send Interaction With Regions through MOM interaction",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction subscription replacement does not retarget a queued passel",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives source resignation",
+        "cpp/tests/timed_live_tso_regional_interaction_source_resignation_catch2.cpp::Embedded queued timestamped regional interaction survives source resignation",
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped regional interaction at the save boundary"
       ]
     }

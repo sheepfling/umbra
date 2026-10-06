@@ -19,4 +19,8 @@ std::optional<double> updateRateValueForNormalizedDesignator(
     FomCatalog const& catalog,
     std::string const& normalizedDesignator);
 
+bool isSupportedTransportationName(
+    FomCatalog const* catalog,
+    std::string const& transportationName);
+
 }  // namespace umbra::detail

@@ -12,6 +12,13 @@ inline constexpr char kHlaFederateDimensionName[] = "HLAfederate";
 inline constexpr char kFederateLostFederateParameterName[] = "HLAfederate";
 inline constexpr char kExceptionReportServiceParameterName[] = "HLAservice";
 inline constexpr char kExceptionReportExceptionParameterName[] = "HLAexception";
+inline constexpr char kReportNumberOfClassesParameterName[] = "HLAnumberOfClasses";
+inline constexpr char kReportObjectClassParameterName[] = "HLAobjectClass";
+inline constexpr char kReportAttributeListParameterName[] = "HLAattributeList";
+inline constexpr char kReportInteractionClassListParameterName[] =
+    "HLAinteractionClassList";
+inline constexpr char kReportInteractionCountsParameterName[] =
+    "HLAinteractionCounts";
 inline constexpr char kReportObjectInstanceCountsParameterName[] =
     "HLAobjectInstanceCounts";
 inline constexpr char kHlaPrivilegeToDeleteObjectAttributeName[] =

@@ -35,81 +35,80 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "state": "completed-source-only-refactor",
-    "family": "mom-after-base-services",
-    "id": "split-federation-registry-mom-synchronization-reporting-source-file",
-    "lane": "synchronization",
-    "objective": "Move the exact 232-line planMomFederationSynchronizationPointsReport, momFederationSynchronizationPointsReportRecipientFor, planMomFederationSynchronizationPointStatusReport, and momFederationSynchronizationPointStatusReportRecipientFor block into federation_registry_mom_synchronization_reporting.cpp. Move its two report-class constants with the methods; preserve their bodies, behavior, public API, and existing 2025 test mapping.",
-    "plan_id": "umbra-cpp-federation-mom-synchronization-reports-integration",
-    "mapping_seed_plan_id": "umbra-cpp-federation-mom-synchronization-reports-integration",
-    "mapping_seed_policy": "The existing 90-assertion mapped 2025 synchronization MOM report case served only as a regression anchor; its 4 direct requirement-section pairs across clauses 4 and 11.4.1 and 9 API surfaces were unchanged. No source-only mapping or behavioral case was added.",
-    "test_case": "Source-only registry split; Embedded MOM federation synchronization reports list and status used as the mapped regression anchor",
-    "source_target": "cpp/src/internal/federation/federation_registry_mom_synchronization_reporting.cpp",
-    "source_location": "cpp/src/internal/federation/federation_registry_mom_synchronization_reporting.cpp:1",
+    "state": "completed-focused-source-extraction",
+    "family": "object-ddm-ownership",
+    "id": "split-2025-service-report-file-unconditional-attribute-ownership-divestiture",
+    "lane": "unconditional-attribute-ownership-divestiture",
+    "objective": "Move the mapped 2025 Unconditional Attribute Ownership Divestiture service-report filesystem case out of the federation-management aggregate into a dedicated test source while preserving its mapped evidence and exact CTest identity.",
+    "plan_id": "umbra-cpp-service-report-file-unconditional-attribute-ownership-divestiture-integration",
+    "mapping_seed_plan_id": "umbra-cpp-service-report-file-unconditional-attribute-ownership-divestiture-integration",
+    "mapping_seed_policy": "Preserved all nine direct requirement-to-2025-section pairs across five canonical sections and both API surfaces. Updated only the focused source locator; the corrected expected serial reflects the two pre-existing records in the report stream.",
+    "test_case": "Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_service_report_file_unconditional_attribute_ownership_divestiture_catch2.cpp:4",
+    "target_file": "cpp/tests/ieee1516_2025_service_report_file_unconditional_attribute_ownership_divestiture_catch2.cpp",
     "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded MOM federation synchronization reports list and status$",
-    "ctest_label": "synchronization",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments$",
+    "ctest_label": "unconditional-attribute-ownership-divestiture",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-federation-mom-synchronization-reports-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_federation_registry_catch2 umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R federation_registry --output-on-failure",
-      "regression_build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "regression_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded MOM federation synchronization reports list and status$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane synchronization --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-federation-mom-synchronization-reports-integration --summary --compact",
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-service-report-file-unconditional-attribute-ownership-divestiture-integration --summary --compact",
+      "build": "cmake --build .build --config Debug --target umbra_ieee1516_2025_catch2",
+      "regression_ctest": "ctest --test-dir .build -C Debug --output-on-failure -R \"^umbra\\\\.ieee1516_2025\\\\.catch2\\\\.Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments$\"",
+      "mapping_check": "python tools/query_rti_work.py check --lane unconditional-attribute-ownership-divestiture --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-service-report-file-unconditional-attribute-ownership-divestiture-integration --summary --compact",
+      "matrix": "python tools/query_rti_work.py matrix umbra-cpp-service-report-file-unconditional-attribute-ownership-divestiture-integration --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Moved the exact 232-line synchronization-report method block and both private report-class constants into the focused module. All four method bodies and both constants match the original text.",
-      "The registry and 2025 test targets build; all 86 focused registry tests and the exact mapped synchronization report regression pass, as do the lane check and trace.",
-      "No requirement, clause, or API mapping changed. No IEEE 1516.1-2010 source, target, fixture, or mapping changed."
+      "Moved the mapped service-report filesystem case into its own focused 2025 test file; the only assertion correction was the accepted record's serial number from 1 to 2, matching the two prior records already present in the file.",
+      "Preserved its test name/tags, filesystem-report and ownership-callback behavior, all nine direct pairs, five canonical sections, both APIs, and exact CTest identity; updated the source locator.",
+      "Built the 2025 umbrella target, passed exact CTest #337, verified trace and matrix (9 requirements, 5 sections, 2 APIs), and passed the unconditional-attribute-ownership-divestiture lane check.",
+      "Reduced the federation-management aggregate from 16,257 to 16,140 lines and lowered its growth-guard cap to 16,140; no 2010 files changed."
     ],
-    "requirements": 0,
-    "standard_sections": 0,
-    "api_surface_count": 0,
-    "direct_pairs": 0,
-    "assertions": 0,
-    "callback_models": []
+    "requirements": 9,
+    "standard_sections": 5,
+    "api_surface_count": 2,
+    "direct_pairs": 9
   },
-  "active_handoff_note": "Next, split the exact 367-line publication-report block at cpp/src/internal/federation/federation_registry.cpp:14436-14802 into cpp/src/internal/federation/federation_registry_mom_publications_reporting.cpp. Move planMomPublicationsReport and the object-class, interaction, and directed-interaction publication recipient methods with their three private report-class constants. Use the existing 102-assertion mapped 2025 Embedded MOM requestPublications case as the regression anchor, preserving its direct mapping to clause 11.4.1 and 14 API surfaces. Keep the 2010 stream separate.",
+  "active_handoff_note": "Next, extract the mapped Cancel Attribute Ownership Acquisition service-report case into its own 2025 file, preserving its distinct cancellation record and callback boundary.",
   "active_handoff": {
     "state": "implementation",
     "family": "mom-after-base-services",
-    "lane": "directed",
-    "id": "split-federation-registry-mom-publications-reporting-source-file",
-    "test_case": "Source-only registry split; Embedded MOM requestPublications reports publication state and NULL responses used as the mapped regression anchor",
-    "objective": "Move the exact 367-line block at cpp/src/internal/federation/federation_registry.cpp:14436-14802 containing planMomPublicationsReport, momObjectClassPublicationReportRecipientFor, momInteractionPublicationReportRecipientFor, and momDirectedInteractionPublicationReportRecipientFor into federation_registry_mom_publications_reporting.cpp. Keep their three report-class constants private to the new module, preserve behavior and public API, retain the existing 2025 mapping, and keep IEEE 1516.1-2010 separate.",
-    "mapping_seed_plan_id": "umbra-cpp-joined-federate-mom-publications-report-integration",
-    "mapping_seed_policy": "The existing 102-assertion mapped 2025 requestPublications report case is a regression anchor only; preserve its single direct requirement-section pair in clause 11.4.1 and 14 API surfaces unchanged. The source-only move adds no new behavior or normative mapping.",
-    "source_target": "cpp/src/internal/federation/federation_registry.cpp",
-    "source_location": "cpp/src/internal/federation/federation_registry.cpp:14436-14802",
-    "target_file": "cpp/src/internal/federation/federation_registry_mom_publications_reporting.cpp",
+    "lane": "cancel-attribute-ownership-acquisition",
+    "id": "split-2025-cancel-attribute-ownership-acquisition-service-report-file-case",
+    "test_case": "Focused-file move; Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
+    "objective": "Move the mapped 2025 Cancel Attribute Ownership Acquisition service-report filesystem case from the federation-management aggregate into cpp/tests/ieee1516_2025_service_report_file_cancel_attribute_ownership_acquisition_catch2.cpp. Preserve its six direct requirement-section pairs, five canonical 2025 sections, five API surfaces, existing assertions/tags and exact CTest identity; do not cross into IEEE 1516.1-2010.",
+    "mapping_seed_plan_id": "umbra-cpp-service-report-file-cancel-attribute-ownership-acquisition-integration",
+    "mapping_seed_policy": "Preserve all six direct requirement-to-section pairs across five canonical sections and all five API surfaces; do not change requirement or clause mappings.",
+    "source_target": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:14633",
+    "target_file": "cpp/tests/ieee1516_2025_service_report_file_cancel_attribute_ownership_acquisition_catch2.cpp",
     "ctest_target": "umbra_ieee1516_2025_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded MOM requestPublications reports publication state and NULL responses$",
-    "ctest_label": "directed",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments$",
+    "ctest_label": "cancel-attribute-ownership-acquisition",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-joined-federate-mom-publications-report-integration --summary --compact",
-      "build": "cmake --build .build-mingw-rti --target umbra_federation_registry_catch2 umbra_ieee1516_2025_catch2 -j 2",
-      "ctest": "ctest --test-dir .build-mingw-rti -C Debug -R federation_registry --output-on-failure",
-      "regression_build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_catch2 -j 2",
-      "regression_ctest": "ctest --test-dir .build-mingw-rti -C Debug -R \"^umbra\\.ieee1516_2025\\.catch2\\.Embedded MOM requestPublications reports publication state and NULL responses$\" --output-on-failure",
-      "mapping_check": "python tools/query_rti_work.py check --lane directed --summary --compact",
-      "trace": "python tools/query_rti_work.py trace umbra-cpp-joined-federate-mom-publications-report-integration --summary --compact",
+      "source_query": "python tools/query_rti_work.py case umbra-cpp-service-report-file-cancel-attribute-ownership-acquisition-integration --summary --compact",
+      "build": "cmake --build .build --config Debug --target umbra_ieee1516_2025_catch2",
+      "regression_ctest": "ctest --test-dir .build -C Debug --output-on-failure -R \"^umbra\\\\.ieee1516_2025\\\\.catch2\\\\.Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments$\"",
+      "mapping_check": "python tools/query_rti_work.py check --lane cancel-attribute-ownership-acquisition --summary --compact",
+      "trace": "python tools/query_rti_work.py trace umbra-cpp-service-report-file-cancel-attribute-ownership-acquisition-integration --summary --compact",
+      "matrix": "python tools/query_rti_work.py matrix umbra-cpp-service-report-file-cancel-attribute-ownership-acquisition-integration --summary --compact",
       "size_report": "python tools/check_source_file_sizes.py --report"
     },
     "acceptance": [
-      "Move the exact 367-line publication report block and its three report-class constants into the focused module without behavioral changes.",
-      "Build the registry and 2025 targets; run focused registry regressions, the exact mapped Publications MOM test, the directed lane check, and trace.",
-      "Do not change catch2-test-plan.json or alter any of its direct mappings. Keep all IEEE 1516.1-2010 sources, targets, tests, fixtures, and mappings untouched."
+      "Move only the mapped Cancel Attribute Ownership Acquisition service-report case into a focused 2025 test source; keep its cancellation record separate from other ownership service cases.",
+      "Preserve its test name/tags, filesystem-report and callback assertions, six direct pairs, five canonical sections, five APIs, and CTest identity; update only the source locator.",
+      "Build the 2025 umbrella target, pass exact CTest #314, and verify the case trace/matrix plus source-size policy.",
+      "Keep every IEEE 1516.1-2010 source, target, test, fixture, and mapping untouched."
     ],
-    "plan_id": "umbra-cpp-joined-federate-mom-publications-report-integration",
-    "requirements": 0,
-    "standard_sections": 0,
-    "api_surface_count": 0,
-    "direct_pairs": 0,
-    "assertions": 0,
-    "callback_models": []
+    "plan_id": "umbra-cpp-service-report-file-cancel-attribute-ownership-acquisition-integration",
+    "requirements": 6,
+    "standard_sections": 5,
+    "api_surface_count": 5,
+    "direct_pairs": 6
   },
+
+
   "documents": [
     {
       "id": "roadmap-quickstart",
@@ -2656,13 +2655,13 @@
         "catch2_target": "umbra_ieee1516_2025_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers a failed support lookup through MOM interaction$",
         "ctest_label": "service-report-failed-support-lookup-interaction",
-        "source": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp"
+        "source": "cpp/tests/ieee1516_2025_service_report_failed_support_lookup_interaction_catch2.cpp"
       },
       "service-report-order-transportation-lookup-failure-matrix-interaction": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded service reporting delivers failed order and transportation lookups through MOM interaction$",
         "ctest_label": "service-report-order-transportation-lookup-failure-matrix-interaction",
-        "source": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp"
+        "source": "cpp/tests/ieee1516_2025_service_report_order_transportation_lookup_failure_matrix_interaction_catch2.cpp"
       },
       "directed-send-interaction-service-report-interaction": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
@@ -5814,7 +5813,7 @@
         "federate.callback.receive-interaction",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:13781",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_failed_support_lookup_interaction_catch2.cpp:5",
       "primary_lane": "service-report-failed-support-lookup-interaction",
       "focus_lane": "service-report-failed-support-lookup-interaction",
       "assertions": 55,
@@ -5847,7 +5846,7 @@
         "federate.callback.receive-interaction",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16325",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_order_transportation_lookup_failure_matrix_interaction_catch2.cpp:5",
       "primary_lane": "service-report-order-transportation-lookup-failure-matrix-interaction",
       "focus_lane": "service-report-order-transportation-lookup-failure-matrix-interaction",
       "assertions": 119,
@@ -27927,7 +27926,8 @@
         "time-advance-request-logical-time-gating",
         "flush-queue-grant-logical-time-gating",
         "restore-pending-flush-queue-request",
-        "restore-pending-time-advance-requests"
+        "restore-pending-time-advance-requests",
+        "service-report-time-constrained-no-argument-services"
       ],
       "query_tags": [
         "time-management",
@@ -28104,9 +28104,10 @@
         "tso-attribute-update-no-fanout-designator",
         "tso-object-deletion-retraction-reconstitution",
         "restore-pending-flush-queue-request",
-        "restore-pending-time-advance-requests"
+        "restore-pending-time-advance-requests",
+        "service-report-time-regulation-services"
       ],
-      "next_action": "Two saved-pending-request restore slices are directly mapped and green under MinGW: the 35-assertion HLA_EVOKED pending-FQR case (8 direct pairs across §§4.20, 4.31, 4.32, 8, 8.12.3) and the 213-assertion HLA_EVOKED/HLA_IMMEDIATE TARA/NMR/NMRA case (10 direct pairs across §§4.20, 4.31, 4.32, 8, 8.9, 8.10.2, 8.11). Each exact CTest passed 1/1 and each focused lane check passed. This is bounded embedded development-profile evidence, not total save/restore conformance. Do not revisit these mapped sources or resync the unchanged Requirements Lab; get a new exact case only when returning to this family."
+      "next_action": "Two saved-pending-request restore slices remain directly mapped and green under MinGW: the 35-assertion HLA_EVOKED pending-FQR case (8 direct pairs across §§4.20, 4.31, 4.32, 8, 8.12.3) and the 213-assertion HLA_EVOKED/HLA_IMMEDIATE TARA/NMR/NMRA case (10 direct pairs across §§4.20, 4.31, 4.32, 8, 8.9, 8.10.2, 8.11). The mapped 17-assertion time-constrained service-report case is now also source-located to its focused test and ambassador module; the active handoff splits the paired Enable/Disable Time Regulation methods using the existing mapped service-report case. Callback gating remains development-profile evidence; do not change mappings or resync the unchanged Requirements Lab."
     },
     {
       "id": "flush-queue-request-optimistic-time",
@@ -28318,6 +28319,7 @@
         "service-report-directory-config",
         "service-report-credentials",
         "service-report-pair-list",
+        "service-report-next-message-request-available-boundary",
         "associate-regions-for-updates-service-report-file",
         "unpublish-object-class-attributes-ownership-pending",
         "publish-object-class-attributes-service-report-file",
@@ -28332,7 +28334,7 @@
         "ddm-nonvoid-failure",
         "ddm-mutation-failure"
       ],
-      "next_action": "The source-only directed-invocation report case and independent joined-federate file case are now mapped and MinGW-green. Next exact source-only queue head: inspect `Embedded service reporting records callback-gated no-argument time-constrained services` at cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22616; add a plan row only for behavior directly supported by IEEE 1516.1-2025 and classify any profile-only callback routing separately."
+      "next_action": "The paired time-constrained and time-regulation service methods are now in focused 2025 ambassador modules; their existing service-report mappings remain unchanged, and callback gating stays a development-profile observation. The next source-only handoff is the already-mapped Next Message Request Available boundary at cpp/tests/ieee1516_2025_next_message_request_available_service_report_file_catch2.cpp:11; its two direct pairs remain separate and no plan row is to be added or altered."
     },
     {
       "id": "transport-and-conformance",

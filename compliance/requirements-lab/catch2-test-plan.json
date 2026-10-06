@@ -98,7 +98,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting delivers a failed support lookup through MOM interaction",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15640",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_failed_support_lookup_interaction_catch2.cpp:5",
       "primary_lane": "service-report-failed-support-lookup-interaction",
       "focus_lane": "service-report-failed-support-lookup-interaction",
       "assertions": 55,
@@ -154,7 +154,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting delivers directed invocation reports before directed callbacks",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:14129",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_directed_invocation_ordering_interaction_catch2.cpp:5",
       "primary_lane": "directed-send-interaction-service-report-interaction",
       "focus_lane": "directed-send-interaction-service-report-interaction",
       "assertions": 140,
@@ -437,7 +437,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-293-l119-39"
       ],
       "test_case": "Embedded joins retain an unpublished RTI-owned joined-federate MOM snapshot",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15903",
+      "source_location": "cpp/tests/ieee1516_2025_joined_federate_mom_snapshot_foundation_catch2.cpp:5",
       "primary_lane": "joined-federate-mom-snapshot-foundation",
       "focus_lane": "joined-federate-mom-snapshot-foundation",
       "assertions": 35,
@@ -645,7 +645,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35"
       ],
       "test_case": "Embedded service reporting delivers failed order and transportation lookups through MOM interaction",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:13959",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_order_transportation_lookup_failure_matrix_interaction_catch2.cpp:5",
       "primary_lane": "service-report-order-transportation-lookup-failure-matrix-interaction",
       "focus_lane": "service-report-order-transportation-lookup-failure-matrix-interaction",
       "assertions": 119,
@@ -3627,7 +3627,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This C++ filesystem matrix proves failed \u00a75.8 Subscribe Object Class Attributes and \u00a75.9 Unsubscribe Object Class Attributes overloads preserve type-36/type-1 supplied forms, Subscribe's type-6 passive and type-53 update-rate slots, the whole-class type-34 Null optional slot, Null returned arguments, false indicators, exact public exception text, and serials zero through four before accepted Subscribe/subset/whole-unsubscribe records at five through seven. Successful MOM emission is outside native locks. The Lab has no row-level conditional failure relation (RL-152), so broader object-attribute delivery failures, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:20676",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_object_attribute_subscription_failure_matrix_catch2.cpp:5",
       "assertions": 33,
       "callback_models": [
         "HLA_EVOKED"
@@ -3661,7 +3661,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This native HLA_IMMEDIATE matrix decodes failed \u00a75.2/\u00a75.3 object-attribute declarations through HLAreportServiceInvocation with declaration-management service type 1, type-36/type-1 supplied forms, Null returned arguments, false indicators, exact exception text, and serials zero through three; accepted Publish/Unpublish records follow at serials four and five. It remains development-profile evidence because the Lab lacks row-level conditional failure mapping (RL-152); broader MOM routes, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21367",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_interaction_object_attribute_declaration_failure_matrix_catch2.cpp:4",
       "assertions": 49,
       "callback_models": [
         "HLA_EVOKED",
@@ -3706,7 +3706,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This C++ filesystem matrix proves failed \u00c2\u00a75.12 Subscribe Object Class Directed Interactions and \u00c2\u00a75.13 Unsubscribe Object Class Directed Interactions overloads preserve type-36/type-28 supplied forms, Subscribe's type-6 Boolean selector, the whole-class type-34 Null optional slot, Null returns, false indicators, exact exception text, and serials zero through three before accepted records at serials four through six. Successful MOM emission is outside native locks. The Lab has no row-level conditional failure relation (RL-152), so broader directed routing, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21561",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_directed_subscription_failure_matrix_catch2.cpp:5",
       "assertions": 31,
       "callback_models": [
         "HLA_EVOKED"
@@ -3741,7 +3741,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This native HLA_IMMEDIATE matrix decodes failed \u00c2\u00a75.12/\u00c2\u00a75.13 directed subscriptions through HLAreportServiceInvocation with declaration-management service type 1, type-36/type-28 supplied forms, Subscribe's type-6 Boolean selector, the whole-class type-34 Null slot, Null returns, false indicators, exact exception text, and serials zero through three; accepted records follow at serials four through six. It remains development-profile evidence because the Lab lacks row-level conditional failure mapping (RL-152); broader MOM routes, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21767",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_interaction_directed_subscription_failure_matrix_catch2.cpp:4",
       "assertions": 50,
       "callback_models": [
         "HLA_EVOKED",
@@ -3778,7 +3778,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This C++ filesystem matrix proves failed \u00c2\u00a75.6 Publish Object Class Directed Interactions and \u00c2\u00a75.7 Unpublish Object Class Directed Interactions overloads preserve type-36/type-28 supplied forms, the whole-class type-34 Null optional slot, Null returns, false indicators, exact exception text, and serials zero through three before accepted explicit-set records at serials four/five and a whole-class record at serial six. Successful MOM emission is outside native locks. The Lab has no row-level conditional failure relation (RL-152), so broader directed subscription failures, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21986",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_directed_declaration_failure_matrix_catch2.cpp:5",
       "assertions": 31,
       "callback_models": [
         "HLA_EVOKED"
@@ -3812,7 +3812,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This native HLA_IMMEDIATE matrix decodes failed \u00c2\u00a75.4/\u00c2\u00a75.5 declarations through HLAreportServiceInvocation with declaration-management service type 1, type-27 supplied forms, Null returned arguments, false indicators, exact exception text, and serials zero and one; accepted publication/removal follows at serials two and three. It remains development-profile evidence because the Lab lacks row-level conditional failure mapping (RL-152); broader MOM routes, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22595",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_interaction_declaration_interaction_failure_matrix_catch2.cpp:4",
       "assertions": 46,
       "callback_models": [
         "HLA_EVOKED",
@@ -3993,7 +3993,7 @@
       ],
       "requirements_lab_api_surface_status": "The official Connect/Create/Join, Non-Regulated-Grant switch getter, Enable Time Constrained, Time Advance Request, Enable/Disable Time Regulation, Evoke Callback, Time Advance Grant, and lifecycle C++ surfaces are exercised through the embedded HLA_EVOKED development profile. The composed FOM reports the enabled NRG switch; while its sole regulator is active at time zero with lookahead two, a constrained receiver's TAR(2) remains pending at the strict GALT boundary. Disabling that regulator makes GALT undefined and the enabled NRG policy releases exactly the queued grant at time two. This is bounded no-TSO NRG-enabled GALT release evidence; it does not claim regulator resignation, NRG-disabled behavior, Query GALT/LITS, alternate advance modes, TSO ordering, DDM, interaction/object delivery, ownership, save/restore, MOM, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
       "next_action": "This focused HLA_EVOKED NRG-enabled constrained-TAR/regulator-disable case is green with 27 assertions and is queryable by its exact selector, m68 mapping id, galt/non-regulated-grant tags, 17 Requirements-Lab anchors, canonical 2025 sections, and official C++ API surfaces. Keep policy-enabled undefined-GALT release separate from regulator resignation, NRG-disabled, Query GALT/LITS, TSO, alternate-advance, DDM, ownership, save/restore, transport, package/JUnit/protected-review, interoperability, and conformance matrices; continue with the next exact source pointer.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25198"
+      "source_location": "cpp/tests/ieee1516_2025_embedded_time_management_catch2.cpp:396"
     },
     {
       "id": "umbra-cpp-nrg-enabled-constrained-tar-regulator-resignation-release-integration",
@@ -4054,7 +4054,7 @@
       ],
       "requirements_lab_api_surface_status": "The official Connect/Create/Join, Non-Regulated-Grant switch getter, Enable Time Constrained, Time Advance Request, Enable Time Regulation, Evoke Callback, Time Advance Grant, Resign Federation Execution, and lifecycle C++ surfaces are exercised through the embedded HLA_EVOKED development profile. The composed FOM reports the enabled NRG switch; while its sole regulator is active at time zero with lookahead two, a constrained receiver's TAR(2) remains pending at the strict GALT boundary. Resigning that regulator removes the GALT bound and the enabled NRG policy releases exactly the queued grant at time two. This is bounded no-TSO NRG-enabled GALT release evidence; it does not claim regulator disable, NRG-disabled behavior, Query GALT/LITS, alternate advance modes, TSO ordering, DDM, interaction/object delivery, ownership, save/restore, MOM, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
       "next_action": "This focused HLA_EVOKED NRG-enabled constrained-TAR/regulator-resignation case is green with 24 assertions and is queryable by its exact selector, m69 mapping id, galt/non-regulated-grant tags, 16 Requirements-Lab anchors, canonical 2025 sections, and official C++ API surfaces. Keep policy-enabled resignation release separate from regulator disable, NRG-disabled, Query GALT/LITS, TSO, alternate-advance, DDM, ownership, save/restore, transport, package/JUnit/protected-review, interoperability, and conformance matrices; continue with the next exact source pointer.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25244"
+      "source_location": "cpp/tests/ieee1516_2025_embedded_time_management_catch2.cpp:442"
     },
     {
       "id": "umbra-cpp-restore-mixed-tso-object-interaction-four-member-integration",
@@ -4155,7 +4155,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This bounded four-member image saves one timestamped object update, one timestamped interaction, and one timestamped object deletion, terminalizes all three post-save designators, restores the recipient/retraction ledgers plus the deletion invocation snapshot, and proves independent Flush Queue callback-before-grant delivery for reflection, interaction, and Remove Object Instance payloads plus post-delivery Request Retraction. The route-free image now serializes the shared Request Retraction record and recipient states; disk-only/process-restart rehydration, timed or changed-membership recovery, arbitrary post-restore handle remapping, remote transport, package/JUnit/protected-review evidence, validation, and conformance remain open. The r15 Requirements Lab re-sync found no requirement renumbering or source change; RL-176 is the latest recorded go-back, RL-177 records the separate source-artifact tension, and RL-178 is reserved for a future reproduced recurrence.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25481",
+      "source_location": "cpp/tests/ieee1516_2025_mixed_tso_four_member_restore_integration_catch2.cpp:6",
       "assertions": 130,
       "callback_models": [
         "HLA_EVOKED"
@@ -7891,7 +7891,7 @@
         "2025"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21274",
+      "source_location": "cpp/tests/ieee1516_2025_unpublish_object_class_attributes_ownership_pending_service_report_catch2.cpp:5",
       "assertions": 36,
       "callback_models": [
         "HLA_EVOKED"
@@ -8792,7 +8792,7 @@
         "fom-module-management"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16008",
+      "source_location": "cpp/tests/ieee1516_2025_joined_federate_mom_fom_module_snapshot_integration_catch2.cpp:5",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded joined-federate MOM snapshots retain only FOM modules supplied at Join$",
       "assertions": 12,
       "callback_models": [
@@ -8873,7 +8873,7 @@
         "federate.callback.reflect-attribute-values"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16067",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded joined-federate MOM report-file identity survives save and restore$",
       "assertions": 46,
       "callback_models": [
@@ -19890,7 +19890,7 @@
         "api.2025.cpp.federateambassador.multipleobjectinstancenamereservationfailed.1def6acfecf1"
       ],
       "test_case": "Embedded 2025 object-instance name reservation commits and reports asynchronously",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25334",
+      "source_location": "cpp/tests/object_instance_name_reservation_catch2.cpp:95",
       "assertions": 68,
       "tags": [
         "integration",
@@ -20755,6 +20755,7 @@
         "federate.callback.receive-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_default_region_interaction_routing_catch2.cpp:4",
       "standard_sections": [
         "hla-1516.1-2025:clause-9",
         "hla-1516.1-2025:clause-9.1.3.3",
@@ -22035,6 +22036,7 @@
         "federate.callback.time-advance-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp:4",
       "next_action": "This narrow time-constrained regression proves a timestamped ordinary dimensional Send Interaction uses the private default source region to reach a committed regional subscriber through the TSO queue. It proves timestamp/order/retraction fields and a supplied-empty RegionHandleSet when the recipient enables Convey Region Designator Sets. The paired interaction mixed-fanout regression separately covers a non-time-constrained recipient and pending retraction. The explicit-source interaction subscription-replacement case is tracked separately; broader interaction/dimension combinations, relaxed/direct DDM, alternate advances, remote transport, save/restore, package/JUnit/protected-review evidence, and conformance remain open."
     },
     {
@@ -22128,6 +22130,7 @@
         "federate.callback.time-advance-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp:237",
       "next_action": "This bounded default-source matrix delivers timestamped interactions before grants at the inclusive TARA and NMRA boundaries, preserves the private default-region realization as a supplied-empty callback RegionHandleSet, and asserts source/time/order/retraction metadata at both 7 and 9. It covers only HLA_EVOKED in-process dispatch; explicit-source alternate advances, FQR combinations, regional directed/deletion families, remote transport, save/restore, package/JUnit/protected-review evidence, and conformance remain open."
     },
     {
@@ -22184,6 +22187,7 @@
         "federate.callback.time-advance-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp:113",
       "next_action": "This bounded re-enable regression queues one default-source timestamped interaction for a regional time-constrained recipient, disables and callback-gated re-enables Time Constrained before the grant, then proves one supplied-empty-region callback before the matching grant with no duplicate delivery. It does not claim explicit-source replacement, alternate advances, relaxed DDM, retraction before delivery, broader object/directed/deletion families, save/restore, remote transport, package/JUnit/protected-review evidence, or conformance. The interaction and temporal-role contracts remain the machine-readable traceability anchors."
     },
     {
@@ -22248,6 +22252,7 @@
         "federate.callback.time-advance-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp:388",
       "next_action": "This bounded default-source/default-region TSO lifecycle case keeps one accepted timestamped Send Interaction queued for a regional time-constrained recipient while the producer disables Time Regulation, callback-gated re-enables it at the same lookahead, and advances to the message timestamp. It proves exactly one supplied-empty-region Receive Interaction before the matching grant with original payload, tag, producer, timestamp/order, and valid retraction metadata. It does not claim changed-lookahead, alternate advances, relaxed DDM, other timestamped families, save/restore, remote transport, package/JUnit/protected-review evidence, or conformance. The default-region, timestamped-interaction, and temporal-role contracts remain the machine-readable traceability anchors."
     },
     {
@@ -22316,6 +22321,7 @@
         "federate.callback.time-advance-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp:536",
       "next_action": "This bounded default-source/default-region interaction case drives one ordinary timestamped Send Interaction through FQR, TARA, and NMRA recipients. Each Receive Interaction callback precedes its grant; FQR reports actual/optimistic time 7, the producer TAR completes at 2, and Convey Region Designator Sets carries a supplied-empty RegionHandleSet because no public source RegionHandle exists. The callback-ordering slice also drains FQR, TARA, and NMRA recipients one at a time and asserts that each untouched recipient's callback ledger remains empty until its own evoke. This is recipient-local implementation regression coverage, not a cross-service ordering claim. Regional retraction is covered by the dedicated fanout and Request Retraction cases; the explicit-source subscription-replacement companion is tracked separately. Passive declarations, relaxed DDM, broader alternate advances, remote transport, save/restore, package/JUnit/protected-review evidence, and conformance remain open."
     },
     {
@@ -22617,6 +22623,7 @@
         "federate.callback.time-advance-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_source_resignation_fanout_catch2.cpp:4",
       "next_action": "This clean adjacent default-source/default-region case accepts one timestamped Send Interaction for two overlapping regional subscribers, admits direct TAR(7) and NMR(10) while the producer regulator is present, then resigns the producer with NO_ACTION. An independent regulator releases each recipient-local queue in turn; each Receive Interaction callback precedes its matching grant and retains the original parameter, tag, producer, timestamp/order, supplied-empty RegionHandleSet, and retraction metadata. The resigned producer cannot invoke Retract because the official membership precondition takes precedence. This is not a recurrence and does not claim other resignation actions, alternate advances, recovery, transport, package/JUnit/protected-review evidence, or conformance."
     },
     {
@@ -22670,6 +22677,7 @@
         "federate.callback.request-retraction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp:707",
       "next_action": "This focused default-source interaction regression retains no public source RegionHandle. It proves one ordinary timestamped interaction reaches a non-time-constrained regional subscriber with the supplied-empty RegionHandleSet, then legal Retract invokes Request Retraction only there while withdrawing the time-constrained subscriber's queued interaction before its matching grant. The callback-ordering slice also asserts recipient-local isolation: the constrained recipient remains callback-quiet while the immediate recipient receives the interaction and Request Retraction, then observes only its grant. This is an implementation regression assertion, not a cross-service ordering claim. The explicit-source subscription-replacement companion is tracked separately; directed interaction, passive declarations, alternate advances, relaxed DDM, remote transport, save/restore, package/JUnit/protected-review evidence, and conformance remain open."
     },
     {
@@ -22994,7 +23002,8 @@
         "rti.service.get-non-regulated-grant-switch"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This slice validates only the official getter, Disabled omission default, creation-time federation-wide NRG retention, and the bounded no-TSO TAR boundary. Complete time coordination, package/JUnit/protected-review evidence, and conformance remain open."
+      "next_action": "This slice validates only the official getter, Disabled omission default, creation-time federation-wide NRG retention, and the bounded no-TSO TAR boundary. Complete time coordination, package/JUnit/protected-review evidence, and conformance remain open.",
+      "source_location": "cpp/tests/ieee1516_2025_non_regulated_grant_switch_catch2.cpp:5"
     },
     {
       "id": "umbra-cpp-auto-provide-integration",
@@ -28617,6 +28626,7 @@
         "attribute-ownership-query-results-removal"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_embedded_query_attribute_ownership_catch2.cpp:4",
       "assertions": 49,
       "next_action": "This bounded aggregate case covers grouped federate-owned and unowned Query Attribute Ownership reports plus nullification of queued reports after receive-order Remove Object Instance begins. RTI-owned MOM reporting and the read-only Is Attribute Owned By Federate surface remain covered by their dedicated rows. Add ownership acquisition/divestiture mutation, full resign-action disposition, timestamped/retraction behavior, DDM, FOM sharing policy, save/restore, remote transport, package support, and JUnit/conformance promotion before making any claim."
     },
@@ -28692,6 +28702,7 @@
         "federate.callback.attribute-is-not-owned"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_query_attribute_ownership_catch2.cpp:4",
       "next_action": "This focused production-filesystem regression proves an unsuccessful unknown-object Query Attribute Ownership invocation appends nothing, then an accepted query appends one Table 5 successful-void record with ObjectInstanceHandle type 37 as quoted handle.toString() text and AttributeHandleSet type 1 as a bracketed array of quoted AttributeHandle::toString() elements. It further proves that the invocation record precedes the separately queued grouped federate-owned and unowned ownership-result callbacks. This case does not prove RTI-owned ownership results, generic return/failure representations, interaction-selected delivery, RTI-originated callback producer identity, HLAreportServiceFile MOM publication, JUnit/protected-review evidence, or conformance. Table 5 still lacks stable row-level requirement candidates (RL-067); its explicit successful-void return form is the only sourced file-record form, and RL-043 remains the callback-delivery gate."
     },
     {
@@ -30594,6 +30605,7 @@
         "federate.callback.initiate-federate-save"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_initiate_federate_save_integration_catch2.cpp:6",
       "next_action": "This focused production-filesystem lane proves an ordinary untimed \u00a74.20 initiation reaches both non-time-constrained joined federates, appends a distinct selected-file record before either HLA_EVOKED callback, preserves the requested type-53 Federation save label and type-34 Null Optional timestamp, and maintains independent recipient serials. The unit companion fixes both null and type-31 LogicalTime record shapes. Direct time-constrained pre-grant Initiate Federate Save reporting, timestamped recipient integration, result callbacks, public MOM interaction delivery, HLAreportServiceFile publication, remote transport, JUnit/protected-review evidence, and conformance remain outside this slice. The Lab attaches page-67 \u00a74.20 candidates to \u00a74.21.1; RL-082 records that ownership mismatch while this plan retains their immutable IDs."
     },
     {
@@ -30632,6 +30644,7 @@
         "federate.callback.federation-not-saved"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_federation_saved_integration_catch2.cpp:6",
       "next_action": "This focused production-filesystem lane proves each selected \u00a74.23 recipient file receives its own result record before the HLA_EVOKED callback: normal completion uses type-6 true plus type-34 Null, while the ordinary abort path uses type-6 false plus type-48 quoted SAVE_ABORTED. The unit companion fixes both exact record shapes, and the integration checks independent serials after each recipient's preceding Request, Initiate, Begun, Complete, or Abort records. It does not claim every standard failure reason, resignation or RTI-detected-failure reporting, the all-members-already-complete abort success case, direct time-constrained initiation reporting, public MOM interaction delivery, HLAreportServiceFile publication, remote transport, JUnit/protected-review evidence, or conformance. The Lab assigns \u00a74.23 source candidates to trailing \u00a74.23.2; RL-078 records that checker-stable ownership defect while this plan retains their immutable IDs."
     },
     {
@@ -30673,6 +30686,7 @@
         "federate.callback.time-regulation-enabled",
         "federate.callback.initiate-federate-save"
       ],
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_request_federation_save_integration_catch2.cpp:6",
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused production-filesystem regression establishes one time-constrained, time-regulating joined federate, then proves both official C++ \u00a74.19 overloads write a successful-void Request Federation Save record only after the registry accepts the request. The untimed form preserves the required type-53 Federation save label plus a type-34 Null Optional timestamp slot. Before callbacks are evoked, a valid timestamped request replaces it and writes the same label plus the type-31 quoted LogicalTime value. It excludes direct time-advance admission, Initiate Federate Save delivery, invalid timestamp errors, completion/abort/result records, multi-member and distributed coordination, restore, public MOM interaction delivery, HLAreportServiceFile publication, JUnit/protected-review evidence, and conformance. The Lab's \u00a74.19 text candidates are usable but retain the known coalesced-page owner/provenance limitation (RL-078/RL-002); Table 5 remains a private file-text-only source with row/continuation limitations (RL-067/RL-076)."
     },
@@ -30723,6 +30737,7 @@
         "federate.callback.request-federation-restore-succeeded"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_request_federation_restore_integration_catch2.cpp:6",
       "next_action": "This focused production-filesystem regression first makes one real saved snapshot, then proves a normally returned \u00a74.27 Request Federation Restore writes serial 5 with the type-53 Federation save label and the separate RTI-initiated \u00a74.28 confirmation writes serial 6 with that label plus the type-6 true Request-success indicator. Both are durable before the HLA_EVOKED success callback, and the test finishes the restore cycle only for state-safe teardown. The companion negative lane covers the false result. It does not claim generic failed-service records, multi-member restore, durable external snapshots, timed restore, full rollback coverage, public MOM interaction delivery, HLAreportServiceFile publication, JUnit/protected-review evidence, or conformance. The Lab's direct \u00a74.27 candidates retain the existing coalesced-page structural-owner/provenance defect documented under RL-078/RL-002; Table 5 remains private file text under RL-067/RL-076."
     },
     {
@@ -30752,6 +30767,7 @@
         "federate.callback.request-federation-restore-failed"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_confirm_federation_restoration_request_negative_integration_catch2.cpp:6",
       "next_action": "This bounded production-filesystem regression requests a missing snapshot and proves the normally returned \u00a74.27 request writes serial 0 before the separate \u00a74.28 serial-1 record carrying the same type-53 Federation save label and a type-6 false Request-success indicator. Both records exist before the HLA_EVOKED failure callback; a rejected Federate Restore Complete call proves that no restore operation was started. It does not claim membership-mismatch or competing-request matrices, generic failed-service records, multi-member restore, durable external snapshots, timed restore, public MOM interaction delivery, HLAreportServiceFile publication, JUnit/protected-review evidence, or conformance. The \u00a74.28 candidates have correct structural ownership; Table 5 remains private file text under RL-067/RL-076."
     },
     {
@@ -30795,6 +30811,7 @@
         "federate.callback.federation-restore-begun"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_federation_restore_begun_integration_catch2.cpp:6",
       "next_action": "This focused production-filesystem regression establishes a real two-member snapshot, then accepts a restore request and proves that the requester writes serial 5 Request Federation Restore, serial 6 positive Confirm Federation Restoration Request, and serial 7 no-argument Federation Restore Begun; the peer independently writes the same \u00a74.29 record at serial 4. Both recipient-local records are durable before either HLA_EVOKED Federation Restore Begun callback. The abort only closes the real multi-member operation and does not claim its report form. The lane excludes failed/membership-mismatch confirmation matrices, Initiate Federate Restore reporting, Federate Restore Complete, durable external snapshots, timed restore, public MOM interaction delivery, HLAreportServiceFile publication, JUnit/protected-review evidence, and conformance. The Lab's source text is actual \u00a74.29 but carries the checker-required coalesced-page \u00a74.29.3 owner; RL-078/RL-002 retain the reproduction. Table 5 remains private file text under RL-067/RL-076."
     },
     {
@@ -30841,6 +30858,7 @@
         "federate.callback.initiate-federate-restore"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_initiate_federate_restore_integration_catch2.cpp:6",
       "next_action": "This focused production-filesystem regression establishes a real two-member snapshot, then accepts a restore request and proves that the requester appends serial 8 Initiate Federate Restore after the requester-local request, confirmation, and Federation Restore Begun records; the peer independently appends the same \u00a74.30 record at serial 5 after its Federation Restore Begun record. Each exact successful-void record retains the type-53 Federation save label, type-15 joined federate designator, and type-53 federate name from that recipient's immutable joined-federate state, and is durable before the HLA_EVOKED callback. The abort only closes the real multi-member operation. The lane excludes failed/membership-mismatch confirmation matrices, restore-complete reporting, durable external snapshots, timed restore, public MOM interaction delivery, HLAreportServiceFile publication, JUnit/protected-review evidence, and conformance. The Lab's actual \u00a74.30 service text carries the checker-required coalesced-page \u00a74.30.6 owner and stale display provenance; RL-078/RL-002 retain the reproduction. Table 5 remains private file text under RL-067/RL-076."
     },
     {
@@ -30890,6 +30908,7 @@
         "federate.callback.federation-not-restored"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_federate_restore_complete_integration_catch2.cpp:6",
       "next_action": "This focused production-filesystem regression first creates one real saved snapshot, then proves \u00a74.31's two official C++ selector calls write the one FederateRestoreComplete successful-void service record with type-6 Federate restore-success indicator true or false before the respective HLA_EVOKED Federation Restored or Federation Not Restored callback. A rejected pre-restore completion appends nothing. It also proves the per-joined-federate HLAserialNumber sequence continues from 3 through 6 across the restored application snapshot rather than reusing a serial already durable in the same report file. It excludes multi-member completion coordination, restore failure reasons beyond the local false selector, generic failed-service records, durable external snapshots, timed restore, general rollback coverage, public MOM interaction delivery, HLAreportServiceFile publication, JUnit/protected-review evidence, and conformance. The Lab's direct \u00a74.31 candidate is structurally owned by following \u00a74.32 and retains stale display provenance, both documented under RL-078/RL-002; Table 5 remains private file text under RL-067/RL-076."
     },
     {
@@ -30934,6 +30953,7 @@
         "federate.callback.federation-not-restored"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_abort_federation_restore_integration_catch2.cpp:6",
       "next_action": "This focused production-filesystem regression proves a rejected pre-restore Abort Federation Restore invocation appends no record. It then creates one real saved snapshot, starts a real restore, and proves the accepted \u00a74.33 request writes serial 4 with empty supplied arguments and the Table 5 successful-void return form before the HLA_EVOKED Federation Not Restored callback reports RESTORE_ABORTED. It excludes the \u00a74.33 case in which every member has already completed successfully and the final Federation Restored result may remain successful, multi-member coordination, generic failed-service records, durable external snapshots, timed restore, general rollback coverage, public MOM interaction delivery, HLAreportServiceFile publication, JUnit/protected-review evidence, and conformance. The direct \u00a74.33 candidates retain the coalesced-page structural-owner/provenance defect documented under RL-078/RL-002; Table 5 remains private file text under RL-067/RL-076."
     },
     {
@@ -30976,6 +30996,7 @@
         "federate.callback.federation-restore-status-response"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_query_federation_restore_status_integration_catch2.cpp:6",
       "next_action": "This focused production-filesystem regression proves an accepted \u00a74.34 Query Federation Restore Status invocation writes serial 0 with empty supplied arguments, followed by the recipient-local \u00a74.35 Federation Restore Status Response at serial 1 before its HLA_EVOKED callback. With no restore running, the type-20 official-MIM FederateRestoreStatusSet preserves the one joined federate's public pre-restore handle, invalid/null post-restore handle, and NO_RESTORE_IN_PROGRESS spelling. It also proves a SaveInProgress rejection appends no query record. It excludes an in-progress multi-member status matrix, post-restore handle details, request/complete/abort restore reporting, generic failed-service records, distributed save/restore, public MOM interaction delivery, HLAreportServiceFile publication, JUnit/protected-review evidence, and conformance. The direct \u00a74.34/\u00a74.35 candidates retain stale display provenance under RL-002. Table 5 remains private file text under RL-067/RL-076; its conflicting restore-status collection spelling and malformed illustration are reconciled under RL-083."
     },
     {
@@ -31034,6 +31055,7 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-saved"
       ],
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_federate_save_begun_integration_catch2.cpp:6",
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused production-filesystem regression proves a rejected pre-initiation Federate Save Begun appends no record. After the real \u00a74.20 Initiate Federate Save callback, one accepted \u00a74.21 invocation writes serial 0 with empty supplied arguments and the Table 5 successful-void return form. The test deliberately stops report assertions before cleanup; the separate \u00a74.22 lane proves completion's distinct Boolean record and later Federation Saved callback. It does not prove report records for request, not-complete, abort, generic failures, distributed save, restore, JUnit/protected-review evidence, or conformance. Table 5 remains a private file-text-only form with known row/continuation limitations (RL-067/RL-076)."
     },
@@ -31078,6 +31100,7 @@
         "federate.callback.federation-saved",
         "federate.callback.federation-not-saved"
       ],
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_federate_save_complete_integration_catch2.cpp:6",
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused production-filesystem regression proves a rejected pre-begun completion appends no record. It then proves both official C++ \u00a74.22 selector calls encode the one Federate Save Complete service with a type-6 Federate save-success indicator: Complete writes true and Not Complete writes false. Each record is durable before its respective HLA_EVOKED Federation Saved or Federation Not Saved callback. It excludes multi-member completion gating, request/begun/abort reporting, generic failed-service records, distributed save, restore, public MOM interaction delivery, HLAreportServiceFile publication, JUnit/protected-review evidence, and conformance. The \u00a74.22 source candidates retain the known structural-owner/provenance defect recorded under RL-078/RL-002; Table 5 remains private file text under RL-067/RL-076."
     },
@@ -31113,8 +31136,9 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-not-saved"
       ],
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_abort_federation_save_integration_catch2.cpp:6",
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This focused production-filesystem regression proves a rejected no-save Abort Federation Save appends nothing. After an actual Initiate Federate Save callback, one accepted \u00a74.24 invocation writes serial 0 with empty supplied arguments and the Table 5 successful-void return form before the HLA_EVOKED Federation Not Saved callback reports SAVE_ABORTED. It excludes the \u00a74.24 case where all members already completed successfully, multi-member and timed-save coordination, request/begun/complete/not-complete report records, generic failed-service records, distributed save, restore, public MOM interaction delivery, HLAreportServiceFile publication, JUnit/protected-review evidence, and conformance. The source candidates retain the coalesced-page ownership/provenance limitations documented under RL-078/RL-002; Table 5 remains private file text under RL-067/RL-076."
+      "next_action": "This focused production-filesystem regression proves a rejected no-save Abort Federation Save appends nothing. After an actual Initiate Federate Save callback, one accepted \u00a74.24 invocation writes serial 2 with empty supplied arguments and the Table 5 successful-void return form before the HLA_EVOKED Federation Not Saved callback reports SAVE_ABORTED. It excludes the \u00a74.24 case where all members already completed successfully, multi-member and timed-save coordination, request/begun/complete/not-complete report records, generic failed-service records, distributed save, restore, public MOM interaction delivery, HLAreportServiceFile publication, JUnit/protected-review evidence, and conformance. The source candidates retain the coalesced-page ownership/provenance limitations documented under RL-078/RL-002; Table 5 remains private file text under RL-067/RL-076."
     },
     {
       "id": "umbra-cpp-service-report-file-query-federation-save-status-integration",
@@ -31154,6 +31178,7 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-save-status-response"
       ],
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_query_federation_save_status_integration_catch2.cpp:6",
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused production-filesystem regression starts one ordinary save solely to make the callback status meaningful, then proves accepted \u00a74.25 Query Federation Save Status writes its serial-2 no-argument successful-void form before the separately queued HLA_EVOKED response. The companion \u00a74.26 lane uses the same bounded setup to prove the subsequent type-17 status-pair report at serial 3. The callback contains the joined federate's FEDERATE_INSTRUCTED_TO_SAVE status. It excludes no-save and multi-member status matrices, restore-in-progress rejection, request/abort reporting, generic failed-service records, distributed save, restore, public MOM interaction delivery, HLAreportServiceFile publication, JUnit/protected-review evidence, and conformance. The source candidates retain the coalesced-page ownership/provenance limitations recorded under RL-078/RL-002; Table 5 remains private file text under RL-067/RL-076."
     },
@@ -31190,6 +31215,7 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-save-status-response"
       ],
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_query_federation_save_status_integration_catch2.cpp:6",
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This bounded production-filesystem lane starts one ordinary save and queries from that same joined federate. It proves that the separate RTI-initiated \u00a74.26 Federation Save Status Response appends serial 3 before its HLA_EVOKED callback, using type 17 FederateHandleSaveStatusPairSet with the exact quoted joined-federate handle and FEDERATE_INSTRUCTED_TO_SAVE status. Its unit companion fixes all four SaveStatus spellings and the nested array/record shape. It does not claim no-save or multi-member matrices, every member state transition, service-report switching permutations, restore-in-progress rejection, public MOM interaction delivery, HLAreportServiceFile publication, remote transport, JUnit/protected-review evidence, or conformance. Page-72 \u00a74.26 candidates are checker-owned by following \u00a74.27.2; RL-078 records the coalesced-page ownership defect, while Table 5 remains private file text under RL-067/RL-076."
     },
@@ -31883,6 +31909,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting preserves Unconditional Attribute Ownership Divestiture arguments",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_unconditional_attribute_ownership_divestiture_catch2.cpp:4",
       "tags": [
         "integration",
         "development-profile",
@@ -32517,7 +32544,7 @@
         "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891"
       ],
       "test_case": "Embedded directed delivery accepts a declared custom FOM transportation",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:20192",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4",
       "assertions": 44,
       "callback_models": [
         "HLA_EVOKED"
@@ -35152,6 +35179,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
       ],
       "test_case": "Embedded service reporting delivers accepted regional interaction subscriptions through MOM interaction",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_regional_interaction_subscriptions_interaction_catch2.cpp:4",
       "tags": [
         "development-profile",
         "interaction-management",
@@ -35196,6 +35224,7 @@
         "federate.callback.receive-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_allow_relaxed_ddm_regional_interaction_boundary_catch2.cpp:4",
       "next_action": "The selected immutable Lab candidate covers the official getter only. Direct 2025 source evidence in \u00a79.1.4 and \u00a79.1.8 permits an implementation-specific enabled superset of strict overlaps; RL-030 records that the Lab does not export a candidate for that policy prose. Umbra documents and proves only exact boundary touching for one receive-order regional interaction dimension, plus disabled strict filtering, a nonzero gap, and strict-overlap preservation. Add multi-dimension, object-attribute, timestamped, advisory, update-rate, transport, package/JUnit/protected-review evidence, Lab mapping resolution, and conformance before broadening the claim."
     },
     {
@@ -35984,7 +36013,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-293-l128-42"
       ],
       "test_case": "Embedded simultaneously joined federates receive independent service-report files",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16250",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_independent_joined_federates_filesystem_integration_catch2.cpp:6",
       "primary_lane": "service-report-independent-joined-federates",
       "focus_lane": "service-report-independent-joined-federates",
       "assertions": 18,
@@ -36040,6 +36069,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting appends a Table 5 void-service record to the selected filesystem sink",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_successful_void_support_service_integration_catch2.cpp:6",
       "tags": [
         "integration",
         "development-profile",
@@ -36066,6 +36096,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting appends a Table 5 void record for Set Convey Region Designator Sets Switch",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_convey_region_switch_integration_catch2.cpp:6",
       "tags": [
         "integration",
         "development-profile",
@@ -36091,6 +36122,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting appends a Table 5 void record for Set Automatic Resign Directive",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_automatic_resign_directive_integration_catch2.cpp:6",
       "tags": [
         "integration",
         "development-profile",
@@ -36120,6 +36152,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting appends Table 5 void records for no-argument asynchronous delivery services",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_asynchronous_delivery_integration_catch2.cpp:6",
       "tags": [
         "integration",
         "development-profile",
@@ -40199,7 +40232,7 @@
         "federate.callback.time-advance-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25038",
+      "source_location": "cpp/tests/ieee1516_2025_embedded_time_management_catch2.cpp:4",
       "assertions": 40,
       "callback_models": [
         "HLA_EVOKED",
@@ -40568,7 +40601,7 @@
         "2025"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25069",
+      "source_location": "cpp/tests/ieee1516_2025_embedded_time_management_catch2.cpp:267",
       "assertions": 30,
       "callback_models": [
         "HLA_EVOKED"
@@ -40606,6 +40639,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-210-l27-5"
       ],
       "test_case": "Embedded three-federate GALT tracks the minimum regulator and resignation",
+      "source_location": "cpp/tests/ieee1516_2025_embedded_time_management_catch2.cpp:97",
       "tags": [
         "development-profile",
         "time-management",
@@ -40641,6 +40675,7 @@
         "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e"
       ],
       "test_case": "Embedded Query LITS remains defined for a queued TSO after source resignation",
+      "source_location": "cpp/tests/ieee1516_2025_embedded_time_management_catch2.cpp:185",
       "tags": [
         "development-profile",
         "time-management",
@@ -41937,7 +41972,8 @@
         "rti.service.ddm-regional-association-failure-matrix-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This HLA_IMMEDIATE native case decodes service type 5 and failed \u00a79.6/\u00a79.7 regional association records with type-37/type-4 supplied forms, Null returns, false indicators, exact exception text, and serials zero through three, followed by successful Associate/Unassociate records at serials four and five. RL-152 still blocks Lab validation; broader public regional DDM matrices, remote/JUnit/protected-review evidence, and conformance remain open."
+      "next_action": "This HLA_IMMEDIATE native case decodes service type 5 and failed \u00a79.6/\u00a79.7 regional association records with type-37/type-4 supplied forms, Null returns, false indicators, exact exception text, and serials zero through three, followed by successful Associate/Unassociate records at serials four and five. RL-152 still blocks Lab validation; broader public regional DDM matrices, remote/JUnit/protected-review evidence, and conformance remain open.",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_interaction_ddm_regional_association_failure_matrix_catch2.cpp:4"
     },
     {
       "id": "umbra-cpp-ddm-regional-object-subscription-failure-matrix-service-report-integration",
@@ -41969,7 +42005,8 @@
         "rti.service.ddm-regional-object-failure-matrix"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This focused production-filesystem case proves failed \u00a79.8/\u00a79.9 regional object-class subscription calls preserve type-36/type-4 supplied values and Subscribe's type-6/type-53 slots, Null returns, false indicators, exception text, and serials zero through three, followed by successful Subscribe/Unsubscribe serials four and five. Disabled switches suppress setup and invalid calls. RL-152 still blocks Lab validation; broader regional DDM failures, JUnit/protected review, and conformance remain open."
+      "next_action": "This focused production-filesystem case proves failed \u00a79.8/\u00a79.9 regional object-class subscription calls preserve type-36/type-4 supplied values and Subscribe's type-6/type-53 slots, Null returns, false indicators, exception text, and serials zero through three, followed by successful Subscribe/Unsubscribe serials four and five. Disabled switches suppress setup and invalid calls. RL-152 still blocks Lab validation; broader regional DDM failures, JUnit/protected review, and conformance remain open.",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_ddm_regional_object_subscription_failure_matrix_catch2.cpp:5"
     },
     {
       "id": "umbra-cpp-ddm-regional-object-subscription-failure-matrix-service-report-interaction",
@@ -42001,7 +42038,8 @@
         "rti.service.ddm-regional-object-failure-matrix-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "next_action": "This HLA_IMMEDIATE native case decodes service type 5 and failed \u00a79.8/\u00a79.9 records with type-36/type-4 supplied forms plus Subscribe's type-6/type-53 values, Null returns, false indicators, exact exception text, and serials zero through three, followed by successful regional Subscribe/Unsubscribe records at serials four and five. RL-152 still blocks Lab validation; broader public regional DDM matrices, remote/JUnit/protected-review evidence, and conformance remain open."
+      "next_action": "This HLA_IMMEDIATE native case decodes service type 5 and failed \u00a79.8/\u00a79.9 records with type-36/type-4 supplied forms plus Subscribe's type-6/type-53 values, Null returns, false indicators, exact exception text, and serials zero through three, followed by successful regional Subscribe/Unsubscribe records at serials four and five. RL-152 still blocks Lab validation; broader public regional DDM matrices, remote/JUnit/protected-review evidence, and conformance remain open.",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_interaction_ddm_regional_object_subscription_failure_matrix_catch2.cpp:4"
     },
     {
       "id": "umbra-cpp-timestamped-regional-attribute-association-replacement-integration",
@@ -48506,6 +48544,7 @@
         "federate.callback.time-advance-grant"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/timed_live_tso_regional_interaction_source_resignation_catch2.cpp:14",
       "next_action": "This focused native C++ slice accepts one overlap-qualified timestamped Send Interaction With Regions passel, admits the recipient TAR(6), resigns the producer, and releases the recipient through an independent regulator. The callback still arrives once before its matching grant with the original producer, payload, tag, timestamp/order, explicit source RegionHandle, and valid retraction metadata; a post-resignation Retract is rejected by FederateNotExecutionMember. The implementation retains the invocation-time RegionSpecificationSnapshot because the producing federate's live region is released on resignation. This is bounded development-profile evidence, not a complete regional resignation, alternate-advance, save/restore, remote transport, JUnit/protected-review, Lab-validation, or conformance claim; RL-174 records the reproduced consumer regression and mitigation."
     },
     {
@@ -61096,7 +61135,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused HLA_IMMEDIATE matrix proves one synchronous Query Attribute Ownership callback for each 2025 result kind: federate-owned, unowned, and RTI-owned joined-federate MOM attributes. It also proves discovery and no queued replay. It does not claim HLA_EVOKED ordering, save/restore, ownership transfer/arbitration, timestamped/retraction behavior, DDM, remote transport, package/JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4031",
+      "source_location": "cpp/tests/ieee1516_2025_immediate_query_attribute_ownership_report_kinds_catch2.cpp:4",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ HLA_IMMEDIATE\\ Query\\ Attribute\\ Ownership\\ dispatches\\ all\\ 2025\\ report\\ kinds$",
       "primary_lane": "query-attribute-ownership"
@@ -64772,7 +64811,7 @@
         "rti.service.retract"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:20341",
+      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4",
       "assertions": 52,
       "callback_models": [
         "HLA_EVOKED"
@@ -64808,7 +64847,7 @@
         "rti.service.ddm-regional-failure-matrix"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:23567",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_ddm_regional_interaction_subscription_failure_matrix_catch2.cpp:7",
       "assertions": 32,
       "callback_models": [
         "HLA_EVOKED"
@@ -64844,7 +64883,7 @@
         "rti.service.ddm-regional-failure-matrix-interaction"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:23596",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_interaction_ddm_regional_interaction_subscription_failure_matrix_catch2.cpp:4",
       "assertions": 52,
       "callback_models": [
         "HLA_EVOKED",
@@ -64975,7 +65014,7 @@
       ],
       "requirements_lab_api_surface_status": "The official Connect/Create/Join, Enable Time Constrained, Time Advance Request, Enable Time Regulation, Evoke Callback, Time Regulation Enabled, Time Advance Grant, and lifecycle C++ surfaces are exercised through the embedded HLA_EVOKED development profile. With the Restaurant FOM's Non-Regulated-Grant switch disabled, a constrained receiver's TAR(1) remains pending while GALT is undefined; after a second federate becomes a regulator at time zero with lookahead two, the receiver becomes eligible and its grant callback is evoked at time one. This is bounded no-TSO GALT/NRG grant-policy evidence; it does not claim NRG-enabled behavior, Query GALT/LITS, alternate advance modes, TSO ordering, DDM, interaction/object delivery, ownership, save/restore, MOM, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
       "next_action": "This focused HLA_EVOKED NRG-disabled constrained-TAR case is green with 21 assertions and is queryable by its exact selector, m66 mapping id, galt/non-regulated-grant tags, 15 Requirements-Lab anchors, canonical 2025 sections, and official C++ API surfaces. Keep undefined-GALT waiting and regulator-activation release separate from NRG-enabled, Query GALT/LITS, TSO, alternate-advance, DDM, ownership, save/restore, transport, package/JUnit/protected-review, interoperability, and conformance matrices; continue with the next exact source pointer.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:25123"
+      "source_location": "cpp/tests/ieee1516_2025_embedded_time_management_catch2.cpp:321"
     },
     {
       "id": "umbra-cpp-public-federation-save-commit-filesystem-process-restart-confirm-divestiture-resignation",
@@ -67918,7 +67957,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native HLA_IMMEDIATE matrix proves failed GetFederateHandle and GetFederateName invocations reach eligible observers through HLAreportServiceInvocation with service type 6, typed type-53/type-15 supplied arguments, Null returned arguments, false success, source-backed exception text, and serials zero and one; successful lookups continue at serials two and three. RL-152 remains the Lab's conditional failure-mapping gap, so this is development-profile evidence only and does not claim validation, protected review, JUnit, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:15764",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_federate_lookup_failure_matrix_interaction_catch2.cpp:5",
       "assertions": 50,
       "callback_models": [
         "HLA_EVOKED",
@@ -67954,7 +67993,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This HLA_IMMEDIATE native matrix decodes all five \u00a710.29\u2013\u00a710.33 failed normalization invocations through HLAreportServiceInvocation. Each report preserves service type 6, its official type-50/type-15/type-36/type-27/type-37 supplied arguments, Null returned argument, false success indicator, public exception text, deterministic UNSUPPORTED text for invalid ServiceGroup, and serials zero through four; a successful NormalizeServiceGroup follows at serial five. The Lab has no row-level conditional failure relation (RL-152), so other failure families, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:13781",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_handle_normalization_failure_matrix_interaction_catch2.cpp:5",
       "assertions": 51,
       "callback_models": [
         "HLA_EVOKED",
@@ -67993,7 +68032,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused C++ case uses the official Restaurant FOM's default-disabled Service Reporting switch, explicitly enables Send Service Reports To File, and then performs an accepted Get Dimension Handle lookup. The preallocated joined-federate file keeps its initial size and an eligible observer receives no HLAreportServiceInvocation interaction, proving the reporting-disabled arm suppresses both destinations. The existing ordinary Send Interaction MOM case remains the interaction-selected arm. Self-switch transition ordering, generic return/failure forms, broader MOM families, remote transport, package/JUnit/protected-review evidence, Requirements Lab validation, and conformance remain open; this case is not a recurrence and consumes no RL observation.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:16238",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_disabled_suppression_integration_catch2.cpp:6",
       "assertions": 27,
       "callback_models": [
         "HLA_EVOKED"
@@ -68198,7 +68237,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This native HLA_IMMEDIATE matrix decodes failed \u00a75.8/\u00a75.9 object-class attribute subscriptions through HLAreportServiceInvocation with declaration-management service type 1, type-36/type-1 supplied forms, Subscribe's type-6 passive and type-53 update-rate values, the whole-class type-34 Null slot, Null returns, false indicators, exact exception text, and serials zero through four; accepted Subscribe/subset/whole-unsubscribe records follow at serials five through seven. It remains development-profile evidence because the Lab lacks row-level conditional failure mapping (RL-152); broader MOM routes, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:20885",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_interaction_object_attribute_subscription_failure_matrix_catch2.cpp:4",
       "assertions": 51,
       "callback_models": [
         "HLA_EVOKED",
@@ -68235,7 +68274,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This C++ filesystem matrix proves failed \u00a75.2 Publish Object Class Attributes and \u00a75.3 Unpublish Object Class Attributes invocations preserve type-36 ObjectClassHandle and type-1 AttributeHandleSet supplied forms, Null returned arguments, false indicators, exact public exception text, and serials zero through three before accepted publication/removal records at serials four and five. Successful MOM emission is outside native locks. The Lab has no row-level conditional failure relation (RL-152), so broader object-attribute failures, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:21102",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_object_attribute_declaration_failure_matrix_catch2.cpp:5",
       "assertions": 29,
       "callback_models": [
         "HLA_EVOKED"
@@ -68255,6 +68294,7 @@
         "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c"
       ],
       "test_case": "Embedded service reporting records failed interaction-class subscription invocations",
+      "source_location": "cpp/tests/ieee1516_2025_unsubscribe_interaction_class_service_report_file_catch2.cpp:74",
       "tags": [
         "integration",
         "development-profile",
@@ -68304,7 +68344,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This native HLA_IMMEDIATE matrix decodes failed \u00c2\u00a75.6/\u00c2\u00a75.7 directed declarations through HLAreportServiceInvocation with service type 1, type-36/type-28 supplied forms, the whole-class type-34 Null slot, Null returns, false indicators, exact exception text, and serials zero through three; accepted explicit-set and whole-class records follow at serials four through six. It remains development-profile evidence because the Lab lacks row-level conditional failure mapping (RL-152); directed subscription, broader MOM routes, JUnit/protected review, and conformance remain open.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:22191",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_interaction_directed_declaration_failure_matrix_catch2.cpp:4",
       "assertions": 50,
       "callback_models": [
         "HLA_EVOKED",
@@ -68324,6 +68364,7 @@
         "api.2025.cpp.federateambassador.receiveinteraction.74e918c917c1"
       ],
       "test_case": "Embedded service reporting delivers failed interaction-class subscriptions through MOM interaction",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_interaction_object_attribute_subscription_failure_matrix_catch2.cpp:222",
       "tags": [
         "integration",
         "development-profile",
@@ -68359,6 +68400,7 @@
         "api.2025.cpp.rtiambassador.setsendservicereportstofileswitch.f984a837964c"
       ],
       "test_case": "Embedded service reporting records failed interaction-class declaration invocations",
+      "source_location": "cpp/tests/ieee1516_2025_unpublish_interaction_class_service_report_file_catch2.cpp:81",
       "tags": [
         "integration",
         "development-profile",
@@ -68937,7 +68979,8 @@
         "HLA_EVOKED"
       ],
       "requirements_lab_api_surface_status": "The official Connect/Create/Join, Enable Time Constrained, Time Advance Request, Disable Time Constrained, Evoke Callback, Time Advance Grant, and lifecycle C++ surfaces are exercised through the embedded HLA_EVOKED development profile. With no active regulator and the Restaurant FOM's Non-Regulated-Grant switch disabled, a constrained federate's TAR(1) remains pending; disabling the time-constrained role removes the GALT restriction and releases exactly the queued grant at time one. This is bounded no-TSO GALT/NRG role-disable evidence; it does not claim NRG-enabled behavior, Query GALT/LITS, alternate advance modes, TSO ordering, DDM, interaction/object delivery, ownership, save/restore, MOM, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
-      "next_action": "This focused HLA_EVOKED constrained-TAR/time-constrained-disable case is green with 15 assertions and is queryable by its exact selector, m67 mapping id, galt/non-regulated-grant tags, 14 Requirements-Lab anchors, canonical 2025 sections, and official C++ API surfaces. Keep role-disable release separate from regulator activation, NRG-enabled, Query GALT/LITS, TSO, alternate-advance, DDM, ownership, save/restore, transport, package/JUnit/protected-review, interoperability, and conformance matrices; continue with the next exact source pointer."
+      "next_action": "This focused HLA_EVOKED constrained-TAR/time-constrained-disable case is green with 15 assertions and is queryable by its exact selector, m67 mapping id, galt/non-regulated-grant tags, 14 Requirements-Lab anchors, canonical 2025 sections, and official C++ API surfaces. Keep role-disable release separate from regulator activation, NRG-enabled, Query GALT/LITS, TSO, alternate-advance, DDM, ownership, save/restore, transport, package/JUnit/protected-review, interoperability, and conformance matrices; continue with the next exact source pointer.",
+      "source_location": "cpp/tests/ieee1516_2025_embedded_time_management_catch2.cpp:363"
     },
     {
       "id": "umbra-cpp-2025-header-api-version-baseline",
