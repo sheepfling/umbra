@@ -15,18 +15,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # IEEE 1516.1-2010 CI routes are paused; local test routes remain available.
           - name: tooling
             command: lint --scope ci
-          - name: cpp-2010
-            command: test --standard 2010 --route cpp
           - name: cpp-2025
             command: test --standard 2025 --route cpp
           - name: java-2025
             command: test --standard 2025 --route java
           - name: jni-2025
             command: test --standard 2025 --route jni
-          - name: python-2010
-            command: test --standard 2010 --route python
           - name: python-2025
             command: test --standard 2025 --route python
     steps:

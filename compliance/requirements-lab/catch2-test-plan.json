@@ -1187,7 +1187,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression composes the official Restaurant FOM/MIM, delivers Request Divestiture Confirmation before the save, restores the filesystem image into a fresh registry with the delivered marker intact and no duplicate callback work, then proves the owner can complete Confirm Divestiture and the requester receives the acquisition notification. It does not claim confirmation-delivered If Available or mixed variants, cancellation races, full divestiture search, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:8782"
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:6274"
     },
     {
       "id": "umbra-cpp-federation-save-commit-filesystem-process-restart-deferred-update-region-association-integration",
@@ -1213,7 +1213,7 @@
         "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l157-48"
       ],
       "test_case": "Filesystem fresh-registry restore promotes a deferred update-region association after ownership acquisition",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:12147",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:9639",
       "assertions": 79,
       "callback_models": [],
       "delivery_modes": [
@@ -1278,7 +1278,7 @@
         "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l32-9"
       ],
       "test_case": "Register Object Instance With Regions uses the default region and execution-wide generated names",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:12420",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:9912",
       "assertions": 48,
       "callback_models": [],
       "delivery_modes": [
@@ -19939,6 +19939,7 @@
         "object-name-reservation-state"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_object_name_reservation_restore_catch2.cpp:3",
       "next_action": "This focused restore regression saves one accepted \u00a76.2 object-instance-name reservation, releases it in live state, and proves restore rehydrates the exact federate-owned name so a duplicate reservation remains unavailable. The codec carries the canonical Unicode-safe name section; broader multiple-name, named-registration, process-restart, distributed transport, JUnit/protected-review evidence, and conformance remain open."
     },
     {
@@ -26781,10 +26782,11 @@
         "federate.callback.reflect-attribute-values"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:1466",
+      "source_location": "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp:5",
       "assertions": 108,
       "callback_models": [
-        "HLA_EVOKED"
+        "HLA_EVOKED",
+        "HLA_IMMEDIATE"
       ],
       "delivery_modes": [
         "receive-order"
@@ -38161,7 +38163,7 @@
         "hla-1516.1-2025:clause-8.1.8"
       ],
       "test_case": "Embedded Delay Subscription Evaluation defers ordinary receive-order interaction eligibility",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4168",
+      "source_location": "cpp/tests/ieee1516_2025_delay_subscription_evaluation_receive_order_interaction_catch2.cpp:3",
       "primary_lane": "delay-subscription-evaluation-receive-order-interaction",
       "focus_lane": "delay-subscription-evaluation-receive-order-interaction",
       "assertions": 90,
@@ -38247,7 +38249,7 @@
         "hla-1516.1-2025:clause-9.7.5"
       ],
       "test_case": "Embedded Delay Subscription Evaluation defers timestamped regional attribute eligibility",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4708",
+      "source_location": "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_regional_attribute_catch2.cpp:3",
       "primary_lane": "delay-subscription-evaluation-timestamped-regional-attribute",
       "focus_lane": "delay-subscription-evaluation-timestamped-regional-attribute",
       "assertions": 103,
@@ -38328,7 +38330,7 @@
         "hla-1516.1-2025:clause-9.12.5"
       ],
       "test_case": "Embedded Delay Subscription Evaluation defers timestamped regional interaction eligibility",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:4899",
+      "source_location": "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_regional_interaction_catch2.cpp:3",
       "primary_lane": "delay-subscription-evaluation-timestamped-regional-interaction",
       "focus_lane": "delay-subscription-evaluation-timestamped-regional-interaction",
       "assertions": 91,
@@ -39573,7 +39575,7 @@
         "hla-1516.1-2025:clause-8.23.3"
       ],
       "test_case": "Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:5070",
+      "source_location": "cpp/tests/ieee1516_2025_request_retraction_interaction_mixed_fanout_catch2.cpp:3",
       "primary_lane": "timestamped-interaction-request-retraction-fanout",
       "focus_lane": "timestamped-interaction-request-retraction-fanout",
       "assertions": 50,
@@ -47476,7 +47478,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ registry regression persists one overlap-qualified regional object-class Request Attribute Value Update delivery, including the requested class, per-attribute request-region identity, copied tag, and latest object value, then restores the filesystem image into a fresh registry and rebinds one live provider work item. The callback-time begin boundary is covered by positive and negative cases: mismatched identity and duplicate begin are one-shot suppressed, disjoint post-restore region bounds suppress delivery, requester resignation suppresses the pending callback, and provider resignation retires a queued request before callback entry. It does not claim automatic provision, timestamped/retraction response behavior, remote transport, package/JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:882",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_pending_regional_object_class_attribute_value_update_catch2.cpp:3",
       "primary_lane": "process-restart-regional-pending-attribute-value-update-negative"
     },
     {
@@ -47573,11 +47575,12 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused codec regression proves the canonical version marker, strict field/count parsing, Unicode identity preservation, official encoded logical-time byte preservation, deterministic ordering, object identity/ownership metadata, typed If Available and regular ownership-acquisition reservation ledgers, typed acquisition-cancellation, Divestiture-If-Wanted and Confirm Divestiture notification reservations, pending transportation-type changes, negotiated-divestiture and ownership-assumption state, object visibility/lifecycle, accepted update/reflection telemetry, joined-federate MOM counters, synchronization and region state, declaration state, payload bytes, retraction and queue phases, and typed pending application requests. Process-restart rehydration, distributed transport, JUnit/protected-review evidence, and conformance remain open.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:2740",
-      "primary_lane": "membership-lifecycle-state"
-    },
-    {
-      "id": "umbra-cpp-federation-restore-pending-time-role-unit",
+      "source_location": "cpp/tests/ieee1516_2025_federation_state_image_codec_catch2.cpp:39",
+     "primary_lane": "membership-lifecycle-state"
+   },
+   {
+     "id": "umbra-cpp-federation-restore-pending-time-role-unit",
+
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.enabletimeregulation.8cbda9c52f05",
         "api.2025.cpp.rtiambassador.requestfederationsave.32986a607094",
@@ -47609,7 +47612,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused registry seam captures a pending Enable Time Regulation request in the route-free image, restores it after a live-state mutation, returns a fresh callback dispatch, and proves the pre-restore epoch cannot consume the reused generation. The runtime factory and public callback-model companion now supply the same fence; pending constrained-role coverage, broader multi-member ordering, process-restart rehydration, transport, package/JUnit/protected-review evidence, and conformance remain open.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:3380",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_pending_time_role_callback_restore_catch2.cpp:3",
       "primary_lane": "time-role"
     },
     {
@@ -47662,7 +47665,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native regression persists one unconditional-divestiture assumption-search ledger, its source tag, and the still-queued callback tuple in the filesystem state image; restores it into a fresh registry, rebinds exactly that callback to the live recipient route, and proves a later discovery/publication continues the search for a newly eligible federate without replaying the already-recorded candidate. It does not claim callback closure serialization, replay of a callback that already crossed its begin boundary, broader ownership arbitration, timestamped ownership transfer, distributed transport, JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:6503",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:3995",
       "primary_lane": "process-restart-ownership-assumption-search"
     },
     {
@@ -48784,6 +48787,7 @@
         "tso-retraction-ledger-state"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_save_commit_ordering_catch2.cpp:3",
       "next_action": "This direct registry regression proves the injected commit store accepts the envelope before the completion notification is exposed, that the saved selector is true only after that commit, and that the committed route-free image includes the pending Request Retraction record. It remains process-local test evidence over the current in-memory Federation image; complete disk-backed/process-restart restore, public filesystem configuration, distributed transport, JUnit/protected-review evidence, and conformance remain open."
     },
     {
@@ -48801,6 +48805,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Federation save completion reports not-saved when durable commit fails",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_save_commit_failure_catch2.cpp:3",
       "tags": [
         "unit",
         "kernel",
@@ -49156,7 +49161,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Filesystem fresh-registry restore rebinds a pending object-instance Request Attribute Value Update",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:559",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:372",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem fresh-registry restore rebinds a pending object-instance Request Attribute Value Update$",
       "assertions": 61,
@@ -49294,7 +49299,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43"
       ],
       "test_case": "Filesystem fresh-registry restore rebinds a pending object-class Request Attribute Value Update",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:721",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:534",
       "assertions": 61,
       "tags": [
         "unit",
@@ -49343,6 +49348,7 @@
         "membership-update-state"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_update_attribute_values_telemetry_restore_catch2.cpp:3",
       "next_action": "This focused restore regression mutates the joined-federate Update Attribute Values lifetime ledger after a durable save, then proves restore rehydrates the saved scalar count, class/transportation bucket, and distinct updated-object projection. It remains development-profile evidence; other membership application ledgers, process-restart recovery, distributed transport, JUnit/protected-review evidence, and conformance remain open."
     },
     {
@@ -49372,6 +49378,7 @@
         "membership-reflection-state"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_reflection_callback_count_restore_catch2.cpp:3",
       "next_action": "This focused restore regression mutates the joined-federate HLAreflectionsReceived lifetime counter after a durable save, then proves restore rehydrates the saved callback count. The companion state-image codec now also covers reflection class/transportation buckets and distinct-object/class projections; other membership application ledgers, process-restart recovery, distributed transport, JUnit/protected-review evidence, and conformance remain open."
     },
     {
@@ -49401,6 +49408,7 @@
         "membership-interaction-send-state"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_interaction_send_counters_restore_catch2.cpp:3",
       "next_action": "This focused restore regression mutates the joined-federate accepted Send Interaction lifetime counters after a durable save, then proves restore rehydrates the total and directed-subset counts. The codec companion covers class/transportation buckets; receive-side interaction ledgers, other membership application ledgers, process-restart recovery, distributed transport, JUnit/protected-review evidence, and conformance remain open."
     },
     {
@@ -49430,6 +49438,7 @@
         "membership-interaction-receive-state"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_interaction_receipt_counters_restore_catch2.cpp:3",
       "next_action": "This focused restore regression mutates the joined-federate accepted Receive Interaction lifetime counters after a durable save, then proves restore rehydrates the total and directed-subset counts. The codec companion covers class/transportation receipt buckets; remaining ownership/value/application ledgers, process-restart recovery, distributed transport, JUnit/protected-review evidence, and conformance remain open."
     },
     {
@@ -49460,6 +49469,7 @@
         "time-management"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_tso_queue_phase_state_image_catch2.cpp:3",
       "next_action": "This focused live-registry regression creates one queued, one in-transit, and one delivered timestamped recipient entry, then captures them in the durable route-free state image while a second joined member completes the untimed save. It proves every joined recipient's queue phases are serialized independently of whether that member has a time-management state. Queue rehydration is covered by the companion restore case; ownership/value ledgers, process-restart persistence, distributed transport, JUnit/protected-review evidence, and conformance remain open."
     },
     {
@@ -49515,6 +49525,7 @@
         "time-management"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_restore_tso_queue_phase_state_image_catch2.cpp:3",
       "next_action": "This focused registry restore regression mutates the live queue after a durable save, then proves restore reconstitutes queued, in-transit, and delivered entries from the admission-captured official logical-time image and drops post-save work. It remains development-profile evidence; typed application-ledger and ownership/value-ledger rehydration, disk/process-restart recovery, timed restore, distributed transport, JUnit/protected-review evidence, and conformance remain open."
     },
     {
@@ -49537,6 +49548,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-211-l86-22"
       ],
       "test_case": "Filesystem fresh-registry restore rehydrates one timestamped interaction payload across queued and in-transit recipients",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_timestamped_tso_payload_filesystem_restart_catch2.cpp:3",
       "tags": [
         "unit",
         "kernel",
@@ -49576,6 +49588,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-211-l86-22"
       ],
       "test_case": "Filesystem fresh-registry restore rehydrates one timestamped directed interaction payload across queued and in-transit recipients",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_timestamped_directed_tso_payload_filesystem_restart_catch2.cpp:3",
       "tags": [
         "unit",
         "kernel",
@@ -49615,6 +49628,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-211-l86-22"
       ],
       "test_case": "Filesystem fresh-registry restore rehydrates one timestamped attribute-update payload across queued and in-transit recipients",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_timestamped_tso_attribute_update_payload_filesystem_restart_catch2.cpp:3",
       "tags": [
         "unit",
         "kernel",
@@ -49658,6 +49672,7 @@
         "requirement-candidate-content-clauses-08-time-management-page-211-l86-22"
       ],
       "test_case": "Filesystem fresh-registry restore rehydrates one timestamped object-deletion payload across queued and in-transit recipients",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_timestamped_object_deletion_payload_filesystem_restart_catch2.cpp:3",
       "tags": [
         "unit",
         "kernel",
@@ -49699,6 +49714,7 @@
         "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43"
       ],
       "test_case": "Filesystem fresh-registry restore preserves one timestamped regional attribute-update payload across source-region mutation and resignation",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_timestamped_regional_tso_attribute_update_payload_filesystem_restart_catch2.cpp:3",
       "tags": [
         "unit",
         "kernel",
@@ -49928,7 +49944,7 @@
         "hla-1516.1-2025:clause-7.2"
       ],
       "test_case": "Process-local restore returns route-free ownership-assumption work for the process endpoint",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:6721",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:4213",
       "primary_lane": "process-federation-restore-work-item-ownership-assumption",
       "focus_lane": "process-federation-restore-work-item-ownership-assumption",
       "assertions": 35,
@@ -49986,7 +50002,7 @@
         "api.2025.cpp.rtiambassador.federaterestorecomplete.c2567e07cf13"
       ],
       "test_case": "Filesystem state image restores federation save conditionals in a fresh registry",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:6823",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:4315",
       "assertions": 42,
       "callback_models": [
         "HLA_EVOKED"
@@ -50219,7 +50235,7 @@
         "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l35-11"
       ],
       "test_case": "Federation state images preserve deferred update-region associations across a v1 codec round trip",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:12099",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:9591",
       "assertions": 9,
       "callback_models": [],
       "delivery_modes": [
@@ -51515,6 +51531,7 @@
         "federate.callback.federation-restored"
       ],
       "status": "implemented-in-noninstallable-development-profile",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_directed_tso_recipient_fanout_restore_catch2.cpp:3",
       "next_action": "This focused native C++ regression saves one directed timestamped payload with two recipient entries, restores both recipients in a fresh registry, unsubscribes one recipient before its callback boundary, delivers the eligible recipient, suppresses the unsubscribed recipient, and proves a legal producer Retract emits exactly one Request Retraction for the delivered recipient. It does not claim delivery gained only after send, ownership transfer, multiple directed classes, directed DDM, alternate advances, distributed transport, runtime package configuration, JUnit/protected-review evidence, Lab validation, or conformance."
     },
     {
@@ -54235,7 +54252,7 @@
       "selected_requirements_lab_requirement_ids": [],
       "selected_cpp_api_surface_ids": [],
       "test_case": "Filesystem state image restores a mixed negotiated ownership ledger in a fresh registry",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:7786",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:5277",
       "ctest_filter": "^umbra\\.(ieee1516_2025|federation_registry)\\.catch2\\.Filesystem state image restores a mixed negotiated ownership ledger in a fresh registry$",
       "standard_sections": [],
       "tags": [
@@ -54262,7 +54279,7 @@
       "selected_requirements_lab_requirement_ids": [],
       "selected_cpp_api_surface_ids": [],
       "test_case": "Filesystem state image restores the reverse asymmetric mixed negotiated confirmation in a fresh registry",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:8081",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:5572",
       "ctest_filter": "^umbra\\.(ieee1516_2025|federation_registry)\\.catch2\\.Filesystem state image restores the reverse asymmetric mixed negotiated confirmation in a fresh registry$",
       "standard_sections": [],
       "tags": [
@@ -55585,7 +55602,7 @@
       "selected_cpp_api_surface_ids": [],
       "test_case": "Filesystem fresh-registry directed TSO delivers an eligible by-ownership recipient and issues Request Retraction",
       "primary_lane": "process-restart-directed-interaction-tso-ownership-delivery-retraction",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:1904",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:1359",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem fresh-registry directed TSO delivers an eligible by-ownership recipient and issues Request Retraction$",
       "tags": [
@@ -55620,7 +55637,7 @@
       "selected_cpp_api_surface_ids": [],
       "test_case": "Filesystem fresh-registry parameterized directed TSO preserves parameter projection and timestamped order metadata",
       "primary_lane": "process-restart-directed-interaction-tso-parameter-projection",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:2476",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_directed_tso_parameter_projection_restore_catch2.cpp:3",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem fresh-registry parameterized directed TSO preserves parameter projection and timestamped order metadata$",
       "tags": [
@@ -55653,7 +55670,7 @@
       "selected_cpp_api_surface_ids": [],
       "test_case": "Federation restore rehydrates timestamped application payloads from the durable image",
       "primary_lane": "tso-payload-state",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:4119",
+      "source_location": "cpp/tests/ieee1516_2025_federation_registry_timestamped_tso_payload_restore_catch2.cpp:3",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Federation restore rehydrates timestamped application payloads from the durable image$",
       "tags": [
@@ -55681,7 +55698,7 @@
       "selected_cpp_api_surface_ids": [],
       "test_case": "Synchronization-point late-join expansion respects an explicit synchronization set",
       "primary_lane": "late-join",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:6154",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:3646",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Synchronization-point late-join expansion respects an explicit synchronization set$",
       "tags": [
@@ -58452,7 +58469,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression completes one negotiated owner confirmation before saving, transfers one attribute through Confirm Divestiture, retains the resulting requester notification reservation and confirming tag in the filesystem image, restores it into a fresh registry, and proves the notification is rebound and consumed once. It does not claim grouped multi-recipient confirmation, mixed ownership ledgers, cancellation races, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:9612",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:7104",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ a\\ pending\\ Confirm\\ Divestiture\\ notification\\ in\\ a\\ fresh\\ registry$",
       "primary_lane": "attribute-ownership-acquisition"
@@ -58523,7 +58540,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression leaves one regular ownership-acquisition request paired with its cancellation reservation, saves the durable image, restores it into a fresh registry, rebinds the requester callback route, and proves one cancellation confirmation consumes the reservation and releases the requester publication without replay. It does not claim cancellation races, If Available or negotiated arbitration, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:9822",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:7314",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ a\\ pending\\ ownership\\-acquisition\\ cancellation\\ in\\ a\\ fresh\\ registry$",
       "primary_lane": "attribute-ownership-acquisition"
@@ -58572,7 +58589,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression saves one published interaction declaration, restores the route-free declaration into a fresh registry, and proves the publication remains visible without inventing callback or transportation state. It does not claim subscriptions, regional or directed declarations, order/transport overrides, pending callbacks, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:10309",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:7801",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ a\\ published\\ interaction\\ declaration\\ in\\ a\\ fresh\\ registry$",
       "primary_lane": "federation-registry"
@@ -58621,7 +58638,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression saves one active interaction subscription declaration, restores the route-free subscription into a fresh registry, and proves the active selector remains visible without inventing publication, callback, or transportation state. It does not claim publication/subscription combinations, regional or directed declarations, order/transport overrides, pending callbacks, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:10396",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:7888",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ an\\ interaction\\ subscription\\ declaration\\ in\\ a\\ fresh\\ registry$",
       "primary_lane": "federation-registry"
@@ -58673,7 +58690,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression saves one same-class publication plus active subscription, restores both declaration ledgers into a fresh registry, and proves both selectors remain visible without inventing callback, regional, or transportation state. It does not claim multiple classes or federates, regional or directed declarations, order/transport overrides, pending callbacks, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:10486",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:7978",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ a\\ same\\-class\\ interaction\\ publication\\ and\\ subscription\\ in\\ a\\ fresh\\ registry$",
       "primary_lane": "federation-registry"
@@ -58733,7 +58750,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression saves one committed regional interaction subscription and its owned region specification, restores both route-free ledgers into a fresh registry, and proves the region plus declaration survive a second durable round trip. It does not claim ordinary subscription combinations, multiple regions or classes, directed declarations, region advisories, order/transport overrides, pending callbacks, timestamped/retraction behavior, DDM routing, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:10580",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8072",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ a\\ regional\\ interaction\\ subscription\\ in\\ a\\ fresh\\ registry$",
       "primary_lane": "federation-registry"
@@ -58786,7 +58803,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression saves one publisher declaration and one active subscriber declaration for separate joined federates, restores both ledgers into a fresh registry, and verifies unrelated class state does not leak across members. It does not claim mixed regional or directed declarations, transportation/order overrides in the same image, pending callbacks, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11027",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8519",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ a\\ mixed\\ interaction\\ publication\\ and\\ subscription\\ for\\ multiple\\ federates$",
       "primary_lane": "federation-registry"
@@ -58863,7 +58880,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression saves one known target object with an application value plus a directed publication/subscription pair, restores the object visibility and directed ledgers into a fresh registry, and proves receive-order routing selects the restored universal subscriber before a second durable round trip. It does not claim by-ownership selectors, target departure, multiple directed classes, directed DDM, ordering, timestamped/retraction behavior, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11926",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:9418",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ a\\ directed\\ interaction\\ target\\ and\\ receive\\-order\\ route$",
       "primary_lane": "federation-registry"
@@ -58941,7 +58958,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression composes the official Restaurant FOM/MIM, delivers a negotiated If Available Request Divestiture Confirmation before the save, restores the filesystem image into a fresh registry with the delivered marker intact and no duplicate callback work, then proves Confirm Divestiture transfers the attribute and delivers the acquisition notification. It does not claim delivered mixed variants, cancellation races, full divestiture search, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:9003",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:6495",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ preserves\\ delivered\\ negotiated\\ If\\ Available\\ confirmation\\ in\\ a\\ fresh\\ registry$",
       "primary_lane": "attribute-ownership-acquisition-if-available"
@@ -59009,7 +59026,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression leaves one accepted attribute transportation-type change pending, saves the durable value/ownership image, restores it into a fresh registry, rebinds the requester confirmation route, and proves one confirmation commits HLAbestEffort and updates the effective query result without replay. It does not claim interaction transportation changes, default-type declaration matrices, multiple simultaneous changes, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:10012",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:7504",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ a\\ pending\\ attribute\\ transportation\\-type\\ change\\ in\\ a\\ fresh\\ registry$",
       "primary_lane": "federation-registry"
@@ -59073,7 +59090,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression leaves one published interaction class with an accepted transportation-type change pending, saves its declaration image, restores it into a fresh registry, rebinds the publisher confirmation route, and proves one confirmation commits HLAbestEffort and updates the effective query result without replay. It does not claim mixed declaration ledgers, directed interactions, multiple simultaneous changes, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:10140",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:7632",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ a\\ pending\\ interaction\\ transportation\\-type\\ change\\ in\\ a\\ fresh\\ registry$",
       "primary_lane": "federation-registry"
@@ -59122,7 +59139,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression saves two published interaction classes in one per-federate declaration image, restores both publication entries into a fresh registry, and proves each publication remains visible without inventing subscription, callback, or transportation state. It does not claim multiple federates, publication/subscription combinations, regional or directed declarations, order/transport overrides, pending callbacks, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:10705",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8197",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ multiple\\ interaction\\ declaration\\ entries\\ in\\ a\\ fresh\\ registry$",
       "primary_lane": "federation-registry"
@@ -59172,7 +59189,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression saves one publication per each of two joined federates, restores both independent declaration ledgers into a fresh registry, and proves each publication remains visible without cross-federate state leakage. It does not claim multiple classes per federate, publication/subscription combinations, regional or directed declarations, order/transport overrides, pending callbacks, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:10807",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8299",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ independent\\ interaction\\ declarations\\ for\\ multiple\\ federates$",
       "primary_lane": "federation-registry"
@@ -59235,7 +59252,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression saves one published interaction class with a committed HLAbestEffort transportation override, restores the declaration into a fresh registry, and proves the override remains effective without replaying a pending callback. It does not claim multiple overrides, directed interactions, regional send routing, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:10917",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8409",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ a\\ committed\\ interaction\\ transportation\\-type\\ override\\ in\\ a\\ fresh\\ registry$",
       "primary_lane": "federation-registry"
@@ -59304,7 +59321,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression saves one publisher declaration with a committed HLAbestEffort override alongside a separate active subscriber, restores both ledgers into a fresh registry, and proves the override remains scoped to its publisher. It does not claim multiple overrides, mixed regional or directed declarations, pending callbacks, timestamped/retraction behavior, DDM, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11155",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8647",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ a\\ mixed\\ interaction\\ override\\ with\\ a\\ subscription\\ for\\ multiple\\ federates$",
       "primary_lane": "federation-registry"
@@ -59360,7 +59377,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused native C++ regression saves one directed publication and one universal directed subscription for the same object-class/interaction-class pair on separate joined federates, restores both directed ledgers into a fresh registry, and proves the pair survives a second durable round trip. It does not claim ordinary directed sends, target-object routing, by-ownership selectors, multiple directed classes, directed DDM, ordering, timestamped/retraction behavior, distributed transport, runtime package configuration, JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11759",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:9251",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem\\ state\\ image\\ restores\\ a\\ directed\\ interaction\\ publication\\ and\\ subscription\\ for\\ multiple\\ federates$",
       "primary_lane": "federation-registry"
@@ -59561,7 +59578,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This public C++ fresh-registry regression is green under both HLA_EVOKED and HLA_IMMEDIATE (315 assertions). It persists a three-member, two-recipient timestamped regional interaction in the filesystem save store, stages the HLA_IMMEDIATE timed-save admission with callback disabling, tears down the source ambassadors, recreates the federation and all public callback routes against a new registry, restores the publisher's timestamped order and regional declarations, and verifies both recipient-specific queue entries deliver the original [2,4) source snapshot and payload. It also verifies the source report file remains present while the fresh joined lifetime receives a distinct immutable report path. It does not claim directed DDM (the official 2025 C++ binding has no sendDirectedInteractionWithRegions overload), broader regional matrices, alternate advances, distributed transport, package/JUnit/protected-review evidence, Lab validation, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:7753",
+      "source_location": "cpp/tests/ieee1516_2025_public_fresh_registry_regional_interaction_restore_catch2.cpp:3",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ rebinds\\ queued\\ timestamped\\ regional\\ interaction\\ and\\ preserves\\ report\\-file\\ lifetimes\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$"
     },
@@ -61014,7 +61031,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ regression runs 150 assertions under HLA_EVOKED and HLA_IMMEDIATE. It saves a pending receive-order Query Attribute Ownership request, verifies its durable request identity and owner/object projection, recreates the federation through a fresh registry and fresh public callback routes, and proves one restored Attribute Is Not Owned callback after the official MOM ownership transition. The second callback pass proves one-shot consumption. It does not claim RTI-owned query variants, ownership transfer/arbitration, timestamped/retraction behavior, DDM, distributed transport, package/JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3540",
+      "source_location": "cpp/tests/ieee1516_2025_public_fresh_registry_pending_unowned_query_attribute_ownership_restore_catch2.cpp:3",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ rebinds\\ a\\ pending\\ unowned\\ Query\\ Attribute\\ Ownership\\ callback\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$",
       "primary_lane": "query-attribute-ownership"
@@ -61094,7 +61111,7 @@
       ],
       "status": "implemented-in-noninstallable-development-profile",
       "next_action": "This focused public C++ regression runs 142 assertions under HLA_EVOKED and HLA_IMMEDIATE. It saves a pending receive-order Query Attribute Ownership request against a predefined RTI-owned joined-federate MOM attribute, verifies the durable report-kind/object projection, recreates the federation through a fresh registry and fresh public callback routes, and proves one restored Attribute Is Owned By RTI callback. The second callback pass proves one-shot consumption. It does not claim federate-owned or unowned query variants, ownership transfer/arbitration, timestamped/retraction behavior, DDM, distributed transport, package/JUnit/protected-review evidence, or conformance.",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:3796",
+      "source_location": "cpp/tests/ieee1516_2025_public_fresh_registry_pending_rti_owned_query_attribute_ownership_restore_catch2.cpp:3",
       "ctest_target": "umbra_ieee1516_2025_catch2",
       "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded\\ public\\ fresh\\-registry\\ restore\\ rebinds\\ a\\ pending\\ RTI\\-owned\\ Query\\ Attribute\\ Ownership\\ callback\\ under\\ HLA_EVOKED\\ and\\ HLA_IMMEDIATE$",
       "primary_lane": "query-attribute-ownership"
@@ -62545,7 +62562,7 @@
       "assertions": 11,
       "requirements_lab_api_surface_status": "EmbeddedFederationRegistry is a private federation-lifecycle seam and is not exported as a standalone Requirements-Lab API surface; the selected Join requirement is a crosswalk anchor for joining with an additional FOM-module definition and retaining the committed membership",
       "next_action": "This bounded internal registry case proves that the first joining federate can commit an additional logical-time definition, that the committed definition remains queryable with one active member, that an incompatible later replacement is rejected without mutating membership or definition, and that a duplicate named join is rejected. Public Join/FOM-module compatibility validation, exception mapping, cross-process behavior, package/JUnit/protected-review evidence, Lab validation, interoperability, and conformance remain separate.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11459",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8951",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.The\\ embedded\\ federation\\ registry\\ commits\\ an\\ additional\\-module\\ definition\\ with\\ membership$"
     },
@@ -62567,7 +62584,7 @@
       "assertions": 6,
       "requirements_lab_api_surface_status": "EmbeddedFederationRegistry is a private federation-lifecycle seam and is not exported as a standalone Requirements-Lab API surface; the selected Join requirement is a crosswalk anchor for generated-name allocation within a successful federation membership",
       "next_action": "This bounded internal allocator case proves that a user-selected federate name resembling the generated prefix does not consume or collide with the RTI-owned generated sequence: the named member receives federate-1 and the unnamed member receives federate-2 with matching identity. Public Join name/handle allocation, exception mapping, cross-process uniqueness, package/JUnit/protected-review evidence, Lab validation, interoperability, and conformance remain separate.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11446",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8938",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.The\\ embedded\\ federation\\ registry\\ makes\\ generated\\ names\\ unique\\ despite\\ user\\ lookalikes$"
     },
@@ -62591,7 +62608,7 @@
       "assertions": 25,
       "requirements_lab_api_surface_status": "EmbeddedFederationRegistry is a private federation-lifecycle seam and is not exported as a standalone Requirements-Lab API surface; the selected requirements are crosswalk anchors for Join, Resign, and Destroy membership boundaries",
       "next_action": "This bounded internal lifecycle case proves named and unnamed membership allocation, stable member lookup, duplicate-name rejection, destroy protection while members remain, resignation cleanup, and final destruction after the last member leaves. Public RTIambassador routing, callback delivery, resign-action variants, transport, package/JUnit/protected-review evidence, Lab validation, interoperability, and conformance remain separate.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11340",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8832",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.The\\ embedded\\ federation\\ registry\\ maintains\\ active\\ membership\\ and\\ destroy\\ invariants$"
     },
@@ -62616,7 +62633,7 @@
       "assertions": 4,
       "requirements_lab_api_surface_status": "EmbeddedFederationRegistry is a private federation-lifecycle seam and is not exported as a standalone Requirements-Lab API surface; the selected Create, Destroy, Join, and Resign requirements are crosswalk anchors for distinct missing-execution and nonmember status outcomes",
       "next_action": "This bounded internal negative case keeps missing federation execution distinct from a nonmember resignation: Join and Destroy against an unknown execution report federation_does_not_exist, while Resign against an existing execution reports federate_not_member. Public exception-class mapping, callback delivery, transport, package/JUnit/protected-review evidence, Lab validation, interoperability, and conformance remain separate.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11495",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8987",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.The\\ embedded\\ federation\\ registry\\ reports\\ missing\\ federation\\ and\\ membership\\ distinctly$"
     },
@@ -62637,7 +62654,7 @@
       "assertions": 4,
       "requirements_lab_api_surface_status": "EmbeddedFederationRegistry runtime instrumentation is an internal diagnostic seam and is not exported as a standalone Requirements-Lab API surface; the empty requirement mapping is intentional",
       "next_action": "This bounded instrumentation case proves that a registry create operation emits one federation-registry timing record with a positive duration. It is diagnostic foundation evidence only and does not claim a normative service, public API, package/JUnit/protected-review evidence, Lab validation, interoperability, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11290",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8782",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.The\\ embedded\\ federation\\ registry\\ exposes\\ internal\\ operation\\ timing$"
     },
@@ -62660,7 +62677,7 @@
       "assertions": 7,
       "requirements_lab_api_surface_status": "EmbeddedFederationRegistry is a private federation-definition seam and is not exported as a standalone Requirements-Lab API surface; the selected requirements are crosswalk anchors for retaining a validated federation definition and its FDD/FOM-module metadata",
       "next_action": "This bounded internal registry case proves that a prevalidated definition is retained under its federation name, exposes its logical-time implementation and complete FOM-module designators/schema, and remains independently queryable. Public RTIambassador Create Federation Execution/FDD access, XML/schema validation, join lifecycle, package/JUnit/protected-review evidence, Lab validation, interoperability, and conformance remain separate.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11276",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8768",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.The\\ embedded\\ federation\\ registry\\ preserves\\ a\\ prevalidated\\ definition$"
     },
@@ -62685,7 +62702,7 @@
       "assertions": 14,
       "requirements_lab_api_surface_status": "EmbeddedFederationRegistry and FederateTimeState are private federation/time-state seams and are not exported as standalone Requirements-Lab API surfaces; the selected Join, Resign, logical-time assignment, Time Advance Request, and Time Advance Grant requirements are crosswalk anchors for retaining runtime time state with active membership",
       "next_action": "This bounded internal time-state integration case proves that a joined federate's runtime logical-time state is retained in the registry snapshot, including the pending advance and requested time, and is removed when the federate resigns. Public RTIambassador time-service routing, callback delivery, save/restore, transport, package/JUnit/protected-review evidence, Lab validation, interoperability, and conformance remain separate.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11509",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:9001",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.The\\ registry\\ commits\\ runtime\\ time\\ state\\ with\\ its\\ federate\\ membership$"
     },
@@ -62712,7 +62729,7 @@
       "assertions": 33,
       "requirements_lab_api_surface_status": "EmbeddedFederationRegistry and FederationTimeCoordinator are private federation/time-state seams and are not exported as standalone Requirements-Lab API surfaces; the selected Join, Resign, timestamped-delivery, callback-completion, and retraction-boundary requirements are crosswalk anchors for projecting recipient-scoped TSO state",
       "next_action": "This bounded internal TSO/LITS case proves that recipient-scoped queued entries move to in-transit and delivered state, retain their timestamps through callback completion, stop retraction at the delivery boundary, and remove resigned-recipient state without disturbing the surviving member. Public timestamped service routing, GALT/LITS calculation, callback ordering, save/restore, transport, package/JUnit/protected-review evidence, Lab validation, interoperability, and conformance remain separate.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11543",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:9035",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.The\\ registry\\ projects\\ private\\ TSO\\ coordination\\ into\\ its\\ time\\ snapshot$"
     },
@@ -62822,7 +62839,7 @@
       "assertions": 9,
       "requirements_lab_api_surface_status": "EmbeddedFederationRegistry is a private federation-definition seam and is not exported as a standalone Requirements-Lab API surface; the selected requirements are crosswalk anchors for definition preconditions, FDD-backed module metadata, and duplicate-execution rejection",
       "next_action": "This bounded internal registry negative case accepts the profile's empty-name policy, rejects a definition with no FOM modules, accepts repeated module designators, rejects duplicate federation execution creation, and permits an empty-name join to the retained execution. Public Create/Join validation, FOM/schema enforcement, exception mapping, package/JUnit/protected-review evidence, Lab validation, interoperability, and conformance remain separate.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11312",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8804",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.The\\ embedded\\ federation\\ registry\\ rejects\\ missing\\ definitions\\ without\\ imposing\\ name\\ policy$"
     },
@@ -63579,7 +63596,7 @@
         "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17"
       ],
       "test_case": "Filesystem federation save commits publish unique durable envelopes",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:1240",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:695",
       "assertions": 16,
       "standard_sections": [
         "hla-1516.1-2025:clause-4.22",
@@ -63621,7 +63638,7 @@
       "assertions": 2,
       "requirements_lab_api_surface_status": "FilesystemFederationSaveCommitStore is a private durable-save seam and is not exported as a standalone Requirements-Lab API surface; the selected Federation Save and Federation Saved requirements are crosswalk anchors for atomic commit failure handling before a durable save is exposed",
       "next_action": "This bounded negative filesystem-store case proves that an invalid UTF-16 label fails before publication and leaves the configured directory empty, so an encoding failure cannot strand a temporary commit artifact. It does not claim public save-control exception mapping, recovery/retry policy, complete state-image serialization, process restart, distributed transport, JUnit/protected-review evidence, Lab validation, interoperability, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:3763"
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:1591"
     },
     {
       "id": "umbra-cpp-federation-registry-captured-regional-tso-snapshot-unit",
@@ -63645,7 +63662,7 @@
       "assertions": 15,
       "requirements_lab_api_surface_status": "EmbeddedFederationRegistry timestamped regional-update queue/delivery state is a private seam and is not exported as a standalone Requirements-Lab API surface; the selected requirements are crosswalk anchors for retaining invocation region snapshots through queued delivery",
       "next_action": "This bounded internal TSO/DDM case proves that a queued regional attribute update retains its committed source-region snapshot and payload through delivery even when the live registry cannot be reread. It does not claim public Update/Reflect routing, overlap re-evaluation, retraction, callback ordering, transport, package/JUnit/protected-review evidence, Lab validation, interoperability, or conformance.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11383"
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:8875"
     },
     {
       "id": "umbra-cpp-federation-registry-tso-suppressed-callback-terminal-unit",
@@ -63668,7 +63685,7 @@
       "assertions": 12,
       "requirements_lab_api_surface_status": "EmbeddedFederationRegistry and its TSO callback ledger are private federation/time-state seams and are not exported as standalone Requirements-Lab API surfaces; the selected Join, queued-message, and Request Retraction requirements are crosswalk anchors for closing a suppressed recipient without a false retraction callback",
       "next_action": "This bounded internal negative case proves that a recipient invalidated after TSO admission is terminally suppressed, cannot begin a callback later, and cannot produce a Request Retraction notification even when the producer retracts the message. Public Send Interaction routing, callback failure mapping, transport, package/JUnit/protected-review evidence, Lab validation, interoperability, and conformance remain separate.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11625"
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:9117"
     },
     {
       "id": "umbra-cpp-federation-registry-constrained-tar-scheduling-unit",
@@ -63698,7 +63715,7 @@
       "assertions": 21,
       "requirements_lab_api_surface_status": "EmbeddedFederationRegistry and FederateTimeState are private temporal-coordination seams and are not exported as standalone Requirements-Lab API surfaces; the selected Join, logical-time assignment, time-role enable/callback, defined-GALT bound, Time Advance Request, and Time Advance Grant requirements are crosswalk anchors for releasing a constrained TAR after a regulator's lookahead advances GALT",
       "next_action": "This bounded internal no-TSO scheduler case proves that a constrained federate's TAR remains pending while its GALT bound is insufficient, that regulator and constrained role enablement is callback-gated, and that a regulator's pending target plus lookahead makes the receiver eligible before the regulator's own grant; both grants then clear their pending requests. Public RTIambassador scheduler routing, GALT/NRG calculation, alternate advance modes, callback ordering, save/restore, transport, package/JUnit/protected-review evidence, Lab validation, interoperability, and conformance remain separate.",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:11683"
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:9175"
     },
     {
       "id": "umbra-cpp-federation-time-bounds-other-regulators-unit",
@@ -70245,7 +70262,7 @@
         "rti.service.query-interaction-transportation-type"
       ],
       "status": "implemented-private-foundation-not-conformance-evidence",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:511",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:324",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.The embedded federation registry reports a directed interaction transportation override$",
       "ctest_label": "federation-registry-directed-transportation-override",
@@ -70276,7 +70293,7 @@
         "declaration-relevance-restore-baseline"
       ],
       "status": "implemented-private-foundation-not-conformance-evidence",
-      "source_location": "cpp/tests/federation_registry_catch2.cpp:12546",
+      "source_location": "cpp/tests/federation_registry_catch2.cpp:10038",
       "ctest_target": "umbra_federation_registry_catch2",
       "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.Filesystem fresh-registry restore seeds declaration relevance before the next mutation$",
       "ctest_label": "declaration-relevance-restore-baseline",
