@@ -9406,7 +9406,7 @@
         "federate.callback.federation-restored"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:29093",
+      "source_location": "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp:4",
       "assertions": 99,
       "callback_models": [
         "HLA_EVOKED"
@@ -27529,6 +27529,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting delivers receive-order Send Interaction through MOM interaction",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_receive_order_send_interaction_catch2.cpp:4",
       "tags": [
         "integration",
         "development-profile",
@@ -30275,6 +30276,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting preserves Attribute Ownership Release Denied arguments",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_attribute_ownership_release_denied_catch2.cpp:4",
       "tags": [
         "integration",
         "development-profile",
@@ -30383,6 +30385,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting preserves Negotiated Attribute Ownership Divestiture arguments",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_negotiated_attribute_ownership_divestiture_catch2.cpp:4",
       "tags": [
         "integration",
         "development-profile",
@@ -30435,7 +30438,7 @@
         "federate.callback.attribute-ownership-acquisition-notification"
       ],
       "status": "implemented-in-noninstallable-development-profile",
-      "source_location": "cpp/tests/ieee1516_2025_federation_management_catch2.cpp:26488",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_confirm_divestiture_catch2.cpp:4",
       "assertions": 138,
       "callback_models": [
         "HLA_EVOKED"
