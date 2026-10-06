@@ -3443,7 +3443,7 @@ if(BUILD_TESTING)
           cpp/tests/libxml2_fom_composer_catch2.cpp
           cpp/tests/libxml2_fom_validator_catch2.cpp
           cpp/tests/fom_declaration_management_catch2.cpp
-          cpp/tests/federation_registry_catch2.cpp cpp/tests/ieee1516_2025_service_report_file_unconditional_attribute_ownership_divestiture_catch2.cpp
+          cpp/tests/federation_registry_catch2.cpp cpp/tests/ieee1516_2025_service_report_file_unconditional_attribute_ownership_divestiture_catch2.cpp cpp/tests/ieee1516_2025_service_report_file_cancel_attribute_ownership_acquisition_catch2.cpp cpp/tests/ieee1516_2025_service_report_file_attribute_ownership_acquisition_catch2.cpp cpp/tests/ieee1516_2025_service_report_file_attribute_ownership_acquisition_if_available_catch2.cpp
       )
       # Keep the federation-registry/state-image slice independently buildable.
       # The aggregate 2025 executable also contains the large federation-

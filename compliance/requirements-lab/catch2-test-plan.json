@@ -30129,6 +30129,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting preserves Cancel Attribute Ownership Acquisition arguments",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_cancel_attribute_ownership_acquisition_catch2.cpp:4",
       "tags": [
         "integration",
         "development-profile",
@@ -30208,6 +30209,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting preserves Attribute Ownership Acquisition arguments",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_attribute_ownership_acquisition_catch2.cpp:4",
       "tags": [
         "integration",
         "development-profile",
@@ -30240,6 +30242,7 @@
         "requirement-candidate-content-clauses-11-management-object-model-page-294-l26-8"
       ],
       "test_case": "Embedded service reporting preserves Attribute Ownership Acquisition If Available arguments",
+      "source_location": "cpp/tests/ieee1516_2025_service_report_file_attribute_ownership_acquisition_if_available_catch2.cpp:4",
       "tags": [
         "integration",
         "development-profile",
