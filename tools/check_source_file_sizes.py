@@ -1,15 +1,21 @@
 """Check source-file size policy without rewriting legacy files.
 
-The policy is intentionally incremental. Existing oversized files are listed in
+The policy is intentionally incremental. Files over 3,000 lines are review
+warnings; files over 5,000 deserve a search for a real ownership or behavior
+boundary, not a line-only extraction. The default code ceiling is 10,000
+expanded lines; cohesive files may remain intact when no safe source boundary
+exists, with an explicit growth-guarded exception. Included ``.inc`` bodies
+count toward their owning translation unit. Existing exceptions are listed in
 the checked-in baseline and may shrink, but they may not grow. New files must
-stay below the hard limit for their category. Use ``--report`` for the bounded
-size survey used when choosing the next split.
+stay below their category's hard limit unless an explicit exception is recorded.
+Use ``--report`` for the size survey used when choosing the next split.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -18,6 +24,8 @@ from typing import Any
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = REPOSITORY_ROOT / "docs" / "development" / "source-size-policy.json"
+LOCAL_INCLUDE_PATTERN = re.compile(r'^\s*#\s*include\s*"([^"]+\.inc)"')
+TRANSLATION_UNIT_SUFFIXES = {".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp"}
 
 
 @dataclass(frozen=True)
@@ -54,14 +62,18 @@ def _classify(path: Path) -> tuple[str, Policy] | None:
     relative = path.relative_to(REPOSITORY_ROOT).as_posix()
     suffix = path.suffix.lower()
 
-    if relative == "CMakeLists.txt":
-        return "cmake", Policy(soft=3000, hard=8000)
-    if relative.startswith("cpp/tests/") and suffix == ".cpp":
-        return "test_cpp", Policy(soft=2500, hard=5000)
+    if relative == "CMakeLists.txt" or (
+        relative.startswith("cmake/") and suffix == ".cmake"
+    ):
+        return "cmake", Policy(soft=3000, hard=10000)
+    if relative.startswith("cpp/tests/") and suffix in {".cpp", ".inc"}:
+        return "test_cpp", Policy(soft=3000, hard=10000)
+    if relative.startswith("cpp/src/") and suffix == ".inc":
+        return "production_cpp", Policy(soft=3000, hard=10000)
     if relative.startswith("cpp/") and suffix in {".cpp", ".cc", ".cxx"}:
-        return "production_cpp", Policy(soft=2000, hard=4000)
+        return "production_cpp", Policy(soft=3000, hard=10000)
     if relative.startswith("cpp/") and suffix in {".h", ".hh", ".hpp"}:
-        return "header_cpp", Policy(soft=1200, hard=3000)
+        return "header_cpp", Policy(soft=3000, hard=10000)
     if relative.startswith("docs/") and suffix == ".md":
         return "documentation", Policy(soft=3000, hard=6000)
     return None
@@ -72,15 +84,75 @@ def _line_count(path: Path) -> int:
         return sum(1 for _ in stream)
 
 
+def _resolve_local_fragment(
+    includer: Path,
+    include_name: str,
+    repository_paths: set[Path],
+) -> Path | None:
+    include_path = Path(include_name)
+    search_roots = (
+        includer.parent,
+        REPOSITORY_ROOT,
+        REPOSITORY_ROOT / "cpp" / "src",
+        REPOSITORY_ROOT / "cpp" / "tests",
+    )
+    for root in search_roots:
+        candidate = (root / include_path).resolve()
+        if candidate in repository_paths:
+            return candidate
+    return None
+
+
+def _expanded_line_count(
+    path: Path,
+    repository_paths: set[Path],
+    cache: dict[Path, tuple[int, tuple[Path, ...]]],
+    active: frozenset[Path] = frozenset(),
+) -> tuple[int, tuple[Path, ...]]:
+    """Count a source and its recursively included local .inc fragments."""
+    path = path.resolve()
+    cached = cache.get(path)
+    if cached is not None:
+        return cached
+
+    physical_lines = _line_count(path)
+    if path in active or path.suffix.lower() not in TRANSLATION_UNIT_SUFFIXES | {".inc"}:
+        return physical_lines, ()
+
+    expanded_lines = physical_lines
+    fragments: list[Path] = []
+    next_active = active | {path}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        match = LOCAL_INCLUDE_PATTERN.match(line)
+        if match is None:
+            continue
+        fragment = _resolve_local_fragment(path, match.group(1), repository_paths)
+        if fragment is None or fragment in next_active:
+            continue
+        fragment_lines, nested_fragments = _expanded_line_count(
+            fragment, repository_paths, cache, next_active
+        )
+        expanded_lines += fragment_lines
+        fragments.append(fragment)
+        fragments.extend(nested_fragments)
+
+    result = expanded_lines, tuple(fragments)
+    cache[path] = result
+    return result
+
+
 def _scan(
     policies: dict[str, Policy],
     baseline: dict[str, dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[str]]:
     findings: list[dict[str, Any]] = []
     errors: list[str] = []
+    tracked_paths = _tracked_paths()
+    repository_paths = {path.resolve() for path in tracked_paths}
+    expanded_cache: dict[Path, tuple[int, tuple[Path, ...]]] = {}
     present = set()
 
-    for path in _tracked_paths():
+    for path in tracked_paths:
         classified = _classify(path)
         if classified is None:
             continue
@@ -88,11 +160,19 @@ def _scan(
         policy = policies.get(kind, default_policy)
         relative = path.relative_to(REPOSITORY_ROOT).as_posix()
         present.add(relative)
-        lines = _line_count(path)
+        physical_lines = _line_count(path)
+        lines = physical_lines
+        included_fragments: tuple[Path, ...] = ()
+        if path.suffix.lower() in TRANSLATION_UNIT_SUFFIXES:
+            lines, included_fragments = _expanded_line_count(
+                path, repository_paths, expanded_cache
+            )
         entry = {
             "path": relative,
             "kind": kind,
             "lines": lines,
+            "physical_lines": physical_lines,
+            "included_fragments": len(included_fragments),
             "soft": policy.soft,
             "hard": policy.hard,
         }
@@ -102,15 +182,23 @@ def _scan(
         exemption = baseline.get(relative)
         if exemption is not None:
             maximum = int(exemption["max_lines"])
-            if lines > maximum:
+            if physical_lines > maximum:
                 errors.append(
-                    f"legacy file grew: {relative} has {lines} lines; "
+                    f"legacy file grew: {relative} has {physical_lines} physical lines; "
                     f"baseline is {maximum}"
                 )
+            if lines > policy.hard and included_fragments:
+                expanded_maximum = exemption.get("max_expanded_lines")
+                if expanded_maximum is None or lines > int(expanded_maximum):
+                    errors.append(
+                        f"legacy source plus included fragments exceeds its ratchet: "
+                        f"{relative} has {lines} expanded lines; baseline is "
+                        f"{expanded_maximum if expanded_maximum is not None else 'unrecorded'}"
+                    )
         elif lines > policy.hard:
             errors.append(
                 f"file exceeds {kind} hard limit without a legacy exemption: "
-                f"{relative} has {lines} lines; limit is {policy.hard}"
+                f"{relative} has {lines} expanded lines; limit is {policy.hard}"
             )
 
     for relative in sorted(set(baseline) - present):
@@ -138,7 +226,14 @@ def main(argv: list[str] | None = None) -> int:
         ):
             print(
                 f"{finding['lines']:>6} lines  {finding['kind']:<15} "
-                f"soft={finding['soft']:<5} hard={finding['hard']:<5} {finding['path']}"
+                f"soft={finding['soft']:<5} hard={finding['hard']:<5} "
+                f"{finding['path']}"
+                + (
+                    f" (file {finding['physical_lines']}, plus "
+                    f"{finding['included_fragments']} included fragments)"
+                    if finding["included_fragments"]
+                    else ""
+                )
             )
     else:
         print(

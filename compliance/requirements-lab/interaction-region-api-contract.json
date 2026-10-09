@@ -23,18 +23,18 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClassWithRegions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
+        "cpp/tests/ieee1516_2025_regional_interaction_subscription_receive_order_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
         "cpp/tests/ieee1516_2025_ddm_regional_async_delivery_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction_immediate",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional interaction ranges",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/ieee1516_2025_allow_relaxed_ddm_regional_interaction_boundary_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional interaction ranges",
+        "cpp/tests/ieee1516_2025_passive_interaction_subscription_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_passive_interaction_subscriptions_require_active_replacement",
         "cpp/tests/mom_service_reporting_interlock_catch2.cpp::Embedded MOM service-reporting state excludes report-service subscriptions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted regional interaction subscriptions through MOM interaction"
+        "cpp/tests/ieee1516_2025_service_report_regional_interaction_subscriptions_interaction_catch2.cpp::Embedded service reporting delivers accepted regional interaction subscriptions through MOM interaction"
       ]
     },
     {
@@ -55,14 +55,14 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeInteractionClassWithRegions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
+        "cpp/tests/ieee1516_2025_regional_interaction_subscription_receive_order_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
         "cpp/tests/ieee1516_2025_ddm_regional_async_delivery_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction_immediate",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers accepted regional interaction subscriptions through MOM interaction"
+        "cpp/tests/ieee1516_2025_service_report_regional_interaction_subscriptions_interaction_catch2.cpp::Embedded service reporting delivers accepted regional interaction subscriptions through MOM interaction"
       ]
     },
     {
@@ -84,14 +84,14 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_regional_send.inc",
       "source_symbol": "UmbraRtiAmbassador::sendInteractionWithRegions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
+        "cpp/tests/ieee1516_2025_regional_interaction_subscription_receive_order_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
         "cpp/tests/ieee1516_2025_ddm_regional_async_delivery_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional interaction ranges",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
+        "cpp/tests/ieee1516_2025_allow_relaxed_ddm_regional_interaction_boundary_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional interaction ranges",
+        "cpp/tests/ieee1516_2025_passive_interaction_subscription_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_passive_interaction_subscriptions_require_active_replacement",
         "cpp/tests/regional_interaction_failure_service_report_file_catch2.cpp::Embedded service reporting records failed regional Send Interaction With Regions invocations",
         "cpp/tests/regional_interaction_failure_service_report_interaction_catch2.cpp::Embedded service reporting delivers failed regional Send Interaction With Regions invocations through MOM interaction",

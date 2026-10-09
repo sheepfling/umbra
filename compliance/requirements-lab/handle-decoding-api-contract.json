@@ -17,7 +17,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_public_handle_decoding.cpp",
       "source_symbol": "UmbraRtiAmbassador::decodeFederateHandle",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public handle decoders enforce lifecycle and preserve encoded identities"
@@ -35,7 +35,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_public_handle_decoding.cpp",
       "source_symbol": "UmbraRtiAmbassador::decodeObjectClassHandle",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public handle decoders enforce lifecycle and preserve encoded identities"
@@ -53,7 +53,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_public_handle_decoding.cpp",
       "source_symbol": "UmbraRtiAmbassador::decodeInteractionClassHandle",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public handle decoders enforce lifecycle and preserve encoded identities"
@@ -71,7 +71,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_public_handle_decoding.cpp",
       "source_symbol": "UmbraRtiAmbassador::decodeObjectInstanceHandle",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public handle decoders enforce lifecycle and preserve encoded identities"
@@ -89,7 +89,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_public_handle_decoding.cpp",
       "source_symbol": "UmbraRtiAmbassador::decodeAttributeHandle",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public handle decoders enforce lifecycle and preserve encoded identities"
@@ -107,7 +107,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_public_handle_decoding.cpp",
       "source_symbol": "UmbraRtiAmbassador::decodeParameterHandle",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public handle decoders enforce lifecycle and preserve encoded identities"
@@ -125,7 +125,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_public_handle_decoding.cpp",
       "source_symbol": "UmbraRtiAmbassador::decodeDimensionHandle",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded public handle decoders enforce lifecycle and preserve encoded identities"

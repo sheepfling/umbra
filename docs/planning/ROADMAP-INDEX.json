@@ -35,76 +35,75 @@
     "policy": "The pinned 2025 Requirements Lab export is fixed; do not resync unless the export changes. Use the issue ledger for extraction defects and the bounded query commands for implementation selection."
   },
   "last_completed_handoff": {
-    "state": "completed-focused-source-extraction",
-    "family": "fom-module-declaration-management",
-    "id": "split-2025-federation-registry-save-commit-failure-case",
+    "state": "completed-federation-registry-type-header-domain-split",
+    "family": "federation-registry",
     "lane": "federation-registry",
-    "objective": "Move the injected durable-save failure regression into a focused 2025 source while preserving its failure-only behavior and mapping.",
-    "plan_id": "umbra-cpp-federation-save-commit-registry-failure-unit",
-    "mapping_seed_plan_id": "umbra-cpp-federation-save-commit-registry-failure-unit",
-    "mapping_seed_policy": "Preserved all four direct requirement-to-2025-section mappings and four API surfaces; retained the injected commit-failure boundary without claiming retry, recovery, disk persistence, or conformance.",
-    "test_case": "Federation save completion reports not-saved when durable commit fails",
-    "source_target": "cpp/tests/federation_registry_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_federation_registry_save_commit_failure_catch2.cpp:3",
-    "target_file": "cpp/tests/ieee1516_2025_federation_registry_save_commit_failure_catch2.cpp",
-    "ctest_target": "umbra_ieee1516_2025_catch2; umbra_federation_registry_catch2",
-    "ctest_filter": "Federation save completion reports not-saved when durable commit fails",
-    "ctest_label": "failure",
+    "id": "split-federation-registry-type-declarations-by-domain",
+    "plan_id": "umbra-cpp-federation-state-image-corrupt-restore-unit",
+    "mapping_seed_plan_id": "umbra-cpp-federation-state-image-corrupt-restore-unit",
+    "supporting_plan_ids": [],
+    "mapping_seed_policy": "Pure internal source organization; preserve the existing 2025 state-image regression mapping and all 2010/2025 boundaries. Test titles, sources, and plan rows are unchanged; use normal .cpp units only and no .inc fragments.",
+    "test_case": "Federation restore rejects a corrupt durable state image",
+    "objective": "Split the 2,903-line federation_registry_types.hpp along real declaration ownership into service types (1,882 lines), MOM report types (571), transportation controls (162), and TSO types (309), retaining the original path as a six-line include umbrella. Specialized consumers include only the domains they need. Declaration text and type layout are preserved; no behavior, public API/ABI, test title, or mapping changed. The registry target builds, all 86 registry CTests pass with TEMP/TMP set into the build tree, the federation-registry lane check and provider-boundary check pass, and the source-size guard is clean. Lowered the service-types header growth guard from 2,903 to 1,882 lines.",
+    "source_target": "cpp/src/internal/federation/federation_registry_types.hpp; cpp/src/internal/federation/federation_registry_service_types.hpp; cpp/src/internal/federation/federation_registry_mom_report_types.hpp; cpp/src/internal/federation/federation_registry_transport_control_types.hpp; cpp/src/internal/federation/federation_registry_tso_types.hpp",
+    "source_location": "cpp/src/internal/federation/federation_registry_types.hpp:1",
+    "implementation_target": "cpp/src/internal/federation/federation_registry_types.hpp; cpp/src/internal/federation/federation_registry_service_types.hpp; cpp/src/internal/federation/federation_registry_mom_report_types.hpp; cpp/src/internal/federation/federation_registry_transport_control_types.hpp; cpp/src/internal/federation/federation_registry_tso_types.hpp; CMakeLists.txt; docs/development/source-size-policy.json; docs/planning/ROADMAP-INDEX.json",
+    "implementation_location": "cpp/src/internal/federation/federation_registry_types.hpp:1",
+    "target_file": "cpp/src/internal/federation/federation_registry_types.hpp",
+    "ctest_target": "umbra.federation_registry.catch2",
+    "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.",
+    "ctest_label": "federation-registry",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-registry-failure-unit --summary --compact",
-      "build": "cmake --build .build --config Debug --target umbra_ieee1516_2025_catch2 umbra_federation_registry_catch2",
-      "regression_ctest": "ctest --test-dir .build -C Debug --output-on-failure -R 'Federation save completion reports not-saved when durable commit fails'",
+      "build": "cmake --build .build-mingw-rti --target umbra_federation_registry_catch2 --parallel 8",
+      "focused_ctest": "Set TEMP and TMP to .build-mingw-rti, then ctest --test-dir .build-mingw-rti --output-on-failure --parallel 4 -R '^umbra\\.federation_registry\\.catch2\\.'",
       "mapping_check": "python tools/query_rti_work.py check --lane federation-registry --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
+      "boundary_check": "python tools/verify_1516e_provider_boundaries.py",
+      "size_check": "python tools/check_source_file_sizes.py --report",
+      "diff_check": "git diff --check"
     },
+    "mapping_status": "No test or mapping changed. The existing corrupt-image case retains its four direct 2025 requirement-section pairs; the federation-registry check passes with 95 cases and zero unclassified cases.",
+    "passed_ctest_count": 86,
     "acceptance": [
-      "Moved the exact 39-line test body unchanged to a focused 2025 source.",
-      "Preserved all four direct requirement-section pairs, four API surfaces, failure tags, and both CTest registrations (#563 and #1692).",
-      "Added the exact test-plan source pointer; built both targets, passed both focused CTests, and passed the federation-registry mapping check.",
-      "Reduced federation_registry_catch2.cpp from 8,594 to 8,554 lines and ratcheted its cap to the verified 8,554 lines.",
-      "No IEEE 1516.1-2010 source, target, fixture, test, or mapping was changed."
-    ],
-    "requirements": 4,
-    "standard_sections": 4,
-    "api_surface_count": 4,
-    "direct_pairs": 4,
-    "ctest_ids": [563, 1692]
+      "Move the independent service, MOM reporting, transportation-control, and TSO type families into thematic normal headers while preserving declaration order, type layout, and public API/ABI.",
+      "Build the registry target and pass all 86 registry CTests with a workspace-local temp root; verify the federation-registry lane and strict 2010/2025 provider boundaries.",
+      "Ratchet the service-types header from 2,903 to 1,882 lines and keep single-consumer .inc fragments out of the tree."
+    ]
   },
-  "active_handoff_note": "Next, move the filesystem-envelope restore-admission test from federation_registry_catch2.cpp into a focused 2025 save-commit source. Preserve the in-process reload boundary, four direct mappings, five API surfaces, and CTests #572/#1696.",
+  "active_handoff_note": "Largest source/test reorganization audit complete. The tracked-source scan reports no .cpp or test suite above the 3,000-line soft limit; the only C++ soft-limit finding is the 3,230-line single-class federation_registry.hpp, retained as the documented cohesion exception after folding its ten single-consumer .inc fragments back into the class. The 10,000-line hard limit and 109 legacy growth guards pass; no .inc files remain under cpp. The ambassador monolith is 2,775 lines across 49 thematic .cpp files; the process-client core is 746 lines; four private process wire-codec tests are now in a separate ordinary .cpp suite and pass 4/4. Their exact mappings, affected lane checks, source-size check, and provider boundary pass; no 2010 source or target changed. The 2,448-line federation-save suite was audited and retained as one coherent save-flow suite. One prior mapped Join CTest remains unavailable in this sandbox because localhost connect returns socket error 10013. Next source-only project pointer: HLAlogicalTime delegates opaque bytes to the selected reference factory at cpp/tests/ieee1516_2025_time_catch2.cpp:209; inspect the pinned requirement and map or explicitly disposition it before implementation using python tools/query_rti_work.py unplanned --summary --compact --limit 1.",
   "active_handoff": {
-    "state": "implementation",
-    "family": "fom-module-declaration-management",
-    "lane": "federation-registry",
-    "id": "split-2025-federation-registry-save-commit-filesystem-restore-admission-case",
-    "plan_id": "umbra-cpp-federation-save-commit-filesystem-restore-unit",
-    "mapping_seed_plan_id": "umbra-cpp-federation-save-commit-filesystem-restore-unit",
-    "mapping_seed_policy": "Preserve all four direct requirement-to-2025-section mappings across clauses 4.22, 4.23, 4.32, and 11.5 plus all five selected API surfaces; keep this in-process reload/admission evidence separate from fresh-registry process-restart recovery.",
-    "test_case": "Filesystem federation save commit permits restore admission after reload",
-    "objective": "Move this one filesystem-envelope save-commit/restore-admission test from cpp/tests/federation_registry_catch2.cpp into a focused 2025 source, preserving envelope reload and in-process restore admission without claiming complete application-ledger or process-restart rehydration.",
-    "source_target": "cpp/tests/federation_registry_catch2.cpp",
-    "source_location": "cpp/tests/federation_registry_catch2.cpp:1611",
-    "target_file": "cpp/tests/ieee1516_2025_federation_registry_save_commit_filesystem_restore_admission_catch2.cpp",
-    "ctest_target": "umbra_ieee1516_2025_catch2; umbra_federation_registry_catch2",
-    "ctest_filter": "Filesystem federation save commit permits restore admission after reload",
-    "ctest_label": "filesystem",
+    "state": "evidence-complete",
+    "family": "transport-and-conformance",
+    "lane": "process-federation-save-untimed",
+    "id": "audit-2025-process-federation-save-test-boundaries",
+    "plan_id": "umbra-cpp-process-endpoint-federation-save-untimed-integration",
+    "mapping_seed_plan_id": "umbra-cpp-process-endpoint-federation-save-untimed-integration",
+    "mapping_seed_policy": "Audit the existing 2025 public process save suite without changing requirements. If cases move, preserve exact titles, tags, callback models, direct normative mappings, and dispositions; do not invent coverage or cross into the 2010 stream.",
+    "test_case": "RTIambassadors carry untimed federation save callbacks through the configured process endpoint",
+    "objective": "Audit the 2,448-line 2025 connection federation-save Catch2 suite. Its seven cases are one cohesive federation-save theme spanning untimed and timestamped coordination, recipient/queued-TSO boundaries, save status, and abort, supported by suite-local time/save callback helpers. Keep this suite intact; do not split for line count. Preserve all existing mappings and the strict 2010/2025 boundary.",
+    "source_target": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp:457",
+    "implementation_target": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp; cmake/ieee1516_2025_connection_test_sources.cmake; compliance/requirements-lab/catch2-test-plan.json; docs/planning/ROADMAP-INDEX.json",
+    "implementation_location": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp:457",
+    "target_file": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp",
+    "ctest_target": "umbra_ieee1516_2025_connection_catch2",
+    "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors carry untimed federation save callbacks through the configured process endpoint$",
+    "ctest_label": "process-federation-save-untimed",
     "commands": {
-      "source_query": "python tools/query_rti_work.py case umbra-cpp-federation-save-commit-filesystem-restore-unit --summary --compact",
-      "build": "cmake --build .build --config Debug --target umbra_ieee1516_2025_catch2 umbra_federation_registry_catch2",
-      "ctest_discovery": "ctest --test-dir .build -C Debug -N -R 'Filesystem federation save commit permits restore admission after reload'",
-      "mapping_check": "python tools/query_rti_work.py check --lane federation-registry --summary --compact",
-      "size_report": "python tools/check_source_file_sizes.py --report"
+      "resume": "python tools/query_rti_work.py resume",
+      "exact_case": "python tools/query_rti_work.py case umbra-cpp-process-endpoint-federation-save-untimed-integration --summary --compact",
+      "survey": "Review the bounded save-suite case boundaries, shared helper consumers, exact mapping rows, target registration, and current CTest inventory before moving anything.",
+      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_connection_catch2 --parallel 8",
+      "focused_ctest": "ctest --test-dir .build-mingw-rti --output-on-failure -R '^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors carry untimed federation save callbacks through the configured process endpoint$'",
+      "mapping_check": "python tools/query_rti_work.py check --lane process-federation-save-untimed --summary --compact",
+      "boundary_check": "python tools/verify_1516e_provider_boundaries.py",
+      "size_check": "python tools/check_source_file_sizes.py --report",
+      "diff_check": "git diff --check"
     },
     "acceptance": [
-      "Move only the named filesystem-envelope restore-admission test and preserve its in-process evidence boundary and existing tags.",
-      "Retain all four direct requirement-section pairs, five API surfaces, and both CTest registrations (#572 and #1696).",
-      "Update the exact plan-row pointer; build both targets, pass both focused CTests, and ratchet the registry source-size cap to the verified remaining line count.",
-      "Keep IEEE 1516.1-2010 source, target, fixture, test, and mapping boundaries untouched."
-    ],
-    "requirements": 4,
-    "standard_sections": 4,
-    "api_surface_count": 5,
-    "direct_pairs": 4,
-    "ctest_ids": [572, 1696]
+      "Classify all seven save-suite cases and shared helpers by behavior; evidence supports one cohesive suite, so no source edit was warranted.",
+      "Verify the existing save test mapping and CTest registrations remain intact; do not introduce a line-count-only split.",
+      "Confirm the source-size guard, .inc inventory, and 2010/2025 provider boundary; retain the documented single-class registry-header exception."
+    ]
   },
 
 
@@ -159,13 +158,13 @@
     "current_counts": {
       "catch2_actionable_cases_without_cpp_source_location": 0,
       "catch2_cases_without_cpp_source_location": 2,
-      "catch2_cases_without_lab_requirement_mapping": 87,
+      "catch2_cases_without_lab_requirement_mapping": 88,
       "catch2_planned_cases": 0,
-      "catch2_plan_cases": 1399,
-      "catch2_unmapped_explicit_disposition": 87,
+      "catch2_plan_cases": 1400,
+      "catch2_unmapped_explicit_disposition": 88,
       "catch2_unmapped_unclassified": 0,
-      "cpp_source_cases_without_plan_row": 31,
-      "cpp_source_cases_without_plan_row_fom_composer": 1,
+      "cpp_source_cases_without_plan_row": 30,
+      "cpp_source_cases_without_plan_row_fom_composer": 0,
       "create_federation_authorizer_rid_runtime_lane_cases": 1,
       "create_federation_authorizer_rid_runtime_lane_mapped_cases": 1,
       "destroy_federation_authorizer_rid_runtime_lane_cases": 1,
@@ -265,15 +264,15 @@
     },
     "current_snapshot": {
       "source": "python tools/query_rti_work.py dashboard --summary --compact",
-      "plan_cases": 1399,
+      "plan_cases": 1400,
       "mapped_cases": 1312,
-      "unmapped_cases": 87,
-      "explicit_unmapped_cases": 87,
+      "unmapped_cases": 88,
+      "explicit_unmapped_cases": 88,
       "unclassified_unmapped_cases": 0,
       "source_unlocated_cases": 3,
       "source_unlocated_actionable_cases": 0,
       "planned_cases": 0,
-      "source_only_cases": 31,
+      "source_only_cases": 30,
       "direct_requirement_section_pairs": 919,
       "standard_requirement_total": 2220,
       "standard_requirement_coverage_percent": 41.4,
@@ -586,7 +585,7 @@
       "process-synchronization-point-explicit-failure": "transport-and-conformance",
       "process-synchronization-point-explicit-failure-immediate": "transport-and-conformance",
       "process-federation-save-untimed": "transport-and-conformance",
-      "process-federation-save-timed": "transport-and-conformance",
+      "process-federation-save-timestamped": "transport-and-conformance",
       "process-federation-save-timed-multi-federate": "transport-and-conformance",
       "process-federation-save-timed-multiple-constrained": "transport-and-conformance",
       "process-federation-save-timed-queued-tso": "transport-and-conformance",
@@ -1588,11 +1587,11 @@
         "ctest_label": "process-boundary",
         "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
       },
-      "process-federation-save-timed": {
-        "catch2_target": "umbra_ieee1516_2025_connection_catch2",
-        "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors carry timestamped federation save callbacks through the configured process endpoint$",
+      "process-federation-save-timestamped": {
+        "catch2_target": "umbra_ieee1516_2025_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.RTIambassadors carry timestamped federation save callbacks through the configured process endpoint$",
         "ctest_label": "process-boundary",
-        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+        "source": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp"
       },
       "process-federation-save-timed-multi-federate": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
@@ -3270,7 +3269,7 @@
         "catch2_target": "umbra_ieee1516_2025_connection_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador routes interaction transportation type change and query through a configured process endpoint$",
         "ctest_label": "process-transportation-interaction-control",
-        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+        "source": "cpp/tests/ieee1516_2025_connection_interaction_transportation_catch2.cpp"
       },
       "process-transportation-regional-interaction-control": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
@@ -3305,14 +3304,14 @@
       "directed-interaction-transportation-query": {
         "catch2_target": "umbra_federation_registry_catch2",
         "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.The embedded federation registry reports a directed interaction transportation override$",
-        "ctest_label": "federation-registry",
+    "ctest_label": "ownership-management",
         "source": "cpp/tests/federation_registry_catch2.cpp"
       },
       "process-directed-interaction-transportation-query": {
         "catch2_target": "umbra_ieee1516_2025_connection_catch2",
         "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassador reports a directed interaction transportation override through a configured process endpoint$",
         "ctest_label": "process-directed-interaction-transportation-query",
-        "source": "cpp/tests/ieee1516_2025_connection_catch2.cpp"
+        "source": "cpp/tests/ieee1516_2025_connection_interaction_transportation_catch2.cpp"
       },
       "process-unpublish-object-class-attributes": {
         "catch2_target": "umbra_ieee1516_2025_connection_catch2",
@@ -4207,7 +4206,7 @@
       "join-federation-authorizer-rid-runtime": 0,
       "configuration-additional-settings": 5,
       "process-federation-save-untimed": 15,
-      "process-federation-save-timed": 21,
+      "process-federation-save-timestamped": 21,
       "process-federation-save-timed-multi-federate": 46,
       "process-federation-save-timed-multiple-constrained": 63,
       "process-federation-save-timed-queued-tso": 130,
@@ -8631,7 +8630,7 @@
         "transport-and-conformance",
         "2025"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:34361",
+      "source_location": "cpp/tests/ieee1516_2025_connection_regional_interaction_transportation_override_catch2.cpp:97",
       "primary_lane": "process-transportation-regional-interaction-control",
       "focus_lane": "process-transportation-regional-interaction-control",
       "assertions": 84,
@@ -25622,10 +25621,10 @@
       "status": "implemented-private-foundation-not-conformance-evidence"
     },
     {
-      "plan_id": "umbra-cpp-process-endpoint-federation-save-timed-integration",
+      "plan_id": "umbra-cpp-process-endpoint-federation-save-timestamped-integration",
       "test_query": "RTIambassadors carry timestamped federation save callbacks through the configured process endpoint",
       "lane_queries": [
-        "process-federation-save-timed",
+        "process-federation-save-timestamped",
         "integration",
         "foundation",
         "federation-management",
@@ -25643,20 +25642,20 @@
         "federate.callback.initiate-federate-save",
         "federate.callback.federation-saved"
       ],
-      "source_location": "cpp/tests/ieee1516_2025_connection_catch2.cpp:3471",
-      "primary_lane": "process-federation-save-timed",
-      "focus_lane": "process-federation-save-timed",
+      "source_location": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp:577",
+      "primary_lane": "process-federation-save-timestamped",
+      "focus_lane": "process-federation-save-timestamped",
       "assertions": 21,
       "callback_models": [
-        "HLA_EVOKED",
-        "HLA_IMMEDIATE"
+        "HLA_EVOKED"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-4.14",
+        "hla-1516.1-2025:clause-4.15",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
-        "hla-1516.1-2025:clause-4.20"
+        "hla-1516.1-2025:clause-4.21.1"
       ],
-      "requirements": 6,
+      "requirements": 5,
       "api_surfaces": 8,
       "status": "implemented-private-foundation-not-conformance-evidence"
     },
@@ -27612,7 +27611,7 @@
         "subscription-generation",
         "object-class-declaration-state"
       ],
-      "next_action": "The FOM-composer source reconciliation queue is exhausted: all discovered declarations in that file now have explicit plan rows and exact source pointers, including the subscription-generation restore case. Keep the completed private composition/preparation evidence queryable, then select the next bounded C++ service family or add one deliberately mapped source case without rescanning the unchanged Requirements Lab.",
+      "next_action": "The missing-durable-envelope restore-admission failure is now isolated in a focused 2025 unit with four direct requirement-section pairs, four API surfaces, and CTests #560/#1689; its claim remains limited to refusal when the durable envelope cannot be loaded. The current top-level source-splitting handoff has moved to object-ddm-ownership; keep the separate empty-FOM creation case and other FOM module-management lanes distinct, and do not rescan the unchanged Requirements Lab.",
       "next_lane": "fom-module-management",
       "focused_lane_tags": [
         "fom-summary-rule-1",
@@ -27799,8 +27798,8 @@
         "subscribe-object-class-attributes-default-update-rate",
         "implicit-self-unsubscribe-no-out-of-scope-advisory"
       ],
-      "next_task": "The 2025 FOM-preparation atomicity case is now extracted into its own focused unit with 11 assertions, HLA_EVOKED, nine direct requirement mappings across clauses 4, 4.1.1, and 4.5.5, and six selected APIs. The active handoff has moved to the distinct untimed save-control case under time-save-restore; preserve each service family and the 2010 stream separately.",
-      "next_action": "The fom-preparation-failure-atomicity slice is complete. Continue from the active_handoff at umbra-cpp-save-control-integration, cpp/tests/ieee1516_2025_federation_management_catch2.cpp:8345; inspect the bounded save-control test and derive its assertion/callback metadata, preserve its nine direct requirement-section pairs and ten selected APIs, and keep it development-profile only with the 2010 stream untouched."
+      "next_task": "The FOM-preparation atomicity case, untimed save-control baseline, route-free control/temporal restore, pending-TAR/deferred-lookahead restore, one-name reservation restore, synchronization-point filesystem restore, one-region filesystem restore, and object-class declaration filesystem restore are isolated in focused 2025 sources. The private late-join participant-selection test also remains isolated with an explicit non-conformance disposition. The current source-splitting handoff is recorded at the top level; preserve adjacent restore-state boundaries and keep the 2010 stream separate.",
+      "next_action": "The pending attribute and interaction transportation-type restores, corrupt-image failure, published interaction declaration, subscription-only declaration, combined same-class declaration, regional subscription, multi-class publication, independent multi-federate declaration, and committed interaction transportation-type override restores are isolated in focused 2025 sources with exact mappings and focused CTests. The seven private foundation cases remain separately mapped or explicitly dispositioned. The captured regional attribute TSO snapshot, expanded regional-interaction filesystem restore, directed-TSO ownership/retraction restore, by-ownership directed-interaction handoff, and deferred Update Region association restore are now isolated in dedicated 2025 sources; their ten focused CTests passed. The active top-level split handoff is the explicitly unmapped directed-TSO delivery/retraction diagnostic at cpp/tests/federation_registry_catch2.cpp:425; preserve its internal/non-conformance disposition and the 2010 boundary."
     },
     {
       "id": "time-save-restore",
@@ -28416,7 +28415,7 @@
         "process-tso-directed-interaction-callback-gating",
         "callback-gating",
         "process-federation-save-untimed",
-        "process-federation-save-timed",
+        "process-federation-save-timestamped",
         "process-federation-save-timed-multi-federate",
         "process-federation-save-timed-multiple-constrained",
         "process-federation-save-timed-queued-tso",
@@ -28666,7 +28665,7 @@
       ],
       "latest_completed_slice_id": "umbra-cpp-process-endpoint-mom-resign-removal-order-integration",
       "latest_completed_slice_lane": "process-mom-resign-removal-order",
-      "next_action": "No active implementation slice is currently queued in this family. The shared source-to-plan handoff is recorded in `active_handoff_note` under the `time-save-restore` owner; keep this family parked unless the next bounded query identifies a concrete test or runtime task here."
+      "next_action": "The pending regular ownership-release, pending If Available callback, and pending negotiated owner-confirmation restore cases are now isolated in focused 2025 sources with their exact mappings and CTests #627/#1745, #624/#1742, and #626/#1744. The current top-level handoff targets pending negotiated If Available owner confirmation at cpp/tests/federation_registry_catch2.cpp:1614, preserving nineteen direct requirement-section pairs, fifteen API surfaces, and CTests #625/#1743."
     },
     {
       "id": "annex-c-and-reference-resolution",

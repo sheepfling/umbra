@@ -855,6 +855,13 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   void startPeriodicMomScheduler();
   void stopPeriodicMomScheduler() noexcept;
   void periodicMomSchedulerLoop(std::stop_token stopToken);
+  [[nodiscard]] bool handleEmbeddedMomInteractionControlRequest(
+      std::optional<std::wstring>& federationName,
+      std::optional<std::uint64_t> const& producingFederateId,
+      std::optional<std::uint64_t> const& interactionClassHandle,
+      InteractionClassHandle const& interactionClass,
+      ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const& userSuppliedTag);
 #endif
 
   mutable std::mutex mutex_;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "internal/federation/federation_registry.hpp"
+#include "internal/federation/federation_registry_service_types.hpp"
 
 #include <filesystem>
 #include <optional>

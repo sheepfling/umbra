@@ -20,7 +20,7 @@
       "id": "umbra-timed-save-waits-for-tso-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l109-26",
       "clause_id": "clause-4.19",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitTimedFederationSaveAtTimeAdvanceBoundary",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
@@ -47,7 +47,7 @@
       "id": "umbra-timed-save-flush-queue-grant-is-exclusive",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l109-26",
       "clause_id": "clause-4.19",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitTimedFederationSaveAtFlushQueueGrantBoundary",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
@@ -60,7 +60,7 @@
       "id": "umbra-timed-save-available-and-next-message-members-use-exclusive-boundaries",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l109-26",
       "clause_id": "clause-4.19",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitTimedFederationSaveAtGrantBoundary",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive available-advance boundary",
@@ -73,7 +73,7 @@
       "id": "umbra-timed-save-all-advance-modes-must-be-ready-before-nonconstrained-initiation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l109-26",
       "clause_id": "clause-4.19",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitTimedFederationSaveAtGrantBoundary",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members"
@@ -83,7 +83,7 @@
       "id": "umbra-timed-save-waits-for-all-constrained-members-before-nonconstrained-initiation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
       "clause_id": "clause-4.19.6",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitTimedFederationSaveAtTimeAdvanceBoundary",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every constrained member before non-constrained members",
@@ -158,7 +158,7 @@
       "id": "umbra-timed-save-replaces-outstanding-request",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l22-5",
       "clause_id": "clause-4.19.6",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::requestFederationSave",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests"
@@ -168,7 +168,7 @@
       "id": "umbra-timed-save-boundary-retains-live-default-region-tso",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l109-26",
       "clause_id": "clause-4.19",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitTimedFederationSaveAtTimeAdvanceBoundary",
       "tests": [
         "cpp/tests/timed_restore_live_tso_default_region_attribute_update_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region attribute update at the save boundary",

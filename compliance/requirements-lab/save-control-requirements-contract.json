@@ -9,7 +9,7 @@
       "id": "umbra-save-request-instructs-all-members",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l96-24",
       "clause_id": "clause-4.19",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::requestFederationSave",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
@@ -25,7 +25,7 @@
       "id": "umbra-untimed-save-waits-for-all-constrained-members-before-nonconstrained-initiation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
       "clause_id": "clause-4.19.6",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitImmediateFederationSaveAtTimeAdvanceBoundary",
       "tests": [
         "cpp/tests/ieee1516_2025_untimed_save_time_constrained_admission_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries"
@@ -79,7 +79,7 @@
       "id": "umbra-save-allows-one-outstanding-request",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l22-5",
       "clause_id": "clause-4.19.6",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::requestFederationSave",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort"
@@ -89,7 +89,7 @@
       "id": "umbra-save-begun-advances-member-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36",
       "clause_id": "clause-4.21.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::federateSaveBegun",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
@@ -105,7 +105,7 @@
       "id": "umbra-save-complete-waits-for-all-members",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-069-l70-17",
       "clause_id": "clause-4.23",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::federateSaveComplete",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
@@ -122,7 +122,7 @@
       "id": "umbra-save-failure-reports-reason",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-069-l76-19",
       "clause_id": "clause-4.23",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::federateSaveNotComplete",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
@@ -146,7 +146,7 @@
       "id": "umbra-save-abort-reports-failure",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-070-l90-22",
       "clause_id": "clause-4.24.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::abortFederationSave",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",
@@ -157,7 +157,7 @@
       "id": "umbra-save-status-query-returns-member-statuses",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-071-l65-14",
       "clause_id": "clause-4.25.6",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::queryFederationSaveStatus",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_save_control_catch2.cpp::Embedded federation save control coordinates initiation, status, completion, and abort",

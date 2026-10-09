@@ -39,6 +39,7 @@
 #include "internal/federation/process_transport.hpp"
 #include "internal/federation/process_transport_session.hpp"
 #include "process_public_service_fixture.hpp"
+#include "ieee1516_2025_process_fom_test_support.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
@@ -328,106 +329,12 @@ using umbra::detail::TransportServiceMessage;
 using umbra::detail::TransportServiceMessageKind;
 using umbra::detail::TransportServiceOperation;
 using umbra::detail::TransportServiceStatus;
-
-std::filesystem::path processResourcePath(
-    std::filesystem::path const& relative) {
-  return std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "third_party" /
-      "ieee1516.2-2025" / "resources" / relative;
-}
-
-PrevalidatedFomModule validatedProcessModule(
-    std::filesystem::path const& source,
-    FomModuleKind kind,
-    std::wstring designator) {
-  LibXml2FomValidator validator;
-  auto result = validator.validate({
-      source,
-      processResourcePath("schemas/IEEE1516-DIF-2025.xsd"),
-      kind,
-      std::move(designator),
-      L"IEEE1516-DIF-2025.xsd",
-  });
-  if (result.status != FomValidationStatus::valid || !result.module) {
-    throw std::runtime_error("The public process FOM did not validate.");
-  }
-  return *result.module;
-}
-
-FederationDefinition composedProcessDefinition(
-    bool const allowRelaxedDdm = false) {
-  std::vector<PrevalidatedFomModule> modules{
-      validatedProcessModule(
-          processResourcePath("mim/HLAstandardMIM-2025.xml"),
-          FomModuleKind::mim,
-          L"urn:umbra:test:public-process-mim"),
-      validatedProcessModule(
-          processResourcePath("examples/RestaurantFOMmodule-2025.xml"),
-          FomModuleKind::fom,
-          L"urn:umbra:test:public-process-restaurant"),
-  };
-  if (allowRelaxedDdm) {
-    auto const relaxedDdmFom =
-        std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
-        "data" / "allow-relaxed-ddm-enabled-fom.xml";
-    modules.push_back(validatedProcessModule(
-        relaxedDdmFom,
-        FomModuleKind::fom,
-        L"urn:umbra:test:public-process-relaxed-ddm"));
-  }
-  LibXml2FomModuleComposer composer(
-      processResourcePath("schemas/IEEE1516-FDD-2025.xsd"));
-  auto result = composer.compose(modules);
-  if (result.status != FomCompositionStatus::valid || !result.catalog ||
-      !result.fdd) {
-    throw std::runtime_error("The public process FOM did not compose.");
-  }
-  return {
-      std::move(result.modules),
-      L"HLAinteger64Time",
-      std::move(result.catalog),
-      std::move(result.fdd),
-  };
-}
-
-FederationDefinition composedDirectedProcessDefinition() {
-  auto const objectConsumer =
-      std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
-      "data" / "directed-interaction-object-consumer-fom.xml";
-  auto const interactionProvider =
-      std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
-      "data" / "directed-interaction-interaction-provider-fom.xml";
-  std::vector<PrevalidatedFomModule> modules{
-      validatedProcessModule(
-          processResourcePath("mim/HLAstandardMIM-2025.xml"),
-          FomModuleKind::mim,
-          L"urn:umbra:test:directed-process-mim"),
-      validatedProcessModule(
-          objectConsumer,
-          FomModuleKind::fom,
-          L"urn:umbra:test:directed-process-object"),
-      validatedProcessModule(
-          interactionProvider,
-          FomModuleKind::fom,
-          L"urn:umbra:test:directed-process-interaction"),
-  };
-  LibXml2FomModuleComposer composer(
-      processResourcePath("schemas/IEEE1516-FDD-2025.xsd"));
-  auto result = composer.compose(modules);
-  if (result.status != FomCompositionStatus::valid || !result.catalog ||
-      !result.fdd) {
-    throw std::runtime_error("The public directed process FOM did not compose.");
-  }
-  return {
-      std::move(result.modules),
-      L"HLAinteger64Time",
-      std::move(result.catalog),
-      std::move(result.fdd),
-  };
-}
+using umbra::test::process_fom_support_2025::composedDirectedProcessDefinition;
+using umbra::test::process_fom_support_2025::composedProcessDefinition;
+using umbra::test::process_fom_support_2025::processResourcePath;
+using umbra::test::process_fom_support_2025::validatedProcessModule;
 
 #endif
-
-
 std::unique_ptr<RTIambassador> makeRti() {
   RTIambassadorFactory factory;
   return factory.createRTIambassador();

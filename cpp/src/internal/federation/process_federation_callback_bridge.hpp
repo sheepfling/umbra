@@ -2,7 +2,7 @@
 
 #include "internal/callbacks/callback_dispatcher.hpp"
 #include "internal/callbacks/callback_session.hpp"
-#include "internal/federation/process_federation_service.hpp"
+#include "internal/federation/process_federation_service_protocol.hpp"
 
 #include <atomic>
 #include <chrono>

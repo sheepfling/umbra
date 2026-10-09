@@ -308,4 +308,248 @@ ObjectInstanceHandle UmbraRtiAmbassador::registerObjectInstanceWithRegions(
 }
 
 
+ObjectInstanceHandle UmbraRtiAmbassador::registerObjectInstance(
+    ObjectClassHandle const& objectClass) {
+  auto instrumentationScope = beginRtiCall("registerObjectInstance");
+  try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    auto const objectClassValueResult = objectClassHandleValue(objectClass);
+    if (!objectClassValueResult) {
+      throw ObjectClassNotDefined(
+          L"Register Object Instance requires a defined ObjectClassHandle.");
+    }
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnectedForFederationManagement(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Register Object Instance requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (processClient == nullptr) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    umbra::detail::ProcessFederationRegisterObjectInstanceResult registration;
+    try {
+      registration = processClient->registerObjectInstance(
+          std::move(federationName), federateId, *objectClassValueResult);
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    if (registration.status !=
+        umbra::detail::ObjectInstanceRegistrationStatus::applied) {
+      throwObjectInstanceRegistrationFailureForFederationManagement(registration.status);
+    }
+    if (registration.objectInstanceHandle == 0U ||
+        registration.objectInstanceName.empty()) {
+      throw RTIinternalError(
+          L"The private process endpoint returned an invalid object-instance registration.");
+    }
+    return makeObjectInstanceHandle(registration.objectInstanceHandle);
+  }
+#endif
+  std::wstring federationName;
+  std::vector<umbra::detail::ObjectInstanceDiscoveryRecipient> discoveries;
+  std::uint64_t objectInstanceHandle = 0;
+  {
+    std::scoped_lock lock(mutex_, ambassadorFederationManagementMutex());
+    requireConnectedForFederationManagement(lifecycle_);
+    requireFederationServiceOperationAvailable(L"Register Object Instance");
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"Register Object Instance requires membership in a federation execution.");
+    }
+
+    auto& registry = embeddedFederationRegistry();
+    if (!registry.memberById(*joinedFederationName_, *joinedFederateId_)) {
+      throw FederateNotExecutionMember(
+          L"The embedded federation no longer records this RTI ambassador as a member.");
+    }
+    auto const objectClassHandle = objectClassHandleValue(objectClass);
+    if (!objectClassHandle) {
+      throw ObjectClassNotDefined(
+          L"Register Object Instance requires a defined ObjectClassHandle.");
+    }
+
+    auto const registration = registry.registerObjectInstance(
+        *joinedFederationName_,
+        *joinedFederateId_,
+        *objectClassHandle);
+    if (registration.status != umbra::detail::ObjectInstanceRegistrationStatus::applied) {
+      throwObjectInstanceRegistrationFailureForFederationManagement(registration.status);
+    }
+
+    federationName = *joinedFederationName_;
+    objectInstanceHandle = registration.objectInstanceHandle;
+    discoveries = registry.planObjectInstanceDiscoveriesForInstance(
+        federationName,
+        objectInstanceHandle);
+  }
+  auto const result = makeObjectInstanceHandle(objectInstanceHandle);
+  appendSuccessfulServiceReportToFileIfSelected(
+      L"RegisterObjectInstance",
+      umbra::detail::MomServiceType::object_management,
+      {{umbra::detail::MomArgumentType::object_class_handle,
+        L"Object class designator",
+        umbra::detail::formatMomObjectClassHandle(objectClass)}},
+      {umbra::detail::MomArgumentType::object_instance_handle,
+       L"Object instance designator",
+       umbra::detail::formatMomObjectInstanceHandle(result)},
+      true);
+  queueAmbassadorObjectInstanceDiscoveries(std::move(discoveries), federationName);
+  return result;
+  } catch (Exception const& exception) {
+    emitExceptionReport(L"Register Object Instance", exception);
+    appendFailedServiceReportToFileIfSelected(
+        L"RegisterObjectInstance",
+        umbra::detail::MomServiceType::object_management,
+        {{umbra::detail::MomArgumentType::object_class_handle,
+          L"Object class designator",
+          umbra::detail::formatMomObjectClassHandle(objectClass)}},
+        describeAmbassadorException(exception),
+        true);
+    throw;
+  }
+}
+
+ObjectInstanceHandle UmbraRtiAmbassador::registerObjectInstance(
+    ObjectClassHandle const& objectClass,
+    std::wstring const& objectInstanceName) {
+  auto instrumentationScope = beginRtiCall("registerObjectInstance");
+  try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    auto const objectClassValueResult = objectClassHandleValue(objectClass);
+    if (!objectClassValueResult) {
+      throw ObjectClassNotDefined(
+          L"Register Object Instance requires a defined ObjectClassHandle.");
+    }
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnectedForFederationManagement(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Register Object Instance requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (processClient == nullptr) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    umbra::detail::ProcessFederationRegisterObjectInstanceResult registration;
+    try {
+      registration = processClient->registerObjectInstance(
+          std::move(federationName),
+          federateId,
+          *objectClassValueResult,
+          objectInstanceName);
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+    if (registration.status !=
+        umbra::detail::ObjectInstanceRegistrationStatus::applied) {
+      throwObjectInstanceRegistrationFailureForFederationManagement(registration.status);
+    }
+    if (registration.objectInstanceHandle == 0U ||
+        registration.objectInstanceName.empty()) {
+      throw RTIinternalError(
+          L"The private process endpoint returned an invalid object-instance registration.");
+    }
+    return makeObjectInstanceHandle(registration.objectInstanceHandle);
+  }
+#endif
+  std::wstring federationName;
+  std::vector<umbra::detail::ObjectInstanceDiscoveryRecipient> discoveries;
+  std::uint64_t objectInstanceHandle = 0;
+  {
+    std::scoped_lock lock(mutex_, ambassadorFederationManagementMutex());
+    requireConnectedForFederationManagement(lifecycle_);
+    requireFederationServiceOperationAvailable(L"Register Object Instance");
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"Register Object Instance requires membership in a federation execution.");
+    }
+
+    auto& registry = embeddedFederationRegistry();
+    if (!registry.memberById(*joinedFederationName_, *joinedFederateId_)) {
+      throw FederateNotExecutionMember(
+          L"The embedded federation no longer records this RTI ambassador as a member.");
+    }
+    auto const objectClassHandle = objectClassHandleValue(objectClass);
+    if (!objectClassHandle) {
+      throw ObjectClassNotDefined(
+          L"Register Object Instance requires a defined ObjectClassHandle.");
+    }
+
+    auto const registration = registry.registerObjectInstance(
+        *joinedFederationName_,
+        *joinedFederateId_,
+        *objectClassHandle,
+        nullptr,
+        &objectInstanceName);
+    if (registration.status != umbra::detail::ObjectInstanceRegistrationStatus::applied) {
+      throwObjectInstanceRegistrationFailureForFederationManagement(registration.status);
+    }
+
+    federationName = *joinedFederationName_;
+    objectInstanceHandle = registration.objectInstanceHandle;
+    discoveries = registry.planObjectInstanceDiscoveriesForInstance(
+        federationName,
+        objectInstanceHandle);
+  }
+  auto const result = makeObjectInstanceHandle(objectInstanceHandle);
+  appendSuccessfulServiceReportToFileIfSelected(
+      L"RegisterObjectInstance",
+      umbra::detail::MomServiceType::object_management,
+      {{umbra::detail::MomArgumentType::object_class_handle,
+        L"Object class designator",
+        umbra::detail::formatMomObjectClassHandle(objectClass)},
+       {umbra::detail::MomArgumentType::string,
+        L"Object instance name",
+        umbra::detail::formatMomString(objectInstanceName)}},
+      {umbra::detail::MomArgumentType::object_instance_handle,
+       L"Object instance designator",
+       umbra::detail::formatMomObjectInstanceHandle(result)},
+      true);
+  queueAmbassadorObjectInstanceDiscoveries(std::move(discoveries), federationName);
+  return result;
+  } catch (Exception const& exception) {
+    emitExceptionReport(L"Register Object Instance", exception);
+    appendFailedServiceReportToFileIfSelected(
+        L"RegisterObjectInstance",
+        umbra::detail::MomServiceType::object_management,
+        {{umbra::detail::MomArgumentType::object_class_handle,
+          L"Object class designator",
+          umbra::detail::formatMomObjectClassHandle(objectClass)},
+         {umbra::detail::MomArgumentType::string,
+          L"Object instance name",
+          umbra::detail::formatMomString(objectInstanceName)}},
+        describeAmbassadorException(exception),
+        true);
+    throw;
+  }
+}
+
 }  // namespace rti1516_2025::umbra_binding_detail
