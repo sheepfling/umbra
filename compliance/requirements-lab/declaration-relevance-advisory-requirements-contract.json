@@ -9,44 +9,44 @@
       "id": "umbra-declaration-advisory-passive-object-subscription",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l144-45",
       "clause_id": "clause-5.8",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
       ]
     },
     {
       "id": "umbra-declaration-advisory-passive-interaction-subscription",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-099-l105-30",
       "clause_id": "clause-5.10.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
       ]
     },
     {
       "id": "umbra-start-registration-relevance-condition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-103-l117-31",
       "clause_id": "clause-5.14.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
       ]
     },
     {
       "id": "umbra-start-registration-advisory-switch-gate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-103-l132-36",
       "clause_id": "clause-5.14.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
       ]
     },
     {
@@ -57,8 +57,8 @@
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks"
       ]
     },
@@ -66,22 +66,22 @@
       "id": "umbra-stop-registration-relevance-condition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-104-l77-19",
       "clause_id": "clause-5.15.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
       ]
     },
     {
       "id": "umbra-stop-registration-advisory-switch-gate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-104-l95-25",
       "clause_id": "clause-5.15.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
       ]
     },
     {
@@ -93,8 +93,8 @@
       "notes": "The Lab exports one §5.15 candidate for the switch gate and callback-invocation boundary; it is retained here for both traceability roles rather than inventing a source row.",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks"
       ]
     },
@@ -102,22 +102,22 @@
       "id": "umbra-turn-interactions-on-relevance-condition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-105-l46-8",
       "clause_id": "clause-5.16.5",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
       ]
     },
     {
       "id": "umbra-turn-interactions-on-advisory-switch-gate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-105-l55-11",
       "clause_id": "clause-5.16.5",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
       ]
     },
     {
@@ -128,8 +128,8 @@
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks"
       ]
     },
@@ -137,22 +137,22 @@
       "id": "umbra-turn-interactions-off-relevance-condition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-106-l24-3",
       "clause_id": "clause-5.17.6",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
       ]
     },
     {
       "id": "umbra-turn-interactions-off-advisory-switch-gate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-106-l30-5",
       "clause_id": "clause-5.17.6",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
       ]
     },
     {
@@ -163,8 +163,8 @@
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks"
       ]
     }

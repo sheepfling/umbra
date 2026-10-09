@@ -15,7 +15,7 @@
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer accepts the supplied MIM and base FOM",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD catalog retains an enabled Non-Regulated-Grant switch",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition treats omitted switch booleans as their schema default",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded additional FOM NRG metadata cannot change the static switch or TAR"
+        "cpp/tests/ieee1516_2025_non_regulated_grant_switch_catch2.cpp::Embedded additional FOM NRG metadata cannot change the static switch or TAR"
       ]
     },
     {

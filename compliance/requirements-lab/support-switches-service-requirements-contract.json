@@ -9,10 +9,10 @@
       "id": "umbra-convey-region-designator-switch-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l18-4",
       "clause_id": "clause-9.1.8",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_control_state.cpp",
       "source_symbol": "EmbeddedFederationRegistry::conveyRegionDesignatorSetsSwitchFor",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
+        "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
         "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_set_switches_updates_sender_subset"
       ]
@@ -21,55 +21,55 @@
       "id": "umbra-automatic-resign-directive-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
       "clause_id": "clause-10.44",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_support_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAutomaticResignDirective",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the bounded automatic NoAction forced-resign policy",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate transport loss forces directive two",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels the lost federate's pending ownership acquisition",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
+        "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_no_action_forced_resign_catch2.cpp::Embedded transport loss applies the bounded automatic NoAction forced-resign policy",
+        "cpp/tests/ieee1516_2025_connection_lost_report_ordering_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
+        "cpp/tests/ieee1516_2025_connection_lost_final_federate_directive_two_catch2.cpp::Embedded final-federate transport loss forces directive two",
+        "cpp/tests/ieee1516_2025_connection_lost_negotiated_ownership_cancellation_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_delete_resign_directive_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_unconditional_divest_directive_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_delete_then_divest_directive_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_cancel_pending_acquisition_catch2.cpp::Embedded transport loss cancels the lost federate's pending ownership acquisition",
+        "cpp/tests/ieee1516_2025_connection_lost_cancel_delete_divest_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
         "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup",
         "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
         "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends a Table 5 void record for Set Automatic Resign Directive"
+        "cpp/tests/ieee1516_2025_service_report_file_automatic_resign_directive_integration_catch2.cpp::Embedded service reporting appends a Table 5 void record for Set Automatic Resign Directive"
       ]
     },
     {
       "id": "umbra-set-automatic-resign-directive",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-275-l119-36",
       "clause_id": "clause-10.45.3",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_support_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::setAutomaticResignDirective",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the bounded automatic NoAction forced-resign policy",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded final-federate transport loss forces directive two",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels the lost federate's pending ownership acquisition",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
+        "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_no_action_forced_resign_catch2.cpp::Embedded transport loss applies the bounded automatic NoAction forced-resign policy",
+        "cpp/tests/ieee1516_2025_connection_lost_report_ordering_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
+        "cpp/tests/ieee1516_2025_connection_lost_final_federate_directive_two_catch2.cpp::Embedded final-federate transport loss forces directive two",
+        "cpp/tests/ieee1516_2025_connection_lost_negotiated_ownership_cancellation_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_delete_resign_directive_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_unconditional_divest_directive_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_delete_then_divest_directive_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_cancel_pending_acquisition_catch2.cpp::Embedded transport loss cancels the lost federate's pending ownership acquisition",
+        "cpp/tests/ieee1516_2025_connection_lost_cancel_delete_divest_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
         "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss rechecks a directed ownership selector before automatic cleanup",
         "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends a Table 5 void record for Set Automatic Resign Directive"
+        "cpp/tests/ieee1516_2025_service_report_file_automatic_resign_directive_integration_catch2.cpp::Embedded service reporting appends a Table 5 void record for Set Automatic Resign Directive"
       ]
     },
     {
       "id": "umbra-service-reporting-switch-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-276-l86-25",
       "clause_id": "clause-10.46.6",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getServiceReportingSwitch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
+        "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
         "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
       ]
     },
@@ -77,10 +77,10 @@
       "id": "umbra-exception-reporting-switch-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-277-l184-58",
       "clause_id": "clause-10.48.1",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getExceptionReportingSwitch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
+        "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
         "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
       ]
     },
@@ -88,10 +88,10 @@
       "id": "umbra-send-service-reports-to-file-switch-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-279-l70-20",
       "clause_id": "clause-10.50.6",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getSendServiceReportsToFileSwitch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
+        "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
         "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
       ]
     },
@@ -99,12 +99,12 @@
       "id": "umbra-delay-subscription-evaluation-static-switch",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l10-1",
       "clause_id": "clause-8.1.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_control_state.cpp",
       "source_symbol": "EmbeddedFederationRegistry::delaySubscriptionEvaluationSwitchFor",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional attribute eligibility",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional interaction eligibility",
+        "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_regional_attribute_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional attribute eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_regional_interaction_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional interaction eligibility",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_timestamped_regional_attribute_update",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_timestamped_regional_interaction"
       ]
@@ -113,11 +113,11 @@
       "id": "umbra-allow-relaxed-ddm-static-switch",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-282-l152-47",
       "clause_id": "clause-10.55.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_control_state.cpp",
       "source_symbol": "EmbeddedFederationRegistry::allowRelaxedDDMSwitchFor",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional interaction ranges",
+        "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
+        "cpp/tests/ieee1516_2025_allow_relaxed_ddm_regional_interaction_boundary_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional interaction ranges",
         "cpp/tests/allow_relaxed_ddm_object_attribute_catch2.cpp::Embedded Allow Relaxed DDM expands only touching regional object-attribute ranges",
         "cpp/tests/regional_auto_provide_response_catch2.cpp::Embedded regional Auto Provide applies Allow Relaxed DDM to touching source projections and suppresses positive gaps under HLA_EVOKED and HLA_IMMEDIATE"
       ]
@@ -126,7 +126,7 @@
       "id": "umbra-mom-report-service-ordinary-subscription-exclusion",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-099-l132-39",
       "clause_id": "clause-5.10.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setInteractionClassSubscription",
       "tests": [
         "cpp/tests/mom_service_reporting_interlock_catch2.cpp::Embedded MOM service-reporting state excludes report-service subscriptions"
@@ -136,7 +136,7 @@
       "id": "umbra-mom-report-service-regional-subscription-exclusion",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l103-33",
       "clause_id": "clause-9.10.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setInteractionClassRegionalSubscription",
       "tests": [
         "cpp/tests/mom_service_reporting_interlock_catch2.cpp::Embedded MOM service-reporting state excludes report-service subscriptions"
@@ -146,7 +146,7 @@
       "id": "umbra-mom-report-service-switch-subscription-exclusion",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_control_state.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setServiceReportingSwitch",
       "tests": [
         "cpp/tests/mom_service_reporting_interlock_catch2.cpp::Embedded MOM service-reporting state excludes report-service subscriptions"
@@ -156,7 +156,7 @@
       "id": "umbra-mom-report-service-enabled-subscription-exclusion",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l60-19",
       "clause_id": "clause-11.5.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setInteractionClassSubscription",
       "tests": [
         "cpp/tests/mom_service_reporting_interlock_catch2.cpp::Embedded MOM service-reporting state excludes report-service subscriptions"
@@ -166,7 +166,7 @@
       "id": "umbra-mom-federate-set-switches-processes-predefined-parameters",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l36-11",
       "clause_id": "clause-11.4.1",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "tests": [
         "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
@@ -176,7 +176,7 @@
       "id": "umbra-mom-federate-set-switches-promotes-extension-subclass",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l54-17",
       "clause_id": "clause-11.4.1",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "tests": [
         "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
@@ -186,7 +186,7 @@
       "id": "umbra-mom-federate-set-switches-ignores-extension-parameters",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l66-21",
       "clause_id": "clause-11.4.1",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "tests": [
         "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
@@ -196,7 +196,7 @@
       "id": "umbra-mom-federate-set-switches-requires-at-least-one-parameter",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-291-l146-48",
       "clause_id": "clause-11.4.2",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "tests": [
         "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
@@ -206,7 +206,7 @@
       "id": "umbra-mom-federate-set-switches-service-reporting-interlock",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_control_state.cpp",
       "source_symbol": "EmbeddedFederationRegistry::applyFederateMOMSwitchUpdate",
       "tests": [
         "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"

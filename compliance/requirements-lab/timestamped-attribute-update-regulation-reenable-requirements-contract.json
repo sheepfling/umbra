@@ -12,17 +12,17 @@
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::disableTimeRegulation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
+        "cpp/tests/ieee1516_2025_timestamped_default_region_attribute_regulation_reenable_changed_lookahead_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
       ]
     },
     {
       "id": "umbra-timestamped-attribute-update-regulation-enable-callback-gates-role",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
       "clause_id": "clause-8.2",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_regulation_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeRegulation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
+        "cpp/tests/ieee1516_2025_timestamped_default_region_attribute_regulation_reenable_changed_lookahead_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
       ]
     },
     {
@@ -32,27 +32,27 @@
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::grantTimeRegulation",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
+        "cpp/tests/ieee1516_2025_timestamped_default_region_attribute_regulation_reenable_changed_lookahead_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
       ]
     },
     {
       "id": "umbra-timestamped-attribute-update-default-region-tso-queue",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
       "clause_id": "clause-8.1.5",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
+        "cpp/tests/ieee1516_2025_timestamped_default_region_attribute_regulation_reenable_changed_lookahead_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
       ]
     },
     {
       "id": "umbra-timestamped-attribute-update-admits-default-region-passel",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
       "clause_id": "clause-6.10",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
+        "cpp/tests/ieee1516_2025_timestamped_default_region_attribute_regulation_reenable_changed_lookahead_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
       ]
     },
     {
@@ -62,17 +62,17 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueTimestampedReflectAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
+        "cpp/tests/ieee1516_2025_timestamped_default_region_attribute_regulation_reenable_changed_lookahead_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
       ]
     },
     {
       "id": "umbra-timestamped-attribute-update-grants-after-reflection",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
       "clause_id": "clause-8.8.3",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
+        "cpp/tests/ieee1516_2025_timestamped_default_region_attribute_regulation_reenable_changed_lookahead_catch2.cpp::Embedded timestamped default-region attribute update survives time-regulation disable and re-enable at the new lookahead"
       ]
     }
   ]

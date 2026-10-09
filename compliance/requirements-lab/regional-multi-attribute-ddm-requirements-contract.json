@@ -9,7 +9,7 @@
       "id": "umbra-regional-multi-attribute-registration-preserves-independent-sources",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l152-41",
       "clause_id": "clause-9.5",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_instance_registration.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
         "cpp/tests/regional_multi_attribute_ddm_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
@@ -19,7 +19,7 @@
       "id": "umbra-regional-multi-attribute-routing-requires-complete-overlap",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l142-43",
       "clause_id": "clause-9.6",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
       "tests": [
         "cpp/tests/regional_multi_attribute_ddm_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
@@ -29,7 +29,7 @@
       "id": "umbra-regional-multi-attribute-subscriptions-project-per-attribute",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l48-13",
       "clause_id": "clause-9.8",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscription",
       "tests": [
         "cpp/tests/regional_multi_attribute_ddm_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"
@@ -39,7 +39,7 @@
       "id": "umbra-regional-multi-attribute-unsubscription-releases-projector",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-235-l100-28",
       "clause_id": "clause-9.9.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::removeObjectClassAttributeRegionalSubscription",
       "tests": [
         "cpp/tests/regional_multi_attribute_ddm_catch2.cpp::Embedded two-dimensional regional object updates filter independent attribute sources"

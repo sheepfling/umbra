@@ -47,6 +47,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
       umbra::authorizer
       Catch2::Catch2WithMain
     )
+    umbra_guard_catch2_debug_image_size("${target_name}")
   endfunction()
 
   umbra_add_embedded_2025_catch2_target(umbra_ieee1516_2025_connection_catch2
@@ -750,7 +751,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   # Keep the timed regular-candidate continuation case independently
   # buildable. The wrapper exposes the macro-based fixture as a direct
   # TEST_CASE for source indexing and a focused CTest handle.
-  umbra_add_embedded_2025_catch2_target(umbra_tso_regional_regular_continuation_restore_catch2
+  umbra_add_embedded_2025_catch2_target(umbra_tso_reg_regular_restore_catch2
     SOURCES
     cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_regular_candidate_continuation_after_restore_lane_catch2.cpp
   )
@@ -758,7 +759,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   # Keep the timed multi-recipient mixed-candidate continuation case
   # independently buildable. It reuses the regular-candidate fixture
   # while selecting an If Available candidate for the surviving clock.
-  umbra_add_embedded_2025_catch2_target(umbra_tso_regional_mixed_continuation_restore_catch2
+  umbra_add_embedded_2025_catch2_target(umbra_tso_reg_mixed_restore_catch2
     SOURCES
     cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_mixed_candidate_continuation_after_restore_catch2.cpp
   )
@@ -766,7 +767,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   # Keep the timed mixed retained-regular pre-delivery cancellation case
   # independently buildable. It reuses the regional save/restore
   # fixture while cancelling before Request Divestiture Confirmation.
-  umbra_add_embedded_2025_catch2_target(umbra_tso_mixed_pre_delivery_cancel_catch2
+  umbra_add_embedded_2025_catch2_target(umbra_tso_pre_cancel_restore_catch2
     SOURCES
     cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_retained_regular_pre_delivery_cancel_after_restore_catch2.cpp
   )
@@ -774,7 +775,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   # Keep the timed mixed retained-regular confirmation cancellation case
   # independently buildable. It reuses the regional save/restore
   # fixture while cancelling after Request Divestiture Confirmation.
-  umbra_add_embedded_2025_catch2_target(umbra_tso_mixed_confirmation_cancel_catch2
+  umbra_add_embedded_2025_catch2_target(umbra_tso_confirm_cancel_catch2
     SOURCES
     cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_retained_regular_confirmation_cancel_after_restore_catch2.cpp
   )
@@ -784,7 +785,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   # timestamped update, delivers the retained owner's confirmation, and
   # verifies cancellation rejects stale confirmation without transferring
   # ownership.
-  umbra_add_embedded_2025_catch2_target(umbra_tso_regional_negotiated_confirmation_cancel_restore_catch2
+  umbra_add_embedded_2025_catch2_target(umbra_tso_cancel_restore_catch2
     SOURCES
     cpp/tests/timed_live_tso_regional_attribute_update_multi_recipient_negotiated_confirmation_cancel_after_restore_catch2.cpp
   )

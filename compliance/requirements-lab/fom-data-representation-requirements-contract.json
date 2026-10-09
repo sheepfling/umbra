@@ -9,40 +9,40 @@
       "id": "umbra-omt-simple-data-representation-resolves",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l54-10",
       "clause_id": "clause-6.2.15",
-      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateDataTypeRepresentationReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves representations and special instance identifiers"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves representations and special instance identifiers"
       ]
     },
     {
       "id": "umbra-omt-enumerated-data-representation-resolves",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l70-13",
       "clause_id": "clause-6.2.16",
-      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateDataTypeRepresentationReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves representations and special instance identifiers"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves representations and special instance identifiers"
       ]
     },
     {
       "id": "umbra-omt-reference-data-representation-kind",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l90-17",
       "clause_id": "clause-6.2.17",
-      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateDataTypeRepresentationReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves representations and special instance identifiers"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves representations and special instance identifiers"
       ]
     },
     {
       "id": "umbra-omt-special-instance-identifier-reference-resolution",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l102-20",
       "clause_id": "clause-6.2.17",
-      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateReferenceDataTypeAttributeReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves representations and special instance identifiers"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves representations and special instance identifiers"
       ]
     }
   ]

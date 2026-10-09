@@ -13,14 +13,14 @@
       "source_symbol": "FederateTimeState::receiveOrderDeliveryAllowed",
       "tests": [
         "cpp/tests/federate_time_state_catch2.cpp::Federate time state gates deferred receive-order callbacks with asynchronous delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state",
+        "cpp/tests/ieee1516_2025_asynchronous_delivery_temporal_state_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state",
         "cpp/tests/ieee1516_2025_ddm_regional_async_delivery_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction_immediate",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
         "cpp/tests/connection_loss_attribute_update_tso_immediate_catch2.cpp::Embedded immediate transport loss releases automatic cleanup after cutoff reflection under asynchronous delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for no-argument asynchronous delivery services",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
+        "cpp/tests/ieee1516_2025_service_report_file_asynchronous_delivery_integration_catch2.cpp::Embedded service reporting appends Table 5 void records for no-argument asynchronous delivery services",
+        "cpp/tests/ieee1516_2025_connection_lost_tso_cutoff_report_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
       ]
     },
     {
@@ -31,11 +31,11 @@
       "source_symbol": "FederateTimeState::disableAsynchronousDelivery",
       "tests": [
         "cpp/tests/federate_time_state_catch2.cpp::Federate time state gates deferred receive-order callbacks with asynchronous delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state",
+        "cpp/tests/ieee1516_2025_asynchronous_delivery_temporal_state_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state",
         "cpp/tests/ieee1516_2025_ddm_regional_async_delivery_catch2.cpp::Embedded asynchronous delivery gates regional receive-order interactions",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_asynchronous_delivery_regional_interaction_immediate",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for no-argument asynchronous delivery services"
+        "cpp/tests/ieee1516_2025_service_report_file_asynchronous_delivery_integration_catch2.cpp::Embedded service reporting appends Table 5 void records for no-argument asynchronous delivery services"
       ]
     }
   ]

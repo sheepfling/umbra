@@ -548,6 +548,19 @@ TEST_CASE(
         throw std::runtime_error("The public process message server lost Send.");
       }
 
+      bool unexpectedSendFollowUp = false;
+      auto serveSendFollowUp = [&](TransportServiceMessage const& request) {
+        unexpectedSendFollowUp = unexpectedSendFollowUp ||
+            request.operation !=
+                TransportServiceOperation::report_successful_void_service_invocation;
+        return senderHandler(request);
+      };
+      if (!umbra::test::servePrimaryProcessRequest(
+              sender, senderHandler, serveSendFollowUp) || unexpectedSendFollowUp) {
+        throw std::runtime_error(
+            "The public process message server lost the successful Send report.");
+      }
+
       if (!umbra::test::servePrimaryProcessRequest(receiver, receiverHandler)) {
         throw std::runtime_error("The public process message server lost Receive.");
       }

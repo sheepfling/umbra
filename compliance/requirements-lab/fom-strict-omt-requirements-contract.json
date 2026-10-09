@@ -20,7 +20,7 @@
       "id": "umbra-omt-complete-model-data-type-closure",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-068-l41-3",
       "clause_id": "clause-4.14.2",
-      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateDataTypeReferences",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer emits a strict OMT-positive complete model",

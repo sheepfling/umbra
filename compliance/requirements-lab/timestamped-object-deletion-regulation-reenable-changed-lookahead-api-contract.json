@@ -11,10 +11,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual MessageRetractionHandle deleteObjectInstance( ObjectInstanceHandle const & objectInstance, VariableLengthData const & userSuppliedTag, LogicalTime const & time) = 0",
-      "exception_types": ["InvalidLogicalTime", "DeletePrivilegeNotHeld", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidLogicalTime",
+        "DeletePrivilegeNotHeld",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_deletion_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::deleteObjectInstance",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "umbra-embedded-changed-lookahead-delete-retract",
@@ -22,10 +33,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void retract( MessageRetractionHandle const & retraction) = 0",
-      "exception_types": ["MessageCanNoLongerBeRetracted", "InvalidMessageRetractionHandle", "TimeRegulationIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "MessageCanNoLongerBeRetracted",
+        "InvalidMessageRetractionHandle",
+        "TimeRegulationIsNotEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_retract_service.cpp",
       "source_symbol": "UmbraRtiAmbassador::retract",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "umbra-embedded-changed-lookahead-enable-time-regulation",
@@ -33,10 +55,22 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void enableTimeRegulation( LogicalTimeInterval const & lookahead) = 0",
-      "exception_types": ["InvalidLookahead", "InTimeAdvancingState", "RequestForTimeRegulationPending", "TimeRegulationAlreadyEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidLookahead",
+        "InTimeAdvancingState",
+        "RequestForTimeRegulationPending",
+        "TimeRegulationAlreadyEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_regulation_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "umbra-embedded-changed-lookahead-disable-time-regulation",
@@ -44,10 +78,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void disableTimeRegulation() = 0",
-      "exception_types": ["TimeRegulationIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "TimeRegulationIsNotEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_regulation_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::disableTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "umbra-embedded-changed-lookahead-query-lookahead",
@@ -55,10 +98,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void queryLookahead(LogicalTimeInterval & interval) = 0",
-      "exception_types": ["TimeRegulationIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "TimeRegulationIsNotEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_bounds_lookahead.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLookahead",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "umbra-embedded-changed-lookahead-enable-time-constrained",
@@ -66,10 +118,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void enableTimeConstrained() = 0",
-      "exception_types": ["InTimeAdvancingState", "RequestForTimeConstrainedPending", "TimeConstrainedAlreadyEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InTimeAdvancingState",
+        "RequestForTimeConstrainedPending",
+        "TimeConstrainedAlreadyEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeConstrained",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "umbra-embedded-changed-lookahead-time-advance-request",
@@ -77,10 +140,23 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void timeAdvanceRequest( LogicalTime const & time) = 0",
-      "exception_types": ["LogicalTimeAlreadyPassed", "InvalidLogicalTime", "InTimeAdvancingState", "RequestForTimeRegulationPending", "RequestForTimeConstrainedPending", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "LogicalTimeAlreadyPassed",
+        "InvalidLogicalTime",
+        "InTimeAdvancingState",
+        "RequestForTimeRegulationPending",
+        "RequestForTimeConstrainedPending",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "umbra-embedded-changed-lookahead-remove-object-instance",
@@ -88,10 +164,14 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void removeObjectInstance( ObjectInstanceHandle const & objectInstance, VariableLengthData const & userSuppliedTag, FederateHandle const & producingFederate, LogicalTime const & time, OrderType sentOrderType, OrderType receivedOrderType, MessageRetractionHandle const * optionalRetraction) = 0",
-      "exception_types": ["FederateInternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "recipient.removeObjectInstance",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "umbra-embedded-changed-lookahead-time-regulation-enabled",
@@ -99,10 +179,14 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void timeRegulationEnabled( LogicalTime const & time) = 0",
-      "exception_types": ["FederateInternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "timeRegulationEnabled",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"
+      ]
     },
     {
       "id": "umbra-embedded-changed-lookahead-time-advance-grant",
@@ -110,10 +194,14 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void timeAdvanceGrant( LogicalTime const & time) = 0",
-      "exception_types": ["FederateInternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "timeAdvanceGrant",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped Delete Object Instance survives time-regulation disable and re-enable with changed lookahead"
+      ]
     }
   ]
 }

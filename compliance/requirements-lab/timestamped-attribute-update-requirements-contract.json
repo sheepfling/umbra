@@ -9,7 +9,7 @@
       "id": "umbra-timestamped-attribute-update-provides-values",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
       "clause_id": "clause-6.10",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
         "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
@@ -25,40 +25,40 @@
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
         "cpp/tests/timestamped_attribute_update_no_fanout_catch2.cpp::Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout",
         "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped attribute retraction classification",
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/ieee1516_2025_restore_tso_terminal_classification_catch2.cpp::Embedded federation restore preserves a terminal timestamped attribute retraction classification",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
       "id": "umbra-timestamped-attribute-update-returns-retraction-designator",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l98-27",
       "clause_id": "clause-6.10",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
         "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
         "cpp/tests/timestamped_attribute_update_flush_queue_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
         "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped attribute retraction classification",
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/ieee1516_2025_restore_tso_terminal_classification_catch2.cpp::Embedded federation restore preserves a terminal timestamped attribute retraction classification",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
       "id": "umbra-timestamped-attribute-update-excludes-sender-reflection",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l146-43",
       "clause_id": "clause-6.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp",
       "source_symbol": "candidateReceiveOrderAttributeUpdateRecipient",
       "tests": [
         "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
         "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients"
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients"
       ]
     },
     {
@@ -80,10 +80,10 @@
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
@@ -104,10 +104,10 @@
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
@@ -124,15 +124,15 @@
         "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
         "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the standard HLAvariableArray handle encoding",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
       "id": "umbra-timestamped-attribute-reflection-preserves-passels",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
       "clause_id": "clause-6.11.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
       "tests": [
         "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
@@ -140,17 +140,17 @@
         "cpp/tests/timestamped_attribute_update_available_advance_catch2.cpp::Embedded timestamped Update Attribute Values honors available and next-message available grants",
         "cpp/tests/timestamped_attribute_update_flush_queue_catch2.cpp::Embedded timestamped Update Attribute Values flushes queued passels with optimistic time",
         "cpp/tests/connection_loss_attribute_update_tso_multi_recipient_catch2.cpp::Embedded transport loss drains a cutoff timestamped attribute update to each pending survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
       "id": "umbra-timestamped-attribute-update-uses-time-management-order",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
       "clause_id": "clause-8.1.4",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
         "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
@@ -163,17 +163,17 @@
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup",
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
       "id": "umbra-timestamped-attribute-update-queues-for-time-constrained-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
       "clause_id": "clause-8.1.5",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
         "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
@@ -188,7 +188,7 @@
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_multi_recipient_catch2.cpp::Embedded transport loss drains automatic cleanup independently after cutoff attribute updates",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion suppresses a queued timestamped attribute reflection",
         "cpp/tests/local_delete_timestamped_attribute_catch2.cpp::Embedded local deletion isolates queued timestamped attribute deliveries per recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
@@ -212,7 +212,7 @@
       "id": "umbra-timestamped-attribute-update-survives-automatic-delete-cleanup",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
       "clause_id": "clause-4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_instance_removal.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginObjectInstanceRemoval",
       "tests": [
         "cpp/tests/connection_loss_attribute_update_tso_automatic_cleanup_catch2.cpp::Embedded transport loss delivers a cutoff timestamped attribute update before automatic object cleanup",
@@ -227,7 +227,7 @@
       "id": "umbra-timestamped-attribute-update-suppressed-callback-closes-cutoff-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
       "clause_id": "clause-4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed",
       "tests": [
         "cpp/tests/connection_loss_attribute_update_tso_suppressed_cleanup_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff attribute update is suppressed"
@@ -249,38 +249,38 @@
       "id": "umbra-timestamped-attribute-update-retracts-before-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
       "clause_id": "clause-8.22.3",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_retract_service.cpp",
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
         "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients"
+        "cpp/tests/ieee1516_2025_request_retraction_suppressed_attribute_update_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients"
       ]
     },
     {
       "id": "umbra-timestamped-attribute-update-uses-message-designator",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
       "clause_id": "clause-8.22.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
         "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
         "cpp/tests/timestamped_attribute_update_no_fanout_catch2.cpp::Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout",
         "cpp/tests/restore_live_tso_attribute_update_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
         "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
       "id": "umbra-timestamped-attribute-update-suppresses-pending-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
         "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
@@ -290,33 +290,33 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
+        "cpp/tests/ieee1516_2025_timestamped_update_retraction_immediate_only_recipient_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
         "cpp/tests/restore_live_tso_attribute_update_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
         "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients",
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
       "id": "umbra-timestamped-attribute-update-retains-nonconstrained-recipient-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_timestamped_update_retraction_immediate_only_recipient_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
       "id": "umbra-timestamped-attribute-update-save-restore-reconstructs-live-record",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
       "clause_id": "clause-4.32",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
         "cpp/tests/restore_live_tso_attribute_update_catch2.cpp::Embedded federation restore restores a saved live timestamped attribute update",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients"
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients"
       ],
       "notes": "The bounded untimed cases save one live non-regional timestamped Update Attribute Values passel for a single recipient and for two independent constrained recipients, terminalize the pre-save designator, restore the typed payload and each recipient ledger, and prove separate Flush Queue reflection plus Request Retraction. This is not general timed/durable recovery evidence."
     },
@@ -324,7 +324,7 @@
       "id": "umbra-timestamped-attribute-update-preserves-per-recipient-resignation-ledger",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
       "clause_id": "clause-8.1.5",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
         "cpp/tests/timestamped_attribute_source_resignation_fanout_catch2.cpp::Embedded queued timestamped attribute update survives source resignation for each recipient"
@@ -335,10 +335,10 @@
       "id": "umbra-timestamped-attribute-update-save-restore-reconstructs-multiple-recipient-records",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
       "clause_id": "clause-4.32",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients"
+        "cpp/tests/ieee1516_2025_restore_live_tso_attribute_update_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped attribute update to multiple recipients"
       ],
       "notes": "The bounded three-member case saves one queued timestamped Update Attribute Values passel with two constrained recipients, terminalizes the post-save designator, restores both pending recipient records, delivers each independently through Flush Queue, and invokes Request Retraction for both delivered recipients. This is not general multi-member pending/in-transit advance or timed/durable recovery evidence."
     },
@@ -346,10 +346,10 @@
       "id": "umbra-timestamped-attribute-update-save-restore-composes-with-interaction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l162-43",
       "clause_id": "clause-4.32",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore composes a saved timestamped object update and interaction across four members"
+        "cpp/tests/ieee1516_2025_mixed_tso_four_member_restore_integration_catch2.cpp::Embedded federation restore composes a saved timestamped object update and interaction across four members"
       ],
       "notes": "The mixed-family companion adds one timestamped object update to the saved interaction image and proves that the two recipient-local ledgers restore independently before their own Flush Queue grants and post-delivery Request Retraction callbacks. This is composition evidence, not a complete attribute/interaction save/restore or durable persistence claim."
     },
@@ -357,7 +357,7 @@
       "id": "umbra-timestamped-attribute-update-preserves-timestamp-order-cohort",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l157-16",
       "clause_id": "clause-8",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
         "cpp/tests/timestamped_attribute_order_cohort_catch2.cpp::Embedded timestamped attribute updates preserve different-timestamp order for each constrained recipient",
@@ -369,7 +369,7 @@
       "id": "umbra-timestamped-attribute-update-reenable-requests-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-191-l73-17",
       "clause_id": "clause-8.5.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeConstrained",
       "tests": [
         "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
@@ -399,10 +399,10 @@
       "id": "umbra-timestamped-attribute-update-save-restore-preserves-terminal-tombstone",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
       "clause_id": "clause-4.32",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped attribute retraction classification"
+        "cpp/tests/ieee1516_2025_restore_tso_terminal_classification_catch2.cpp::Embedded federation restore preserves a terminal timestamped attribute retraction classification"
       ],
       "notes": "The bounded one-member image saves a terminal timestamped Update Attribute Values retraction record, creates a distinct post-save designator, restores the saved ledger, and preserves MessageCanNoLongerBeRetracted for the saved handle while rejecting the discarded post-save handle as invalid. This is terminal-classification evidence only; it does not claim live payload, recipient, timed, durable, or remote restore coverage."
     },
@@ -410,11 +410,11 @@
       "id": "umbra-timestamped-attribute-update-service-report-selects-configured-backend",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulServiceReportToFileIfSelected",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_update_attribute_values_service_report_catch2.cpp::Embedded service reporting records timestamped Update Attribute Values before reflection callback",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Update Attribute Values through MOM interaction"
+        "cpp/tests/ieee1516_2025_time_regulated_timestamped_update_attribute_values_service_report_mom_catch2.cpp::Embedded service reporting delivers time-regulated timestamped Update Attribute Values through MOM interaction"
       ],
       "notes": "The accepted timestamped §6.10 Update Attribute Values path now uses the shared file-or-interaction selector after validation and any TSO queue admission. The focused production-filesystem case proves type-37 ObjectInstanceHandle, type-2 AttributeHandleValueMap, type-63 User-supplied tag, and type-31 LogicalTime supplied forms, the type-34 Null returned argument for a non-time-regulating sender, serial zero, and durable sender-report-before-Reflect Attribute Values ordering. The paired native HLA_IMMEDIATE case now proves the time-regulated type-33 MessageRetractionHandle return before the constrained reflection callback with the same supplied forms and callback metadata. Regional/default-region update matrices, recipient-local callback reports, remote transport, Lab validation, and conformance remain separate; RL-105/RL-152 provide no row-level report-backend relation."
     }

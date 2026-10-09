@@ -11,7 +11,7 @@
       "clause_id": "clause-9.10",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::regionsOverlap",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
     },
     {
       "id": "tck-timestamped-regional-interaction-send-context",
@@ -19,7 +19,7 @@
       "clause_id": "clause-9.12",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
     },
     {
       "id": "tck-timestamped-regional-interaction-time-table",
@@ -27,7 +27,7 @@
       "clause_id": "clause-8",
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::grantTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
     },
     {
       "id": "tck-timestamped-regional-interaction-time-required",
@@ -35,7 +35,7 @@
       "clause_id": "clause-8",
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::grantTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
     },
     {
       "id": "tck-timestamped-regional-interaction-time-bound",
@@ -43,7 +43,7 @@
       "clause_id": "clause-8",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "validateTsoTimestamp",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
     },
     {
       "id": "tck-timestamped-regional-interaction-queue",
@@ -51,7 +51,7 @@
       "clause_id": "clause-8.1.5",
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
     },
     {
       "id": "tck-timestamped-regional-interaction-snapshot",
@@ -59,7 +59,7 @@
       "clause_id": "clause-8.1.6",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
     },
     {
       "id": "tck-timestamped-regional-interaction-time-enable",
@@ -67,7 +67,7 @@
       "clause_id": "clause-8.2",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
     },
     {
       "id": "tck-timestamped-regional-interaction-time-enabled",
@@ -75,7 +75,7 @@
       "clause_id": "clause-8.3.1",
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::grantTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
     },
     {
       "id": "tck-timestamped-regional-interaction-grant",
@@ -83,7 +83,7 @@
       "clause_id": "clause-8.8.3",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
     },
     {
       "id": "tck-timestamped-regional-interaction-query",
@@ -91,7 +91,7 @@
       "clause_id": "clause-8.20.4",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLookahead",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
+      "tests": ["cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead"]
     }
   ]
 }

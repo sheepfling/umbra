@@ -11,8 +11,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void enableTimeRegulation( LogicalTimeInterval const & lookahead) = 0",
-      "exception_types": ["InvalidLookahead", "InTimeAdvancingState", "RequestForTimeRegulationPending", "TimeRegulationAlreadyEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidLookahead",
+        "InTimeAdvancingState",
+        "RequestForTimeRegulationPending",
+        "TimeRegulationAlreadyEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_regulation_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeRegulation",
       "tests": [
         "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
@@ -32,8 +42,15 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void disableTimeRegulation() = 0",
-      "exception_types": ["TimeRegulationIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "TimeRegulationIsNotEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_regulation_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::disableTimeRegulation",
       "tests": [
         "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
@@ -49,17 +66,26 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void enableTimeConstrained() = 0",
-      "exception_types": ["InTimeAdvancingState", "RequestForTimeConstrainedPending", "TimeConstrainedAlreadyEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InTimeAdvancingState",
+        "RequestForTimeConstrainedPending",
+        "TimeConstrainedAlreadyEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeConstrained",
       "tests": [
         "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
+        "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
         "cpp/tests/timestamped_default_region_attribute_reenable_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_timestamped_regional_attribute_update_reenable_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
         "cpp/tests/ieee1516_2025_time_constrained_no_argument_service_report_file_catch2.cpp::Embedded service reporting records callback-gated no-argument time-constrained services",
         "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
@@ -73,17 +99,24 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void disableTimeConstrained() = 0",
-      "exception_types": ["TimeConstrainedIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "TimeConstrainedIsNotEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::disableTimeConstrained",
       "tests": [
         "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
+        "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
         "cpp/tests/timestamped_default_region_attribute_reenable_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_timestamped_regional_attribute_update_reenable_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_time_constrained_no_argument_service_report_file_catch2.cpp::Embedded service reporting records callback-gated no-argument time-constrained services",
         "cpp/tests/timestamped_attribute_update_reenable_catch2.cpp::Embedded ordinary timestamped attribute update survives time-constrained re-enable"
       ]
@@ -94,8 +127,15 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void queryLookahead(LogicalTimeInterval & interval) = 0",
-      "exception_types": ["TimeRegulationIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "TimeRegulationIsNotEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_bounds_lookahead.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLookahead",
       "tests": [
         "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
@@ -110,35 +150,39 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void timeRegulationEnabled( LogicalTime const & time) = 0",
-      "exception_types": ["FederateInternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_regulation_control.cpp",
       "source_symbol": "timeRegulationEnabled",
-     "tests": [
-       "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
-       "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
-       "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
+      "tests": [
+        "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
+        "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
+        "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_time_regulation_service_report_file_catch2.cpp::Embedded service reporting records callback-gated time-regulation services",
         "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
         "cpp/tests/ieee1516_2025_timestamped_object_class_request_provider_response_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE"
-     ]
-   },
+      ]
+    },
     {
       "id": "umbra-embedded-time-constrained-enabled",
       "requirements_lab_api_surface_id": "api.2025.cpp.federateambassador.timeconstrainedenabled.c5eb5c65565d",
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void timeConstrainedEnabled( LogicalTime const & time) = 0",
-      "exception_types": ["FederateInternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp",
       "source_symbol": "timeConstrainedEnabled",
       "tests": [
         "cpp/tests/ieee1516_2025_time_role_enable_callback_gating_catch2.cpp::Embedded time-role services keep enable requests callback-gated before TSO support",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_time_role_callback_gating_both_models",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
+        "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region interaction survives time-regulation disable and re-enable",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
         "cpp/tests/timestamped_default_region_attribute_reenable_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_timestamped_regional_attribute_update_reenable_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore reschedules a saved pending time advance",
         "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
         "cpp/tests/ieee1516_2025_timestamped_object_class_request_provider_response_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",

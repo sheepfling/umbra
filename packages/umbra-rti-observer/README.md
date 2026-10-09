@@ -6,6 +6,14 @@ FOM, connect to an RTI, or assign meaning from provider or domain class names. A
 provider-specific adapter owns that boundary and publishes normalized JSON
 events to the observer.
 
+The dashboard consumes the versioned, language-neutral wire contract documented
+in [CONTRACT.md](CONTRACT.md). The Python FastAPI service is one backend
+implementation; a Java federate service can replace it without changing the
+frontend if it implements that contract.
+
+For a newcomer-friendly explanation of the layers and data flow, see
+[JUNIOR-GUIDE.md](JUNIOR-GUIDE.md).
+
 The package has no runtime dependencies for its core. The HTTP dashboard is an
 optional FastAPI/WebSocket layer:
 
@@ -55,6 +63,7 @@ metrics, Server-Sent Events, and WebSocket endpoints:
 ```text
 GET  /api/health
 GET  /api/catalog
+GET  /api/contract
 GET  /api/schema
 GET  /api/state
 GET  /api/metrics

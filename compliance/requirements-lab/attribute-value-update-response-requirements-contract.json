@@ -9,7 +9,7 @@
       "id": "umbra-value-request-stimulates-a-provider-response",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l140-37",
       "clause_id": "clause-6.21",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdate",
       "tests": [
         "cpp/tests/attribute_value_update_response_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
@@ -19,7 +19,7 @@
       "id": "umbra-value-request-solicits-current-owner",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-135-l143-38",
       "clause_id": "clause-6.21",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeValueUpdateRequest",
       "tests": [
         "cpp/tests/attribute_value_update_response_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
@@ -49,7 +49,7 @@
       "id": "umbra-provider-response-updates-only-owned-attributes",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l86-23",
       "clause_id": "clause-6.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
       "tests": [
         "cpp/tests/attribute_value_update_response_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
@@ -59,8 +59,8 @@
       "id": "umbra-provider-response-reaches-reflection-with-response-tag",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l110-31",
       "clause_id": "clause-6.10",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
-      "source_symbol": "queueReceiveOrderAttributeUpdate",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
+      "source_symbol": "queueAmbassadorReceiveOrderAttributeUpdate",
       "tests": [
         "cpp/tests/attribute_value_update_response_catch2.cpp::Embedded Request Attribute Value Update supports a 2025 provider response"
       ]

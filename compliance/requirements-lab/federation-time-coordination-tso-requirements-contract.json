@@ -73,7 +73,7 @@
       "id": "umbra-private-tso-advance-clears-delivered-since-last-advance",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l52-16",
       "clause_id": "clause-8.12.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginTimeAdvanceGrant",
       "tests": [
         "cpp/tests/federation_time_coordinator_catch2.cpp::Federation time coordinator exposes queued, in-transit, and delivered TSO state",

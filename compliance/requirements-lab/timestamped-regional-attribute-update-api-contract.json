@@ -22,19 +22,19 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
         "cpp/tests/timestamped_regional_attribute_update_tar_nmr_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants",
         "cpp/tests/timestamped_regional_attribute_update_mixed_advance_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
         "cpp/tests/timestamped_default_region_attribute_update_mixed_advance_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
         "cpp/tests/timestamped_regional_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
+        "cpp/tests/ieee1516_2025_timestamped_regional_no_overlap_retraction_designator_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
+        "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_callback_retraction_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_through_grant_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
         "cpp/tests/timestamped_regional_attribute_update_retract_mixed_advance_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_timestamped_regional_attribute_association_replacement_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
+        "cpp/tests/ieee1516_2025_timestamped_regional_attribute_update_reenable_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
         "cpp/tests/timestamped_default_region_attribute_reenable_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
         "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
@@ -44,12 +44,12 @@
         "cpp/tests/restore_live_tso_default_region_attribute_update_catch2.cpp::Embedded federation restore restores a saved live timestamped default-region attribute update",
         "cpp/tests/ieee1516_2025_timestamped_default_region_attribute_restore_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped default-region attribute update to multiple recipients",
         "cpp/tests/timed_restore_live_tso_default_region_attribute_update_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region attribute update at the save boundary",
-        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore preserves a terminal timestamped regional attribute classification",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped default-region attribute classification",
+        "cpp/tests/ieee1516_2025_restore_tso_terminal_classification_catch2.cpp::Embedded federation restore preserves a terminal timestamped regional attribute classification",
+        "cpp/tests/ieee1516_2025_restore_terminal_tso_default_region_attribute_integration_catch2.cpp::Embedded federation restore preserves a terminal timestamped default-region attribute classification",
         "cpp/tests/ieee1516_2025_timestamped_regional_update_file_report_catch2.cpp::Embedded service reporting records timestamped regional Update Attribute Values before reflection callback",
-         "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
-         "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp::Embedded live regional timestamped attribute update survives source mutation and resignation after restore",
-         "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation"
+        "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
+        "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp::Embedded live regional timestamped attribute update survives source mutation and resignation after restore",
+        "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation"
       ]
     },
     {
@@ -58,7 +58,9 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void reflectAttributeValues( ObjectInstanceHandle const & objectInstance, AttributeHandleValueMap const & attributeValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, RegionHandleSet const * optionalSentRegions, LogicalTime const & time, OrderType sentOrderType, OrderType receivedOrderType, MessageRetractionHandle const * optionalRetraction) = 0",
-      "exception_types": ["FederateInternalError"],
+      "exception_types": [
+        "FederateInternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
@@ -66,10 +68,10 @@
         "cpp/tests/timestamped_regional_attribute_update_mixed_advance_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
         "cpp/tests/timestamped_default_region_attribute_update_mixed_advance_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
         "cpp/tests/timestamped_regional_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_callback_retraction_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_through_grant_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
+        "cpp/tests/ieee1516_2025_timestamped_regional_attribute_association_replacement_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
+        "cpp/tests/ieee1516_2025_timestamped_regional_attribute_update_reenable_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
         "cpp/tests/timestamped_default_region_attribute_reenable_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
         "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
@@ -80,9 +82,9 @@
         "cpp/tests/ieee1516_2025_timestamped_default_region_attribute_restore_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped default-region attribute update to multiple recipients",
         "cpp/tests/timed_restore_live_tso_default_region_attribute_update_catch2.cpp::Embedded timed federation restore restores a live timestamped default-region attribute update at the save boundary",
         "cpp/tests/ieee1516_2025_timestamped_regional_update_file_report_catch2.cpp::Embedded service reporting records timestamped regional Update Attribute Values before reflection callback",
-         "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
-         "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp::Embedded live regional timestamped attribute update survives source mutation and resignation after restore",
-         "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation"
+        "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
+        "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp::Embedded live regional timestamped attribute update survives source mutation and resignation after restore",
+        "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation"
       ]
     },
     {
@@ -103,30 +105,30 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
       "tests": [
         "cpp/tests/timestamped_regional_attribute_update_tar_nmr_catch2.cpp::Embedded regional timestamped attribute updates deliver before TAR and NMR grants",
         "cpp/tests/timestamped_regional_attribute_update_mixed_advance_catch2.cpp::Embedded mixed regional timestamped attribute updates deliver before FQR TARA and NMRA grants",
         "cpp/tests/timestamped_default_region_attribute_update_mixed_advance_catch2.cpp::Embedded mixed default-region timestamped attribute updates deliver before FQR TARA and NMRA grants",
         "cpp/tests/timestamped_regional_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
+        "cpp/tests/ieee1516_2025_timestamped_regional_no_overlap_retraction_designator_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
+        "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_through_grant_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
         "cpp/tests/timestamped_regional_attribute_update_retract_mixed_advance_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
+        "cpp/tests/ieee1516_2025_timestamped_regional_attribute_association_replacement_catch2.cpp::Embedded timestamped regional attribute association replacement does not retarget a queued passel",
+        "cpp/tests/ieee1516_2025_timestamped_regional_attribute_update_reenable_catch2.cpp::Embedded timestamped regional attribute update survives time-constrained re-enable",
         "cpp/tests/timestamped_default_region_attribute_reenable_catch2.cpp::Embedded timestamped default-region attribute update survives time-constrained re-enable",
         "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
         "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
         "cpp/tests/restore_live_tso_regional_attribute_update_catch2.cpp::Embedded federation restore restores a saved live explicit-source regional timestamped attribute update",
         "cpp/tests/timed_restore_live_tso_regional_attribute_update_catch2.cpp::Embedded timed federation restore restores a live explicit-source regional timestamped attribute update at the save boundary",
         "cpp/tests/timed_restore_live_tso_regional_attribute_update_multi_recipient_catch2.cpp::Embedded timed federation restore restores one queued explicit-source regional timestamped attribute update to multiple recipients",
-        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore preserves a terminal timestamped regional attribute classification",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped default-region attribute classification",
+        "cpp/tests/ieee1516_2025_restore_tso_terminal_classification_catch2.cpp::Embedded federation restore preserves a terminal timestamped regional attribute classification",
+        "cpp/tests/ieee1516_2025_restore_terminal_tso_default_region_attribute_integration_catch2.cpp::Embedded federation restore preserves a terminal timestamped default-region attribute classification",
         "cpp/tests/ieee1516_2025_timestamped_regional_update_file_report_catch2.cpp::Embedded service reporting records timestamped regional Update Attribute Values before reflection callback",
-         "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
-         "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp::Embedded live regional timestamped attribute update survives source mutation and resignation after restore",
-         "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation"
+        "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
+        "cpp/tests/live_tso_regional_attribute_update_source_resignation_after_restore_catch2.cpp::Embedded live regional timestamped attribute update survives source mutation and resignation after restore",
+        "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation"
       ]
     },
     {
@@ -145,21 +147,21 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_retract_service.cpp",
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
         "cpp/tests/timestamped_regional_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
+        "cpp/tests/ieee1516_2025_timestamped_regional_no_overlap_retraction_designator_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
+        "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_callback_retraction_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_through_grant_catch2.cpp::Embedded disjoint timestamped regional attribute callback remains suppressed through Time Advance Grant",
         "cpp/tests/timestamped_regional_attribute_update_retract_mixed_advance_catch2.cpp::Embedded mixed regional timestamped attribute updates retract before FQR TARA and NMRA grants",
         "cpp/tests/restore_live_tso_regional_attribute_update_catch2.cpp::Embedded federation restore restores a saved live explicit-source regional timestamped attribute update",
         "cpp/tests/timed_restore_live_tso_regional_attribute_update_catch2.cpp::Embedded timed federation restore restores a live explicit-source regional timestamped attribute update at the save boundary",
         "cpp/tests/timed_restore_live_tso_regional_attribute_update_multi_recipient_catch2.cpp::Embedded timed federation restore restores one queued explicit-source regional timestamped attribute update to multiple recipients",
-        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore preserves a terminal timestamped regional attribute classification",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped default-region attribute classification",
-         "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
-         "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation"
+        "cpp/tests/ieee1516_2025_restore_tso_terminal_classification_catch2.cpp::Embedded federation restore preserves a terminal timestamped regional attribute classification",
+        "cpp/tests/ieee1516_2025_restore_terminal_tso_default_region_attribute_integration_catch2.cpp::Embedded federation restore preserves a terminal timestamped default-region attribute classification",
+        "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation",
+        "cpp/tests/timestamped_regional_attribute_update_resignation_catch2.cpp::Embedded queued timestamped regional attribute update survives source resignation"
       ]
     },
     {

@@ -49,7 +49,7 @@
       "id": "umbra-interaction-region-passive-pair-suppresses-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l49-15",
       "clause_id": "clause-9.10.3",
-      "source": "cpp/src/internal/federation/federation_registry_callback_recipient_planning.inc",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
       "tests": [
         "cpp/tests/ieee1516_2025_passive_interaction_subscription_catch2.cpp::Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
@@ -111,7 +111,7 @@
       "id": "umbra-interaction-region-send-limits-scope",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-239-l150-43",
       "clause_id": "clause-9.12",
-      "source": "cpp/src/internal/federation/federation_registry_callback_recipient_planning.inc",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
       "tests": [
         "cpp/tests/ieee1516_2025_regional_interaction_subscription_receive_order_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends",
@@ -133,8 +133,8 @@
       "id": "umbra-interaction-region-no-overlap-suppresses-receive",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-240-l9-1",
       "clause_id": "clause-9.12.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
-      "source_symbol": "queueReceiveOrderInteraction",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp",
+      "source_symbol": "queueAmbassadorReceiveOrderInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_regional_interaction_subscription_receive_order_catch2.cpp::Embedded regional interaction subscriptions filter 2025 receive-order sends"
       ]
@@ -160,11 +160,11 @@
       ]
     },
     {
-     "id": "umbra-interaction-region-subscription-service-report-interaction",
-     "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-     "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_dispatch.inc",
-     "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
+      "id": "umbra-interaction-region-subscription-service-report-interaction",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+      "clause_id": "clause-11.5",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp",
+      "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_service_report_regional_interaction_subscriptions_interaction_catch2.cpp::Embedded service reporting delivers accepted regional interaction subscriptions through MOM interaction"
       ],
@@ -174,7 +174,7 @@
       "id": "umbra-interaction-region-send-failure-service-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_report_file_writers.inc",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "tests": [
         "cpp/tests/regional_interaction_failure_service_report_file_catch2.cpp::Embedded service reporting records failed regional Send Interaction With Regions invocations",
@@ -186,7 +186,7 @@
       "id": "umbra-interaction-region-send-success-service-report",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_report_file_writers.inc",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulVoidServiceReportToFileIfSelected",
       "tests": [
         "cpp/tests/regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records accepted regional Send Interaction With Regions before interaction callback",

@@ -425,7 +425,6 @@ FederationDefinition composedDirectedProcessDefinition() {
 }
 
 #endif
-#endif
 
 
 std::unique_ptr<RTIambassador> makeRti() {
@@ -454,6 +453,7 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 }
 
 }  // namespace
+#endif
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(

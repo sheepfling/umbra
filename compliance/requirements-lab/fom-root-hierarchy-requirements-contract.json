@@ -9,7 +9,7 @@
       "id": "umbra-omt-object-class-standard-root",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-047-l59-4",
       "clause_id": "clause-4.5.1",
-      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateStandardRootClassHierarchies",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight requires standard object and interaction roots"
@@ -19,7 +19,7 @@
       "id": "umbra-omt-interaction-class-standard-root",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-052-l34-6",
       "clause_id": "clause-4.6.1",
-      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateStandardRootClassHierarchies",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight requires standard object and interaction roots"

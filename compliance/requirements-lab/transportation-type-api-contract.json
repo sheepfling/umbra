@@ -17,20 +17,20 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_order_transportation_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getTransportationTypeHandle",
       "tests": [
         "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
         "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers order and transportation lookup return arguments through MOM interaction",
+        "cpp/tests/ieee1516_2025_service_report_order_transportation_lookup_catch2.cpp::Embedded service reporting delivers order and transportation lookup return arguments through MOM interaction",
         "cpp/tests/custom_transportation_delivery_catch2.cpp::Embedded ordinary delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_timestamped_delivery_catch2.cpp::Embedded timestamped delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_ordinary_regional_interaction_catch2.cpp::Embedded ordinary regional delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_ordinary_regional_attribute_catch2.cpp::Embedded ordinary regional attribute delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_timestamped_regional_attribute_delivery_catch2.cpp::Embedded timestamped regional attribute delivery accepts a declared custom FOM transportation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed delivery accepts a declared custom FOM transportation",
+        "cpp/tests/ieee1516_2025_custom_transportation_directed_interaction_integration_catch2.cpp::Embedded directed delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_timestamped_directed_delivery_catch2.cpp::Embedded timestamped directed delivery accepts a declared custom FOM transportation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional delivery accepts a declared custom FOM transportation"
+        "cpp/tests/ieee1516_2025_custom_transportation_timestamped_regional_interaction_catch2.cpp::Embedded timestamped regional delivery accepts a declared custom FOM transportation"
       ]
     },
     {
@@ -45,20 +45,20 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_order_transportation_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getTransportationTypeName",
       "tests": [
         "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
         "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup exposes the mandatory 2025 support pair",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers order and transportation lookup return arguments through MOM interaction",
+        "cpp/tests/ieee1516_2025_service_report_order_transportation_lookup_catch2.cpp::Embedded service reporting delivers order and transportation lookup return arguments through MOM interaction",
         "cpp/tests/custom_transportation_delivery_catch2.cpp::Embedded ordinary delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_timestamped_delivery_catch2.cpp::Embedded timestamped delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_ordinary_regional_interaction_catch2.cpp::Embedded ordinary regional delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_ordinary_regional_attribute_catch2.cpp::Embedded ordinary regional attribute delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_timestamped_regional_attribute_delivery_catch2.cpp::Embedded timestamped regional attribute delivery accepts a declared custom FOM transportation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed delivery accepts a declared custom FOM transportation",
+        "cpp/tests/ieee1516_2025_custom_transportation_directed_interaction_integration_catch2.cpp::Embedded directed delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_timestamped_directed_delivery_catch2.cpp::Embedded timestamped directed delivery accepts a declared custom FOM transportation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional delivery accepts a declared custom FOM transportation"
+        "cpp/tests/ieee1516_2025_custom_transportation_timestamped_regional_interaction_catch2.cpp::Embedded timestamped regional delivery accepts a declared custom FOM transportation"
       ]
     },
     {
@@ -73,7 +73,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_order_transportation_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getTransportationTypeHandle",
       "tests": [
         "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup resolves a declared FOM transportation per execution",
@@ -82,9 +82,9 @@
         "cpp/tests/custom_transportation_ordinary_regional_interaction_catch2.cpp::Embedded ordinary regional delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_ordinary_regional_attribute_catch2.cpp::Embedded ordinary regional attribute delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_timestamped_regional_attribute_delivery_catch2.cpp::Embedded timestamped regional attribute delivery accepts a declared custom FOM transportation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed delivery accepts a declared custom FOM transportation",
+        "cpp/tests/ieee1516_2025_custom_transportation_directed_interaction_integration_catch2.cpp::Embedded directed delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_timestamped_directed_delivery_catch2.cpp::Embedded timestamped directed delivery accepts a declared custom FOM transportation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional delivery accepts a declared custom FOM transportation"
+        "cpp/tests/ieee1516_2025_custom_transportation_timestamped_regional_interaction_catch2.cpp::Embedded timestamped regional delivery accepts a declared custom FOM transportation"
       ]
     },
     {
@@ -99,7 +99,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_order_transportation_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getTransportationTypeName",
       "tests": [
         "cpp/tests/transportation_type_lookup_catch2.cpp::Embedded transportation type lookup resolves a declared FOM transportation per execution",
@@ -108,9 +108,9 @@
         "cpp/tests/custom_transportation_ordinary_regional_interaction_catch2.cpp::Embedded ordinary regional delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_ordinary_regional_attribute_catch2.cpp::Embedded ordinary regional attribute delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_timestamped_regional_attribute_delivery_catch2.cpp::Embedded timestamped regional attribute delivery accepts a declared custom FOM transportation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded directed delivery accepts a declared custom FOM transportation",
+        "cpp/tests/ieee1516_2025_custom_transportation_directed_interaction_integration_catch2.cpp::Embedded directed delivery accepts a declared custom FOM transportation",
         "cpp/tests/custom_transportation_timestamped_directed_delivery_catch2.cpp::Embedded timestamped directed delivery accepts a declared custom FOM transportation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional delivery accepts a declared custom FOM transportation"
+        "cpp/tests/ieee1516_2025_custom_transportation_timestamped_regional_interaction_catch2.cpp::Embedded timestamped regional delivery accepts a declared custom FOM transportation"
       ]
     }
   ]

@@ -60,7 +60,7 @@
       ],
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report records use the standard MIM fixed-record layout",
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The registry builds a private joined-federate MOM snapshot from canonical Join FOM modules"
+        "cpp/tests/federation_registry_composed_fom_catch2.cpp::The registry builds a private joined-federate MOM snapshot from canonical Join FOM modules"
       ]
     }
   ]

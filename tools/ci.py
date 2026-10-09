@@ -1173,9 +1173,11 @@ def lint_scope_paths(scope: str) -> list[Path]:
 
 
 def run_python_integrity_checks(arguments: argparse.Namespace) -> None:
+    skip_2010_checks = getattr(arguments, "skip_2010_checks", False)
     checks = [
         [sys.executable, "tools/generate_rti_ambassador_shell.py", "--check"],
-        [sys.executable, "tools/generate_1516e_cpp_shell.py", "--check"],
+        # Keep this cross-stream guard active: it protects the 2025 source tree
+        # from 2010 leakage even while the standalone 2010 routes are paused.
         [sys.executable, "tools/verify_1516e_provider_boundaries.py"],
         [
             sys.executable,
@@ -1188,13 +1190,18 @@ def run_python_integrity_checks(arguments: argparse.Namespace) -> None:
         [sys.executable, "tools/verify_python_surface_report.py"],
         [sys.executable, "tools/run_cpp_tck_regression.py"],
     ]
+    if not skip_2010_checks:
+        checks.insert(
+            1, [sys.executable, "tools/generate_1516e_cpp_shell.py", "--check"]
+        )
     for check in checks:
         run_command(
             check,
             dry_run=arguments.dry_run,
             env=python_environment(),
         )
-    python_2010_surface_checks(arguments)
+    if not skip_2010_checks:
+        python_2010_surface_checks(arguments)
 
 
 def run_ruff(arguments: argparse.Namespace, *, fix: bool) -> None:
@@ -1367,6 +1374,12 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument(
             "--scope", choices=("ci", "changed", "all"), default="ci"
         )
+        if name == "lint":
+            command_parser.add_argument(
+                "--skip-2010-checks",
+                action="store_true",
+                help="Skip 2010-only integrity checks (for hosted 2025-only CI).",
+            )
         command_parser.add_argument(
             "--strict",
             action="store_true",

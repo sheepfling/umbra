@@ -4,7 +4,13 @@ import threading
 
 import pytest
 
-from umbra_rti_observer import CallbackEventSource, ObserverStore, build_event_schema
+from umbra_rti_observer import (
+    OBSERVER_CONTRACT_VERSION,
+    CallbackEventSource,
+    ObserverStore,
+    build_contract_document,
+    build_event_schema,
+)
 
 
 def test_store_keeps_generic_semantics_and_builds_inspectors() -> None:
@@ -38,6 +44,7 @@ def test_store_keeps_generic_semantics_and_builds_inspectors() -> None:
     )
 
     state = store.state()
+    assert state["contract_version"] == OBSERVER_CONTRACT_VERSION
     assert state["status"] == "running"
     assert state["context"]["federation"] == "Example"
     assert state["live_metrics"]["event_count"] == 3
@@ -95,6 +102,14 @@ def test_schema_is_provider_neutral() -> None:
     assert schema["schema_version"] == "umbra-runtime-observer-v1"
     assert "event_type" in schema["required"]
     assert schema["properties"]["family"]["description"].startswith("Explicit")
+
+
+def test_contract_is_language_neutral_and_declares_stream_messages() -> None:
+    contract = build_contract_document(["custom.event"])
+    assert contract["contract_version"] == OBSERVER_CONTRACT_VERSION
+    assert contract["event_types"] == ["custom.event"]
+    assert contract["api_paths"]["websocket"] == "/ws/events"
+    assert "snapshot" in contract["stream"]["message_types"]
 
 
 def test_bounded_history_reports_cursor_gaps_and_filters() -> None:

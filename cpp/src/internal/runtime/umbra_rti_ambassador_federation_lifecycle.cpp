@@ -705,6 +705,12 @@ FederateHandle UmbraRtiAmbassador::joinFederationExecutionImpl(
       // changing the lifecycle. If this allocation/move were ever to fail,
       // the catch below can still roll the registry membership and route back.
       joinedServiceReport_ = std::move(pendingServiceReport);
+    } catch (RTIinternalError const&) {
+      rollbackJoinedMembership();
+      throw;
+    } catch (std::exception const& error) {
+      rollbackJoinedMembership();
+      throw RTIinternalError(wideAscii(error.what()));
     } catch (...) {
       rollbackJoinedMembership();
       throw RTIinternalError(

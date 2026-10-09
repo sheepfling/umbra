@@ -11,6 +11,24 @@
       "reason": "The process service leaves a live timestamped interaction or attribute delivery in the coordinator's inTransit phase after sending its event frame. The public process interaction case now observes both Query GALT and Query LITS at that in-transit timestamp boundary before the receiver acknowledges after the callback; suppressed and no-session paths still complete immediately.",
       "next_step": "The separately mapped regional/DDM stress slice is now verified by umbra-cpp-timestamped-regional-interaction-tso-retraction-integration: 68 assertions across 14 direct requirement-to-2025-section pairs; its focused CTest passed. Keep this separate from the process observer, FIFO, fanout, and pre-grant-retraction baselines; do not repeat or widen this case. For the next project action, use the root resume handoff, which currently requires primary-source verification of Table 5 Credentials candidate requirement-candidate-table-5-p296-r006 before any implementation or mapping.",
       "do_not_start_without": "A separately mapped stress case with its own requirements, sections, and exact CTest handle; do not reopen either completed observer/retraction case or add a sleep-based/polling-race test."
+    },
+    {
+      "id": "hla-2025-time-management-contributor-guide",
+      "family": "documentation",
+      "lane": "hla-2025-time-management-guide",
+      "state": "evidence-complete",
+      "reason": "Added a 2025-only contributor guide with role and advance state diagrams, GALT/LITS decision flow, request-mode boundaries, TSO lifecycle, callback ordering, worked examples, implementation limits, and links to the pinned clause records, source, and tests. This is explanatory documentation, not behavior or conformance evidence.",
+      "next_step": "Use junior/contributor feedback to choose the next independent HLA topic for a focused guide; revise this timing guide only when the standard, pinned source records, implementation, or tests change.",
+      "do_not_start_without": "Keep 1516.1-2010 outside this guide. Verify new normative claims against IEEE 1516.1-2025 and distinguish them from current Umbra behavior and test evidence."
+    },
+    {
+      "id": "hla-behavior-flow-guides",
+      "family": "documentation",
+      "lane": "hla-behavior-flow-guides",
+      "state": "active",
+      "reason": "A bounded docs/source/test survey produced eighteen distinct 2025 contributor guides for timing, ownership, DDM/regions, save/restore, object/interaction information flow, federation lifecycle, callback ordering, synchronization points, service invocation reporting, FOM module admission/composition, joined-federate MOM object lifecycle, exception reporting, TSO retraction, object-instance name reservation, order/transportation controls, declaration/attribute relevance advisories, Attribute Scope Advisory, and Auto Provide, plus a separately surveyed 2010 reference-RTI guide with an explicit scope boundary. The retraction companion deepens the timing overview with producer-side time/lookahead legality, per-recipient pending/delivered/suppressed states, Request Retraction callbacks, mixed fan-out, and timestamped-delete reconstitution. The name-reservation guide distinguishes asynchronous single-name outcomes, partial bulk reservation, atomic bulk release, owner-only registration, reservation consumption at commit, and restored reservation state. The order/transportation guide separates RO/TSO from transportation metadata, class defaults from instance changes, synchronous order updates from callback-gated transport changes, and effective-value queries. The relevance guide separates declaration-level publisher/class transitions from known-instance attribute/owner transitions, with active/passive, callback-switch, regional, known-class, and update-rate edges. The Attribute Scope Advisory guide models receiver-local per-object-attribute state, subscription and region changes, the self-final-unsubscribe exception, grouped callback payloads, and stale-work checks in embedded and process paths. The Auto Provide guide traces the federation-wide FDD/MOM switch, discovery-triggered provider grouping, empty-tag solicitation, regional eligibility, provider response separation, and callback-time switch/scope fences; its bounded survey did not find an automatic discovery planner or focused test in the process profile. These guides link to rather than duplicate adjacent state-machine coverage.",
+      "next_step": "Render and visually review every 2025 and separate 2010 flow guide with GitHub's Markdown/Mermaid renderer; the current workstation has no local Mermaid CLI or Mermaid JavaScript package, so use an authorized GitHub-rendered preview or provision an approved local renderer rather than treating static checks as visual verification. Fix syntax/layout issues and update backlog statuses only from direct evidence. The publication/relevance, Attribute Scope Advisory, and Auto Provide surveys are now documented; after visual review, choose the next topic only if it adds a distinct learner-facing state machine. Keep edition boundaries explicit and leave the Requirements Lab unchanged.",
+      "do_not_start_without": "Use the official standard as normative authority and label current Umbra behavior/test evidence separately. Do not merge 2010 and 2025 state machines or edit the HLA Requirements Lab during this Umbra documentation phase."
     }
   ],
   "live_query_note": "This index retains historical roadmap prose snapshots; use python tools/query_rti_work.py resume as the first bounded resume card, then dashboard --summary --compact, status --summary --compact, roadmap --summary --compact, ready --summary --compact, queue --summary --compact, and next --pointer --summary --compact for current counts, bounded family search, one exact C++ handoff or gap-ranked family candidate, bounded family state, planned-row heads, direct requirement-to-2025-subsection pair totals, and the next source/planned-row handoff. The gap-ranked family candidate is globally uncovered, belongs to a subsection already represented by that family's tests, and includes direct requirement/section lookup handles. Resume and dashboard expose source_only_reconciliation with the first unplanned C++ declaration, source location, and explicit ready --include-source-only/next --include-source-only commands; this is diagnostic reconciliation and never an implicit Lab rescan. They also expose mapping.latest_verified_restore_slice for fixes that reuse existing mapped cases, including exact case/focus/matrix/check/CTest handles. Roadmap family search also accepts an exact Requirements-Lab id, canonical 2025 document:clause subsection, or official C++ API surface and returns the owning family without a full plan dump. Lane focus cards and roadmap rows expose bounded requirement IDs, canonical document:clause keys, and direct pairs. A mapped plan row may declare primary_lane when broad taxonomy tags overlap; case/trace/matrix then resolve the owning lane and roadmap family deterministically while retaining the broad tags as context. For an unclassified source-located C++ case, add unmapped --disposition unclassified --show-contract-candidates --summary --compact to expose existing contract Lab/clause candidates without assigning them.",
@@ -69,44 +87,42 @@
       "Ratchet the service-types header from 2,903 to 1,882 lines and keep single-consumer .inc fragments out of the tree."
     ]
   },
-  "active_handoff_note": "Largest source/test reorganization audit complete. The tracked-source scan reports no .cpp or test suite above the 3,000-line soft limit; the only C++ soft-limit finding is the 3,230-line single-class federation_registry.hpp, retained as the documented cohesion exception after folding its ten single-consumer .inc fragments back into the class. The 10,000-line hard limit and 109 legacy growth guards pass; no .inc files remain under cpp. The ambassador monolith is 2,775 lines across 49 thematic .cpp files; the process-client core is 746 lines; four private process wire-codec tests are now in a separate ordinary .cpp suite and pass 4/4. Their exact mappings, affected lane checks, source-size check, and provider boundary pass; no 2010 source or target changed. The 2,448-line federation-save suite was audited and retained as one coherent save-flow suite. One prior mapped Join CTest remains unavailable in this sandbox because localhost connect returns socket error 10013. Next source-only project pointer: HLAlogicalTime delegates opaque bytes to the selected reference factory at cpp/tests/ieee1516_2025_time_catch2.cpp:209; inspect the pinned requirement and map or explicitly disposition it before implementation using python tools/query_rti_work.py unplanned --summary --compact --limit 1.",
+  "active_handoff_note": "The privileged full MinGW CTest run passed 2,073/2,122 tests and failed 49; it is not a clean bill of health. The sandbox blocks localhost TCP with Winsock 10013, so the unrestricted run is the meaningful baseline. The process HLAsetSwitches failure was diagnosed as a test-server sequence omitting the successful-void-service-report RPC after Send Interaction; after correcting it, both aggregate and focused copies pass. The no-time regional object-attribute case remains a reproducible DDM defect: one accepted update yields two reflections instead of one. Other failures include process-endpoint tests/timeouts and symbolic-name, query-matrix, package-config, and focused-service-lane gates. Next: diagnose only the duplicate regional callback through its exact mapped test and recipient-planning path; keep the pinned Requirements Lab unchanged.",
   "active_handoff": {
-    "state": "evidence-complete",
-    "family": "transport-and-conformance",
-    "lane": "process-federation-save-untimed",
-    "id": "audit-2025-process-federation-save-test-boundaries",
-    "plan_id": "umbra-cpp-process-endpoint-federation-save-untimed-integration",
-    "mapping_seed_plan_id": "umbra-cpp-process-endpoint-federation-save-untimed-integration",
-    "mapping_seed_policy": "Audit the existing 2025 public process save suite without changing requirements. If cases move, preserve exact titles, tags, callback models, direct normative mappings, and dispositions; do not invent coverage or cross into the 2010 stream.",
-    "test_case": "RTIambassadors carry untimed federation save callbacks through the configured process endpoint",
-    "objective": "Audit the 2,448-line 2025 connection federation-save Catch2 suite. Its seven cases are one cohesive federation-save theme spanning untimed and timestamped coordination, recipient/queued-TSO boundaries, save status, and abort, supported by suite-local time/save callback helpers. Keep this suite intact; do not split for line count. Preserve all existing mappings and the strict 2010/2025 boundary.",
-    "source_target": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp",
-    "source_location": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp:457",
-    "implementation_target": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp; cmake/ieee1516_2025_connection_test_sources.cmake; compliance/requirements-lab/catch2-test-plan.json; docs/planning/ROADMAP-INDEX.json",
-    "implementation_location": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp:457",
-    "target_file": "cpp/tests/ieee1516_2025_connection_federation_save_catch2.cpp",
-    "ctest_target": "umbra_ieee1516_2025_connection_catch2",
-    "ctest_filter": "^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors carry untimed federation save callbacks through the configured process endpoint$",
-    "ctest_label": "process-federation-save-untimed",
+    "state": "open",
+    "family": "object-ddm-ownership",
+    "lane": "regional-object-attribute-routing",
+    "id": "umbra-cpp-regional-object-attribute-routing-integration",
+    "plan_id": "umbra-cpp-regional-object-attribute-routing-integration",
+    "mapping_seed_plan_id": "umbra-cpp-regional-object-attribute-routing-integration",
+    "mapping_seed_policy": "Preserve the existing IEEE 1516.1-2025 requirement and subsection mappings. Reproduce the duplicate callback with the one exact C++ case; determine whether delivery is duplicated by subscription, recipient planning, or callback dispatch. Do not weaken callback cardinality or resync the Requirements Lab.",
+    "test_case": "Embedded regional object attributes filter 2025 no-time updates by overlap",
+    "objective": "The privileged MinGW suite reproducibly delivers two Reflect Attribute Values callbacks after one accepted update where the focused 2025 regional-routing case expects one. Find and fix the smallest shared DDM cause, then verify the exact case, the regional object-attribute lane, and the relevant process/embedded boundaries.",
+    "source_target": "cpp/tests/ieee1516_2025_regional_object_attribute_no_time_update_overlap_catch2.cpp",
+    "source_location": "cpp/tests/ieee1516_2025_regional_object_attribute_no_time_update_overlap_catch2.cpp:120",
+    "implementation_target": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp; cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp; cpp/tests/ieee1516_2025_regional_object_attribute_no_time_update_overlap_catch2.cpp; compliance/requirements-lab/catch2-test-plan.json; docs/planning/ROADMAP-INDEX.json",
+    "implementation_location": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp",
+    "target_file": "cpp/tests/ieee1516_2025_regional_object_attribute_no_time_update_overlap_catch2.cpp",
+    "ctest_target": "umbra_regional_object_attribute_routing_catch2",
+    "ctest_filter": "^umbra\\.regional_object_attribute_routing\\.catch2\\.Embedded regional object attributes filter 2025 no-time updates by overlap$",
+    "ctest_label": "regional-object-attribute-routing",
     "commands": {
       "resume": "python tools/query_rti_work.py resume",
-      "exact_case": "python tools/query_rti_work.py case umbra-cpp-process-endpoint-federation-save-untimed-integration --summary --compact",
-      "survey": "Review the bounded save-suite case boundaries, shared helper consumers, exact mapping rows, target registration, and current CTest inventory before moving anything.",
-      "build": "cmake --build .build-mingw-rti --target umbra_ieee1516_2025_connection_catch2 --parallel 8",
-      "focused_ctest": "ctest --test-dir .build-mingw-rti --output-on-failure -R '^umbra\\.ieee1516_2025\\.connection_catch2\\.RTIambassadors carry untimed federation save callbacks through the configured process endpoint$'",
-      "mapping_check": "python tools/query_rti_work.py check --lane process-federation-save-untimed --summary --compact",
+      "exact_case": "python tools/query_rti_work.py case umbra-cpp-regional-object-attribute-routing-integration --summary --compact",
+      "survey": "Run the exact failing regional no-time update case and inspect only the recipient planner and its callback queue path; retain the one-callback assertion.",
+      "build": "cmake --build out/mgw/embedded --target umbra_regional_object_attribute_routing_catch2 --parallel 2",
+      "focused_ctest": "ctest --test-dir out/mgw/embedded --output-on-failure -R '^umbra\\.regional_object_attribute_routing\\.catch2\\.Embedded regional object attributes filter 2025 no-time updates by overlap$'",
+      "mapping_check": "python tools/query_rti_work.py check --lane regional-object-attribute-routing --summary --compact",
       "boundary_check": "python tools/verify_1516e_provider_boundaries.py",
       "size_check": "python tools/check_source_file_sizes.py --report",
       "diff_check": "git diff --check"
     },
     "acceptance": [
-      "Classify all seven save-suite cases and shared helpers by behavior; evidence supports one cohesive suite, so no source edit was warranted.",
-      "Verify the existing save test mapping and CTest registrations remain intact; do not introduce a line-count-only split.",
-      "Confirm the source-size guard, .inc inventory, and 2010/2025 provider boundary; retain the documented single-class registry-header exception."
+      "Reproduce the duplicate reflection in both aggregate and focused regional-routing executables.",
+      "Implement the smallest evidenced 2025 registry/runtime fix without reducing expected callback coverage.",
+      "Run the exact test, the regional object-attribute CTest lane, lane mapping checks, and 2010/2025 provider-boundary checks."
     ]
   },
-
-
   "documents": [
     {
       "id": "roadmap-quickstart",
@@ -530,6 +546,7 @@
       "flush-queue-request": "time-save-restore",
       "time-advance-request-logical-time-gating": "time-save-restore",
       "flush-queue-grant-logical-time-gating": "time-save-restore",
+      "logical-time-opaque-factory-encoding": "time-save-restore",
       "timestamped-delete-fqr-tara-nmra": "time-save-restore",
       "restore-pending-flush-queue-request": "time-save-restore",
       "restore-pending-request-rescheduling": "time-save-restore",
@@ -3304,7 +3321,7 @@
       "directed-interaction-transportation-query": {
         "catch2_target": "umbra_federation_registry_catch2",
         "ctest_filter": "^umbra\\.federation_registry\\.catch2\\.The embedded federation registry reports a directed interaction transportation override$",
-    "ctest_label": "ownership-management",
+        "ctest_label": "ownership-management",
         "source": "cpp/tests/federation_registry_catch2.cpp"
       },
       "process-directed-interaction-transportation-query": {
@@ -3390,6 +3407,12 @@
         "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.(Embedded Flush Queue Request changes logical time only at Flush Queue Grant dispatch|Embedded immediate Flush Queue Request delivers the Flush Queue Grant before returning)$",
         "ctest_label": "flush-queue-grant-logical-time-gating",
         "source": "cpp/tests/ieee1516_2025_flush_queue_request_grant_catch2.cpp"
+      },
+      "logical-time-opaque-factory-encoding": {
+        "catch2_target": "umbra_ieee1516_2025_catch2",
+        "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.(HLAlogicalTime delegates opaque bytes to the selected reference factory|HLAlogicalTimeInterval delegates opaque bytes to the selected reference factory)$",
+        "ctest_label": "logical-time-opaque-factory-encoding",
+        "source": "cpp/tests/ieee1516_2025_time_catch2.cpp"
       },
       "no-tso-galt-scheduler": {
         "catch2_target": "umbra_ieee1516_2025_catch2",
@@ -4364,6 +4387,7 @@
       "flush-queue-request-optimistic-time": 58,
       "time-advance-request-logical-time-gating": 40,
       "flush-queue-grant-logical-time-gating": 38,
+      "logical-time-opaque-factory-encoding": 34,
       "joined-federate-mom-time-state-duration": 192,
       "joined-federate-mom-reflection-counts": 103,
       "joined-federate-mom-updates-sent": 98,
@@ -5817,7 +5841,7 @@
       "assertions": 55,
       "callback_models": [
         "HLA_EVOKED",
-      "HLA_EVOKED"
+        "HLA_EVOKED"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-11.5",
@@ -17852,7 +17876,7 @@
         "hla-1516.1-2025:clause-9.4",
         "hla-1516.1-2025:clause-9.5"
       ],
-      "requirements_lab_api_surface_status": "The official Connect, Create/Join/Resign Federation Execution, declaration lookup/publication, region-template, regional-registration, unpublication, and region-deletion C++ surfaces are exercised through the embedded development profile. The selected Lab candidates anchor publication removal, registration-established region association, region creation/commit, and the §9.4 in-use deletion guard. This is a one-member update-region lifetime regression: registration makes the region busy, accepted unpublication removes the association synchronously, and deletion then succeeds. It is not evidence for broader DDM overlap/routing, subscriptions, timestamped delivery, save/restore, remote transport, package/JUnit/protected-review acceptance, interoperability, or conformance.",
+      "requirements_lab_api_surface_status": "The official Connect, Create/Join/Resign Federation Execution, declaration lookup/publication, region-template, regional-registration, unpublication, and region-deletion C++ surfaces are exercised through the embedded development profile. The selected Lab candidates anchor publication removal, registration-established region association, region creation/commit, and the \u00a79.4 in-use deletion guard. This is a one-member update-region lifetime regression: registration makes the region busy, accepted unpublication removes the association synchronously, and deletion then succeeds. It is not evidence for broader DDM overlap/routing, subscriptions, timestamped delivery, save/restore, remote transport, package/JUnit/protected-review acceptance, interoperability, or conformance.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -17887,7 +17911,7 @@
         "hla-1516.1-2025:clause-9.4",
         "hla-1516.1-2025:clause-9.5"
       ],
-      "requirements_lab_api_surface_status": "The official Connect, Create/Join/Resign Federation Execution, declaration lookup/publication, region-template, regional-registration, receive-order object-deletion, and region-deletion C++ surfaces are exercised through the embedded development profile. The selected Lab candidates anchor known-instance deletion, invoker removal, registration-established region association, region creation/commit, and the §9.4 in-use deletion guard. This is a one-member object-lifetime regression: the registered object's update region remains busy until receive-order Delete Object Instance purges the sole object, after which Delete Region succeeds. It is not evidence for remote removal callbacks, multi-federate routing, timestamped/retraction behavior, subscriptions, save/restore, remote transport, package/JUnit/protected-review acceptance, interoperability, or conformance.",
+      "requirements_lab_api_surface_status": "The official Connect, Create/Join/Resign Federation Execution, declaration lookup/publication, region-template, regional-registration, receive-order object-deletion, and region-deletion C++ surfaces are exercised through the embedded development profile. The selected Lab candidates anchor known-instance deletion, invoker removal, registration-established region association, region creation/commit, and the \u00a79.4 in-use deletion guard. This is a one-member object-lifetime regression: the registered object's update region remains busy until receive-order Delete Object Instance purges the sole object, after which Delete Region succeeds. It is not evidence for remote removal callbacks, multi-federate routing, timestamped/retraction behavior, subscriptions, save/restore, remote transport, package/JUnit/protected-review acceptance, interoperability, or conformance.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -17926,7 +17950,7 @@
         "hla-1516.1-2025:clause-9.4",
         "hla-1516.1-2025:clause-9.5"
       ],
-      "requirements_lab_api_surface_status": "The official Connect, Create/Join/Resign Federation Execution, declaration publication/subscription, region-template, regional-registration, receive-order object-deletion, Evoke Multiple, and discovery/removal callback C++ surfaces are exercised through the embedded development profile with two joined federates under HLA_EVOKED. The selected Lab candidates anchor registration/discovery, known-instance deletion and peer removal delivery, region creation/commit, and the §9.4 in-use deletion guard. This is a two-member callback-ordering regression: Delete Object Instance leaves the region busy until the peer consumes Remove Object Instance, after which the execution-wide object is purged and Delete Region succeeds. It is not evidence for producer metadata, multi-recipient fanout, timestamped/retraction behavior, subscriptions beyond discovery setup, save/restore, remote transport, package/JUnit/protected-review acceptance, interoperability, or conformance.",
+      "requirements_lab_api_surface_status": "The official Connect, Create/Join/Resign Federation Execution, declaration publication/subscription, region-template, regional-registration, receive-order object-deletion, Evoke Multiple, and discovery/removal callback C++ surfaces are exercised through the embedded development profile with two joined federates under HLA_EVOKED. The selected Lab candidates anchor registration/discovery, known-instance deletion and peer removal delivery, region creation/commit, and the \u00a79.4 in-use deletion guard. This is a two-member callback-ordering regression: Delete Object Instance leaves the region busy until the peer consumes Remove Object Instance, after which the execution-wide object is purged and Delete Region succeeds. It is not evidence for producer metadata, multi-recipient fanout, timestamped/retraction behavior, subscriptions beyond discovery setup, save/restore, remote transport, package/JUnit/protected-review acceptance, interoperability, or conformance.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -18763,7 +18787,7 @@
         "hla-1516.1-2025:clause-4.18.2",
         "hla-1516.1-2025:clause-11.5"
       ],
-      "requirements_lab_api_surface_status": "The official explicit-set Register Federation Synchronization Point, Synchronization Point Achieved, Resign Federation Execution, and Federation Synchronized C++ surfaces are exercised through the embedded HLA_EVOKED development profile. The case creates one configured joined-federate report file, registers a synchronization point for two joined federates, records the first achievement, resigns the non-achieving set member, and verifies the recipient file appends the §4.18.2 Federation Synchronized record with an empty failed-to-sync set before the remaining federate receives its callback. The selected Lab candidates anchor the synchronization-set resignation/completion and §11.5 file-report routing; file identity, serial ordering, and callback-before/after durability are source-derived refinements. It is not evidence for distributed transport, public MOM interaction delivery, broader save/restore, remote/package/JUnit/protected-review evidence, interoperability, or conformance.",
+      "requirements_lab_api_surface_status": "The official explicit-set Register Federation Synchronization Point, Synchronization Point Achieved, Resign Federation Execution, and Federation Synchronized C++ surfaces are exercised through the embedded HLA_EVOKED development profile. The case creates one configured joined-federate report file, registers a synchronization point for two joined federates, records the first achievement, resigns the non-achieving set member, and verifies the recipient file appends the \u00a74.18.2 Federation Synchronized record with an empty failed-to-sync set before the remaining federate receives its callback. The selected Lab candidates anchor the synchronization-set resignation/completion and \u00a711.5 file-report routing; file identity, serial ordering, and callback-before/after durability are source-derived refinements. It is not evidence for distributed transport, public MOM interaction delivery, broader save/restore, remote/package/JUnit/protected-review evidence, interoperability, or conformance.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -18801,7 +18825,7 @@
         "hla-1516.1-2025:clause-8.12",
         "hla-1516.1-2025:clause-8.22.3"
       ],
-      "requirements_lab_api_surface_status": "The official timestamped Send Interaction, Retract, Time Advance Request, Time Advance Request Available, Next Message Request, Next Message Request Available, Flush Queue Request, and time-role C++ surfaces are exercised through the embedded HLA_EVOKED development profile. The producer sends five timestamped interactions exactly at the strict lookahead boundary, advances through TAR, TARA, NMR, NMRA, and FQR, and verifies each returned MessageRetractionHandle is valid before the corresponding accepted producer advance makes it terminal and raises MessageCanNoLongerBeRetracted. The constrained recipient remains idle and receives no interaction callback, isolating federation-owned terminal designator classification from delivery fanout. The selected Lab candidates anchor TSO queuing, all five advance forms, and §8.22.3 retract/designator semantics; the one-step boundary matrix and no-fanout isolation are source-derived refinements. It is not evidence for grant callback ordering, payload delivery, alternate-advance equivalence beyond these boundaries, save/restore, distributed transport, remote/package/JUnit/protected-review evidence, interoperability, or conformance.",
+      "requirements_lab_api_surface_status": "The official timestamped Send Interaction, Retract, Time Advance Request, Time Advance Request Available, Next Message Request, Next Message Request Available, Flush Queue Request, and time-role C++ surfaces are exercised through the embedded HLA_EVOKED development profile. The producer sends five timestamped interactions exactly at the strict lookahead boundary, advances through TAR, TARA, NMR, NMRA, and FQR, and verifies each returned MessageRetractionHandle is valid before the corresponding accepted producer advance makes it terminal and raises MessageCanNoLongerBeRetracted. The constrained recipient remains idle and receives no interaction callback, isolating federation-owned terminal designator classification from delivery fanout. The selected Lab candidates anchor TSO queuing, all five advance forms, and \u00a78.22.3 retract/designator semantics; the one-step boundary matrix and no-fanout isolation are source-derived refinements. It is not evidence for grant callback ordering, payload delivery, alternate-advance equivalence beyond these boundaries, save/restore, distributed transport, remote/package/JUnit/protected-review evidence, interoperability, or conformance.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -18889,7 +18913,7 @@
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-6.1.13"
       ],
-      "requirements_lab_api_surface_status": "The official Connect/Create/Join, object and attribute lookup, publication, ordinary update-rate subscription, registration, receive-order Update Attribute Values, Reflect Attribute Values, Resign, Destroy, and Disconnect C++ surfaces are exercised through the embedded HLA_EVOKED development profile. Two live executions use names where one is a textual prefix of the other; each establishes an independent Low-rate admission history, then the first execution resigns and is destroyed while the surviving execution remains suppressed on its immediate third update. The selected Lab candidates anchor Create/Join/Resign/Destroy federation-management services and §6.1.13 update-rate limits and best-effort spacing. Exact execution-key isolation and cross-federation state retention are source-derived refinements. It is not evidence for unsubscribe removal, reliable no-drop, producer-rate measurement, timestamped or regional delivery, MOM, alternate advances, save/restore, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
+      "requirements_lab_api_surface_status": "The official Connect/Create/Join, object and attribute lookup, publication, ordinary update-rate subscription, registration, receive-order Update Attribute Values, Reflect Attribute Values, Resign, Destroy, and Disconnect C++ surfaces are exercised through the embedded HLA_EVOKED development profile. Two live executions use names where one is a textual prefix of the other; each establishes an independent Low-rate admission history, then the first execution resigns and is destroyed while the surviving execution remains suppressed on its immediate third update. The selected Lab candidates anchor Create/Join/Resign/Destroy federation-management services and \u00a76.1.13 update-rate limits and best-effort spacing. Exact execution-key isolation and cross-federation state retention are source-derived refinements. It is not evidence for unsubscribe removal, reliable no-drop, producer-rate measurement, timestamped or regional delivery, MOM, alternate advances, save/restore, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -18937,7 +18961,7 @@
         "hla-1516.1-2025:clause-6.8.4",
         "hla-1516.1-2025:clause-6.9.3"
       ],
-      "requirements_lab_api_surface_status": "The official Connect/Create/Join, object, attribute, and dimension lookup, publication, region creation/range/commit/deletion, regional subscription/unsubscription, regional object registration, Evoke Callback, receive-order Update Attribute Values, Reflect Attribute Values, Resign, Destroy, and Disconnect C++ surfaces are exercised through the embedded HLA_EVOKED development profile. A two-dimensional source region and subscription region overlap exactly; the active Low (0.2 Hz) declaration delivers the first best-effort update, suppresses the immediate second update, and after unsubscribe/resubscribe starts a fresh subscription generation that admits the next update. The selected Requirements-Lab candidates anchor federation lifecycle, publication/registration/discovery, §5.2.4 update-rate designator selection/default/removal, and §6.1.13 best-effort spacing and subscriber-rate limits. Regional overlap, generation reset, and cleanup ordering are source-derived refinements. It is not evidence for reliable no-drop, producer-rate measurement, timestamped delivery, MOM, alternate advances, save/restore, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
+      "requirements_lab_api_surface_status": "The official Connect/Create/Join, object, attribute, and dimension lookup, publication, region creation/range/commit/deletion, regional subscription/unsubscription, regional object registration, Evoke Callback, receive-order Update Attribute Values, Reflect Attribute Values, Resign, Destroy, and Disconnect C++ surfaces are exercised through the embedded HLA_EVOKED development profile. A two-dimensional source region and subscription region overlap exactly; the active Low (0.2 Hz) declaration delivers the first best-effort update, suppresses the immediate second update, and after unsubscribe/resubscribe starts a fresh subscription generation that admits the next update. The selected Requirements-Lab candidates anchor federation lifecycle, publication/registration/discovery, \u00a75.2.4 update-rate designator selection/default/removal, and \u00a76.1.13 best-effort spacing and subscriber-rate limits. Regional overlap, generation reset, and cleanup ordering are source-derived refinements. It is not evidence for reliable no-drop, producer-rate measurement, timestamped delivery, MOM, alternate advances, save/restore, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -19003,7 +19027,7 @@
         "hla-1516.1-2025:clause-8.23.3",
         "hla-1516.1-2025:clause-8.8.3"
       ],
-      "requirements_lab_api_surface_status": "The official Connect/Create/Join, object, attribute, and dimension lookup, publication, region creation/range/commit/deletion, regional subscription/unsubscription, regional object registration, time-role enablement, Evoke Callback, timestamped Update Attribute Values, Time Advance Request, discovery, reflection, grant, and lifecycle C++ surfaces are exercised through the embedded HLA_EVOKED development profile. A two-dimensional source region and subscription region overlap exactly; the active Low (0.2 Hz) declaration delivers the first timestamped best-effort update at time 2, consumes the matching time-advance grant, and suppresses the immediate second timestamped update at time 3 while still completing the grant. The selected Requirements-Lab candidates anchor federation lifecycle, publication/registration/discovery, §5.2.4 update-rate designator selection/default/removal, §6.1.13 best-effort spacing and subscriber-rate limits, §6.10/§6.11.1 timestamped update/reflection behavior, and §8.1.5/§8.1.6 time-constrained delivery and grants. Regional overlap, the Low-rate timestamped suppression consequence, and cleanup ordering are source-derived refinements. The case does not claim reliable no-drop, producer-rate measurement, retraction delivery, alternate advances, save/restore, MOM, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
+      "requirements_lab_api_surface_status": "The official Connect/Create/Join, object, attribute, and dimension lookup, publication, region creation/range/commit/deletion, regional subscription/unsubscription, regional object registration, time-role enablement, Evoke Callback, timestamped Update Attribute Values, Time Advance Request, discovery, reflection, grant, and lifecycle C++ surfaces are exercised through the embedded HLA_EVOKED development profile. A two-dimensional source region and subscription region overlap exactly; the active Low (0.2 Hz) declaration delivers the first timestamped best-effort update at time 2, consumes the matching time-advance grant, and suppresses the immediate second timestamped update at time 3 while still completing the grant. The selected Requirements-Lab candidates anchor federation lifecycle, publication/registration/discovery, \u00a75.2.4 update-rate designator selection/default/removal, \u00a76.1.13 best-effort spacing and subscriber-rate limits, \u00a76.10/\u00a76.11.1 timestamped update/reflection behavior, and \u00a78.1.5/\u00a78.1.6 time-constrained delivery and grants. Regional overlap, the Low-rate timestamped suppression consequence, and cleanup ordering are source-derived refinements. The case does not claim reliable no-drop, producer-rate measurement, retraction delivery, alternate advances, save/restore, MOM, remote transport, package/JUnit/protected-review evidence, interoperability, or conformance.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -19992,7 +20016,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-11.4.1"
       ],
-      "requirements_lab_api_surface_status": "The official C++ Join Federation Execution, Request Federation Save, Federate Save Begun/Complete, Request Federation Restore, Federate Restore Complete, Initiate Federate Save, Federation Saved, Federation Restore Begun, Initiate Federate Restore, and Federation Restored surfaces are exercised under HLA_EVOKED and HLA_IMMEDIATE in the embedded development profile. A joined federate's RTI-owned HLAfederate MOM object reports initial state 1 to an observer and to its own direct query, transitions through state 3 at save initiation, suppresses the saving federate's own state event, returns to state 1 on save completion, reports state 5 during restore, and returns to state 1 after restore completion. This is bounded HLAfederateState/MOM save-restore evidence for §11.4.1; broader MOM attributes, public MOM interaction routing, remote/package/JUnit/protected-review evidence, interoperability, validation, and conformance remain open.",
+      "requirements_lab_api_surface_status": "The official C++ Join Federation Execution, Request Federation Save, Federate Save Begun/Complete, Request Federation Restore, Federate Restore Complete, Initiate Federate Save, Federation Saved, Federation Restore Begun, Initiate Federate Restore, and Federation Restored surfaces are exercised under HLA_EVOKED and HLA_IMMEDIATE in the embedded development profile. A joined federate's RTI-owned HLAfederate MOM object reports initial state 1 to an observer and to its own direct query, transitions through state 3 at save initiation, suppresses the saving federate's own state event, returns to state 1 on save completion, reports state 5 during restore, and returns to state 1 after restore completion. This is bounded HLAfederateState/MOM save-restore evidence for \u00a711.4.1; broader MOM attributes, public MOM interaction routing, remote/package/JUnit/protected-review evidence, interoperability, validation, and conformance remain open.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -20018,7 +20042,7 @@
         "hla-1516.1-2025:clause-8.22.3",
         "hla-1516.1-2025:clause-11.5"
       ],
-      "requirements_lab_api_surface_status": "The official C++ Delete Object Instance, Set Service Reporting Switch, and Set Send Service Reports To File Switch surfaces are exercised under HLA_EVOKED with the embedded production filesystem service-report store. The focused matrix records failed timestamped calls with the supplied object designator, user tag, logical time, Null returned argument, false success indicator, exact exception text, and serials zero and one. This is bounded §6.16/§8.22.3/§11.5 failure-file evidence; accepted deletion, recipient callback reporting, public MOM interaction delivery, regional/retraction variants, remote/package/JUnit/protected-review evidence, interoperability, validation, and conformance remain open.",
+      "requirements_lab_api_surface_status": "The official C++ Delete Object Instance, Set Service Reporting Switch, and Set Send Service Reports To File Switch surfaces are exercised under HLA_EVOKED with the embedded production filesystem service-report store. The focused matrix records failed timestamped calls with the supplied object designator, user tag, logical time, Null returned argument, false success indicator, exact exception text, and serials zero and one. This is bounded \u00a76.16/\u00a78.22.3/\u00a711.5 failure-file evidence; accepted deletion, recipient callback reporting, public MOM interaction delivery, regional/retraction variants, remote/package/JUnit/protected-review evidence, interoperability, validation, and conformance remain open.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -20045,7 +20069,7 @@
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-11.5"
       ],
-      "requirements_lab_api_surface_status": "The official C++ Delete Object Instance, Remove Object Instance, Set Service Reporting Switch, and Set Send Service Reports To File Switch surfaces are exercised under HLA_EVOKED with the embedded production filesystem store. The accepted non-time-regulated timestamped deletion appends the type-37/type-63/type-31 record with the official type-34 Null returned argument before the queued timestamped removal callback; callback metadata retains object, tag, producer, logical time, order, and absent retraction. This is bounded §6.16/§6.17.1/§8.1.5/§11.5 evidence; regulated type-33 return, regional/retraction variants, recipient-local callback matrices, remote/package/JUnit/protected-review evidence, interoperability, validation, and conformance remain open.",
+      "requirements_lab_api_surface_status": "The official C++ Delete Object Instance, Remove Object Instance, Set Service Reporting Switch, and Set Send Service Reports To File Switch surfaces are exercised under HLA_EVOKED with the embedded production filesystem store. The accepted non-time-regulated timestamped deletion appends the type-37/type-63/type-31 record with the official type-34 Null returned argument before the queued timestamped removal callback; callback metadata retains object, tag, producer, logical time, order, and absent retraction. This is bounded \u00a76.16/\u00a76.17.1/\u00a78.1.5/\u00a711.5 evidence; regulated type-33 return, regional/retraction variants, recipient-local callback matrices, remote/package/JUnit/protected-review evidence, interoperability, validation, and conformance remain open.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -20085,7 +20109,7 @@
         "hla-1516.1-2025:clause-8.1.6",
         "hla-1516.1-2025:clause-11.5"
       ],
-      "requirements_lab_api_surface_status": "The official C++ Delete Object Instance, Enable Time Regulation, Enable Time Constrained, Time Advance Request, Remove Object Instance, Time Advance Grant, Set Service Reporting Switch, and Set Send Service Reports To File Switch surfaces are exercised under HLA_EVOKED with the embedded production filesystem service-report store. The focused sender enables time regulation with lookahead 5, queues timestamped Delete Object Instance at time 6 for a constrained receiver, records the type-37/type-63/type-31 supplied forms and the type-33 MessageRetractionHandle return at serial zero, and proves the same advertised file remains stable through a report-switch disable/re-enable cycle. The receiver's timestamped Remove Object Instance callback precedes its matching grant and retains the object, tag, producer, timestamp/order, and valid retraction metadata. This is bounded §6.16/§6.17.1/§8.1.5/§8.1.6/§11.5 evidence; regional deletion, alternate advances, recipient-local callback files, save/restore, remote/package/JUnit/protected-review evidence, interoperability, validation, and conformance remain open.",
+      "requirements_lab_api_surface_status": "The official C++ Delete Object Instance, Enable Time Regulation, Enable Time Constrained, Time Advance Request, Remove Object Instance, Time Advance Grant, Set Service Reporting Switch, and Set Send Service Reports To File Switch surfaces are exercised under HLA_EVOKED with the embedded production filesystem service-report store. The focused sender enables time regulation with lookahead 5, queues timestamped Delete Object Instance at time 6 for a constrained receiver, records the type-37/type-63/type-31 supplied forms and the type-33 MessageRetractionHandle return at serial zero, and proves the same advertised file remains stable through a report-switch disable/re-enable cycle. The receiver's timestamped Remove Object Instance callback precedes its matching grant and retains the object, tag, producer, timestamp/order, and valid retraction metadata. This is bounded \u00a76.16/\u00a76.17.1/\u00a78.1.5/\u00a78.1.6/\u00a711.5 evidence; regional deletion, alternate advances, recipient-local callback files, save/restore, remote/package/JUnit/protected-review evidence, interoperability, validation, and conformance remain open.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -20128,7 +20152,7 @@
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-11.5"
       ],
-      "requirements_lab_api_surface_status": "The official C++ Delete Object Instance, Enable Time Regulation, Enable Time Constrained, Time Advance Request, Remove Object Instance, Time Advance Grant, Subscribe Interaction Class, Set Service Reporting Switch, and Set Send Service Reports To File Switch surfaces are exercised with HLA_EVOKED publisher/receiver callbacks and an HLA_IMMEDIATE MOM observer. The accepted time-regulated timestamped deletion is reported through HLAreportServiceInvocation while file reporting is disabled; the observer decodes type-37 ObjectInstanceHandle, type-63 User-supplied tag, type-31 logical time, the type-33 MessageRetractionHandle return, success/empty-exception fields, and serial zero. The constrained receiver then delivers one timestamped Remove Object Instance callback before its matching grant with the same object, tag, producer, time/order, and valid retraction metadata. This is bounded §6.16/§6.17.1/§8.1.5/§11.5 evidence; the time-advance callback setup is exercised but not separately promoted to a Requirements-Lab §8.1.6 mapping in this row. Regional deletion, alternate advances, recipient-local report files, save/restore, remote/package/JUnit/protected-review evidence, interoperability, validation, and conformance remain open.",
+      "requirements_lab_api_surface_status": "The official C++ Delete Object Instance, Enable Time Regulation, Enable Time Constrained, Time Advance Request, Remove Object Instance, Time Advance Grant, Subscribe Interaction Class, Set Service Reporting Switch, and Set Send Service Reports To File Switch surfaces are exercised with HLA_EVOKED publisher/receiver callbacks and an HLA_IMMEDIATE MOM observer. The accepted time-regulated timestamped deletion is reported through HLAreportServiceInvocation while file reporting is disabled; the observer decodes type-37 ObjectInstanceHandle, type-63 User-supplied tag, type-31 logical time, the type-33 MessageRetractionHandle return, success/empty-exception fields, and serial zero. The constrained receiver then delivers one timestamped Remove Object Instance callback before its matching grant with the same object, tag, producer, time/order, and valid retraction metadata. This is bounded \u00a76.16/\u00a76.17.1/\u00a78.1.5/\u00a711.5 evidence; the time-advance callback setup is exercised but not separately promoted to a Requirements-Lab \u00a78.1.6 mapping in this row. Regional deletion, alternate advances, recipient-local report files, save/restore, remote/package/JUnit/protected-review evidence, interoperability, validation, and conformance remain open.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -20166,7 +20190,7 @@
         "hla-1516.1-2025:clause-8.22.3",
         "hla-1516.1-2025:clause-11.5"
       ],
-      "requirements_lab_api_surface_status": "The official C++ Delete Object Instance, Enable Time Regulation, Set Service Reporting Switch, Set Send Service Reports To File Switch, and Receive Interaction callback surfaces are exercised with an HLA_IMMEDIATE MOM observer. The focused matrix records the failed unknown-object and earlier-than-lookahead timestamped Delete Object Instance invocations through HLAreportServiceInvocation, decoding object-management service type 2, type-37/type-63/type-31 supplied forms, the type-34 Null returned argument, false indicators, exact exception text, and serials zero and one. This is bounded §6.16/§6.16.4/§8.22.3/§11.5 failure-interaction evidence; accepted deletion/retraction delivery, recipient callbacks, regional variants, remote/package/JUnit/protected-review evidence, interoperability, validation, and conformance remain open (RL-152 records the missing row-level conditional mapping).",
+      "requirements_lab_api_surface_status": "The official C++ Delete Object Instance, Enable Time Regulation, Set Service Reporting Switch, Set Send Service Reports To File Switch, and Receive Interaction callback surfaces are exercised with an HLA_IMMEDIATE MOM observer. The focused matrix records the failed unknown-object and earlier-than-lookahead timestamped Delete Object Instance invocations through HLAreportServiceInvocation, decoding object-management service type 2, type-37/type-63/type-31 supplied forms, the type-34 Null returned argument, false indicators, exact exception text, and serials zero and one. This is bounded \u00a76.16/\u00a76.16.4/\u00a78.22.3/\u00a711.5 failure-interaction evidence; accepted deletion/retraction delivery, recipient callbacks, regional variants, remote/package/JUnit/protected-review evidence, interoperability, validation, and conformance remain open (RL-152 records the missing row-level conditional mapping).",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -20306,7 +20330,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-11.5"
       ],
-      "requirements_lab_api_surface_status": "The official C++ Send Interaction With Regions, service-reporting switches, convey-region-designator-sets switch, time-management role/advance, and Receive Interaction surfaces are exercised through the embedded HLA_EVOKED development profile with the production filesystem service-report directory. The accepted serial-zero SendInteractionWithRegions record persists the type-27 interaction class, type-40 parameter map, type-43 region set, type-63 tag, type-31 timestamp, and type-33 MessageRetractionHandle before the constrained regional callback. This is bounded §11.5 service-report file evidence; failed regional-send matrices, public HLAreportServiceInvocation delivery, switch re-enable/save/restore, remote/package/JUnit/protected-review evidence, interoperability, and conformance remain open. RL-105/RL-152 record the Lab's missing row-level backend/lifecycle relation.",
+      "requirements_lab_api_surface_status": "The official C++ Send Interaction With Regions, service-reporting switches, convey-region-designator-sets switch, time-management role/advance, and Receive Interaction surfaces are exercised through the embedded HLA_EVOKED development profile with the production filesystem service-report directory. The accepted serial-zero SendInteractionWithRegions record persists the type-27 interaction class, type-40 parameter map, type-43 region set, type-63 tag, type-31 timestamp, and type-33 MessageRetractionHandle before the constrained regional callback. This is bounded \u00a711.5 service-report file evidence; failed regional-send matrices, public HLAreportServiceInvocation delivery, switch re-enable/save/restore, remote/package/JUnit/protected-review evidence, interoperability, and conformance remain open. RL-105/RL-152 record the Lab's missing row-level backend/lifecycle relation.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -20351,7 +20375,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-11.5"
       ],
-      "requirements_lab_api_surface_status": "The official C++ Send Interaction With Regions, Change Interaction Order Type, regional subscription, convey-region-designator-sets switch, time-management role/advance, service-reporting switches, MOM subscription, and Receive Interaction surfaces are exercised through the embedded HLA_EVOKED publisher/receiver plus HLA_IMMEDIATE observer profile. With Send Service Reports to File disabled, the accepted serial-zero SendInteractionWithRegions invocation emits one public HLAreportServiceInvocation interaction before the constrained regional callback. The test decodes the type-27/type-40/type-43/type-63/type-31 supplied forms, quoted Table 5 type-33 MessageRetractionHandle return, success/empty-exception fields, and callback timestamp/order/retraction metadata. This is bounded §11.5 MOM service-report evidence; failed regional-send matrices, file re-enable/lifecycle, save/restore, remote/package/JUnit/protected-review evidence, interoperability, and conformance remain open. RL-105/RL-152 record the Lab's missing row-level backend/lifecycle relation.",
+      "requirements_lab_api_surface_status": "The official C++ Send Interaction With Regions, Change Interaction Order Type, regional subscription, convey-region-designator-sets switch, time-management role/advance, service-reporting switches, MOM subscription, and Receive Interaction surfaces are exercised through the embedded HLA_EVOKED publisher/receiver plus HLA_IMMEDIATE observer profile. With Send Service Reports to File disabled, the accepted serial-zero SendInteractionWithRegions invocation emits one public HLAreportServiceInvocation interaction before the constrained regional callback. The test decodes the type-27/type-40/type-43/type-63/type-31 supplied forms, quoted Table 5 type-33 MessageRetractionHandle return, success/empty-exception fields, and callback timestamp/order/retraction metadata. This is bounded \u00a711.5 MOM service-report evidence; failed regional-send matrices, file re-enable/lifecycle, save/restore, remote/package/JUnit/protected-review evidence, interoperability, and conformance remain open. RL-105/RL-152 record the Lab's missing row-level backend/lifecycle relation.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -20391,7 +20415,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-11.5"
       ],
-      "requirements_lab_api_surface_status": "The official C++ timestamped Send Interaction With Regions, Change Interaction Order Type, time-regulation, and service-report switch surfaces are exercised through the embedded HLA_EVOKED profile with the production filesystem store. Four rejected calls preserve serials zero through three and the type-27/type-40/type-43/type-63/type-31 supplied forms, type-34 Null returns, false indicators, and exact InteractionClassNotDefined, InteractionParameterNotDefined, InvalidRegion, and InvalidLogicalTime text without an application callback. This is bounded §11.5 failure-file evidence; accepted delivery, public HLAreportServiceInvocation routing, re-enable/save/restore, remote/package/JUnit/protected-review evidence, interoperability, and conformance remain open. RL-105/RL-152 record the missing row-level conditional failure/backend relation.",
+      "requirements_lab_api_surface_status": "The official C++ timestamped Send Interaction With Regions, Change Interaction Order Type, time-regulation, and service-report switch surfaces are exercised through the embedded HLA_EVOKED profile with the production filesystem store. Four rejected calls preserve serials zero through three and the type-27/type-40/type-43/type-63/type-31 supplied forms, type-34 Null returns, false indicators, and exact InteractionClassNotDefined, InteractionParameterNotDefined, InvalidRegion, and InvalidLogicalTime text without an application callback. This is bounded \u00a711.5 failure-file evidence; accepted delivery, public HLAreportServiceInvocation routing, re-enable/save/restore, remote/package/JUnit/protected-review evidence, interoperability, and conformance remain open. RL-105/RL-152 record the missing row-level conditional failure/backend relation.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -20435,7 +20459,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-11.5"
       ],
-      "requirements_lab_api_surface_status": "The official C++ timestamped Send Interaction With Regions, Change Interaction Order Type, time-regulation, service-report switches, MOM subscription, and Receive Interaction surfaces are exercised through an HLA_EVOKED publisher and HLA_IMMEDIATE observer. With Send Service Reports to File disabled, four rejected calls emit public HLAreportServiceInvocation interactions with serials zero through three; the test decodes type-27/type-40/type-43/type-63/type-31 supplied forms, the Table 5 type-34 Null return, false indicators, and exact exception text, while no application regional Receive Interaction is delivered. This is bounded §11.5 failure-MOM evidence; accepted delivery, file lifecycle/re-enable, save/restore, remote/package/JUnit/protected-review evidence, interoperability, and conformance remain open. RL-105/RL-152 record the missing row-level conditional failure/backend relation.",
+      "requirements_lab_api_surface_status": "The official C++ timestamped Send Interaction With Regions, Change Interaction Order Type, time-regulation, service-report switches, MOM subscription, and Receive Interaction surfaces are exercised through an HLA_EVOKED publisher and HLA_IMMEDIATE observer. With Send Service Reports to File disabled, four rejected calls emit public HLAreportServiceInvocation interactions with serials zero through three; the test decodes type-27/type-40/type-43/type-63/type-31 supplied forms, the Table 5 type-34 Null return, false indicators, and exact exception text, while no application regional Receive Interaction is delivered. This is bounded \u00a711.5 failure-MOM evidence; accepted delivery, file lifecycle/re-enable, save/restore, remote/package/JUnit/protected-review evidence, interoperability, and conformance remain open. RL-105/RL-152 record the missing row-level conditional failure/backend relation.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -21790,7 +21814,7 @@
         "hla-1516.1-2025:clause-9.8",
         "hla-1516.1-2025:clause-9.9.3"
       ],
-      "requirements_lab_api_surface_status": "The official no-name regional Register Object Instance, region association/unassociation, regional subscription/unsubscription, Update Attribute Values, Discover Object Instance, and Reflect Attribute Values C++ surfaces are exercised through the standalone embedded HLA_EVOKED development-profile target. The case covers committed-range overlap suppression, additive/idempotent association, empty-region no-op behavior, explicit removal of the source (region, attribute) association while the default region remains observable, discovery and reflection after overlap becomes active, recipient-local sent-region signaling, and suppression after the subscriber returns to a disjoint range. The selected Lab anchors cover §9.1.3.2, §9.1.3.3, and §§9.5, 9.6, 9.7.5, 9.8, and 9.9.3; it is not evidence for passive-mode replacement, named registration, timestamped/retraction behavior, ownership transfer, save/restore, remote/package/JUnit/protected-review evidence, interoperability, validation, or conformance.",
+      "requirements_lab_api_surface_status": "The official no-name regional Register Object Instance, region association/unassociation, regional subscription/unsubscription, Update Attribute Values, Discover Object Instance, and Reflect Attribute Values C++ surfaces are exercised through the standalone embedded HLA_EVOKED development-profile target. The case covers committed-range overlap suppression, additive/idempotent association, empty-region no-op behavior, explicit removal of the source (region, attribute) association while the default region remains observable, discovery and reflection after overlap becomes active, recipient-local sent-region signaling, and suppression after the subscriber returns to a disjoint range. The selected Lab anchors cover \u00a79.1.3.2, \u00a79.1.3.3, and \u00a7\u00a79.5, 9.6, 9.7.5, 9.8, and 9.9.3; it is not evidence for passive-mode replacement, named registration, timestamped/retraction behavior, ownership transfer, save/restore, remote/package/JUnit/protected-review evidence, interoperability, validation, or conformance.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -21819,7 +21843,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-9.1.3.2"
       ],
-      "requirements_lab_api_surface_status": "The focused official C++ HLA_EVOKED case creates and commits a zero-dimensional region realization, registers a published object attribute with that region, and exercises a default-region subscriber. The subscriber receives neither Discover Object Instance nor Reflect Attribute Values, proving the §9.1.3.2 no-overlap rule against the invisible default region. The case remains development-profile traceability evidence; dimensional overlap matrices, interaction-side zero-dimensional sends, timestamped/retraction behavior, save/restore, remote transport, package/JUnit/protected-review evidence, validation, and conformance remain separate.",
+      "requirements_lab_api_surface_status": "The focused official C++ HLA_EVOKED case creates and commits a zero-dimensional region realization, registers a published object attribute with that region, and exercises a default-region subscriber. The subscriber receives neither Discover Object Instance nor Reflect Attribute Values, proving the \u00a79.1.3.2 no-overlap rule against the invisible default region. The case remains development-profile traceability evidence; dimensional overlap matrices, interaction-side zero-dimensional sends, timestamped/retraction behavior, save/restore, remote transport, package/JUnit/protected-review evidence, validation, and conformance remain separate.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -21844,7 +21868,7 @@
         "hla-1516.1-2025:clause-6.16.4",
         "hla-1516.1-2025:clause-6.17.1"
       ],
-      "requirements_lab_api_surface_status": "The official receive-order Delete Object Instance and Remove Object Instance C++ surfaces are exercised through the standalone embedded HLA_EVOKED development-profile target. The case covers connection and membership guards, unknown-instance rejection, HLAprivilegeToDeleteObject enforcement, immediate invoker invalidation, queued removal delivery to another known federate, user-tag and producing-federate preservation, and recipient invalidation after callback start. The selected Lab anchors cover §§6.16, 6.16.4, and 6.17.1; it is not evidence for timestamped/retraction or local deletion, DDM, ownership transfer, save/restore, remote/package/JUnit/protected-review evidence, interoperability, validation, or conformance.",
+      "requirements_lab_api_surface_status": "The official receive-order Delete Object Instance and Remove Object Instance C++ surfaces are exercised through the standalone embedded HLA_EVOKED development-profile target. The case covers connection and membership guards, unknown-instance rejection, HLAprivilegeToDeleteObject enforcement, immediate invoker invalidation, queued removal delivery to another known federate, user-tag and producing-federate preservation, and recipient invalidation after callback start. The selected Lab anchors cover \u00a7\u00a76.16, 6.16.4, and 6.17.1; it is not evidence for timestamped/retraction or local deletion, DDM, ownership transfer, save/restore, remote/package/JUnit/protected-review evidence, interoperability, validation, or conformance.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -21877,7 +21901,7 @@
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.11.1"
       ],
-      "requirements_lab_api_surface_status": "The official receive-order Update Attribute Values, Subscribe Object Class Attributes, Discover Object Instance, and Reflect Attribute Values C++ surfaces are exercised through the standalone embedded HLA_EVOKED development-profile target. The case covers connection and membership guards, unknown and invalid handles, source ownership, reliable/best-effort passel separation, current recipient subscription projection, user-tag/transportation/producing-federate preservation, invoking-federate suppression, and callback-time suppression after unsubscribe. The selected Lab anchors cover §§5.8, 6.1.12, 6.10, and 6.11.1; it is not evidence for timestamped/retraction behavior, regional DDM, ownership transfer, save/restore, remote/package/JUnit/protected-review evidence, interoperability, validation, or conformance.",
+      "requirements_lab_api_surface_status": "The official receive-order Update Attribute Values, Subscribe Object Class Attributes, Discover Object Instance, and Reflect Attribute Values C++ surfaces are exercised through the standalone embedded HLA_EVOKED development-profile target. The case covers connection and membership guards, unknown and invalid handles, source ownership, reliable/best-effort passel separation, current recipient subscription projection, user-tag/transportation/producing-federate preservation, invoking-federate suppression, and callback-time suppression after unsubscribe. The selected Lab anchors cover \u00a7\u00a75.8, 6.1.12, 6.10, and 6.11.1; it is not evidence for timestamped/retraction behavior, regional DDM, ownership transfer, save/restore, remote/package/JUnit/protected-review evidence, interoperability, validation, or conformance.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -22182,7 +22206,7 @@
         "hla-1516.1-2025:clause-5.16.5",
         "hla-1516.1-2025:clause-5.17.6"
       ],
-      "requirements_lab_api_surface_status": "The focused native C++ case exercises the official region-scoped object and interaction subscription services and the four RTI-initiated declaration advisory callbacks. It covers passive regional declarations, active-to-passive replacement with Stop Registration, independent active/passive state for two regions of one attribute, active transition/advisory delivery, region lifecycle setup, and active-to-unsubscribe Stop/Off transitions under HLA_EVOKED. This directly covers the §9.8 passive-indicator no-Start, active-to-passive, and triple-basis boundaries; complete regional DDM routing, service-report ordering, remote/package evidence, Lab validation, and conformance remain separate.",
+      "requirements_lab_api_surface_status": "The focused native C++ case exercises the official region-scoped object and interaction subscription services and the four RTI-initiated declaration advisory callbacks. It covers passive regional declarations, active-to-passive replacement with Stop Registration, independent active/passive state for two regions of one attribute, active transition/advisory delivery, region lifecycle setup, and active-to-unsubscribe Stop/Off transitions under HLA_EVOKED. This directly covers the \u00a79.8 passive-indicator no-Start, active-to-passive, and triple-basis boundaries; complete regional DDM routing, service-report ordering, remote/package evidence, Lab validation, and conformance remain separate.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -22219,7 +22243,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-9.8"
       ],
-      "requirements_lab_api_surface_status": "The focused native C++ case registers one regional object, retains an independent disjoint regional subscription, and proves that the passive/active state of each (class, attribute, region) triple gates object discovery and owner-directed Turn Updates On/Off callbacks. Re-enabling the same triple reuses the known object and emits a fresh On callback without a second discovery. This is §9.8 registered-object evidence under HLA_EVOKED; timestamped/retraction paths, complete regional DDM, remote/package evidence, Lab validation, and conformance remain separate.",
+      "requirements_lab_api_surface_status": "The focused native C++ case registers one regional object, retains an independent disjoint regional subscription, and proves that the passive/active state of each (class, attribute, region) triple gates object discovery and owner-directed Turn Updates On/Off callbacks. Re-enabling the same triple reuses the known object and emits a fresh On callback without a second discovery. This is \u00a79.8 registered-object evidence under HLA_EVOKED; timestamped/retraction paths, complete regional DDM, remote/package evidence, Lab validation, and conformance remain separate.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -22260,7 +22284,7 @@
         "hla-1516.1-2025:clause-11.5",
         "hla-1516.1-2025:clause-11.5.2"
       ],
-      "requirements_lab_api_surface_status": "The focused native C++ case exercises the four official RTI-initiated declaration advisory callback surfaces while asserting the production filesystem-backed service-report boundary. It verifies the exact Table 5 object-class and interaction-class handle argument forms, per-file serial ordering, and durable-before-HLA_EVOKED callback ordering for Start Registration For Object Class, Stop Registration For Object Class, Turn Interactions On, and Turn Interactions Off. This is private service-report file evidence under the §11.5/§11.5.2 MOM clauses; public MOM interaction delivery, regional advisories, generic failure reports, remote/package evidence, protected review, Lab validation, and conformance remain separate.",
+      "requirements_lab_api_surface_status": "The focused native C++ case exercises the four official RTI-initiated declaration advisory callback surfaces while asserting the production filesystem-backed service-report boundary. It verifies the exact Table 5 object-class and interaction-class handle argument forms, per-file serial ordering, and durable-before-HLA_EVOKED callback ordering for Start Registration For Object Class, Stop Registration For Object Class, Turn Interactions On, and Turn Interactions Off. This is private service-report file evidence under the \u00a711.5/\u00a711.5.2 MOM clauses; public MOM interaction delivery, regional advisories, generic failure reports, remote/package evidence, protected review, Lab validation, and conformance remain separate.",
       "status": "implemented-in-noninstallable-development-profile"
     },
     {
@@ -27573,6 +27597,40 @@
       "requirements": 1,
       "api_surfaces": 5,
       "status": "implemented-in-noninstallable-development-profile"
+    },
+    {
+      "plan_id": "umbra-cpp-hla-logical-time-opaque-factory-encoding",
+      "test_query": "HLAlogicalTime delegates opaque bytes to the selected reference factory",
+      "lane_queries": [
+        "logical-time-opaque-factory-encoding"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_time_catch2.cpp:209",
+      "primary_lane": "logical-time-opaque-factory-encoding",
+      "focus_lane": "logical-time-opaque-factory-encoding",
+      "assertions": 17,
+      "standard_sections": [
+        "hla-1516.1-2025:clause-12.4"
+      ],
+      "requirements": 2,
+      "api_surfaces": 0,
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence"
+    },
+    {
+      "plan_id": "umbra-cpp-hla-logical-time-interval-opaque-factory-encoding",
+      "test_query": "HLAlogicalTimeInterval delegates opaque bytes to the selected reference factory",
+      "lane_queries": [
+        "logical-time-opaque-factory-encoding"
+      ],
+      "source_location": "cpp/tests/ieee1516_2025_time_catch2.cpp:264",
+      "primary_lane": "logical-time-opaque-factory-encoding",
+      "focus_lane": "logical-time-opaque-factory-encoding",
+      "assertions": 17,
+      "standard_sections": [
+        "hla-1516.1-2025:clause-12.4"
+      ],
+      "requirements": 2,
+      "api_surfaces": 0,
+      "status": "implemented-sdk-encoding-foundation-not-conformance-evidence"
     }
   ],
   "items": [
@@ -27742,7 +27800,6 @@
       ],
       "focused_lane_tags": [
         "passive-regional-interaction-transition",
-        "interaction-sent-class-preservation",
         "ddm-clause6-service-expansion",
         "interaction-subscription-mode-exclusivity",
         "mixed-region-interaction-validation",
@@ -27752,7 +27809,6 @@
         "passive-regional-object-attribute-transition",
         "whole-class-unsubscribe",
         "no-common-dimension",
-        "time-axis-independence",
         "strict-relaxed-ddm-boundary",
         "focused-positive-dimensional-regional-interaction",
         "zero-dimensional-regional-interaction",
@@ -27781,7 +27837,6 @@
         "negotiated-assumption",
         "regional-object-attribute-region-context",
         "regional-object-attribute-subscription-isolation",
-        "ownership-transfer-update-region-deferred",
         "ownership-transfer-update-region-deferred-cancel",
         "register-object-instance-with-regions-default-region-generated-name",
         "public-process-register-object-instance-with-regions-default-region-generated-name",
@@ -28084,7 +28139,7 @@
         "timestamped-directed-interaction-service-report",
         "send-directed-interaction-service-report",
         "send-interaction-service-report",
-        "timestamped-regional-interaction-live-restore",
+        "timestamped-regional-interaction-timed-restore",
         "timestamped-regional-interaction-service-report",
         "timestamped-regional-interaction-failure",
         "timestamped-attribute-update-ownership-transfer",
@@ -28099,13 +28154,13 @@
         "joined-federate-mom-tso-length-periodic",
         "joined-federate-mom-removed-object-count-tso-retraction",
         "tso-retraction-disable-reenable-lifetime",
-        "tso-attribute-update-no-fanout-designator",
+        "tso-attribute-update-state",
         "tso-object-deletion-retraction-reconstitution",
         "restore-pending-flush-queue-request",
         "restore-pending-time-advance-requests",
         "service-report-time-regulation-services"
       ],
-      "next_action": "Two saved-pending-request restore slices remain directly mapped and green under MinGW: the 35-assertion HLA_EVOKED pending-FQR case (8 direct pairs across §§4.20, 4.31, 4.32, 8, 8.12.3) and the 213-assertion HLA_EVOKED/HLA_IMMEDIATE TARA/NMR/NMRA case (10 direct pairs across §§4.20, 4.31, 4.32, 8, 8.9, 8.10.2, 8.11). The mapped 17-assertion time-constrained service-report case is now also source-located to its focused test and ambassador module; the active handoff splits the paired Enable/Disable Time Regulation methods using the existing mapped service-report case. Callback gating remains development-profile evidence; do not change mappings or resync the unchanged Requirements Lab."
+      "next_action": "Two saved-pending-request restore slices remain directly mapped and green under MinGW: the 35-assertion HLA_EVOKED pending-FQR case (8 direct pairs across \u00a7\u00a74.20, 4.31, 4.32, 8, 8.12.3) and the 213-assertion HLA_EVOKED/HLA_IMMEDIATE TARA/NMR/NMRA case (10 direct pairs across \u00a7\u00a74.20, 4.31, 4.32, 8, 8.9, 8.10.2, 8.11). The mapped 17-assertion time-constrained service-report case is now also source-located to its focused test and ambassador module; the active handoff splits the paired Enable/Disable Time Regulation methods using the existing mapped service-report case. Callback gating remains development-profile evidence; do not change mappings or resync the unchanged Requirements Lab."
     },
     {
       "id": "flush-queue-request-optimistic-time",
@@ -28237,7 +28292,6 @@
       "query_tags": [
         "mom",
         "mom-service-invocation-parameters",
-        "mom-service-report-interaction-baseline",
         "mom-service-report-failed-support-lookup-matrix-interaction",
         "mom-service-report-failed-interaction-parameter-lookup-matrix",
         "mom-service-report-failed-dimension-region-lookup-matrix",
@@ -28250,7 +28304,7 @@
         "ddm-nonvoid-failure",
         "ddm-mutation-failure",
         "service-report-directory-config",
-        "service-report-file-multifederate",
+        "process-service-report-file-multifederate",
         "join-lifecycle",
         "service-report-file-lifecycle",
         "joined-federate-mom-report-file",
@@ -28285,7 +28339,7 @@
         "process-service-report-send-interaction-with-regions-invalid-parameter-failure-interaction",
         "support-switches",
         "support-switch-state",
-        "service-reporting-interlock",
+        "mom-service-reporting-interlock",
         "mom-transportation-type-change-request",
         "federation-mom-content-reports",
         "federation-mom-static-configuration"
@@ -28293,7 +28347,6 @@
       "focused_lane_tags": [
         "federation-mom-static-configuration",
         "mom-service-invocation-parameters",
-        "mom-service-report-interaction-baseline",
         "ownership-service-report-mim-interaction",
         "negotiated-ownership-service-report-mim-interaction",
         "confirm-divestiture-service-report-mim-interaction",
@@ -28313,7 +28366,7 @@
         "process-service-report-send-interaction-with-regions-invalid-parameter-failure-interaction",
         "ordinary-regional-attribute-update-service-report",
         "join-lifecycle",
-        "service-report-file-multifederate",
+        "process-service-report-file-multifederate",
         "service-report-directory-config",
         "service-report-credentials",
         "service-report-pair-list",
@@ -28712,15 +28765,11 @@
       "kind": "architecture-and-evidence",
       "priority": 2,
       "title": "Expand the portable C++ TCK using only IEEE 1516.1-2025 and 1516.2-2025 behavior",
-      "roadmap_anchor": "Expand the portable pure-standard HLA C++ TCK through independently verified slices",
+      "roadmap_anchor": "Portable C++ TCK (2025)",
       "query_tags": [
-        "portable-cpp-tck",
-        "standard-api",
-        "1516.1-2025",
-        "1516.2-2025",
         "interaction-management"
       ],
-      "next_action": "Corrected all 13 portable C++ service-report UserSuppliedTag argument-type expectations from 63 to 60 per the pinned IEEE 1516.2-2025 HLAstandardMIM (10 named assertions plus three synchronization-point argument lists). A fresh GNU 15.2/Ninja installed-package build against the configured MinGW package passed 44/44 focused CTest cases for 22 affected base/contract scenarios in both callback models; direct execution validated all 22 IDs. This is current-provider evidence, not independent multi-vendor conformance. Next: audit and run cpp-tck.directed-interaction-declarations-valid-inputs-after-resignation plus its contract against exact IEEE 1516.1-2025 requirements, then implement only if the RTI fails. No Requirements Lab resync, 1516e, Visual Studio, or full-suite discovery."
+      "next_action": "The promoted cpp-tck.resign-delete-objects base/contract pair passed two independent fresh GNU 15.2/Ninja installed-package builds at out/mgw/cpp-tck-resign-delete-boundaries-java-a-20261009.json and out/mgw/cpp-tck-resign-delete-boundaries-java-b-20261009.json; each passed 4/4 focused tests under evoked and immediate callbacks. Java default scenarios java-tck.object-removal-multi-recipient-fifo, java-tck.resign-delete-objects, and java-tck.resign-delete-objects-multi-recipient-fifo all pass focused execution against a fresh GNU/Ninja JNI provider with adapter-selected FOM and HLAinteger64Time. The complete Java source set compiles against .codex_official_api.jar; Java catalog/parity validate at 92 scenarios. Added Java --scenario filtering and opt-in stack traces. Next: diagnose why promoted cpp-tck.resign-delete-objects-then-divest-cross-object-effects fails on join with RTIinternalError creating the configured service-report file; do not translate until two fresh installed-package builds pass. No Requirements Lab resync, 1516e, Visual Studio, or full-suite discovery."
     },
     {
       "id": "portable-java-tck-2025",
@@ -28728,14 +28777,9 @@
       "kind": "architecture-and-evidence",
       "priority": 2,
       "title": "Expand the portable Java TCK using only the IEEE 1516.1-2025 API",
-      "roadmap_anchor": "Expand standard Java RTI contract tests for cross-provider reuse",
-      "query_tags": [
-        "portable-java-tck",
-        "standard-api",
-        "1516.1-2025",
-        "cross-language-parity"
-      ],
-      "next_action": "Java catalog validation is clean at 77 scenarios/268 API references, and the parity audit resolves all 77 IDs. The new object-registration/discovery lifecycle test is standard-only, compiles against the pinned IEEE 1516.1-2025 API, and matches a C++ pair independently verified in two fresh MinGW installed-package builds under both callback models with clean promotion audits. It checks typed hierarchy/inherited attributes, pre-publication registration rejection, exact and promoted base discovery, evoked/immediate timing, callback-queue cancellation, late subscription, and identity lookups. It remains unsupported by default until Java provider runtime execution. Existing provider/FOM/endpoint/callback settings and typed names are adapter inputs; no provider-specific API is used. Next: survey cpp-tck.service-report-receive-order-interaction and its contract for the next verified standard-only parity slice."
+      "roadmap_anchor": "Portable Java TCK (2025)",
+      "query_tags": [],
+      "next_action": "The full Java TCK compiles against the official 1516.1-2025 API JAR. Default Java scenarios java-tck.object-removal-multi-recipient-fifo, java-tck.resign-delete-objects, and java-tck.resign-delete-objects-multi-recipient-fifo all pass focused runs against a fresh GNU/Ninja JNI provider with adapter-selected FOM and HLAinteger64Time; catalog/parity validate at 92 scenarios. The runner supports --scenario filtering and opt-in exception stacks. Next: diagnose the cross-object C++ resign-delete/divest slice's join-time configured service-report-file failure; translate and promote the next Java slice only after its C++ base/contract evidence is green on two fresh installed-package builds."
     }
   ]
 }

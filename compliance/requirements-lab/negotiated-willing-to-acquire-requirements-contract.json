@@ -9,7 +9,7 @@
       "id": "umbra-negotiated-divestiture-identifies-a-willing-to-acquire-candidate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l41-12",
       "clause_id": "clause-7.3.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_pending_work.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planPendingNegotiatedAttributeOwnershipDivestitureConfirmations",
       "tests": [
         "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
@@ -20,7 +20,7 @@
       "id": "umbra-negotiated-divestiture-uses-the-private-willing-owner-selection-mechanism",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l50-15",
       "clause_id": "clause-7.3.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_pending_work.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planPendingNegotiatedAttributeOwnershipDivestitureConfirmations",
       "tests": [
         "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
@@ -31,7 +31,7 @@
       "id": "umbra-willing-to-acquire-tag-reaches-request-divestiture-confirmation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-158-l50-10",
       "clause_id": "clause-7.5.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginRequestDivestitureConfirmation",
       "tests": [
         "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
@@ -42,7 +42,7 @@
       "id": "umbra-confirm-divestiture-completes-the-selected-willing-to-acquire-transfer",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-158-l71-17",
       "clause_id": "clause-7.5.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planConfirmDivestiture",
       "tests": [
         "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
@@ -53,7 +53,7 @@
       "id": "umbra-confirm-divestiture-gives-the-selected-willing-owner-ownership",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-159-l53-11",
       "clause_id": "clause-7.6.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planConfirmDivestiture",
       "tests": [
         "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
@@ -64,7 +64,7 @@
       "id": "umbra-willing-to-acquire-confirmation-produces-one-normal-acquisition-notification",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27",
       "clause_id": "clause-7.7.3",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp",
       "source_symbol": "queueConfirmDivestitureNotifications",
       "tests": [
         "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate",
@@ -75,7 +75,7 @@
       "id": "umbra-confirm-divestiture-tag-reaches-acquisition-notification",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l18-5",
       "clause_id": "clause-7.2",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp",
       "source_symbol": "queueConfirmDivestitureNotifications",
       "tests": [
         "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
@@ -85,7 +85,7 @@
       "id": "umbra-acquisition-if-available-tag-reaches-request-divestiture-confirmation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l51-16",
       "clause_id": "clause-7.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginRequestDivestitureConfirmation",
       "tests": [
         "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture selects a willing-to-acquire 2025 candidate"
@@ -95,7 +95,7 @@
       "id": "umbra-negotiated-divestiture-tag-reaches-assumption-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l9-2",
       "clause_id": "clause-7.2",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp",
       "source_symbol": "queueAttributeOwnershipAssumptionRecipients",
       "tests": [
         "cpp/tests/negotiated_willing_to_acquire_candidate_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture forwards its tag to an assumption candidate"

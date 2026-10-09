@@ -11,8 +11,14 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void registerFederationSynchronizationPoint( std::wstring const & synchronizationPointLabel, VariableLengthData const & userSuppliedTag) = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerFederationSynchronizationPoint",
       "tests": [
         "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
@@ -26,8 +32,15 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void registerFederationSynchronizationPoint( std::wstring const & synchronizationPointLabel, VariableLengthData const & userSuppliedTag, FederateHandleSet const & synchronizationSet) = 0",
-      "exception_types": ["InvalidFederateHandle", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidFederateHandle",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerFederationSynchronizationPoint",
       "tests": [
         "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
@@ -42,8 +55,15 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void synchronizationPointAchieved( std::wstring const & synchronizationPointLabel, bool successfully = true) = 0",
-      "exception_types": ["SynchronizationPointLabelNotAnnounced", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SynchronizationPointLabelNotAnnounced",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp",
       "source_symbol": "UmbraRtiAmbassador::synchronizationPointAchieved",
       "tests": [
         "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
@@ -58,7 +78,9 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void synchronizationPointRegistrationSucceeded( std::wstring const & synchronizationPointLabel) = 0",
-      "exception_types": ["FederateInternalError"],
+      "exception_types": [
+        "FederateInternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitSynchronizationPointRegistration",
       "tests": [
@@ -73,7 +95,9 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void synchronizationPointRegistrationFailed( std::wstring const & synchronizationPointLabel, SynchronizationPointFailureReason reason) = 0",
-      "exception_types": ["FederateInternalError"],
+      "exception_types": [
+        "FederateInternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "submitSynchronizationPointRegistration",
       "tests": [
@@ -87,9 +111,11 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void announceSynchronizationPoint( std::wstring const & synchronizationPointLabel, VariableLengthData const & userSuppliedTag) = 0",
-      "exception_types": ["FederateInternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
-      "source_symbol": "submitSynchronizationPointAnnouncements",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_synchronization_notification_dispatch.cpp",
+      "source_symbol": "submitAmbassadorSynchronizationPointAnnouncements",
       "tests": [
         "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
         "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",
@@ -103,9 +129,11 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void federationSynchronized( std::wstring const & synchronizationPointLabel, FederateHandleSet const & failedToSyncSet) = 0",
-      "exception_types": ["FederateInternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
-      "source_symbol": "submitFederationSynchronizedNotifications",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_synchronization_notification_dispatch.cpp",
+      "source_symbol": "submitAmbassadorFederationSynchronizedNotifications",
       "tests": [
         "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points announce, track achievement, and complete",
         "cpp/tests/synchronization_point_catch2.cpp::Embedded synchronization points dispatch callbacks directly in HLA_IMMEDIATE",

@@ -39,7 +39,9 @@ std::string safeComponent(std::wstring const& value) {
   // unusually long federation or federate name cannot consume the platform's
   // filename budget; the RTI-owned join identifier remains the uniqueness
   // component.
-  constexpr std::size_t maximumComponentLength = 64;
+  // Leave room for both diagnostic components, the immutable identifiers,
+  // and a long per-user temporary-directory prefix on Windows MAX_PATH hosts.
+  constexpr std::size_t maximumComponentLength = 32;
   if (result.size() > maximumComponentLength) {
     result.resize(maximumComponentLength);
   }
@@ -75,7 +77,9 @@ bool reserveNewFile(std::filesystem::path const& location) {
     if (error == ERROR_FILE_EXISTS || error == ERROR_ALREADY_EXISTS) {
       return false;
     }
-    throw std::runtime_error("Unable to reserve an Umbra service-report file.");
+    throw std::runtime_error(
+        "Unable to reserve an Umbra service-report file (Windows error " +
+        std::to_string(error) + "): " + utf8(location.wstring()));
   }
   if (::CloseHandle(file) == 0) {
     std::error_code ignored;

@@ -9,20 +9,20 @@
       "id": "umbra-retract-uses-official-message-designator",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
       "clause_id": "clause-8.22.3",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_retract_service.cpp",
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
         "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_suppressed_timestamped_interaction_no_retraction_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_request_retraction_suppressed_attribute_update_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
         "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_callback_retraction_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
         "cpp/tests/timestamped_default_region_attribute_mixed_fanout_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves the supplied Retract designator",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Retract through MOM before Request Retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
+        "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves the supplied Retract designator",
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting delivers Retract through MOM before Request Retraction",
+        "cpp/tests/ieee1516_2025_request_retraction_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
         "cpp/tests/timestamped_default_region_interaction_retract_alternate_advance_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants",
@@ -36,22 +36,22 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "makeMessageRetractionHandle",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_request_retraction_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_suppressed_timestamped_interaction_no_retraction_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction",
+        "cpp/tests/ieee1516_2025_request_retraction_suppressed_attribute_update_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
         "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_callback_retraction_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction",
         "cpp/tests/timestamped_default_region_attribute_mixed_fanout_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
         "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
         "cpp/tests/timestamped_send_interaction_no_fanout_catch2.cpp::Embedded timestamped Send Interaction returns a retraction designator without recipient fanout",
         "cpp/tests/ieee1516_2025_tso_regional_no_overlap_designator_catch2.cpp::Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients",
         "cpp/tests/timestamped_attribute_update_no_fanout_catch2.cpp::Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
+        "cpp/tests/ieee1516_2025_timestamped_regional_no_overlap_retraction_designator_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves TSO retraction-designator uniqueness",
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
+        "cpp/tests/ieee1516_2025_restore_tso_terminal_classification_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore preserves TSO retraction-designator uniqueness",
         "cpp/tests/timestamped_default_region_interaction_retract_alternate_advance_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants",
         "cpp/tests/message_retraction_handle_catch2.cpp::MessageRetractionHandle uses the standard HLAvariableArray handle encoding",
         "cpp/tests/timestamped_tso_designator_terminalization_catch2.cpp::Embedded producer advance requests terminalize expired TSO designators"
@@ -61,19 +61,19 @@
       "id": "umbra-retract-terminal-designator-preserves-classification",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
       "clause_id": "clause-8.22.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retireTsoMessagePayloadsAtOrBefore",
       "tests": [
         "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
         "cpp/tests/timestamped_send_interaction_no_fanout_catch2.cpp::Embedded timestamped Send Interaction returns a retraction designator without recipient fanout",
         "cpp/tests/ieee1516_2025_tso_regional_no_overlap_designator_catch2.cpp::Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients",
         "cpp/tests/timestamped_attribute_update_no_fanout_catch2.cpp::Embedded timestamped Update Attribute Values returns a retraction designator without recipient fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
+        "cpp/tests/ieee1516_2025_timestamped_regional_no_overlap_retraction_designator_catch2.cpp::Embedded timestamped regional Update Attribute Values returns a retraction designator without overlap-qualified recipients",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded Disable Time Regulation preserves a live TSO retraction designator across re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record",
+        "cpp/tests/ieee1516_2025_restore_tso_terminal_classification_catch2.cpp::Embedded federation restore preserves a terminal TSO retraction classification",
         "cpp/tests/terminal_timestamped_deletion_tombstone_catch2.cpp::Embedded terminal timestamped deletion tombstone releases its object name",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_timestamped_delete_object_instance_fqr_tara_nmra_grants_catch2.cpp::Embedded timestamped Delete Object Instance delivers before FQR TARA and NMRA grants",
         "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
         "cpp/tests/timestamped_interaction_regulation_reenable_catch2.cpp::Embedded queued timestamped interaction survives time-regulation disable and re-enable",
         "cpp/tests/timestamped_tso_designator_terminalization_catch2.cpp::Embedded producer advance requests terminalize expired TSO designators"
@@ -87,9 +87,9 @@
       "source_symbol": "queueRequestRetraction",
       "tests": [
         "cpp/tests/timestamped_send_interaction_retraction_catch2.cpp::Embedded timestamped Send Interaction queues TSO and requests retraction after delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record"
+        "cpp/tests/ieee1516_2025_request_retraction_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record"
       ]
     },
     {
@@ -99,21 +99,21 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record"
+        "cpp/tests/ieee1516_2025_request_retraction_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live TSO retraction record"
       ]
     },
     {
       "id": "umbra-request-retraction-suppresses-pending-interaction-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
         "cpp/tests/tso_message_queue_catch2.cpp::Private 2025 TSO queue withdraws pending fanout after another recipient delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
+        "cpp/tests/ieee1516_2025_request_retraction_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
         "cpp/tests/timestamped_default_region_interaction_retract_alternate_advance_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
       ]
     },
@@ -121,21 +121,21 @@
       "id": "umbra-request-retraction-excludes-suppressed-interaction-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction"
+        "cpp/tests/ieee1516_2025_suppressed_timestamped_interaction_no_retraction_catch2.cpp::Embedded suppressed timestamped interaction callback does not request retraction"
       ]
     },
     {
       "id": "umbra-request-retraction-covers-nonconstrained-interaction-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_request_retraction_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered interaction recipients and suppresses queued fanout",
+        "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction"
       ]
     },
     {
@@ -145,44 +145,44 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
+        "cpp/tests/ieee1516_2025_timestamped_update_retraction_immediate_only_recipient_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
         "cpp/tests/timestamped_default_region_attribute_mixed_fanout_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
       "id": "umbra-request-retraction-suppresses-pending-attribute-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
         "cpp/tests/timestamped_attribute_update_queued_passel_retraction_catch2.cpp::Embedded timestamped Update Attribute Values queues passels before the grant and supports retraction",
         "cpp/tests/timestamped_default_region_attribute_mixed_fanout_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
       "id": "umbra-request-retraction-excludes-suppressed-attribute-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_request_retraction_suppressed_attribute_update_catch2.cpp::Embedded suppressed timestamped attribute callback does not request retraction",
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
       "id": "umbra-request-retraction-covers-nonconstrained-attribute-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
+        "cpp/tests/ieee1516_2025_timestamped_update_retraction_immediate_only_recipient_catch2.cpp::Embedded timestamped Update Attribute Values requests retraction for an immediate-only recipient",
         "cpp/tests/timestamped_default_region_attribute_mixed_fanout_catch2.cpp::Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
+        "cpp/tests/ieee1516_2025_request_retraction_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped Update Attribute Values splits immediate delivery and pending retraction"
       ]
     },
     {
@@ -192,27 +192,27 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueRequestRetraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_request_retraction_directed_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
       ]
     },
     {
       "id": "umbra-request-retraction-suppresses-pending-directed-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_request_retraction_directed_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
       ]
     },
     {
       "id": "umbra-request-retraction-covers-nonconstrained-directed-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoDirectedInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
+        "cpp/tests/ieee1516_2025_request_retraction_directed_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout"
       ]
     },
     {
@@ -229,7 +229,7 @@
       "id": "umbra-request-retraction-suppresses-pending-regional-interaction-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
         "cpp/tests/ieee1516_2025_request_retraction_delivered_regional_interaction_fanout_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout"
@@ -239,7 +239,7 @@
       "id": "umbra-request-retraction-excludes-suppressed-regional-interaction-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
         "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction"
@@ -249,7 +249,7 @@
       "id": "umbra-request-retraction-covers-nonconstrained-regional-interaction-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_request_retraction_delivered_regional_interaction_fanout_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout"
@@ -269,7 +269,7 @@
       "id": "umbra-request-retraction-suppresses-pending-regional-attribute-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
         "cpp/tests/timestamped_regional_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout",
@@ -280,17 +280,17 @@
       "id": "umbra-request-retraction-excludes-suppressed-regional-attribute-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l86-22",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction"
+        "cpp/tests/ieee1516_2025_suppressed_timestamped_regional_attribute_callback_retraction_catch2.cpp::Embedded suppressed timestamped regional attribute callback does not request retraction"
       ]
     },
     {
       "id": "umbra-request-retraction-covers-nonconstrained-regional-attribute-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoAttributeUpdate",
       "tests": [
         "cpp/tests/timestamped_regional_attribute_update_mixed_fanout_catch2.cpp::Embedded timestamped regional Update Attribute Values carries recipient-gated regions across mixed fanout"
@@ -300,7 +300,7 @@
       "id": "umbra-retract-delivered-object-deletion-invokes-request-retraction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
       "clause_id": "clause-8.22.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
         "cpp/tests/timestamped_object_deletion_retraction_catch2.cpp::Embedded Request Retraction reconstitutes a delivered timestamped object deletion",
@@ -311,7 +311,7 @@
       "id": "umbra-retract-excludes-departed-object-deletion-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l30-6",
       "clause_id": "clause-8.22.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
         "cpp/tests/timestamped_object_deletion_joined_owner_retraction_catch2.cpp::Embedded Request Retraction reconstitutes timestamped deletion only for joined owners"
@@ -331,7 +331,7 @@
       "id": "umbra-request-retraction-suppresses-pending-object-deletion-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
         "cpp/tests/timestamped_object_deletion_retraction_catch2.cpp::Embedded Request Retraction reconstitutes a delivered timestamped object deletion"
@@ -341,7 +341,7 @@
       "id": "umbra-request-retraction-covers-nonconstrained-object-deletion-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoObjectDeletion",
       "tests": [
         "cpp/tests/timestamped_object_deletion_retraction_catch2.cpp::Embedded Request Retraction reconstitutes a delivered timestamped object deletion"

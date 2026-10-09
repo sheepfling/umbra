@@ -20,12 +20,12 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_region_registration.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerObjectInstance",
       "tests": [
         "cpp/tests/object_instance_registration_discovery_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle",
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry allocates 2025 object identities only from current publication",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry",
+        "cpp/tests/federation_registry_composed_fom_catch2.cpp::The federation registry allocates 2025 object identities only from current publication",
+        "cpp/tests/ieee1516_2025_federation_registry_latest_object_application_values_filesystem_restart_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry",
         "cpp/tests/ieee1516_2025_connection_object_registration_catch2.cpp::RTIambassador publishes and unpublishes object-class attributes and registers an object through a configured process endpoint"
       ]
     },
@@ -38,7 +38,7 @@
       "exception_types": [
         "FederateInternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
       "source_symbol": "queueObjectInstanceDiscovery",
       "tests": [
         "cpp/tests/object_instance_registration_discovery_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle",
@@ -76,7 +76,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lookup.cpp",
       "source_symbol": "UmbraRtiAmbassador::getObjectInstanceHandle",
       "tests": [
         "cpp/tests/object_instance_registration_discovery_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"
@@ -94,7 +94,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lookup.cpp",
       "source_symbol": "UmbraRtiAmbassador::getObjectInstanceName",
       "tests": [
         "cpp/tests/object_instance_registration_discovery_catch2.cpp::Embedded object-instance registration/discovery honors 2025 publication, promotion, and callback lifecycle"

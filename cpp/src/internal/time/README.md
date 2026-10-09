@@ -18,6 +18,8 @@ it does not define the public logical-time value classes in cpp/src/.
 ## Working here
 
 - Put scheduling, eligibility, and ordered-queue behavior here.
+- For the 2025 behavior model and diagrams, start with the
+  [time-management contributor guide](../../../../docs/design/HLA-2025-TIME-MANAGEMENT-GUIDE.md).
 - Treat [federation](../federation/README.md) as a peer domain. Time behavior
   may read federation state, but membership lifecycle remains owned there.
 - Keep dispatch mechanics in [callbacks](../callbacks/README.md); a time grant

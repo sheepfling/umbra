@@ -9,46 +9,46 @@
       "id": "umbra-region-create-specified-dimensions",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-226-l39-9",
       "clause_id": "clause-9.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::createRegion",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
         "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
+        "cpp/tests/ieee1516_2025_service_report_create_region_get_range_bounds_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_registry_federation_owned_regions_filesystem_restart_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
     },
     {
       "id": "umbra-region-commit-informs-rti",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-226-l162-43",
       "clause_id": "clause-9.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::commitRegionModifications",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
         "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_registry_federation_owned_regions_filesystem_restart_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
     },
     {
       "id": "umbra-region-incomplete-commit-is-invalid",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-227-l26-6",
       "clause_id": "clause-9.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::commitRegionModifications",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_registry_federation_owned_regions_filesystem_restart_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
     },
     {
       "id": "umbra-region-delete-owned-region-and-in-use-guard",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-227-l173-48",
       "clause_id": "clause-9.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::deleteRegion",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
         "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
@@ -56,48 +56,48 @@
       "id": "umbra-region-delete-designator-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l62-20",
       "clause_id": "clause-9.1.2",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::deleteRegion",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_registry_federation_owned_regions_filesystem_restart_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
     },
     {
       "id": "umbra-region-range-bounds-designator-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l74-24",
       "clause_id": "clause-9.1.2",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getRangeBounds",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_service_report_create_region_get_range_bounds_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_registry_federation_owned_regions_filesystem_restart_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
     },
     {
       "id": "umbra-region-dimension-set-designator-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l83-27",
       "clause_id": "clause-9.1.2",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getDimensionHandleSet",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_service_report_dimension_region_lookup_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_registry_federation_owned_regions_filesystem_restart_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
     },
     {
       "id": "umbra-region-set-range-designator-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l92-30",
       "clause_id": "clause-9.1.2",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::setRangeBounds",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
         "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
+        "cpp/tests/ieee1516_2025_service_report_create_region_get_range_bounds_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_registry_federation_owned_regions_filesystem_restart_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
     }
   ]

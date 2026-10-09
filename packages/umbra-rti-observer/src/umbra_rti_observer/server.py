@@ -8,7 +8,12 @@ from collections.abc import AsyncIterator, Mapping
 from pathlib import Path
 from typing import Any
 
-from .core import OBSERVER_SCHEMA_VERSION, ObserverStore, build_event_schema
+from .core import EVENT_TYPES, OBSERVER_SCHEMA_VERSION, ObserverStore, build_event_schema
+from .contract import (
+    OBSERVER_CONTRACT_VERSION,
+    OBSERVER_JSON_MEDIA_TYPE,
+    build_contract_document,
+)
 
 try:  # Keep the core importable when the optional web extra is absent.
     from fastapi import (
@@ -68,9 +73,16 @@ def create_app(store: ObserverStore | None = None) -> Any:
     observer = store or ObserverStore()
     app = _FastAPI(
         title="Umbra Runtime Observer",
-        version=OBSERVER_SCHEMA_VERSION,
+        version=OBSERVER_CONTRACT_VERSION,
         description="Provider-neutral runtime event observer.",
     )
+
+    @app.middleware("http")
+    async def contract_headers(request: _Request, call_next: Any) -> Any:
+        response = await call_next(request)
+        response.headers["X-Umbra-Observer-Contract"] = OBSERVER_CONTRACT_VERSION
+        response.headers["X-Umbra-Observer-Media-Type"] = OBSERVER_JSON_MEDIA_TYPE
+        return response
 
     @app.get("/", response_class=_HTMLResponse)
     async def dashboard() -> str:
@@ -82,6 +94,7 @@ def create_app(store: ObserverStore | None = None) -> Any:
         return {
             "service": "umbra-rti-observer",
             "status": state["status"],
+            "contract_version": OBSERVER_CONTRACT_VERSION,
             "schema_version": OBSERVER_SCHEMA_VERSION,
             "event_count": state["live_metrics"]["event_count"],
             "retention": state["retention"],
@@ -90,8 +103,10 @@ def create_app(store: ObserverStore | None = None) -> Any:
     @app.get("/api/catalog")
     async def catalog() -> dict[str, Any]:
         return {
+            "contract_version": OBSERVER_CONTRACT_VERSION,
             "schema_version": OBSERVER_SCHEMA_VERSION,
             "event_schema": build_event_schema(),
+            "contract": build_contract_document(EVENT_TYPES, event_schema_version=OBSERVER_SCHEMA_VERSION),
             "features": [
                 "bounded event history",
                 "generic object and interaction inspectors",
@@ -102,6 +117,10 @@ def create_app(store: ObserverStore | None = None) -> Any:
                 "websocket events",
             ],
         }
+
+    @app.get("/api/contract")
+    async def contract() -> dict[str, Any]:
+        return build_contract_document(EVENT_TYPES, event_schema_version=OBSERVER_SCHEMA_VERSION)
 
     @app.get("/api/schema")
     async def schema() -> dict[str, Any]:
@@ -132,7 +151,11 @@ def create_app(store: ObserverStore | None = None) -> Any:
         }
         if kind not in values:
             raise _HTTPException(status_code=404, detail="unknown inspector")
-        return {"kind": kind, "items": values[kind]}
+        return {
+            "contract_version": OBSERVER_CONTRACT_VERSION,
+            "kind": kind,
+            "items": values[kind],
+        }
 
     @app.get("/api/events")
     async def events(
@@ -199,6 +222,7 @@ def create_app(store: ObserverStore | None = None) -> Any:
 
         async def generate() -> AsyncIterator[str]:
             cursor = max(after, 0)
+            yield f"data: {json.dumps({'type': 'snapshot', 'state': observer.state(include_events=False)}, sort_keys=True)}\n\n"
             while True:
                 page = observer.event_page(after_sequence=cursor, limit=500)
                 if page["gap"]:
@@ -223,11 +247,10 @@ def create_app(store: ObserverStore | None = None) -> Any:
                         timeout=15.0,
                     )
                 if not rows:
-                    yield ": keepalive\n\n"
+                    yield f"data: {json.dumps({'type': 'heartbeat'}, sort_keys=True)}\n\n"
                     continue
-                for row in rows:
-                    cursor = max(cursor, int(row["sequence"]))
-                    yield f"data: {json.dumps(row, sort_keys=True)}\n\n"
+                cursor = max(cursor, int(rows[-1]["sequence"]))
+                yield f"data: {json.dumps({'type': 'events', 'events': rows, 'state': observer.state(include_events=False)}, sort_keys=True)}\n\n"
 
         return _StreamingResponse(
             generate(),
@@ -238,11 +261,10 @@ def create_app(store: ObserverStore | None = None) -> Any:
     @app.websocket("/ws/events")
     async def websocket_events(socket: _WebSocket) -> None:
         await socket.accept()
-        initial_state = observer.state()
-        retention = initial_state["retention"]
-        cursor = int(retention["last_sequence"])
+        initial_state = observer.state(include_events=False)
+        cursor = 0
         try:
-            await socket.send_json({"type": "state", "state": initial_state})
+            await socket.send_json({"type": "snapshot", "state": initial_state})
             while True:
                 page = observer.event_page(after_sequence=cursor, limit=500)
                 if page["gap"]:

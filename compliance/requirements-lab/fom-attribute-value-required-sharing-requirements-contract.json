@@ -9,7 +9,7 @@
       "id": "umbra-omt-unshared-attribute-value-required",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-049-l58-6",
       "clause_id": "clause-4",
-      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateUnsharedAttributeValueRequirement",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight requires unshared attributes to be not value-required"

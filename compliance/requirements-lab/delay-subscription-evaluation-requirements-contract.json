@@ -38,10 +38,10 @@
       "id": "umbra-delay-subscription-evaluation-enabled-defers-ordinary-receive-order",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
       "clause_id": "clause-8.1.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order interaction eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_receive_order_interaction_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order interaction eligibility",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_ordinary_interaction"
       ]
     },
@@ -49,10 +49,10 @@
       "id": "umbra-delay-subscription-evaluation-enabled-defers-ordinary-timestamped",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
       "clause_id": "clause-8.1.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped interaction eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_interaction_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped interaction eligibility",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_ordinary_timestamped_interaction"
       ]
     },
@@ -60,12 +60,12 @@
       "id": "umbra-delay-subscription-evaluation-disabled-preserves-generation-ineligibility",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l40-11",
       "clause_id": "clause-8.1.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order interaction eligibility",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped interaction eligibility",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional interaction eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_receive_order_interaction_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order interaction eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_interaction_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped interaction eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_regional_interaction_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional interaction eligibility",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_ordinary_interaction",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_ordinary_timestamped_interaction",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_timestamped_regional_interaction"
@@ -75,12 +75,12 @@
       "id": "umbra-delay-subscription-evaluation-uses-current-subscriptions-at-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l46-13",
       "clause_id": "clause-8.1.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::receiveOrderInteractionRecipientFor",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order interaction eligibility",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped interaction eligibility",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional interaction eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_receive_order_interaction_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order interaction eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_interaction_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped interaction eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_regional_interaction_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional interaction eligibility",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_ordinary_interaction",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_ordinary_timestamped_interaction",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_timestamped_regional_interaction"
@@ -90,10 +90,10 @@
       "id": "umbra-delay-subscription-evaluation-enabled-defers-ordinary-receive-order-attribute-update",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
       "clause_id": "clause-8.1.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order attribute-update eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_receive_order_attribute_update_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order attribute-update eligibility",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_ordinary_attribute_update"
       ]
     },
@@ -101,11 +101,11 @@
       "id": "umbra-delay-subscription-evaluation-enabled-defers-ordinary-timestamped-attribute-update",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
       "clause_id": "clause-8.1.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped attribute-update eligibility",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional attribute eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_attribute_update_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped attribute-update eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_regional_attribute_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional attribute eligibility",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_ordinary_timestamped_attribute_update",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_timestamped_regional_attribute_update"
       ]
@@ -114,12 +114,12 @@
       "id": "umbra-delay-subscription-evaluation-disabled-preserves-attribute-update-generation-ineligibility",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l40-11",
       "clause_id": "clause-8.1.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order attribute-update eligibility",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped attribute-update eligibility",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional attribute eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_receive_order_attribute_update_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order attribute-update eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_attribute_update_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped attribute-update eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_regional_attribute_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional attribute eligibility",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_ordinary_attribute_update",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_ordinary_timestamped_attribute_update",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_timestamped_regional_attribute_update"
@@ -129,12 +129,12 @@
       "id": "umbra-delay-subscription-evaluation-uses-current-attribute-subscriptions-at-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-187-l46-13",
       "clause_id": "clause-8.1.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::receiveOrderAttributeUpdateRecipientFor",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order attribute-update eligibility",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped attribute-update eligibility",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional attribute eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_receive_order_attribute_update_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary receive-order attribute-update eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_attribute_update_catch2.cpp::Embedded Delay Subscription Evaluation defers ordinary timestamped attribute-update eligibility",
+        "cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_regional_attribute_catch2.cpp::Embedded Delay Subscription Evaluation defers timestamped regional attribute eligibility",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_ordinary_attribute_update",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_delay_subscription_evaluation_ordinary_timestamped_attribute_update"
       ]

@@ -10,7 +10,7 @@ the evidence model and provider-matrix workflow.
 
 ## Scope
 
-The catalog contains 73 scenarios. The default lane covers factory discovery,
+The catalog currently contains 92 scenarios. The default lane covers factory discovery,
 standard encoding, federation creation/join/resign/destroy/query, ordinary
 publication/subscription, named and unnamed object registration and discovery,
 single and multiple name-reservation callbacks, released-name reuse after object
@@ -90,6 +90,96 @@ unsubscribe cancellation, and late subscription. It uses only the standard
 IEEE 1516.1-2025 Java API; the adapter supplies its provider, FOM, endpoint,
 callback model, and typed class/attribute names. It remains unsupported by
 default until run against a Java provider.
+
+The opt-in `java-tck.object-attribute-declarations-valid-inputs-after-resignation`
+scenario uses adapter-supplied object-class and attribute names and checks all six
+ordinary object-attribute publication/subscription calls while joined and after
+resignation. The calls succeed while joined and report `FederateNotExecutionMember`
+after resignation. It remains unsupported by default until run against a Java provider.
+
+The opt-in `java-tck.attribute-value-update-request-baseline` scenario uses an
+adapter-supplied multi-attribute FOM plus the `hla.rti.tck.multiAttributeObjectClass`,
+`hla.rti.tck.multiAttributeFirst`, and `hla.rti.tck.multiAttributeSecond` properties
+when its names differ from the TCK defaults. It checks discovery, instance-scoped
+requests, the provider callback's object/attribute set/tag, and suppression when
+the requester owns or no federate owns the requested instance attributes. Provider,
+endpoint, callback model, and FOM remain adapter-configured. It remains unsupported
+by default until run against a Java provider.
+
+The opt-in `java-tck.object-class-attribute-value-update-request-baseline` scenario
+uses the adapter's typed base/derived FOM and the
+`hla.rti.tck.typedIntegerAttribute` property when the integer attribute differs from
+the default. It requests inherited identity and base integer attributes at the base
+class, then checks one exact callback per derived instance, inherited-attribute
+filtering, request-tag propagation, and suppression for the requester's own instance.
+It uses no region services and remains unsupported by default until run against a
+Java provider.
+
+The opt-in `java-tck.attribute-value-update-response` scenario uses the adapter's
+ordinary object-class and attribute names. It verifies discovery and request-tag
+delivery, then has the owner answer with standard `updateAttributeValues` and checks
+the reflected value/tag, reliable transportation, producer, and absence of regions.
+Provider, FOM, endpoint, logical-time implementation, and callback model remain
+adapter-configured. It remains unsupported by default until run against a Java provider.
+
+The opt-in `java-tck.attribute-value-update-request-multi-requester` scenario
+uses the adapter's ordinary object-class and attribute names. Two independent
+subscribers issue instance-scoped requests with distinct tags; the provider must
+receive exactly one matching callback for each, and one ordinary update must be
+reflected to both requesters with the expected value and standard receive-order
+metadata. It remains unsupported by default until run against a Java provider.
+
+The opt-in `java-tck.object-registration-discovery-multi-recipient` scenario
+registers two ordinary objects and verifies that two active subscribers each
+receive exactly one discovery per object, with matching producer/class metadata
+and stable name/handle/known-class lookups. Provider, FOM, endpoint, and callback
+model remain adapter-configured; runtime verification against a Java provider is
+still required before enabling it by default.
+
+The opt-in `java-tck.ordinary-multi-attribute-subscription-projection` scenario
+uses an adapter-supplied multi-attribute FOM and attribute names. It verifies the
+complete update for a two-attribute subscriber, selective value projection for
+single-attribute subscribers, preservation of per-update tags and producer
+metadata, and suppression of updates for an unsubscribed attribute and the
+publisher. Keep it unsupported by default until run against a Java provider.
+
+The opt-in `java-tck.ordinary-multi-attribute-value-update-request-response`
+scenario uses the adapter-supplied multi-attribute FOM and names. It exercises
+full, first-only, and second-only instance requests, checks the provider callback
+attribute sets and request tags, and verifies each ordinary response's values,
+tag, producer, reliable transportation, and receive-order metadata. It remains
+unsupported by default until run against a Java provider.
+
+The default `java-tck.object-removal-multi-recipient-fifo` scenario deletes two
+ordinary objects in sequence and verifies that each of two subscribers receives
+both removals in producer order with the corresponding object, tag, and producer
+metadata, while the owner receives no loopback. Provider, FOM, endpoint, and
+callback model and logical-time implementation remain adapter-configured. The
+case passed focused execution against a fresh GNU/Ninja JNI provider build and
+is observable through the standard 1516.1-2025 API only.
+
+The opt-in `java-tck.object-deletion-service-boundaries` scenario checks
+pre-connection and pre-membership lookup failures, object name/handle round
+trips, local deletion without remote callback, ordinary removal tag/producer
+metadata, post-deletion lookup failures, and DeleteObjects resignation cleanup.
+Its C++ base/contract pair passed two independent fresh GNU 15.2/Ninja
+installed-package builds with all four evoked/immediate CTest cases passing in
+each build. Java provider execution remains unsupported by default pending
+execution against an IEEE 1516.1-2025 Java provider.
+
+The opt-in `java-tck.attribute-multi-recipient-fifo` scenario sends two ordinary
+receive-order updates and verifies that both subscribers observe values and tags
+in producer order, with matching object/producer and a valid transportation type.
+The publisher must receive no reflection. Provider, FOM, endpoint, and callback
+model remain adapter-configured; runtime verification against a Java provider is
+required before enabling it by default.
+
+The opt-in `java-tck.directed-interaction-declarations-valid-inputs-after-resignation`
+scenario uses the adapter's valid object-class/directed-interaction FOM
+association and checks successful set and whole-class publication/subscription
+overloads while joined, then `FederateNotExecutionMember` for all six standard
+overloads after resignation. It is paired with the promoted C++ scenario and
+remains unsupported by default until run against a Java 1516.1-2025 provider.
 
 The opt-in `java-tck.service-report-interaction` scenario uses the adapter's
 ordinary FOM, standard MIM, logical-time implementation, and callback model.
@@ -493,13 +583,45 @@ parameter, result, and exception type must belong to the official
 `hla.rti1516_2025` namespace or the JDK. This check can run with the API JAR
 alone and does not claim behavioral conformance by an RTI provider.
 
+The opt-in `java-tck.receive-order-object-removal-subscription-withdrawal`
+scenario deletes an object after two subscribers discover it. In evoked mode,
+one subscriber withdraws before callback servicing; both the still-subscribed
+and withdrawn subscriber must receive the already-queued terminal removal. In
+immediate mode it checks callback delivery before withdrawal. Both paths verify
+object/tag/producer identity and suppress owner loopback. Its C++ base/contract
+pair passed two independent fresh GNU 15.2/Ninja installed-package builds,
+with 4/4 evoked/immediate CTest cases passing in each build. Java provider
+execution remains unsupported by default pending an IEEE 1516.1-2025 provider.
+
+The default `java-tck.resign-delete-objects-multi-recipient-fifo` scenario
+registers two objects, then resigns the producer with standard `DELETE_OBJECTS`.
+Both active subscribers must receive the two empty-tag removals in producer
+order with the correct object and producer handles, and the producer must not
+receive loopback. Its C++ base/contract pair passed two fresh GNU 15.2/Ninja
+installed-package builds, with 4/4 focused evoked/immediate tests passing in
+each. It passed a focused Java run against a fresh GNU/Ninja build of the local
+JNI provider using the adapter-selected FOM and logical-time implementation.
+Its behavior is observable entirely through the standard 1516.1-2025 API.
+
+The default `java-tck.resign-delete-objects` scenario checks that
+`NO_ACTION` resignation fails while the federate owns the standard
+delete-privilege attribute, then verifies `DELETE_OBJECTS` delivers one empty-
+tag removal with the correct object and producer. It also checks discovery
+identity/name metadata and that the removed instance name no longer resolves.
+The adapter supplies the FOM, logical-time implementation, provider, and
+callback model. Its C++ base/contract pair passed two fresh GNU 15.2/Ninja
+installed-package builds, each with all four evoked/immediate focused tests
+passing. It passed a focused Java run against a fresh GNU/Ninja build of the
+local JNI provider. Its behavior is observable entirely through the standard
+1516.1-2025 API.
+
 ## Build
 
 From the repository root, use the shell-free Python runner:
 
 ```text
 python tools/run_java_tck.py build \
-  --api-jar C:/path/to/hla-1516e-2025-api.jar \
+  --api-jar C:/path/to/hla-1516.1-2025-api.jar \
   --output-directory out/java-tck/classes
 ```
 
@@ -512,7 +634,7 @@ path. The FOM module is required for lifecycle and ordinary data scenarios.
 
 ```text
 python tools/run_java_tck.py run \
-  --api-jar C:/path/to/hla-1516e-2025-api.jar \
+  --api-jar C:/path/to/hla-1516.1-2025-api.jar \
   --provider-jar C:/path/to/provider-rti.jar \
   --factory-name "Provider RTI" \
   --fom-path C:/path/to/RestaurantFOMmodule-2025.xml \
@@ -524,7 +646,10 @@ python tools/run_java_tck.py run \
 
 Use `--dependency-jar` for additional provider dependencies and
 `--jvm-argument` for provider-owned JVM flags. The reusable runner does not
-interpret those flags.
+interpret those flags. Add `--scenario java-tck.<id>` to focus a run on one
+catalog scenario; other entries are marked `filtered` in the result report.
+For diagnostic exception stacks, pass
+`--jvm-argument=-Dhla.rti.tck.stacktrace=true`.
 
 `matrix` runs the same compiled classes against two or more provider
 configurations. `matrix.example.json` shows the portable configuration shape:

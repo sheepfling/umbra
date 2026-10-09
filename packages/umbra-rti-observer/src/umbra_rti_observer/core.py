@@ -14,6 +14,8 @@ from collections import Counter, deque
 from collections.abc import Callable, Iterable, Mapping
 from typing import Any, Protocol
 
+from .contract import OBSERVER_CONTRACT_VERSION
+
 OBSERVER_SCHEMA_VERSION = "umbra-runtime-observer-v1"
 
 EVENT_TYPES = (
@@ -289,6 +291,7 @@ def build_event_schema() -> dict[str, Any]:
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "https://umbra.invalid/observer/event-schema.json",
         "title": "Umbra Runtime Observer Event",
+        "contract_version": OBSERVER_CONTRACT_VERSION,
         "schema_version": OBSERVER_SCHEMA_VERSION,
         "description": "Provider-neutral event envelope; unknown fields are retained.",
         "type": "object",
@@ -525,6 +528,7 @@ class ObserverStore:
             if gap and not rows:
                 next_after = first_sequence - 1
             return {
+                "contract_version": OBSERVER_CONTRACT_VERSION,
                 "events": rows,
                 "next_after": next_after,
                 "has_more": len(candidates) > len(rows),
@@ -666,6 +670,7 @@ class ObserverStore:
             key=lambda row: str(row["federate"]),
         )
         state: dict[str, Any] = {
+            "contract_version": OBSERVER_CONTRACT_VERSION,
             "schema_version": OBSERVER_SCHEMA_VERSION,
             "status": self._status,
             "context": _jsonable(self._context),

@@ -877,10 +877,11 @@ TEST_CASE(
         receiverObjectClass,
         receiverPairs));
     pumpReceiverCallbacks();
-    REQUIRE(receiverFederate.outOfScope);
-    REQUIRE(receiverFederate.outOfScopeCount == 1U);
-    REQUIRE(receiverFederate.outOfScopeObjectInstance == objectInstance);
-    REQUIRE(receiverFederate.outOfScopeAttributeCount == 1U);
+    // Clause 10.1.3 suppresses the advisory for a scope loss caused by this
+    // federate's own unsubscribe. Owner-side region changes below still cover
+    // the Attributes Out Of Scope callback path.
+    REQUIRE_FALSE(receiverFederate.outOfScope);
+    REQUIRE(receiverFederate.outOfScopeCount == 0U);
 
     std::array<std::uint8_t, 3U> encodedValue{0x55U, 0x4EU, 0x53U};
     std::array<std::uint8_t, 3U> encodedTag{0x55U, 0x4EU, 0x53U};
@@ -935,7 +936,7 @@ TEST_CASE(
             rti1516_2025::RegionHandleSet{senderRegion},
         }}));
     pumpReceiverCallbacks();
-    REQUIRE(receiverFederate.outOfScopeCount == 2U);
+    REQUIRE(receiverFederate.outOfScopeCount == 1U);
     REQUIRE(receiverFederate.outOfScopeObjectInstance == objectInstance);
     REQUIRE(receiverFederate.outOfScopeAttributeCount == 1U);
 

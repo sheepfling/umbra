@@ -9,31 +9,31 @@
       "id": "umbra-federate-lost-report-notifies-subscribed-survivors",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l18-5",
       "clause_id": "clause-4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_federate_lost_reporting.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planFederateLostReport",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The registry plans HLAreportFederateLost before a fault-driven resignation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports HLAreportFederateLost to subscribed survivors",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers HLAreportFederateLost immediately to immediate subscribers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss DDM-filters HLAreportFederateLost regional subscriptions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss DDM-delivers HLAreportFederateLost immediately to matching subscribers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
+        "cpp/tests/federation_registry_composed_fom_catch2.cpp::The registry plans HLAreportFederateLost before a fault-driven resignation",
+        "cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_interaction_catch2.cpp::Embedded transport loss reports HLAreportFederateLost to subscribed survivors",
+        "cpp/tests/ieee1516_2025_connection_lost_report_ordering_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
+        "cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_immediate_catch2.cpp::Embedded transport loss delivers HLAreportFederateLost immediately to immediate subscribers",
+        "cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_regional_catch2.cpp::Embedded transport loss DDM-filters HLAreportFederateLost regional subscriptions",
+        "cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_regional_immediate_catch2.cpp::Embedded transport loss DDM-delivers HLAreportFederateLost immediately to matching subscribers",
+        "cpp/tests/ieee1516_2025_connection_lost_tso_cutoff_report_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
       ]
     },
     {
       "id": "umbra-federate-lost-report-captures-time-regulator-last-known-time",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l21-6",
       "clause_id": "clause-4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_federate_lost_reporting.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planFederateLostReport",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The registry plans HLAreportFederateLost before a fault-driven resignation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports HLAreportFederateLost to subscribed survivors",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss delivers HLAreportFederateLost immediately to immediate subscribers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss DDM-delivers HLAreportFederateLost immediately to matching subscribers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
+        "cpp/tests/federation_registry_composed_fom_catch2.cpp::The registry plans HLAreportFederateLost before a fault-driven resignation",
+        "cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_interaction_catch2.cpp::Embedded transport loss reports HLAreportFederateLost to subscribed survivors",
+        "cpp/tests/ieee1516_2025_connection_lost_report_ordering_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
+        "cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_immediate_catch2.cpp::Embedded transport loss delivers HLAreportFederateLost immediately to immediate subscribers",
+        "cpp/tests/ieee1516_2025_connection_lost_federate_lost_mom_regional_immediate_catch2.cpp::Embedded transport loss DDM-delivers HLAreportFederateLost immediately to matching subscribers",
+        "cpp/tests/ieee1516_2025_connection_lost_tso_cutoff_report_catch2.cpp::Embedded transport loss reports the TSO cutoff through HLAreportFederateLost"
       ]
     }
   ]

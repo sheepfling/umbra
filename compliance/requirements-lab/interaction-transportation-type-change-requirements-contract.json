@@ -9,7 +9,7 @@
       "id": "umbra-interaction-transport-initializes-from-fdd",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l88-20",
       "clause_id": "clause-6.30.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
       "source_symbol": "EmbeddedFederationRegistry::effectiveInteractionTransportationName",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults"
@@ -19,7 +19,7 @@
       "id": "umbra-interaction-transport-change-affects-future-sends",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l94-22",
       "clause_id": "clause-6.30.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults",
@@ -63,7 +63,7 @@
       "id": "umbra-interaction-transport-confirmation-is-response",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-145-l122-34",
       "clause_id": "clause-6.31.3",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_transportation_type_change.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestInteractionTransportationTypeChange",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults",
@@ -75,7 +75,7 @@
       "id": "umbra-interaction-transport-query-provides-type",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
       "clause_id": "clause-6.32.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_transportation_type_query.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryInteractionTransportationType",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults",
@@ -97,7 +97,7 @@
       "id": "umbra-interaction-transport-report-falls-back-to-fdd",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
       "clause_id": "clause-6.33.6",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_transportation_order_services.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planInteractionTransportationTypeQuery",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults",

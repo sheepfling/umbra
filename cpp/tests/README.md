@@ -1220,7 +1220,7 @@ surviving recipient receives the saved reflection:
     python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update continues from a regular request to a regular candidate after restore" --summary --compact
     python tools/query_rti_work.py matrix tso-regional-attribute-update-timed-negotiated-regular-candidate-continuation-after-restore --summary --compact
     python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-negotiated-regular-candidate-continuation-after-restore --summary --compact
-    cmake --build <build-dir> --config Release --target umbra_tso_regional_regular_continuation_restore_catch2
+    cmake --build <build-dir> --config Release --target umbra_tso_reg_regular_restore_catch2
     ctest --test-dir <build-dir> -C Release -R "^umbra\.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_regular_candidate_continuation_after_restore\.catch2\.Embedded timed multi-recipient regional timestamped attribute update continues from a regular request to a regular candidate after restore$" --output-on-failure
 
 The mixed If Available-to-regular continuation companion is source-backed at
@@ -1253,7 +1253,7 @@ surviving regional reflections before the common Flush Queue grant:
     python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update continues from a regular request to an If Available candidate after restore" --summary --compact
     python tools/query_rti_work.py matrix "tso-regional-attribute-update-timed-negotiated-mixed-candidate-continuation-after-restore" --summary --compact
     python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-negotiated-mixed-candidate-continuation-after-restore --summary --compact
-    cmake --build <build-dir> --config Release --target umbra_tso_regional_mixed_continuation_restore_catch2
+    cmake --build <build-dir> --config Release --target umbra_tso_reg_mixed_restore_catch2
     ctest --test-dir <build-dir> -C Release -R "^umbra\.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_mixed_candidate_continuation_after_restore\.catch2\.Embedded timed multi-recipient regional timestamped attribute update continues from a regular request to an If Available candidate after restore$" --output-on-failure
 
 This is bounded development-profile evidence; alternate callback models,
@@ -1277,7 +1277,7 @@ before the common Flush Queue grant:
     python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update cancels mixed retained regular owner confirmation before delivery after restore" --summary --compact
     python tools/query_rti_work.py matrix "tso-regional-attribute-update-timed-negotiated-retained-regular-pre-delivery-cancel-after-restore" --summary --compact
     python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-negotiated-retained-regular-pre-delivery-cancel-after-restore --summary --compact
-    cmake --build <build-dir> --config Release --target umbra_tso_mixed_pre_delivery_cancel_catch2
+    cmake --build <build-dir> --config Release --target umbra_tso_pre_cancel_restore_catch2
     ctest --test-dir <build-dir> -C Release -R "^umbra\.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_retained_regular_pre_delivery_cancel_after_restore\.catch2\.Embedded timed multi-recipient regional timestamped attribute update cancels mixed retained regular owner confirmation before delivery after restore$" --output-on-failure
 
 This is bounded development-profile evidence; alternate callback models,
@@ -1298,7 +1298,7 @@ acquisition callback:
     python tools/query_rti_work.py trace "Embedded timed multi-recipient regional timestamped attribute update cancels mixed retained regular owner confirmation after restore" --summary --compact
     python tools/query_rti_work.py matrix tso-regional-attribute-update-timed-negotiated-retained-regular-confirmation-cancel-after-restore --summary --compact
     python tools/query_rti_work.py check --lane tso-regional-attribute-update-timed-negotiated-retained-regular-confirmation-cancel-after-restore --summary --compact
-    cmake --build <build-dir> --config Release --target umbra_tso_mixed_confirmation_cancel_catch2
+    cmake --build <build-dir> --config Release --target umbra_tso_confirm_cancel_catch2
     ctest --test-dir <build-dir> -C Release -R "^umbra\.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_retained_regular_confirmation_cancel_after_restore\.catch2\.Embedded timed multi-recipient regional timestamped attribute update cancels mixed retained regular owner confirmation after restore$" --output-on-failure
 
 This is bounded development-profile evidence; alternate callback models,
@@ -2828,7 +2828,7 @@ buildable at
 `timed_live_tso_regional_attribute_update_multi_recipient_negotiated_confirmation_cancel_after_restore_catch2.cpp:283`.
 It records 161 `HLA_EVOKED` assertions, maps 48 Requirements-Lab candidates to
 26 canonical 2025 sections, and runs through
-`umbra_tso_regional_negotiated_confirmation_cancel_restore_catch2`. It restores
+`umbra_tso_cancel_restore_catch2`. It restores
 one saved timestamped regional update, queues two If Available candidates,
 resigns the first requester with `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS`, and
 reissues negotiation against the retained second callback. After Request

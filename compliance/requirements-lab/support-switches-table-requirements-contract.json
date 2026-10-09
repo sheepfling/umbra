@@ -34,8 +34,8 @@
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer retains the complete 2025 support-switch table",
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD catalog preserves an explicit NoAction automatic-resign setting",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joins preserve an explicit FOM NoAction automatic-resign directive",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy"
+        "cpp/tests/join_automatic_resign_directive_catch2.cpp::Embedded joins preserve an explicit FOM NoAction automatic-resign directive",
+        "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy"
       ]
     }
   ]

@@ -5,6 +5,11 @@ This is the Umbra-specific integration package for the standalone
 Umbra dependency; this package owns the 1516.1-2025 Python callback and
 connection shapes used by Umbra's native provider.
 
+The dashboard/backend boundary is defined by the observer package's
+[`CONTRACT.md`](../umbra-rti-observer/CONTRACT.md), not by this adapter. A Java
+provider adapter can publish the same normalized events and use the same
+frontend.
+
 The adapter deliberately stops at the provider boundary. It can connect an
 already-created Umbra `RTIambassador` and translate callbacks, but it does not
 invent FOM subscriptions or domain-specific object semantics. The application

@@ -20,11 +20,11 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_publication.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClass",
       "tests": [
         "cpp/tests/fom_declaration_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form"
+        "cpp/tests/ieee1516_2025_unpublish_object_class_attributes_whole_class_catch2.cpp::Embedded service reporting preserves Unpublish Object Class Attributes arguments including whole-class form"
       ]
     },
     {
@@ -41,7 +41,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClass",
       "tests": [
         "cpp/tests/fom_declaration_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries"

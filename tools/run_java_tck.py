@@ -122,6 +122,7 @@ def run_tck(
     factory_name: str = "",
     time_implementation: str = "HLAinteger64Time",
     capability_profile: Path | None = None,
+    scenario: str = "",
     results_path: Path | None = None,
     junit_path: Path | None = None,
     provider_id: str = "",
@@ -163,6 +164,7 @@ def run_tck(
         "hla.rti.tck.capabilityProfile",
         str(capability_profile) if capability_profile else None,
     )
+    add_property(command, "hla.rti.tck.scenario", scenario)
     add_property(command, "hla.rti.tck.results", str(results_path) if results_path else None)
     add_property(command, "hla.rti.tck.junit", str(junit_path) if junit_path else None)
     add_property(command, "hla.rti.tck.provider", provider_id)
@@ -189,6 +191,7 @@ def add_common_run_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--factory-name", default="", help="standard factory name")
     parser.add_argument("--time-implementation", default="HLAinteger64Time")
     parser.add_argument("--capability-profile", default="")
+    parser.add_argument("--scenario", default="", help="run only this catalog scenario ID")
     parser.add_argument(
         "--classes-directory",
         default=str(DEFAULT_CLASSES),
@@ -433,6 +436,7 @@ def run_single(arguments: argparse.Namespace) -> int:
         factory_name=arguments.factory_name,
         time_implementation=arguments.time_implementation,
         capability_profile=profile,
+        scenario=arguments.scenario,
         results_path=results,
         junit_path=junit,
         provider_id=arguments.provider_id,

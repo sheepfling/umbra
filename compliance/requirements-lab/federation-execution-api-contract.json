@@ -11,8 +11,22 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void createFederationExecution( std::wstring const & federationName, std::wstring const & fomModule, std::wstring const & logicalTimeImplementationName = L\"\") = 0",
-      "exception_types": ["CouldNotCreateLogicalTimeFactory", "InconsistentFOM", "InvalidFOM", "ErrorReadingFOM", "CouldNotOpenFOM", "InvalidMIM", "ErrorReadingMIM", "CouldNotOpenMIM", "DesignatorIsHLAstandardMIM", "FederationExecutionAlreadyExists", "Unauthorized", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "CouldNotCreateLogicalTimeFactory",
+        "InconsistentFOM",
+        "InvalidFOM",
+        "ErrorReadingFOM",
+        "CouldNotOpenFOM",
+        "InvalidMIM",
+        "ErrorReadingMIM",
+        "CouldNotOpenMIM",
+        "DesignatorIsHLAstandardMIM",
+        "FederationExecutionAlreadyExists",
+        "Unauthorized",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp",
       "source_symbol": "UmbraRtiAmbassador::createFederationExecution",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_resign_lifecycle_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition",
@@ -25,11 +39,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void createFederationExecution( std::wstring const & federationName, std::vector<std::wstring> const & fomModules, std::wstring const & logicalTimeImplementationName = L\"\") = 0",
-      "exception_types": ["CouldNotCreateLogicalTimeFactory", "InconsistentFOM", "InvalidFOM", "ErrorReadingFOM", "CouldNotOpenFOM", "FederationExecutionAlreadyExists", "Unauthorized", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "CouldNotCreateLogicalTimeFactory",
+        "InconsistentFOM",
+        "InvalidFOM",
+        "ErrorReadingFOM",
+        "CouldNotOpenFOM",
+        "FederationExecutionAlreadyExists",
+        "Unauthorized",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp",
       "source_symbol": "UmbraRtiAmbassador::createFederationExecution",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state"
+        "cpp/tests/ieee1516_2025_asynchronous_delivery_temporal_state_catch2.cpp::Embedded asynchronous delivery gates receive-order callbacks by temporal state"
       ]
     },
     {
@@ -38,8 +62,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void createFederationExecutionWithMIM( std::wstring const & federationName, std::vector<std::wstring> const & fomModules, std::wstring const & mimModule, std::wstring const & logicalTimeImplementationName = L\"\") = 0",
-      "exception_types": ["InconsistentFOM", "InvalidFOM", "ErrorReadingFOM", "CouldNotOpenFOM", "InvalidMIM", "ErrorReadingMIM", "CouldNotOpenMIM", "DesignatorIsHLAstandardMIM", "FederationExecutionAlreadyExists", "Unauthorized", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InconsistentFOM",
+        "InvalidFOM",
+        "ErrorReadingFOM",
+        "CouldNotOpenFOM",
+        "InvalidMIM",
+        "ErrorReadingMIM",
+        "CouldNotOpenMIM",
+        "DesignatorIsHLAstandardMIM",
+        "FederationExecutionAlreadyExists",
+        "Unauthorized",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp",
       "source_symbol": "UmbraRtiAmbassador::createFederationExecutionWithMIM",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_resign_lifecycle_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition",
@@ -52,8 +89,14 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void destroyFederationExecution( std::wstring const & federationName) = 0",
-      "exception_types": ["FederatesCurrentlyJoined", "FederationExecutionDoesNotExist", "Unauthorized", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "FederatesCurrentlyJoined",
+        "FederationExecutionDoesNotExist",
+        "Unauthorized",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp",
       "source_symbol": "UmbraRtiAmbassador::destroyFederationExecution",
       "tests": [
         "cpp/tests/ieee1516_2025_federation_resign_lifecycle_catch2.cpp::Embedded federation-management services commit only a prevalidated federation definition"
@@ -65,7 +108,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual FederateHandle joinFederationExecution( std::wstring const & federateType, std::wstring const & federationName, std::vector<std::wstring> const & additionalFomModules = std::vector<std::wstring>()) = 0",
-      "exception_types": ["CouldNotCreateLogicalTimeFactory", "FederationExecutionDoesNotExist", "InconsistentFOM", "InvalidFOM", "ErrorReadingFOM", "CouldNotOpenFOM", "SaveInProgress", "RestoreInProgress", "FederateAlreadyExecutionMember", "Unauthorized", "NotConnected", "CallNotAllowedFromWithinCallback", "RTIinternalError"],
+      "exception_types": [
+        "CouldNotCreateLogicalTimeFactory",
+        "FederationExecutionDoesNotExist",
+        "InconsistentFOM",
+        "InvalidFOM",
+        "ErrorReadingFOM",
+        "CouldNotOpenFOM",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateAlreadyExecutionMember",
+        "Unauthorized",
+        "NotConnected",
+        "CallNotAllowedFromWithinCallback",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::joinFederationExecution",
       "tests": [
@@ -78,7 +135,22 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual FederateHandle joinFederationExecution( std::wstring const & federateName, std::wstring const & federateType, std::wstring const & federationName, std::vector<std::wstring> const & additionalFomModules = std::vector<std::wstring>()) = 0",
-      "exception_types": ["CouldNotCreateLogicalTimeFactory", "FederateNameAlreadyInUse", "FederationExecutionDoesNotExist", "InconsistentFOM", "InvalidFOM", "ErrorReadingFOM", "CouldNotOpenFOM", "SaveInProgress", "RestoreInProgress", "FederateAlreadyExecutionMember", "Unauthorized", "NotConnected", "CallNotAllowedFromWithinCallback", "RTIinternalError"],
+      "exception_types": [
+        "CouldNotCreateLogicalTimeFactory",
+        "FederateNameAlreadyInUse",
+        "FederationExecutionDoesNotExist",
+        "InconsistentFOM",
+        "InvalidFOM",
+        "ErrorReadingFOM",
+        "CouldNotOpenFOM",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateAlreadyExecutionMember",
+        "Unauthorized",
+        "NotConnected",
+        "CallNotAllowedFromWithinCallback",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::joinFederationExecution",
       "tests": [

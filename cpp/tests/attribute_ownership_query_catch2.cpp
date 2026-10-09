@@ -731,6 +731,8 @@ TEST_CASE(
       serveExpected(TransportServiceOperation::publish_object_class_attributes);
       serveExpected(TransportServiceOperation::register_object_instance);
       serveExpected(TransportServiceOperation::query_attribute_ownership);
+      serveExpected(
+          TransportServiceOperation::report_successful_void_service_invocation);
       serveExpected(TransportServiceOperation::receive_interaction);
       serveExpected(TransportServiceOperation::receive_interaction);
       serveExpected(TransportServiceOperation::receive_interaction);

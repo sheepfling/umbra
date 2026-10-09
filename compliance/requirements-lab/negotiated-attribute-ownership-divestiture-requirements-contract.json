@@ -9,12 +9,12 @@
       "id": "umbra-negotiated-divestiture-keeps-owner-until-an-acquirer-accepts",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l8-1",
       "clause_id": "clause-7.3.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planNegotiatedAttributeOwnershipDivestiture",
       "tests": [
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Negotiated Attribute Ownership Divestiture arguments",
+        "cpp/tests/ieee1516_2025_connection_lost_negotiated_ownership_cancellation_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_service_report_file_negotiated_attribute_ownership_divestiture_catch2.cpp::Embedded service reporting preserves Negotiated Attribute Ownership Divestiture arguments",
         "cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
         "cpp/tests/negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
       ]
@@ -23,11 +23,11 @@
       "id": "umbra-negotiated-divestiture-remains-pending-through-confirmation-or-cancellation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l20-5",
       "clause_id": "clause-7.3.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planCancelNegotiatedAttributeOwnershipDivestiture",
       "tests": [
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_connection_lost_negotiated_ownership_cancellation_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
         "cpp/tests/ieee1516_2025_cancel_negotiated_attribute_ownership_divestiture_service_report_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments",
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded service reporting delivers Cancel Negotiated Attribute Ownership Divestiture through MOM interaction",
         "cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
@@ -38,7 +38,7 @@
       "id": "umbra-negotiated-divestiture-rejects-an-already-pending-attribute",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l35-10",
       "clause_id": "clause-7.3.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planNegotiatedAttributeOwnershipDivestiture",
       "tests": [
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
@@ -48,12 +48,12 @@
       "id": "umbra-negotiated-divestiture-requests-confirmation-for-a-pending-regular-acquirer",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-155-l173-48",
       "clause_id": "clause-7.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_pending_work.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planPendingNegotiatedAttributeOwnershipDivestitureConfirmations",
       "tests": [
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Negotiated Attribute Ownership Divestiture arguments",
+        "cpp/tests/ieee1516_2025_connection_lost_negotiated_ownership_cancellation_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_service_report_file_negotiated_attribute_ownership_divestiture_catch2.cpp::Embedded service reporting preserves Negotiated Attribute Ownership Divestiture arguments",
         "cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
         "cpp/tests/negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
       ]
@@ -62,7 +62,7 @@
       "id": "umbra-request-divestiture-confirmation-keeps-the-regular-acquisition-tag",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l27-8",
       "clause_id": "clause-7.2",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp",
       "source_symbol": "queueAttributeOwnershipAcquisitionWorkItem",
       "tests": [
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer",
@@ -74,7 +74,7 @@
       "id": "umbra-request-divestiture-confirmation-is-one-shot-per-selected-acquisition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-158-l77-19",
       "clause_id": "clause-7.5.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginRequestDivestitureConfirmation",
       "tests": [
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer",
@@ -86,11 +86,11 @@
       "id": "umbra-confirm-divestiture-transfers-the-confirmed-set",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-159-l53-11",
       "clause_id": "clause-7.6.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planConfirmDivestiture",
       "tests": [
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Confirm Divestiture arguments",
+        "cpp/tests/ieee1516_2025_service_report_file_confirm_divestiture_catch2.cpp::Embedded service reporting preserves Confirm Divestiture arguments",
         "cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
         "cpp/tests/negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
       ]
@@ -99,11 +99,11 @@
       "id": "umbra-confirm-divestiture-propagates-its-tag-to-acquisition-notification",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l18-5",
       "clause_id": "clause-7.2",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp",
       "source_symbol": "queueConfirmDivestitureNotifications",
       "tests": [
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Confirm Divestiture arguments",
+        "cpp/tests/ieee1516_2025_service_report_file_confirm_divestiture_catch2.cpp::Embedded service reporting preserves Confirm Divestiture arguments",
         "cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",
         "cpp/tests/negotiated_divestiture_pre_delivery_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture suppresses a confirmation after pre-delivery acquisition cancellation"
       ]
@@ -112,7 +112,7 @@
       "id": "umbra-confirm-divestiture-resets-a-cancelled-candidate-to-waiting",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-159-l65-15",
       "clause_id": "clause-7.6.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planConfirmDivestiture",
       "tests": [
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer",
@@ -124,7 +124,7 @@
       "id": "umbra-regular-acquisition-uses-divestiture-confirmation-while-owner-is-waiting",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l158-47",
       "clause_id": "clause-7.8",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_pending_work.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planPendingAttributeOwnershipAcquisitionWork",
       "tests": [
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer"
@@ -134,11 +134,11 @@
       "id": "umbra-cancel-negotiated-divestiture-removes-the-pending-divestiture-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-169-l24-3",
       "clause_id": "clause-7.14.6",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planCancelNegotiatedAttributeOwnershipDivestiture",
       "tests": [
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded Negotiated Attribute Ownership Divestiture confirms a pending 2025 acquirer",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
+        "cpp/tests/ieee1516_2025_connection_lost_negotiated_ownership_cancellation_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
         "cpp/tests/ieee1516_2025_cancel_negotiated_attribute_ownership_divestiture_service_report_catch2.cpp::Embedded service reporting preserves Cancel Negotiated Attribute Ownership Divestiture arguments",
         "cpp/tests/negotiated_attribute_ownership_divestiture_pending_catch2.cpp::Embedded service reporting delivers Cancel Negotiated Attribute Ownership Divestiture through MOM interaction",
         "cpp/tests/negotiated_divestiture_partial_acquisition_cancellation_catch2.cpp::Embedded negotiated divestiture retains uncancelled attributes after a partial acquisition cancellation",

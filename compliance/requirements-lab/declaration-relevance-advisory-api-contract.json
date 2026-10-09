@@ -11,13 +11,15 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void startRegistrationForObjectClass( ObjectClassHandle const & objectClass) = 0",
-      "exception_types": ["FederateInternalError"],
+      "exception_types": [
+        "FederateInternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks"
       ]
     },
@@ -27,13 +29,15 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void stopRegistrationForObjectClass( ObjectClassHandle const & objectClass) = 0",
-      "exception_types": ["FederateInternalError"],
+      "exception_types": [
+        "FederateInternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks"
       ]
     },
@@ -43,13 +47,15 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void turnInteractionsOn( InteractionClassHandle const & interactionClass) = 0",
-      "exception_types": ["FederateInternalError"],
+      "exception_types": [
+        "FederateInternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks"
       ]
     },
@@ -59,13 +65,15 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void turnInteractionsOff( InteractionClassHandle const & interactionClass) = 0",
-      "exception_types": ["FederateInternalError"],
+      "exception_types": [
+        "FederateInternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks",
         "cpp/tests/declaration_relevance_service_report_catch2.cpp::Embedded service reporting records declaration relevance advisories before callbacks"
       ]
     },
@@ -75,12 +83,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool getObjectClassRelevanceAdvisorySwitch() const = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getObjectClassRelevanceAdvisorySwitch",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
         "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
       ]
     },
@@ -90,13 +104,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void setObjectClassRelevanceAdvisorySwitch(bool switchValue) = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::setObjectClassRelevanceAdvisorySwitch",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for advisory switch setters"
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting appends Table 5 void records for advisory switch setters"
       ]
     },
     {
@@ -105,12 +125,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool getInteractionRelevanceAdvisorySwitch() const = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getInteractionRelevanceAdvisorySwitch",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
         "cpp/tests/mom_federate_set_switches_catch2.cpp::Embedded MOM HLAsetSwitches updates the sending federate's switch subset"
       ]
     },
@@ -120,13 +146,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void setInteractionRelevanceAdvisorySwitch(bool switchValue) = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::setInteractionRelevanceAdvisorySwitch",
       "tests": [
         "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for advisory switch setters"
+        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions",
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting appends Table 5 void records for advisory switch setters"
       ]
     }
   ]

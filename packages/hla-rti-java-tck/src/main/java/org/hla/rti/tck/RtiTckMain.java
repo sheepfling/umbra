@@ -63,6 +63,8 @@ public final class RtiTckMain {
    private static final String DDM_ATTRIBUTE_PROPERTY = "hla.rti.tck.ddmAttribute";
    private static final String DIMENSION_PROPERTY = "hla.rti.tck.dimension";
    private static final String PROFILE_PROPERTY = "hla.rti.tck.capabilityProfile";
+   private static final String SCENARIO_PROPERTY = "hla.rti.tck.scenario";
+   private static final String STACKTRACE_PROPERTY = "hla.rti.tck.stacktrace";
    private static final String RESULTS_PROPERTY = "hla.rti.tck.results";
    private static final String JUNIT_PROPERTY = "hla.rti.tck.junit";
    private static final String PROVIDER_PROPERTY = "hla.rti.tck.provider";
@@ -161,12 +163,145 @@ public final class RtiTckMain {
                "java-1516.1-object-registration-discovery",
                "java-1516.1-attribute-value-update-reflection"
             }, true), RtiTckMain::objectRegistrationAndReflection);
+      run(new Scenario("java-tck.object-attribute-declarations-valid-inputs-after-resignation",
+            "check object-attribute declaration membership boundaries after resignation",
+            "declarations",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.unpublishObjectClass;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {
+               "cpp-1516.1-publish-object-class-attributes-membership-boundary-after-resignation",
+               "cpp-1516.1-unpublish-object-class-membership-boundary-after-resignation",
+               "cpp-1516.1-unpublish-object-class-attributes-membership-boundary-after-resignation",
+               "cpp-1516.1-subscribe-object-class-attributes-membership-boundary-after-resignation",
+               "cpp-1516.1-unsubscribe-object-class-membership-boundary-after-resignation",
+               "cpp-1516.1-unsubscribe-object-class-attributes-membership-boundary-after-resignation"
+            }, false), RtiTckMain::objectAttributeDeclarationsAfterResignation);
        run(new Scenario("java-tck.object-registration-discovery-lifecycle",
              "hierarchy-aware object discovery and callback-time subscription eligibility",
              "object-management",
              "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getKnownObjectClassHandle;RTIambassador.getObjectInstanceHandle;RTIambassador.getObjectInstanceName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance",
              new String[] {"java-1516.1-object-registration-discovery"}, false),
           RtiTckMain::objectRegistrationDiscoveryLifecycle);
+      run(new Scenario("java-tck.attribute-value-update-request-baseline",
+            "instance-scoped attribute-value request and provider callback",
+            "object-management",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.requestAttributeValueUpdate(instance);RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.provideAttributeValueUpdate;RTIambassador.evokeCallback",
+            new String[] {
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-attribute-value-update-request"
+            }, false), RtiTckMain::attributeValueUpdateRequestBaseline);
+      run(new Scenario("java-tck.object-class-attribute-value-update-request-baseline",
+            "expand a base-class attribute-value request over derived instances",
+            "object-management",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.requestAttributeValueUpdate(class);RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.provideAttributeValueUpdate",
+            new String[] {
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-attribute-value-update-request"
+            }, false), RtiTckMain::objectClassAttributeValueUpdateRequestBaseline);
+      run(new Scenario("java-tck.attribute-value-update-response",
+            "answer an instance-scoped value request and verify receive-order reflection metadata",
+            "object-management",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.requestAttributeValueUpdate(instance);RTIambassador.updateAttributeValues;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.provideAttributeValueUpdate;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-attribute-value-update-request",
+               "cpp-1516.1-attribute-value-update-response",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::attributeValueUpdateResponse);
+      run(new Scenario("java-tck.attribute-value-update-request-multi-requester",
+            "deliver independent value requests to one provider and fan out its response",
+            "object-management",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.requestAttributeValueUpdate(instance);RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.provideAttributeValueUpdate;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "cpp-1516.1-object-management",
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-attribute-value-update-request",
+               "cpp-1516.1-attribute-value-update-response",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::attributeValueUpdateMultiRequester);
+      run(new Scenario("java-tck.object-registration-discovery-multi-recipient",
+            "deliver two ordinary object discoveries to two active subscribers and preserve identity",
+            "object-management",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance",
+            new String[] {
+               "cpp-1516.1-object-management",
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::objectRegistrationMultiRecipient);
+      run(new Scenario("java-tck.ordinary-multi-attribute-subscription-projection",
+            "project ordinary multi-attribute updates to each subscriber's declared attributes",
+            "object-management",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "cpp-1516.1-attribute-update-reflect",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::multiAttributeSubscriptionProjection);
+      run(new Scenario("java-tck.ordinary-multi-attribute-value-update-request-response",
+            "request full and selective multi-attribute values and verify standard responses",
+            "object-management",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.requestAttributeValueUpdate(instance);RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.provideAttributeValueUpdate;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "cpp-1516.1-attribute-value-update-request",
+               "cpp-1516.1-attribute-update-reflect",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::multiAttributeValueUpdateRequestResponse);
+      run(new Scenario("java-tck.object-removal-multi-recipient-fifo",
+            "deliver ordinary object removals to two active subscribers without owner loopback",
+            "object-management",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.deleteObjectInstance;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance",
+            new String[] {
+               "cpp-1516.1-object-management",
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-object-instance-deletion",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, true), RtiTckMain::objectRemovalMultiRecipientFifo);
+      run(new Scenario("java-tck.object-deletion-service-boundaries",
+            "exercise ordinary object-deletion service boundaries and cleanup",
+            "object-management",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.localDeleteObjectInstance;RTIambassador.deleteObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance",
+            new String[] {
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-object-instance-deletion",
+               "cpp-1516.1-object-deletion-negative-boundaries",
+               "cpp-1516.1-local-object-instance-deletion",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::objectDeletionServiceBoundaries);
+      run(new Scenario("java-tck.receive-order-object-removal-subscription-withdrawal",
+            "deliver a queued terminal object removal after subscription withdrawal",
+            "object-management",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.deleteObjectInstance;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance",
+            new String[] {
+               "cpp-1516.1-object-management",
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-object-instance-deletion",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::receiveOrderObjectRemovalSubscriptionWithdrawal);
+      run(new Scenario("java-tck.resign-delete-objects-multi-recipient-fifo",
+            "deliver resign-time object removals to two active subscribers in producer order",
+            "object-management",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.resignFederationExecution;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance",
+            new String[] {
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "cpp-1516.1-object-management",
+               "cpp-1516.1-object-registration-discovery",
+               "cpp-1516.1-object-instance-deletion"
+            }, true), RtiTckMain::resignDeleteObjectsMultiRecipientFifo);
+      run(new Scenario("java-tck.resign-delete-objects",
+            "enforce NO_ACTION ownership failure and removal delivery with DELETE_OBJECTS",
+            "object-management",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.resignFederationExecution;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance",
+            new String[] {
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "cpp-1516.1-object-instance-deletion",
+               "cpp-1516.1-object-deletion-negative-boundaries"
+            }, true), RtiTckMain::resignDeleteObjects);
+      run(new Scenario("java-tck.attribute-multi-recipient-fifo",
+            "deliver ordinary attribute updates to two active subscribers in producer order",
+            "object-management",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getTransportationTypeName;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "cpp-1516.1-attribute-update-reflect",
+               "cpp-1516.1-federation-create-join-resign-destroy"
+            }, false), RtiTckMain::attributeMultiRecipientFifo);
       run(new Scenario("java-tck.attribute-interaction", "ordinary attribute and interaction routes", "interaction-management",
             "getObjectClassHandle;getObjectClassName;getAttributeHandle;getAttributeName;getUpdateRateValue;publishObjectClassAttributes;unpublishObjectClassAttributes;unpublishObjectClass;subscribeObjectClassAttributes;subscribeObjectClassAttributesPassively;unsubscribeObjectClassAttributes;unsubscribeObjectClass;getInteractionClassHandle;getInteractionClassName;getParameterHandle;getParameterName;publishInteractionClass;unpublishInteractionClass;subscribeInteractionClass;subscribeInteractionClassPassively;unsubscribeInteractionClass;updateAttributeValues;reflectAttributeValues;sendInteraction;receiveInteraction;enableCallbacks;disableCallbacks;discoverObjectInstance",
             new String[] {
@@ -201,6 +336,18 @@ public final class RtiTckMain {
                "java-1516.1-directed-interaction-subscription",
                "java-1516.1-directed-interaction-delivery"
             }, true), RtiTckMain::directedInteractions);
+      run(new Scenario("java-tck.directed-interaction-declarations-valid-inputs-after-resignation",
+            "check directed-interaction declaration membership boundaries after resignation",
+            "directed-interaction",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.unpublishObjectClassDirectedInteractions(set and whole class);RTIambassador.subscribeObjectClassDirectedInteractions;RTIambassador.unsubscribeObjectClassDirectedInteractions(set and whole class);RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {
+               "cpp-1516.1-publish-object-class-directed-interactions-membership-boundary-after-resignation",
+               "cpp-1516.1-unpublish-object-class-directed-interactions-set-membership-boundary-after-resignation",
+               "cpp-1516.1-unpublish-object-class-directed-interactions-whole-class-membership-boundary-after-resignation",
+               "cpp-1516.1-subscribe-object-class-directed-interactions-membership-boundary-after-resignation",
+               "cpp-1516.1-unsubscribe-object-class-directed-interactions-set-membership-boundary-after-resignation",
+               "cpp-1516.1-unsubscribe-object-class-directed-interactions-whole-class-membership-boundary-after-resignation"
+            }, false), RtiTckMain::directedInteractionDeclarationsAfterResignation);
       run(new Scenario("java-tck.directed-interaction-target-lifecycle",
             "directed interaction delivery across target deletion", "interaction-management",
             "RTIambassador.publishObjectClassAttributes;RTIambassador.publishObjectClassDirectedInteractions;RTIambassador.subscribeObjectClassAttributes;RTIambassador.subscribeObjectClassDirectedInteractions;RTIambassador.registerObjectInstance;RTIambassador.sendDirectedInteraction;RTIambassador.deleteObjectInstance;RTIambassador.unsubscribeObjectClassDirectedInteractions;RTIambassador.unpublishObjectClassDirectedInteractions;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveDirectedInteraction;FederateAmbassador.removeObjectInstance",
@@ -644,15 +791,27 @@ public final class RtiTckMain {
       int passed = count("pass");
       int unsupported = count("unsupported");
       int notApplicable = count("not applicable");
+      int filtered = count("filtered");
       int failed = count("fail");
       System.out.println("Java RTI contract TCK: " + passed + " passed, " + failed
-            + " failed, " + unsupported + " unsupported, " + notApplicable + " not applicable");
+            + " failed, " + unsupported + " unsupported, " + notApplicable
+            + " not applicable, " + filtered + " filtered");
+      String selectedScenario = System.getProperty(SCENARIO_PROPERTY, "");
+      if (!selectedScenario.isEmpty() && filtered == results.size()) {
+         throw new IllegalArgumentException("unknown Java TCK scenario: " + selectedScenario);
+      }
       if (failed != 0) {
          throw new AssertionError("Java RTI TCK failures: " + failureSummary());
       }
    }
 
    private static void run(Scenario scenario, CheckedTest test) {
+      String selectedScenario = System.getProperty(SCENARIO_PROPERTY, "");
+      if (!selectedScenario.isEmpty() && !selectedScenario.equals(scenario.id)) {
+         results.add(TestResult.skipped(scenario, "filtered",
+               "excluded by focused scenario selector: " + selectedScenario));
+         return;
+      }
       String mode = configuredMode(scenario);
       if ("unsupported".equals(mode) || "not applicable".equals(mode)) {
          results.add(TestResult.skipped(scenario, mode,
@@ -665,6 +824,7 @@ public final class RtiTckMain {
          results.add(TestResult.passed(scenario));
          System.out.println("PASS " + scenario.id + " provider=" + provider());
       } catch (Throwable error) {
+         if (Boolean.getBoolean(STACKTRACE_PROPERTY)) error.printStackTrace(System.err);
          String message = error.toString();
          if (error instanceof UnsupportedPortableScenario) {
             results.add(TestResult.skipped(scenario, "unsupported", message));
@@ -1639,13 +1799,43 @@ public final class RtiTckMain {
          case "java-tck.logical-time-factory": method = "logicalTimeFactory"; break;
          case "java-tck.declaration-management": method = "declarationManagement"; break;
          case "java-tck.object-management": method = "objectRegistrationAndReflection"; break;
+         case "java-tck.object-attribute-declarations-valid-inputs-after-resignation":
+            method = "objectAttributeDeclarationsAfterResignation"; break;
           case "java-tck.object-registration-discovery-lifecycle":
              method = "objectRegistrationDiscoveryLifecycle"; break;
+         case "java-tck.attribute-value-update-request-baseline":
+            method = "attributeValueUpdateRequestBaseline"; break;
+         case "java-tck.object-class-attribute-value-update-request-baseline":
+            method = "objectClassAttributeValueUpdateRequestBaseline"; break;
+         case "java-tck.attribute-value-update-response":
+            method = "attributeValueUpdateResponse"; break;
+         case "java-tck.attribute-value-update-request-multi-requester":
+            method = "attributeValueUpdateMultiRequester"; break;
+         case "java-tck.object-registration-discovery-multi-recipient":
+            method = "objectRegistrationMultiRecipient"; break;
+         case "java-tck.ordinary-multi-attribute-subscription-projection":
+            method = "multiAttributeSubscriptionProjection"; break;
+         case "java-tck.ordinary-multi-attribute-value-update-request-response":
+            method = "multiAttributeValueUpdateRequestResponse"; break;
+         case "java-tck.object-removal-multi-recipient-fifo":
+            method = "objectRemovalMultiRecipientFifo"; break;
+         case "java-tck.object-deletion-service-boundaries":
+            method = "objectDeletionServiceBoundaries"; break;
+         case "java-tck.receive-order-object-removal-subscription-withdrawal":
+            method = "receiveOrderObjectRemovalSubscriptionWithdrawal"; break;
+         case "java-tck.resign-delete-objects-multi-recipient-fifo":
+            method = "resignDeleteObjectsMultiRecipientFifo"; break;
+         case "java-tck.resign-delete-objects":
+            method = "resignDeleteObjects"; break;
+         case "java-tck.attribute-multi-recipient-fifo":
+            method = "attributeMultiRecipientFifo"; break;
          case "java-tck.attribute-interaction": method = "attributeInteraction"; break;
          case "java-tck.support-services": method = "supportServices"; break;
          case "java-tck.ordinary-edges": method = "ordinaryEdges"; break;
          case "java-tck.relevance-advisories": method = "relevanceAdvisories"; break;
          case "java-tck.directed-interactions": method = "directedInteractions"; break;
+         case "java-tck.directed-interaction-declarations-valid-inputs-after-resignation":
+            method = "directedInteractionDeclarationsAfterResignation"; break;
          case "java-tck.directed-interaction-target-lifecycle":
             method = "directedInteractionTargetLifecycle"; break;
          case "java-tck.transport-order": method = "transportOrder"; break;
@@ -1878,6 +2068,11 @@ public final class RtiTckMain {
          attributeName(), directedInteractionClassName());
    }
 
+   private static void directedInteractionDeclarationsAfterResignation() throws Exception {
+      DirectedInteractionDeclarationsAfterResignationTck.run(factory(), requireFom(),
+         timeImplementation(), objectClassName(), interactionClassName(), callbackModel());
+   }
+
    private static void directedInteractionTargetLifecycle() throws Exception {
       DirectedInteractionTargetLifecycleTck.run(factory(), requireFom(), timeImplementation(),
          objectClassName(), attributeName(), directedInteractionClassName(), callbackModel());
@@ -1956,6 +2151,81 @@ public final class RtiTckMain {
        ObjectRegistrationDiscoveryLifecycleTck.run(factory(), requireFom(),
           typedObjectClassName(), typedDerivedObjectClassName(),
           typedIdentityAttributeName(), typedDerivedAttributeName(), callbackModel());
+    }
+
+    private static void attributeValueUpdateRequestBaseline() throws Exception {
+       AttributeValueUpdateRequestBaselineTck.run(factory(), requireFom(), timeImplementation(),
+          multiAttributeObjectClassName(), multiAttributeFirstName(), multiAttributeSecondName(),
+          callbackModel());
+    }
+
+    private static void objectClassAttributeValueUpdateRequestBaseline() throws Exception {
+       ObjectClassAttributeValueUpdateRequestBaselineTck.run(factory(), requireFom(),
+          timeImplementation(), typedObjectClassName(), typedDerivedObjectClassName(),
+          typedIdentityAttributeName(), typedIntegerAttributeName(), typedDerivedAttributeName(),
+          callbackModel());
+    }
+
+    private static void attributeValueUpdateResponse() throws Exception {
+       AttributeValueUpdateResponseTck.run(factory(), requireFom(), timeImplementation(),
+          objectClassName(), attributeName(), callbackModel());
+    }
+
+    private static void attributeValueUpdateMultiRequester() throws Exception {
+       AttributeValueUpdateMultiRequesterTck.run(factory(), requireFom(), timeImplementation(),
+          objectClassName(), attributeName(), callbackModel());
+    }
+
+    private static void objectRegistrationMultiRecipient() throws Exception {
+       ObjectRegistrationMultiRecipientTck.run(factory(), requireFom(), objectClassName(),
+          attributeName(), callbackModel());
+    }
+
+    private static void multiAttributeSubscriptionProjection() throws Exception {
+       MultiAttributeSubscriptionProjectionTck.run(factory(), requireFom(), timeImplementation(),
+          multiAttributeObjectClassName(), multiAttributeFirstName(),
+          multiAttributeSecondName(), callbackModel());
+    }
+
+    private static void multiAttributeValueUpdateRequestResponse() throws Exception {
+       MultiAttributeValueUpdateRequestResponseTck.run(factory(), requireFom(),
+          timeImplementation(), multiAttributeObjectClassName(), multiAttributeFirstName(),
+          multiAttributeSecondName(), callbackModel());
+    }
+
+    private static void objectRemovalMultiRecipientFifo() throws Exception {
+       ObjectRemovalMultiRecipientFifoTck.run(factory(), requireFom(), timeImplementation(),
+          objectClassName(), attributeName(), callbackModel());
+    }
+
+    private static void objectDeletionServiceBoundaries() throws Exception {
+       ObjectDeletionServiceBoundariesTck.run(factory(), requireFom(), objectClassName(),
+          attributeName(), callbackModel());
+    }
+
+    private static void receiveOrderObjectRemovalSubscriptionWithdrawal() throws Exception {
+       ObjectRemovalSubscriptionWithdrawalTck.run(factory(), requireFom(), objectClassName(),
+          attributeName(), callbackModel());
+    }
+
+    private static void resignDeleteObjectsMultiRecipientFifo() throws Exception {
+       ResignDeleteObjectsMultiRecipientFifoTck.run(factory(), requireFom(), timeImplementation(),
+          objectClassName(), attributeName(), callbackModel());
+    }
+
+    private static void resignDeleteObjects() throws Exception {
+       ResignDeleteObjectsTck.run(factory(), requireFom(), timeImplementation(),
+          objectClassName(), attributeName(), callbackModel());
+    }
+
+    private static void attributeMultiRecipientFifo() throws Exception {
+       AttributeMultiRecipientFifoTck.run(factory(), requireFom(), objectClassName(),
+          attributeName(), callbackModel());
+    }
+
+    private static void objectAttributeDeclarationsAfterResignation() throws Exception {
+       ObjectAttributeDeclarationsAfterResignationTck.run(factory(), requireFom(),
+          timeImplementation(), objectClassName(), attributeName(), callbackModel());
     }
 
    private static void orderTypeControls() throws Exception {
@@ -2096,6 +2366,10 @@ public final class RtiTckMain {
 
    private static String typedIdentityAttributeName() {
       return System.getProperty("hla.rti.tck.typedIdentityAttribute", "Identity");
+   }
+
+   private static String typedIntegerAttributeName() {
+      return System.getProperty("hla.rti.tck.typedIntegerAttribute", "IntegerValue");
    }
 
     private static String typedDerivedAttributeName() {

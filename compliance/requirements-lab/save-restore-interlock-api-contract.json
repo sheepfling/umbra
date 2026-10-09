@@ -11,10 +11,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void publishObjectClassAttributes( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes) = 0",
-      "exception_types": ["AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_publication.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishObjectClassAttributes",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-register-object-instance",
@@ -22,10 +32,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual ObjectInstanceHandle registerObjectInstance( ObjectClassHandle const & objectClass) = 0",
-      "exception_types": ["ObjectClassNotPublished", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "ObjectClassNotPublished",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_region_registration.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerObjectInstance",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-create-region",
@@ -33,10 +53,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual RegionHandle createRegion( DimensionHandleSet const & dimensions) = 0",
-      "exception_types": ["InvalidDimensionHandle", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidDimensionHandle",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::createRegion",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-update-attribute-values",
@@ -44,10 +73,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void updateAttributeValues( ObjectInstanceHandle const & objectInstance, AttributeHandleValueMap const & attributeValues, VariableLengthData const & userSuppliedTag) = 0",
-      "exception_types": ["AttributeNotOwned", "AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-send-interaction",
@@ -55,10 +95,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void sendInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag) = 0",
-      "exception_types": ["InteractionClassNotPublished", "InteractionParameterNotDefined", "InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InteractionClassNotPublished",
+        "InteractionParameterNotDefined",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-attribute-ownership-acquisition",
@@ -66,10 +117,23 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void attributeOwnershipAcquisition( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & desiredAttributes, VariableLengthData const & userSuppliedTag) = 0",
-      "exception_types": ["AttributeNotPublished", "ObjectClassNotPublished", "FederateOwnsAttributes", "AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotPublished",
+        "ObjectClassNotPublished",
+        "FederateOwnsAttributes",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipAcquisition",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-time-advance-request",
@@ -77,10 +141,23 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void timeAdvanceRequest( LogicalTime const & time) = 0",
-      "exception_types": ["LogicalTimeAlreadyPassed", "InvalidLogicalTime", "InTimeAdvancingState", "RequestForTimeRegulationPending", "RequestForTimeConstrainedPending", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "LogicalTimeAlreadyPassed",
+        "InvalidLogicalTime",
+        "InTimeAdvancingState",
+        "RequestForTimeRegulationPending",
+        "RequestForTimeConstrainedPending",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unpublish-object-class",
@@ -88,10 +165,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unpublishObjectClass ( ObjectClassHandle const & objectClass) = 0",
-      "exception_types": ["OwnershipAcquisitionPending", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "OwnershipAcquisitionPending",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_publication.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClass",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unpublish-object-class-attributes",
@@ -99,10 +186,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unpublishObjectClassAttributes( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes) = 0",
-      "exception_types": ["OwnershipAcquisitionPending", "AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "OwnershipAcquisitionPending",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_publication.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassAttributes",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unsubscribe-object-class",
@@ -110,10 +208,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unsubscribeObjectClass( ObjectClassHandle const & objectClass) = 0",
-      "exception_types": ["ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClass",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unsubscribe-object-class-attributes",
@@ -121,10 +228,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unsubscribeObjectClassAttributes( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes) = 0",
-      "exception_types": ["AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributes",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-publish-interaction-class",
@@ -132,10 +249,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void publishInteractionClass( InteractionClassHandle const & interactionClass) = 0",
-      "exception_types": ["InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_declaration_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishInteractionClass",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unpublish-interaction-class",
@@ -143,10 +269,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unpublishInteractionClass( InteractionClassHandle const & interactionClass) = 0",
-      "exception_types": ["InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_declaration_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishInteractionClass",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-subscribe-interaction-class",
@@ -154,10 +289,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void subscribeInteractionClass( InteractionClassHandle const & interactionClass, bool active = true) = 0",
-      "exception_types": ["FederateServiceInvocationsAreBeingReportedViaMOM", "InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "FederateServiceInvocationsAreBeingReportedViaMOM",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_subscription_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClass",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unsubscribe-interaction-class",
@@ -165,10 +310,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unsubscribeInteractionClass( InteractionClassHandle const & interactionClass) = 0",
-      "exception_types": ["InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_subscription_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeInteractionClass",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-publish-object-class-directed-interactions",
@@ -176,10 +330,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void publishObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses) = 0",
-      "exception_types": ["InteractionClassNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_declaration_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishObjectClassDirectedInteractions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unpublish-object-class-directed-interactions",
@@ -187,10 +351,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unpublishObjectClassDirectedInteractions( ObjectClassHandle const & objectClass) = 0",
-      "exception_types": ["ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_declaration_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassDirectedInteractions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unpublish-object-class-directed-interactions-selective",
@@ -198,10 +371,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unpublishObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses) = 0",
-      "exception_types": ["InteractionClassNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_declaration_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassDirectedInteractions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-subscribe-object-class-directed-interactions",
@@ -209,10 +392,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void subscribeObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses, bool universally = false) = 0",
-      "exception_types": ["InteractionClassNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_subscription_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassDirectedInteractions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unsubscribe-object-class-directed-interactions",
@@ -220,10 +413,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unsubscribeObjectClassDirectedInteractions( ObjectClassHandle const & objectClass) = 0",
-      "exception_types": ["ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_subscription_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassDirectedInteractions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unsubscribe-object-class-directed-interactions-selective",
@@ -231,10 +433,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unsubscribeObjectClassDirectedInteractions( ObjectClassHandle const & objectClass, InteractionClassHandleSet const & interactionClasses) = 0",
-      "exception_types": ["InteractionClassNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_subscription_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassDirectedInteractions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-change-attribute-order-type",
@@ -242,10 +454,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void changeAttributeOrderType( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, OrderType orderType) = 0",
-      "exception_types": ["AttributeNotOwned", "AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_order_transportation_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::changeAttributeOrderType",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-change-default-attribute-order-type",
@@ -253,10 +476,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void changeDefaultAttributeOrderType( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes, OrderType orderType) = 0",
-      "exception_types": ["AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_order_transportation_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::changeDefaultAttributeOrderType",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-change-interaction-order-type",
@@ -264,10 +497,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void changeInteractionOrderType( InteractionClassHandle const & interactionClass, OrderType orderType) = 0",
-      "exception_types": ["InteractionClassNotPublished", "InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InteractionClassNotPublished",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_order_transportation_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::changeInteractionOrderType",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-request-attribute-transportation-type-change",
@@ -275,10 +518,23 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void requestAttributeTransportationTypeChange( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, TransportationTypeHandle const & transportationType) = 0",
-      "exception_types": ["AttributeAlreadyBeingChanged", "AttributeNotOwned", "AttributeNotDefined", "ObjectInstanceNotKnown", "InvalidTransportationTypeHandle", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeAlreadyBeingChanged",
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "InvalidTransportationTypeHandle",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_order_transportation_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeTransportationTypeChange",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-change-default-attribute-transportation-type",
@@ -286,10 +542,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void changeDefaultAttributeTransportationType( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes, TransportationTypeHandle const & transportationType) = 0",
-      "exception_types": ["AttributeNotDefined", "ObjectClassNotDefined", "InvalidTransportationTypeHandle", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "InvalidTransportationTypeHandle",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_order_transportation_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::changeDefaultAttributeTransportationType",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-query-attribute-transportation-type",
@@ -297,10 +564,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void queryAttributeTransportationType( ObjectInstanceHandle const & objectInstance, AttributeHandle const & attribute) = 0",
-      "exception_types": ["AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_order_transportation_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryAttributeTransportationType",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-request-interaction-transportation-type-change",
@@ -308,10 +585,22 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void requestInteractionTransportationTypeChange( InteractionClassHandle const & interactionClass, TransportationTypeHandle const & transportationType) = 0",
-      "exception_types": ["InteractionClassAlreadyBeingChanged", "InteractionClassNotPublished", "InteractionClassNotDefined", "InvalidTransportationTypeHandle", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InteractionClassAlreadyBeingChanged",
+        "InteractionClassNotPublished",
+        "InteractionClassNotDefined",
+        "InvalidTransportationTypeHandle",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_transportation_type_change.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestInteractionTransportationTypeChange",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-query-interaction-transportation-type",
@@ -319,10 +608,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void queryInteractionTransportationType( FederateHandle const & federate, InteractionClassHandle const & interactionClass) = 0",
-      "exception_types": ["InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_transportation_type_query.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryInteractionTransportationType",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-query-attribute-ownership",
@@ -330,10 +628,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void queryAttributeOwnership( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes) = 0",
-      "exception_types": ["AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryAttributeOwnership",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-is-attribute-owned-by-federate",
@@ -341,10 +649,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool isAttributeOwnedByFederate( ObjectInstanceHandle const & objectInstance, AttributeHandle const & attribute) = 0",
-      "exception_types": ["AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::isAttributeOwnedByFederate",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-negotiated-attribute-ownership-divestiture",
@@ -352,10 +670,22 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void negotiatedAttributeOwnershipDivestiture( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag) = 0",
-      "exception_types": ["AttributeAlreadyBeingDivested", "AttributeNotOwned", "AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeAlreadyBeingDivested",
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::negotiatedAttributeOwnershipDivestiture",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-confirm-divestiture",
@@ -363,10 +693,23 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void confirmDivestiture( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & confirmedAttributes, VariableLengthData const & userSuppliedTag) = 0",
-      "exception_types": ["NoAcquisitionPending", "AttributeDivestitureWasNotRequested", "AttributeNotOwned", "AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "NoAcquisitionPending",
+        "AttributeDivestitureWasNotRequested",
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::confirmDivestiture",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-cancel-negotiated-attribute-ownership-divestiture",
@@ -374,10 +717,22 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void cancelNegotiatedAttributeOwnershipDivestiture( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes) = 0",
-      "exception_types": ["AttributeDivestitureWasNotRequested", "AttributeNotOwned", "AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeDivestitureWasNotRequested",
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::cancelNegotiatedAttributeOwnershipDivestiture",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unconditional-attribute-ownership-divestiture",
@@ -385,10 +740,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unconditionalAttributeOwnershipDivestiture( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag) = 0",
-      "exception_types": ["AttributeNotOwned", "AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::unconditionalAttributeOwnershipDivestiture",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-attribute-ownership-release-denied",
@@ -396,10 +762,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void attributeOwnershipReleaseDenied( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag) = 0",
-      "exception_types": ["AttributeNotOwned", "AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipReleaseDenied",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-attribute-ownership-divestiture-if-wanted",
@@ -407,10 +784,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void attributeOwnershipDivestitureIfWanted( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag, AttributeHandleSet & divestedAttributes) = 0; // filled by RTI",
-      "exception_types": ["AttributeNotOwned", "AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipDivestitureIfWanted",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-cancel-attribute-ownership-acquisition",
@@ -418,10 +806,22 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void cancelAttributeOwnershipAcquisition( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes) = 0",
-      "exception_types": ["AttributeAcquisitionWasNotRequested", "AttributeAlreadyOwned", "AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeAcquisitionWasNotRequested",
+        "AttributeAlreadyOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::cancelAttributeOwnershipAcquisition",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-enable-time-regulation",
@@ -429,10 +829,22 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void enableTimeRegulation( LogicalTimeInterval const & lookahead) = 0",
-      "exception_types": ["InvalidLookahead", "InTimeAdvancingState", "RequestForTimeRegulationPending", "TimeRegulationAlreadyEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidLookahead",
+        "InTimeAdvancingState",
+        "RequestForTimeRegulationPending",
+        "TimeRegulationAlreadyEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_regulation_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-disable-time-regulation",
@@ -440,10 +852,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void disableTimeRegulation() = 0",
-      "exception_types": ["TimeRegulationIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "TimeRegulationIsNotEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_regulation_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::disableTimeRegulation",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-enable-time-constrained",
@@ -451,10 +872,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void enableTimeConstrained() = 0",
-      "exception_types": ["InTimeAdvancingState", "RequestForTimeConstrainedPending", "TimeConstrainedAlreadyEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InTimeAdvancingState",
+        "RequestForTimeConstrainedPending",
+        "TimeConstrainedAlreadyEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableTimeConstrained",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-disable-time-constrained",
@@ -462,10 +894,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void disableTimeConstrained() = 0",
-      "exception_types": ["TimeConstrainedIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "TimeConstrainedIsNotEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp",
       "source_symbol": "UmbraRtiAmbassador::disableTimeConstrained",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-query-logical-time",
@@ -473,10 +914,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void queryLogicalTime(LogicalTime & time) = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLogicalTime",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-query-galt",
@@ -484,10 +933,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool queryGALT(LogicalTime & time) = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_bounds_lookahead.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryGALT",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-query-lits",
@@ -495,10 +952,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool queryLITS(LogicalTime & time) = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_bounds_lookahead.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLITS",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-query-lookahead",
@@ -506,10 +971,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void queryLookahead(LogicalTimeInterval & interval) = 0",
-      "exception_types": ["TimeRegulationIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "TimeRegulationIsNotEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_bounds_lookahead.cpp",
       "source_symbol": "UmbraRtiAmbassador::queryLookahead",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-modify-lookahead",
@@ -517,10 +991,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void modifyLookahead( LogicalTimeInterval const & lookahead) = 0",
-      "exception_types": ["InvalidLookahead", "InTimeAdvancingState", "TimeRegulationIsNotEnabled", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidLookahead",
+        "InTimeAdvancingState",
+        "TimeRegulationIsNotEnabled",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_bounds_lookahead.cpp",
       "source_symbol": "UmbraRtiAmbassador::modifyLookahead",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-get-attribute-scope-advisory-switch",
@@ -528,10 +1013,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool getAttributeScopeAdvisorySwitch() const = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAttributeScopeAdvisorySwitch",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-set-attribute-scope-advisory-switch",
@@ -539,10 +1032,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void setAttributeScopeAdvisorySwitch(bool switchValue) = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::setAttributeScopeAdvisorySwitch",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-register-object-instance-with-regions",
@@ -550,10 +1051,25 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual ObjectInstanceHandle registerObjectInstanceWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
-      "exception_types": ["InvalidRegionContext", "RegionNotCreatedByThisFederate", "InvalidRegion", "AttributeNotPublished", "ObjectClassNotPublished", "AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotPublished",
+        "ObjectClassNotPublished",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_region_registration.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerObjectInstanceWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-associate-regions-for-updates",
@@ -561,10 +1077,23 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void associateRegionsForUpdates( ObjectInstanceHandle const & objectInstance, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
-      "exception_types": ["InvalidRegionContext", "RegionNotCreatedByThisFederate", "InvalidRegion", "AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_region_update_association.cpp",
       "source_symbol": "UmbraRtiAmbassador::associateRegionsForUpdates",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unassociate-regions-for-updates",
@@ -572,10 +1101,22 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unassociateRegionsForUpdates( ObjectInstanceHandle const & objectInstance, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
-      "exception_types": ["RegionNotCreatedByThisFederate", "InvalidRegion", "AttributeNotDefined", "ObjectInstanceNotKnown", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_region_update_association.cpp",
       "source_symbol": "UmbraRtiAmbassador::unassociateRegionsForUpdates",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-subscribe-object-class-attributes-with-regions",
@@ -583,10 +1124,23 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void subscribeObjectClassAttributesWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions, bool active = true, std::wstring const & updateRateDesignator = L\"\") = 0",
-      "exception_types": ["InvalidRegionContext", "RegionNotCreatedByThisFederate", "InvalidRegion", "AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributesWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unsubscribe-object-class-attributes-with-regions",
@@ -594,10 +1148,22 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unsubscribeObjectClassAttributesWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
-      "exception_types": ["RegionNotCreatedByThisFederate", "InvalidRegion", "AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributesWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-request-attribute-value-update-with-regions",
@@ -605,10 +1171,23 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void requestAttributeValueUpdateWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions, VariableLengthData const & userSuppliedTag) = 0",
-      "exception_types": ["InvalidRegionContext", "RegionNotCreatedByThisFederate", "InvalidRegion", "AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_request_attribute_value_updates.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeValueUpdateWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-subscribe-interaction-class-with-regions",
@@ -616,10 +1195,23 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void subscribeInteractionClassWithRegions( InteractionClassHandle const & interactionClass, RegionHandleSet const & regions, bool active = true) = 0",
-      "exception_types": ["FederateServiceInvocationsAreBeingReportedViaMOM", "InvalidRegionContext", "RegionNotCreatedByThisFederate", "InvalidRegion", "InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "FederateServiceInvocationsAreBeingReportedViaMOM",
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeInteractionClassWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-unsubscribe-interaction-class-with-regions",
@@ -627,10 +1219,23 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unsubscribeInteractionClassWithRegions( InteractionClassHandle const & interactionClass, RegionHandleSet const & regions) = 0",
-      "exception_types": ["FederateServiceInvocationsAreBeingReportedViaMOM", "InvalidRegionContext", "RegionNotCreatedByThisFederate", "InvalidRegion", "InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "FederateServiceInvocationsAreBeingReportedViaMOM",
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeInteractionClassWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-send-interaction-with-regions",
@@ -638,10 +1243,24 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void sendInteractionWithRegions( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, RegionHandleSet const & regions, VariableLengthData const & userSuppliedTag) = 0",
-      "exception_types": ["InvalidRegionContext", "RegionNotCreatedByThisFederate", "InvalidRegion", "InteractionClassNotPublished", "InteractionParameterNotDefined", "InteractionClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "InteractionClassNotPublished",
+        "InteractionParameterNotDefined",
+        "InteractionClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteractionWithRegions",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-register-synchronization-point",
@@ -649,10 +1268,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void registerFederationSynchronizationPoint( std::wstring const & synchronizationPointLabel, VariableLengthData const & userSuppliedTag) = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerFederationSynchronizationPoint",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-register-synchronization-point-with-set",
@@ -660,10 +1287,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void registerFederationSynchronizationPoint( std::wstring const & synchronizationPointLabel, VariableLengthData const & userSuppliedTag, FederateHandleSet const & synchronizationSet) = 0",
-      "exception_types": ["InvalidFederateHandle", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidFederateHandle",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerFederationSynchronizationPoint",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     },
     {
       "id": "umbra-interlock-achieve-synchronization-point",
@@ -671,10 +1307,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void synchronizationPointAchieved( std::wstring const & synchronizationPointLabel, bool successfully = true) = 0",
-      "exception_types": ["SynchronizationPointLabelNotAnnounced", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SynchronizationPointLabelNotAnnounced",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp",
       "source_symbol": "UmbraRtiAmbassador::synchronizationPointAchieved",
-      "tests": ["cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation save and restore interlock representative services"]
+      "tests": [
+        "cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp::Embedded federation save and restore interlock representative services"
+      ]
     }
   ]
 }

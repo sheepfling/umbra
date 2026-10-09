@@ -171,27 +171,27 @@ TEST_CASE(
         L"process-public-execution", L"server-owned-fom.xml");
     joinedHandle = rti->joinFederationExecution(
         L"process-public-type", L"process-public-execution");
-    REQUIRE_THROWS_AS(
+    CHECK_THROWS_AS(
         rti->destroyFederationExecution(L"process-public-execution"),
         rti1516_2025::FederatesCurrentlyJoined);
-    REQUIRE_NOTHROW(
+    CHECK_NOTHROW(
         rti->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
-    REQUIRE(federate.timeRegulationEnabledCount == 0U);
-    REQUIRE_FALSE(rti->evokeCallback(0.0));
-    REQUIRE(federate.timeRegulationEnabledCount == 1U);
-    REQUIRE(
+    CHECK(federate.timeRegulationEnabledCount == 0U);
+    CHECK_FALSE(rti->evokeCallback(0.0));
+    CHECK(federate.timeRegulationEnabledCount == 1U);
+    CHECK(
         federate.timeRegulationEnabledImplementation == L"HLAinteger64Time");
     rti1516_2025::HLAinteger64Time queriedTime;
-    REQUIRE_NOTHROW(rti->queryLogicalTime(queriedTime));
-    REQUIRE(queriedTime.getTime() == 0);
-    REQUIRE_NOTHROW(rti->disableTimeRegulation());
-    REQUIRE_THROWS_AS(
+    CHECK_NOTHROW(rti->queryLogicalTime(queriedTime));
+    CHECK(queriedTime.getTime() == 0);
+    CHECK_NOTHROW(rti->disableTimeRegulation());
+    CHECK_THROWS_AS(
         rti->disableTimeRegulation(),
         rti1516_2025::TimeRegulationIsNotEnabled);
     rti->resignFederationExecution(NO_ACTION);
-    REQUIRE_NOTHROW(
+    CHECK_NOTHROW(
         rti->destroyFederationExecution(L"process-public-execution"));
-    REQUIRE_THROWS_AS(
+    CHECK_THROWS_AS(
         rti->destroyFederationExecution(L"process-public-execution"),
         rti1516_2025::FederationExecutionDoesNotExist);
     rti->disconnect();
@@ -204,10 +204,39 @@ TEST_CASE(
   if (server.joinable()) {
     server.join();
   }
+  auto exceptionText = [](rti1516_2025::Exception const& error) {
+    std::string message;
+    for (auto const character : error.name()) {
+      message.push_back(character < 128 ? static_cast<char>(character) : '?');
+    }
+    message += ": ";
+    for (auto const character : error.what()) {
+      message.push_back(character < 128 ? static_cast<char>(character) : '?');
+    }
+    return message;
+  };
   if (clientError) {
-    std::rethrow_exception(clientError);
+    try {
+      std::rethrow_exception(clientError);
+    } catch (rti1516_2025::Exception const& error) {
+      FAIL_CHECK("process endpoint client threw: " << exceptionText(error));
+    } catch (std::exception const& error) {
+      FAIL_CHECK("process endpoint client threw: " << error.what());
+    } catch (...) {
+      FAIL_CHECK("process endpoint client threw a non-standard exception");
+    }
   }
-  REQUIRE_FALSE(serverError);
+  if (serverError) {
+    try {
+      std::rethrow_exception(serverError);
+    } catch (rti1516_2025::Exception const& error) {
+      FAIL_CHECK("process endpoint server threw: " << exceptionText(error));
+    } catch (std::exception const& error) {
+      FAIL_CHECK("process endpoint server threw: " << error.what());
+    } catch (...) {
+      FAIL_CHECK("process endpoint server threw a non-standard exception");
+    }
+  }
   REQUIRE(connectionResult.has_value());
   REQUIRE(connectionResult->addressUsed);
   REQUIRE(joinedHandle.has_value());
@@ -855,12 +884,16 @@ TEST_CASE(
       requireAutoProvide(true);
       if (!serveExpected(TransportServiceOperation::get_interaction_class_handle) ||
           !serveExpected(TransportServiceOperation::get_parameter_handle) ||
-          !serveExpected(TransportServiceOperation::send_interaction)) {
+          !serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(
+              TransportServiceOperation::report_successful_void_service_invocation)) {
         throw std::runtime_error(
             "The process federation MOM set-switches server did not receive the disabling adjustment.");
       }
       requireAutoProvide(false);
-      if (!serveExpected(TransportServiceOperation::send_interaction)) {
+      if (!serveExpected(TransportServiceOperation::send_interaction) ||
+          !serveExpected(
+              TransportServiceOperation::report_successful_void_service_invocation)) {
         throw std::runtime_error(
             "The process federation MOM set-switches server did not receive the enabling adjustment.");
       }
@@ -897,21 +930,40 @@ TEST_CASE(
     auto const setSwitches = rti->getInteractionClassHandle(
         L"HLAinteractionRoot.HLAmanager.HLAfederation.HLAadjust.HLAsetSwitches");
     auto const autoProvide = rti->getParameterHandle(setSwitches, L"HLAautoProvide");
-    REQUIRE(setSwitches.isValid());
-    REQUIRE(autoProvide.isValid());
+    CHECK(setSwitches.isValid());
+    CHECK(autoProvide.isValid());
 
     auto encodeSwitch = [](bool const enabled) {
       return rti1516_2025::HLAinteger32BE(enabled ? 1 : 0).encode();
     };
     ParameterHandleValueMap const disabledValues{
         {autoProvide, encodeSwitch(false)}};
-    REQUIRE_NOTHROW(rti->sendInteraction(
-        setSwitches, disabledValues, VariableLengthData()));
+    auto sendSwitchAdjustment = [&](ParameterHandleValueMap const& values) {
+      try {
+        rti->sendInteraction(setSwitches, values, VariableLengthData());
+      } catch (rti1516_2025::Exception const& error) {
+        std::string message;
+        for (auto const character : error.name()) {
+          message.push_back(character < 128 ? static_cast<char>(character) : '?');
+        }
+        message += ": ";
+        for (auto const character : error.what()) {
+          message.push_back(character < 128 ? static_cast<char>(character) : '?');
+        }
+        throw std::runtime_error("process HLAsetSwitches failed: " + message);
+      } catch (std::exception const& error) {
+        throw std::runtime_error(
+            std::string("process HLAsetSwitches failed: ") + error.what());
+      } catch (...) {
+        throw std::runtime_error(
+            "process HLAsetSwitches failed with a non-standard exception");
+      }
+    };
+    sendSwitchAdjustment(disabledValues);
 
     ParameterHandleValueMap const enabledValues{
         {autoProvide, encodeSwitch(true)}};
-    REQUIRE_NOTHROW(rti->sendInteraction(
-        setSwitches, enabledValues, VariableLengthData()));
+    sendSwitchAdjustment(enabledValues);
 
     rti->resignFederationExecution(NO_ACTION);
     joined = false;
@@ -921,6 +973,7 @@ TEST_CASE(
     if (joined) {
       try {
         rti->resignFederationExecution(NO_ACTION);
+        joined = false;
       } catch (...) {
       }
     }
@@ -936,11 +989,45 @@ TEST_CASE(
     server.join();
   }
   if (clientError) {
-    std::rethrow_exception(clientError);
+    try {
+      std::rethrow_exception(clientError);
+    } catch (rti1516_2025::Exception const& error) {
+      std::string message;
+      for (auto const character : error.name()) {
+        message.push_back(character < 128 ? static_cast<char>(character) : '?');
+      }
+      message += ": ";
+      for (auto const character : error.what()) {
+        message.push_back(character < 128 ? static_cast<char>(character) : '?');
+      }
+      FAIL_CHECK("process HLAsetSwitches client failed: " << message);
+    } catch (std::exception const& error) {
+      FAIL_CHECK("process HLAsetSwitches client failed: " << error.what());
+    } catch (...) {
+      FAIL_CHECK("process HLAsetSwitches client failed with a non-standard exception");
+    }
   }
-  REQUIRE_FALSE(serverError);
-  REQUIRE_FALSE(joined);
-  REQUIRE(connectionResult.has_value());
+  if (serverError) {
+    try {
+      std::rethrow_exception(serverError);
+    } catch (rti1516_2025::Exception const& error) {
+      std::string message;
+      for (auto const character : error.name()) {
+        message.push_back(character < 128 ? static_cast<char>(character) : '?');
+      }
+      message += ": ";
+      for (auto const character : error.what()) {
+        message.push_back(character < 128 ? static_cast<char>(character) : '?');
+      }
+      FAIL_CHECK("process HLAsetSwitches server failed: " << message);
+    } catch (std::exception const& error) {
+      FAIL_CHECK("process HLAsetSwitches server failed: " << error.what());
+    } catch (...) {
+      FAIL_CHECK("process HLAsetSwitches server failed with a non-standard exception");
+    }
+  }
+  CHECK_FALSE(joined);
+  CHECK(connectionResult.has_value());
 }
 
 TEST_CASE(

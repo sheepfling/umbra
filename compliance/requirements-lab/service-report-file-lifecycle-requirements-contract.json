@@ -13,19 +13,19 @@
       "source_symbol": "UmbraRtiAmbassador::joinFederationExecution",
       "notes": "The production join path creates the filesystem-backed writer before publishing the joined-federate MOM value and retains that writer for the joined-federate lifetime. The focused regressions observe one absolute file at join, the same path after both switch cycles, and distinct immutable paths for two simultaneous joined-federate lifetimes.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service-report files retain one joined-federate path across switch cycles",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route"
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service-report files retain one joined-federate path across switch cycles",
+        "cpp/tests/ieee1516_2025_joined_federate_mom_public_object_lifecycle_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route"
       ]
     },
     {
       "id": "umbra-service-report-file-lifecycle-switches-gate-appends-only",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp",
       "source_symbol": "EmbeddedFederationRegistry::momServiceReportRoutingPlanFor",
       "notes": "The routing plan suppresses appends while either service reporting or file reporting is disabled and resumes the same writer when the gate is enabled again. The focused regression performs a report-producing lookup in each state and verifies that every disabled interval does not change the file set or contents.",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service-report files retain one joined-federate path across switch cycles"
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service-report files retain one joined-federate path across switch cycles"
       ]
     }
   ]

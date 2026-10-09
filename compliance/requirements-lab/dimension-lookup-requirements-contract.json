@@ -9,36 +9,36 @@
       "id": "umbra-dimension-available-for-object-class-attribute",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l107-34",
       "clause_id": "clause-9.1.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
       "source_symbol": "EmbeddedFederationRegistry::availableDimensionsForObjectClass",
       "tests": [
         "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
+        "cpp/tests/ieee1516_2025_service_report_dimension_region_lookup_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
       ]
     },
     {
       "id": "umbra-dimension-available-for-object-instance-attribute",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l110-35",
       "clause_id": "clause-9.1.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
       "source_symbol": "EmbeddedFederationRegistry::availableDimensionsForObjectClass",
       "tests": [
         "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
+        "cpp/tests/ieee1516_2025_service_report_dimension_region_lookup_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
       ]
     },
     {
       "id": "umbra-dimension-available-for-interaction-class",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l119-38",
       "clause_id": "clause-9.1.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
       "source_symbol": "EmbeddedFederationRegistry::availableDimensionsForInteractionClass",
       "tests": [
         "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
+        "cpp/tests/ieee1516_2025_service_report_dimension_region_lookup_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
       ]
     },
     {
@@ -49,8 +49,8 @@
       "source_symbol": "appendDimension",
       "tests": [
         "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
+        "cpp/tests/ieee1516_2025_service_report_dimension_region_lookup_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
       ]
     }
   ]

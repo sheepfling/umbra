@@ -9,7 +9,7 @@
       "id": "umbra-auto-provide-invokes-provider-after-discovery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-110-l16-4",
       "clause_id": "clause-6.1.10",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
       "source_symbol": "queueObjectInstanceDiscovery",
       "tests": [
         "cpp/tests/auto_provide_baseline_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
@@ -26,7 +26,7 @@
       "id": "umbra-auto-provide-targets-every-in-scope-owned-attribute",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-110-l34-10",
       "clause_id": "clause-6.1.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAutoProvideForDiscovery",
       "tests": [
         "cpp/tests/auto_provide_baseline_catch2.cpp::Embedded Auto Provide solicits in-scope owners after discovery",
@@ -43,7 +43,7 @@
       "id": "umbra-auto-provide-disabled-suppresses-provider-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-110-l10-2",
       "clause_id": "clause-6.1.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAutoProvideForDiscovery",
       "tests": [
         "cpp/tests/auto_provide_disabled_discovery_only_catch2.cpp::Embedded disabled Auto Provide leaves discovery without a provider callback",
@@ -71,7 +71,7 @@
       "id": "umbra-auto-provide-mom-switch-is-dynamic",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-110-l10-2",
       "clause_id": "clause-6.1.10",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "tests": [
         "cpp/tests/auto_provide_mom_catch2.cpp::Embedded MOM HLAsetSwitches adjusts federation-wide Auto Provide",
@@ -86,7 +86,7 @@
       "id": "umbra-auto-provide-switch-mutation-fences-queued-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-110-l10-2",
       "clause_id": "clause-6.1.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::attributeValueUpdateProvideRecipientFor",
       "tests": [
         "cpp/tests/regional_auto_provide_switch_mutation_catch2.cpp::Embedded regional Auto Provide suppresses queued work after switch mutation and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE"
@@ -96,7 +96,7 @@
       "id": "umbra-auto-provide-switch-admission-fences-provider-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-110-l10-2",
       "clause_id": "clause-6.1.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAutoProvideForDiscovery",
       "tests": [
         "cpp/tests/regional_auto_provide_switch_admission_catch2.cpp::Embedded regional Auto Provide consumes queued discovery work when switch changes before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE",
@@ -107,7 +107,7 @@
       "id": "umbra-auto-provide-timestamped-switch-admission-fences-provider-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
       "clause_id": "clause-8.8.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAutoProvideForDiscovery",
       "tests": [
         "cpp/tests/regional_auto_provide_timestamped_switch_admission_catch2.cpp::Embedded regional Auto Provide fences timestamped discovery work before provider admission and re-enables fresh discovery under HLA_EVOKED and HLA_IMMEDIATE"
@@ -117,7 +117,7 @@
       "id": "umbra-auto-provide-separates-independent-source-regions",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l100-30",
       "clause_id": "clause-9.13.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAutoProvideForDiscovery",
       "tests": [
         "cpp/tests/regional_auto_provide_multi_source_catch2.cpp::Embedded regional Auto Provide separates independent source regions and provider callbacks under HLA_EVOKED and HLA_IMMEDIATE"
@@ -127,7 +127,7 @@
       "id": "umbra-auto-provide-respects-relaxed-ddm-scope",
       "requirements_lab_requirement_id": "requirement-source-refinement-relaxed-ddm-delivery",
       "clause_id": "clause-9.1.8",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::regionsOverlap",
       "tests": [
         "cpp/tests/regional_auto_provide_response_catch2.cpp::Embedded regional Auto Provide applies Allow Relaxed DDM to touching source projections and suppresses positive gaps under HLA_EVOKED and HLA_IMMEDIATE"

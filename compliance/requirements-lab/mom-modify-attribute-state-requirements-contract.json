@@ -12,7 +12,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAmodifyAttributeState changes application ownership without callbacks",
+        "cpp/tests/ieee1516_2025_federation_mom_modify_attribute_state_catch2.cpp::Embedded MOM HLAmodifyAttributeState changes application ownership without callbacks",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_modify_attribute_state_without_callbacks"
       ],
       "notes": "The adapter recognizes the official HLAmanager.HLAfederate.HLAadjust.HLAmodifyAttributeState leaf class and routes it to the RTI-owned control path. The selected Lab candidate is the generic MOM receive-class candidate; it does not identify this leaf interaction by name."
@@ -24,7 +24,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAmodifyAttributeState changes application ownership without callbacks",
+        "cpp/tests/ieee1516_2025_federation_mom_modify_attribute_state_catch2.cpp::Embedded MOM HLAmodifyAttributeState changes application ownership without callbacks",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_modify_attribute_state_without_callbacks"
       ],
       "notes": "Accepted HLAmodifyAttributeState interactions are acted on synchronously by the embedded RTI and do not become ordinary application Receive Interaction callbacks. The test verifies the resulting ownership state through Query Attribute Ownership."
@@ -36,7 +36,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAmodifyAttributeState changes application ownership without callbacks",
+        "cpp/tests/ieee1516_2025_federation_mom_modify_attribute_state_catch2.cpp::Embedded MOM HLAmodifyAttributeState changes application ownership without callbacks",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_modify_attribute_state_without_callbacks"
       ],
       "notes": "The inherited HLAfederate parameter selects the joined-federate target, while the object and attribute parameters select the application ledger entry. The selected candidate is the closest exported HLAadjust information-shape candidate and is not a row-level parameter contract."
@@ -48,7 +48,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setFederateMomAttributeState",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAmodifyAttributeState changes application ownership without callbacks",
+        "cpp/tests/ieee1516_2025_federation_mom_modify_attribute_state_catch2.cpp::Embedded MOM HLAmodifyAttributeState changes application ownership without callbacks",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_modify_attribute_state_without_callbacks"
       ],
       "notes": "The direct MOM path is the standard exception to ordinary federate-consent ownership transitions: it synchronously assigns Owned to the target or clears to Unowned, without synthesizing ownership callbacks. The selected ownership candidate is a conservative clause-level candidate and does not enumerate the MOM exception itself."
@@ -60,7 +60,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setFederateMomAttributeState",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded MOM HLAmodifyAttributeState changes application ownership without callbacks",
+        "cpp/tests/ieee1516_2025_federation_mom_modify_attribute_state_catch2.cpp::Embedded MOM HLAmodifyAttributeState changes application ownership without callbacks",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_mom_modify_attribute_state_without_callbacks"
       ],
       "notes": "The registry rejects predefined HLAmanager.HLAfederate attributes before consulting the application object ledger, preserving the MIM rule that those MOM attributes are owned by the RTI. The focused case proves the rejection with HLAfederateName."

@@ -9,77 +9,77 @@
       "id": "umbra-object-attribute-subscription-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-082-l59-18",
       "clause_id": "clause-5.1.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeSubscription",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently",
+        "cpp/tests/federation_registry_composed_fom_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently",
         "cpp/tests/fom_declaration_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_registry_object_class_declarations_filesystem_restart_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
       ]
     },
     {
       "id": "umbra-object-attribute-unsubscribe-is-class-local",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-082-l71-22",
       "clause_id": "clause-5.1.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeSubscription",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently"
+        "cpp/tests/federation_registry_composed_fom_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently"
       ]
     },
     {
       "id": "umbra-object-attribute-subscription-active-mode",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-082-l80-25",
       "clause_id": "clause-5.1.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributeSubscription",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
+        "cpp/tests/federation_registry_composed_fom_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently",
+        "cpp/tests/ieee1516_2025_federation_registry_object_class_declarations_filesystem_restart_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
       ]
     },
     {
       "id": "umbra-object-attribute-explicit-publication-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-082-l89-28",
       "clause_id": "clause-5.1.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributePublication",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently",
+        "cpp/tests/federation_registry_composed_fom_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently",
         "cpp/tests/fom_declaration_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_registry_object_class_declarations_filesystem_restart_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
       ]
     },
     {
       "id": "umbra-object-attribute-unpublication-is-class-local",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-082-l167-54",
       "clause_id": "clause-5.1.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setObjectClassAttributePublication",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently"
+        "cpp/tests/federation_registry_composed_fom_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently"
       ]
     },
     {
       "id": "umbra-object-class-subscription-from-attributes",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-082-l173-56",
       "clause_id": "clause-5.1.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::objectClassAttributeDeclarationFor",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
+        "cpp/tests/federation_registry_composed_fom_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently",
+        "cpp/tests/ieee1516_2025_federation_registry_object_class_declarations_filesystem_restart_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
       ]
     },
     {
       "id": "umbra-object-class-publication-from-attributes",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-082-l182-59",
       "clause_id": "clause-5.1.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp",
       "source_symbol": "EmbeddedFederationRegistry::objectClassAttributeDeclarationFor",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
+        "cpp/tests/federation_registry_composed_fom_catch2.cpp::The federation registry retains 2025 object class attribute declarations independently",
+        "cpp/tests/ieee1516_2025_federation_registry_object_class_declarations_filesystem_restart_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
       ]
     },
     {
@@ -96,7 +96,7 @@
       "id": "umbra-object-attribute-passive-subscription-suppresses-reflection",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
       "clause_id": "clause-5.8",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
       "tests": [
         "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery"

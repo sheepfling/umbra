@@ -11,8 +11,14 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool getConveyRegionDesignatorSetsSwitch() const = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.inc",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getConveyRegionDesignatorSetsSwitch",
       "tests": [
         "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
@@ -26,8 +32,14 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void setConveyRegionDesignatorSetsSwitch(bool switchValue) = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.inc",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::setConveyRegionDesignatorSetsSwitch",
       "tests": [
         "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
@@ -45,17 +57,23 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual ResignAction getAutomaticResignDirective() = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_support_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAutomaticResignDirective",
       "tests": [
         "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
-                "cpp/tests/ieee1516_2025_connection_lost_automatic_no_action_forced_resign_catch2.cpp::Embedded transport loss applies the bounded automatic NoAction forced-resign policy",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_no_action_forced_resign_catch2.cpp::Embedded transport loss applies the bounded automatic NoAction forced-resign policy",
         "cpp/tests/ieee1516_2025_connection_lost_report_ordering_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
         "cpp/tests/ieee1516_2025_connection_lost_final_federate_directive_two_catch2.cpp::Embedded final-federate transport loss forces directive two",
         "cpp/tests/ieee1516_2025_connection_lost_negotiated_ownership_cancellation_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
-                "cpp/tests/ieee1516_2025_connection_lost_automatic_delete_resign_directive_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
-                "cpp/tests/ieee1516_2025_connection_lost_automatic_unconditional_divest_directive_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_delete_resign_directive_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_unconditional_divest_directive_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
         "cpp/tests/ieee1516_2025_connection_lost_automatic_delete_then_divest_directive_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
         "cpp/tests/ieee1516_2025_connection_lost_automatic_cancel_pending_acquisition_catch2.cpp::Embedded transport loss cancels the lost federate's pending ownership acquisition",
         "cpp/tests/ieee1516_2025_connection_lost_cancel_delete_divest_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
@@ -70,17 +88,24 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void setAutomaticResignDirective( ResignAction resignAction) = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "InvalidResignAction", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "InvalidResignAction",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_support_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::setAutomaticResignDirective",
       "tests": [
         "cpp/tests/support_switch_state_catch2.cpp::Embedded support switches are seeded per federate and retain static FDD policy",
-                "cpp/tests/ieee1516_2025_connection_lost_automatic_no_action_forced_resign_catch2.cpp::Embedded transport loss applies the bounded automatic NoAction forced-resign policy",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_no_action_forced_resign_catch2.cpp::Embedded transport loss applies the bounded automatic NoAction forced-resign policy",
         "cpp/tests/ieee1516_2025_connection_lost_report_ordering_catch2.cpp::Embedded transport loss delivers Federate Lost reports before automatic removals to every subscribed survivor",
         "cpp/tests/ieee1516_2025_connection_lost_final_federate_directive_two_catch2.cpp::Embedded final-federate transport loss forces directive two",
         "cpp/tests/ieee1516_2025_connection_lost_negotiated_ownership_cancellation_catch2.cpp::Embedded transport loss cancels a pending negotiated ownership transfer",
-                "cpp/tests/ieee1516_2025_connection_lost_automatic_delete_resign_directive_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
-                "cpp/tests/ieee1516_2025_connection_lost_automatic_unconditional_divest_directive_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_delete_resign_directive_catch2.cpp::Embedded transport loss applies the configured automatic delete resign directive",
+        "cpp/tests/ieee1516_2025_connection_lost_automatic_unconditional_divest_directive_catch2.cpp::Embedded transport loss applies the configured automatic unconditional-divest directive",
         "cpp/tests/ieee1516_2025_connection_lost_automatic_delete_then_divest_directive_catch2.cpp::Embedded transport loss applies the configured automatic delete-then-divest directive",
         "cpp/tests/ieee1516_2025_connection_lost_automatic_cancel_pending_acquisition_catch2.cpp::Embedded transport loss cancels the lost federate's pending ownership acquisition",
         "cpp/tests/ieee1516_2025_connection_lost_cancel_delete_divest_catch2.cpp::Embedded transport loss applies the configured automatic cancel-then-delete-then-divest directive",
@@ -95,7 +120,13 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool getServiceReportingSwitch() const = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getServiceReportingSwitch",
       "tests": [
@@ -110,7 +141,14 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void setServiceReportingSwitch(bool switchValue) = 0",
-      "exception_types": ["ReportServiceInvocationsAreSubscribed", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "exception_types": [
+        "ReportServiceInvocationsAreSubscribed",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::setServiceReportingSwitch",
       "tests": [
@@ -124,7 +162,13 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool getExceptionReportingSwitch() const = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getExceptionReportingSwitch",
       "tests": [
@@ -138,7 +182,13 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void setExceptionReportingSwitch(bool switchValue) = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::setExceptionReportingSwitch",
       "tests": [
@@ -152,7 +202,13 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool getSendServiceReportsToFileSwitch() const = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getSendServiceReportsToFileSwitch",
       "tests": [
@@ -167,7 +223,13 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void setSendServiceReportsToFileSwitch(bool switchValue) = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::setSendServiceReportsToFileSwitch",
       "tests": [
@@ -181,7 +243,13 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool getDelaySubscriptionEvaluationSwitch() const = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_support_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getDelaySubscriptionEvaluationSwitch",
       "tests": [
@@ -198,7 +266,13 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool getAllowRelaxedDDMSwitch() const = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador_support_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAllowRelaxedDDMSwitch",
       "tests": [

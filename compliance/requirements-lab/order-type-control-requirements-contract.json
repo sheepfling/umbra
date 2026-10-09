@@ -9,7 +9,7 @@
       "id": "umbra-attribute-order-initializes-from-default",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-212-l42-7",
       "clause_id": "clause-8.24.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_instance_registration.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
         "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
@@ -20,7 +20,7 @@
       "id": "umbra-change-attribute-order-affects-future-updates",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-212-l48-9",
       "clause_id": "clause-8.24.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_transportation_order_services.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeAttributeOrderType",
       "tests": [
         "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
@@ -35,7 +35,7 @@
       "id": "umbra-ownership-transfer-resets-attribute-order",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-212-l54-11",
       "clause_id": "clause-8.24.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionIfAvailable",
       "tests": [
         "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
@@ -46,7 +46,7 @@
       "id": "umbra-ownership-transfer-uses-new-owner-default-order",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-213-l76-20",
       "clause_id": "clause-8.25.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginConfirmDivestiture",
       "tests": [
         "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
@@ -57,14 +57,14 @@
       "id": "umbra-class-default-captured-per-federate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-213-l79-21",
       "clause_id": "clause-8.25.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_transportation_order_services.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeDefaultAttributeOrderType",
       "tests": [
         "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry",
+        "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_timestamped_object_class_request_provider_response_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_registry_object_class_declarations_filesystem_restart_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup"
       ]
     },
@@ -72,14 +72,14 @@
       "id": "umbra-class-default-validates-class-and-attributes",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-213-l88-24",
       "clause_id": "clause-8.25.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_transportation_order_services.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeDefaultAttributeOrderType",
       "tests": [
         "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry",
+        "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_timestamped_object_class_request_provider_response_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_federation_registry_object_class_declarations_filesystem_restart_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup"
       ]
     },
@@ -87,13 +87,13 @@
       "id": "umbra-class-default-affects-future-instances",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-213-l94-26",
       "clause_id": "clause-8.25.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_instance_registration.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
         "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
+        "cpp/tests/ieee1516_2025_timestamped_regional_request_provider_response_catch2.cpp::Embedded regional Request Attribute Value Update supports a timestamped provider response",
+        "cpp/tests/ieee1516_2025_timestamped_object_class_request_provider_response_catch2.cpp::Embedded object-class Request Attribute Value Update supports a timestamped provider response under HLA_EVOKED and HLA_IMMEDIATE",
         "cpp/tests/connection_loss_attribute_update_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff attribute reflection from automatic object cleanup"
       ]
     },
@@ -101,7 +101,7 @@
       "id": "umbra-interaction-order-initializes-from-fdd",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-214-l81-20",
       "clause_id": "clause-8.26.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
       "source_symbol": "EmbeddedFederationRegistry::interactionOrderType",
       "tests": [
         "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
@@ -112,12 +112,12 @@
       "id": "umbra-change-interaction-order-affects-future-sends",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-214-l87-22",
       "clause_id": "clause-8.26.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_transportation_order_services.cpp",
       "source_symbol": "EmbeddedFederationRegistry::changeInteractionOrderType",
       "tests": [
         "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
         "cpp/tests/order_type_control_catch2.cpp::Embedded order type control captures defaults, instance overrides, and publisher interaction order",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Change Interaction Order Type arguments"
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting preserves Change Interaction Order Type arguments"
       ]
     }
   ]

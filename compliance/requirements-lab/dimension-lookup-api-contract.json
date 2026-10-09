@@ -11,13 +11,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual DimensionHandleSet getAvailableDimensionsForObjectClass( ObjectClassHandle const & objectClass) = 0",
-      "exception_types": ["InvalidObjectClassHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidObjectClassHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAvailableDimensionsForObjectClass",
       "tests": [
         "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
+        "cpp/tests/ieee1516_2025_service_report_dimension_region_lookup_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
       ]
     },
     {
@@ -26,13 +31,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual DimensionHandleSet getAvailableDimensionsForInteractionClass( InteractionClassHandle const & interactionClass) = 0",
-      "exception_types": ["InvalidInteractionClassHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidInteractionClassHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAvailableDimensionsForInteractionClass",
       "tests": [
         "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
+        "cpp/tests/ieee1516_2025_service_report_dimension_region_lookup_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
       ]
     },
     {
@@ -41,14 +51,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual DimensionHandle getDimensionHandle( std::wstring const & dimensionName) = 0",
-      "exception_types": ["NameNotFound", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "NameNotFound",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getDimensionHandle",
       "tests": [
         "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting suppresses accepted services while the reporting switch is disabled"
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
+        "cpp/tests/ieee1516_2025_service_report_dimension_region_lookup_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction",
+        "cpp/tests/ieee1516_2025_service_report_disabled_suppression_integration_catch2.cpp::Embedded service reporting suppresses accepted services while the reporting switch is disabled"
       ]
     },
     {
@@ -57,13 +72,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual std::wstring getDimensionName( DimensionHandle const & dimension) = 0",
-      "exception_types": ["InvalidDimensionHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidDimensionHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getDimensionName",
       "tests": [
         "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
+        "cpp/tests/ieee1516_2025_service_report_dimension_region_lookup_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
       ]
     },
     {
@@ -72,13 +92,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual unsigned long getDimensionUpperBound( DimensionHandle const & dimension) = 0",
-      "exception_types": ["InvalidDimensionHandle", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidDimensionHandle",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getDimensionUpperBound",
       "tests": [
         "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
+        "cpp/tests/dimension_lookup_catch2.cpp::Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds",
+        "cpp/tests/ieee1516_2025_service_report_dimension_region_lookup_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction"
       ]
     }
   ]

@@ -11,14 +11,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual RegionHandle createRegion( DimensionHandleSet const & dimensions) = 0",
-      "exception_types": ["InvalidDimensionHandle", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidDimensionHandle",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::createRegion",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
         "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
+        "cpp/tests/ieee1516_2025_service_report_create_region_get_range_bounds_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_registry_federation_owned_regions_filesystem_restart_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
     },
     {
@@ -27,13 +34,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void commitRegionModifications( RegionHandleSet const & regions) = 0",
-      "exception_types": ["RegionNotCreatedByThisFederate", "InvalidRegion", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::commitRegionModifications",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
         "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_registry_federation_owned_regions_filesystem_restart_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
     },
     {
@@ -42,11 +57,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void deleteRegion( RegionHandle const & region) = 0",
-      "exception_types": ["RegionInUseForUpdateOrSubscription", "RegionNotCreatedByThisFederate", "InvalidRegion", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "RegionInUseForUpdateOrSubscription",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::deleteRegion",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
         "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup"
       ]
     },
@@ -56,13 +80,20 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual DimensionHandleSet getDimensionHandleSet( RegionHandle const & region) = 0",
-      "exception_types": ["InvalidRegion", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidRegion",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getDimensionHandleSet",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_service_report_dimension_region_lookup_catch2.cpp::Embedded service reporting delivers dimension and region lookup return arguments through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_registry_federation_owned_regions_filesystem_restart_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
     },
     {
@@ -71,13 +102,21 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual RangeBounds getRangeBounds( RegionHandle const & region, DimensionHandle const & dimension) = 0",
-      "exception_types": ["RegionDoesNotContainSpecifiedDimension", "InvalidRegion", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "RegionDoesNotContainSpecifiedDimension",
+        "InvalidRegion",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::getRangeBounds",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_service_report_create_region_get_range_bounds_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_registry_federation_owned_regions_filesystem_restart_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
     },
     {
@@ -86,14 +125,24 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void setRangeBounds( RegionHandle const & region, DimensionHandle const & dimension, RangeBounds const & rangeBounds) = 0",
-      "exception_types": ["InvalidRangeBound", "RegionDoesNotContainSpecifiedDimension", "RegionNotCreatedByThisFederate", "InvalidRegion", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidRangeBound",
+        "RegionDoesNotContainSpecifiedDimension",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_dimension_region_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::setRangeBounds",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state",
         "cpp/tests/connection_loss_regional_selector_mutation_catch2.cpp::Embedded transport loss rechecks a regional selector before automatic cleanup",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
+        "cpp/tests/ieee1516_2025_service_report_create_region_get_range_bounds_catch2.cpp::Embedded service reporting delivers Create Region and Get Range Bounds return arguments through MOM interaction",
+        "cpp/tests/ieee1516_2025_federation_registry_federation_owned_regions_filesystem_restart_catch2.cpp::Filesystem state image restores federation-owned regions in a fresh registry"
       ]
     },
     {
@@ -102,11 +151,16 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual RegionHandle decodeRegionHandle ( VariableLengthData const & encodedValue) const = 0",
-      "exception_types": ["CouldNotDecode", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
+      "exception_types": [
+        "CouldNotDecode",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::decodeRegionHandle",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state"
+        "cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp::Embedded 2025 region templates preserve pending and committed range state"
       ]
     }
   ]

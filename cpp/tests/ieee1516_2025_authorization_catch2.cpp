@@ -512,7 +512,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Embedded Connect delegates credentials to the configured HLAauthorizer factory",
-    "[baseline][authorization][credentials][integration][connect-authorizer-factory-path]") {
+    "[baseline][federation-management][authorization][credentials][integration][connect-authorizer-factory-path]") {
   umbra::detail::ReferenceAuthorizerConfiguration configuration;
   configuration.globalPlainTextPassword = L"test-password";
   auto factory = umbra::detail::makeReferenceAuthorizerFactory(
@@ -553,7 +553,7 @@ TEST_CASE(
 
 TEST_CASE(
     "Factory-created RTIambassadors load the configured HLAauthorizer from the RID",
-    "[baseline][authorization][credentials][integration][connect-authorizer-rid-runtime]") {
+    "[baseline][federation-management][authorization][credentials][integration][connect-authorizer-rid-runtime]") {
   TemporaryRidFiles files;
   static_cast<void>(
       files.writePrivateFile("global-password.txt", "test-password"));
@@ -610,7 +610,7 @@ TEST_CASE(
 
 TEST_CASE(
     "RTIambassador applies the configured HLAauthorizer to Create Federation Execution",
-    "[baseline][authorization][credentials][integration][create-federation-authorizer-rid-runtime]") {
+    "[baseline][federation-management][authorization][credentials][integration][create-federation-authorizer-rid-runtime]") {
   auto probe = std::make_shared<FederationAuthorizationProbe>();
   auto authorizerFactory =
       std::make_unique<RecordingFederationAuthorizerFactory>(probe);
@@ -653,7 +653,7 @@ TEST_CASE(
 
 TEST_CASE(
     "RTIambassador applies the configured HLAauthorizer to Destroy Federation Execution",
-    "[baseline][authorization][credentials][integration][destroy-federation-authorizer-rid-runtime]") {
+    "[baseline][federation-management][authorization][credentials][integration][destroy-federation-authorizer-rid-runtime]") {
   auto const stamp = std::chrono::steady_clock::now().time_since_epoch().count();
   std::wstring const federationName =
       L"destroy-authorizer-" + std::to_wstring(stamp);
@@ -731,7 +731,7 @@ TEST_CASE(
 
 TEST_CASE(
     "RTIambassador applies the configured HLAauthorizer to Join Federation Execution",
-    "[baseline][authorization][credentials][integration][join-federation-authorizer-rid-runtime]") {
+    "[baseline][federation-management][authorization][credentials][integration][join-federation-authorizer-rid-runtime]") {
   auto const stamp = std::chrono::steady_clock::now().time_since_epoch().count();
   std::wstring const federationName =
       L"join-authorizer-" + std::to_wstring(stamp);

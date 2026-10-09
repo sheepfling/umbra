@@ -70,7 +70,7 @@
       "id": "umbra-timestamped-directed-interaction-queues-constrained-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
       "clause_id": "clause-8.1.5",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoDirectedInteraction",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
@@ -89,7 +89,7 @@
       "id": "umbra-timestamped-directed-interaction-waits-for-grant-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
       "clause_id": "clause-8.1.6",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
@@ -108,7 +108,7 @@
       "id": "umbra-timestamped-directed-interaction-survives-time-constrained-reenable",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
       "clause_id": "clause-8.1.6",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_reenable_catch2.cpp::Embedded timestamped directed interaction survives time-constrained re-enable"
@@ -118,7 +118,7 @@
       "id": "umbra-timestamped-directed-interaction-save-restore-reconstructs-live-record",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
       "clause_id": "clause-4.32",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
         "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore restores a saved live timestamped directed interaction",
@@ -129,7 +129,7 @@
       "id": "umbra-timestamped-directed-interaction-timed-save-restore-reconstructs-live-record",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
       "clause_id": "clause-4.32",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
         "cpp/tests/timed_restore_live_tso_directed_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped directed interaction at the save boundary"
@@ -140,7 +140,7 @@
       "id": "umbra-timestamped-directed-interaction-callback-fields",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
       "clause_id": "clause-5.1.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "recipient.receiveDirectedInteraction",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
@@ -158,7 +158,7 @@
       "id": "umbra-timestamped-directed-interaction-connection-loss-preserves-deleted-target",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
       "clause_id": "clause-4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderDirectedInteractionRecipient",
       "tests": [
         "cpp/tests/connection_loss_directed_tso_late_tar_catch2.cpp::Embedded transport loss protects a late cutoff directed interaction from automatic object cleanup"
@@ -168,7 +168,7 @@
       "id": "umbra-timestamped-directed-interaction-suppressed-callback-closes-cutoff-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l27-8",
       "clause_id": "clause-4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::finishTsoRecipientCallbackSuppressed",
       "tests": [
         "cpp/tests/connection_loss_directed_selector_mutation_catch2.cpp::Embedded transport loss releases automatic cleanup after a cutoff directed interaction is suppressed"
@@ -178,7 +178,7 @@
       "id": "umbra-timestamped-directed-interaction-retracts-before-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
       "clause_id": "clause-8.22.3",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_retract_service.cpp",
       "source_symbol": "UmbraRtiAmbassador::retract",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp::Embedded timestamped directed interaction queues TSO before the grant and supports retraction",
@@ -201,7 +201,7 @@
       "id": "umbra-timestamped-directed-interaction-suppresses-pending-fanout",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l89-23",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_tso_delivery.cpp",
       "source_symbol": "EmbeddedFederationRegistry::retractTsoMessageForProducer",
       "tests": [
         "cpp/tests/ieee1516_2025_request_retraction_directed_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
@@ -212,7 +212,7 @@
       "id": "umbra-timestamped-directed-interaction-covers-nonconstrained-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-211-l101-27",
       "clause_id": "clause-8.23.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoDirectedInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_request_retraction_directed_interaction_mixed_fanout_catch2.cpp::Embedded Request Retraction notifies delivered directed-interaction recipients and suppresses queued fanout",
@@ -223,10 +223,10 @@
       "id": "umbra-timestamped-directed-interaction-subscription-kind",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29",
       "clause_id": "clause-5.12",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderDirectedInteractionRecipient",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interactions distinguish ownership and universal subscriptions"
+        "cpp/tests/ieee1516_2025_timestamped_directed_interaction_subscription_kind_catch2.cpp::Embedded timestamped directed interactions distinguish ownership and universal subscriptions"
       ]
     },
     {
@@ -236,7 +236,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::receiveOrderDirectedInteractionRecipientFor",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interactions distinguish ownership and universal subscriptions"
+        "cpp/tests/ieee1516_2025_timestamped_directed_interaction_subscription_kind_catch2.cpp::Embedded timestamped directed interactions distinguish ownership and universal subscriptions"
       ]
     },
     {
@@ -246,7 +246,7 @@
       "source": "cpp/src/internal/federation/federation_registry.cpp",
       "source_symbol": "EmbeddedFederationRegistry::receiveOrderDirectedInteractionRecipientFor",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped directed interactions distinguish ownership and universal subscriptions"
+        "cpp/tests/ieee1516_2025_timestamped_directed_interaction_subscription_kind_catch2.cpp::Embedded timestamped directed interactions distinguish ownership and universal subscriptions"
       ]
     },
     {
@@ -263,10 +263,10 @@
       "id": "umbra-timestamped-directed-interaction-save-restore-preserves-terminal-tombstone",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
       "clause_id": "clause-4.32",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_state_image_restore.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreFederationFromSnapshot",
       "tests": [
-        "cpp/tests/ieee1516_2025_restore_tso_catch2.cpp::Embedded federation restore preserves a terminal timestamped directed interaction classification"
+        "cpp/tests/ieee1516_2025_restore_tso_terminal_classification_catch2.cpp::Embedded federation restore preserves a terminal timestamped directed interaction classification"
       ],
       "notes": "The bounded two-member image saves a terminal timestamped Send Directed Interaction tombstone after a successful pre-save Retract, while a separate live passel provides the constrained save-admission frontier. A distinct post-save directed interaction is discarded by restore; the saved handle remains MessageCanNoLongerBeRetracted and the post-save handle is invalid. This does not claim directed callback delivery, live payload recovery, timed, durable, alternate-advance, changed-membership, remote, package/JUnit, or conformance coverage."
     },
@@ -274,7 +274,7 @@
       "id": "umbra-timestamped-directed-interaction-survives-voluntary-source-resignation",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
       "clause_id": "clause-4.12",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp",
       "source_symbol": "EmbeddedFederationRegistry::resignLocked",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation",
@@ -286,7 +286,7 @@
       "id": "umbra-timestamped-directed-interaction-preserves-per-recipient-resignation-ledger",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
       "clause_id": "clause-8.1.6",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp",
       "source_symbol": "EmbeddedFederationRegistry::enqueueTsoDirectedInteraction",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_multi_recipient_source_resignation_catch2.cpp::Embedded queued timestamped directed interaction survives source resignation for each recipient",
@@ -298,7 +298,7 @@
       "id": "umbra-timestamped-directed-interaction-tar-nmr-frontier",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l21-3",
       "clause_id": "clause-8.8.3",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::timeAdvanceRequest",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_tar_nmr_catch2.cpp::Embedded timestamped directed interaction delivers before TAR and NMR grants"
@@ -309,7 +309,7 @@
       "id": "umbra-timestamped-directed-interaction-public-save-restore-alternate-advances",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-076-l18-2",
       "clause_id": "clause-4.32",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_restore_tso_payloads.cpp",
       "source_symbol": "EmbeddedFederationRegistry::restoreTsoPayloadsFromStateImage",
       "tests": [
         "cpp/tests/ieee1516_2025_public_directed_tso_alternate_advances_restore_catch2.cpp::Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE"
@@ -320,7 +320,7 @@
       "id": "umbra-timestamped-directed-interaction-fqr-tara-nmra-frontier",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l69-19",
       "clause_id": "clause-8.8.3",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::flushQueueRequest",
       "tests": [
         "cpp/tests/timestamped_directed_interaction_alternate_advance_catch2.cpp::Embedded timestamped directed interaction delivers before FQR TARA and NMRA grants",
@@ -332,8 +332,8 @@
       "id": "umbra-timestamped-directed-interaction-alternate-advance-callback-fields",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10",
       "clause_id": "clause-5.1.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
-      "source_symbol": "queueTimestampedReceiveOrderDirectedInteraction",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_callbacks.cpp",
+      "source_symbol": "queueAmbassadorTimestampedReceiveOrderDirectedInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_public_directed_tso_alternate_advances_restore_catch2.cpp::Embedded public fresh-registry directed TSO restores through FQR TARA and NMRA under HLA_EVOKED and HLA_IMMEDIATE"
       ],

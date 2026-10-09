@@ -9,7 +9,7 @@
       "id": "umbra-attribute-transport-initializes-from-fdd-or-federate-default",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l123-31",
       "clause_id": "clause-6.25.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_instance_registration.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults"
@@ -19,7 +19,7 @@
       "id": "umbra-attribute-transport-change-affects-future-updates",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
       "clause_id": "clause-6.25.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_transportation_order_services.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeTransportationTypeChange",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults",
@@ -31,7 +31,7 @@
       "id": "umbra-attribute-transport-resets-after-ownership-transfer",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l150-40",
       "clause_id": "clause-6.25.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionNotification",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults"
@@ -54,7 +54,7 @@
       "id": "umbra-attribute-transport-confirmation-is-response",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-140-l181-52",
       "clause_id": "clause-6.26",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_order_transportation_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestAttributeTransportationTypeChange",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults",
@@ -79,7 +79,7 @@
       "id": "umbra-attribute-transport-new-instance-uses-federate-default",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l125-32",
       "clause_id": "clause-6.27",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
       "source_symbol": "EmbeddedFederationRegistry::attributeDefaultTransportationName",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults",
@@ -90,7 +90,7 @@
       "id": "umbra-attribute-transport-fdd-initialization",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l131-34",
       "clause_id": "clause-6.27",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
       "source_symbol": "EmbeddedFederationRegistry::attributeTransportationName",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults",
@@ -101,20 +101,20 @@
       "id": "umbra-attribute-transport-default-uses-class-and-attribute",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l137-36",
       "clause_id": "clause-6.27",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_order_transportation_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::changeDefaultAttributeTransportationType",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults",
         "cpp/tests/ieee1516_2025_custom_transportation_type_controls_catch2.cpp::Embedded transportation-type controls accept declared FOM transportation handles",
         "cpp/tests/ieee1516_2025_change_default_attribute_transportation_type_service_report_file_catch2.cpp::Embedded service reporting preserves Change Default Attribute Transportation Type arguments",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_registry_object_class_declarations_filesystem_restart_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
       ]
     },
     {
       "id": "umbra-attribute-transport-default-is-prospective",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l143-38",
       "clause_id": "clause-6.27",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_instance_registration.cpp",
       "source_symbol": "EmbeddedFederationRegistry::registerObjectInstance",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults",
@@ -137,7 +137,7 @@
       "id": "umbra-attribute-transport-query-reports-current-type",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-143-l156-42",
       "clause_id": "clause-6.29.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_catalog_queries.cpp",
       "source_symbol": "EmbeddedFederationRegistry::effectiveAttributeTransportationName",
       "tests": [
         "cpp/tests/custom_transportation_type_control_catch2.cpp::Embedded focused attribute transportation control preserves declared FOM defaults",

@@ -9,7 +9,7 @@
       "id": "umbra-omt-variant-record-discriminant-enumerator-list",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l58-12",
       "clause_id": "clause-6.2.20",
-      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateVariantRecordDiscriminantEnumeratorSyntax",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight validates variant-record discriminant-enumerator syntax"
@@ -19,7 +19,7 @@
       "id": "umbra-omt-variant-record-discriminant-enumerator-range",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l62-13",
       "clause_id": "clause-6.2.20",
-      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateVariantRecordDiscriminantEnumeratorSyntax",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight validates variant-record discriminant-enumerator syntax"
@@ -29,7 +29,7 @@
       "id": "umbra-omt-variant-record-discriminant-hlaother-cardinality",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l66-14",
       "clause_id": "clause-6.2.20",
-      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateVariantRecordDiscriminantEnumeratorSyntax",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight validates variant-record discriminant-enumerator syntax"

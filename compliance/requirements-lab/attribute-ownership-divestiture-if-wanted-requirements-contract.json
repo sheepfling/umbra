@@ -7,9 +7,10 @@
   "requirements": [
     {
       "id": "cpp-1516.1-tck-ordinary-acquisition-for-if-wanted-divestiture",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40",
       "clause_id": "clause-7.8",
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
-      "source_symbol": "RTIambassador::attributeOwnershipAcquisition",
+      "source_symbol": "attributeOwnershipAcquisition",
       "source_lines": "1030-1045",
       "statement": "The prospective owner requests the adapter-supplied object attribute through ordinary Attribute Ownership Acquisition and supplies a user tag that is checked on the owner's release-request callback.",
       "tests": [
@@ -19,9 +20,10 @@
     },
     {
       "id": "cpp-1516.1-tck-if-wanted-divestiture-returns-transferred-set",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-168-l35-7",
       "clause_id": "clause-7.13",
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
-      "source_symbol": "RTIambassador::attributeOwnershipDivestitureIfWanted",
+      "source_symbol": "attributeOwnershipDivestitureIfWanted",
       "source_lines": "1082-1097",
       "statement": "The owner invokes Divestiture If Wanted for the pending acquisition and the RTI-returned divested-attribute set exactly matches the attribute transferred by this one-attribute case.",
       "tests": [
@@ -31,9 +33,10 @@
     },
     {
       "id": "cpp-1516.1-tck-if-wanted-release-request-callback",
-      "clause_id": "clause-7.11",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31",
+      "clause_id": "clause-7.9.1",
       "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
-      "source_symbol": "FederateAmbassador::requestAttributeOwnershipRelease",
+      "source_symbol": "requestAttributeOwnershipRelease",
       "source_lines": "446-451",
       "statement": "The owner receives the pending acquisition's object, candidate attribute set, and acquisition request tag before divesting the requested attribute.",
       "tests": [
@@ -43,9 +46,10 @@
     },
     {
       "id": "cpp-1516.1-tck-if-wanted-acquisition-notification",
-      "clause_id": "clause-7.7",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27",
+      "clause_id": "clause-7.7.3",
       "source": "third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h",
-      "source_symbol": "FederateAmbassador::attributeOwnershipAcquisitionNotification",
+      "source_symbol": "attributeOwnershipAcquisitionNotification",
       "source_lines": "430-435",
       "statement": "The pending acquirer receives the transferred object and attribute set with the Divestiture If Wanted user tag, and the test verifies ownership has moved from the former owner.",
       "tests": [

@@ -112,7 +112,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateDataTypeReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves data-type references after the complete module set is merged"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves data-type references after the complete module set is merged"
       ]
     },
     {
@@ -142,7 +142,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateDataTypeReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves data-type references after the complete module set is merged"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves data-type references after the complete module set is merged"
       ]
     },
     {
@@ -152,7 +152,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateReferenceDataTypeClassReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data classes after the complete module set is merged"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves reference-data classes after the complete module set is merged"
       ]
     },
     {
@@ -162,7 +162,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateReferenceDataTypeClassReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data classes after the complete module set is merged"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves reference-data classes after the complete module set is merged"
       ]
     },
     {
@@ -172,7 +172,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateReferenceDataTypeAttributeReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
       ]
     },
     {
@@ -182,7 +182,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateReferenceDataTypeAttributeReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
       ]
     },
     {
@@ -192,7 +192,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateReferenceDataTypeAttributeReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
       ]
     },
     {
@@ -202,7 +202,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateReferenceDataTypeAttributeReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
       ]
     },
     {
@@ -212,7 +212,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "referencedAttributeDataType",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves reference-data attributes and representations"
       ]
     },
     {
@@ -222,7 +222,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateDirectedInteractionReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves directed interactions and retains sharing metadata"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves directed interactions and retains sharing metadata"
       ]
     },
     {
@@ -233,7 +233,7 @@
       "source_symbol": "mergeNode",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FDD materializer refuses the supplied extension when the official FDD schema cannot represent its directed-interaction merge",
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves directed interactions and retains sharing metadata"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves directed interactions and retains sharing metadata"
       ]
     },
     {
@@ -243,7 +243,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateAvailableDimensionReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves available dimensions after the complete module set is merged"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves available dimensions after the complete module set is merged"
       ]
     },
     {
@@ -253,7 +253,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateAvailableDimensionReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves available dimensions after the complete module set is merged"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves available dimensions after the complete module set is merged"
       ]
     },
     {
@@ -263,7 +263,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateTransportationReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves transportation names after the complete module set is merged"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves transportation names after the complete module set is merged"
       ]
     },
     {
@@ -273,7 +273,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateTransportationReferences",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight resolves transportation names after the complete module set is merged"
+        "cpp/tests/fom_composer_reference_resolution_catch2.cpp::The FOM composition preflight resolves transportation names after the complete module set is merged"
       ]
     },
     {

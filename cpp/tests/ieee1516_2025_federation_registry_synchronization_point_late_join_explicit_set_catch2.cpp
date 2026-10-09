@@ -2,7 +2,7 @@
 
 TEST_CASE(
     "Synchronization-point late-join expansion respects an explicit synchronization set",
-    "[unit][kernel][federation-registry][synchronization][late-join]") {
+    "[unit][kernel][federation-management][federation-registry][synchronization][late-join]") {
   EmbeddedFederationRegistry registry;
   REQUIRE(registry.create(L"exercise", validDefinition()).status ==
       FederationRegistryStatus::applied);

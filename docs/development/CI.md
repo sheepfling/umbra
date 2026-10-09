@@ -28,9 +28,18 @@ The route matrix is:
 | 2010 | C++ headers, encoder/time shell, exact integer/float time marshal round-trips, reference federation/declaration/object/interaction/ownership/synchronization proof slices, and focused CTest checks | 2010 Java TCK | 2010 null JNI build and Java smoke, including the exact Java/JNI/C++ carrier matrix | 2010 surface contracts, factory bindings, adapter unit checks, optional native-boundary tests, surface audit, catalog parity, and all capability-profile declarations |
 | 2025 | C++ headers, binding shell, and lifecycle smoke | Java mock-fixture smoke by default; full TCK with caller-supplied API/provider JARs | JNI build and Java smoke against the checked-in mock fixture | 2025 contract and adapter unit checks |
 
+Hosted GitHub Actions currently runs tooling plus the four 2025 routes. Its
+tooling command uses `lint --scope ci --skip-2010-checks`, which omits the
+2010-only generated C++ shell check and dedicated 2010 surface, catalog, and
+profile audits from hosted CI. Shared integrity checks—including the
+two-edition Python surface report and provider-boundary verification—remain
+active to guard edition separation. The explicit 2010 route commands above
+remain available for local use and are not merged into the 2025 routes.
+
 `--route all` expands the four routes for the selected standard. `--standard
-all --route all` runs the complete matrix sequentially on a local machine;
-hosted CI fans those same lanes out as independent jobs.
+all --route all` runs the complete matrix sequentially on a local machine. The
+hosted workflow currently fans out only the 2025 routes plus tooling; the 2010
+routes remain available as explicit local runs.
 
 ## Java API and provider inputs
 
@@ -108,6 +117,58 @@ installed; it is optional until the repository adopts a committed C++
 formatting configuration. `clean` only removes known children of `out/`; it
 does not invoke `git clean` or touch source, compliance, or vendor trees.
 Use `--strict` on `lint` when missing optional formatters should fail the lane.
+
+## Compile-time observations
+
+The MinGW/Ninja presets export `compile_commands.json`; Ninja records command
+durations in `.ninja_log` and transitive compiler dependencies in its deps log.
+The report helper combines these existing records to show per-translation-unit
+compile time and source lines, project versus external include fanout, the
+highest-fanout project headers, and link/archive actions. Use it after a build
+to compare a focused source split:
+
+```text
+python tools/report_compile_times.py out/mgw/catch2 --top 25 --write-json out/compile-time/catch2-before.json
+# Make the scoped change and rebuild the same target/preset.
+python tools/report_compile_times.py out/mgw/catch2 --top 25 --baseline out/compile-time/catch2-before.json --write-json out/compile-time/catch2-after.json
+```
+
+The report uses each object's latest Ninja timing and full transitive include
+set; it does not rerun preprocessing, and its include counts are not direct
+`#include` counts. Summed compiler time is CPU time, not elapsed build wall
+time. Compare runs made with the same compiler, build type, target, and machine;
+use the source-size ratchet separately as the review gate. Timing is
+intentionally observational, not a noisy CI threshold.
+
+For a persistent local history that also records source-size and Requirements
+Lab traceability health, capture and query through the quality dashboard:
+
+```text
+python tools/build_quality.py capture out/mgw/catch2 --label mingw-catch2
+python tools/build_quality.py history --limit 10
+python tools/build_quality.py history --label mingw-embedded --limit 10
+python tools/build_quality.py history --status failed --limit 10
+python tools/build_quality.py inspect --id latest --top 20
+python tools/build_quality.py inspect --id latest --source federation_registry
+python tools/build_quality.py inspect --id latest --header runtime_instrumentation
+python tools/build_quality.py inspect --id latest --target umbra_rti
+```
+
+Annotate each capture with the result of the build/test run it represents. Failed
+and partial builds are useful history too, and the status/note make that
+distinction searchable in the same log:
+
+```text
+python tools/build_quality.py capture out/mgw/catch2 --label mingw-catch2 --status passed
+python tools/build_quality.py capture out/mgw/catch2 --label mingw-catch2 --status failed --note "umbra_rti declaration mismatch"
+```
+
+Snapshots append to `out/build-metrics/history.jsonl` by default. This log is
+local, queryable, and outside the directories removed by the safe CI cleanup
+targets. Each snapshot also runs and records the roadmap/test mapping gate
+separately from summary health counts, so stale indexes and unmapped lane tags
+remain visible. Pass `--history <path>` to keep or query a different history
+file.
 
 ## Legacy native profiles
 

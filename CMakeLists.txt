@@ -191,6 +191,11 @@ target_include_directories(ieee1516_2010_headers SYSTEM INTERFACE
   $<BUILD_INTERFACE:${UMBRA_IEEE1516_2010_INCLUDE_DIR}>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/umbra/ieee1516.1-2010>
 )
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  # The vendored 1516.1-2010 headers use Microsoft's _int64 spelling under
+  # _WIN32; MinGW needs the equivalent standard type for this header boundary.
+  target_compile_definitions(ieee1516_2010_headers INTERFACE "_int64=long long")
+endif()
 
 # The implementation starts as a standards-shaped static binding with an
 # embedded connection slice. The official headers prescribe STATIC_RTI for both
@@ -301,7 +306,11 @@ add_library(umbra_rti STATIC
   cpp/src/internal/observability/runtime_instrumentation_output.cpp
   cpp/src/internal/time/update_rate_gate.cpp
   cpp/src/internal/time/tso_message_queue.cpp cpp/src/internal/federation/federation_registry_state_image_validation.cpp cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp cpp/src/internal/federation/federation_registry_state_image_capture.cpp cpp/src/internal/federation/federation_registry_state_image_restore.cpp cpp/src/internal/federation/federation_registry_restore_declarations.cpp cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp cpp/src/internal/federation/federation_registry_restore_tso_payloads.cpp cpp/src/internal/federation/federation_registry_state_image_restore_helpers.cpp cpp/src/internal/federation/federation_registry_value_helpers.cpp
-  cpp/src/internal/runtime/umbra_rti_ambassador.cpp cpp/src/internal/runtime/umbra_rti_ambassador_service_failure_translation.cpp cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp cpp/src/internal/runtime/umbra_rti_ambassador_object_class_lookup.cpp cpp/src/internal/runtime/umbra_rti_ambassador_interaction_class_lookup.cpp cpp/src/internal/runtime/umbra_rti_ambassador_attribute_lookup.cpp cpp/src/internal/runtime/umbra_rti_ambassador_update_rate_lookup.cpp cpp/src/internal/runtime/umbra_rti_ambassador_object_class_publication.cpp cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_name_reservation.cpp cpp/src/internal/runtime/umbra_rti_ambassador_multiple_object_instance_name_reservation.cpp cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_region_registration.cpp cpp/src/internal/runtime/umbra_rti_ambassador_region_update_association.cpp cpp/src/internal/runtime/umbra_rti_ambassador_time_constrained_control.cpp cpp/src/internal/runtime/umbra_rti_ambassador_time_regulation_control.cpp cpp/src/internal/runtime/umbra_rti_ambassador_next_message_request.cpp cpp/src/internal/runtime/umbra_rti_ambassador_interaction_transportation_type_change.cpp cpp/src/internal/runtime/umbra_rti_ambassador_interaction_transportation_type_query.cpp cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp
+  cpp/src/internal/runtime/umbra_rti_ambassador.cpp
+  cpp/src/internal/runtime/umbra_rti_ambassador_service_failure_translation.cpp
+  cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp
+  cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp
+  cpp/src/internal/runtime/ambassador_connection_support.cpp
   cpp/src/internal/runtime/rti_initialization_data.cpp
   cpp/src/internal/runtime/utf8_string.cpp
 )
@@ -313,7 +322,7 @@ target_sources(umbra_rti PRIVATE
   cpp/src/internal/federation/federation_registry_state_image_interaction_validation.cpp
   cpp/src/internal/federation/federation_registry_state_image_ownership_validation.cpp
 )
-include(cmake/umbra_rti_ambassador_service_sources.cmake)
+include(cmake/umbra_rti_ambassador_embedded_sources.cmake)
 add_library(umbra::rti ALIAS umbra_rti)
 set_target_properties(umbra_rti PROPERTIES EXPORT_NAME rti)
 target_compile_features(umbra_rti PUBLIC cxx_std_20)
@@ -364,6 +373,11 @@ add_library(umbra_rti_2010 STATIC
 add_library(umbra::rti_2010 ALIAS umbra_rti_2010)
 set_target_properties(umbra_rti_2010 PROPERTIES EXPORT_NAME rti_2010)
 target_compile_features(umbra_rti_2010 PUBLIC cxx_std_14)
+set_target_properties(umbra_rti_2010 PROPERTIES
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+)
 target_compile_definitions(umbra_rti_2010 PUBLIC STATIC_RTI STATIC_FEDTIME RTI_DISABLE_WARNINGS)
 target_include_directories(umbra_rti_2010
   PUBLIC
@@ -477,6 +491,20 @@ if(BUILD_TESTING)
   add_test(
     NAME umbra.ieee1516e_2010.time_marshal
     COMMAND umbra_ieee1516_2010_time_marshal_smoke
+  )
+
+  set_target_properties(
+    umbra_ieee1516_2010_binding_shell_smoke
+    umbra_ieee1516_2010_headers_smoke
+    umbra_ieee1516_2010_encoding_smoke
+    umbra_ieee1516_2010_composite_encoding_smoke
+    umbra_ieee1516_2010_integer_time_smoke
+    umbra_ieee1516_2010_float_time_smoke
+    umbra_ieee1516_2010_time_marshal_smoke
+    PROPERTIES
+      CXX_STANDARD 14
+      CXX_STANDARD_REQUIRED YES
+      CXX_EXTENSIONS NO
   )
 
   add_executable(umbra_ieee1516_2025_binding_shell_smoke
@@ -2052,12 +2080,3 @@ install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/umbra_rti-config-version.cmake"
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/umbra_rti
 )
-
-if(TARGET umbra_ieee1516_2025_catch2 AND UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-  target_sources(umbra_ieee1516_2025_catch2 PRIVATE
-    cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp
-    cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp
-    cpp/tests/ieee1516_2025_federation_management_ddm_service_reporting_catch2.cpp
-    cpp/tests/ieee1516_2025_federation_management_interaction_declaration_catch2.cpp
-  )
-endif()

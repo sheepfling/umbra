@@ -154,3 +154,155 @@ development-profile case, its `HLA_EVOKED` callback model and focused tag. The
 direct clause-4 mapping and seven API surfaces are unchanged. The focused test,
 trace, MOM lane check, and federation content-report check pass; no pinned
 Requirements Lab export or IEEE 1516.1-2010 source or mapping changed.
+
+### RL-277 — connection-loss and support-switch contracts retained old paths
+
+The connection-loss lane sweep found stale source-qualified test selectors for
+extracted connection-loss, Federate Lost, and support-switch cases, as well as
+implementation-symbol paths still naming the old federation registry and RTI
+ambassador translation units.
+
+Resolution: updated only the local selector and implementation-source paths.
+The #510/#521/#529 behavior tests and seven related requirements/API
+traceability CTests pass 10/10. The #510 mapping still has eight direct pairs
+across six canonical 2025 clauses and seven API surfaces. No requirement or API
+mapping, pinned Lab export, or IEEE 1516.1-2010 file changed.
+
+### RL-278 — timestamped-interaction contracts retained pre-extraction paths
+
+The timestamped-interaction requirements and API traceability tests found old
+test selectors still pointing into the federation-management and connection
+monoliths, plus registry source-symbol paths that no longer contained the
+referenced definitions.
+
+Resolution: corrected only the local selectors and implementation-source
+paths. Traceability CTests #2092/#2093 and the related connection-loss gates
+#1910/#1911 pass 4/4; strict-less-than and later-TAR cases #514/#531 and all 26
+cutoff-lane tests pass. Requirement, clause, and API mappings and the pinned
+Lab export are unchanged; no IEEE 1516.1-2010 source or mapping changed.
+
+### RL-279 — asynchronous-delivery contracts retained monolith selectors
+
+The asynchronous-delivery requirements and API traceability gates still
+pointed two extracted cases at the federation-management monolith instead of
+their current focused source files.
+
+Resolution: corrected only the eight source-qualified selector occurrences.
+The asynchronous-delivery gates #2071/#2072 and all eight affected traceability
+gates pass. The #530 cutoff case and all 26 cutoff-lane tests pass; no
+requirement, clause, or API mapping, pinned Lab export, or 2010 source changed.
+
+### RL-280 — federate-lookup and support-switch contracts retained moved source references
+
+The federate-lookup requirements gate referenced `federateNameFor` in the old
+`federation_registry.cpp`, and the support-switch table contract still named
+two tests in the federation-management monolith after their extraction.
+
+Resolution: updated the registry source path and the two selectors to their
+current definitions. CTests #1917 and #1989 pass, along with the extracted
+DELETE_OBJECTS case #505 and its other selected traceability gates. No
+requirement, clause, or API mapping, pinned Lab export, or IEEE 1516.1-2010
+source changed. This recurrence is tracked separately from RL-277.
+
+### RL-281 — declaration-failure plan rows retained duplicate monolith locations
+
+Three extracted declaration-failure rows each contained a focused-file
+`source_location` plus a second stale location in the federation-management
+monolith. Consumers could silently select the stale duplicate.
+
+Resolution: removed only the three duplicate monolith locations. The case
+queries resolve to the focused source files; requirement, clause, and API
+mappings are unchanged. No pinned Lab export or IEEE 1516.1-2010 source or
+mapping changed.
+
+### RL-282 — object-name reservation contracts retained pre-split source paths
+
+The object-instance-name reservation requirements and API traceability gates
+found implementation symbols and test selectors still pointing at the former
+registry, RTI-ambassador, and test monoliths after those definitions were split
+into focused files.
+
+Resolution: corrected only the local source-symbol and test-selector paths.
+The eight selected connection-loss, resign-action, support-switch, and
+object-name traceability CTests pass; requirement, clause, and API mappings
+are unchanged. No pinned Lab export or IEEE 1516.1-2010 source or mapping
+changed.
+
+### RL-283 — NoAction plan row retained a duplicate monolith source pointer
+
+A duplicate-key audit of the Catch2 plan found the extracted #503 NoAction
+case still had both its stale federation-management monolith pointer and its
+current focused-source pointer.
+
+Resolution: removed only the stale monolith `source_location`. The case query
+resolves to the focused 2025 source; requirement, clause, and API mappings
+are unchanged. No pinned Lab export or IEEE 1516.1-2010 source or mapping
+changed.
+
+### RL-284 — timestamped attribute-update contracts retained moved source pointers
+
+The timestamped default-region and regional attribute-update regulation-
+reenablement traceability gates still pointed moved RTI-ambassador and
+federation-registry symbols at their former monolith translation units. The
+regional case's contract selectors also still named its pre-extraction test
+location.
+
+Resolution: corrected only those implementation-source pointers and the 31
+exact selectors for the extracted regional case. Gates #2098/#2099 and
+#2110/#2111 pass, as do both focused behavior cases (#485 and #226).
+Requirement, subsection, and API mappings are unchanged; no pinned Lab export
+or IEEE 1516.1-2010 source or mapping changed.
+
+### RL-285 — ownership contracts retained pre-split source and test pointers
+
+The regular-acquisition and negotiated-divestiture traceability gates found
+registry symbols still attributed to `federation_registry.cpp` and service-
+report or release-denied test selectors still naming the federation-
+management monolith after those cases had been extracted.
+
+Resolution: corrected the local implementation-source paths and selectors in
+the four affected ownership contracts. Gates #2043/#2044/#2051/#2052 pass,
+alongside connection-loss and support-switch gates #1910/#1911/#1990/#1992;
+the extracted negotiated-cancellation case #508 passes. Requirement,
+subsection, and API mappings are unchanged; no pinned Lab export or IEEE
+1516.1-2010 source or mapping changed.
+
+### RL-286 — 2025 traceability contracts retained pre-extraction paths
+
+The asynchronous-delivery API contract still located both ambassador methods
+in `umbra_rti_ambassador.cpp` after their same-translation-unit extraction.
+The same focused CTest sweep exposed stale 2025 source/test selectors in the
+interaction-region, Convey Region Designator Sets, and support-switch
+contracts. Traceability CTests #1920, #1921, #1951, #1969, and #2031 failed
+with contract drift.
+
+Resolution: corrected only implementation-source paths and 2025 C++ test
+selectors in the five local contracts. All five traceability tests and the
+15-test `asynchronous-delivery` CTest label now pass. Requirement IDs,
+subsections, API mappings, and IEEE 1516.1-2010 sources remain unchanged.
+
+### RL-287 — handle-decoding API contract retained monolith source paths
+
+The seven basic public handle-decoding methods moved into a same-translation-
+unit fragment, but their API contract still located them in
+`umbra_rti_ambassador.cpp`. Traceability CTest #1957 failed for all seven
+source symbols.
+
+Resolution: updated only those seven source paths to the extracted fragment;
+the MessageRetractionHandle locator remains on its separate implementation.
+CTests #1957 and #221 pass. The explicit no-requirement disposition and all
+eight API-surface mappings are unchanged; no IEEE 1516.1-2010 source or
+mapping changed.
+
+### RL-288 — MOM service-report traceability retained extracted-source pointers
+
+Focused 2025 traceability checks #1920 and #1953 exposed stale Requirements
+Lab source locators after ambassador service/report methods had moved into
+same-translation-unit fragments. The MOM service-report contract had 179
+stale source paths across 66 moved symbols, and one test selector still named
+the federation-management monolith for the federated-MOM content case.
+
+Resolution: updated only implementation-source paths in the MOM service-
+report and interaction-region contracts, plus the single stale test selector.
+Requirement IDs, clauses, API mappings, and IEEE 1516.1-2010 records are
+unchanged. CTests #1920, #1921, #1953, #48, #263, #881, and #1242 pass.

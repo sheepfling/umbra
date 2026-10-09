@@ -208,7 +208,8 @@ TEST_CASE("IEEE reference factory selection returns both mandated names and defa
 
 TEST_CASE(
     "HLAlogicalTime delegates opaque bytes to the selected reference factory",
-    "[baseline][time][logical-time-encoding][unit][foundation][time-management]") {
+    "[baseline][time][logical-time-encoding][unit][foundation][time-management]"
+    "[logical-time-opaque-factory-encoding]") {
   ReferenceTimeAmbassador floatAmbassador(L"HLAfloat64Time");
   ReferenceTimeAmbassador integerAmbassador(L"HLAinteger64Time");
   HLAlogicalTime value(&floatAmbassador);
@@ -262,7 +263,8 @@ TEST_CASE(
 
 TEST_CASE(
     "HLAlogicalTimeInterval delegates opaque bytes to the selected reference factory",
-    "[baseline][time][logical-time-encoding][unit][foundation][time-management]") {
+    "[baseline][time][logical-time-encoding][unit][foundation][time-management]"
+    "[logical-time-opaque-factory-encoding]") {
   ReferenceTimeAmbassador integerAmbassador(L"HLAinteger64Time");
   ReferenceTimeAmbassador floatAmbassador(L"HLAfloat64Time");
   HLAlogicalTimeInterval value(&integerAmbassador);

@@ -25,29 +25,29 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_regional_interaction_send_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::sendInteractionWithRegions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tso_retraction_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_alternate_advances_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_mixed_advances_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
         "cpp/tests/ieee1516_2025_regional_tso_suppressed_callback_catch2.cpp::Embedded suppressed timestamped regional interaction callback does not request retraction",
         "cpp/tests/ieee1516_2025_tso_regional_no_overlap_designator_catch2.cpp::Embedded timestamped Send Interaction With Regions returns a retraction designator without overlap-qualified recipients",
         "cpp/tests/ieee1516_2025_request_retraction_delivered_regional_interaction_fanout_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tar_nmr_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead",
         "cpp/tests/restore_live_tso_regional_interaction_catch2.cpp::Embedded federation restore restores a saved live timestamped regional interaction",
         "cpp/tests/restore_live_tso_regional_interaction_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped regional interaction to multiple recipients",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a terminal timestamped regional interaction classification",
+        "cpp/tests/ieee1516_2025_restore_tso_terminal_classification_catch2.cpp::Embedded federation restore preserves a terminal timestamped regional interaction classification",
         "cpp/tests/timestamped_regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records timestamped Send Interaction With Regions before interaction callback",
         "cpp/tests/timestamped_regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted timestamped regional Send Interaction With Regions through MOM interaction",
         "cpp/tests/timestamped_regional_interaction_failure_service_report_file_catch2.cpp::Embedded service reporting records failed timestamped regional Send Interaction With Regions invocations",
         "cpp/tests/timestamped_regional_interaction_failure_service_report_interaction_catch2.cpp::Embedded service reporting delivers failed timestamped regional Send Interaction With Regions invocations through MOM interaction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction subscription replacement does not retarget a queued passel",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_subscription_replacement_catch2.cpp::Embedded timestamped regional interaction subscription replacement does not retarget a queued passel",
         "cpp/tests/timed_live_tso_regional_interaction_source_resignation_catch2.cpp::Embedded queued timestamped regional interaction survives source resignation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped regional interaction at the save boundary"
+        "cpp/tests/ieee1516_2025_timed_restore_live_tso_regional_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped regional interaction at the save boundary"
       ]
     },
     {
@@ -56,25 +56,27 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void receiveInteraction( InteractionClassHandle const & interactionClass, ParameterHandleValueMap const & parameterValues, VariableLengthData const & userSuppliedTag, TransportationTypeHandle const & transportationType, FederateHandle const & producingFederate, RegionHandleSet const * optionalSentRegions, LogicalTime const & time, OrderType sentOrderType, OrderType receivedOrderType, MessageRetractionHandle const * optionalRetraction) = 0",
-      "exception_types": ["FederateInternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_tso_receive_order_interaction.cpp",
       "source_symbol": "recipient.receiveInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tso_retraction_catch2.cpp::Embedded timestamped regional interaction queues TSO before the grant and supports retraction",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_alternate_advances_catch2.cpp::Embedded timestamped regional interaction uses available and next-message advances",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_mixed_advances_catch2.cpp::Embedded mixed regional TSO advances deliver before FQR TARA and NMRA grants",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_flush_queue_context_catch2.cpp::Embedded Flush Queue Request delivers timestamped regional interaction context",
         "cpp/tests/ieee1516_2025_request_retraction_delivered_regional_interaction_fanout_catch2.cpp::Embedded Request Retraction notifies delivered regional-interaction recipients and suppresses queued fanout",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_tar_nmr_catch2.cpp::Embedded regional TSO advances deliver before TAR and NMR grants",
         "cpp/tests/ieee1516_2025_timestamped_regional_interaction_reenable_catch2.cpp::Embedded timestamped regional interaction survives time-constrained re-enable",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_regulation_reenable_changed_lookahead_catch2.cpp::Embedded queued timestamped regional interaction survives time-regulation disable and re-enable with changed lookahead",
         "cpp/tests/restore_live_tso_regional_interaction_catch2.cpp::Embedded federation restore restores a saved live timestamped regional interaction",
         "cpp/tests/restore_live_tso_regional_interaction_multi_recipient_catch2.cpp::Embedded federation restore restores one queued timestamped regional interaction to multiple recipients",
         "cpp/tests/timestamped_regional_interaction_service_report_file_catch2.cpp::Embedded service reporting records timestamped Send Interaction With Regions before interaction callback",
         "cpp/tests/timestamped_regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted timestamped regional Send Interaction With Regions through MOM interaction",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timestamped regional interaction subscription replacement does not retarget a queued passel",
+        "cpp/tests/ieee1516_2025_timestamped_regional_interaction_subscription_replacement_catch2.cpp::Embedded timestamped regional interaction subscription replacement does not retarget a queued passel",
         "cpp/tests/timed_live_tso_regional_interaction_source_resignation_catch2.cpp::Embedded queued timestamped regional interaction survives source resignation",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation restore restores a live timestamped regional interaction at the save boundary"
+        "cpp/tests/ieee1516_2025_timed_restore_live_tso_regional_interaction_catch2.cpp::Embedded timed federation restore restores a live timestamped regional interaction at the save boundary"
       ]
     }
   ]

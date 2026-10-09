@@ -9,33 +9,33 @@
       "id": "umbra-regional-declaration-advisory-passive-object-subscription",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l144-45",
       "clause_id": "clause-5.8",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     },
     {
       "id": "umbra-regional-declaration-advisory-passive-interaction-subscription",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-099-l105-30",
       "clause_id": "clause-5.10.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     },
     {
       "id": "umbra-regional-start-registration-relevance-condition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-103-l117-31",
       "clause_id": "clause-5.14.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     },
     {
@@ -46,18 +46,18 @@
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
         "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     },
     {
       "id": "umbra-regional-stop-registration-relevance-condition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-104-l77-19",
       "clause_id": "clause-5.15.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     },
     {
@@ -68,18 +68,18 @@
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
         "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     },
     {
       "id": "umbra-regional-turn-interactions-on-relevance-condition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-105-l46-8",
       "clause_id": "clause-5.16.5",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     },
     {
@@ -90,18 +90,18 @@
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
         "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     },
     {
       "id": "umbra-regional-turn-interactions-off-relevance-condition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-106-l24-3",
       "clause_id": "clause-5.17.6",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planDeclarationAdvisories",
       "tests": [
         "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     },
     {
@@ -112,7 +112,7 @@
       "source_symbol": "queueDeclarationAdvisories",
       "tests": [
         "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
+        "cpp/tests/regional_declaration_relevance_advisory_catch2.cpp::Embedded regional declaration relevance advisories follow active subscriptions"
       ]
     }
   ]

@@ -9,53 +9,53 @@
       "id": "umbra-attribute-update-provides-instance-values",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
       "clause_id": "clause-6.10",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
+        "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
         "cpp/tests/update_attribute_values_service_report_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_registry_latest_object_application_values_filesystem_restart_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry"
       ]
     },
     {
       "id": "umbra-attribute-update-requires-source-ownership",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l86-23",
       "clause_id": "clause-6.10",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry"
+        "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
+        "cpp/tests/ieee1516_2025_federation_registry_latest_object_application_values_filesystem_restart_catch2.cpp::Filesystem state image restores latest object application values in a fresh registry"
       ]
     },
     {
       "id": "umbra-attribute-update-preserves-passel-boundaries",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-112-l51-15",
       "clause_id": "clause-6.1.12",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
+        "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
       ]
     },
     {
       "id": "umbra-attribute-update-never-mixes-request-passels",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-112-l66-20",
       "clause_id": "clause-6.1.12",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
-      "source_symbol": "queueReceiveOrderAttributeUpdate",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
+      "source_symbol": "queueAmbassadorReceiveOrderAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
+        "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
       ]
     },
     {
       "id": "umbra-attribute-update-projects-current-recipient-subscription",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-112-l48-14",
       "clause_id": "clause-6.1.12",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
+        "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
       ]
     },
     {
@@ -65,7 +65,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
+        "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
         "cpp/tests/update_attribute_values_service_report_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments"
       ]
     },
@@ -73,10 +73,10 @@
       "id": "umbra-attribute-update-suppresses-unsubscribed-recipient",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l146-43",
       "clause_id": "clause-6.10",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
-      "source_symbol": "queueReceiveOrderAttributeUpdate",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
+      "source_symbol": "queueAmbassadorReceiveOrderAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
+        "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
       ]
     },
     {
@@ -86,7 +86,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
+        "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle",
         "cpp/tests/update_attribute_values_service_report_catch2.cpp::Embedded service reporting preserves receive-order Update Attribute Values arguments"
       ]
     },
@@ -97,7 +97,7 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
+        "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
       ]
     },
     {
@@ -107,38 +107,38 @@
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "recipient.reflectAttributeValues",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
+        "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
       ]
     },
     {
       "id": "umbra-reflect-attribute-values-excludes-invoking-federate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l115-35",
       "clause_id": "clause-6.11.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
+        "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
       ]
     },
     {
       "id": "umbra-reflect-attribute-values-follows-passelization",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
       "clause_id": "clause-6.11.1",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
-      "source_symbol": "queueReceiveOrderAttributeUpdate",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
+      "source_symbol": "queueAmbassadorReceiveOrderAttributeUpdate",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
+        "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
       ]
     },
     {
       "id": "umbra-receive-order-attribute-active-subscription-gates-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36",
       "clause_id": "clause-5.8",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp",
       "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient",
       "tests": [
         "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
+        "cpp/tests/ieee1516_2025_receive_order_attribute_update_passel_lifecycle_catch2.cpp::Embedded receive-order Update Attribute Values honors 2025 passel and callback lifecycle"
       ]
     }
   ]

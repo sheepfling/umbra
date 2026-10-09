@@ -11,8 +11,15 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual ConfigurationResult connect( FederateAmbassador & federateAmbassador, CallbackModel callbackModel) = 0",
-      "exception_types": ["Unauthorized", "ConnectionFailed", "UnsupportedCallbackModel", "AlreadyConnected", "CallNotAllowedFromWithinCallback", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "Unauthorized",
+        "ConnectionFailed",
+        "UnsupportedCallbackModel",
+        "AlreadyConnected",
+        "CallNotAllowedFromWithinCallback",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::connect",
       "tests": [
         "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador Connect exposes all four official C++ overloads",
@@ -25,8 +32,15 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual ConfigurationResult connect( FederateAmbassador & federateAmbassador, CallbackModel callbackModel, RtiConfiguration const & configuration) = 0",
-      "exception_types": ["Unauthorized", "ConnectionFailed", "UnsupportedCallbackModel", "AlreadyConnected", "CallNotAllowedFromWithinCallback", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "Unauthorized",
+        "ConnectionFailed",
+        "UnsupportedCallbackModel",
+        "AlreadyConnected",
+        "CallNotAllowedFromWithinCallback",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::connect",
       "tests": [
         "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador Connect exposes all four official C++ overloads",
@@ -40,8 +54,16 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual ConfigurationResult connect( FederateAmbassador & federateAmbassador, CallbackModel callbackModel, Credentials const & credentials) = 0",
-      "exception_types": ["Unauthorized", "InvalidCredentials", "ConnectionFailed", "UnsupportedCallbackModel", "AlreadyConnected", "CallNotAllowedFromWithinCallback", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "Unauthorized",
+        "InvalidCredentials",
+        "ConnectionFailed",
+        "UnsupportedCallbackModel",
+        "AlreadyConnected",
+        "CallNotAllowedFromWithinCallback",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::connect",
       "tests": [
         "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador Connect exposes all four official C++ overloads"
@@ -53,8 +75,16 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual ConfigurationResult connect( FederateAmbassador & federateAmbassador, CallbackModel callbackModel, RtiConfiguration const & configuration, Credentials const & credentials) = 0",
-      "exception_types": ["Unauthorized", "InvalidCredentials", "ConnectionFailed", "UnsupportedCallbackModel", "AlreadyConnected", "CallNotAllowedFromWithinCallback", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "Unauthorized",
+        "InvalidCredentials",
+        "ConnectionFailed",
+        "UnsupportedCallbackModel",
+        "AlreadyConnected",
+        "CallNotAllowedFromWithinCallback",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::connect",
       "tests": [
         "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador Connect exposes all four official C++ overloads"
@@ -66,7 +96,11 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void disconnect() = 0",
-      "exception_types": ["FederateIsExecutionMember", "CallNotAllowedFromWithinCallback", "RTIinternalError"],
+      "exception_types": [
+        "FederateIsExecutionMember",
+        "CallNotAllowedFromWithinCallback",
+        "RTIinternalError"
+      ],
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "UmbraRtiAmbassador::disconnect",
       "tests": [
@@ -80,13 +114,16 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool evokeCallback( double approximateMinimumTimeInSeconds) = 0",
-      "exception_types": ["CallNotAllowedFromWithinCallback", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "CallNotAllowedFromWithinCallback",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::evokeCallback",
       "tests": [
         "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador callback controls honor both models with an empty embedded queue",
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface",
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface"
+        "cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface",
+        "cpp/tests/ieee1516_2025_connection_timestamped_receive_evoke_catch2.cpp::RTIambassador preserves a timestamped process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -95,12 +132,15 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool evokeMultipleCallbacks( double approximateMinimumTimeInSeconds, double approximateMaximumTimeInSeconds) = 0",
-      "exception_types": ["CallNotAllowedFromWithinCallback", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "CallNotAllowedFromWithinCallback",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::evokeMultipleCallbacks",
       "tests": [
         "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador callback controls honor both models with an empty embedded queue",
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
+        "cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -109,12 +149,16 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void enableCallbacks() = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::enableCallbacks",
       "tests": [
         "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador callback controls honor both models with an empty embedded queue",
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
+        "cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     },
     {
@@ -123,12 +167,16 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void disableCallbacks() = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::disableCallbacks",
       "tests": [
         "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador callback controls honor both models with an empty embedded queue",
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
+        "cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
       ]
     }
   ]

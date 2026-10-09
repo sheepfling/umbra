@@ -101,6 +101,16 @@ split:
     python tools/check_source_file_sizes.py --report
     python tools/check_source_file_sizes.py
 
+The size checker counts locally included `.inc` contents with their owning
+C++ source/header, including nested fragments, so moving implementation or
+test bodies into private fragments does not bypass the logical size gate.
+Do not create one-off fragments to lower a physical count: use `.inc` only for
+a demonstrable structural or textual-reuse need that normal source/header
+units cannot express. Aim for logical code units below 10,000 lines; if a
+cohesive unit has no safe seam, record the reason. Existing expanded
+translation units over 10,000 lines carry a separate `max_expanded_lines`
+ratchet while they are reworked.
+
 The 2010 C++ lane includes the exact integer/float logical-time marshal gate.
 The 2010 JNI lane runs the Java carrier matrix; after staging the optional
 native Python extension, the Python-side boundary evidence is:

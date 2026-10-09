@@ -9,7 +9,7 @@
       "id": "umbra-attribute-scope-definition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l141-42",
       "clause_id": "clause-6.1.2",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_relevance.cpp",
       "source_symbol": "EmbeddedFederationRegistry::objectAttributeInScope",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -20,7 +20,7 @@
       "id": "umbra-attributes-in-scope-notification",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-133-l178-51",
       "clause_id": "clause-6.19",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
       "source_symbol": "queueObjectInstanceScopeChanges",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -31,7 +31,7 @@
       "id": "umbra-attributes-in-scope-at-most-one-transition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-134-l11-1",
       "clause_id": "clause-6.20",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::commitRegionModificationsWithScopeChanges",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -42,7 +42,7 @@
       "id": "umbra-attributes-in-scope-switch-gate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-133-l187-54",
       "clause_id": "clause-6.19",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_relevance.cpp",
       "source_symbol": "EmbeddedFederationRegistry::objectAttributeInScope",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -53,7 +53,7 @@
       "id": "umbra-attributes-out-of-scope-notification",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-134-l146-39",
       "clause_id": "clause-6.20",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
       "source_symbol": "queueObjectInstanceScopeChanges",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -64,7 +64,7 @@
       "id": "umbra-attributes-out-of-scope-at-most-one-transition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-134-l161-44",
       "clause_id": "clause-6.20",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_regions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::commitRegionModificationsWithScopeChanges",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -75,7 +75,7 @@
       "id": "umbra-attributes-out-of-scope-switch-gate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-134-l155-42",
       "clause_id": "clause-6.20",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_relevance.cpp",
       "source_symbol": "EmbeddedFederationRegistry::objectAttributeInScope",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -86,7 +86,7 @@
       "id": "umbra-attribute-scope-switch-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-270-l122-37",
       "clause_id": "clause-10.38.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_control_state.cpp",
       "source_symbol": "EmbeddedFederationRegistry::attributeScopeAdvisorySwitchFor",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -97,7 +97,7 @@
       "id": "umbra-attribute-scope-switch-update",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-271-l64-18",
       "clause_id": "clause-10.39.6",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_control_state.cpp",
       "source_symbol": "EmbeddedFederationRegistry::setAttributeScopeAdvisorySwitch",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",

@@ -20,12 +20,12 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_publication.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishObjectClassAttributes",
       "tests": [
         "cpp/tests/fom_declaration_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
         "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_registry_object_class_declarations_filesystem_restart_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
       ]
     },
     {
@@ -44,7 +44,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_publication.cpp",
       "source_symbol": "UmbraRtiAmbassador::unpublishObjectClassAttributes",
       "tests": [
         "cpp/tests/fom_declaration_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
@@ -66,12 +66,12 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributes",
       "tests": [
         "cpp/tests/fom_declaration_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
         "cpp/tests/passive_object_attribute_subscription_catch2.cpp::Embedded passive object-attribute subscriptions do not arrange ordinary or regional delivery",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_registry_object_class_declarations_filesystem_restart_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
       ]
     },
     {
@@ -89,7 +89,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributes",
       "tests": [
         "cpp/tests/fom_declaration_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",

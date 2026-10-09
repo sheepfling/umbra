@@ -19,11 +19,11 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_declaration_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishInteractionClass",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded interaction declaration services retain valid 2025 lifecycle and FOM boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Interaction Class arguments"
+        "cpp/tests/ieee1516_2025_federation_management_interaction_declaration_catch2.cpp::Embedded interaction declaration services retain valid 2025 lifecycle and FOM boundaries",
+        "cpp/tests/ieee1516_2025_federation_management_interaction_declaration_catch2.cpp::Embedded service reporting preserves Publish Interaction Class arguments"
       ]
     }
   ]

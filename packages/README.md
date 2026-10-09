@@ -7,7 +7,7 @@ provider distribution implements an independent RTI.
 | Distribution or artifact | Role | Normal use |
 | --- | --- | --- |
 | `hla-rti-api` | Pure-Python, edition-specific `hla.*` API contract | Required by every Python provider and application. |
-| `umbra-rti-observer` | Provider-neutral runtime event store and optional FastAPI/WebSocket dashboard | Connect an RTI/provider adapter through normalized events; no FOM or provider dependency. |
+| `umbra-rti-observer` | Provider-neutral runtime event store, versioned wire contract, and optional FastAPI/WebSocket dashboard | Connect an RTI/provider adapter through normalized events; a Python or Java backend can serve the same frontend. |
 | `umbra-rti-observer-umbra` | Umbra Python RTI adapter for the standalone observer | Translates Umbra's 1516.1-2025 callback/connection shape into generic observer events. Other RTIs should use separate adapter packages. |
 | `umbra-rti-test-support` | Shared provider conformance mixins | Development/test dependency only; never required by applications. |
 | `umbra-rti-native` | Direct pybind11 providers for Umbra's edition-specific C++ RTIs | Use `Umbra` for 2025 or `UmbraNative2010` for the surface-complete/bindable `hla.rti1516e` native route, including bounded reference federation/declaration/object/interaction/ownership/synchronization proof slices. Remaining services are explicit capability gates. |

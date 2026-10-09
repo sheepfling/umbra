@@ -648,6 +648,157 @@
       "reproduction": "python tools/query_rti_work.py case umbra-cpp-federation-mom-content-reports-integration --summary --compact; python tools/query_rti_work.py test umbra-cpp-federation-mom-content-reports-integration --summary --compact; ctest --test-dir .build-mingw-rti -C Debug -R 'Embedded federation MOM content reports FOM module and MIM data through a focused lane' --output-on-failure",
       "verification": "Corrected the existing plan row to the active 53-assertion development-profile case at cpp/tests/federation_mom_current_fdd_catch2.cpp:324 with HLA_EVOKED callback delivery and the existing federation-mom-content-reports focus tag. The direct requirement-to-clause-4 pair and seven API surfaces are unchanged. The case query and trace now resolve to the active source, the focused CTest passes 1/1, and both the MOM and federation-mom-content-reports mapping checks pass with zero C++ tests missing source locations. No pinned Lab export, IEEE 1516.1-2010 source, or mapping changed.",
       "detected": "2026-10-05"
+    },
+    {
+      "id": "RL-277",
+      "status": "resolved-in-umbra",
+      "kind": "traceability-contract-selector-drift",
+      "title": "Connection-loss and support-switch contracts retained pre-extraction source paths",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/connection-lost-requirements-contract.json",
+        "lines": "connection-lost, federate-lost-report, resign-action, and support-switch contracts; stale case selectors and source-symbol paths"
+      },
+      "symptom": "The connection-loss lane sweep found traceability selectors still naming the federation-management monolith for extracted cases, plus source-symbol paths still naming federation_registry.cpp or umbra_rti_ambassador.cpp after their implementations moved into focused translation units. The affected gates included connection-loss, Federate Lost, resign-action, and support-switch traceability tests.",
+      "impact": "Requirements/API traceability CTests failed with contract drift even though behavior, direct requirement-to-2025-clause pairs, and API-surface mappings were intact.",
+      "workaround": "Update only source-qualified TEST_CASE selectors and implementation source paths to the files that currently contain each declaration or definition. Preserve all requirement IDs, canonical clause mappings, API-surface IDs, and pinned Requirements Lab inputs; do not resynchronize the Lab export.",
+      "reproduction": "ctest --test-dir .build -C Debug --output-on-failure -L 'connection-lost-(report-ordering|federate-lost-mom-interaction|error-path)'",
+      "recurrence_of": "RL-275",
+      "verification": "Corrected the affected connection-loss, Federate Lost, resign-action, and support-switch contract paths. The #510/#521/#529 behavior tests and seven related requirements/API traceability CTests pass 10/10; the connection-lost-report-ordering lane check retains eight direct pairs across six canonical 2025 clauses and seven API surfaces. No requirement mapping, clause mapping, API surface, pinned Lab export, or IEEE 1516.1-2010 source or mapping changed.",
+      "detected": "2026-10-06"
+    },
+    {
+      "id": "RL-278",
+      "status": "resolved-in-umbra",
+      "kind": "traceability-contract-selector-drift",
+      "title": "Timestamped-interaction contracts retained pre-extraction source paths",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/timestamped-interaction-requirements-contract.json and timestamped-interaction-api-contract.json",
+        "lines": "stale source-qualified test selectors and federation-registry source-symbol paths"
+      },
+      "symptom": "The timestamped-interaction requirements and API traceability CTests referenced tests in the federation-management and connection monoliths after extraction, and implementation source symbols still pointed to federation_registry.cpp after the registry methods moved into focused translation units.",
+      "impact": "CTest #2092 and #2093 failed contract traceability despite the cases, implementations, and direct requirement-to-2025-clause/API mappings remaining present.",
+      "workaround": "Update only the local source-qualified selectors and implementation source paths to their current definitions. Preserve requirement IDs, canonical clause mappings, API-surface IDs, and pinned Requirements Lab inputs; do not resynchronize the Lab export.",
+      "reproduction": "ctest --test-dir .build -C Debug --output-on-failure -R '^umbra\\.ieee1516_2025\\.timestamped_interaction_(requirements|api)_traceability$'",
+      "recurrence_of": "RL-277",
+      "verification": "Corrected 41 selector occurrences in the requirements contract and 29 in the API contract, plus eight registry source-symbol paths. The timestamped-interaction traceability CTests #2092/#2093 and connection-loss traceability CTests #1910/#1911 pass 4/4; strict-less-than and later-TAR cutoff cases #514/#531 and all 26 connection-lost-tso-cutoff lane tests pass. No requirement mapping, clause mapping, API surface, pinned Lab export, or IEEE 1516.1-2010 source or mapping changed.",
+      "detected": "2026-10-06"
+    },
+    {
+      "id": "RL-279",
+      "status": "resolved-in-umbra",
+      "kind": "traceability-contract-selector-drift",
+      "title": "Asynchronous-delivery contracts retained monolith test selectors",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/asynchronous-delivery-requirements-contract.json and asynchronous-delivery-api-contract.json",
+        "lines": "two extracted test selectors across both local contracts"
+      },
+      "symptom": "Asynchronous-delivery requirements and API traceability CTests still named two extracted cases in ieee1516_2025_federation_management_catch2.cpp instead of their focused source files.",
+      "impact": "CTest #2071 and #2072 failed contract traceability although both tests and their direct mappings remained present.",
+      "workaround": "Update only the source-qualified selectors to the files that currently contain those TEST_CASE declarations. Preserve requirement IDs, canonical clause mappings, API-surface IDs, and pinned Requirements Lab inputs; do not resynchronize the Lab export.",
+      "reproduction": "ctest --test-dir .build -C Debug --output-on-failure -R '^umbra\\.ieee1516_2025\\.asynchronous_delivery_(requirements|api)_traceability$'",
+      "recurrence_of": "RL-278",
+      "verification": "Corrected eight selector occurrences across the asynchronous-delivery requirements and API contracts. CTests #2071/#2072 pass 2/2; the eight affected connection-loss, Federate Lost, asynchronous-delivery, and timestamped-interaction traceability CTests pass 8/8. The extracted HLAreportFederateLost cutoff case #530 and all 26 cutoff-lane tests pass. No requirement mapping, clause mapping, API surface, pinned Lab export, or IEEE 1516.1-2010 source or mapping changed.",
+      "detected": "2026-10-06"
+    },
+    {
+      "id": "RL-280",
+      "status": "resolved-in-umbra",
+      "kind": "traceability-contract-selector-drift",
+      "title": "Federate-lookup and support-switch contracts retained moved source references",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/federate-lookup-requirements-contract.json and support-switches-table-requirements-contract.json",
+        "lines": "one registry source-symbol path and two source-qualified test selectors"
+      },
+      "symptom": "CTest #1917 referenced EmbeddedFederationRegistry::federateNameFor in federation_registry.cpp after its definition moved to federation_registry_catalog_queries.cpp. CTest #1989 referenced the explicit-NoAction and support-switch-state cases in the federation-management monolith after their tests moved to join_automatic_resign_directive_catch2.cpp and support_switch_state_catch2.cpp.",
+      "impact": "The federate-lookup and support-switch table traceability gates failed contract validation despite the implementation, focused tests, and existing requirement mappings remaining present.",
+      "workaround": "Update only the contract source path and test selectors to their current definitions. Preserve requirement IDs, canonical clause mappings, API-surface IDs, and pinned Requirements Lab inputs; do not resynchronize the Lab export.",
+      "reproduction": "ctest --test-dir .build -C Debug --output-on-failure -R '^(umbra\\.ieee1516_2025\\.federate_lookup_requirements_traceability|umbra\\.ieee1516_2_2025\\.support_switches_table_requirements_traceability)$'",
+      "recurrence_of": "RL-277",
+      "verification": "Corrected the moved source-symbol path and two stale selectors without changing requirement or API mappings. CTests #1917 and #1989 pass, as do the extracted DELETE_OBJECTS case #505 and its other selected traceability gates. No pinned Lab export or IEEE 1516.1-2010 source or mapping changed.",
+      "detected": "2026-10-06"
+    },
+    {
+      "id": "RL-281",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-plan-duplicate-source-location",
+      "title": "Declaration failure matrix rows retained duplicate monolith locations",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "plan rows umbra-cpp-declaration-subscription-failure-file-matrix, umbra-cpp-declaration-subscription-failure-mom-interaction-matrix, and umbra-cpp-declaration-interaction-failure-file-matrix"
+      },
+      "symptom": "Three extracted declaration-failure plan rows each contained both a current focused-file source_location and a second stale source_location in ieee1516_2025_federation_management_catch2.cpp. JSON consumers can disagree or silently choose the stale duplicate member.",
+      "impact": "The plan carried ambiguous source pointers for mapped development-profile tests even though the exact focused cases and direct mappings remained present.",
+      "workaround": "Remove only the stale duplicate monolith source_location members. Preserve the focused-file pointers, requirement IDs, canonical clause mappings, API-surface IDs, and pinned Requirements Lab inputs.",
+      "reproduction": "Parse compliance/requirements-lab/catch2-test-plan.json with an object_pairs_hook that rejects repeated keys, then query the three exact case IDs with python tools/query_rti_work.py case <plan-id> --summary --compact.",
+      "verification": "Removed the three duplicate monolith pointers. The cases resolve to their focused current sources at unsubscribe_interaction_class_service_report_file_catch2.cpp:74, service_report_interaction_object_attribute_subscription_failure_matrix_catch2.cpp:222, and unpublish_interaction_class_service_report_file_catch2.cpp:81. Requirement, clause, and API mappings are unchanged; no pinned Lab export or IEEE 1516.1-2010 source or mapping changed.",
+      "detected": "2026-10-06"
+    },
+    {
+      "id": "RL-282",
+      "status": "resolved-in-umbra",
+      "kind": "traceability-contract-selector-drift",
+      "title": "Object-name reservation contracts retained pre-split source paths",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/object-instance-name-reservation-requirements-contract.json and object-instance-name-reservation-api-contract.json",
+        "lines": "moved source-symbol paths and source-qualified test selectors"
+      },
+      "symptom": "Object-name reservation traceability gates still pointed implementation symbols into federation_registry.cpp and umbra_rti_ambassador.cpp, and selected tests in the federation-management and federation-registry monoliths after those definitions had moved into focused files.",
+      "impact": "CTest #2015 and #2016 reported contract drift despite the current implementations, focused tests, and direct mappings remaining present.",
+      "workaround": "Update only local source-symbol and test-selector paths to the files that currently contain each definition. Preserve requirement IDs, canonical clause mappings, API-surface IDs, and pinned Requirements Lab inputs; do not resynchronize the Lab export.",
+      "reproduction": "ctest --test-dir .build -C Debug --output-on-failure -R '^umbra\\.ieee1516_2025\\.object_instance_name_reservation_(requirements|api)_traceability$'",
+      "recurrence_of": "RL-277",
+      "verification": "Corrected the moved object-name implementation and test pointers without changing requirement, clause, or API mappings. CTests #2015/#2016 and the eight selected connection-loss, resign-action, support-switch, and object-name traceability gates pass 8/8. No pinned Lab export or IEEE 1516.1-2010 source or mapping changed.",
+      "detected": "2026-10-06"
+    },
+    {
+      "id": "RL-283",
+      "status": "resolved-in-umbra",
+      "kind": "catch2-plan-duplicate-source-location",
+      "title": "NoAction plan row retained a duplicate monolith source pointer",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.1-2025",
+      "source": {
+        "path": "compliance/requirements-lab/catch2-test-plan.json",
+        "lines": "plan row umbra-cpp-connection-lost-no-action-policy-integration"
+      },
+      "symptom": "The extracted #503 NoAction test row retained both the stale federation-management monolith source_location and the current focused-source source_location.",
+      "impact": "JSON consumers could select an obsolete source pointer for a mapped 2025 test even though its focused source and direct mappings were present.",
+      "workaround": "Remove only the stale monolith source_location. Preserve the focused-file pointer, requirement IDs, canonical clause mappings, API-surface IDs, and pinned Requirements Lab inputs.",
+      "reproduction": "Parse compliance/requirements-lab/catch2-test-plan.json with an object_pairs_hook that rejects repeated keys, then query umbra-cpp-connection-lost-no-action-policy-integration with python tools/query_rti_work.py case --summary --compact.",
+      "recurrence_of": "RL-281",
+      "verification": "Removed the duplicate monolith pointer; the exact case resolves to ieee1516_2025_connection_lost_automatic_no_action_forced_resign_catch2.cpp:5. CTest #503 passes, and no requirement, clause, API mapping, pinned Lab export, or IEEE 1516.1-2010 source or mapping changed.",
+      "detected": "2026-10-06"
+    },
+    {
+      "id": "RL-284",
+      "status": "resolved-in-umbra",
+      "kind": "traceability-contract-source-pointer-drift",
+      "title": "FOM composition contract retained pre-split validator paths",
+      "affected_requirement_ids": [],
+      "document_id": "hla-1516.2-2025",
+      "source": {
+        "path": "compliance/requirements-lab/fom-composition-requirements-contract.json",
+        "lines": "23 moved source-symbol pointers"
+      },
+      "symptom": "The FOM composition traceability contract still pointed 23 validator symbols at libxml2_fom_composer.cpp after their definitions moved to libxml2_fom_composer_validators.cpp.",
+      "impact": "CTest umbra.ieee1516_2_2025.composition_traceability reported contract drift even though the validators and their focused Catch2 cases remained present.",
+      "workaround": "Update only the moved validator source paths. Preserve requirement IDs, canonical clause mappings, tests, and pinned Requirements Lab inputs; do not resynchronize the Lab export.",
+      "reproduction": "ctest --test-dir .build-mingw-rti -R '^umbra\\.ieee1516_2_2025\\.composition_traceability$' --output-on-failure",
+      "recurrence_of": "RL-282",
+      "verification": "Corrected 23 validator source pointers to libxml2_fom_composer_validators.cpp; CTest #1825 passes. Requirement IDs, clause mappings, pinned Lab inputs, and IEEE 1516.1-2010 source or mapping are unchanged.",
+      "detected": "2026-10-09"
     }
   ]
 }

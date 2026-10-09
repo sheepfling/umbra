@@ -9,7 +9,7 @@
       "id": "umbra-omt-attribute-na-companion-fields",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l109-5",
       "clause_id": "clause-4.5.2",
-      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateAttributeNaCompanionFields",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight validates supplied NA attribute companions"

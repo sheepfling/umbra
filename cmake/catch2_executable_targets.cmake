@@ -1,6 +1,28 @@
 # Catch2 executable targets and test discovery registrations.
 # Included under the shared Catch2 target guard in the top-level build.
 
+    function(umbra_guard_catch2_debug_image_size target_name)
+      if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
+         CMAKE_BUILD_TYPE STREQUAL "Debug" AND CMAKE_STRIP)
+        if(target_name STREQUAL "umbra_ieee1516_2025_catch2" OR
+           target_name STREQUAL "umbra_ieee1516_2025_connection_catch2")
+          # These large 2025 executables can exceed the Windows linker's
+          # temporary image budget before the post-build size guard can strip
+          # DWARF. Keep assertions and Catch2 source locations, but omit their
+          # oversized debug sections during linking.
+          target_link_options("${target_name}" PRIVATE "LINKER:--strip-debug")
+        endif()
+        add_custom_command(TARGET "${target_name}" POST_BUILD
+          COMMAND "${CMAKE_COMMAND}"
+            "-DUMBRACATCH2_EXECUTABLE=$<TARGET_FILE:${target_name}>"
+            "-DUMBRACATCH2_STRIP=${CMAKE_STRIP}"
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/strip_oversized_catch2_debug.cmake"
+          COMMENT "Checking MinGW Catch2 executable image size"
+          VERBATIM
+        )
+      endif()
+    endfunction()
+
     include(cmake/ieee1516_2025_connection_test_sources.cmake)
     add_executable(umbra_ieee1516_2025_catch2
       cpp/tests/ieee1516_2025_headers_catch2.cpp
@@ -266,7 +288,16 @@
       target_compile_definitions(umbra_ieee1516_2025_catch2 PRIVATE
         UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT=1
       )
+      target_sources(umbra_ieee1516_2025_catch2 PRIVATE
+        cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp
+        cpp/tests/ieee1516_2025_federation_management_region_lifecycle_catch2.cpp
+        cpp/tests/ieee1516_2025_federation_management_ddm_service_reporting_catch2.cpp
+        cpp/tests/ieee1516_2025_federation_management_interaction_declaration_catch2.cpp
+      )
     endif()
+    # Preserve object-file debug info, but remove DWARF from any test image
+    # large enough to approach Windows' executable-image limit.
+    umbra_guard_catch2_debug_image_size(umbra_ieee1516_2025_catch2)
     # Register every Catch2 case independently, and expose its existing tags
     # as CTest labels.  This makes the tag taxonomy usable through both
     # `ctest -L` and the named development targets below without duplicating a
@@ -897,36 +928,36 @@
         DISCOVERY_MODE POST_BUILD
       )
     endif()
-    if(TARGET umbra_tso_regional_regular_continuation_restore_catch2)
-      catch_discover_tests(umbra_tso_regional_regular_continuation_restore_catch2
+    if(TARGET umbra_tso_reg_regular_restore_catch2)
+      catch_discover_tests(umbra_tso_reg_regular_restore_catch2
         TEST_PREFIX "umbra.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_regular_candidate_continuation_after_restore.catch2."
         ADD_TAGS_AS_LABELS
         DISCOVERY_MODE POST_BUILD
       )
     endif()
-    if(TARGET umbra_tso_regional_mixed_continuation_restore_catch2)
-      catch_discover_tests(umbra_tso_regional_mixed_continuation_restore_catch2
+    if(TARGET umbra_tso_reg_mixed_restore_catch2)
+      catch_discover_tests(umbra_tso_reg_mixed_restore_catch2
         TEST_PREFIX "umbra.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_mixed_candidate_continuation_after_restore.catch2."
         ADD_TAGS_AS_LABELS
         DISCOVERY_MODE POST_BUILD
       )
     endif()
-    if(TARGET umbra_tso_mixed_pre_delivery_cancel_catch2)
-      catch_discover_tests(umbra_tso_mixed_pre_delivery_cancel_catch2
+    if(TARGET umbra_tso_pre_cancel_restore_catch2)
+      catch_discover_tests(umbra_tso_pre_cancel_restore_catch2
         TEST_PREFIX "umbra.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_retained_regular_pre_delivery_cancel_after_restore.catch2."
         ADD_TAGS_AS_LABELS
         DISCOVERY_MODE POST_BUILD
       )
     endif()
-    if(TARGET umbra_tso_mixed_confirmation_cancel_catch2)
-      catch_discover_tests(umbra_tso_mixed_confirmation_cancel_catch2
+    if(TARGET umbra_tso_confirm_cancel_catch2)
+      catch_discover_tests(umbra_tso_confirm_cancel_catch2
         TEST_PREFIX "umbra.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_retained_regular_confirmation_cancel_after_restore.catch2."
         ADD_TAGS_AS_LABELS
         DISCOVERY_MODE POST_BUILD
       )
     endif()
-    if(TARGET umbra_tso_regional_negotiated_confirmation_cancel_restore_catch2)
-      catch_discover_tests(umbra_tso_regional_negotiated_confirmation_cancel_restore_catch2
+    if(TARGET umbra_tso_cancel_restore_catch2)
+      catch_discover_tests(umbra_tso_cancel_restore_catch2
         TEST_PREFIX "umbra.timed_live_tso_regional_attribute_update_multi_recipient_negotiated_confirmation_cancel_after_restore.catch2."
         ADD_TAGS_AS_LABELS
         DISCOVERY_MODE POST_BUILD

@@ -24,7 +24,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipAcquisitionIfAvailable",
       "tests": [
         "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
@@ -48,7 +48,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::attributeOwnershipDivestitureIfWanted",
       "tests": [
         "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
@@ -65,7 +65,7 @@
       "exception_types": [
         "FederateInternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp",
       "source_symbol": "requester.attributeOwnershipAcquisitionNotification",
       "tests": [
         "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
@@ -93,7 +93,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_region_registration.cpp",
       "source_symbol": "UmbraRtiAmbassador::registerObjectInstanceWithRegions",
       "tests": [
         "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
@@ -119,7 +119,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_region_update_association.cpp",
       "source_symbol": "UmbraRtiAmbassador::associateRegionsForUpdates",
       "tests": [
         "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
@@ -144,7 +144,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_region_update_association.cpp",
       "source_symbol": "UmbraRtiAmbassador::unassociateRegionsForUpdates",
       "tests": [
         "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer drops a non-owner's cancelled 2025 update-region association"
@@ -168,7 +168,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributesWithRegions",
       "tests": [
         "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",
@@ -192,7 +192,7 @@
         "NotConnected",
         "RTIinternalError"
       ],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::updateAttributeValues",
       "tests": [
         "cpp/tests/ownership_transfer_update_region_catch2.cpp::Embedded ownership transfer clears the former owner's 2025 update-region association",

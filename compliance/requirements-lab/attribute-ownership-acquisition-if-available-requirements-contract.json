@@ -9,18 +9,18 @@
       "id": "umbra-acquisition-if-available-records-a-request-without-owner-release",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31",
       "clause_id": "clause-7.9.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionIfAvailable",
       "tests": [
         "cpp/tests/ieee1516_2025_attribute_ownership_acquisition_if_available_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition If Available arguments"
+        "cpp/tests/ieee1516_2025_service_report_file_attribute_ownership_acquisition_if_available_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition If Available arguments"
       ]
     },
     {
       "id": "umbra-acquisition-if-available-preserves-pending-willing-to-acquire-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43",
       "clause_id": "clause-7.9.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp",
       "source_symbol": "EmbeddedFederationRegistry::planAttributeOwnershipAcquisitionIfAvailable",
       "tests": [
         "cpp/tests/ieee1516_2025_attribute_ownership_acquisition_if_available_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks"
@@ -30,18 +30,18 @@
       "id": "umbra-acquisition-if-available-notifies-after-atomic-ownership-assignment",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27",
       "clause_id": "clause-7.7.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp",
       "source_symbol": "EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionIfAvailable",
       "tests": [
         "cpp/tests/ieee1516_2025_attribute_ownership_acquisition_if_available_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition If Available arguments"
+        "cpp/tests/ieee1516_2025_service_report_file_attribute_ownership_acquisition_if_available_catch2.cpp::Embedded service reporting preserves Attribute Ownership Acquisition If Available arguments"
       ]
     },
     {
       "id": "umbra-acquisition-if-available-reports-unavailable-attributes",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1",
       "clause_id": "clause-7.10.6",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_ownership_callback_dispatch.cpp",
       "source_symbol": "queueAttributeOwnershipAcquisitionIfAvailableReport",
       "tests": [
         "cpp/tests/ieee1516_2025_attribute_ownership_acquisition_if_available_catch2.cpp::Embedded Attribute Ownership Acquisition If Available resolves 2025 ownership callbacks"

@@ -6,23 +6,43 @@ It does not require a risky whole-file rewrite of legacy work.
 
 ## Limits
 
-The preferred target is the first number. Crossing the review threshold requires
-an explicit reason in the change description. The hard limit applies to new
-files; existing exceptions are recorded in
-[`source-size-policy.json`](source-size-policy.json) and may not grow.
+Files over 3,000 lines enter a warning/review band; this is not an instruction
+to split at an arbitrary boundary. Above 5,000 lines, look for a real ownership
+or behavior seam and split only when the resulting units make sense on their
+own. The practical ceiling for code is 10,000 lines. Documentation keeps a
+6,000-line ceiling. A cohesive unit may remain intact below the applicable
+ceiling, and a larger file may use a documented exception when a clean seam
+does not exist. The checker applies each category's default ceiling to new
+files and prevents growth of a recorded exception:
 
-| File category | Preferred | Review at | Hard limit |
+| File category | Warning above | Review for a real seam above | Default ceiling |
 | --- | ---: | ---: | ---: |
-| Production C++ source | 2,000 | 2,500 | 4,000 |
-| C++ header | 1,200 | 2,000 | 3,000 |
-| Catch2 test source | 2,500 | 3,500 | 5,000 |
-| Markdown documentation | 3,000 | 4,500 | 6,000 |
-| CMake entry point | 3,000 | 5,000 | 8,000 |
+| Production C++ source | 3,000 | 5,000 | 10,000 |
+| C++ header | 3,000 | 5,000 | 10,000 |
+| Catch2 test source | 3,000 | 5,000 | 10,000 |
+| Markdown documentation | 3,000 | — | 6,000 |
+| CMake entry point | 3,000 | 5,000 | 10,000 |
 
-These are maintainability limits. A file above the preferred target is not
-automatically wrong; a cohesive public boundary or generated artifact can be a
-valid exception. The guard is run by `python -m tools.ci lint` and prevents
-both new hard-limit violations and growth of a recorded legacy exception:
+These are maintainability guidelines, not compiler restrictions. Do not create
+one-off `.inc` fragments just to lower a file's physical line count: an include
+fragment is not a module boundary, and the checker counts it with its owner.
+Prefer ordinary `.cpp`/`.hpp` units for real implementation boundaries and
+complete Catch2 cases grouped into thematic suites. A hand-maintained `.inc` is
+acceptable as a reuse boundary only when at least two distinct owning source
+or header files include that exact fragment. Repeated includes from one owner
+do not count as multiple consumers, and chains of single-consumer fragments do
+not create reuse. This rule also applies to class-scoped declarations: if one
+header includes the fragment, keep the declarations in that header. Do not add
+single-consumer `.inc` splits; existing ones are candidates to fold into their
+owning source/header when safely in scope. Generated or tool-mandated textual
+includes require a documented origin and are not a way to lower line counts.
+Aim for each logical code unit to be below 10,000 expanded lines; if no safe,
+coherent seam exists, record an explicit exception and its rationale instead
+of splitting for the metric. The size checker adds locally included `.inc`
+lines to their owning source or header, recursively, before applying warnings
+and the 10,000-line ceiling. Existing oversized translation units record both
+their physical and expanded baselines in [`source-size-policy.json`](source-size-policy.json)
+and may shrink, but may not grow. The guard is run by `python -m tools.ci lint`:
 
 ```text
 python tools/check_source_file_sizes.py --report
@@ -991,6 +1011,13 @@ The first wave should be staged rather than attempted as one rewrite:
 - Leave the compliance JSON and historical ledger intact unless their consumer
   is deliberately taught to assemble validated fragments.
 
-Each wave should reduce the largest file, update the size baseline downward,
-and leave a focused next handoff. The policy is a ratchet: size may go down,
-never silently up.
+Each wave should improve navigation and thematic cohesion, or bring a logical
+source unit toward the 10,000-line ceiling, then leave a focused next handoff.
+Do not split a cohesive unit just to lower its physical file count; included
+fragments are counted with their owner. Existing physical and expanded
+exceptions are growth-guarded and should shrink when a real module boundary is
+implemented. The earlier entries above are historical records of previous
+splits; this policy supersedes their former line-count targets and any rationale
+for a hand-maintained single-consumer `.inc`. Review fragments by distinct
+consumers and fold single-consumer splits into their owning source or header
+when that work is safely in scope.

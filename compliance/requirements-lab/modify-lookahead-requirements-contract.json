@@ -13,10 +13,10 @@
       "source_symbol": "FederateTimeState::modifyLookahead",
       "tests": [
         "cpp/tests/ieee1516_2025_modify_lookahead_increase_and_gradual_decrease_catch2.cpp::Embedded Modify Lookahead applies increases immediately and decreases gradually",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted deferred Modify Lookahead request",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
-         "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores pending time advance and deferred lookahead in a fresh registry",
-         "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded fresh-registry restore rebinds pending TAR and deferred lookahead through public callback models"
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted deferred Modify Lookahead request",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_federation_registry_pending_time_advance_deferred_lookahead_filesystem_restart_catch2.cpp::Filesystem state image restores pending time advance and deferred lookahead in a fresh registry",
+        "cpp/tests/ieee1516_2025_restore_pending_time_role_callbacks_catch2.cpp::Embedded fresh-registry restore rebinds pending TAR and deferred lookahead through public callback models"
       ]
     },
     {
@@ -25,7 +25,9 @@
       "clause_id": "clause-8.20.4",
       "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
       "source_symbol": "cloneReferenceLogicalTimeInterval",
-      "tests": []
+      "tests": [
+        "cpp/tests/ieee1516_2025_modify_lookahead_increase_and_gradual_decrease_catch2.cpp::Embedded Modify Lookahead rejects negative values without changing actual lookahead"
+      ]
     },
     {
       "id": "umbra-modify-lookahead-applies-increase-immediately",
@@ -35,7 +37,7 @@
       "source_symbol": "FederateTimeState::modifyLookahead",
       "tests": [
         "cpp/tests/ieee1516_2025_modify_lookahead_increase_and_gradual_decrease_catch2.cpp::Embedded Modify Lookahead applies increases immediately and decreases gradually",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead"
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore restores saved logical time and actual lookahead"
       ]
     },
     {
@@ -45,9 +47,9 @@
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::modifyLookahead",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted deferred Modify Lookahead request",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores pending time advance and deferred lookahead in a fresh registry"
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted deferred Modify Lookahead request",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_federation_registry_pending_time_advance_deferred_lookahead_filesystem_restart_catch2.cpp::Filesystem state image restores pending time advance and deferred lookahead in a fresh registry"
       ]
     },
     {
@@ -58,8 +60,8 @@
       "source_symbol": "FederateTimeState::grant",
       "tests": [
         "cpp/tests/ieee1516_2025_modify_lookahead_increase_and_gradual_decrease_catch2.cpp::Embedded Modify Lookahead applies increases immediately and decreases gradually",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores pending time advance and deferred lookahead in a fresh registry"
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_federation_registry_pending_time_advance_deferred_lookahead_filesystem_restart_catch2.cpp::Filesystem state image restores pending time advance and deferred lookahead in a fresh registry"
       ]
     },
     {
@@ -70,8 +72,8 @@
       "source_symbol": "FederateTimeState::grant",
       "tests": [
         "cpp/tests/ieee1516_2025_modify_lookahead_increase_and_gradual_decrease_catch2.cpp::Embedded Modify Lookahead applies increases immediately and decreases gradually",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores pending time advance and deferred lookahead in a fresh registry"
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_federation_registry_pending_time_advance_deferred_lookahead_filesystem_restart_catch2.cpp::Filesystem state image restores pending time advance and deferred lookahead in a fresh registry"
       ]
     },
     {
@@ -81,19 +83,19 @@
       "source": "cpp/src/internal/time/federate_time_state.cpp",
       "source_symbol": "FederateTimeState::modifyLookahead",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted deferred Modify Lookahead request",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
-        "cpp/tests/federation_registry_catch2.cpp::Filesystem state image restores pending time advance and deferred lookahead in a fresh registry"
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted deferred Modify Lookahead request",
+        "cpp/tests/ieee1516_2025_restore_time_window_state_catch2.cpp::Embedded federation restore preserves a deferred lookahead decrease",
+        "cpp/tests/ieee1516_2025_federation_registry_pending_time_advance_deferred_lookahead_filesystem_restart_catch2.cpp::Filesystem state image restores pending time advance and deferred lookahead in a fresh registry"
       ]
     },
     {
       "id": "umbra-modify-lookahead-service-report-preserves-accepted-deferred-request",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l78-19",
       "clause_id": "clause-8.20.4",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_bounds_lookahead.cpp",
       "source_symbol": "UmbraRtiAmbassador::modifyLookahead",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records an accepted deferred Modify Lookahead request"
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting records an accepted deferred Modify Lookahead request"
       ]
     }
   ]

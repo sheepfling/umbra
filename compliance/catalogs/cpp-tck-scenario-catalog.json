@@ -6256,7 +6256,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioObjectAttributeDeclarationsValidInputsAfterResignationPortable",
       "runner_id": "cpp-tck.object-attribute-declarations-valid-inputs-after-resignation",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.object-attribute-declarations-valid-inputs-after-resignation",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -6383,7 +6383,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioDirectedInteractionDeclarationsValidInputsAfterResignationPortable",
       "runner_id": "cpp-tck.directed-interaction-declarations-valid-inputs-after-resignation",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.directed-interaction-declarations-valid-inputs-after-resignation",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -6840,7 +6840,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioAttributeValueUpdateRequestBaseline",
       "runner_id": "cpp-tck.attribute-value-update-request-baseline",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.attribute-value-update-request-baseline",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -6906,7 +6906,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioObjectClassAttributeValueUpdateRequestBaseline",
       "runner_id": "cpp-tck.object-class-attribute-value-update-request-baseline",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.object-class-attribute-value-update-request-baseline",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -6982,7 +6982,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioAttributeValueUpdateResponse",
       "runner_id": "cpp-tck.attribute-value-update-response",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.attribute-value-update-response",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -7070,7 +7070,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioAttributeValueUpdateRequestMultiRequester",
       "runner_id": "cpp-tck.attribute-value-update-request-multi-requester",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.attribute-value-update-request-multi-requester",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -7126,6 +7126,7 @@
         "RTIambassador.registerObjectInstance",
         "RTIambassador.resignFederationExecution(NO_ACTION)",
         "RTIambassador.resignFederationExecution(DELETE_OBJECTS)",
+        "RTIambassador.getObjectInstanceName",
         "RTIambassador.getObjectInstanceHandle",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.removeObjectInstance"
@@ -7143,7 +7144,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioResignDeleteObjects",
       "runner_id": "cpp-tck.resign-delete-objects",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.resign-delete-objects",
       "default_status": "run",
       "promotion": "promoted"
     },
@@ -7159,6 +7160,7 @@
         "RTIambassador.registerObjectInstance",
         "RTIambassador.resignFederationExecution(NO_ACTION)",
         "RTIambassador.resignFederationExecution(DELETE_OBJECTS)",
+        "RTIambassador.getObjectInstanceName",
         "RTIambassador.getObjectInstanceHandle",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.removeObjectInstance"
@@ -7507,7 +7509,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioObjectRegistrationDiscoveryMultiRecipient",
       "runner_id": "cpp-tck.object-registration-discovery-multi-recipient",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.object-registration-discovery-multi-recipient",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -8926,7 +8928,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioAttributeMultiRecipientFifo",
       "runner_id": "cpp-tck.attribute-multi-recipient-fifo",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.attribute-multi-recipient-fifo",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -9000,7 +9002,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioOrdinaryMultiAttributeSubscriptionProjection",
       "runner_id": "cpp-tck.ordinary-multi-attribute-subscription-projection",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.ordinary-multi-attribute-subscription-projection",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -9079,7 +9081,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioOrdinaryMultiAttributeValueUpdateRequestResponse",
       "runner_id": "cpp-tck.ordinary-multi-attribute-value-update-request-response",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.ordinary-multi-attribute-value-update-request-response",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -9232,7 +9234,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioObjectRemovalMultiRecipientFifo",
       "runner_id": "cpp-tck.object-removal-multi-recipient-fifo",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.object-removal-multi-recipient-fifo",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -9310,7 +9312,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioReceiveOrderObjectRemovalSubscriptionWithdrawal",
       "runner_id": "cpp-tck.receive-order-object-removal-subscription-withdrawal",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.receive-order-object-removal-subscription-withdrawal",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -9386,7 +9388,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioResignDeleteObjectsMultiRecipientFifo",
       "runner_id": "cpp-tck.resign-delete-objects-multi-recipient-fifo",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.resign-delete-objects-multi-recipient-fifo",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -20054,7 +20056,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioObjectDeletionServiceBoundaries",
       "runner_id": "cpp-tck.object-deletion-service-boundaries",
-      "parity": "cpp-extension-no-java-counterpart",
+      "parity": "java-tck.object-deletion-service-boundaries",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

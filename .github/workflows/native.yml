@@ -17,7 +17,7 @@ jobs:
         include:
           # IEEE 1516.1-2010 CI routes are paused; local test routes remain available.
           - name: tooling
-            command: lint --scope ci
+            command: lint --scope ci --skip-2010-checks
           - name: cpp-2025
             command: test --standard 2025 --route cpp
           - name: java-2025

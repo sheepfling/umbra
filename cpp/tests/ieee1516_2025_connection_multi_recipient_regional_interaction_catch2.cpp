@@ -793,29 +793,29 @@ TEST_CASE(
                   })) {
             throw std::runtime_error(description);
           }
+          serveExpected(
+              sender, senderHandler,
+              TransportServiceOperation::report_successful_void_service_invocation,
+              "The regional interaction process server lost a successful Send report.");
         };
         serveSend("The regional interaction process server lost first Send.");
         if (relaxedDdmEnabled) {
-          serveExpected(
-              receiverOne,
-              receiverOneHandler,
-              TransportServiceOperation::set_range_bounds,
-              "The regional interaction process server lost receiver-one relaxed-DDM range update.");
-          serveExpected(
-              receiverOne,
-              receiverOneHandler,
-              TransportServiceOperation::commit_region_modifications,
-              "The regional interaction process server lost receiver-one relaxed-DDM region commit.");
-          serveExpected(
-              receiverTwo,
-              receiverTwoHandler,
-              TransportServiceOperation::set_range_bounds,
-              "The regional interaction process server lost receiver-two relaxed-DDM range update.");
-          serveExpected(
-              receiverTwo,
-              receiverTwoHandler,
-              TransportServiceOperation::commit_region_modifications,
-              "The regional interaction process server lost receiver-two relaxed-DDM region commit.");
+          auto serveRegionRangeUpdate = [&](ProcessTransportSession& session,
+                                            auto const& handler,
+                                            char const* recipient) {
+            auto const prefix = std::string(
+                                    "The regional interaction process server lost ") +
+                                recipient + " relaxed-DDM ";
+            serveExpected(session, handler,
+                          TransportServiceOperation::set_range_bounds,
+                          (prefix + "range update.").c_str());
+            serveExpected(
+                session, handler,
+                TransportServiceOperation::commit_region_modifications,
+                (prefix + "region commit.").c_str());
+          };
+          serveRegionRangeUpdate(receiverOne, receiverOneHandler, "receiver-one");
+          serveRegionRangeUpdate(receiverTwo, receiverTwoHandler, "receiver-two");
         } else {
           serveExpected(
               sender,

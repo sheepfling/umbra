@@ -11,8 +11,10 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void attributesInScope( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes) = 0",
-      "exception_types": ["FederateInternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
       "source_symbol": "queueObjectInstanceScopeChanges",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -25,8 +27,10 @@
       "owner": "FederateAmbassador",
       "language": "cpp",
       "signature": "virtual void attributesOutOfScope( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes) = 0",
-      "exception_types": ["FederateInternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "FederateInternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
       "source_symbol": "queueObjectInstanceScopeChanges",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -39,8 +43,14 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual bool getAttributeScopeAdvisorySwitch() const = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getAttributeScopeAdvisorySwitch",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -54,12 +64,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void setAttributeScopeAdvisorySwitch(bool switchValue) = 0",
-      "exception_types": ["SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::setAttributeScopeAdvisorySwitch",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting appends Table 5 void records for advisory switch setters",
+        "cpp/tests/ieee1516_2025_service_report_catch2.cpp::Embedded service reporting appends Table 5 void records for advisory switch setters",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_regional_scope_advisory_timing"
       ]
     },
@@ -69,8 +85,16 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void subscribeObjectClassAttributes( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes, bool active = true, std::wstring const & updateRateDesignator = L\"\") = 0",
-      "exception_types": ["AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributes",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -83,8 +107,16 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unsubscribeObjectClassAttributes( ObjectClassHandle const & objectClass, AttributeHandleSet const & attributes) = 0",
-      "exception_types": ["AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributes",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -97,8 +129,19 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void subscribeObjectClassAttributesWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions, bool active = true, std::wstring const & updateRateDesignator = L\"\") = 0",
-      "exception_types": ["InvalidRegionContext", "RegionNotCreatedByThisFederate", "InvalidRegion", "AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "InvalidRegionContext",
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::subscribeObjectClassAttributesWithRegions",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",
@@ -111,8 +154,18 @@
       "owner": "RTIambassador",
       "language": "cpp",
       "signature": "virtual void unsubscribeObjectClassAttributesWithRegions( ObjectClassHandle const & objectClass, AttributeHandleSetRegionHandleSetPairVector const & attributesAndRegions) = 0",
-      "exception_types": ["RegionNotCreatedByThisFederate", "InvalidRegion", "AttributeNotDefined", "ObjectClassNotDefined", "SaveInProgress", "RestoreInProgress", "FederateNotExecutionMember", "NotConnected", "RTIinternalError"],
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "exception_types": [
+        "RegionNotCreatedByThisFederate",
+        "InvalidRegion",
+        "AttributeNotDefined",
+        "ObjectClassNotDefined",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_class_subscription.cpp",
       "source_symbol": "UmbraRtiAmbassador::unsubscribeObjectClassAttributesWithRegions",
       "tests": [
         "cpp/tests/attribute_scope_advisory_catch2.cpp::Embedded regional object scope callbacks follow 2025 region, association, and subscription changes",

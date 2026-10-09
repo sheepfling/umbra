@@ -9,31 +9,31 @@
       "id": "umbra-publish-object-class-directed-interactions-adds-the-supplied-directed-publications",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-094-l117-31",
       "clause_id": "clause-5.6.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::publishObjectClassDirectedInteractions",
       "tests": [
         "cpp/tests/directed_interaction_known_target_catch2.cpp::Embedded directed interactions route to known object-class subscribers",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments"
+        "cpp/tests/ieee1516_2025_publish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments"
       ]
     },
     {
       "id": "umbra-publish-object-class-directed-interactions-accepts-an-empty-supplied-set-as-a-no-op",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-094-l123-33",
       "clause_id": "clause-5.6.3",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_directed_interactions.cpp",
       "source_symbol": "EmbeddedFederationRegistry::publishObjectClassDirectedInteractions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments"
+        "cpp/tests/ieee1516_2025_publish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments"
       ]
     },
     {
       "id": "umbra-publish-object-class-directed-interactions-file-report-follows-the-accepted-declaration-transition",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_interaction_declaration_services.cpp",
       "source_symbol": "UmbraRtiAmbassador::publishObjectClassDirectedInteractions",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments"
+        "cpp/tests/ieee1516_2025_publish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments"
       ]
     },
     {
@@ -44,7 +44,7 @@
       "source_symbol": "formatMomInteractionClassHandleSet",
       "tests": [
         "cpp/tests/mom_service_report_encoding_catch2.cpp::MOM service-report files use the Table 5 InteractionClassHandleSet argument form",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments"
+        "cpp/tests/ieee1516_2025_publish_object_class_directed_interactions_service_report_file_catch2.cpp::Embedded service reporting preserves Publish Object Class Directed Interactions arguments"
       ]
     }
   ]

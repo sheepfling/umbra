@@ -7,11 +7,22 @@
   "api_surfaces": [
     {
       "id": "standard-cpp-attribute-ownership-divestiture-if-wanted",
-      "owner": "IEEE 1516.1 C++ API",
+      "requirements_lab_api_surface_id": "api.2025.cpp.rtiambassador.attributeownershipdivestitureifwanted.3755f17bccdb",
+      "owner": "RTIambassador",
       "language": "cpp",
-      "signature": "RTIambassador attributeOwnershipAcquisition and attributeOwnershipDivestitureIfWanted with FederateAmbassador requestAttributeOwnershipRelease and attributeOwnershipAcquisitionNotification callbacks and isAttributeOwnedByFederate queries",
-      "source": "third_party/ieee1516.1-2025/include/RTI",
-      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "signature": "virtual void attributeOwnershipDivestitureIfWanted( ObjectInstanceHandle const & objectInstance, AttributeHandleSet const & attributes, VariableLengthData const & userSuppliedTag, AttributeHandleSet & divestedAttributes) = 0; // filled by RTI",
+      "exception_types": [
+        "AttributeNotOwned",
+        "AttributeNotDefined",
+        "ObjectInstanceNotKnown",
+        "SaveInProgress",
+        "RestoreInProgress",
+        "FederateNotExecutionMember",
+        "NotConnected",
+        "RTIinternalError"
+      ],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "attributeOwnershipDivestitureIfWanted",
       "tests": [
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipDivestitureIfWanted",
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAttributeOwnershipDivestitureIfWantedContract"

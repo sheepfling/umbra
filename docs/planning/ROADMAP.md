@@ -6215,6 +6215,21 @@ Umbra-owned replacement public API.
       process-foundation evidence, not every FOM exchange path,
       interoperability, validation, or conformance evidence.
 
+## Portable standards TCKs
+
+### Portable C++ TCK (2025)
+
+Keep portable C++ conformance scenarios on the official IEEE 1516.1-2025 and
+1516.2-2025 APIs. Track the scenario inventory in
+`compliance/catalogs/cpp-tck-scenario-catalog.json`; each scenario remains
+distinct from embedded-profile regression evidence.
+
+### Portable Java TCK (2025)
+
+Use the official IEEE 1516.1-2025 Java API as a downstream surface and keep
+Java TCK scenarios distinct from C++ implementation evidence. Track the
+scenario inventory in `compliance/catalogs/java-tck-scenario-catalog.json`.
+
 ## Follow-on bindings
 
 Python or Java adapters are downstream work. They must wrap a stable native

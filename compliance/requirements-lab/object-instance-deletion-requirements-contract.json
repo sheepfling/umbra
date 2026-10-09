@@ -9,20 +9,20 @@
       "id": "umbra-object-deletion-accepts-known-instance",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
       "clause_id": "clause-6.16",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp",
       "source_symbol": "EmbeddedFederationRegistry::deleteObjectInstance",
       "tests": [
         "cpp/tests/object_instance_deletion_catch2.cpp::Embedded receive-order Delete Object Instance honors 2025 removal lifecycle",
         "cpp/tests/delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves receive-order Delete Object Instance arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records receive-order Remove Object Instance before its callback",
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
+        "cpp/tests/remove_object_instance_service_report_catch2.cpp::Embedded service reporting records receive-order Remove Object Instance before its callback",
+        "cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
       ]
     },
     {
       "id": "umbra-object-deletion-requires-delete-privilege",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
       "clause_id": "clause-6.16",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp",
       "source_symbol": "EmbeddedFederationRegistry::deleteObjectInstance",
       "tests": [
         "cpp/tests/object_instance_deletion_catch2.cpp::Embedded receive-order Delete Object Instance honors 2025 removal lifecycle"
@@ -32,59 +32,59 @@
       "id": "umbra-object-deletion-delivers-removal-to-other-known-federates",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
       "clause_id": "clause-6.16",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
       "source_symbol": "queueObjectInstanceRemoval",
       "tests": [
         "cpp/tests/object_instance_deletion_catch2.cpp::Embedded receive-order Delete Object Instance honors 2025 removal lifecycle",
         "cpp/tests/delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves receive-order Delete Object Instance arguments",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records receive-order Remove Object Instance before its callback",
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
+        "cpp/tests/remove_object_instance_service_report_catch2.cpp::Embedded service reporting records receive-order Remove Object Instance before its callback",
+        "cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
       ]
     },
     {
       "id": "umbra-object-deletion-makes-invoker-unknown",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
       "clause_id": "clause-6.16.4",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp",
       "source_symbol": "EmbeddedFederationRegistry::deleteObjectInstance",
       "tests": [
         "cpp/tests/object_instance_deletion_catch2.cpp::Embedded receive-order Delete Object Instance honors 2025 removal lifecycle",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records receive-order Remove Object Instance before its callback",
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
+        "cpp/tests/remove_object_instance_service_report_catch2.cpp::Embedded service reporting records receive-order Remove Object Instance before its callback",
+        "cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
       ]
     },
     {
       "id": "umbra-object-removal-preserves-user-supplied-tag",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
       "clause_id": "clause-6.16.4",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
       "source_symbol": "recipient.removeObjectInstance",
       "tests": [
         "cpp/tests/object_instance_deletion_catch2.cpp::Embedded receive-order Delete Object Instance honors 2025 removal lifecycle",
         "cpp/tests/delete_object_instance_service_report_catch2.cpp::Embedded service reporting preserves receive-order Delete Object Instance arguments",
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
+        "cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
       ]
     },
     {
       "id": "umbra-object-removal-identifies-producing-federate",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
       "clause_id": "clause-6.17.1",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp",
       "source_symbol": "recipient.removeObjectInstance",
       "tests": [
         "cpp/tests/object_instance_deletion_catch2.cpp::Embedded receive-order Delete Object Instance honors 2025 removal lifecycle",
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
+        "cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
       ]
     },
     {
       "id": "umbra-object-deletion-suppresses-invoker-removal",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
       "clause_id": "clause-6.17.1",
-      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source": "cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp",
       "source_symbol": "EmbeddedFederationRegistry::deleteObjectInstance",
       "tests": [
         "cpp/tests/object_instance_deletion_catch2.cpp::Embedded receive-order Delete Object Instance honors 2025 removal lifecycle",
-        "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
+        "cpp/tests/ieee1516_2025_connection_delete_object_instance_catch2.cpp::RTIambassador routes Delete Object Instance and removal callback through a configured process endpoint"
       ]
     }
   ]

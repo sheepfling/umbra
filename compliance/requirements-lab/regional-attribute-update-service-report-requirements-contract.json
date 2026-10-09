@@ -9,7 +9,7 @@
       "id": "umbra-regional-update-service-report-selects-configured-backend",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendSuccessfulVoidServiceReportToFileIfSelected",
       "tests": [
         "cpp/tests/ieee1516_2025_ordinary_regional_update_service_report_file_catch2.cpp::Embedded service reporting records regional Update Attribute Values before reflection callback",
@@ -21,7 +21,7 @@
       "id": "umbra-regional-update-service-report-failure-records-exception",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "tests": [
         "cpp/tests/ieee1516_2025_ordinary_regional_update_failure_file_catch2.cpp::Embedded service reporting records failed regional Update Attribute Values invocations",
@@ -33,10 +33,10 @@
       "id": "umbra-timestamped-regional-update-service-report-failure-records-exception",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp",
       "source_symbol": "UmbraRtiAmbassador::appendFailedServiceReportToFileIfSelected",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting records failed timestamped regional Update Attribute Values invocations"
+        "cpp/tests/ieee1516_2025_timestamped_regional_update_failure_service_report_file_catch2.cpp::Embedded service reporting records failed timestamped regional Update Attribute Values invocations"
       ],
       "notes": "The timestamped Update Attribute Values catch path records invalid-object, invalid-attribute, and invalid-logical-time invocations through the configured joined-federate filesystem after an explicit committed regional object/attribute association is established. The focused matrix preserves serials zero through two, type-37/type-2/type-63/type-31 supplied forms, Null returned arguments, false success indicators, exact public exception descriptions, and no callback delivery. The Lab has no row-level conditional failure relation (RL-152), so this remains C++ development-profile evidence rather than validation or conformance; accepted timestamped regional reporting, broader regional MOM delivery, lifecycle, transport, JUnit/protected review, and conformance remain separate claims."
     },
@@ -44,10 +44,10 @@
       "id": "umbra-timestamped-regional-update-service-report-failure-emits-mom-interaction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction"
+        "cpp/tests/ieee1516_2025_timestamped_regional_update_failure_mom_interaction_catch2.cpp::Embedded service reporting delivers failed timestamped regional Update Attribute Values invocations through MOM interaction"
       ],
       "notes": "The HLA_IMMEDIATE public MOM matrix delivers invalid-object, invalid-attribute, and invalid-logical-time timestamped Update Attribute Values failures after an explicit committed regional object/attribute association is established. It decodes object-management service type 2, type-37/type-2/type-63/type-31 supplied forms, Null returned arguments, false indicators, exact exception text, and serials zero through two, while no application reflection callback is claimed. The Requirements Lab has no row-level conditional failure relation (RL-152), so this is bounded C++ development-profile interaction evidence rather than validation or conformance; broader regional failure families and transport remain open."
     },
@@ -55,7 +55,7 @@
       "id": "umbra-timestamped-regional-update-service-report-success-emits-mom-interaction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_timestamped_regional_update_mom_interaction_catch2.cpp::Embedded service reporting delivers accepted timestamped regional Update Attribute Values through MOM interaction"
@@ -66,7 +66,7 @@
       "id": "umbra-regional-update-service-report-success-emits-mom-interaction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_ordinary_regional_update_mom_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Update Attribute Values through MOM interaction"
@@ -77,7 +77,7 @@
       "id": "umbra-regional-update-service-report-failure-emits-mom-interaction",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
       "clause_id": "clause-11.5",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp",
       "source_symbol": "UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_ordinary_regional_update_failure_mom_catch2.cpp::Embedded service reporting delivers failed ordinary regional Update Attribute Values invocations through MOM interaction"

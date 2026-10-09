@@ -9,7 +9,7 @@
       "id": "umbra-omt-variant-record-discriminant-data-type-kind",
       "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-095-l54-11",
       "clause_id": "clause-6.2.20",
-      "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
+      "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateVariantRecordDiscriminantDataTypeKinds",
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight requires enumerated data types for variant-record discriminants"

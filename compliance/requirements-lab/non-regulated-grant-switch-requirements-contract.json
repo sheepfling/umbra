@@ -9,11 +9,11 @@
       "id": "umbra-non-regulated-grant-switch-is-returned",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-283-l110-33",
       "clause_id": "clause-10.56.4",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_support_switches.cpp",
       "source_symbol": "UmbraRtiAmbassador::getNonRegulatedGrantSwitch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded NRG-enabled constrained TAR is released when its only regulator disables",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded additional FOM NRG metadata cannot change the static switch or TAR"
+        "cpp/tests/ieee1516_2025_embedded_time_management_catch2.cpp::Embedded NRG-enabled constrained TAR is released when its only regulator disables",
+        "cpp/tests/ieee1516_2025_non_regulated_grant_switch_catch2.cpp::Embedded additional FOM NRG metadata cannot change the static switch or TAR"
       ]
     }
   ]

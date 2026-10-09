@@ -9,11 +9,11 @@
       "id": "umbra-timed-save-request-eligibility",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l100-25",
       "clause_id": "clause-4.19",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_federation_save_restore.cpp",
       "source_symbol": "UmbraRtiAmbassador::requestFederationSave",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save requested during a TSO callback waits for in-transit delivery"
+        "cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
+        "cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp::Embedded timed federation save requested during a TSO callback waits for in-transit delivery"
       ]
     },
     {
@@ -23,24 +23,24 @@
       "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitTimedFederationSaveAtTimeAdvanceBoundary",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive available-advance boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save requested during a TSO callback waits for in-transit delivery"
+        "cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
+        "cpp/tests/ieee1516_2025_timed_save_available_admission_catch2.cpp::Embedded timed federation save uses an exclusive available-advance boundary",
+        "cpp/tests/ieee1516_2025_timed_save_next_message_admission_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
+        "cpp/tests/ieee1516_2025_timed_save_flush_queue_admission_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
+        "cpp/tests/ieee1516_2025_timed_save_per_member_tso_admission_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO",
+        "cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp::Embedded timed federation save requested during a TSO callback waits for in-transit delivery"
       ]
     },
     {
       "id": "umbra-timed-save-uses-each-member-tso-delivery-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-065-l109-26",
       "clause_id": "clause-4.19",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save requested during a TSO callback waits for in-transit delivery"
+        "cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
+        "cpp/tests/ieee1516_2025_timed_save_per_member_tso_admission_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO",
+        "cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp::Embedded timed federation save requested during a TSO callback waits for in-transit delivery"
       ]
     },
     {
@@ -50,10 +50,10 @@
       "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitTimedFederationSaveAtFlushQueueGrantBoundary",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members"
+        "cpp/tests/ieee1516_2025_timed_save_flush_queue_admission_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
+        "cpp/tests/ieee1516_2025_timed_save_mixed_fqr_tar_members_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_ordinary_boundary_before_flush_queue_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
+        "cpp/tests/ieee1516_2025_timed_save_all_advance_mode_admission_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members"
       ]
     },
     {
@@ -63,10 +63,10 @@
       "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitTimedFederationSaveAtGrantBoundary",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive available-advance boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits Available and next-message constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members"
+        "cpp/tests/ieee1516_2025_timed_save_available_admission_catch2.cpp::Embedded timed federation save uses an exclusive available-advance boundary",
+        "cpp/tests/ieee1516_2025_timed_save_next_message_admission_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
+        "cpp/tests/ieee1516_2025_timed_save_available_next_message_member_admission_catch2.cpp::Embedded timed federation save admits Available and next-message constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_all_advance_mode_admission_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members"
       ]
     },
     {
@@ -76,7 +76,7 @@
       "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitTimedFederationSaveAtGrantBoundary",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members"
+        "cpp/tests/ieee1516_2025_timed_save_all_advance_mode_admission_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members"
       ]
     },
     {
@@ -86,72 +86,72 @@
       "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::admitTimedFederationSaveAtTimeAdvanceBoundary",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every constrained member before non-constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits Available and next-message constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save requested during a TSO callback waits for in-transit delivery"
+        "cpp/tests/ieee1516_2025_timed_save_time_constrained_admission_catch2.cpp::Embedded timed federation save admits every constrained member before non-constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_mixed_fqr_tar_members_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_ordinary_boundary_before_flush_queue_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
+        "cpp/tests/ieee1516_2025_timed_save_available_next_message_member_admission_catch2.cpp::Embedded timed federation save admits Available and next-message constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_all_advance_mode_admission_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_per_member_tso_admission_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO",
+        "cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp::Embedded timed federation save requested during a TSO callback waits for in-transit delivery"
       ]
     },
     {
       "id": "umbra-timed-save-constrained-initiate-is-at-time-advance-boundary",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
       "clause_id": "clause-4.20",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every constrained member before non-constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive available-advance boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits Available and next-message constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save requested during a TSO callback waits for in-transit delivery"
+        "cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
+        "cpp/tests/ieee1516_2025_timed_save_time_constrained_admission_catch2.cpp::Embedded timed federation save admits every constrained member before non-constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_available_admission_catch2.cpp::Embedded timed federation save uses an exclusive available-advance boundary",
+        "cpp/tests/ieee1516_2025_timed_save_next_message_admission_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
+        "cpp/tests/ieee1516_2025_timed_save_flush_queue_admission_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
+        "cpp/tests/ieee1516_2025_timed_save_mixed_fqr_tar_members_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_ordinary_boundary_before_flush_queue_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
+        "cpp/tests/ieee1516_2025_timed_save_available_next_message_member_admission_catch2.cpp::Embedded timed federation save admits Available and next-message constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_all_advance_mode_admission_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_per_member_tso_admission_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO",
+        "cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp::Embedded timed federation save requested during a TSO callback waits for in-transit delivery"
       ]
     },
     {
       "id": "umbra-timed-save-constrained-initiate-observes-time-advancing-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l40-9",
       "clause_id": "clause-4.20",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every constrained member before non-constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive available-advance boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits Available and next-message constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save requested during a TSO callback waits for in-transit delivery"
+        "cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
+        "cpp/tests/ieee1516_2025_timed_save_time_constrained_admission_catch2.cpp::Embedded timed federation save admits every constrained member before non-constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_available_admission_catch2.cpp::Embedded timed federation save uses an exclusive available-advance boundary",
+        "cpp/tests/ieee1516_2025_timed_save_next_message_admission_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
+        "cpp/tests/ieee1516_2025_timed_save_flush_queue_admission_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
+        "cpp/tests/ieee1516_2025_timed_save_mixed_fqr_tar_members_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_ordinary_boundary_before_flush_queue_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
+        "cpp/tests/ieee1516_2025_timed_save_available_next_message_member_admission_catch2.cpp::Embedded timed federation save admits Available and next-message constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_all_advance_mode_admission_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_per_member_tso_admission_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO",
+        "cpp/tests/ieee1516_2025_timed_save_in_transit_tso_admission_catch2.cpp::Embedded timed federation save requested during a TSO callback waits for in-transit delivery"
       ]
     },
     {
       "id": "umbra-timed-save-uses-initiate-callback",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
       "clause_id": "clause-4.19.6",
-      "source": "cpp/src/internal/runtime/umbra_rti_ambassador.cpp",
+      "source": "cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp",
       "source_symbol": "makeTimeAdvanceGrantDispatch",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every constrained member before non-constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive available-advance boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits Available and next-message constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members",
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO"
+        "cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests",
+        "cpp/tests/ieee1516_2025_timed_save_time_constrained_admission_catch2.cpp::Embedded timed federation save admits every constrained member before non-constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_available_admission_catch2.cpp::Embedded timed federation save uses an exclusive available-advance boundary",
+        "cpp/tests/ieee1516_2025_timed_save_next_message_admission_catch2.cpp::Embedded timed federation save covers inclusive and exclusive next-message boundaries",
+        "cpp/tests/ieee1516_2025_timed_save_flush_queue_admission_catch2.cpp::Embedded timed federation save uses an exclusive Flush Queue grant boundary",
+        "cpp/tests/ieee1516_2025_timed_save_mixed_fqr_tar_members_catch2.cpp::Embedded timed federation save admits mixed Flush Queue and ordinary constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_ordinary_boundary_before_flush_queue_catch2.cpp::Embedded timed federation save can begin at an ordinary boundary before Flush Queue",
+        "cpp/tests/ieee1516_2025_timed_save_available_next_message_member_admission_catch2.cpp::Embedded timed federation save admits Available and next-message constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_all_advance_mode_admission_catch2.cpp::Embedded timed federation save admits every advance mode before non-constrained members",
+        "cpp/tests/ieee1516_2025_timed_save_per_member_tso_admission_catch2.cpp::Embedded timed federation save defers each constrained initiation for its queued TSO"
       ]
     },
     {
@@ -161,7 +161,7 @@
       "source": "cpp/src/internal/federation/federation_registry_save_control.cpp",
       "source_symbol": "EmbeddedFederationRegistry::requestFederationSave",
       "tests": [
-        "cpp/tests/ieee1516_2025_federation_management_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests"
+        "cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp::Embedded timed federation save waits for constrained TSO delivery and replaces pending requests"
       ]
     },
     {
