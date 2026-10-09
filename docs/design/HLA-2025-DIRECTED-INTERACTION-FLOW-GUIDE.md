@@ -12,10 +12,11 @@ more receiving federates. The target is not a recipient list.
 - **Umbra profiles surveyed:** embedded federation management and selected
   process-endpoint integration paths.
 - **Normative authority:** the [official IEEE 1516.1-2025 Federate Interface
-  Specification](https://standards.ieee.org/ieee/1516.1/6688/). Its C++ API
-  surfaces identify directed send as service 6.13/6.14 and the corresponding
-  receive callback as 6.15. Consult the standard itself for normative rules;
-  implementation and test links below describe Umbra behavior only.
+  Specification](https://standards.ieee.org/ieee/1516.1/6688/). The vendored
+  2025 C++ interface labels both `sendDirectedInteraction` overloads as 6.14
+  and `receiveDirectedInteraction` as 6.15. Consult the standard itself for
+  normative rules; implementation and test links below describe Umbra behavior
+  only.
 - **Evidence limit:** a focused passing test establishes its exercised
   scenario, not complete support or conformance. No Requirements Lab rows are
   created or changed by this guide.
@@ -113,8 +114,7 @@ sequenceDiagram
       Registry->>Registry: Do not add this receiver
     end
   end
-  SRTI-->>Sender: Service returns after send acceptance/planning
-  Note over RRTI,Receiver: Callback timing depends on HLA_EVOKED vs HLA_IMMEDIATE
+  Note over Sender,Receiver: HLA_IMMEDIATE may call back inline; HLA_EVOKED waits for callback evocation
   RRTI->>Registry: Recheck recipient and target at callback boundary
   alt Candidate remains eligible
     Registry-->>RRTI: Current target/class/selector projection
@@ -155,7 +155,8 @@ flowchart TD
   Route[Apply directed target-class publication and receiver selectors]
   Fanout{At least one accepted recipient?}
   Queue[Record TSO message and per-recipient retraction state]
-  NoRecipient[No recipient: no accepted delivery/retraction designator]
+  NoRecipient[No recipient accepted at send time]
+  Suppressed[This recipient's delivery is suppressed]
   Grant[Receiver advances far enough for TSO delivery]
   Recheck[Recheck target and recipient eligibility at delivery]
   Callback[Timestamped receiveDirectedInteraction]
@@ -165,7 +166,7 @@ flowchart TD
   Fanout -->|Yes| Queue
   Queue --> Grant --> Recheck
   Recheck -->|Still eligible| Callback
-  Recheck -->|Stale or no longer deliverable| NoRecipient
+  Recheck -->|Stale or no longer deliverable| Suppressed
   Queue -. producer may request retraction .-> Retract
 ```
 
